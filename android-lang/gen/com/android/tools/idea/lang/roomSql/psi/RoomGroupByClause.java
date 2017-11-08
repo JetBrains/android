@@ -25,6 +25,6 @@ import com.intellij.psi.PsiElement;
 public interface RoomGroupByClause extends PsiElement {
 
   @NotNull
-  List<RoomExpr> getExprList();
+  List<RoomExpression> getExpressionList();
 
 }

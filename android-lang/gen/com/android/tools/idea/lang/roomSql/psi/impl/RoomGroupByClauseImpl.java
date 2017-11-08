@@ -45,8 +45,8 @@ public class RoomGroupByClauseImpl extends ASTWrapperPsiElement implements RoomG
 
   @Override
   @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
+  public List<RoomExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpression.class);
   }
 
 }

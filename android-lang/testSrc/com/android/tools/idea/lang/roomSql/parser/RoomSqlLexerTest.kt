@@ -234,6 +234,12 @@ class RoomSqlLexerTest : TestCase() {
         ";" to SEMICOLON)
 
     assertTokenTypes(
+        """select x'blob'""",
+        "select" to SELECT,
+        SPACE,
+        "x'blob'" to SINGLE_QUOTE_STRING_LITERAL)
+
+    assertTokenTypes(
         """select 'unterminated string""",
         "select" to SELECT,
         SPACE,

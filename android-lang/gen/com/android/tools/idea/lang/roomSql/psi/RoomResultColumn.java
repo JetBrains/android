@@ -28,7 +28,7 @@ public interface RoomResultColumn extends PsiElement {
   RoomColumnAliasName getColumnAliasName();
 
   @Nullable
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
   @Nullable
   RoomTableName getTableName();

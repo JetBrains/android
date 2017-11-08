@@ -57,20 +57,14 @@ public class RoomColumnConstraintImpl extends ASTWrapperPsiElement implements Ro
 
   @Override
   @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findChildByClass(RoomExpression.class);
   }
 
   @Override
   @Nullable
   public RoomForeignKeyClause getForeignKeyClause() {
     return findChildByClass(RoomForeignKeyClause.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomLiteralValue getLiteralValue() {
-    return findChildByClass(RoomLiteralValue.class);
   }
 
   @Override
@@ -93,20 +87,14 @@ public class RoomColumnConstraintImpl extends ASTWrapperPsiElement implements Ro
 
   @Override
   @Nullable
-  public PsiElement getDoubleQuoteStringLiteral() {
-    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
-  }
-
-  @Override
-  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }
 
   @Override
   @Nullable
-  public PsiElement getSingleQuoteStringLiteral() {
-    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
+  public PsiElement getNumericLiteral() {
+    return findChildByType(NUMERIC_LITERAL);
   }
 
 }

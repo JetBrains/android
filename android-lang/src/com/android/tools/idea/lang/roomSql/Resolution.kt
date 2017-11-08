@@ -98,30 +98,30 @@ private fun pushNextElements(
         element.fromClause -> pushIfNotNull(element.parent) // Keep walking up the tree to find the schema in [RoomSqlFile].
         else -> pushIfNotNull(element.fromClause) // Reverse direction, start downwards traversal of the FROM clause.
       }
-      is RoomSelectStmt -> {
+      is RoomSelectStatement -> {
         // Visit the WITH clause before continuing up the tree.
         pushIfNotNull(element.parent)
         pushIfNotNull(element.withClause)
       }
-      is RoomDeleteStmt -> when (child) {
+      is RoomDeleteStatement -> when (child) {
         element.withClause -> pushIfNotNull(element.parent)
-        element.singleTableStmtTable -> {
+        element.singleTableStatementTable -> {
           // Visit the WITH clause before continuing up the tree.
           pushIfNotNull(element.parent)
           pushIfNotNull(element.withClause)
         }
-        else -> pushIfNotNull(element.singleTableStmtTable)
+        else -> pushIfNotNull(element.singleTableStatementTable)
       }
-      is RoomUpdateStmt -> when (child) {
+      is RoomUpdateStatement -> when (child) {
         element.withClause -> pushIfNotNull(element.parent)
-        element.singleTableStmtTable -> {
+        element.singleTableStatementTable -> {
           // Visit the WITH clause before continuing up the tree.
           pushIfNotNull(element.parent)
           pushIfNotNull(element.withClause)
         }
-        else -> pushIfNotNull(element.singleTableStmtTable)
+        else -> pushIfNotNull(element.singleTableStatementTable)
       }
-      is RoomInsertStmt -> when (child) {
+      is RoomInsertStatement -> when (child) {
         element.withClause -> pushIfNotNull(element.parent)
         else -> {
           // Visit the WITH clause before continuing up the tree.
@@ -138,7 +138,7 @@ private fun pushNextElements(
       }
       is RoomTableName -> {
         val parent = element.parent
-        if (parent is RoomFromTable || parent is RoomWithClauseTableDef || parent is RoomSingleTableStmtTable) {
+        if (parent is RoomFromTable || parent is RoomWithClauseTableDef || parent is RoomSingleTableStatementTable) {
           // [element] is part of a table definition that will try to resolve it when asked to create a [SqlTable]. To avoid this circular
           // dependency, skip some nodes and start walking once we are outside of the table definition.
           pushIfNotNull(PsiTreeUtil.getContextOfType(element, SqlTableElement::class.java)?.parent)
@@ -156,7 +156,7 @@ private fun pushNextElements(
  * A [SqlTable] that represents a given subquery. Keeps track of what columns are returned by the query. If the query "selects" an
  * expression without assigning it a column name, it's assumed to be unnamed and so will be ignored by the processors.
  */
-class SubqueryTable(private val selectStmt: RoomSelectStmt) : SqlTable {
+class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
   override val name get() = null
   override val definingElement get() = selectStmt
   override val isView: Boolean get() = true
@@ -167,8 +167,8 @@ class SubqueryTable(private val selectStmt: RoomSelectStmt) : SqlTable {
       val resultColumns = selectCore.selectCoreSelect?.resultColumns?.resultColumnList ?: continue
       columns@ for (resultColumn in resultColumns) {
         when {
-          resultColumn.expr is RoomColumnRefExpr -> { // SELECT id FROM ...
-            val columnRefExpr = resultColumn.expr as RoomColumnRefExpr
+          resultColumn.expression is RoomColumnRefExpression -> { // SELECT id FROM ...
+            val columnRefExpr = resultColumn.expression as RoomColumnRefExpression
             val referencedColumn = columnRefExpr.columnName.reference.resolveColumn()
             val sqlColumn = when {
               referencedColumn != null -> referencedColumn
@@ -181,8 +181,8 @@ class SubqueryTable(private val selectStmt: RoomSelectStmt) : SqlTable {
 
             if (!processor.process(wrapInAlias(sqlColumn, resultColumn.columnAliasName))) return false
           }
-          resultColumn.expr != null -> { // SELECT id * 2 FROM ...
-            if (!processor.process(wrapInAlias(ExprColumn(resultColumn.expr!!), resultColumn.columnAliasName))) return false
+          resultColumn.expression != null -> { // SELECT id * 2 FROM ...
+            if (!processor.process(wrapInAlias(ExprColumn(resultColumn.expression!!), resultColumn.columnAliasName))) return false
           }
           resultColumn.tableName != null -> { // "SELECT user.* FROM ..."
             val sqlTable = resultColumn.tableName?.reference?.resolveSqlTable() ?: continue@columns

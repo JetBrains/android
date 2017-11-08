@@ -70,7 +70,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT 'fulln<caret>ame' FROM User") List<String> getNames();
+          @Query("SELECT `fulln<caret>ame` FROM User") List<String> getNames();
         }
     """.trimIndent())
 
@@ -219,7 +219,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface OrderDao {
-          @Query("SELECT 'c<caret>ount' FROM 'Order'") List<Integer> getCounts();
+          @Query("SELECT `c<caret>ount` FROM 'Order'") List<Integer> getCounts();
         }
     """.trimIndent())
 
@@ -539,7 +539,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT 'user''s name' FROM User") List<String> getNames();
+          @Query("SELECT `user's name` FROM User") List<String> getNames();
         }
     """.trimIndent())
 
@@ -560,7 +560,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface ItemDao {
-          @Query("SELECT 'desc' FROM Item") List<String> getDescriptions();
+          @Query("SELECT `desc` FROM Item") List<String> getDescriptions();
         }
     """.trimIndent())
 

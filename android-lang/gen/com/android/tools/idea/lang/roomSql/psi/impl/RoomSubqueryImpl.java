@@ -46,8 +46,8 @@ public class RoomSubqueryImpl extends ASTWrapperPsiElement implements RoomSubque
 
   @Override
   @NotNull
-  public RoomSelectStmt getSelectStmt() {
-    return findNotNullChildByClass(RoomSelectStmt.class);
+  public RoomSelectStatement getSelectStatement() {
+    return findNotNullChildByClass(RoomSelectStatement.class);
   }
 
   @Override
