@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
@@ -50,11 +51,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
   private Consumer<ProfilingConfiguration> myOnCloseCallback;
 
   public CpuProfilingConfigurationsDialog(final Project project,
-                                          boolean isDeviceAtLeastO,
+                                          int deviceLevel,
                                           CpuProfilerConfigModel model,
                                           Consumer<ProfilingConfiguration> onCloseCallback,
                                           FeatureTracker featureTracker) {
-    super(project, new ProfilingConfigurable(project, model, isDeviceAtLeastO, featureTracker), IdeModalityType.IDE);
+    super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
     setHorizontalStretch(1.3F);
@@ -122,14 +123,17 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private CpuProfilerConfigModel myProfilerModel;
 
+    private int myDeviceLevel;
+
     public ProfilingConfigurable(Project project,
                                  CpuProfilerConfigModel model,
-                                 boolean isDeviceAtLeastO,
+                                 int deviceLevel,
                                  FeatureTracker featureTracker) {
       myProject = project;
       myFeatureTracker = featureTracker;
       myProfilerModel = model;
-      myProfilersPanel = new CpuProfilingConfigPanel(isDeviceAtLeastO);
+      myProfilersPanel = new CpuProfilingConfigPanel(myDeviceLevel >= AndroidVersion.VersionCodes.O);
+      myDeviceLevel = deviceLevel;
 
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
@@ -269,17 +273,20 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
         panel.setBackground(list.getBackground());
-
         String cellText = value.getName();
+        boolean meetLevelRequirements = value.getRequiredDeviceLevel() <= myDeviceLevel;
         if (index >= getCustomConfigurationCount()) {
           cellText += " - Default";
+        }
+        // TODO(b/69367377): Update the design for features that are supported outside the current device level.
+        if (!meetLevelRequirements) {
+          cellText += String.format(" (API Level %d+)", value.getRequiredDeviceLevel());
         }
         myLabel.setText(cellText);
         myLabel.setForeground(isSelected ? Gray._255 : JBColor.BLACK);
         if (isSelected) {
           panel.setBackground(ProfilerColors.CPU_PROFILING_CONFIGURATIONS_SELECTED);
         }
-
         panel.add(myLabel, BorderLayout.CENTER);
 
         return panel;
@@ -313,7 +320,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private void addConfiguration() {
         ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
                                                                           CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                          myDeviceLevel);
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration

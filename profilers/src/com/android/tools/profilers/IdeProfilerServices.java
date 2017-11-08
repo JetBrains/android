@@ -95,11 +95,11 @@ public interface IdeProfilerServices {
    * Open the dialog for managing the CPU profiling configurations.
    *
    * @param configuration    Profiling configuration to be selected when opening the dialog
-   * @param isDeviceAtLeastO Whether device API level is O or higher
+   * @param deviceLevel API level of the device
    * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
    *                         that was selected on the configurations list when the dialog was closed.
    */
-  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, boolean isDeviceAtLeastO,
+  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, int deviceLevel,
                                             Consumer<ProfilingConfiguration> dialogCallback);
 
   /**

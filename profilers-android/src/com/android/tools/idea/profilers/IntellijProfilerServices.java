@@ -206,10 +206,10 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, boolean isDeviceAtLeastO,
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> dialogCallback) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   isDeviceAtLeastO,
+                                                                                   deviceLevel,
                                                                                    model,
                                                                                    dialogCallback,
                                                                                    myFeatureTracker);

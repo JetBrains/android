@@ -24,6 +24,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -108,11 +109,48 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs.get(0).getMode()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED)
     assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
     assertThat(realConfigs.get(0).isDefault()).isTrue()
+    assertThat(realConfigs.get(0).getRequiredDeviceLevel()).isEqualTo(0);
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART)
     assertThat(realConfigs.get(1).getMode()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED)
     assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
     assertThat(realConfigs.get(1).isDefault()).isTrue()
+    assertThat(realConfigs.get(1).getRequiredDeviceLevel()).isEqualTo(0);
+  }
+
+  @Test
+  fun getAllConfigsReturnsNonDeviceSupportedConfigs() {
+    val model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage)
+    myServices.enableSimplePerf(true);
+    myServices.enableAtrace(true);
+    // Set a device that doesn't support simpleperf, or atrace
+    setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
+
+    var realConfigs = model.getAllProfilingConfigurations();
+    assertThat(realConfigs).hasSize(4);
+    // First actual configuration should be ART Sampled
+    assertThat(realConfigs.get(0).getProfilerType()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART);
+    assertThat(realConfigs.get(0).getMode()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(0).isDefault()).isTrue()
+    assertThat(realConfigs.get(0).getRequiredDeviceLevel()).isEqualTo(0);
+    // Second actual configuration should be ART Instrumented
+    assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART);
+    assertThat(realConfigs.get(1).getMode()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+    assertThat(realConfigs.get(1).isDefault()).isTrue()
+    assertThat(realConfigs.get(1).getRequiredDeviceLevel()).isEqualTo(0);
+
+    // Third configuration should be simpleperf
+    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    assertThat(realConfigs.get(2).getMode()).isEqualTo(com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+    assertThat(realConfigs.get(2).isDefault()).isTrue()
+    assertThat(realConfigs.get(2).getRequiredDeviceLevel()).isEqualTo(AndroidVersion.VersionCodes.O);
+    // Fourth should be atrace
+    assertThat(realConfigs.get(3).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE);
+    assertThat(realConfigs.get(3).isDefault()).isTrue()
+    assertThat(realConfigs.get(3).getRequiredDeviceLevel()).isEqualTo(AndroidVersion.VersionCodes.O);
   }
 
   @Test
