@@ -66,6 +66,8 @@
     <orderEntry type="module" module-name="instant-run-client" />
     <orderEntry type="module" module-name="instant-run-common" />
     <orderEntry type="library" name="jna" level="project" />
+    <orderEntry type="module" module-name="db-baseLibrary"/>
+    <orderEntry type="module" module-name="db-compilerCommon" />
     <orderEntry type="module" module-name="db-compiler" />
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="Gradle" level="project" />

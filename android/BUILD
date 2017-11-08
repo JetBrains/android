@@ -65,6 +65,8 @@ iml_module(
         "//tools/base/instant-run:studio.instant-run-client[module]",
         "//tools/base/instant-run:studio.instant-run-common[module]",
         "//tools/idea/.idea/libraries:jna",
+        "//tools/data-binding:studio.baseLibrary[module]",
+        "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/plugins/gradle[module]",
@@ -106,6 +108,7 @@ iml_module(
     test_data = [
         ":test_deps_repo.zip",
         ":android-gradle-1.5.0_repo_repo.zip",
+        "//tools/data-binding:data_binding_runtime_repo.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
