@@ -60,6 +60,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   public interface AvdRefreshProvider {
     void refreshAvds();
+    void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect);
     @Nullable Project getProject();
 
     @NotNull JComponent getComponent();
@@ -162,6 +163,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public void refreshAvds() {
     myRefreshProvider.refreshAvds();
+  }
+
+  @Override
+  public void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    myRefreshProvider.refreshAvdsAndSelect(avdToSelect);
   }
 
   @Nullable
