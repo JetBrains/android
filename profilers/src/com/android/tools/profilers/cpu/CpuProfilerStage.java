@@ -693,8 +693,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
     };
     Profiler.Device selectedDevice = getStudioProfilers().getDevice();
-    boolean isDeviceAtLeastO = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilerModel, isDeviceAtLeastO, dialogCallback);
+    int deviceFeatureLevel =  selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
+    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilerModel, deviceFeatureLevel, dialogCallback);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }
 
@@ -723,7 +723,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       configs.add(CONFIG_SEPARATOR_ENTRY);
       configs.addAll(customEntries);
     }
-
     configs.add(CONFIG_SEPARATOR_ENTRY);
     configs.addAll(myProfilerModel.getDefaultProfilingConfigurations());
     return configs;

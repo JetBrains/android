@@ -40,11 +40,13 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
    * The list of all custom configurations. The list is filtered to configurations that are available, however it does not
    * filter on device support.
    */
+  @NotNull
   private List<ProfilingConfiguration> myCustomProfilingConfigurations;
 
   /**
    * The list of all default configurations. This list is filtered on device compatibility as well as feature availability.
    */
+  @NotNull
   private List<ProfilingConfiguration> myDefaultProfilingConfigurations;
 
   /**
@@ -63,7 +65,8 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
 
   public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, CpuProfilerStage profilerStage) {
     myProfilers = profilers;
-
+    myCustomProfilingConfigurations = new ArrayList<>();
+    myDefaultProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
 
     profilerStage.getAspect().addDependency(myAspectObserver)
@@ -105,26 +108,29 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
     return myDefaultProfilingConfigurations;
   }
 
+  @NotNull
+  public List<ProfilingConfiguration> getAllProfilingConfigurations() {
+    List<ProfilingConfiguration> configs = new ArrayList<>();
+    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
+    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
+    configs.addAll(savedConfigs);
+    configs.addAll(defaultConfigs);
+
+    // We still need to filture out configs that are not enabled.
+    return filterConfigurations(configs, false);
+  }
+
   public void updateProfilingConfigurations() {
     List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
     List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
+    myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
+    myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
 
-    // Simpleperf/Atrace profiling is not supported by devices older than O
     Profiler.Device selectedDevice = myProfilers.getDevice();
-    boolean isDeviceAtLeastO = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-    boolean isSimplePerfEnabled = isDeviceAtLeastO && myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
-    boolean isAtraceEnabled = isDeviceAtLeastO && myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
-    Predicate<ProfilingConfiguration> filter = pref -> {
-      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-        return isSimplePerfEnabled;
-      }
-      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
-        return isAtraceEnabled;
-      }
-      return true;
-    };
-    myCustomProfilingConfigurations = savedConfigs.stream().filter(filter).collect(Collectors.toList());
-    myDefaultProfilingConfigurations = defaultConfigs.stream().filter(filter).collect(Collectors.toList());
+    // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
+    // causing a null pointer exception here.
+    boolean isSimplePerfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
+                                  myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
     if (myProfilingConfiguration == null) {
       // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
       // If there is a preference for a native configuration, we select simpleperf.
@@ -139,5 +145,23 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
                                                  && pref.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
       }
     }
+  }
+
+  private List<ProfilingConfiguration> filterConfigurations(List<ProfilingConfiguration> configurations, boolean filterOnDevice) {
+    // Simpleperf/Atrace profiling is not supported by devices older than O
+    Profiler.Device selectedDevice = myProfilers.getDevice();
+    Predicate<ProfilingConfiguration> filter = pref -> {
+      if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
+        return false;
+      }
+      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+        return myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+      }
+      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+        return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
+      }
+      return true;
+    };
+    return configurations.stream().filter(filter).collect(Collectors.toList());
   }
 }

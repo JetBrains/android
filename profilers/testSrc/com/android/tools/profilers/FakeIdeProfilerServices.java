@@ -200,7 +200,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, boolean isDeviceAtLeastO,
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> callbackDialog) {
     // No-op.
   }
