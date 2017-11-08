@@ -325,7 +325,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/tools/ddms/ddmlib/24.5.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/tools/dvlib/24.5.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/tools/external/com-intellij/uast/145.597.4:jar",
-        "//prebuilts/tools/common/m2/repository/com/android/tools/external/lombok/lombok-ast/0.2.3:jar",
         "//prebuilts/tools/common/m2/repository/com/android/tools/jack/jack-api/0.9.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/tools/jill/jill-api/0.9.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/tools/layoutlib/layoutlib-api/24.5.0:jar",
