@@ -213,6 +213,25 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     refreshErrorCheck();
   }
 
+  /**
+   * Reload AVD definitions from disk, repopulate the table,
+   * and select the indicated AVD
+   */
+  @Override
+  public void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    refreshAvds();
+    if (avdToSelect != null) {
+      for (AvdInfo listItem : myTable.getItems()) {
+        if (listItem.getName().equals(avdToSelect.getName())) {
+          ArrayList<AvdInfo> selectedAvds = new ArrayList<>();
+          selectedAvds.add(listItem);
+          myTable.setSelection(selectedAvds);
+          break;
+        }
+      }
+    }
+  }
+
   @Nullable
   @Override
   public Project getProject() {
@@ -321,7 +340,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private static Icon getIcon(@NotNull AvdInfo info) {
     String id = info.getTag().getId();
     String path;
-    if (id != null && id.contains("android-")) {
+    if (id.contains("android-")) {
       path = String.format("/studio/icons/avd/device-%s_large.png", id.substring("android-".length()));
       return IconLoader.getIcon(path, AvdDisplayList.class);
     } else {
@@ -371,7 +390,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
        * We override the comparator here to sort the AVDs by total number of pixels on the screen rather than the
        * default sort order (lexicographically by string representation)
        */
-      @Nullable
+      @NotNull
       @Override
       public Comparator<AvdInfo> getComparator() {
         return new Comparator<AvdInfo>() {
@@ -403,7 +422,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
        * We override the comparator here to sort the API levels numerically (when possible;
        * with preview platforms codenames are compared alphabetically)
        */
-      @Nullable
+      @NotNull
       @Override
       public Comparator<AvdInfo> getComparator() {
         final ApiLevelComparator comparator = new ApiLevelComparator();
@@ -416,7 +435,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdColumnInfo("Target") {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(AvdInfo info) {
         String result = "Android " + SdkVersionInfo.getVersionString(info.getAndroidVersion().getFeatureLevel());
@@ -427,7 +446,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
         return avdInfo.getCpuArch();
@@ -756,7 +775,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         // We're in the last cell of the table. Check whether we can cycle action buttons
         if (!myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), false)) {
           // At the end of action buttons. Remove selection and leave table.
-          myActionsColumnRenderer.getEditor(getAvdInfo()).stopCellEditing();
+          final TableCellEditor cellEditor = myActionsColumnRenderer.getEditor(getAvdInfo());
+          if (cellEditor != null) {
+            cellEditor.stopCellEditing();
+          }
           myTable.removeRowSelectionInterval(selectedRow, selectedRow);
           KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
           manager.focusNextComponent(myTable);
