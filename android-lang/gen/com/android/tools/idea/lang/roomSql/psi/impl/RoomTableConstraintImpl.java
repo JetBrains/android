@@ -57,8 +57,8 @@ public class RoomTableConstraintImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findChildByClass(RoomExpression.class);
   }
 
   @Override

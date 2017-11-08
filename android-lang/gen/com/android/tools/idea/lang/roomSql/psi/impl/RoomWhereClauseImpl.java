@@ -45,8 +45,8 @@ public class RoomWhereClauseImpl extends ASTWrapperPsiElement implements RoomWhe
 
   @Override
   @NotNull
-  public RoomExpr getExpr() {
-    return findNotNullChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findNotNullChildByClass(RoomExpression.class);
   }
 
 }

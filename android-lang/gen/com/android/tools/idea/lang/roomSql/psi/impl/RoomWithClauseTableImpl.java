@@ -46,8 +46,8 @@ public class RoomWithClauseTableImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @NotNull
-  public RoomSelectStmt getSelectStmt() {
-    return findNotNullChildByClass(RoomSelectStmt.class);
+  public RoomSelectStatement getSelectStatement() {
+    return findNotNullChildByClass(RoomSelectStatement.class);
   }
 
   @Override

@@ -23,12 +23,12 @@ import com.intellij.psi.PsiReference
 
 
 fun getReference(tableName: RoomTableName): RoomTablePsiReference {
-  return RoomTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStmtTable)
+  return RoomTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStatementTable)
 }
 
 fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
   val parent = columnName.parent
-  if (parent is RoomColumnRefExpr) {
+  if (parent is RoomColumnRefExpression) {
     val tableName = parent.tableName
     if (tableName != null) {
       return QualifiedColumnPsiReference(columnName, tableName)
@@ -49,14 +49,14 @@ fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
 }
 
 fun getSqlTable(subquery: RoomSubquery): SqlTable? {
-  val subqueryTable = SubqueryTable(subquery.selectStmt)
+  val subqueryTable = SubqueryTable(subquery.selectStatement)
   val alias = subquery.tableAliasName
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
 
 fun getSqlTable(withClauseTable: RoomWithClauseTable): SqlTable? {
   val tableName = withClauseTable.withClauseTableDef.tableDefName
-  return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStmt))
+  return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
 }
 
-fun getSqlTable(table: RoomSingleTableStmtTable): SqlTable? = table.tableName.reference.resolveSqlTable()
+fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.tableName.reference.resolveSqlTable()

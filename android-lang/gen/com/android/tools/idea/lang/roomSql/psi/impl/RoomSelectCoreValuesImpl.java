@@ -45,8 +45,8 @@ public class RoomSelectCoreValuesImpl extends ASTWrapperPsiElement implements Ro
 
   @Override
   @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
+  public List<RoomExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpression.class);
   }
 
 }

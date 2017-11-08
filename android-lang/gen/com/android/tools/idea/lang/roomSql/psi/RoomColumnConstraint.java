@@ -31,13 +31,10 @@ public interface RoomColumnConstraint extends PsiElement {
   RoomConflictClause getConflictClause();
 
   @Nullable
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
   @Nullable
   RoomForeignKeyClause getForeignKeyClause();
-
-  @Nullable
-  RoomLiteralValue getLiteralValue();
 
   @Nullable
   RoomSignedNumber getSignedNumber();
@@ -49,12 +46,9 @@ public interface RoomColumnConstraint extends PsiElement {
   PsiElement getBracketLiteral();
 
   @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
   PsiElement getIdentifier();
 
   @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+  PsiElement getNumericLiteral();
 
 }

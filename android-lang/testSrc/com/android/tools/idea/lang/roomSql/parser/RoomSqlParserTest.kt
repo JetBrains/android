@@ -156,19 +156,15 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("""CREATE TABLE "TABLE"("#!@""'☺\", "");""")
   }
 
-  fun testMultipleExpressions() {
-    check("select a from b where f(c); select 42")
-  }
-
   fun testErrorMessages() {
-    assertEquals("<stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
-    assertEquals("<expr> expected, got '?'", getErrorMessage("select * from User where id = ?"))
+    assertEquals("<statement> expected, got 'foo'", getErrorMessage("foo"))
+    assertEquals("<expression> expected, got '?'", getErrorMessage("select * from User where id = ?"))
   }
 
   fun testPragmas() {
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('auto_vacuum')
@@ -180,7 +176,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -193,7 +189,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -205,7 +201,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -217,7 +213,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -229,7 +225,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -241,7 +237,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -253,7 +249,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -265,7 +261,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -277,7 +273,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -289,7 +285,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -301,7 +297,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -313,7 +309,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -325,7 +321,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_keys')
@@ -337,7 +333,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('data_store_directory')
@@ -349,7 +345,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('encoding')
@@ -361,7 +357,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('foreign_key_check')
@@ -374,7 +370,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
     assertEquals("""
           FILE
-            RoomPragmaStmtImpl(PRAGMA_STMT)
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
               PsiElement(PRAGMA)('PRAGMA')
               RoomPragmaNameImpl(PRAGMA_NAME)
                 PsiElement(IDENTIFIER)('optimize')
@@ -384,5 +380,62 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
                   PsiElement(NUMERIC_LITERAL)('0xfffe')
           """.trimIndent(),
         toParseTreeText("PRAGMA optimize=0xfffe"))
+  }
+
+  fun testLiteralsAndIdentifiers() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('select')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''age'')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('from')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomTableNameImpl(TABLE_NAME)
+                          PsiElement(IDENTIFIER)('user')
+          """.trimIndent(),
+        toParseTreeText("select 'age' from user"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('select')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('age')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('from')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomTableNameImpl(TABLE_NAME)
+                          PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''user'')
+          """.trimIndent(),
+        toParseTreeText("select age from 'user'"))
+
+    assertEquals("""
+          FILE
+            RoomUpdateStatementImpl(UPDATE_STATEMENT)
+              PsiElement(UPDATE)('UPDATE')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomTableNameImpl(TABLE_NAME)
+                  PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''table'')
+              PsiElement(SET)('SET')
+              RoomColumnNameImpl(COLUMN_NAME)
+                PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''order'')
+              PsiElement(=)('=')
+              RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                PsiElement(NULL)('NULL')
+          """.trimIndent(),
+        toParseTreeText("UPDATE 'table' SET 'order' = NULL"))
   }
 }

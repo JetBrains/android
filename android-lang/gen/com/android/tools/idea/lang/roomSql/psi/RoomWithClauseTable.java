@@ -27,7 +27,7 @@ import com.android.tools.idea.lang.roomSql.SqlTable;
 public interface RoomWithClauseTable extends SqlTableElement {
 
   @NotNull
-  RoomSelectStmt getSelectStmt();
+  RoomSelectStatement getSelectStatement();
 
   @NotNull
   RoomWithClauseTableDef getWithClauseTableDef();

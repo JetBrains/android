@@ -25,6 +25,6 @@ import com.intellij.psi.PsiElement;
 public interface RoomWhereClause extends PsiElement {
 
   @NotNull
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
 }

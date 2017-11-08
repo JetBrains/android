@@ -31,7 +31,7 @@ public interface RoomTableConstraint extends PsiElement {
   RoomConflictClause getConflictClause();
 
   @Nullable
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
   @Nullable
   RoomForeignKeyClause getForeignKeyClause();
