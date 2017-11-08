@@ -20,12 +20,14 @@ import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationP
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.intellij.openapi.project.DumbService.DumbModeListener;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.mock.MockDumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.intellij.openapi.project.DumbService.DUMB_MODE;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -39,6 +41,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -51,6 +54,17 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(getProject(), myProjectInfo, mySyncState);
+    myIdeComponents = new IdeComponents(myProject);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
@@ -99,20 +113,55 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   }
 
   public void testIndexingSensitiveNotificationPanel() {
-    IndexingSensitiveNotificationPanel notificationPanel = new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test");
+    OurMockDumbService dumbService = new OurMockDumbService(myProject);
+
+    dumbService.setDumb(true);
+    IndexingSensitiveNotificationPanel initiallyInvisibleNotificationPanel =
+      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+    assertFalse(initiallyInvisibleNotificationPanel.isVisible());
+
+    dumbService.setDumb(false);
+    IndexingSensitiveNotificationPanel notificationPanel =
+      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
     assertTrue(notificationPanel.isVisible());
 
-    DumbModeListener publisher = myProject.getMessageBus().syncPublisher(DUMB_MODE);
-    publisher.enteredDumbMode();
+    dumbService.setDumb(true);
     assertFalse(notificationPanel.isVisible());
-    publisher.exitDumbMode();
+    dumbService.setDumb(false);
     assertTrue(notificationPanel.isVisible());
 
     // Must dispose the message bus connection
     Disposer.dispose(notificationPanel);
-    publisher.enteredDumbMode();
+    dumbService.setDumb(true);
     assertTrue(notificationPanel.isVisible());
-    publisher.exitDumbMode();
+    dumbService.setDumb(false);
     assertTrue(notificationPanel.isVisible());
+  }
+
+  private static class OurMockDumbService extends MockDumbService {
+    private boolean myDumb;
+    private DumbModeListener myPublisher;
+
+    public OurMockDumbService(@NotNull Project project) {
+      super(project);
+      myDumb = false;
+      myPublisher = project.getMessageBus().syncPublisher(DUMB_MODE);
+    }
+
+    public void setDumb(boolean dumb) {
+      if (dumb) {
+        myDumb = true;
+        myPublisher.enteredDumbMode();
+      }
+      else {
+        myDumb = false;
+        myPublisher.exitDumbMode();
+      }
+    }
+
+    @Override
+    public boolean isDumb() {
+      return myDumb;
+    }
   }
 }
