@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
@@ -251,5 +252,21 @@ public final class NlComponentTest extends AndroidTestCase {
                       "         android:inputType=\"textEmailAddress\"\n" +
                       "         />";
     assertEquals(expected, component.getTag().getText());
+  }
+
+  public void testIdFromMixin() {
+    XmlTag tag = mock(XmlTag.class);
+    when(tag.isValid()).thenReturn(true);
+    NlComponent component = new NlComponent(mock(NlModel.class), tag);
+
+    NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
+    when(mixin.getAttribute(ANDROID_URI, ATTR_ID)).thenReturn("@id/mixinId");
+    component.setMixin(mixin);
+    assertEquals("mixinId", component.getId());
+
+    when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
+    component = new NlComponent(mock(NlModel.class), tag);
+    component.setMixin(mixin);
+    assertEquals("componentId", component.getId());
   }
 }

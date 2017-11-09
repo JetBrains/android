@@ -84,9 +84,8 @@ public class GradleTaskFinder {
     List<String> tasks = new ArrayList<>();
 
     if (ASSEMBLE == buildMode) {
-      Project project = modules[0].getProject();
-      if (GradleSyncState.getInstance(project).lastSyncFailed()) {
-        // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
+      if (!canAssembleModules(modules)) {
+        // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         return Collections.singletonList(DEFAULT_ASSEMBLE_TASK_NAME);
       }
     }
@@ -108,6 +107,14 @@ public class GradleTaskFinder {
       getLogger().info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
     }
     return tasks;
+  }
+
+  private static boolean canAssembleModules(@NotNull Module[] modules) {
+    if (modules.length == 0) {
+      return false;
+    }
+    Project project = modules[0].getProject();
+    return !GradleSyncState.getInstance(project).lastSyncFailed();
   }
 
   private void findAndAddGradleBuildTasks(@NotNull Module module,

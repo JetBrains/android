@@ -93,7 +93,7 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT name")
+          @Query("SELECT <error descr="Cannot resolve symbol 'name'">name</error>")
           List<User> getUsersWithName();
         }
     """.trimIndent())
@@ -113,7 +113,7 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT madeup")
+          @Query("SELECT <error descr="Cannot resolve symbol 'madeup'">madeup</error> name")
           List<User> getUsersWithName();
         }
     """.trimIndent())
@@ -153,7 +153,27 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT madeup * 2 FROM (SELECT age AS n from user)")
+          @Query("SELECT <error descr="Cannot resolve symbol 'madeup'">madeup</error> * 2 FROM (SELECT age AS n from user)")
+          List<Integer> getNumbers();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testSubquery_validOuterQuery() {
+    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT n * 2 FROM (SELECT age AS n from user)")
           List<Integer> getNumbers();
         }
     """.trimIndent())
@@ -175,6 +195,130 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
         public interface UserDao {
           @Query("SELECT n * 2 FROM (SELECT <error>madeup</error> AS n from user)")
           List<Integer> getNumbers();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testDelete() {
+    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM user WHERE age > 18")
+          void deleteAdults();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM <error>foo</error> WHERE <error>bar</error> > 18")
+          void deleteAdults();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testUpdate() {
+    myFixture.addRoomEntity("com.example.User","age" ofType "int", "id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE user SET age = age+1 WHERE id=:id")
+          void birthday(int id);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE <error>foo</error> SET <error>bar</error> = <error>baz</error>+1 WHERE <error>quux</error> = :id")
+          void birthday(int id);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testInsert() {
+    myFixture.addRoomEntity("com.example.User","age" ofType "int", "id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH vals AS (SELECT :id, :age) INSERT INTO user SELECT * FROM vals")
+          void insert(int id, int age);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO user WITH vals AS (SELECT :id, :age) SELECT * FROM vals")
+          void insert(int id, int age);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO <error>foo</error> WITH vals AS (SELECT :id, :age) SELECT * FROM <error>bar</error>")
+          void insert(int id, int age);
         }
     """.trimIndent())
 

@@ -22,24 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomTypeName extends PsiElement {
+public interface RoomTypeName extends RoomNameElement {
 
   @NotNull
   List<RoomSignedNumber> getSignedNumberList();
-
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
 
 }

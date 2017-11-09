@@ -25,24 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface RoomTableOrSubquery extends PsiElement {
 
   @Nullable
-  RoomDatabaseName getDatabaseName();
+  RoomFromTable getFromTable();
 
   @Nullable
-  RoomIndexName getIndexName();
-
-  @Nullable
-  RoomJoinClause getJoinClause();
-
-  @Nullable
-  RoomSelectStmt getSelectStmt();
-
-  @Nullable
-  RoomTableAlias getTableAlias();
-
-  @Nullable
-  RoomTableName getTableName();
-
-  @NotNull
-  List<RoomTableOrSubquery> getTableOrSubqueryList();
+  RoomSubquery getSubquery();
 
 }

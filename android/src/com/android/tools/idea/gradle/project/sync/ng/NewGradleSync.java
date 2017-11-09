@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
@@ -49,16 +50,12 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final CachedProjectModels.Loader myProjectModelsCacheLoader;
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
-  public static boolean isEnabled() {
-    return isOptionVisible() && GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
-  }
-
   public static boolean isLevel4Model() {
     return isEnabled();
   }
 
-  public static boolean isOptionVisible() {
-    return SystemProperties.getBooleanProperty("show.new.sync.preference", true);
+  public static boolean isEnabled() {
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
   }
 
   public NewGradleSync(@NotNull Project project) {

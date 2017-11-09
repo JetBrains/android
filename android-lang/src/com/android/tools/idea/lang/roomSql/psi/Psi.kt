@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
-import com.android.tools.idea.lang.roomSql.ROOM_SQL_ICON
-import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
-import com.android.tools.idea.lang.roomSql.RoomSqlLanguage.INSTANCE
-import com.android.tools.idea.lang.roomSql.SqlContext
+import com.android.tools.idea.lang.roomSql.*
 import com.intellij.extapi.psi.PsiFileBase
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
-import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
+import com.intellij.util.Processor
+import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.uast.*
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, RoomSqlLanguage.INSTANCE) {
@@ -43,10 +42,26 @@ class RoomAstNodeType(debugName: String) : IElementType(debugName, RoomSqlLangua
 class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RoomSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
   override fun getIcon(flags: Int): Icon? = ROOM_SQL_ICON
+
+  val queryAnnotation: UAnnotation? get() {
+    val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
+    val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
+
+    return if (annotation.qualifiedName == QUERY_ANNOTATION_NAME) annotation else null
+  }
+
+  val queryMethod: UMethod? get() = queryAnnotation?.getParentOfType<UAnnotated>() as? UMethod
+
+  fun processTables(processor: Processor<SqlTable>): Boolean {
+    if (queryAnnotation != null) {
+      // We are inside a Room @Query annotation, let's use the Room schema.
+      val tables = RoomSchemaManager.getInstance(this)?.schema?.entities?: emptySet<SqlTable>()
+      return ContainerUtil.process(tables, processor)
+    }
+
+    return true
+  }
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
 
-interface QueryWithSqlContext : PsiElement {
-  val sqlContext: SqlContext?
-}

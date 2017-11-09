@@ -21,6 +21,7 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/uast/uast-common[module]",
+        "//tools/idea/platform/util[module]",
     ],
 )
 

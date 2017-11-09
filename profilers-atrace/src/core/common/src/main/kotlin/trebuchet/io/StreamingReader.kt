@@ -16,8 +16,6 @@
 
 package trebuchet.io
 
-import platform.*
-
 class StreamingReader(val source: BufferProducer, val keepLoadedSize: Int = 8096) : GenericByteBuffer {
     val windows = mutableListOf<Window>()
 
@@ -73,7 +71,7 @@ class StreamingReader(val source: BufferProducer, val keepLoadedSize: Int = 8096
         inline operator fun get(i: Int): Byte = slice[i - globalStartIndex]
     }
 
-    fun copyTo(tmpBuffer: DataBufferType, lineStartIndex: Int, lineEndIndex: Int) {
+    fun copyTo(tmpBuffer: ByteArray, lineStartIndex: Int, lineEndIndex: Int) {
         var srcIndex = lineStartIndex
         var dstIndex = 0
         while (srcIndex <= lineEndIndex && dstIndex < tmpBuffer.size) {

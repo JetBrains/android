@@ -16,18 +16,16 @@
 
 package trebuchet.io
 
-import platform.*
-
-data class DataSlice(var buffer: DataBufferType,
+data class DataSlice(var buffer: ByteArray,
                      var startIndex: Int,
                      var endIndex: Int) {
 
     companion object {
-        val EmptyBuffer = emptyDataBuffer()
+        val EmptyBuffer = ByteArray(0)
     }
 
     constructor() : this(EmptyBuffer, 0, 0)
-    constructor(buffer: DataBufferType) : this(buffer, 0, buffer.size)
+    constructor(buffer: ByteArray) : this(buffer, 0, buffer.size)
 
     @Suppress("NOTHING_TO_INLINE")
     inline operator fun get(i: Int): Byte = buffer[startIndex + i]
@@ -41,7 +39,7 @@ data class DataSlice(var buffer: DataBufferType,
 
     inline val length: Int get() = endIndex - startIndex
 
-    fun set(buffer: DataBufferType, startIndex: Int, endIndex: Int) {
+    fun set(buffer: ByteArray, startIndex: Int, endIndex: Int) {
         this.buffer = buffer
         this.startIndex = startIndex
         this.endIndex = endIndex
@@ -79,9 +77,7 @@ data class DataSlice(var buffer: DataBufferType,
         return hash
     }
 
-    override fun toString(): String {
-        return buffer.toString(startIndex, length)
-    }
+    override fun toString() = String(buffer, startIndex, length)
 
     fun compact(): DataSlice {
         if (length - buffer.size < 50) {
@@ -91,5 +87,5 @@ data class DataSlice(var buffer: DataBufferType,
     }
 }
 
-fun DataBufferType.asSlice(length: Int = this.size) = DataSlice(this, 0, length)
-fun String.asSlice() = DataSlice(this.toDataBuffer())
+fun ByteArray.asSlice(length: Int = this.size) = DataSlice(this, 0, length)
+fun String.asSlice() = DataSlice(this.toByteArray())

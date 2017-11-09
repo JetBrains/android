@@ -28,8 +28,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
 
-  lateinit var model : SyncNlModel
-  lateinit var propertiesManager : NavPropertiesManager
+  private lateinit var model : SyncNlModel
+  private lateinit var propertiesManager : NavPropertiesManager
 
   override fun setUp() {
     super.setUp()

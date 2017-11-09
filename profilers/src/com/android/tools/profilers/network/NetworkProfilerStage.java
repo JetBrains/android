@@ -95,7 +95,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
-    mySelectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    mySelectionModel = new SelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());

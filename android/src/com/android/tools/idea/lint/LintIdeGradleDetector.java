@@ -89,7 +89,7 @@ public class LintIdeGradleDetector extends GradleDetector {
   }
 
   @Override
-  public void visitBuildScript(@NonNull final Context context, Map<String, Object> sharedData) {
+  public void visitBuildScript(@NonNull final Context context) {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {

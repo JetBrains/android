@@ -28,4 +28,6 @@ public interface NavDestinationElement extends AndroidDomElement {
   List<NavActionElement> getActions();
 
   List<DeeplinkElement> getDeeplinks();
+
+  List<ArgumentElement> getArguments();
 }

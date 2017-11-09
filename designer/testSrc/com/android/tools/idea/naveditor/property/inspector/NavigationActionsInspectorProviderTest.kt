@@ -24,7 +24,10 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.components.JBList
 import org.mockito.Mockito.*
+import java.awt.Component
+import java.awt.Container
 
 class NavigationActionsInspectorProviderTest: NavigationTestCase() {
   fun testIsApplicable() {
@@ -52,12 +55,11 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
     val model = model("nav.xml",
         rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
-                .withLayoutAttribute("activty_main")
                 .unboundedChildren(
                     actionComponent("a1").withDestinationAttribute("f2"),
-                    actionComponent("a1").withDestinationAttribute("a1")),
+                    actionComponent("a2").withDestinationAttribute("activity")),
             fragmentComponent("f2"),
-            activityComponent("a1")))
+            activityComponent("activity")))
         .build()
 
     val manager = mock(NavPropertiesManager::class.java)
@@ -69,6 +71,19 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
     val panel = NavInspectorPanel(myRootDisposable)
     panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
-    assertNotNull(panel.components[0])
+    @Suppress("UNCHECKED_CAST")
+    val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
+
+    assertEquals(2, actionsList.itemsCount)
+    val propertiesList = listOf(actionsList.model.getElementAt(0), actionsList.model.getElementAt(1))
+    assertSameElements(propertiesList.map { it.components[0].id }, listOf("a1", "a2"))
+    assertSameElements(propertiesList.map { it.name }, listOf("f2", "activity"))
   }
+}
+
+private fun flatten(component: Component): List<Component> {
+  if (component !is Container) {
+    return listOf(component)
+  }
+  return component.components.flatMap { flatten(it) }.plus(component)
 }

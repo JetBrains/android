@@ -77,7 +77,7 @@ public class DestinationListTest extends NavigationTestCase {
     }
   }
 
-  public void testSelection() throws Exception {
+  public void testSelection() {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     list.setToolContext(myModel.getSurface());
@@ -112,7 +112,7 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals(selection, modelSelectionModel.getSelection());
   }
 
-  public void testSubflow() throws Exception {
+  public void testSubflow() {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     list.setToolContext(myModel.getSurface());
@@ -127,7 +127,7 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals(selection, modelSelectionModel.getSelection());
   }
 
-  public void testModifyModel() throws Exception {
+  public void testModifyModel() {
     ComponentDescriptor root = rootComponent("root").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"));
@@ -161,14 +161,14 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals(fragment3, list.mySelectionModel.getSelection());
   }
 
-  public void testDoubleClickActivity() throws Exception {
+  public void testDoubleClickActivity() {
     NlComponent nlComponent = myModel.find("fragment2");
     myModel.getSurface().getSelectionModel().setSelection(ImmutableList.of(nlComponent));
     myList.myList.dispatchEvent(new MouseEvent(myList.myList, MouseEvent.MOUSE_CLICKED, 1, 0, 0, 0, 2, false));
     verify((NavDesignSurface)myModel.getSurface()).notifyComponentActivate(nlComponent);
   }
 
-  public void testBack() throws Exception {
+  public void testBack() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(
                                 navigationComponent("subnav")
@@ -211,7 +211,7 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals("sub nav", list.myBackLabel.getText());
   }
 
-  public void testRendering() throws Exception {
+  public void testRendering() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),

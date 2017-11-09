@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,10 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private ActionToolbar myNorthEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
 
-  public ActionsToolbar(DesignSurface surface) {
+  public ActionsToolbar(@Nullable Disposable parent, DesignSurface surface) {
+    if (parent != null) {
+      Disposer.register(parent, this);
+    }
     mySurface = surface;
   }
 

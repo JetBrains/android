@@ -18,6 +18,8 @@ package trebuchet.importers.ftrace
 
 import trebuchet.io.DataSlice
 import trebuchet.io.asSlice
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 
 interface ParseFunction {
@@ -32,6 +34,8 @@ abstract class FunctionHandlerRegistry(val handlers: MutableList<FunctionHandler
             override fun invoke(data: ImportData) = func(data)
         }))
     }
+
+    protected fun matcher(pattern: String): Matcher = Pattern.compile(pattern).matcher("")
 }
 
 object FunctionRegistry {

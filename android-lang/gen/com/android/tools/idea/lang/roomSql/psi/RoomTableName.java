@@ -21,11 +21,11 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
+import com.android.tools.idea.lang.roomSql.RoomTablePsiReference;
 
 public interface RoomTableName extends RoomNameElement {
 
-  @Nullable
-  PsiReference getReference();
+  @NotNull
+  RoomTablePsiReference getReference();
 
 }

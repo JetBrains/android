@@ -51,8 +51,8 @@ public class RoomJoinConstraintImpl extends ASTWrapperPsiElement implements Room
 
   @Override
   @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findChildByClass(RoomExpression.class);
   }
 
 }

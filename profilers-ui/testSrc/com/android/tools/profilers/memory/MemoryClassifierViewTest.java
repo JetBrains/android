@@ -44,17 +44,18 @@ public class MemoryClassifierViewTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
 
+  private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
 
   @Before
   public void before() {
-    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
+    myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices), loader);
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices), loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
   }
 
@@ -832,6 +833,21 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_9, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Displays snapshot at {10,10}
+    myFakeIdeProfilerServices.enableMemorySnapshot(true);
+    selectionRange.set(captureStartTime + 9, captureStartTime + 9);
+    Queue<String> expected_snapshot_3 = new LinkedList<>();
+    expected_snapshot_3.add(String.format(nodeFormat, "default heap", 2, 0, 2, 2));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "This", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "That", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_snapshot_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
   }
 
   @Test
@@ -943,12 +959,18 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_9, 0);
     assertThat(myStage.getSelectedInstanceObject()).isNull();
 
-
     // Shrink to empty range
+    myFakeIdeProfilerServices.enableMemorySnapshot(true);
     selectionRange.set(captureStartTime + 3, captureStartTime + 3);
-    Queue<String> expected_3_to_3 = new LinkedList<>();
-    expected_3_to_3.add(String.format(nodeFormat, "default heap", 0, 0, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_3, 0);
+    Queue<String> expected_snapshot_3 = new LinkedList<>();
+    expected_snapshot_3.add(String.format(nodeFormat, "default heap", 2, 0, 2, 2));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "This", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "That", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_snapshot_3, 0);
 
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();

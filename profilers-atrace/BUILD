@@ -6,7 +6,6 @@ iml_module(
     srcs = [
         "src/core/common/src/main/kotlin",
         "src/core/model/src/main/kotlin",
-        "src/platform/jvm/src/main/kotlin",
     ],
     iml_files = ["profilers-atrace.iml"],
     tags = ["managed"],

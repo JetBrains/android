@@ -28,11 +28,6 @@ class DependencyManagementException(override val message: String, val errorCode:
      */
     MALFORMED_PROJECT,
     /**
-     * The requested operation is not supported.
-     * (e.g. The underlying build system does not support the type of operation requested.)
-     */
-    UNSUPPORTED,
-    /**
      * The build system is not ready to perform the requested operation.
      * (e.g. A sync in progress or a project that has not yet been fully initialized.)
      */
@@ -40,6 +35,10 @@ class DependencyManagementException(override val message: String, val errorCode:
     /**
      * The given source context is not a valid source context of the project.
      */
-    BAD_SOURCE_CONTEXT
+    BAD_SOURCE_CONTEXT,
+    /**
+     * The artifact of the requested operation could not be processed by the build system due to bad artifact properties.
+     */
+    INVALID_ARTIFACT
   }
 }

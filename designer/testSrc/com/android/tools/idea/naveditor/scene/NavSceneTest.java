@@ -130,7 +130,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavigationBackground,710x450x100x25\n" +
                  "DrawTextRegion,710,450,100,25,0,17,true,false,4,4,30,0.5,\"myCoolLabel\"\n" +
                  "DrawNavigationFrame,710x450x100x25,false,false\n" +
-                 "DrawScreenLabel,710,446,\n" +
+                 "DrawScreenLabel,710,446,nav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }

@@ -39,8 +39,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_
 
 public abstract class NavigationTestCase extends AndroidTestCase {
 
-  public static final String TAG_FRAGMENT = "fragment";
-  public static final String TAG_NAVIGATION = "navigation";
+  protected static final String TAG_NAVIGATION = "navigation";
   private static final String PREBUILT_AAR_PATH =
     "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
   private CodeStyleSettings mySettings;

@@ -27,7 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.intellij.psi.PsiReference;
+import com.android.tools.idea.lang.roomSql.RoomTablePsiReference;
 
 public class RoomTableNameImpl extends AbstractRoomNameElement implements RoomTableName {
 
@@ -44,8 +44,8 @@ public class RoomTableNameImpl extends AbstractRoomNameElement implements RoomTa
     else super.accept(visitor);
   }
 
-  @Nullable
-  public PsiReference getReference() {
+  @NotNull
+  public RoomTablePsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

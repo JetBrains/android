@@ -154,6 +154,9 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+    AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
+    // Confirm that the repository will be added to project build file (b/68657672)
+    assertThat(addQuickFix.getBuildFile()).isEqualTo(GradleBuildModel.get(getProject()).getVirtualFile());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);

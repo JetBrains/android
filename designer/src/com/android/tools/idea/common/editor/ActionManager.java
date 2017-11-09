@@ -41,7 +41,7 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  public abstract void registerActionsShorcuts(@NotNull JComponent component);
+  public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   protected static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
     action.registerCustomShortcutSet(
@@ -59,7 +59,7 @@ public abstract class ActionManager<S extends DesignSurface> {
 
   @NotNull
   protected ActionsToolbar createActionsToolbar() {
-    return new ActionsToolbar(mySurface);
+    return new ActionsToolbar(mySurface, mySurface);
   }
 
   public void showPopup(@NotNull MouseEvent event) {
@@ -87,8 +87,8 @@ public abstract class ActionManager<S extends DesignSurface> {
 
   @NotNull
   abstract protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                             @Nullable NlComponent leafComponent);
+                                                        @Nullable NlComponent leafComponent);
 
   public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
-                         @NotNull java.util.List<NlComponent> newSelection, boolean toolbar);
+                                  @NotNull java.util.List<NlComponent> newSelection, boolean toolbar);
 }

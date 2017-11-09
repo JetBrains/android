@@ -86,6 +86,28 @@ public class DragCreateActionTest extends NavigationTestCase {
     verifyModel(model, expected);
   }
 
+  public void testDragCreateToInclude() {
+    SyncNlModel model = model("nav.xml",
+                              rootComponent("root").unboundedChildren(
+                                fragmentComponent(FRAGMENT1),
+                                includeComponent("navigation"))).build();
+
+    NavDesignSurface surface = initializeNavDesignSurface(model);
+    Scene scene = initializeScene(surface);
+    InteractionManager interactionManager = initializeInteractionManager(surface);
+
+    SceneComponent component = scene.getSceneComponent("nav");
+    dragFromActionHandle(interactionManager, scene.getSceneComponent(FRAGMENT1), component.getCenterX(), component.getCenterY(),
+                         surface.getCurrentSceneView());
+
+    String expected = "NlComponent{tag=<navigation>, instance=0}\n" +
+                      "    NlComponent{tag=<fragment>, instance=1}\n" +
+                      "        NlComponent{tag=<action>, instance=2}\n" +
+                      "    NlComponent{tag=<include>, instance=3}";
+
+    verifyModel(model, expected);
+  }
+
   public void testDragAbandon() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(

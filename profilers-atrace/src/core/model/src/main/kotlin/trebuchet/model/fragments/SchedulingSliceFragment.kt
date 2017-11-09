@@ -16,10 +16,13 @@
 
 package trebuchet.model.fragments
 
+import trebuchet.model.SchedSlice
 import trebuchet.model.SchedulingState
+import trebuchet.model.base.Slice
 
-class SchedulingSliceFragment(val state: SchedulingState, val start: Double) {
-    var end: Double? = null
+class SchedulingSliceFragment(override val state: SchedulingState, override val startTime: Double)
+        : SchedSlice {
+    override var endTime: Double = Double.MAX_VALUE
     var blockedReason: String? = null
 
     class Builder {
@@ -28,9 +31,16 @@ class SchedulingSliceFragment(val state: SchedulingState, val start: Double) {
 
         fun switchState(newState: SchedulingState, timestamp: Double) {
             if (_slices.isNotEmpty()) {
-                _slices.last().end = timestamp
+                if (_slices.last().state == newState) {
+                    // Nothing to do
+                    return
+                }
+                _slices.last().endTime = timestamp
             }
             _slices.add(SchedulingSliceFragment(newState, timestamp))
         }
     }
+
+    override val name: String get() = state.friendlyName
+    override val didNotFinish: Boolean get() = false
 }

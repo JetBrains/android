@@ -45,7 +45,7 @@ class NavComponentHelperTest {
   fun testUiNameWithResources() {
     val resolver = mock(ResourceResolver::class.java)
     val value = mock(ResourceValue::class.java)
-    `when`(value.getValue()).thenReturn("resolvedValue")
+    `when`(value.value).thenReturn("resolvedValue")
     `when`(resolver.findResValue("myLabel", false)).thenReturn(value)
     `when`(resolver.resolveResValue(value)).thenReturn(value)
 

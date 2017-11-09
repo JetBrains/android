@@ -17,7 +17,9 @@ package com.android.tools.profilers.cpu;
 
 public enum CpuProfilerAspect {
   // The capture state (e.g. capturing, parsing, set new capture) has changed.
-  CAPTURE,
+  CAPTURE_STATE,
+  // The selected capture has changed.
+  CAPTURE_SELECTION,
   // The threads selection has changed.
   SELECTED_THREADS,
   // The capture details has changed, e.g the user selected "Bottom Up" or "Top Down" tab.

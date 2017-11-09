@@ -20,6 +20,8 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 /**
  * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
@@ -45,5 +47,19 @@ public abstract class BooleanExpression extends Expression<Boolean> implements O
   @Override
   public final ObservableBool and(@NotNull ObservableValue<Boolean> other) {
     return new AndExpression(this, other);
+  }
+
+  /**
+   * Allows boolean expressions to be created using lambda syntax.
+   */
+  @NotNull
+  public static BooleanExpression create(Supplier<Boolean> valueSupplier, ObservableValue... values) {
+    return new BooleanExpression(values) {
+      @Override
+      @NotNull
+      public Boolean get() {
+        return valueSupplier.get();
+      }
+    };
   }
 }

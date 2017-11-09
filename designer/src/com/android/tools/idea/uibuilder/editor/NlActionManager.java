@@ -79,7 +79,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * </ul>
    */
   @Override
-  public void registerActionsShorcuts(@NotNull JComponent component) {
+  public void registerActionsShortcuts(@NotNull JComponent component) {
     if (mySelectAllAction == null) {
       mySelectAllAction = new SelectAllAction(mySurface);
       myGotoComponentAction = new GotoComponentAction(mySurface);

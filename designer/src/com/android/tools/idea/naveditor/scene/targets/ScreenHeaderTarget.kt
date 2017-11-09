@@ -25,7 +25,6 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawScreenLabel
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
 import java.awt.Rectangle
 
@@ -38,7 +37,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
 
   private val hasDeepLink: Boolean
     get() {
-      return component.nlComponent.children?.any { it.tagName == NavigationSchema.TAG_DEEPLINK } ?: false
+      return component.nlComponent.children?.any { it.tagName == SdkConstants.TAG_DEEPLINK } ?: false
     }
 
   private val isStartDestination: Boolean

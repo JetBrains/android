@@ -102,8 +102,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     );
   }
 
-  public void testCreateFontUsingLevel26() throws Exception {
-    setMinSdk("26");
+  public void testCreateFontUsingLevel28() throws Exception {
+    setMinSdk("28");
 
     FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80, true);
     String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
@@ -120,31 +120,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     ));
   }
 
-  public void testCreateFontUsingPreviewO() throws Exception {
-    setMinSdk("O");
-
-    FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80, true);
-    String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
-    UIUtil.dispatchAllInvocationEvents();
-    assertThat(newValue).isEqualTo("@font/alegreya_sans_sc");
-    assertThat(getFontFileContent("alegreya_sans_sc.xml")).isEqualTo(String.format(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
-      "        xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-      "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        android:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
-      "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\"%n" +
-      "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"name=Alegreya Sans SC&amp;weight=900&amp;italic=1&amp;width=80\"%n" +
-      "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
-      "</font-family>%n"
-    ));
-  }
-
   public void testCreateMultipleFiles() throws Exception {
-    setMinSdk("26");
+    setMinSdk("28");
 
     myCreator.createFontFamily(createFontDetail("Roboto", 400, 100, false), "roboto", true);
     myCreator.createFontFamily(createFontDetail("Alegreya Sans SC", 900, 80, true), "alegreya_sans_sc", true);
@@ -208,8 +185,8 @@ public class FontFamilyCreatorTest extends FontTestCase {
     ));
     assertThat(myFacet.getManifest().getXmlTag().getText()).isEqualTo(
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-      "    <uses-sdk android:minSdkVersion=\"26\"\n" +
-      "              android:targetSdkVersion=\"26\" />\n" +
+      "    <uses-sdk android:minSdkVersion=\"28\"\n" +
+      "              android:targetSdkVersion=\"28\" />\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
       "        <meta-data\n" +
       "            android:name=\"preloaded_fonts\"\n" +
