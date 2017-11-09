@@ -39,7 +39,7 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
 
       private fun checkReference(referenceElement: PsiElement) {
         // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
-        if ((referenceElement.containingFile as RoomSqlFile).queryAnnotation == null) return
+        if ((referenceElement.containingFile as? RoomSqlFile)?.queryAnnotation == null) return
 
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
