@@ -20,7 +20,7 @@
   <vendor>Google</vendor>
   <description>Provides a parser implementation for gradle DSL buildfiles</description>
 
-  <idea-version since-build="107.105"/>
+  <idea-version since-build="145.597"/>
 
   <extensions defaultExtensionNs="com.android.tools">
     <gradleModelProvider implementation="com.android.tools.idea.gradle.dsl.api.GradleModelSource"/>

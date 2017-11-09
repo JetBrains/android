@@ -61,7 +61,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
@@ -213,7 +214,8 @@ public final class GradleDslParser {
 
       @Override
       public void visitVariableDeclaration(@NotNull GrVariableDeclaration variableDeclaration) {
-        parse(variableDeclaration, blockElement); }
+        parse(variableDeclaration, blockElement);
+      }
     });
   }
 
@@ -250,33 +252,37 @@ public final class GradleDslParser {
     }
 
     String propertyName = nameSegments.get(nameSegments.size() - 1);
+    // TODO: This code highly restricts the arguments allowed in an application statement. Fix this.
     GradleDslElement propertyElement = null;
-    if (arguments.length == 1) {
-      GroovyPsiElement element = arguments[0];
-      if (element instanceof GrExpression) {
-        propertyElement = getExpressionElement(blockElement, argumentList, propertyName, (GrExpression)element);
-      }
-      else if (element instanceof GrNamedArgument) {// ex: manifestPlaceholders activityLabel:"defaultName"
-        propertyElement = getExpressionMap(blockElement, argumentList, propertyName, (GrNamedArgument)element);
-      }
-    }
-    else {
-      if (arguments[0] instanceof GrExpression) { // ex: proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-        GrExpression[] expressions = new GrExpression[arguments.length];
-        for (int i = 0; i < expressions.length; i++) {
-          expressions[i] = (GrExpression)arguments[i];
+    if (arguments[0] instanceof GrExpression) { // ex: proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+      List<GrExpression> expressions = new ArrayList<>(arguments.length);
+      for (GroovyPsiElement element : arguments) {
+        // We need to make sure all of these are GrExpressions, there can be multiple types.
+        // We currently can't handle different argument types.
+        if (element instanceof GrExpression) {
+          expressions.add((GrExpression)element);
         }
+      }
+      if (expressions.size() == 1) {
+        propertyElement = getExpressionElement(blockElement, argumentList, propertyName, expressions.get(0));
+      }
+      else {
         propertyElement = getExpressionList(blockElement, argumentList, propertyName, expressions);
       }
-      else if (arguments[0] instanceof GrNamedArgument) {
-        // ex: manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
-        GrNamedArgument[] namedArguments = new GrNamedArgument[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-          namedArguments[i] = (GrNamedArgument)arguments[i];
-        }
-        propertyElement = getExpressionMap(blockElement, argumentList, propertyName, namedArguments);
-      }
     }
+    else if (arguments[0] instanceof GrNamedArgument) {
+      // ex: manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+      List<GrNamedArgument> namedArguments = new ArrayList<>(arguments.length);
+      for (GroovyPsiElement element : arguments) {
+        // We need to make sure all of these are GrNamedArgument, there can be multiple types.
+        // We currently can't handle different argument types.
+        if (element instanceof GrNamedArgument) {
+          namedArguments.add((GrNamedArgument)element);
+        }
+      }
+      propertyElement = getExpressionMap(blockElement, argumentList, propertyName, namedArguments);
+    }
+
     if (propertyElement == null) {
       return false;
     }
@@ -303,10 +309,10 @@ public final class GradleDslParser {
     if (expression instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)expression;
       if (listOrMap.isMap()) { // ex: manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-        propertyElement = getExpressionMap(parent, listOrMap, name, listOrMap.getNamedArguments());
+        propertyElement = getExpressionMap(parent, listOrMap, name, Arrays.asList(listOrMap.getNamedArguments()));
       }
       else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-        propertyElement = getExpressionList(parent, listOrMap, name, listOrMap.getInitializers());
+        propertyElement = getExpressionList(parent, listOrMap, name, Arrays.asList(listOrMap.getInitializers()));
       }
     }
     else {
@@ -327,7 +333,7 @@ public final class GradleDslParser {
       }
 
       GradleDslElement variableElement =
-          createExpressionElement(blockElement, declaration, variable.getName(), variable.getInitializerGroovy());
+        createExpressionElement(blockElement, declaration, variable.getName(), variable.getInitializerGroovy());
       if (variableElement == null) {
         return false;
       }
@@ -434,7 +440,8 @@ public final class GradleDslParser {
       if (expression instanceof GrListOrMap) {
         GrListOrMap listOrMap = (GrListOrMap)expression;
         if (listOrMap.isMap()) {
-          methodCall.addParsedExpressionMap(getExpressionMap(methodCall, expression, propertyName, listOrMap.getNamedArguments()));
+          methodCall
+            .addParsedExpressionMap(getExpressionMap(methodCall, expression, propertyName, Arrays.asList(listOrMap.getNamedArguments())));
         }
         else {
           for (GrExpression grExpression : listOrMap.getInitializers()) {
@@ -458,7 +465,7 @@ public final class GradleDslParser {
 
     GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
     if (namedArguments.length > 0) {
-      methodCall.addParsedExpressionMap(getExpressionMap(methodCall, argumentList, propertyName, namedArguments));
+      methodCall.addParsedExpressionMap(getExpressionMap(methodCall, argumentList, propertyName, Arrays.asList(namedArguments)));
     }
 
     return methodCall;
@@ -498,7 +505,7 @@ public final class GradleDslParser {
   private static GradleDslExpressionList getExpressionList(@NotNull GradleDslElement parentElement,
                                                            @NotNull GroovyPsiElement listPsiElement, // GrArgumentList or GrListOrMap
                                                            @NotNull String propertyName,
-                                                           @NotNull GrExpression... propertyExpressions) {
+                                                           @NotNull List<GrExpression> propertyExpressions) {
     GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, propertyName);
     for (GrExpression expression : propertyExpressions) {
       GradleDslExpression expressionElement = getExpressionElement(expressionList, listPsiElement, propertyName, expression);
@@ -513,7 +520,7 @@ public final class GradleDslParser {
   private static GradleDslExpressionMap getExpressionMap(@NotNull GradleDslElement parentElement,
                                                          @NotNull GroovyPsiElement mapPsiElement, // GrArgumentList or GrListOrMap
                                                          @NotNull String propertyName,
-                                                         @NotNull GrNamedArgument... namedArguments) {
+                                                         @NotNull List<GrNamedArgument> namedArguments) {
     GradleDslExpressionMap expressionMap = new GradleDslExpressionMap(parentElement, mapPsiElement, propertyName);
     for (GrNamedArgument namedArgument : namedArguments) {
       String argName = namedArgument.getLabelName();
@@ -528,10 +535,10 @@ public final class GradleDslParser {
       if (valueElement == null && valueExpression instanceof GrListOrMap) {
         GrListOrMap listOrMap = (GrListOrMap)valueExpression;
         if (listOrMap.isMap()) {
-          valueElement = getExpressionMap(expressionMap, listOrMap, argName, listOrMap.getNamedArguments());
+          valueElement = getExpressionMap(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getNamedArguments()));
         }
         else { // ex: flatDir name: "libs", dirs: ["libs1", "libs2"]
-          valueElement = getExpressionList(expressionMap, listOrMap, argName, listOrMap.getInitializers());
+          valueElement = getExpressionList(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getInitializers()));
         }
       }
       if (valueElement != null) {
