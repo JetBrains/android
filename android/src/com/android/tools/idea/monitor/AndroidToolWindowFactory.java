@@ -20,12 +20,12 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
-import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.google.common.util.concurrent.FutureCallback;
@@ -60,8 +60,6 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -105,23 +103,22 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     // We should only set OpenVmTraceHandler as ClientData's IMethodProfilingHandler when using the old monitors,
     // because the new profilers use LegacyProfilingHandler instead.
-    if (showMonitors()) {
+    boolean monitorsVisible = showMonitors();
+
+    if (monitorsVisible) {
       // TODO Remove global handlers. These handlers are global, but are set per project.
       // if there are two projects opened, things go very wrong.
       ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
     }
 
-    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !showMonitors());
+    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !monitorsVisible);
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
-    JPanel searchComponent = logcatView.createSearchComponent();
 
     DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-    JPanel northPanel = new JPanel(new BorderLayout());
-    northPanel.add(devicePanel.getComponent(), BorderLayout.WEST);
 
-    if (showMonitors()) {
-      logcatContent.setSearchComponent(searchComponent);
+    if (monitorsVisible) {
+      logcatContent.setSearchComponent(logcatView.createSearchComponent());
       MonitorContentFactory.createMonitorContent(project, deviceContext, layoutUi);
       layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
       layoutUi.addListener(new ContentManagerAdapter() {
@@ -138,14 +135,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
           }
         }
       }, project);
-    } else {
-      searchComponent.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-      northPanel.add(searchComponent, BorderLayout.CENTER);
     }
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    loadingPanel.add(northPanel, BorderLayout.NORTH);
+    loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView, monitorsVisible), BorderLayout.NORTH);
     loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
 
     final ContentManager contentManager = toolWindow.getContentManager();

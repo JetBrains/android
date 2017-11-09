@@ -106,6 +106,16 @@ public final class RegexFilterComponent extends FilterComponent {
     return myCompiled.error;
   }
 
+  @NotNull
+  public Component getSearchTextField() {
+    return getPopupLocationComponent();
+  }
+
+  @NotNull
+  public Component getRegexCheckBox() {
+    return myCheckBox;
+  }
+
   public boolean isRegex() {
     return myIsRegex;
   }

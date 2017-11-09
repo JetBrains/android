@@ -192,6 +192,10 @@ public class AndroidLogcatView implements Disposable {
 
           @Override
           public void clientSelected(@Nullable final Client c) {
+            if (myFilterComboBoxModel == null) {
+              return;
+            }
+
             AndroidLogcatFilter selected = (AndroidLogcatFilter)myFilterComboBoxModel.getSelectedItem();
             updateDefaultFilters(c != null ? c.getClientData() : null);
 
@@ -228,6 +232,18 @@ public class AndroidLogcatView implements Disposable {
   @NotNull
   public final JPanel createSearchComponent() {
     final JPanel panel = new JPanel();
+    panel.add(createEditFiltersComboBox());
+
+    final JPanel searchComponent = new JPanel();
+    searchComponent.setLayout(new BoxLayout(searchComponent, X_AXIS));
+    searchComponent.add(myLogConsole.getSearchComponent());
+    searchComponent.add(panel);
+
+    return searchComponent;
+  }
+
+  @NotNull
+  public Component createEditFiltersComboBox() {
     final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
     myFilterComboBoxModel.addElement(myNoFilter);
@@ -294,14 +310,8 @@ public class AndroidLogcatView implements Disposable {
         }
       }
     });
-    panel.add(editFiltersCombo);
 
-    final JPanel searchComponent = new JPanel();
-    searchComponent.setLayout(new BoxLayout(searchComponent, X_AXIS));
-    searchComponent.add(myLogConsole.getSearchComponent());
-    searchComponent.add(panel);
-
-    return searchComponent;
+    return editFiltersCombo;
   }
 
   private boolean isActive() {
@@ -459,7 +469,7 @@ public class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase {
+  public final class AndroidLogConsole extends LogConsoleBase {
     private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
     private final AndroidLogcatPreferences myPreferences;
 
@@ -507,8 +517,16 @@ public class AndroidLogcatView implements Disposable {
     }
 
     @NotNull
+    public Component getLogFilterComboBox() {
+      Container component = getSearchComponent();
+      assert component != null;
+
+      return component.getComponent(0);
+    }
+
+    @NotNull
     @Override
-    protected Component getTextFilterComponent() {
+    public Component getTextFilterComponent() {
       return myRegexFilterComponent;
     }
 
