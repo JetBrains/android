@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -28,7 +27,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,15 +43,12 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
 public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
-  @Mock private SyncLibraryRegistry myLibraryRegistry;
 
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 
@@ -62,25 +57,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    SyncLibraryRegistry.setFactory(new SyncLibraryRegistry.Factory() {
-      @Override
-      @NotNull
-      public SyncLibraryRegistry createNewInstance(@NotNull Project project) {
-        return myLibraryRegistry;
-      }
-    });
-
     mySetupStep = new ArtifactsByConfigurationModuleSetupStep();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      SyncLibraryRegistry.restoreFactory();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testDoSetUpModule() throws IOException {
@@ -100,9 +77,6 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     assertJarIsLibrary(jarFilePath);
-
-    // This is the first time we create the library, it shouldn't be marked as "used".
-    verify(myLibraryRegistry, never()).markAsUsed(any(), any());
   }
 
   public void testDoSetUpModuleWithExistingLibrary() throws IOException {
@@ -126,9 +100,6 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     assertJarIsLibrary(jarFilePath);
-
-    // This is an existing library, it should be marked as "used".
-    verify(myLibraryRegistry, times(1)).markAsUsed(library, jarFilePath);
   }
 
   private Library createLibrary(@NotNull File jarFilePath) {
@@ -191,8 +162,5 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertThat(libraries).isEmpty();
 
     assertAbout(libraryDependencies()).that(module).doesNotHaveDependencies();
-
-    // No libraries were created, nothing should be marked as "used".
-    verify(myLibraryRegistry, never()).markAsUsed(any(), any());
   }
 }

@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.module.Module;
 
-import java.util.List;
+import java.nio.file.Path;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
@@ -38,13 +39,13 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
 
   public void testAssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
-    assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
+    ListMultimap<Path, String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
+    assertThat(tasks.values()).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
   public void testAssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
-    assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
+    ListMultimap<Path, String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
+    assertThat(tasks.values()).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }
