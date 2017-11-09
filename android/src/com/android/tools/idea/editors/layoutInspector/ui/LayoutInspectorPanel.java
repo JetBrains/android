@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
-import com.android.tools.idea.editors.layoutInspector.actions.CancelOverlayAction;
 import com.android.tools.idea.editors.layoutInspector.actions.LoadOverlayAction;
 import com.android.tools.idea.editors.layoutInspector.actions.SetOverlayAlphaAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -116,8 +115,7 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
   private DefaultActionGroup getInspectorActionGroup() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
     actionGroup.add(new LoadOverlayAction(myPreview), Constraints.FIRST);
-    actionGroup.add(new CancelOverlayAction(myPreview), new Constraints(Anchor.AFTER, LoadOverlayAction.ACTION_ID));
-    actionGroup.add(new SetOverlayAlphaAction(myPreview), new Constraints(Anchor.AFTER, CancelOverlayAction.ACTION_ID));
+    actionGroup.add(new SetOverlayAlphaAction(myPreview), new Constraints(Anchor.AFTER, LoadOverlayAction.ACTION_ID));
     return actionGroup;
   }
 
