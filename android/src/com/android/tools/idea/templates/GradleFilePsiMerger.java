@@ -221,21 +221,6 @@ public class GradleFilePsiMerger {
   }
 
   /**
-   * Checks to see whether two PsiElements are both {@code LeafPsiNode}s and that they are
-   * of the same type.
-   */
-  private static boolean isSameLeafNode(@NotNull PsiElement element, @NotNull PsiElement leaf) {
-    if (!(element instanceof LeafPsiElement) || !(leaf instanceof LeafPsiElement)) {
-      return false;
-    }
-
-    LeafPsiElement e1 = (LeafPsiElement) element;
-    LeafPsiElement e2 = (LeafPsiElement) leaf;
-
-    return e1.getElementType().equals(e2.getElementType());
-  }
-
-  /**
    * Returns a {@code PsiElement} representing the line terminator in the context of a given
    * {@code PsiElement}.
    */
@@ -256,15 +241,13 @@ public class GradleFilePsiMerger {
    * be set to terminate as soon as we find that many lines.
    */
   private static int scanAndCountNewLinesOrNulls(@NotNull PsiElement element , boolean searchForward, int numberOfNewLines) {
-    PsiElement newLineElement = getNewLineElement(element, 1);
-
     int foundNewLines = 0;
 
     Set<PsiElement> seen = new HashSet<>();
     while (!seen.contains(element)) {
       if (element == null) {
         return Integer.MAX_VALUE;
-      } else if (isSameLeafNode(element, newLineElement)) {
+      } else if (element.getNode().getElementType().equals(GroovyTokenTypes.mNLS)) {
         foundNewLines += element.getTextLength();
       } else if (!(element instanceof PsiWhiteSpace)) {
         return foundNewLines;
