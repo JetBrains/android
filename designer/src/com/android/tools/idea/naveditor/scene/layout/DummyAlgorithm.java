@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +34,9 @@ import java.util.stream.Collectors;
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
-  private static final int WIDTH = 1000;
+  @AndroidCoordinate private static final int WIDTH = 800;
+  @AndroidCoordinate private static final int INITIAL_OFFSET = 40;
+  @AndroidCoordinate private static final int INTERVAL = 120;
 
   private final NavigationSchema mySchema;
 
@@ -52,16 +58,23 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
                                               .filter(c -> c.getParent() != null)
                                               .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
 
-    int xOffset = 50;
-    int yOffset = 50;
+    NlModel model = component.getNlComponent().getModel();
+
+    @AndroidDpCoordinate int width = Coordinates.pxToDp(model, WIDTH);
+    @AndroidDpCoordinate int initialOffset = Coordinates.pxToDp(model, INITIAL_OFFSET);
+    @AndroidDpCoordinate int interval = Coordinates.pxToDp(model, INTERVAL);
+
+    @AndroidDpCoordinate int xOffset = initialOffset;
+    @AndroidDpCoordinate int yOffset = initialOffset;
+
     while (true) {
       component.setPosition(xOffset, yOffset);
       Rectangle newBounds = component.fillDrawRect(0, null);
       bounds.put(component, newBounds);
-      xOffset += 130;
-      if (xOffset + component.getDrawWidth() > WIDTH) {
-        yOffset += 130;
-        xOffset = 50;
+      xOffset += interval;
+      if (xOffset + component.getDrawWidth() > width) {
+        yOffset += interval;
+        xOffset = initialOffset;
       }
       if (checkOverlaps(bounds, component)) {
         break;

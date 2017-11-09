@@ -18,9 +18,12 @@ package com.android.tools.idea.naveditor;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -33,6 +36,7 @@ import java.util.function.Function;
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,6 +56,16 @@ public class NavModelBuilderUtil {
       when(surface.getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
       when(surface.getExtentSize()).thenReturn(new Dimension(500, 500));
       when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+      SelectionModel selectionModel = mock(SelectionModel.class);
+      when(selectionModel.getSelection()).thenReturn(ImmutableList.of());
+
+      SceneView sceneView = mock(SceneView.class);
+      when(sceneView.getModel()).thenReturn(model);
+      when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+      when(sceneView.getSelectionModel()).thenReturn(selectionModel);
+
+      when(surface.getCurrentSceneView()).thenReturn(sceneView);
 
       return new NavSceneManager(model, surface);
     };

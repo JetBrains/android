@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import java.awt.Graphics2D
@@ -41,7 +42,7 @@ class DrawNavigationBackground(@SwingCoordinate private val myRectangle: Rectang
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.color = sceneContext.colorSet.componentBackground
 
-    val arc = sceneContext.getSwingDimension(DrawNavigationFrame.CORNER_RADIUS)
+    val arc = Coordinates.getSwingDimension(sceneContext, DrawNavigationFrame.CORNER_RADIUS)
     g.fillRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, arc, arc)
   }
 }
