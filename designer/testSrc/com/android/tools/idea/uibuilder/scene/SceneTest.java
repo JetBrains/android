@@ -64,6 +64,10 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myModel);
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
+    try {
       RenderTestUtil.waitForRenderTaskDisposeToFinish();
       myModel = null;
       myScene = null;
