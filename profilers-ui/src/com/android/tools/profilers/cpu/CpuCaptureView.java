@@ -226,7 +226,7 @@ class CpuCaptureView {
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -694,12 +694,12 @@ class CpuCaptureView {
 
   private static class DoubleValueCellRenderer extends CpuCaptureCellRenderer {
     private final Function<CpuTreeNode, Double> myGetter;
-    private final boolean myPercentage;
+    private final boolean myShowPercentage;
     private final int myAlignment;
 
-    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage, int alignment) {
+    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       myGetter = getter;
-      myPercentage = percentage;
+      myShowPercentage = showPercentage;
       myAlignment = alignment;
       setTextAlign(alignment);
     }
@@ -716,7 +716,7 @@ class CpuCaptureView {
       if (node != null) {
         SimpleTextAttributes attributes = getTextAttributes(node);
         double v = myGetter.apply(node);
-        if (myPercentage) {
+        if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
           append(String.format("%.2f%%", v / root.getTotal() * 100), attributes);
         }
@@ -734,6 +734,54 @@ class CpuCaptureView {
       else {
         setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
+    }
+
+    protected Function<CpuTreeNode, Double> getGetter() {
+      return myGetter;
+    }
+  }
+
+  private static class DoubleValueCellRendererWithSparkline extends DoubleValueCellRenderer {
+    private Color mySparklineColor;
+
+    /**
+     * Stores cell value divided by root cell total in order to compute the sparkline width.
+     */
+    private double myPercentage;
+
+    public DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+      super(getter, showPercentage, alignment);
+      mySparklineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
+      myPercentage = Double.NEGATIVE_INFINITY;
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
+      CpuTreeNode node = getNode(value);
+      if (node != null) {
+        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getTotal();
+      }
+      mySparklineColor = selected ? ProfilerColors.CPU_CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CPU_CAPTURE_SPARKLINE;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      if (myPercentage > 0) {
+        g.setColor(mySparklineColor);
+        // The sparkline starts from the left side of the cell and is proportional to the value, occupying at most half of the cell.
+        g.fillRect(ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
+                   ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
+                   (int)(myPercentage * (getWidth() / 2 - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   getHeight() - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
+      }
+      super.paintComponent(g);
     }
   }
 
