@@ -143,8 +143,18 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myClientCombo.setMinimumSize(new Dimension(250, size.height));
   }
 
+  @NotNull
+  public Component getDeviceComboBox() {
+    return myDeviceCombo;
+  }
+
   public void selectDevice(IDevice device) {
     myDeviceCombo.setSelectedItem(device);
+  }
+
+  @NotNull
+  public Component getClientComboBox() {
+    return myClientCombo;
   }
 
   public void selectClient(Client client) {
