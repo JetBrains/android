@@ -45,14 +45,14 @@ public class RoomResultColumnImpl extends ASTWrapperPsiElement implements RoomRe
 
   @Override
   @Nullable
-  public RoomColumnAlias getColumnAlias() {
-    return findChildByClass(RoomColumnAlias.class);
+  public RoomColumnAliasName getColumnAliasName() {
+    return findChildByClass(RoomColumnAliasName.class);
   }
 
   @Override
   @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findChildByClass(RoomExpression.class);
   }
 
   @Override

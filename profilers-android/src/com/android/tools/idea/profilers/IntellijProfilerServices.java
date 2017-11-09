@@ -179,6 +179,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isMemorySnapshotEnabled() {
+        return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
+      }
+
+      @Override
       public boolean isAtraceEnabled() {
         return StudioFlags.PROFILER_USE_ATRACE.get();
       }

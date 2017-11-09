@@ -133,7 +133,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myEventMonitor = new EventMonitor(profilers);
 
-    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange(), profilers.getTimeline().getViewRange());
+    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
     mySelectionModel.addConstraint(myAllocationDurations);
     mySelectionModel.addConstraint(myHeapDumpDurations);
     mySelectionModel.addListener(new SelectionListener() {

@@ -51,8 +51,8 @@ public class RoomOrderingTermImpl extends ASTWrapperPsiElement implements RoomOr
 
   @Override
   @NotNull
-  public RoomExpr getExpr() {
-    return findNotNullChildByClass(RoomExpr.class);
+  public RoomExpression getExpression() {
+    return findNotNullChildByClass(RoomExpression.class);
   }
 
 }

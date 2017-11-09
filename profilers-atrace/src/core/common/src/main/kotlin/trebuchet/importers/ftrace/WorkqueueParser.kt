@@ -25,7 +25,7 @@ object WorkqueueParser : FunctionHandlerRegistry() {
             data.readDetails {
                 val thread = data.importer.threadFor(data.line)
                 skipTo(StartFunction)
-                skip(StartFunction.length + 1)
+                skipCount(StartFunction.length + 1)
                 val function = stringTo { skipUntil { it == ' '.toByte() } }
                 thread.slicesBuilder.beginSlice {
                     it.name = function

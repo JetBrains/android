@@ -21,8 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * Base class for components that should change their look over time.
@@ -30,6 +31,7 @@ import java.util.List;
  * At a minimum, child classes should override {@link #updateData()} and {@link
  * #draw(Graphics2D)}, as well as pay attention to the field {@link #mFrameLength} as it controls
  * the behavior of timed animations.
+ *
  */
 public abstract class AnimatedComponent extends JComponent {
 
@@ -40,6 +42,17 @@ public abstract class AnimatedComponent extends JComponent {
   protected final FontMetrics mDefaultFontMetrics;
 
   protected final AspectObserver myAspectObserver;
+
+  /**
+   * See {@link #setCursorSetter(BiFunction)}.
+   */
+  private BiFunction<Container, Cursor, Container> myCursorSetter;
+
+  /**
+   * Caches the container returned by {@link #myCursorSetter} so that {@link #setCursor(Cursor)}
+   * doesn't execute {@link #myCursorSetter} in every call.
+   */
+  private Container myCursorSettingContainer;
 
   @NotNull
   private final List<String> mDebugInfo;
@@ -60,6 +73,20 @@ public abstract class AnimatedComponent extends JComponent {
     mDrawDebugInfo = drawDebugInfo;
   }
 
+  /**
+   * Sets the cursor setter so that {@link #setCursor(Cursor)} has effect.
+   *
+   * Setting cursor on a Swing component that is not on the highest z-order hierarchy chain does
+   * nothing. Call this with a setter that sets the cursor on the appropriate container and
+   * {@link #setCursor(Cursor)} will call the setter when available.
+   *
+   * @param cursorSetter a lambda that finds the container of highest z-order to set the cursor on
+   *                     and returns the found container, if any, so it can be cached.
+   */
+  public final void setCursorSetter(BiFunction<Container, Cursor, Container> cursorSetter) {
+    this.myCursorSetter = cursorSetter;
+  }
+
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
@@ -73,6 +100,26 @@ public abstract class AnimatedComponent extends JComponent {
       doDebugDraw(g2d);
     }
     g2d.dispose();
+  }
+
+  /**
+   * Overrides default behavior, which does nothing when this component is not on the highest
+   * z-roder hierarchy chain. This method now attempts to call the cursor setter first if set by
+   * {@link #setCursorSetter(BiFunction)}.
+   */
+  @Override
+  public void setCursor(Cursor cursor) {
+    if (myCursorSettingContainer != null) {
+      // The container to set cursor on is cached.
+      myCursorSettingContainer.setCursor(cursor);
+    }
+    else if (myCursorSetter != null) {
+      // Find the appropriate container and set the cursor on it.
+      myCursorSettingContainer = myCursorSetter.apply(this, cursor);
+    }
+    else {
+      super.setCursor(cursor);
+    }
   }
 
   protected final void addDebugInfo(String format, Object... values) {

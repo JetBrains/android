@@ -43,7 +43,7 @@ class NavActionsPropertyTest : NavigationTestCase() {
 
   fun testNoActions() {
     val property = NavActionsProperty(listOf(model.find("f2")!!))
-    assertTrue(property.actions.isEmpty())
+    assertTrue(property.properties.isEmpty())
   }
 
   fun testModify() {
@@ -51,10 +51,10 @@ class NavActionsPropertyTest : NavigationTestCase() {
     val property = NavActionsProperty(listOf(fragment))
     val action = model.find("a1")!!
     fragment.addChild(action)
-    property.refreshActionList()
+    property.refreshList()
     assertEquals(action, property.getChildProperty("@id/f2").components[0])
     fragment.removeChild(action)
-    property.refreshActionList()
-    assertTrue(property.actions.isEmpty())
+    property.refreshList()
+    assertTrue(property.properties.isEmpty())
   }
 }

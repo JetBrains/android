@@ -55,6 +55,9 @@ public class NavNlEditorTest {
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
 
+    // b/69000941: Investigate leak caused by not closing editor explicitly
+    editor.close();
+
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
   }
 

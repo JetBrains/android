@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.TAG_DEEPLINK;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
 /**
@@ -46,7 +47,6 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  */
 public class NavigationSchema implements Disposable {
   public static final String TAG_ACTION = "action";
-  public static final String TAG_DEEPLINK = "deeplink";
   public static final String TAG_ARGUMENT = "argument";
   public static final String ATTR_DESTINATION = "destination";
 
@@ -194,6 +194,9 @@ public class NavigationSchema implements Disposable {
   // TODO: it seems like the framework should do this somehow
   @NotNull
   public Multimap<Class<? extends AndroidDomElement>, String> getDestinationSubtags(@NotNull String tagName) {
+    if (tagName.equals(TAG_ACTION)) {
+      return ImmutableSetMultimap.of(ArgumentElement.class, TAG_ARGUMENT);
+    }
     DestinationType type = getDestinationType(tagName);
     if (type == null) {
       return ImmutableListMultimap.of();
@@ -207,7 +210,7 @@ public class NavigationSchema implements Disposable {
         result.put(NavActionElement.class, TAG_ACTION);
       }
       result.put(DeeplinkElement.class, TAG_DEEPLINK);
-      // TODO: other tags
+      result.put(ArgumentElement.class, TAG_ARGUMENT);
     }
     return result;
   }

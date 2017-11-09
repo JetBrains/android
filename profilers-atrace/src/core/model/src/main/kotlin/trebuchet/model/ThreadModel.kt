@@ -22,7 +22,8 @@ class ThreadModel constructor(val process: ProcessModel, fragment: ThreadModelFr
     val id: Int = fragment.id
     val name: String = fragment.name ?: "<$id>"
     val slices = fragment.slices
-    val hasContent = slices.isNotEmpty()
+    val schedSlices = fragment.schedSlices
+    val hasContent = slices.isNotEmpty() && schedSlices.isNotEmpty()
 
     init {
         if (id == InvalidId) throw IllegalArgumentException("Thread has invalid id")

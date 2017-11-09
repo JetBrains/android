@@ -60,6 +60,6 @@ class VisibleDestinationsEditorTest: NavigationTestCase() {
             "activity1 (activity1)", "@+id/activity1",
             "subnav1 (subnav1)", "@+id/subnav1",
             "subnav2 (subnav2)", "@+id/subnav2",
-            "root (root)", "@+id/root");
+            "root (root)", "@+id/root")
   }
 }

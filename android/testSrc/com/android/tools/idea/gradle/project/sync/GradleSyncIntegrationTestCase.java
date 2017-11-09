@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
@@ -24,15 +24,14 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
-    myUseNewGradleSync = settings.USE_NEW_GRADLE_SYNC;
-    settings.USE_NEW_GRADLE_SYNC = useNewSyncInfrastructure();
+    myUseNewGradleSync = StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
+    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(useNewSyncInfrastructure());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = myUseNewGradleSync; // back to default value.
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(myUseNewGradleSync); // back to default value.
     }
     finally {
       super.tearDown();

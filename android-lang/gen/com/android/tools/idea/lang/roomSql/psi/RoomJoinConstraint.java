@@ -28,6 +28,6 @@ public interface RoomJoinConstraint extends PsiElement {
   List<RoomColumnName> getColumnNameList();
 
   @Nullable
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
 }

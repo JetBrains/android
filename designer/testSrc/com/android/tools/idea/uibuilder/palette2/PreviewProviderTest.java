@@ -20,10 +20,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.RenderTestBase;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
@@ -87,7 +84,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     try {
       RenderService.setForTesting(myFacet, null);
       Disposer.dispose(myPreviewProvider);
-      RenderTestBase.waitForRenderTaskDisposeToFinish();
+      RenderTestUtil.waitForRenderTaskDisposeToFinish();
       myPreviewProvider = null;
       myTextViewItem = null;
       myComponent = null;

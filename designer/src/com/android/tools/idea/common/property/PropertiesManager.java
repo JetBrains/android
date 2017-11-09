@@ -95,7 +95,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   @NotNull
   private JBLoadingPanel getLoadingPanel() {
     if (myLoadingPanel == null) {
-      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject, 20);
+      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 20);
       myLoadingPanel.add(getContentPanel());
     }
     return myLoadingPanel;

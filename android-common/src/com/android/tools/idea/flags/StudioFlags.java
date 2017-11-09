@@ -95,6 +95,11 @@ public final class StudioFlags {
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
     true);
 
+  public static final Flag<Boolean> PROFILER_MEMORY_SNAPSHOT = Flag.create(
+    PROFILER, "memory.livealloc.snapshot", "Enable Memory Class Histogram Display",
+    "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
+    true);
+
   public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
     PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
     "Add a new tab in the network profiler that shows the connection request payload",
@@ -162,11 +167,15 @@ public final class StudioFlags {
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
 
-  private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle/IDE");
+  private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
     GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
     true);
+  public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
+    GRADLE_IDE, "new.sync.enabled", "Enable \"New Sync\" infrastructure",
+    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.",
+    false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(

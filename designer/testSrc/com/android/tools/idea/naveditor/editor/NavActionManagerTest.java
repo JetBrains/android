@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link NavActionManager}
  */
 public class NavActionManagerTest extends NavigationTestCase {
-  public void testAddElement() throws Exception {
+  public void testAddElement() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1"),
@@ -55,7 +55,7 @@ public class NavActionManagerTest extends NavigationTestCase {
                  "    NlComponent{tag=<activity>, instance=3}", new NlTreeDumper().toTree(model.getComponents()));
   }
 
-  public void testAddElementInSubflow() throws Exception {
+  public void testAddElementInSubflow() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(
                                 navigationComponent("subflow").

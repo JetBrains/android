@@ -21,7 +21,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
-import junit.framework.AssertionFailedError
 
 class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
 
@@ -31,11 +30,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
    * For now the PSI hierarchy is not finalized, so there's no point checking the tree shape.
    */
   private fun check(input: String) {
-    val psiFile = createPsiFile("in-memory", input)
-    ensureParsed(psiFile)
-
-    val parseTreeText = toParseTreeText(psiFile, false, false)
-    assertNull(parseTreeText, getErrorMessage(psiFile))
+    assert(getErrorMessage(input) == null, lazyMessage = { toParseTreeText(input) })
 
     val lexer = RoomSqlLexer()
     lexer.start(input)
@@ -43,6 +38,12 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
       assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}"})
       lexer.advance()
     }
+  }
+
+  private fun toParseTreeText(input: String): String {
+    val psiFile = createPsiFile("in-memory", input)
+    ensureParsed(psiFile)
+    return toParseTreeText(psiFile, true, false).trim()
   }
 
   private fun getErrorMessage(input: String): String? {
@@ -58,7 +59,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
       check("foo")
       fail()
     }
-    catch(e: AssertionFailedError) {
+    catch(e: AssertionError) {
       // Expected.
     }
   }
@@ -155,12 +156,286 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("""CREATE TABLE "TABLE"("#!@""'☺\", "");""")
   }
 
-  fun testMultipleExpressions() {
-    check("select a from b where f(c); select 42")
+  fun testErrorMessages() {
+    assertEquals("<statement> expected, got 'foo'", getErrorMessage("foo"))
+    assertEquals("<expression> expected, got '?'", getErrorMessage("select * from User where id = ?"))
   }
 
-  fun testErrorMessages() {
-    assertEquals("<sql stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
-    assertEquals("<expr> expected, got '?'", getErrorMessage("select * from User where id = ?"))
+  fun testPragmas() {
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('auto_vacuum')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('FULL')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA auto_vacuum=FULL"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                RoomSignedNumberImpl(SIGNED_NUMBER)
+                  PsiElement(NUMERIC_LITERAL)('1')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=1"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(ON)('ON')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=ON"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(ON)('on')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=on"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('OFF')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=OFF"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('off')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=off"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('yes')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=yes"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('YES')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=YES"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(NO)('no')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=no"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(NO)('NO')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=NO"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('true')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=true"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('TRUE')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=TRUE"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('false')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=false"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_keys')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('FALSE')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_keys=FALSE"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('data_store_directory')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''foo'')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA data_store_directory='foo'"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('encoding')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(DOUBLE_QUOTE_STRING_LITERAL)('"UTF-8"')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA encoding=\"UTF-8\""))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('foreign_key_check')
+              PsiElement(()('(')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                PsiElement(IDENTIFIER)('my_table')
+              PsiElement())(')')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA foreign_key_check(my_table)"))
+
+    assertEquals("""
+          FILE
+            RoomPragmaStatementImpl(PRAGMA_STATEMENT)
+              PsiElement(PRAGMA)('PRAGMA')
+              RoomPragmaNameImpl(PRAGMA_NAME)
+                PsiElement(IDENTIFIER)('optimize')
+              PsiElement(=)('=')
+              RoomPragmaValueImpl(PRAGMA_VALUE)
+                RoomSignedNumberImpl(SIGNED_NUMBER)
+                  PsiElement(NUMERIC_LITERAL)('0xfffe')
+          """.trimIndent(),
+        toParseTreeText("PRAGMA optimize=0xfffe"))
+  }
+
+  fun testLiteralsAndIdentifiers() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('select')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''age'')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('from')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomTableNameImpl(TABLE_NAME)
+                          PsiElement(IDENTIFIER)('user')
+          """.trimIndent(),
+        toParseTreeText("select 'age' from user"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('select')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('age')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('from')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomTableNameImpl(TABLE_NAME)
+                          PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''user'')
+          """.trimIndent(),
+        toParseTreeText("select age from 'user'"))
+
+    assertEquals("""
+          FILE
+            RoomUpdateStatementImpl(UPDATE_STATEMENT)
+              PsiElement(UPDATE)('UPDATE')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomTableNameImpl(TABLE_NAME)
+                  PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''table'')
+              PsiElement(SET)('SET')
+              RoomColumnNameImpl(COLUMN_NAME)
+                PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''order'')
+              PsiElement(=)('=')
+              RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                PsiElement(NULL)('NULL')
+          """.trimIndent(),
+        toParseTreeText("UPDATE 'table' SET 'order' = NULL"))
   }
 }

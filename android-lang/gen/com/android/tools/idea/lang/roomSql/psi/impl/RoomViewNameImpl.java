@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomViewNameImpl extends ASTWrapperPsiElement implements RoomViewName {
+public class RoomViewNameImpl extends AbstractRoomNameElement implements RoomViewName {
 
   public RoomViewNameImpl(ASTNode node) {
     super(node);
@@ -41,36 +41,6 @@ public class RoomViewNameImpl extends ASTWrapperPsiElement implements RoomViewNa
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getBacktickLiteral() {
-    return findChildByType(BACKTICK_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getBracketLiteral() {
-    return findChildByType(BRACKET_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getDoubleQuoteStringLiteral() {
-    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getIdentifier() {
-    return findChildByType(IDENTIFIER);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getSingleQuoteStringLiteral() {
-    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

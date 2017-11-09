@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -71,6 +72,7 @@ public class GradleSyncState {
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
   @NotNull private final GradleFiles myGradleFiles;
+  @NotNull private final ProjectStructure myProjectStructure;
 
   @NotNull private final Object myLock = new Object();
 
@@ -115,8 +117,9 @@ public class GradleSyncState {
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
                          @NotNull GradleFiles gradleFiles,
-                         @NotNull MessageBus messageBus) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, new StateChangeNotification(project),
+                         @NotNull MessageBus messageBus,
+                         @NotNull ProjectStructure projectStructure) {
+    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
@@ -126,6 +129,7 @@ public class GradleSyncState {
                   @NotNull GradleProjectInfo gradleProjectInfo,
                   @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
+                  @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
@@ -135,6 +139,7 @@ public class GradleSyncState {
     myChangeNotification = changeNotification;
     mySummary = summary;
     myGradleFiles = gradleFiles;
+    myProjectStructure = projectStructure;
 
     // Call in to make sure IndexingSuspender instance is constructed.
     IndexingSuspender.ensureInitialised(myProject);
@@ -251,6 +256,7 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull String message) {
+    myProjectStructure.clearData();
     long syncEndTimestamp = System.currentTimeMillis();
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
     // Reset sync state and don't log the events or notify listener again.

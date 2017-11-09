@@ -82,8 +82,8 @@ public class LineChartReducerVisualTest extends VisualTest {
     myXAxisModel =
       new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""));
     myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
-    SelectionModel selection = new SelectionModel(mySelectionXRange, myViewXRange);
-    mySelection = new SelectionComponent(selection);
+    SelectionModel selection = new SelectionModel(mySelectionXRange);
+    mySelection = new SelectionComponent(selection, myViewXRange);
 
     myData = new DefaultDataSeries<>();
     mySeries = new RangedContinuousSeries("Original", myViewXRange, new Range(0, 0), myData);

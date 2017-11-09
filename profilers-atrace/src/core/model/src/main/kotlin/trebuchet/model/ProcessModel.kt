@@ -31,6 +31,7 @@ class ProcessModel constructor(val model: Model, fragment: ProcessModelFragment)
         fragment.threads.forEach {
             threadBuilder.add(ThreadModel(this, it))
         }
+        threadBuilder.sortBy { it.id }
         threads = threadBuilder
         counters = fragment.counters.values.filter { it.events.isNotEmpty() }.map { Counter(it) }.toList()
         hasContent = counters.isNotEmpty() || threads.any { it.hasContent }

@@ -30,8 +30,7 @@ import java.awt.geom.GeneralPath;
 import java.util.Map;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
-import static java.awt.BasicStroke.CAP_BUTT;
-import static java.awt.BasicStroke.JOIN_MITER;
+import static java.awt.BasicStroke.*;
 
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
@@ -49,11 +48,8 @@ public class DrawAction extends NavBaseDrawCommand {
   @SwingCoordinate private final Rectangle myDest = new Rectangle();
   private static final Stroke BACKGROUND_STROKE = new BasicStroke(8.0f, CAP_BUTT, JOIN_MITER);
   private static final Stroke REGULAR_ACTION_STROKE = new BasicStroke(3.0f);
-  private static final Stroke SELF_ACTION_STROKE = new BasicStroke(3.0f,
-                                                                   BasicStroke.CAP_BUTT,
-                                                                   BasicStroke.JOIN_ROUND,
-                                                                   10.0f, new float[]{6.0f, 3.0f}, 0.0f);
-  private static final int ARCHLEN = 10;
+  private static final Stroke SELF_ACTION_STROKE = new BasicStroke(3.0f, CAP_BUTT, JOIN_ROUND, 10.0f, new float[]{6.0f, 3.0f}, 0.0f);
+  private static final int ARCH_LEN = 10;
 
   private final DrawMode myMode;
 
@@ -126,7 +122,7 @@ public class DrawAction extends NavBaseDrawCommand {
         ActionTarget.SelfActionPoints selfActionPoints = ActionTarget.getSelfActionPoints(source, sceneContext);
         PATH.moveTo(selfActionPoints.x[0], selfActionPoints.y[0]);
         DrawConnectionUtils
-          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCHLEN));
+          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCH_LEN));
 
         endX = selfActionPoints.x[selfActionPoints.y.length - 1];
         endY = selfActionPoints.y[selfActionPoints.y.length - 1];

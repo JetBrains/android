@@ -257,7 +257,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getId() {
-    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : getAndroidAttribute(ATTR_ID);
+    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : resolveAttribute(ANDROID_URI, ATTR_ID);
 
     return stripId(id);
   }

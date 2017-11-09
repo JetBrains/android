@@ -47,8 +47,6 @@ import static org.mockito.Mockito.when;
  * mousePress event is received.
  */
 public class LevelTest extends NavigationTestCase {
-  private static int DRAG = 30;
-
   private InteractionManager myInteractionManager;
   private SceneView mySceneView;
 
@@ -120,7 +118,7 @@ public class LevelTest extends NavigationTestCase {
   private void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     @SwingCoordinate int swingX = Coordinates.getSwingXDip(mySceneView, x);
     @SwingCoordinate int swingY = Coordinates.getSwingYDip(mySceneView, y);
-    @SwingCoordinate int swingDrag = Coordinates.getSwingDimension(mySceneView, DRAG);
+    @SwingCoordinate int swingDrag = Coordinates.getSwingDimension(mySceneView, 30);
 
     LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, swingX, swingY, 0);
 

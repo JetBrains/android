@@ -44,7 +44,7 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
   }
 
   @Override
-  public void activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
+  public void activatePreferredEditor(@NotNull String propertyName, boolean afterLoad) {
 
   }
 

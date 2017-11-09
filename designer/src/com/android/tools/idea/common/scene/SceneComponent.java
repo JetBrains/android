@@ -28,13 +28,13 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
@@ -77,6 +77,7 @@ public class SceneComponent {
   private DrawState myDrawState = DrawState.NORMAL;
 
   private ArrayList<Target> myTargets = new ArrayList<>();
+  @Nullable private ImmutableList<Target> myCachedTargetList;
 
   @AndroidDpCoordinate private int myCurrentLeft = 0;
   @AndroidDpCoordinate private int myCurrentTop = 0;
@@ -253,10 +254,6 @@ public class SceneComponent {
       }
     }
     return -1;
-  }
-
-  public void removeTarget(int pos) {
-    myTargets.remove(pos);
   }
 
   /**
@@ -571,11 +568,17 @@ public class SceneComponent {
     return myDrawState;
   }
 
-  public List<Target> getTargets() {
+  /**
+   * Returns a copy of the list containing this component's targets
+   */
+  public ImmutableList<Target> getTargets() {
     // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
     assert ApplicationManager.getApplication().isDispatchThread();
 
-    return Collections.unmodifiableList(myTargets);
+    if (myCachedTargetList == null) {
+      myCachedTargetList = ImmutableList.copyOf(myTargets);
+    }
+    return myCachedTargetList;
   }
 
   public SceneDecorator getDecorator() {
@@ -682,6 +685,7 @@ public class SceneComponent {
 
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
+    myCachedTargetList = null;
     myTargets.add(target);
   }
 
@@ -868,6 +872,7 @@ public class SceneComponent {
    * The created Targets will save in the {@link #myTargets} in its associated {@link SceneComponent}.
    */
   public void updateTargets() {
+    myCachedTargetList = null;
     myTargets.clear();
 
     // update the Targets created by parent's TargetProvider
@@ -881,7 +886,7 @@ public class SceneComponent {
     }
 
     // update the Targets of children
-    for (SceneComponent child: getChildren()) {
+    for (SceneComponent child : getChildren()) {
       child.updateTargets();
     }
   }

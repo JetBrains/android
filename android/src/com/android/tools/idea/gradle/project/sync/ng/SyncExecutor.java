@@ -90,19 +90,19 @@ class SyncExecutor {
       CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
       executor.withCancellationToken(cancellationTokenSource.token());
 
-      try {
-        SyncProjectModels models = executor.run();
-        callback.setDone(models);
-      }
-      catch (RuntimeException e) {
-        myErrorHandlerManager.handleError(e);
-        callback.setRejected(e);
-      }
+      SyncProjectModels models = executor.run();
+      callback.setDone(models);
 
       return null;
     };
 
-    myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
+    try {
+      myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
+    }
+    catch (Throwable e) {
+      myErrorHandlerManager.handleError(e);
+      callback.setRejected(e);
+    }
   }
 
   @NotNull

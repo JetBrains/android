@@ -45,14 +45,8 @@ public class RoomWithClauseImpl extends ASTWrapperPsiElement implements RoomWith
 
   @Override
   @NotNull
-  public List<RoomCteTableName> getCteTableNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomCteTableName.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomSelectStmt> getSelectStmtList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomSelectStmt.class);
+  public List<RoomWithClauseTable> getWithClauseTableList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomWithClauseTable.class);
   }
 
 }

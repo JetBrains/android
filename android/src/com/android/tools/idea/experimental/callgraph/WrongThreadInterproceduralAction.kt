@@ -20,6 +20,7 @@ import com.android.tools.idea.lint.LintIdeRequest
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisAction
@@ -50,7 +51,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
       override fun run(indicator: ProgressIndicator) {
         val time = measureTimeMillis {
           // The Lint check won't run unless explicitly enabled by default..
-          val wasEnabledByDefault = WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault
+          val wasEnabledByDefault = WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
           val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
           val client = LintIdeClient.forBatch(project, mutableMapOf(), scope, setOf(detectorIssue))
           try {
@@ -60,13 +61,14 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
             val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
             request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
             val issue = object : IssueRegistry() {
-              override fun getIssues() = listOf(WrongThreadInterproceduralDetector.ISSUE)
+              override val issues: List<Issue>
+                get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
             }
             LintDriver(issue, client, request).analyze()
           }
           finally {
             Disposer.dispose(client)
-            WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault = wasEnabledByDefault
+            WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(wasEnabledByDefault)
           }
         }
         LOG.info("Interprocedural thread check: ${time}ms")

@@ -28,6 +28,6 @@ public interface RoomOrderingTerm extends PsiElement {
   RoomCollationName getCollationName();
 
   @NotNull
-  RoomExpr getExpr();
+  RoomExpression getExpression();
 
 }

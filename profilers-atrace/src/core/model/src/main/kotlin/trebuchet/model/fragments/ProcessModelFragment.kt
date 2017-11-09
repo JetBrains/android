@@ -55,7 +55,9 @@ class ProcessModelFragment(id: Int, var name: String? = null,
 
     fun merge(other: trebuchet.model.fragments.ProcessModelFragment) {
         if (other === this) return
-        if (id != other.id) throw IllegalArgumentException("Process ID mismatch")
+        if (id != -1 && id != other.id) {
+            throw IllegalArgumentException("Process ID mismatch")
+        }
         hint(name = other.name)
         other._threads.forEach { (key, value) ->
             if (_threads.put(key, value) != null) {

@@ -606,9 +606,9 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @Nullable
-  public Pair<File, Node> findManifestSourceNode(@NonNull Node mergedNode) {
-    Map<Node, Pair<File, Node>> sourceNodeCache = getSourceNodeCache();
-    Pair<File,Node> source = sourceNodeCache.get(mergedNode);
+  public Pair<File, ? extends Node> findManifestSourceNode(@NonNull Node mergedNode) {
+    Map<Node, Pair<File, ? extends Node>> sourceNodeCache = getSourceNodeCache();
+    Pair<File, ? extends Node> source = sourceNodeCache.get(mergedNode);
     if (source != null) {
       if (source == NOT_FOUND) {
         return null;

@@ -19,17 +19,13 @@ package trebuchet.extractors.html
 import trebuchet.extractors.Extractor
 import trebuchet.extractors.ExtractorFactory
 import trebuchet.importers.ImportFeedback
-import trebuchet.io.BufferProducer
-import trebuchet.io.DataSlice
-import trebuchet.io.GenericByteBuffer
-import trebuchet.io.StreamingReader
+import trebuchet.io.*
 import trebuchet.util.contains
 import trebuchet.util.searchFor
 
 class SystraceExtractor : Extractor {
     private var startIndex: Int = 0
     private var endIndex: Int = Int.MAX_VALUE
-    private val buffers = mutableListOf<DataSlice>()
 
     override fun extract(stream: StreamingReader, processSubStream: (BufferProducer) -> Unit) {
         while (true) {
@@ -40,34 +36,40 @@ class SystraceExtractor : Extractor {
             if (!stream.loadIndex(startIndex)) return
             if (stream[startIndex] == '\n'.toByte()) startIndex++
             endIndex = Int.MAX_VALUE
-            stream.onWindowReleased = { window -> processWindow(window) }
-            endIndex = END.find(stream, startIndex)
-            if (endIndex == -1) {
-                endIndex = stream.endIndex
+
+            val pipe = Pipe<DataSlice>()
+            val thread = Thread {
+                stream.onWindowReleased = { window -> processWindow(window, pipe) }
+                endIndex = END.find(stream, startIndex)
+                if (endIndex == -1) {
+                    endIndex = stream.endIndex
+                }
+                stream.onWindowReleased = null
+                stream.windows.forEach { processWindow(it, pipe) }
+                pipe.close()
             }
-            stream.onWindowReleased = null
-            stream.windows.forEach { processWindow(it) }
-            processSubStream(SubStream(buffers.iterator()))
-            buffers.clear()
+            thread.start()
+
+            processSubStream(SubStream(pipe))
+
+            thread.join()
+
             startIndex = endIndex
         }
     }
 
-    // TODO: Convert this back into a low-overhead extractor
-    private class SubStream(val source: Iterator<DataSlice>) : BufferProducer {
-        override fun next(): DataSlice? {
-            return if (source.hasNext()) source.next() else null
-        }
+    private class SubStream(val pipe: Pipe<DataSlice>) : BufferProducer {
+        override fun next(): DataSlice? = pipe.next()
     }
 
-    private fun processWindow(window: StreamingReader.Window) {
+    private fun processWindow(window: StreamingReader.Window, pipe: Pipe<DataSlice>) {
         if (window.globalEndIndex >= startIndex && window.globalStartIndex < endIndex) {
             if (window.globalStartIndex >= startIndex && window.globalEndIndex <= endIndex) {
-                buffers.add(window.slice)
+                pipe.add(window.slice)
             } else {
                 val sliceStart = maxOf(startIndex - window.globalStartIndex, 0)
                 val sliceEnd = minOf(endIndex, window.globalEndIndex) - window.globalStartIndex
-                buffers.add(window.slice.slice(sliceStart, sliceEnd))
+                pipe.add(window.slice.slice(sliceStart, sliceEnd))
             }
         }
     }

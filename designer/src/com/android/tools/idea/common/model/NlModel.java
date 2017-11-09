@@ -55,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
@@ -717,6 +718,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Nullable
   public NlComponent find(@NotNull String id) {
     return flattenComponents().filter(c -> id.equals(c.getId())).findFirst().orElse(null);
+  }
+
+  @Nullable
+  public NlComponent find(@NotNull Predicate<NlComponent> condition) {
+    return flattenComponents().filter(condition).findFirst().orElse(null);
   }
 
   @NotNull

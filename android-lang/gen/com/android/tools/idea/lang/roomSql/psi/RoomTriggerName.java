@@ -22,21 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomTriggerName extends PsiElement {
-
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+public interface RoomTriggerName extends RoomNameElement {
 
 }
