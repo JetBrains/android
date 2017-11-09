@@ -17,13 +17,17 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,7 +77,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   }
 
   public void testCleanUp() {
-    List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
+    ListMultimap<Path, String> originalTasks = ArrayListMultimap.create();
+    originalTasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
     myBuildInvoker.cleanProject();
@@ -86,7 +91,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   }
 
   public void testCleanAndGenerateSources() {
-    List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
+    ListMultimap<Path, String> originalTasks = ArrayListMultimap.create();
+    originalTasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
     myBuildInvoker.cleanAndGenerateSources();
@@ -99,46 +105,50 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   }
 
   public void testGenerateSources() {
-    List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(tasks);
 
     myBuildInvoker.generateSources();
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
     verifyInteractionWithMocks(SOURCE_GEN);
   }
 
   public void testCompileJava() {
-    List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("compileJavaTask1", "compileJavaTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(tasks);
 
     myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
     assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(COMPILE_JAVA);
   }
 
   public void testAssemble() {
-    List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("assembleTask1", "assembleTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
 
     myBuildInvoker.assemble(myModules, TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
     assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
 
   public void testAssembleWithCommandLineArgs() {
-    List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("assembleTask1", "assembleTask2"));
     when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
@@ -146,7 +156,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
     assertThat(request.getCommandLineArguments()).containsExactlyElementsIn(commandLineArgs);
 
     verifyInteractionWithMocks(ASSEMBLE);
