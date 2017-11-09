@@ -24,7 +24,6 @@ public enum BuildCause {
   MISMATCHING_TIMESTAMPS(BuildMode.FULL),
   API_TOO_LOW_FOR_INSTANT_RUN(BuildMode.FULL),
   FIRST_INSTALLATION_TO_DEVICE(BuildMode.FULL), // first installation in this Android Studio session
-  MANIFEST_RESOURCE_CHANGED(BuildMode.FULL),
   FREEZE_SWAP_REQUIRES_API21(BuildMode.FULL),
 
   // reasons for forced cold swap build
@@ -33,6 +32,7 @@ public enum BuildCause {
   APP_NOT_RUNNING(BuildMode.COLD),
   APP_USES_MULTIPLE_PROCESSES(BuildMode.COLD),
   ANDROID_TV_UNSUPPORTED(BuildMode.COLD),
+  MANIFEST_RESOURCE_CHANGED(BuildMode.COLD),
 
   INCREMENTAL_BUILD(BuildMode.HOT),
   ;

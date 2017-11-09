@@ -273,7 +273,7 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildIfManifestResourceChanged() throws Exception {
+  public void coldswapIfManifestResourceChanged() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
@@ -283,7 +283,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
