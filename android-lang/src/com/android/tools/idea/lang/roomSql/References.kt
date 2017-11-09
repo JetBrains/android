@@ -149,7 +149,6 @@ class RoomTablePsiReference(
         }
         .toTypedArray()
   }
-
 }
 
 /**
