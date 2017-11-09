@@ -68,6 +68,15 @@ public class Coordinates {
     return (int)(surface.getScale() * androidDimension);
   }
 
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static int getSwingDimension(@NotNull SceneContext sceneContext, @AndroidCoordinate int androidDimension) {
+    return (int)(sceneContext.getScale() * androidDimension);
+  }
+
   // DPI
   public static int dpToPx(@NotNull SceneView view, @AndroidDpCoordinate int androidDp) {
     final Configuration configuration = view.getConfiguration();

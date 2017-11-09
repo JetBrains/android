@@ -19,22 +19,14 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.rendering.ImagePool;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Map;
 
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
  */
 public class DrawNavScreen extends NavBaseDrawCommand {
-  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-  );
-
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myWidth;
@@ -57,7 +49,7 @@ public class DrawNavScreen extends NavBaseDrawCommand {
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    g.setRenderingHints(HQ_RENDERING_HITS);
+    setRenderingHints(g);
     g.clipRect(myX, myY, myWidth, myHeight);
     // TODO: better scaling (similar to ScreenViewLayer)
     myImage.drawImageTo(g, myX, myY, myWidth, myHeight);

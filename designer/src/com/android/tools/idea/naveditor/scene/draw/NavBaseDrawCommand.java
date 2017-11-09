@@ -18,15 +18,23 @@ package com.android.tools.idea.naveditor.scene.draw;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * {@link NavBaseDrawCommand} Base class for navigation related draw commands.
  */
 public abstract class NavBaseDrawCommand implements DrawCommand {
+  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
+  );
+
   protected static final int DRAW_ACTION = COMPONENT_LEVEL + 1;
   protected static final int DRAW_SCREEN_LABEL = DRAW_ACTION + 1;
   protected static final int DRAW_ICON = DRAW_SCREEN_LABEL + 1;
@@ -77,5 +85,9 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
     }
 
     return Arrays.copyOfRange(sp, 1, sp.length);
+  }
+
+  protected static void setRenderingHints(@NotNull Graphics2D g) {
+    g.setRenderingHints(HQ_RENDERING_HITS);
   }
 }

@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
-import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
@@ -53,10 +52,14 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  private static final int SUBNAV_WIDTH = 100;
-  private static final int SUBNAV_HEIGHT = 25;
+  @AndroidCoordinate private static final int SCREEN_LONG = 256;
+
+  @AndroidCoordinate private static final int SUBNAV_WIDTH = 140;
+  @AndroidCoordinate private static final int SUBNAV_HEIGHT = 38;
+
   @SwingCoordinate private static final int PAN_LIMIT = 150;
   @AndroidDpCoordinate private static final int BOUNDING_BOX_PADDING = 100;
+
   private final NavScreenTargetProvider myScreenTargetProvider;
 
   // TODO: enable layout algorithm switching
@@ -95,9 +98,11 @@ public class NavSceneManager extends SceneManager {
   @Override
   protected void updateFromComponent(@NotNull SceneComponent sceneComponent) {
     super.updateFromComponent(sceneComponent);
+
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
     if (type != null) {
       sceneComponent.setTargetProvider(myScreenTargetProvider);
+
       switch (type) {
         case NAVIGATION:
           if (sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
@@ -105,8 +110,7 @@ public class NavSceneManager extends SceneManager {
             sceneComponent.setSize(-1, -1, false);
           }
           else {
-            // TODO: take label size into account.
-            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT, false);
+            sceneComponent.setSize(Coordinates.pxToDp(getModel(), SUBNAV_WIDTH), Coordinates.pxToDp(getModel(), SUBNAV_HEIGHT), false);
           }
           break;
         case FRAGMENT:
@@ -114,8 +118,8 @@ public class NavSceneManager extends SceneManager {
           State state = getModel().getConfiguration().getDeviceState();
           assert state != null;
           Screen screen = state.getHardware().getScreen();
-          int x = 300;
-          int y = 300;
+          @AndroidDpCoordinate int x = SCREEN_LONG;
+          @AndroidDpCoordinate int y = SCREEN_LONG;
           double ratio = screen.getXDimension() / (double)screen.getYDimension();
           if (ratio > 1) {
             y /= ratio;
@@ -128,7 +132,7 @@ public class NavSceneManager extends SceneManager {
             x *= 0.5;
             y *= 0.5;
           }
-          sceneComponent.setSize(x, y, true);
+          sceneComponent.setSize(Coordinates.pxToDp(getModel(), x), Coordinates.pxToDp(getModel(), y), true);
           break;
         default:
           // nothing
