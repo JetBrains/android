@@ -192,6 +192,12 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @Override
   @NotNull
+  public Collection<String> getVariantNames() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
   public Collection<String> getFlavorDimensions() {
     return myFlavorDimensions;
   }
