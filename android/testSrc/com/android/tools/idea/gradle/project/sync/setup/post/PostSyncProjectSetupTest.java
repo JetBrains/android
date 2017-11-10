@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -189,7 +190,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
 
     // Reset only in one of the configurations (e.g. open old projects with run configs already created)
-    myRunManager.resetBeforeRunTasks(androidRunConfiguration);
+    myRunManager.setBeforeRunTasks(androidRunConfiguration, Collections.emptyList());
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
