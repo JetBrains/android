@@ -86,7 +86,6 @@ public class MockupToggleAction extends ToggleAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     super.update(event);
-    event.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
     event.getPresentation().setIcon(getDesignIcon());
     event.getPresentation().setDescription(getDescription());
   }
