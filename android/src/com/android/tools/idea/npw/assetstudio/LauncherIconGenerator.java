@@ -31,7 +31,9 @@ import com.android.tools.lint.checks.ApiLookup;
 import com.android.utils.CharSequences;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.AtomicNullableLazyValue;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +84,7 @@ public class LauncherIconGenerator extends IconGenerator {
   private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
   private final AtomicNullableLazyValue<ApiLookup> myApiLookup;
+  private final String myLineSeparator;
 
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
@@ -91,11 +94,13 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   public LauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
     super(minSdkVersion, new GraphicGeneratorContext(40, new DrawableRenderer(facet)));
+    Project project = facet.getModule().getProject();
+    myLineSeparator = CodeStyleSettingsManager.getSettings(project).getLineSeparator();
     myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
       @Override
       @Nullable
       protected ApiLookup compute() {
-        return LintIdeClient.getApiLookup(facet.getModule().getProject());
+        return LintIdeClient.getApiLookup(project);
       }
     };
   }
@@ -445,11 +450,11 @@ public class LauncherIconGenerator extends IconGenerator {
         iconOptions.iconFolderKind = IconFolderKind.VALUES;
 
         String format = ""
-            + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-            + "<resources>\n"
-            + "    <color name=\"%s\">#%06X</color>\n"
+            + "<?xml version=\"1.0\" encoding=\"utf-8\"?>%1$s"
+            + "<resources>%1$s"
+            + "    <color name=\"%2$s\">#%3$06X</color>%1$s"
             + "</resources>";
-        String xmlColor = String.format(format, iconOptions.backgroundLayerName, iconOptions.backgroundColor & 0xFF_FF_FF);
+        String xmlColor = String.format(format, myLineSeparator, iconOptions.backgroundLayerName, iconOptions.backgroundColor & 0xFFFFFF);
         return new GeneratedXmlResource(name,
                                         Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.XML_RESOURCE,
@@ -459,16 +464,16 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  private static String getAdaptiveIconXml(@NotNull LauncherIconOptions options) {
+  private String getAdaptiveIconXml(@NotNull LauncherIconOptions options) {
     String backgroundType = options.backgroundImage == null ? "color" : options.backgroundImage.isDrawable() ? "drawable" : "mipmap";
     String foregroundType = options.foregroundImage != null && options.foregroundImage.isDrawable() ? "drawable" : "mipmap";
     String format = ""
-        + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-        + "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n"
-        + "    <background android:drawable=\"@%s/%s\"/>\n"
-        + "    <foreground android:drawable=\"@%s/%s\"/>\n"
+        + "<?xml version=\"1.0\" encoding=\"utf-8\"?>%1$s"
+        + "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">%1$s"
+        + "    <background android:drawable=\"@%2$s/%3$s\"/>%1$s"
+        + "    <foreground android:drawable=\"@%4$s/%5$s\"/>%1$s"
         + "</adaptive-icon>";
-    return String.format(format, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
+    return String.format(format, myLineSeparator, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
   }
 
   /**
