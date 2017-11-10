@@ -63,6 +63,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -1489,10 +1490,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
       IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
-      iconGenerator.name().set("ic_launcher");
+      iconGenerator.outputName().set("ic_launcher");
       iconGenerator.sourceAsset().setValue(new ImageAsset());
       createProject(projectState, myFixture.getProject(), iconGenerator);
-      iconGenerator.dispose();
+      Disposer.dispose(iconGenerator);
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 

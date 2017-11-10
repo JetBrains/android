@@ -59,6 +59,8 @@ import java.util.concurrent.ExecutionException;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class LauncherIconGenerator extends IconGenerator {
+  public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
+  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x26A69A);
   public static final Rectangle IMAGE_SIZE_FULL_BLEED_DP = new Rectangle(0, 0, 108, 108);
   public static final Dimension SIZE_FULL_BLEED_DP = IMAGE_SIZE_FULL_BLEED_DP.getSize();
   private static final Rectangle IMAGE_SIZE_SAFE_ZONE_DP = new Rectangle(0, 0, 66, 66);
@@ -69,8 +71,8 @@ public class LauncherIconGenerator extends IconGenerator {
   private static final Density[] DENSITIES = { Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, Density.XXXHIGH };
 
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
-  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
-  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(new Color(0x26A69A));
+  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(DEFAULT_FOREGROUND_COLOR);
+  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
   private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
   private final BoolProperty myGenerateWebIcon = new BoolValueProperty(true);
@@ -554,7 +556,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
         BufferedImage image = generatePreviewImage(context, localOptions);
         return new GeneratedImageIcon(previewShape.id,
-                                      null, // no path for preview icons
+                                      null, // No path for preview icons.
                                       IconCategory.PREVIEW,
                                       localOptions.density,
                                       image);
@@ -662,15 +664,15 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   @NotNull
   private static BufferedImage generateLegacyImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
-    // The "Web" density does not exist in the "Density" enum. Various "Legacy" icon APIs use
-    // "null" as a placeholder for "Web".
-    Density legacyOrWebDensity = (options.generateWebIcon ? null : options.density);
-
     // The viewport rectangle (72x72dp) scaled according to density.
     Rectangle viewportRect = getViewportRectangle(options);
 
     // The "Legacy" icon rectangle (48x48dp) scaled according to density.
     Rectangle legacyRect = getLegacyRectangle(options);
+
+    // The "Web" density does not exist in the "Density" enum. Various "Legacy" icon APIs use
+    // "null" as a placeholder for "Web".
+    Density legacyOrWebDensity = options.generateWebIcon ? Density.NODPI : options.density;
 
     // The sub-rectangle of the 48x48dp "Legacy" icon that corresponds to the "Legacy" icon
     // shape, scaled according to the density.
@@ -702,7 +704,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
     // Generate legacy image by merging shadow, mask and (scaled) adaptive icon
     BufferedImage legacyImage = AssetUtil.newArgbBufferedImage(legacyRect.width, legacyRect.height);
-    Graphics2D gLegacy = (Graphics2D) legacyImage.getGraphics();
+    Graphics2D gLegacy = (Graphics2D)legacyImage.getGraphics();
 
     // Start with backdrop image (semi-transparent shadow).
     if (shapeImageBack != null) {
