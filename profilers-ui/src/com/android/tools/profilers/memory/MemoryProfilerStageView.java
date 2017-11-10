@@ -431,8 +431,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     assert parent.getLayout().getClass() == TabularLayout.class;
     RenderInstruction[] instructions;
     if (getStage().useLiveAllocationTracking()) {
+      TextInstruction allocInstruction = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled() ?
+                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a point/range to inspect snapshot/allocations") :
+                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations");
       RenderInstruction[] liveAllocInstructions = {
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations"),
+        allocInstruction,
         new NewRowInstruction(DEFAULT_PADDING_Y_PX),
         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click  "),
         new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
