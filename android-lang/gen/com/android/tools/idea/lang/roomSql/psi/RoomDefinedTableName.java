@@ -21,16 +21,11 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.RoomDefinedTablePsiReference;
 
-public interface RoomColumnDef extends PsiElement {
-
-  @NotNull
-  List<RoomColumnConstraint> getColumnConstraintList();
+public interface RoomDefinedTableName extends RoomNameElement {
 
   @NotNull
-  RoomColumnName getColumnName();
-
-  @Nullable
-  RoomTypeName getTypeName();
+  RoomDefinedTablePsiReference getReference();
 
 }

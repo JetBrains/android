@@ -49,7 +49,7 @@ class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>()
 
     val newName = RoomSqlPsiFacade.getInstance(element.project)?.run {
       when (element.node.elementType) {
-        RoomPsiTypes.TABLE_NAME -> createTableName(newContent)
+        RoomPsiTypes.DEFINED_TABLE_NAME, RoomPsiTypes.SELECTED_TABLE_NAME -> createDefinedTableName(newContent)
         RoomPsiTypes.COLUMN_NAME -> createColumnName(newContent)
         else -> error("Don't know how to rename ${element.node.elementType}")
       }

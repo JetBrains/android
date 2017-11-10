@@ -52,8 +52,8 @@ public class RoomSingleTableStatementTableImpl extends ASTWrapperPsiElement impl
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
   @Nullable

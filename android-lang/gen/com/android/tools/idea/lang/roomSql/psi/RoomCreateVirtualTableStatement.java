@@ -34,6 +34,6 @@ public interface RoomCreateVirtualTableStatement extends RoomStatement {
   RoomModuleName getModuleName();
 
   @NotNull
-  RoomTableName getTableName();
+  RoomTableDefinitionName getTableDefinitionName();
 
 }

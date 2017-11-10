@@ -25,40 +25,22 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomColumnDefImpl extends ASTWrapperPsiElement implements RoomColumnDef {
+public class RoomColumnDefinitionNameImpl extends AbstractRoomNameElement implements RoomColumnDefinitionName {
 
-  public RoomColumnDefImpl(ASTNode node) {
+  public RoomColumnDefinitionNameImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitColumnDef(this);
+    visitor.visitColumnDefinitionName(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomColumnConstraint> getColumnConstraintList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnConstraint.class);
-  }
-
-  @Override
-  @NotNull
-  public RoomColumnName getColumnName() {
-    return findNotNullChildByClass(RoomColumnName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTypeName getTypeName() {
-    return findChildByClass(RoomTypeName.class);
   }
 
 }

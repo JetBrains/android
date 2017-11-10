@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade
-import com.android.tools.idea.lang.roomSql.psi.RoomTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomDefinedTableName
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -32,14 +32,14 @@ class RoomNameElementTest : LightCodeInsightFixtureTestCase() {
       PsiTreeUtil.findChildOfType(RoomSqlPsiFacade.getInstance(myFixture.project)!!.createFileFromText(input), kclass.java)!!
 
   fun testTableNameAsText() {
-    assertThat(parseAndFind("select * from table_name", RoomTableName::class).nameAsString).isEqualTo("table_name")
-    assertThat(parseAndFind("select * from [$123 table ą]", RoomTableName::class).nameAsString).isEqualTo("$123 table ą")
-    assertThat(parseAndFind("""select * from "my table"""", RoomTableName::class).nameAsString).isEqualTo("my table")
-    assertThat(parseAndFind("select * from 'Foo''s kingdom''s table'", RoomTableName::class).nameAsString)
+    assertThat(parseAndFind("select * from table_name", RoomDefinedTableName::class).nameAsString).isEqualTo("table_name")
+    assertThat(parseAndFind("select * from [$123 table ą]", RoomDefinedTableName::class).nameAsString).isEqualTo("$123 table ą")
+    assertThat(parseAndFind("""select * from "my table"""", RoomDefinedTableName::class).nameAsString).isEqualTo("my table")
+    assertThat(parseAndFind("select * from 'Foo''s kingdom''s table'", RoomDefinedTableName::class).nameAsString)
         .isEqualTo("Foo's kingdom's table")
-    assertThat(parseAndFind("select * from \"some\"\"table\"", RoomTableName::class).nameAsString).isEqualTo("some\"table")
-    assertThat(parseAndFind("select * from `some table`", RoomTableName::class).nameAsString).isEqualTo("some table")
-    assertThat(parseAndFind("select * from `some``table`", RoomTableName::class).nameAsString).isEqualTo("some`table")
+    assertThat(parseAndFind("select * from \"some\"\"table\"", RoomDefinedTableName::class).nameAsString).isEqualTo("some\"table")
+    assertThat(parseAndFind("select * from `some table`", RoomDefinedTableName::class).nameAsString).isEqualTo("some table")
+    assertThat(parseAndFind("select * from `some``table`", RoomDefinedTableName::class).nameAsString).isEqualTo("some`table")
   }
 }
 

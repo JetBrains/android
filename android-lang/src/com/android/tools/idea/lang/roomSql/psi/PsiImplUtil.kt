@@ -22,14 +22,18 @@ import com.android.tools.idea.lang.roomSql.*
 import com.intellij.psi.PsiReference
 
 
-fun getReference(tableName: RoomTableName): RoomTablePsiReference {
-  return RoomTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStatementTable)
+fun getReference(tableName: RoomSelectedTableName): RoomSelectedTablePsiReference {
+  return RoomSelectedTablePsiReference(tableName)
+}
+
+fun getReference(tableName: RoomDefinedTableName): RoomDefinedTablePsiReference {
+  return RoomDefinedTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStatementTable)
 }
 
 fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
   val parent = columnName.parent
   if (parent is RoomColumnRefExpression) {
-    val tableName = parent.tableName
+    val tableName = parent.selectedTableName
     if (tableName != null) {
       return QualifiedColumnPsiReference(columnName, tableName)
     }
@@ -43,9 +47,9 @@ fun getReference(bindParameter: RoomBindParameter): PsiReference? = RoomParamete
 fun getParameterNameAsString(bindParameter: RoomBindParameter) = bindParameter.text.substring(startIndex = 1)
 
 fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
-  val realTable = fromTable.tableName.reference.resolveSqlTable() ?: return null
+  val realTable = fromTable.definedTableName.reference.resolveSqlTable() ?: return null
   val alias = fromTable.tableAliasName
-  return if (alias == null) realTable else AliasedTable(realTable, name = alias.nameAsString, resolveTo = alias)
+  return if (alias != null) AliasedTable(realTable, name = alias.nameAsString, resolveTo = alias) else realTable
 }
 
 fun getSqlTable(subquery: RoomSubquery): SqlTable? {
@@ -54,9 +58,9 @@ fun getSqlTable(subquery: RoomSubquery): SqlTable? {
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
 
-fun getSqlTable(withClauseTable: RoomWithClauseTable): SqlTable? {
-  val tableName = withClauseTable.withClauseTableDef.tableDefName
+fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable {
+  val tableName = withClauseTable.withClauseTableDef.tableDefinitionName
   return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
 }
 
-fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.tableName.reference.resolveSqlTable()
+fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.definedTableName.reference.resolveSqlTable()

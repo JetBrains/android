@@ -25,12 +25,15 @@ import com.intellij.psi.PsiElement;
 public interface RoomAlterTableStatement extends RoomStatement {
 
   @Nullable
-  RoomColumnDef getColumnDef();
+  RoomColumnDefinition getColumnDefinition();
 
   @Nullable
   RoomDatabaseName getDatabaseName();
 
   @NotNull
-  List<RoomTableName> getTableNameList();
+  RoomDefinedTableName getDefinedTableName();
+
+  @Nullable
+  RoomTableDefinitionName getTableDefinitionName();
 
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomInsertStatement extends RoomStatement {
+public interface RoomInsertStatement extends RoomStatement, HasWithClause {
 
   @Nullable
   RoomInsertColumns getInsertColumns();

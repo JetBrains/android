@@ -32,9 +32,14 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
         checkReference(columnName)
       }
 
-      override fun visitTableName(tableName: RoomTableName) {
-        super.visitTableName(tableName)
-        checkReference(tableName)
+      override fun visitDefinedTableName(definedTableName: RoomDefinedTableName) {
+        super.visitDefinedTableName(definedTableName)
+        checkReference(definedTableName)
+      }
+
+      override fun visitSelectedTableName(selectedTableName: RoomSelectedTableName) {
+        super.visitSelectedTableName(selectedTableName)
+        checkReference(selectedTableName)
       }
 
       private fun checkReference(referenceElement: PsiElement) {

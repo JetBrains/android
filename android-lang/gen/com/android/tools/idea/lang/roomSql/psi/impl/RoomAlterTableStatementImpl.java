@@ -44,8 +44,8 @@ public class RoomAlterTableStatementImpl extends RoomStatementImpl implements Ro
 
   @Override
   @Nullable
-  public RoomColumnDef getColumnDef() {
-    return findChildByClass(RoomColumnDef.class);
+  public RoomColumnDefinition getColumnDefinition() {
+    return findChildByClass(RoomColumnDefinition.class);
   }
 
   @Override
@@ -56,8 +56,14 @@ public class RoomAlterTableStatementImpl extends RoomStatementImpl implements Ro
 
   @Override
   @NotNull
-  public List<RoomTableName> getTableNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableName.class);
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomTableDefinitionName getTableDefinitionName() {
+    return findChildByClass(RoomTableDefinitionName.class);
   }
 
 }

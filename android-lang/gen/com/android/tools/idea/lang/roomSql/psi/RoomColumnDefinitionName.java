@@ -22,36 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDeleteStatement extends RoomStatement, HasWithClause {
-
-  @NotNull
-  List<RoomExpression> getExpressionList();
-
-  @Nullable
-  RoomOrderClause getOrderClause();
-
-  @NotNull
-  RoomSingleTableStatementTable getSingleTableStatementTable();
-
-  @Nullable
-  RoomWhereClause getWhereClause();
-
-  @Nullable
-  RoomWithClause getWithClause();
-
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+public interface RoomColumnDefinitionName extends RoomNameElement {
 
 }

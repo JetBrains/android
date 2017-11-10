@@ -56,9 +56,9 @@ public class RoomWithClauseTableImpl extends ASTWrapperPsiElement implements Roo
     return findNotNullChildByClass(RoomWithClauseTableDef.class);
   }
 
-  @Nullable
-  public SqlTable getSqlTable() {
-    return PsiImplUtil.getSqlTable(this);
+  @NotNull
+  public SqlTable getTableDefinition() {
+    return PsiImplUtil.getTableDefinition(this);
   }
 
 }

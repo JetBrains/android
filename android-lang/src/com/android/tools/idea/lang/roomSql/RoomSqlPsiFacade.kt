@@ -18,7 +18,8 @@ package com.android.tools.idea.lang.roomSql
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
-import com.android.tools.idea.lang.roomSql.psi.RoomTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomDefinedTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectedTableName
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -36,10 +37,15 @@ class RoomSqlPsiFacade(val project: Project) {
   fun createFileFromText(text: String): PsiFile =
       PsiFileFactory.getInstance(project).createFileFromText(DUMMY_FILE_NAME, ROOM_SQL_FILE_TYPE, text)
 
-  fun createTableName(name: String): RoomTableName? =
+  fun createDefinedTableName(name: String): RoomDefinedTableName? =
       PsiTreeUtil.findChildOfAnyType(
           createFileFromText("select * from ${RoomSqlLexer.getValidName(name)}"),
-          RoomTableName::class.java)
+          RoomDefinedTableName::class.java)
+
+  fun createSelectedTableName(name: String): RoomSelectedTableName? =
+      PsiTreeUtil.findChildOfAnyType(
+          createFileFromText("select ${RoomSqlLexer.getValidName(name)}.* from madeup"),
+          RoomSelectedTableName::class.java)
 
   fun createColumnName(name: String): RoomColumnName? =
       PsiTreeUtil.findChildOfAnyType(

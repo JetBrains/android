@@ -51,15 +51,15 @@ public class RoomFromTableImpl extends ASTWrapperPsiElement implements RoomFromT
   }
 
   @Override
-  @Nullable
-  public RoomTableAliasName getTableAliasName() {
-    return findChildByClass(RoomTableAliasName.class);
+  @NotNull
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
   @Override
-  @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  @Nullable
+  public RoomTableAliasName getTableAliasName() {
+    return findChildByClass(RoomTableAliasName.class);
   }
 
   @Override

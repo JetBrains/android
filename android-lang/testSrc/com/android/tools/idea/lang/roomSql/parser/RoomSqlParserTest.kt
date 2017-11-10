@@ -397,7 +397,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
                     PsiElement(FROM)('from')
                     RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
                       RoomFromTableImpl(FROM_TABLE)
-                        RoomTableNameImpl(TABLE_NAME)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
                           PsiElement(IDENTIFIER)('user')
           """.trimIndent(),
         toParseTreeText("select 'age' from user"))
@@ -417,7 +417,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
                     PsiElement(FROM)('from')
                     RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
                       RoomFromTableImpl(FROM_TABLE)
-                        RoomTableNameImpl(TABLE_NAME)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
                           PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''user'')
           """.trimIndent(),
         toParseTreeText("select age from 'user'"))
@@ -427,7 +427,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
             RoomUpdateStatementImpl(UPDATE_STATEMENT)
               PsiElement(UPDATE)('UPDATE')
               RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
-                RoomTableNameImpl(TABLE_NAME)
+                RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
                   PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''table'')
               PsiElement(SET)('SET')
               RoomColumnNameImpl(COLUMN_NAME)

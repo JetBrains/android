@@ -21,7 +21,6 @@ package com.android.tools.idea.lang.roomSql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.SqlTableElement;
 
 public class RoomVisitor extends PsiElementVisitor {
 
@@ -85,11 +84,11 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitColumnDef(@NotNull RoomColumnDef o) {
+  public void visitColumnDefinition(@NotNull RoomColumnDefinition o) {
     visitPsiElement(o);
   }
 
-  public void visitColumnDefName(@NotNull RoomColumnDefName o) {
+  public void visitColumnDefinitionName(@NotNull RoomColumnDefinitionName o) {
     visitNameElement(o);
   }
 
@@ -145,8 +144,13 @@ public class RoomVisitor extends PsiElementVisitor {
     visitNameElement(o);
   }
 
+  public void visitDefinedTableName(@NotNull RoomDefinedTableName o) {
+    visitNameElement(o);
+  }
+
   public void visitDeleteStatement(@NotNull RoomDeleteStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitDetachStatement(@NotNull RoomDetachStatement o) {
@@ -227,6 +231,7 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitInsertStatement(@NotNull RoomInsertStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitIsnullExpression(@NotNull RoomIsnullExpression o) {
@@ -343,6 +348,11 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitSelectStatement(@NotNull RoomSelectStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
+  }
+
+  public void visitSelectedTableName(@NotNull RoomSelectedTableName o) {
+    visitNameElement(o);
   }
 
   public void visitSignedNumber(@NotNull RoomSignedNumber o) {
@@ -369,11 +379,7 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitTableDefName(@NotNull RoomTableDefName o) {
-    visitNameElement(o);
-  }
-
-  public void visitTableName(@NotNull RoomTableName o) {
+  public void visitTableDefinitionName(@NotNull RoomTableDefinitionName o) {
     visitNameElement(o);
   }
 
@@ -399,6 +405,7 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitUpdateStatement(@NotNull RoomUpdateStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitVacuumStatement(@NotNull RoomVacuumStatement o) {
@@ -418,7 +425,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitWithClauseTable(@NotNull RoomWithClauseTable o) {
-    visitSqlTableElement(o);
+    visitPsiElement(o);
   }
 
   public void visitWithClauseTableDef(@NotNull RoomWithClauseTableDef o) {
