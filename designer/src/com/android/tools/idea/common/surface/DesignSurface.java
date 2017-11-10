@@ -99,11 +99,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   @Nullable protected NlModel myModel;
-  protected Scene myScene;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
   private final RenderListener myRenderListener = this::modelRendered;
+  private final ModelListener myModelListener = (model, animate) -> repaint();
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
@@ -196,6 +196,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     });
 
     myInteractionManager.registerListeners();
+    //noinspection AbstractMethodCallInConstructor
     myActionManager = createActionManager();
     myActionManager.registerActionsShortcuts(myLayeredPane);
   }
@@ -216,10 +217,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public NlLayoutType getLayoutType() {
-    if (getCurrentSceneView() == null) {
+    if (myModel == null) {
       return NlLayoutType.UNKNOWN;
     }
-    return NlLayoutType.typeOf(getCurrentSceneView().getModel().getFile());
+    return NlLayoutType.typeOf(myModel.getFile());
   }
 
   @NotNull
@@ -248,49 +249,31 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
-    }
-    myModel = model;
-    SceneView sceneView = getCurrentSceneView();
-    if (model == null && sceneView == null) {
-      return;
-    }
-
-    List<NlComponent> selectionBefore = Collections.emptyList();
-    List<NlComponent> selectionAfter = Collections.emptyList();
-
-    if (mySceneManager != null) {
+      myModel.removeListener(myModelListener);
+      // If myModel is not null, then mySceneManager must be not null as well.
       mySceneManager.removeRenderListener(myRenderListener);
     }
 
-    if (sceneView != null) {
-      sceneView.getModel().removeListener(myModelListener);
-    }
-
-    if (model != null) {
-      model.addListener(myModelListener);
-      model.getConfiguration().addListener(myConfigurationListener);
-      mySceneManager = createSceneManager(model);
-      mySceneManager.addRenderListener(myRenderListener);
-      myScene = mySceneManager.getScene();
-    }
-    else {
-      myScene = null;
+    myModel = model;
+    if (model == null) {
       mySceneManager = null;
+      return;
     }
 
-    if (model != null) {
-      if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
-        myInteractionManager.unregisterListeners();
-      }
-      else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
-        myInteractionManager.registerListeners();
-      }
+    model.addListener(myModelListener);
+    model.getConfiguration().addListener(myConfigurationListener);
+    mySceneManager = createSceneManager(model);
+    mySceneManager.addRenderListener(myRenderListener);
+
+    if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.unregisterListeners();
     }
+    else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.registerListeners();
+    }
+
     repaint();
 
-    if (!selectionBefore.equals(selectionAfter)) {
-      notifySelectionListeners(selectionAfter);
-    }
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
       listener.modelChanged(this, model);
     }
@@ -302,6 +285,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager.unregisterListeners();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
+      myModel.removeListener(myModelListener);
+      mySceneManager.removeRenderListener(myRenderListener);
     }
   }
 
@@ -737,8 +722,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private final ModelListener myModelListener = (model, animate) -> repaint();
-
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
       myZoomListeners = Lists.newArrayList();
@@ -759,15 +742,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
-    if (!myIsActive && getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().activate(this);
+    if (!myIsActive && myModel != null) {
+      myModel.activate(this);
     }
     myIsActive = true;
   }
 
   public void deactivate() {
-    if (myIsActive && getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().deactivate(this);
+    if (myIsActive && myModel != null) {
+      myModel.deactivate(this);
     }
     myIsActive = false;
 
@@ -807,7 +790,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public Scene getScene() {
-    return myScene;
+    return getSceneManager() != null ? mySceneManager.getScene() : null;
   }
 
   @Nullable
@@ -1147,9 +1130,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void forceUserRequestedRefresh() {
-    SceneView sceneView = getCurrentSceneView();
-    SceneManager sceneManager = sceneView != null ? sceneView.getSceneManager() : null;
-
+    SceneManager sceneManager = getSceneManager();
     if (sceneManager instanceof LayoutlibSceneManager) {
       ((LayoutlibSceneManager)sceneManager).requestUserInitatedRender();
     }
@@ -1159,9 +1140,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
   public void requestRender() {
-    SceneView sceneView = getCurrentSceneView();
-    if (sceneView != null) {
-      sceneView.getSceneManager().requestRender();
+    SceneManager sceneManager = getSceneManager();
+    if (sceneManager != null) {
+      sceneManager.requestRender();
     }
   }
 
@@ -1218,7 +1199,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   @Override
   public Configuration getConfiguration() {
-    return getCurrentSceneView() != null ? getCurrentSceneView().getConfiguration() : null;
+    return getModel() != null ? getModel().getConfiguration() : null;
   }
 
   @NotNull
