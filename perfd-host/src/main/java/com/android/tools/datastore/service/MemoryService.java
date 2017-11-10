@@ -24,6 +24,7 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -291,6 +292,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response =
         myAllocationsTable.getAllocations(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
     }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getLatestAllocationTime(LatestAllocationTimeRequest request,
+                                      StreamObserver<LatestAllocationTimeResponse> responseObserver) {
+    LatestAllocationTimeResponse response =
+      myAllocationsTable.getLatestDataTimestamp(request.getProcessId(), request.getSession());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

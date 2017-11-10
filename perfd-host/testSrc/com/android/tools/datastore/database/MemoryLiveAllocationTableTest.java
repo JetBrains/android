@@ -185,6 +185,36 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
+  public void testLatestDataTimestamp() throws Exception {
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(0);
+
+    // A klass1 instance allocation event (t = 1)
+    AllocationEvent alloc1 = AllocationEvent.newBuilder()
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
+      .setTimestamp(1).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc1).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(1);
+
+    // A klass1 instance deallocation event (t = 7)
+    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
+      .setFreeData(
+        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
+      .setTimestamp(7).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(dealloc1).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(7);
+
+    // A klass2 instance allocation event (t = 6)
+    AllocationEvent alloc2 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
+      .setTimestamp(6).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc2).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(7);
+  }
+
+  @Test
   public void testIgnoreDuplicatedMethodInfo() throws Exception {
     List<StackFrame> methodsToInsert = new ArrayList<>();
     StackFrame method1 = StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JNI_KLASS1_NAME).build();

@@ -285,12 +285,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
         // We +1 because current range is left close and right open
         if (newEndTimeNs > myEventsEndTimeNs + 1) {
-          // TODO - optimize. We should't need to query allocations just to retrieve a timestamp.
-          BatchAllocationSample sampleResponse =
-            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                      .setStartTime(myEventsEndTimeNs + 1).setEndTime(newEndTimeNs).build());
-
-          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, sampleResponse.getTimestamp());
+          LatestAllocationTimeResponse timeResponse = myClient
+            .getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).build());
+          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, timeResponse.getTimestamp());
           if (newEndTimeNs > myEventsEndTimeNs + 1) {
             newEndTimeNs = myEventsEndTimeNs + 1;
             newStartTimeNs = Math.min(newStartTimeNs, newEndTimeNs);
