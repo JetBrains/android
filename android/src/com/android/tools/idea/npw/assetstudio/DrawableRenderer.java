@@ -118,9 +118,9 @@ class DrawableRenderer implements Disposable {
 
   @Override
   public void dispose() {
-    synchronized (myRenderLock) {
-      RenderTask renderTask = getRenderTask();
-      if (renderTask != null) {
+    RenderTask renderTask = getRenderTask();
+    if (renderTask != null) {
+      synchronized (myRenderLock) {
         renderTask.dispose();
       }
     }

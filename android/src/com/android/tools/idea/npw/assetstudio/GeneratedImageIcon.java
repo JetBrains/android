@@ -15,58 +15,55 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.resources.Density;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 
 /** A {@link GeneratedIcon} that is defined by a {@link BufferedImage} at a given density. */
 public class GeneratedImageIcon extends GeneratedIcon {
-    @NonNull private final String name;
-    @Nullable private final Path outputPath;
-    @NonNull private final IconCategory category;
-    @NonNull private final Density density;
-    @NonNull private final BufferedImage image;
+  @NotNull private final String name;
+  @Nullable private final Path outputPath;
+  @NotNull private final IconCategory category;
+  @NotNull private final Density density;
+  @NotNull private final BufferedImage image;
 
-    public GeneratedImageIcon(
-            @NonNull String name,
-            @Nullable Path outputPath,
-            @NonNull IconCategory category,
-            @NonNull Density density,
-            @NonNull BufferedImage image) {
-        this.name = name;
-        this.outputPath = outputPath;
-        this.category = category;
-        this.density = density;
-        this.image = image;
-    }
+  public GeneratedImageIcon(@NotNull String name, @Nullable Path outputPath, @NotNull IconCategory category, @NotNull Density density,
+                            @NotNull BufferedImage image) {
+    this.name = name;
+    this.outputPath = outputPath;
+    this.category = category;
+    this.density = density;
+    this.image = image;
+  }
 
-    @NonNull
-    @Override
-    public String getName() {
-        return name;
-    }
+  @Override
+  @NotNull
+  public String getName() {
+    return name;
+  }
 
-    @Nullable
-    @Override
-    public Path getOutputPath() {
-        return outputPath;
-    }
+  @Override
+  @Nullable
+  public Path getOutputPath() {
+    return outputPath;
+  }
 
-    @NonNull
-    @Override
-    public IconCategory getCategory() {
-        return category;
-    }
+  @Override
+  @NotNull
+  public IconCategory getCategory() {
+    return category;
+  }
 
-    @NonNull
-    public Density getDensity() {
-        return density;
-    }
+  @NotNull
+  public Density getDensity() {
+    return density;
+  }
 
-    @NonNull
-    public BufferedImage getImage() {
-        return image;
-    }
+  @NotNull
+  public BufferedImage getImage() {
+    return image;
+  }
 }

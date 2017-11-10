@@ -19,8 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
@@ -31,10 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A wizard that owns a series of {@link ModelWizardStep}s. When finished, it iterates through its
@@ -48,7 +44,6 @@ import java.util.Set;
  * done for you by a wrapping class, such as a model wizard dialog).
  */
 public final class ModelWizard implements Disposable {
-
   private final List<ModelWizardStep> mySteps;
 
   /**
@@ -56,7 +51,7 @@ public final class ModelWizard implements Disposable {
    * all of those should be shown as well. In this way, skipping a parent step automatically will
    * skip any child steps as well (recursively).
    */
-  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = Maps.newHashMap();
+  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = new HashMap<>();
 
   private final BindingsManager myBindings = new BindingsManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
@@ -69,7 +64,7 @@ public final class ModelWizard implements Disposable {
   private final TitleHeader myTitleHeader = new TitleHeader();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
 
-  private final List<WizardListener> myWizardListeners = Lists.newArrayListWithExpectedSize(1);
+  private final List<WizardListener> myWizardListeners = new ArrayList<>(1);
 
   private int myCurrIndex = -1;
 
@@ -90,7 +85,7 @@ public final class ModelWizard implements Disposable {
    * @throws IllegalArgumentException if {@code steps} is empty or none of the steps are visible.
    */
   private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
-    mySteps = Lists.newArrayListWithExpectedSize(steps.size());
+    mySteps = new ArrayList<>(steps.size());
     for (ModelWizardStep step : steps) {
       addStep(step);
     }
@@ -108,16 +103,14 @@ public final class ModelWizard implements Disposable {
       }
     });
 
-    Set<WizardModel> seenModels = Sets.newHashSet();
+    Set<WizardModel> seenModels = new HashSet<>();
     for (ModelWizardStep step : mySteps) {
       Disposer.register(this, step);
 
       WizardModel model = step.getModel();
-      if (seenModels.contains(model)) {
-        continue;
+      if (seenModels.add(model)) {
+        Disposer.register(this, model);
       }
-      Disposer.register(this, model);
-      seenModels.add(model);
     }
 
     // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
@@ -383,22 +376,19 @@ public final class ModelWizard implements Disposable {
   private void handleFinished(@NotNull WizardResult result) {
     try {
       if (result == WizardResult.FINISHED) {
-        Set<WizardModel> seenModels = Sets.newHashSet();
+        Set<WizardModel> seenModels = new HashSet<>();
         for (ModelWizardStep step : myPrevSteps) {
           WizardModel model = step.getModel();
-          if (seenModels.contains(model)) {
-            continue;
+          if (seenModels.add(model)) {
+            model.handleFinished();
           }
-          seenModels.add(model);
-          model.handleFinished();
         }
         for (ModelWizardStep step : mySteps) {
           WizardModel model = step.getModel();
-          if (seenModels.contains(model)) {
-            continue;
+          if (seenModels.add(model)) {
+            model.handleSkipped();
           }
-          seenModels.add(model);
-          model.handleSkipped();
+          step.onWizardFinished();
         }
       }
     }
@@ -485,7 +475,7 @@ public final class ModelWizard implements Disposable {
   private Iterable<WizardListener> getListeners() {
     // Make a copy of the event list, as a listener may attempt to remove their listener when this
     // is fired.
-    return Lists.newArrayList(myWizardListeners);
+    return new ArrayList<>(myWizardListeners);
   }
 
   public enum WizardResult {

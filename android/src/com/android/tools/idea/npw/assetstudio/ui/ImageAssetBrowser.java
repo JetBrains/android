@@ -38,21 +38,20 @@ import java.util.Optional;
 public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<ImageAsset> {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
-  private final List<ActionListener> myListeners = new ArrayList(1);
+  private final List<ActionListener> myListeners = new ArrayList<>(1);
 
   public ImageAssetBrowser() {
     addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 
     TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, myImageAsset.imagePath().transform(file -> file.map(File::getAbsolutePath).orElse("")));
-    myBindings.bind(myImageAsset.imagePath(), imagePathText.transform(s -> {
-      return StringUtil.isEmptyOrSpaces(s) ? Optional.empty() : Optional.of(new File(s.trim()));
-    }));
+    myBindings.bind(myImageAsset.imagePath(),
+                    imagePathText.transform(s -> StringUtil.isEmptyOrSpaces(s) ? Optional.empty() : Optional.of(new File(s.trim()))));
 
     InvalidationListener onImageChanged = sender -> {
-      ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
+      ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myListeners) {
-        listener.actionPerformed(e);
+        listener.actionPerformed(event);
       }
     };
     myImageAsset.imagePath().addListener(onImageChanged);

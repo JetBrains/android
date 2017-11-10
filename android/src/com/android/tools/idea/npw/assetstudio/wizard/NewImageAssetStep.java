@@ -28,14 +28,18 @@ import java.util.Collections;
 /**
  * Step for generating Android icons from some image asset source.
  */
-public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
+public final class NewImageAssetStep extends ModelWizardStep<GenerateImageIconsModel> {
+  private static final String IMAGE_ASSET_PANEL_PROPERTY = "imageAssetPanel";
+
   @NotNull private final GenerateImageAssetPanel myGenerateImageAssetPanel;
   @NotNull private final AndroidFacet myFacet;
 
-  public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
+  public NewImageAssetStep(@NotNull GenerateImageIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths());
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, facet, model.getPaths());
     myFacet = facet;
+
+    PersistentStateUtil.load(myGenerateImageAssetPanel, model.getPersistentState().getChild(IMAGE_ASSET_PANEL_PROPERTY));
   }
 
   @NotNull
@@ -59,5 +63,10 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
   @Override
   protected void onProceeding() {
     getModel().setIconGenerator(myGenerateImageAssetPanel.getIconGenerator());
+  }
+
+  @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(IMAGE_ASSET_PANEL_PROPERTY, myGenerateImageAssetPanel.getState());
   }
 }
