@@ -101,6 +101,7 @@ final class MemoryClassifierView extends AspectObserver {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
     myLoadingPanel = myIdeProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
+    myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
@@ -362,16 +363,14 @@ final class MemoryClassifierView extends AspectObserver {
 
   private void refreshClassifierPanel() {
     assert myTreeRoot != null && myColumnTree != null && myHelpTipInfoMessagePanel != null;
+    myClassifierPanel.removeAll();
     if (myTreeRoot.getAdapter().isEmpty()) {
-      myClassifierPanel.remove(myColumnTree);
       myClassifierPanel.add(myHelpTipInfoMessagePanel, BorderLayout.CENTER);
     }
     else {
-      myClassifierPanel.remove(myHelpTipInfoMessagePanel);
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);
     }
-    myClassifierPanel.invalidate();
-    myClassifierPanel.repaint();
+    myClassifierPanel.revalidate();
   }
 
   private void refreshTree() {
