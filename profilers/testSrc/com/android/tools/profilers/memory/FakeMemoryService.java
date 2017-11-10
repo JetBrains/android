@@ -178,6 +178,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void getLatestAllocationTime(LatestAllocationTimeRequest request,
+                                      StreamObserver<LatestAllocationTimeResponse> responseObserver) {
+    // Assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE
+    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(Long.MAX_VALUE - 1).build());
+    responseObserver.onCompleted();
+  }
+
   /**
    * This fake service call auto-generate a list of allocation event based on the request start + end time.
    * For every microsecond, an allocation event is created and uniquely tagged with the timestamp. The event generation starts
