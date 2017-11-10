@@ -23,7 +23,6 @@ import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtilRt;
 import com.intellij.testFramework.ThreadTracker;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -145,7 +144,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       }
       if (filename.endsWith(".xml")) {
         assertEquals("File " + filename + " does not match",
-                     readGoldenTextFile(goldenFile), ((GeneratedXmlResource)icon).getXmlText());
+                     Files.toString(goldenFile, StandardCharsets.UTF_8), ((GeneratedXmlResource)icon).getXmlText());
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
         assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), MAX_PERCENT_DIFFERENT);
@@ -164,10 +163,6 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       }
       fail("Generated unexpected files: " + Joiner.on(", ").join(unexpected));
     }
-  }
-
-  private static String readGoldenTextFile(File goldenFile) throws IOException {
-    return StringUtilRt.convertLineSeparators(Files.toString(goldenFile, StandardCharsets.UTF_8));
   }
 
   private void createGolden(@NotNull File file, @NotNull GeneratedIcon icon) throws IOException {
