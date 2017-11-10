@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
@@ -33,18 +34,17 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     super.setUp();
     loadProject(TEST_ONLY_MODULE);
     myTaskFinder = GradleTaskFinder.getInstance();
-
   }
 
   public void testAssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
+    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
   public void testAssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
+    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }

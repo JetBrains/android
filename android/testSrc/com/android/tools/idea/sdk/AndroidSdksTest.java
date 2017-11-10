@@ -19,12 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-<<<<<<< HEAD
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-=======
->>>>>>> goog/upstream-ij17
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
@@ -163,13 +158,10 @@ public class AndroidSdksTest extends IdeaTestCase {
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
 
-<<<<<<< HEAD
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-
-    VirtualFile[] classesRoots = sdkModificator.getRoots(CLASSES);
+    VirtualFile[] classesRoots = sdk.getRootProvider().getFiles(CLASSES);
     assertThat(classesRoots).isEmpty();
 
-    VirtualFile[] sourcesRoots = sdkModificator.getRoots(SOURCES);
+    VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
     assertThat(sourcesRoots).isEmpty();
   }
 
@@ -190,17 +182,11 @@ public class AndroidSdksTest extends IdeaTestCase {
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
 
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-
-    VirtualFile[] classesRoots = sdkModificator.getRoots(CLASSES);
+    VirtualFile[] classesRoots = sdk.getRootProvider().getFiles(CLASSES);
     assertThat(classesRoots).isNotEmpty();
 
-    VirtualFile[] sourcesRoots = sdkModificator.getRoots(SOURCES);
+    VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
     assertThat(sourcesRoots).isNotEmpty();
-=======
-    VirtualFile[] sdkRoots = sdk.getRootProvider().getFiles(CLASSES);
-    assertThat(sdkRoots).isEmpty();
->>>>>>> goog/upstream-ij17
   }
 
   public void testCreateSdkWithoutSpecifyingJdk() {

@@ -2,6 +2,8 @@ package com.android.tools.idea.gradle.project.build;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -87,7 +89,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
       projectName = projectFile.getName();
     }
     String executionName = "Build " + projectName;
-    ListMultimap<Path, String> tasks = GradleBuildInvoker.findTasksToExecute(modules, buildMode, GradleBuildInvoker.TestCompileType.NONE);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
@@ -99,7 +101,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
 
       BuildSettings.getInstance(project).setBuildMode(buildMode);
       // the blocking mode required because of static behaviour of the BuildSettings.setBuildMode() method
-      request.setWaitForCompletion(true);
+      request.waitForCompletion();
 
       ExternalSystemTaskNotificationListener buildTaskListener = gradleBuildInvoker.createBuildTaskListener(request, executionName);
       ExternalSystemTaskNotificationListener listenerDelegate =

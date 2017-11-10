@@ -22,12 +22,5 @@ import java.nio.file.Path;
 
 public interface InstantRunTasksProvider {
   @NotNull
-<<<<<<< HEAD
-  List<String> getFullBuildTasks();
-=======
-  ListMultimap<Path, String> getCleanAndGenerateSourcesTasks();
-
-  @NotNull
   ListMultimap<Path, String> getFullBuildTasks();
->>>>>>> goog/upstream-ij17
 }

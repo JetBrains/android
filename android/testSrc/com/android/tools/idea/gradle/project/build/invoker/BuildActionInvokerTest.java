@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,7 +43,10 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
         model.set((String)resultModel);
       }
     });
-    invoker.executeTasks(Lists.newArrayList("assembleDebug"), BuildMode.ASSEMBLE, Collections.emptyList(), new TestBuildAction());
+
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
+    invoker.executeTasks(tasks, BuildMode.ASSEMBLE, Collections.emptyList(), new TestBuildAction());
 
     assertEquals("test", model.get());
   }

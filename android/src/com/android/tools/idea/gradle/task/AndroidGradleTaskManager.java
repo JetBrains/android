@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.task;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -35,12 +35,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-<<<<<<< HEAD
-=======
-import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
 
->>>>>>> goog/upstream-ij17
 /**
  * Executes Gradle tasks.
  */
@@ -109,20 +105,14 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   @Nullable
   private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id, String projectPath) {
     Project project = id.findProject();
-<<<<<<< HEAD
-    if (project != null &&
-        AndroidProjectInfo.getInstance(project).requiresAndroidModel() &&
-        GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
-      return GradleBuildInvoker.getInstance(project);
-=======
-    if (project != null && isDirectGradleInvocationEnabled(project)) {
+    if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
-        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && Projects.isIdeaAndroidModule(module)) {
+
+        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
           return GradleBuildInvoker.getInstance(project);
         }
       }
->>>>>>> goog/upstream-ij17
     }
     return null;
   }

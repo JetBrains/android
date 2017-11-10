@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
@@ -30,7 +31,7 @@ public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
     loadProject(JAVA_LIB);
     Module app = ModuleManager.getInstance(getProject()).findModuleByName("app");
     GradleModuleTasksProvider gradleModuleTasksProvider = new GradleModuleTasksProvider(new Module[]{app});
-    List<String> tasks = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
+    List<String> tasks = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA).get(Paths.get("project_path"));
     assertDoesntContain(tasks, ":lib:testClasses");
     assertContainsElements(tasks, ":app:compileDebugUnitTestSources", ":app:compileDebugSources", ":lib:compileJava");
   }

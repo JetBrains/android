@@ -89,11 +89,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-<<<<<<< HEAD
-    assertEquals("guava", dependency.getName());
-=======
-    assertEquals("Gradle: guava-11.0.2", dependency.getName());
->>>>>>> goog/upstream-ij17
+    assertEquals("Gradle: guava", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
 
@@ -102,60 +98,18 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     assertEquals(jarFile, binaryPaths[0]);
   }
 
-<<<<<<< HEAD
   public void testExtractFromAndroidLibraryWithLocalJar() {
-=======
-  public void testExtractFromWithLibraryProject() {
-    String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
-    File resFolder = new File(rootDirPath, FileUtil.join("bundle_aar", "res"));
-    String gradlePath = "abc:xyz:library";
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar, gradlePath);
-
-    myVariant.getMainArtifact().getDependencies().addLibrary(library);
-    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
-
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onModules();
-    assertEquals(1, dependencies.size());
-
-    ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
-    assertNotNull(dependency);
-    assertEquals(gradlePath, dependency.getGradlePath());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
-
-    LibraryDependency backup = dependency.getBackupDependency();
-    assertNotNull(backup);
-    assertEquals("Gradle: bundle", backup.getName());
-    assertEquals(DependencyScope.COMPILE, backup.getScope());
-
-    File[] backupBinaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
-    assertThat(backupBinaryPaths).hasLength(2);
-    assertThat(backupBinaryPaths).asList().containsAllOf(libJar, resFolder);
-  }
-
-  public void testExtractFromWithLibraryAar() {
->>>>>>> goog/upstream-ij17
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-<<<<<<< HEAD
     AndroidLibraryStub library = new AndroidLibraryStub() {
       @Override
       @NotNull
       public String getJarFile() {
         return libJar.getPath();
       }
-=======
-    LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
-    assertNotNull(dependency);
-    assertEquals("Gradle: bundle", dependency.getName());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
->>>>>>> goog/upstream-ij17
 
       @Override
       @NotNull
@@ -185,11 +139,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-<<<<<<< HEAD
     assertEquals("com.android.support:support-core-ui-25.3.1", dependency.getName());
-=======
-    assertEquals("Gradle: bundle", dependency.getName());
->>>>>>> goog/upstream-ij17
 
     File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);

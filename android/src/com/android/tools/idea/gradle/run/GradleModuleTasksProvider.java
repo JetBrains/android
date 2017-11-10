@@ -16,16 +16,12 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.fd.InstantRunTasksProvider;
-<<<<<<< HEAD
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.util.BuildMode;
-=======
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
->>>>>>> goog/upstream-ij17
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
@@ -49,22 +45,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   }
 
   @NotNull
-<<<<<<< HEAD
-  public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
-=======
-  @Override
-  public ListMultimap<Path, String> getCleanAndGenerateSourcesTasks() {
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-
-    tasks.putAll(GradleBuildInvoker.findCleanTasksForModules(myModules));
-    tasks.putAll(GradleBuildInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleBuildInvoker.TestCompileType.NONE));
-
-    return tasks;
-  }
-
-  @NotNull
   public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
->>>>>>> goog/upstream-ij17
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
     return GradleTaskFinder.getInstance().findTasksToExecuteForTest(myModules, affectedModules, buildMode, UNIT_TESTS);
@@ -77,24 +58,14 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
     return scope.getAffectedModules();
   }
 
-  @NotNull
   @Override
-<<<<<<< HEAD
-  public List<String> getFullBuildTasks() {
-    return getTasksFor(ASSEMBLE, TestCompileType.ALL);
-  }
-
   @NotNull
-  public List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {
-    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
-=======
   public ListMultimap<Path, String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, GradleBuildInvoker.TestCompileType.NONE);
+    return getTasksFor(BuildMode.ASSEMBLE, TestCompileType.NONE);
   }
 
   @NotNull
-  public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleBuildInvoker.TestCompileType testCompileType) {
-    return GradleBuildInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
->>>>>>> goog/upstream-ij17
+  public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {
+    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }

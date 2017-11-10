@@ -42,6 +42,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -72,7 +73,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths,false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -80,14 +81,9 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
     assertSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should not have been changed.
 
-<<<<<<< HEAD
-    verify(myLibraryRegistry).markAsUsed(newLibrary, binaryPaths);
     // Should not attempt to look up sources and documentation for existing libraries.
     verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
-=======
-    verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath); // Should not attemp to look up sources for existing libraries.
->>>>>>> goog/upstream-ij17
   }
 
   @NotNull
@@ -143,14 +139,10 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     assertThat(sourceUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(sourcePath), sourceUrls[0]);
 
-<<<<<<< HEAD
     String[] javadocUrls = library.getUrls(JavadocOrderRootType.getInstance());
     assertThat(javadocUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(javadocPath), javadocUrls[0]);
 
-    verify(myLibraryRegistry, never()).markAsUsed(library, binaryPaths); // Should not mark new libraries as "used"
-=======
->>>>>>> goog/upstream-ij17
     verify(myLibraryFilePaths).findSourceJarPath(binaryPath);
     // Documentation paths are populated at the LibraryDependency level - no look-up to be done during setup itself
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);

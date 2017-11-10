@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.RunManager;
@@ -47,7 +47,7 @@ public class AndroidJUnitConfigurations {
     RunConfiguration androidConfiguration = self.getConfiguration();
     if (androidConfiguration instanceof ModuleBasedConfiguration) {
       Module module = ((ModuleBasedConfiguration)androidConfiguration).getConfigurationModule().getModule();
-      if (module != null && Projects.isIdeaAndroidModule(module)) {
+      if (module != null && GradleProjects.isIdeaAndroidModule(module)) {
         return true;
       }
     }

@@ -21,14 +21,17 @@ import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
@@ -49,7 +52,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
       try {
-        runner.run(Collections.emptyList(), BuildMode.ASSEMBLE, Collections.emptyList());
+        runner.run(ArrayListMultimap.create(), BuildMode.ASSEMBLE, Collections.emptyList());
         countDownLatch.countDown();
       }
       catch (InvocationTargetException | InterruptedException e) {
@@ -77,7 +80,9 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
       try {
-        runner.run(Lists.newArrayList("assembleDebug"), BuildMode.ASSEMBLE, Collections.emptyList());
+        ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+        tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
+        runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
         countDownLatch.countDown();
       }
       catch (InvocationTargetException | InterruptedException e) {

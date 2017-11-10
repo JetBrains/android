@@ -22,10 +22,7 @@ import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-<<<<<<< HEAD
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
-=======
->>>>>>> goog/upstream-ij17
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -38,19 +35,12 @@ import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
-<<<<<<< HEAD
 import com.intellij.openapi.application.ModalityState;
-=======
-import com.intellij.openapi.compiler.CompileContext;
->>>>>>> goog/upstream-ij17
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-<<<<<<< HEAD
 import com.intellij.openapi.module.Module;
-=======
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
->>>>>>> goog/upstream-ij17
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -61,6 +51,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -206,13 +197,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         assert myProject != null;
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
-<<<<<<< HEAD
         gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
-        gradleBuildInvoker.executeTasks(assembleTasks, projectProperties);
-=======
-        gradleBuildInvoker.add(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), assembleTasks, projectProperties);
->>>>>>> goog/upstream-ij17
 
         LOG.info("Export APK command: " +
                  Joiner.on(',').join(assembleTasks) +
@@ -413,7 +399,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return;
       }
     }
-<<<<<<< HEAD
     GuiUtils.invokeLaterIfNeeded(() -> {
       String title = AndroidBundle.message("android.export.package.wizard.title");
       Project project = getProject();
@@ -423,19 +408,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       if (vApkFile != null) {
         vApkFile.refresh(true, false);
       }
-=======
-    invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        String title = AndroidBundle.message("android.export.package.wizard.title");
-        Project project = getProject();
-        File apkFile = new File(apkPath);
-
-        VirtualFile vApkFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile);
-        if (vApkFile != null) {
-          vApkFile.refresh(true, false);
-        }
->>>>>>> goog/upstream-ij17
 
       if (!runZipAlign) {
         Messages.showWarningDialog(project, AndroidCommonBundle.message(
@@ -449,14 +421,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           ShowFilePathAction.openFile(apkFile);
         }
       }
-<<<<<<< HEAD
       else {
         Messages.showInfoMessage(project, AndroidBundle.message("android.export.package.success.message", apkFile), title);
       }
     }, ModalityState.defaultModalityState());
-=======
-    });
->>>>>>> goog/upstream-ij17
   }
 
   @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
