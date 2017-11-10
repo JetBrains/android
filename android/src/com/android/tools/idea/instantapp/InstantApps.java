@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +73,19 @@ public class InstantApps {
     }
     return featureModules;*/
     return AndroidProjectInfo.getInstance(facet.getModule().getProject()).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE);
+  }
+
+  /**
+   * Finds if the specified project has any instantapp feature module
+   */
+  public static boolean isInstantAppProject(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.getProjectType() == PROJECT_TYPE_FEATURE) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
