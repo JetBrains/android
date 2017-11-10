@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -45,8 +46,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
@@ -432,7 +434,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     RenderInstruction[] instructions;
     if (getStage().useLiveAllocationTracking()) {
       TextInstruction allocInstruction = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled() ?
-                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a point/range to inspect snapshot/allocations") :
+                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT,
+                                                             "Select a point/range to inspect snapshot/allocations") :
                                          new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations");
       RenderInstruction[] liveAllocInstructions = {
         allocInstruction,
@@ -474,11 +477,23 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     headingPanel.add(toolbar, BorderLayout.WEST);
 
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      AutoCompleteTextField filterField = getIdeComponents().createAutoCompleteTextField("Filter", "", new ArrayList<>());
-      filterField.addOnDocumentChange(() -> getStage().selectCaptureFilter(filterField.getText()));
-      toolbar = new JPanel(new TabularLayout("*,150px,4px", "*,Fit,*"));
-      toolbar.add(filterField.getComponent(), new TabularLayout.Constraint(1, 1));
-      headingPanel.add(toolbar, BorderLayout.EAST);
+      FlatToggleButton button = new FlatToggleButton("", StudioIcons.Common.FILTER);
+      headingPanel.add(button, BorderLayout.EAST);
+      SearchComponent searchTextArea = getIdeComponents()
+        .createProfilerSearchTextArea(getClass().getName(), ProfilerLayout.FILTER_TEXT_FIELD_WIDTH,
+                                      ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+      searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
+      headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
+      searchTextArea.getComponent().setVisible(false);
+      button.addActionListener(event -> {
+        searchTextArea.getComponent().setVisible(button.isSelected());
+        if (button.isSelected()) {
+          searchTextArea.setText("");
+        } else {
+          getStage().selectCaptureFilter(null);
+        }
+        headingPanel.revalidate();
+      });
     }
 
     JPanel capturePanel = new JPanel(new BorderLayout());

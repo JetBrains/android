@@ -17,8 +17,10 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +30,7 @@ public class HeapSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
   @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
-  @NotNull private String myFilter = "";
+  @Nullable private Pattern myFilter;
 
   public HeapSet(@NotNull CaptureObject captureObject, @NotNull String heapName, int id) {
     super(heapName);
@@ -49,10 +51,6 @@ public class HeapSet extends ClassifierSet {
     myInstances.clear();
     myClassifier = null;
     myInstances.addAll(descendantsStream);
-
-    if (!myFilter.equals("")) {
-      applyFilter();
-    }
   }
 
   public int getId() {
@@ -61,15 +59,13 @@ public class HeapSet extends ClassifierSet {
 
   // Select and apply the filter if it is different from previous one.
   // Calling selectFilter() on the same String would not filter newly added ClassSets, please call applyFilter() instead.
-  public void selectFilter(@NotNull String filter) {
-    if (!filter.equals(myFilter)) {
-      myFilter = filter;
-      applyFilter();
-    }
+  public void selectFilter(@Nullable Pattern filter) {
+    myFilter = filter;
+    applyFilter();
   }
 
-  @NotNull
-  public String getFilter() {
+  @Nullable
+  public Pattern getFilter() {
     return myFilter;
   }
 

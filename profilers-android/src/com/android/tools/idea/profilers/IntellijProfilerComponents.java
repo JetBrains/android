@@ -21,6 +21,7 @@ import com.android.tools.profilers.AutoCompleteTextField;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ExportDialog;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.SearchComponent;
 import com.android.tools.profilers.stacktrace.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -132,7 +133,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       BufferedImage image = null;
       try {
         image = ImageIO.read(file);
-      } catch (IOException ignored) {
+      }
+      catch (IOException ignored) {
       }
       if (image != null) {
         return IntellijDataViewer.createImageViewer(image);
@@ -147,7 +149,8 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       try {
         content = new String(Files.readAllBytes(file.toPath()));
       }
-      catch (IOException ignored) {}
+      catch (IOException ignored) {
+      }
     }
 
     if (content == null) {
@@ -168,6 +171,12 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   public AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeholder,
                                                            @NotNull String value,
                                                            @NotNull Collection<String> variants) {
-    return new IntellijAutoCompleteTextField(myProject, placeholder , value, variants);
+    return new IntellijAutoCompleteTextField(myProject, placeholder, value, variants);
+  }
+
+  @NotNull
+  @Override
+  public SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs) {
+    return new IntellijSearchComponent(propertyName, textFieldWidth, delayMs);
   }
 }

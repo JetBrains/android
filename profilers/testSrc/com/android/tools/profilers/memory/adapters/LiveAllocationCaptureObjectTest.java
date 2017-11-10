@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.DEFAULT_HEAP_NAME;
 import static com.google.common.truth.Truth.assertThat;
@@ -253,12 +255,23 @@ public class LiveAllocationCaptureObjectTest {
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
     expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    heapSet.selectFilter("Foo");
+    heapSet.selectFilter(getFilterPattern("Foo", true, false));
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
     //Filter with "Bar"
-    heapSet.selectFilter("Bar");
+    heapSet.selectFilter(getFilterPattern("bar", false, false));
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+
+    //Filter with Regex
+    heapSet.selectFilter(getFilterPattern("bar", false, false));
     expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
     expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
@@ -269,19 +282,14 @@ public class LiveAllocationCaptureObjectTest {
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
     // Reset filter
-    heapSet.selectFilter("");
+    heapSet.selectFilter(getFilterPattern("T[a-z]is", false, true));
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
     expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
     expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
     expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
   }
 
@@ -614,5 +622,26 @@ public class LiveAllocationCaptureObjectTest {
       return capture;
     }));
     latch.await();
+  }
+
+  private static Pattern getFilterPattern(String filter, boolean isMatchCase, boolean isRegex) {
+    Pattern pattern = null;
+
+    if (!filter.isEmpty()) {
+      int flags = isMatchCase ? 0 : Pattern.CASE_INSENSITIVE;
+      if (isRegex) {
+        try {
+          pattern = Pattern.compile("^.*" + filter +  ".*$", flags);
+        }
+        catch (PatternSyntaxException e) {
+          String error = e.getMessage();
+          assert (error != null);
+        }
+      }
+      if (pattern == null) {
+        pattern = Pattern.compile("^.*" + Pattern.quote(filter) + ".*$", flags);
+      }
+    }
+    return pattern;
   }
 }

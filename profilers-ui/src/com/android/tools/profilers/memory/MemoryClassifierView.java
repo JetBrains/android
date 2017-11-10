@@ -232,7 +232,6 @@ final class MemoryClassifierView extends AspectObserver {
 
   private void refreshFilter() {
     if (myHeapSet != null) {
-      myHeapSet.selectFilter(myStage.getCaptureFilter());
       refreshTree();
     }
   }
@@ -376,10 +375,6 @@ final class MemoryClassifierView extends AspectObserver {
       return;
     }
 
-    if (myHeapSet.getFilter() != "") {
-      myHeapSet.applyFilter();
-    }
-
     assert myTreeRoot != null && myTreeModel != null && myTree != null;
     refreshClassifierPanel();
 
@@ -418,8 +413,6 @@ final class MemoryClassifierView extends AspectObserver {
     myHeapSet = heapSet;
 
     if (myHeapSet != null) {
-      myHeapSet.selectFilter(myStage.getCaptureFilter());
-      myHeapSet.applyFilter();
       refreshGrouping();
     }
   }
