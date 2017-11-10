@@ -122,7 +122,8 @@ public class DeviceRenderer {
     return false;
   }
 
-  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
+  // TODO Use a more specific type parameter
+  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Object> {
 
     @NotNull
     private String myEmptyText;

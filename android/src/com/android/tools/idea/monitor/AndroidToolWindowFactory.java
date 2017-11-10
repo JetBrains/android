@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
@@ -72,7 +71,6 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,8 +81,6 @@ import java.util.List;
 
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
   private static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
-
-  @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -131,7 +127,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
                                              .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
                                              .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
                                              .setMonitorType(view.getMonitorType()));
-
           }
         }
       }, project);
@@ -151,16 +146,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     contentManager.addContent(c);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        logcatView.activate();
-        final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
-        if (window != null && window.isVisible()) {
-          ConsoleView console = logcatView.getLogConsole().getConsole();
-          if (console != null) {
-            checkFacetAndSdk(project, console);
-          }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      logcatView.activate();
+      final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
+      if (window != null && window.isVisible()) {
+        ConsoleView console = logcatView.getLogConsole().getConsole();
+        if (console != null) {
+          checkFacetAndSdk(project, console);
         }
       }
     }, project.getDisposed());
@@ -196,7 +188,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   @NotNull
-  public ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
+  private static ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new ScreenshotAction(project, deviceContext));
@@ -267,12 +259,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
         console.print("Please ", ConsoleViewContentType.ERROR_OUTPUT);
-        console.printHyperlink("configure", new HyperlinkInfo() {
-          @Override
-          public void navigate(Project project) {
-            AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-          }
-        });
+        console.printHyperlink("configure", p -> AndroidSdkUtils.openModuleDependenciesConfigurable(module));
         console.print(" Android SDK\n", ConsoleViewContentType.ERROR_OUTPUT);
       }
       else {

@@ -19,6 +19,7 @@ package com.android.tools.idea.ddms;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.ClientCellRenderer.ClientComparator;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -39,10 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,9 +55,11 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, String> myPreferredClients;
-  public boolean myIgnoreActionEvents;
-  @NotNull private JComboBox myDeviceCombo;
-  @NotNull private JComboBox myClientCombo;
+  private boolean myIgnoreActionEvents;
+
+  // TODO Use more specific type parameters
+  private JComboBox<Object> myDeviceCombo;
+  private JComboBox<Object> myClientCombo;
   private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
     @Nullable
     @Override
@@ -67,7 +67,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       return getApplicationName();
     }
   };
-  @NotNull private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
+  private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
@@ -85,16 +85,13 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   private void initializeDeviceCombo() {
     AccessibleContextUtil.setName(myDeviceCombo, "Devices");
-    myDeviceCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        if (myIgnoreActionEvents) return;
+    myDeviceCombo.addActionListener(actionEvent -> {
+      if (myIgnoreActionEvents) return;
 
-        updateClientCombo();
-        Object sel = myDeviceCombo.getSelectedItem();
-        IDevice device = (sel instanceof IDevice) ? (IDevice)sel : null;
-        myDeviceContext.fireDeviceSelected(device);
-      }
+      updateClientCombo();
+      Object sel = myDeviceCombo.getSelectedItem();
+      IDevice device = (sel instanceof IDevice) ? (IDevice)sel : null;
+      myDeviceContext.fireDeviceSelected(device);
     });
 
     boolean showSerial = false;
@@ -125,17 +122,14 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   private void initializeClientCombo() {
     AccessibleContextUtil.setName(myClientCombo, "Processes");
     myClientCombo.setName("Processes");
-    myClientCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        if (myIgnoreActionEvents) return;
+    myClientCombo.addActionListener(actionEvent -> {
+      if (myIgnoreActionEvents) return;
 
-        Client client = (Client)myClientCombo.getSelectedItem();
-        if (client != null) {
-          myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
-        }
-        myDeviceContext.fireClientSelected(client);
+      Client client = (Client)myClientCombo.getSelectedItem();
+      if (client != null) {
+        myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
       }
+      myDeviceContext.fireClientSelected(client);
     });
 
     myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Processes"));
@@ -300,7 +294,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         }
         clients.add(selected);
       }
-      Collections.sort(clients, new ClientCellRenderer.ClientComparator());
+      clients.sort(new ClientComparator());
 
       for (Client client : clients) {
         //noinspection unchecked
