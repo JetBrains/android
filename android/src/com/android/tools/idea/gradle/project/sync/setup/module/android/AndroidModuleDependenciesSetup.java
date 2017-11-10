@@ -32,7 +32,6 @@ import java.io.File;
 import static com.android.SdkConstants.*;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static java.io.File.separatorChar;
 
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {

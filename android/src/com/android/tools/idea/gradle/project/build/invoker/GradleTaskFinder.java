@@ -28,11 +28,15 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import one.util.streamex.StreamEx;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,10 +46,12 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
@@ -61,32 +67,38 @@ public class GradleTaskFinder {
   }
 
   @NotNull
-  public List<String> findTasksToExecuteForTest(@NotNull Module[] testedModules,
+  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull Module[] testedModules,
                                                 @NotNull Module[] modules,
                                                 @NotNull BuildMode buildMode,
                                                 @NotNull TestCompileType testCompileType) {
-    List<String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-    List<String> testedModulesTasks = findTasksToExecute(testedModules, buildMode, testCompileType);
+    ListMultimap<Path, String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(testedModules, buildMode, testCompileType);
 
     // Add testedModulesTasks to allTasks without duplicate
-    for (String task : testedModulesTasks) {
-      if (!allTasks.contains(task)) {
-        allTasks.add(task);
+    for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
+      if (!allTasks.values().contains(task.getValue())) {
+        allTasks.put(task.getKey(), task.getValue());
       }
     }
     return allTasks;
   }
 
   @NotNull
-  public List<String> findTasksToExecute(@NotNull Module[] modules,
-                                         @NotNull BuildMode buildMode,
-                                         @NotNull TestCompileType testCompileType) {
-    List<String> tasks = new ArrayList<>();
+  public ListMultimap<Path, String> findTasksToExecute(@NotNull Module[] modules,
+                                                       @NotNull BuildMode buildMode,
+                                                       @NotNull TestCompileType testCompileType) {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
 
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        return Collections.singletonList(DEFAULT_ASSEMBLE_TASK_NAME);
+        StreamEx.of(modules)
+          .map(module -> ExternalSystemApiUtil.getExternalRootProjectPath(module))
+          .nonNull()
+          .distinct()
+          .map(path -> Paths.get(path))
+          .forEach(path -> tasks.put(path, DEFAULT_ASSEMBLE_TASK_NAME));
+        return tasks;
       }
     }
 
@@ -95,10 +107,18 @@ public class GradleTaskFinder {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }
-      findAndAddGradleBuildTasks(module, buildMode, tasks, testCompileType);
+
+      String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+      if (isEmpty(rootProjectPath)) {
+        continue;
+      }
+
+      List<String> moduleTasks = new ArrayList<>();
+      findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
+      tasks.putAll(Paths.get(rootProjectPath), moduleTasks);
     }
     if (buildMode == REBUILD && !tasks.isEmpty()) {
-      tasks.add(0, CLEAN_TASK_NAME);
+      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
 
     if (tasks.isEmpty()) {

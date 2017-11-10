@@ -23,11 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.application.ApplicationManager;
-<<<<<<< HEAD
 import com.intellij.openapi.application.TransactionGuard;
-=======
-import com.intellij.openapi.application.ModalityState;
->>>>>>> goog/upstream-ij17
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -35,7 +31,6 @@ import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefres
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,11 +95,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-<<<<<<< HEAD
       TransactionGuard.getInstance().submitTransactionLater(myProject, runnable);
-=======
-      GuiUtils.invokeLaterIfNeeded(runnable, ModalityState.defaultModalityState());
->>>>>>> goog/upstream-ij17
     }
   }
 

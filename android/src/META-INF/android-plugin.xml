@@ -226,13 +226,10 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
-<<<<<<< HEAD
     <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction" text="Modularize..."
             description="Move classes and their associated resources to another module">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-=======
->>>>>>> goog/upstream-ij17
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
             description="Removes Unused Resources">
       <add-to-group group-id="RefactoringMenu"/>
@@ -284,7 +281,6 @@
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
-<<<<<<< HEAD
     <action
         id="DeveloperServices.ConnectionAssistant"
         class="com.android.tools.idea.connection.assistant.OpenConnectionAssistantSidePanelAction"
@@ -298,14 +294,13 @@
       class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
       text="Add Sample Data File"
       description="Adds a new data sample file">
-=======
+    </action>
     <!-- Note: the action id "Android.HotswapChanges" is used in HotswapAction to determine the current shortcut. -->
     <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
       <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop"/>
       <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
       <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
       <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
->>>>>>> goog/upstream-ij17
     </action>
   </actions>
 
@@ -319,18 +314,12 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-<<<<<<< HEAD
-    <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
-         so we need to set order to prevent overriding other position managers as well -->
-    <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
-    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
-=======
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
     <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
          so we need to set order to prevent overriding other position managers as well -->
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
->>>>>>> goog/upstream-ij17
+    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
@@ -953,32 +942,9 @@
                       facetIdList="android"
                       anchor="right"
                       secondary="true"
-<<<<<<< HEAD
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="AndroidIcons.DeviceExplorer.ToolWindow"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <toolWindow id="Gradle Console"
-                anchor="bottom"
-                secondary="true"
-                conditionClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleCondition"
-                icon="AndroidIcons.GradleConsoleToolWindow"
-                factoryClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory"/>
-=======
-                      icon="AndroidIcons.AndroidToolWindow"
-                      factoryClass="com.android.tools.idea.gradle.AndroidModelToolWindowFactory"/>
-    <toolWindow id="Android Model (Internal)"
-                anchor="right"
-                secondary="true"
-                conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
-                icon="AndroidIcons.AndroidToolWindow"
-                factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
-    <toolWindow id="Android Device Explorer"
-                anchor="right"
-                secondary="true"
-                conditionClass="com.android.tools.idea.explorer.DeviceExplorerViewCondition"
-                icon="AndroidIcons.AndroidToolWindow"
-                factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
->>>>>>> goog/upstream-ij17
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
@@ -988,11 +954,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
-<<<<<<< HEAD
-    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView"
-                    serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>
-=======
->>>>>>> goog/upstream-ij17
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
@@ -1098,13 +1059,8 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
-<<<<<<< HEAD
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;build-common.jar;android-rt.jar;sdk-common.jar"/>
-    <compileServer.plugin classpath="repository.jar;sdklib.jar;../../../lib/android-base-common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
-=======
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;android-rt.jar;sdk-common.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;build-common.jar;android-rt.jar;sdk-common.jar"/>
     <compileServer.plugin classpath="repository.jar;sdklib.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
->>>>>>> goog/upstream-ij17
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
@@ -1118,16 +1074,7 @@
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
-<<<<<<< HEAD
-=======
-    <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
-         where cloned layout files do not appear etc.
-    <treeStructureProvider implementation="org.jetbrains.android.projectView.ResourceMergerTreeStructureProvider"/>
-         Also disabled; add more info, possibly icon, etc
-    <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
-    -->
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
->>>>>>> goog/upstream-ij17
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
@@ -1372,12 +1319,6 @@
     </component>
   </module-components>
 
-<<<<<<< HEAD
-
-  <extensions defaultExtensionNs="com.intellij">
-    <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
-  </extensions>
-
   <!-- Connection Assistant -->
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
@@ -1386,7 +1327,4 @@
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
   </extensions>
-
-=======
->>>>>>> goog/upstream-ij17
 </idea-plugin>

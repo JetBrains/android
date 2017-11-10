@@ -147,9 +147,6 @@ public class InstantRunBuilderTest {
     ListMultimap<Path, String> assembleTasks = ArrayListMultimap.create();
     assembleTasks.putAll(Paths.get("project_path"), ASSEMBLE_TASKS);
     when(myTasksProvider.getFullBuildTasks()).thenReturn(assembleTasks);
-    ListMultimap<Path, String> cleanTasks = ArrayListMultimap.create();
-    cleanTasks.putAll(Paths.get("project_path"), CLEAN_TASKS);
-    when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(cleanTasks);
 
     myInstalledApkCache = new InstalledApkCache() {
       @Override

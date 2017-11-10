@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -71,9 +70,6 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
             String url = pathToIdeaUrl(artifact);
             libraryModel.addRoot(url, CLASSES);
-          }
-          else {
-            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, artifact);
           }
           LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
           orderEntry.setScope(COMPILE);

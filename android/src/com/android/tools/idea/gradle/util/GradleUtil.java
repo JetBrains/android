@@ -27,24 +27,15 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-<<<<<<< HEAD
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-=======
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
->>>>>>> goog/upstream-ij17
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
-<<<<<<< HEAD
 import com.android.utils.SdkUtils;
-=======
->>>>>>> goog/upstream-ij17
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
@@ -74,26 +65,17 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-<<<<<<< HEAD
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-=======
-import java.util.*;
->>>>>>> goog/upstream-ij17
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-<<<<<<< HEAD
-import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
-=======
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
->>>>>>> goog/upstream-ij17
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -113,11 +95,8 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-<<<<<<< HEAD
 import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
-=======
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
->>>>>>> goog/upstream-ij17
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -143,7 +122,6 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-<<<<<<< HEAD
   /**
    * Returns the path of the folder ".idea/caches" in the given project. The returned path is an absolute path.
    *
@@ -153,30 +131,6 @@ public final class GradleUtil {
   @NotNull
   public static File getCacheFolderRootPath(@NotNull Project project) {
     return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-=======
-  @NotNull
-  public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
-    try {
-      Collection<File> folders = artifact.getGeneratedSourceFolders();
-      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
-      // See https://code.google.com/p/android/issues/detail?id=216236
-      //noinspection ConstantConditions
-      return folders != null ? folders : Collections.emptyList();
-    }
-    catch (UnsupportedMethodException e) {
-      // Model older than 1.2.
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
-    return artifact.getDependencies();
-  }
-
-  public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.3.0") >= 0;
->>>>>>> goog/upstream-ij17
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
@@ -410,13 +364,8 @@ public final class GradleUtil {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
-<<<<<<< HEAD
-  @Nullable
-  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
-=======
   @NotNull
-  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
->>>>>>> goog/upstream-ij17
+  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (IdeInfo.getInstance().isAndroidStudio()) {
       if (executionSettings == null) {
@@ -522,7 +471,6 @@ public final class GradleUtil {
         return true;
       }
     }
-<<<<<<< HEAD
     File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
     if (location.isFile()) {
       return true;
@@ -532,24 +480,6 @@ public final class GradleUtil {
       return children == null || children.length > 0;
     }
     return false;
-=======
-    if (checkProjectFolder) {
-      File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-      if (location.isFile()) {
-        return true;
-      }
-      else if (location.isDirectory()) {
-        File[] children = location.listFiles();
-        return children == null || children.length > 0;
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      return false;
-    }
->>>>>>> goog/upstream-ij17
   }
 
   /**
@@ -588,7 +518,6 @@ public final class GradleUtil {
     return found != null ? GradleVersion.tryParse(found) : null;
   }
 
-<<<<<<< HEAD
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
@@ -600,8 +529,6 @@ public final class GradleUtil {
     return null;
   }
 
-=======
->>>>>>> goog/upstream-ij17
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
@@ -694,15 +621,9 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-<<<<<<< HEAD
     IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
     for (Library library : dependencies.getAndroidLibraries()) {
       String version = getDependencyVersion(library, artifact);
-=======
-    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      String version = getDependencyVersion(library, artifact, true);
->>>>>>> goog/upstream-ij17
       if (version != null) {
         return GradleVersion.tryParse(version);
       }
@@ -832,7 +753,6 @@ public final class GradleUtil {
             android.setBuildToolsVersion(version);
             modelsToUpdate.add(buildModel);
           }
-<<<<<<< HEAD
         }
       }
     }
@@ -961,8 +881,6 @@ public final class GradleUtil {
       else {
         if (suffixBegin == 0) {
           return newSuffix;
-=======
->>>>>>> goog/upstream-ij17
         }
         else {
           return s.substring(0, suffixBegin) + suffix;

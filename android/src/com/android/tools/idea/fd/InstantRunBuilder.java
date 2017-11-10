@@ -34,10 +34,7 @@ import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-<<<<<<< HEAD
-=======
 import com.google.common.collect.ListMultimap;
->>>>>>> goog/upstream-ij17
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -50,10 +47,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-<<<<<<< HEAD
-=======
 import java.nio.file.Path;
->>>>>>> goog/upstream-ij17
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,16 +115,8 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       args.add("--no-build-cache"); // Instant Run doesn't work with task caching (introduced in 3.0.0-alpha4).
     }
 
-<<<<<<< HEAD
-    List<String> tasks = new LinkedList<>();
-    tasks.addAll(myTasksProvider.getFullBuildTasks());
-=======
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-    if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
-      tasks.putAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
-    }
     tasks.putAll(myTasksProvider.getFullBuildTasks());
->>>>>>> goog/upstream-ij17
     return taskRunner.run(tasks, null, args);
   }
 
@@ -152,13 +138,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.NO_DEVICE;
     }
 
-<<<<<<< HEAD
-=======
-    if (myRunContext.isCleanRerun()) {
-      return BuildCause.USER_REQUESTED_CLEAN_BUILD;
-    }
-
->>>>>>> goog/upstream-ij17
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
     // (Note: this could be done in a better way if we knew the user for whom the installation actually took place).
     int defaultUserId = 0;

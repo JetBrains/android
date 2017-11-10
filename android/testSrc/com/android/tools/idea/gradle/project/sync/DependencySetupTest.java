@@ -152,34 +152,26 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*library\\-debug$", COMPILE);
-=======
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: library-debug-unspecified");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*library\\-debug$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
     loadProject(LOCAL_JARS_AS_MODULES);
 
-    Module localJarModule = myModules.getModule("localJarAsModule");
+    Module localJarModule = myModules.getModule("Gradle: localJarAsModule");
     // Module should be a Java module, not buildable (since it doesn't have source code).
     JavaFacet javaFacet = JavaFacet.getInstance(localJarModule);
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("localJarAsModule.local", COMPILE, true);
-=======
-    assertAbout(libraryDependencies()).that(localJarModule).contains("Gradle: localJarAsModule.local");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("Gradle: localJarAsModule.local", COMPILE, true);
   }
 
   public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: library2", COMPILE, false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
@@ -189,11 +181,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*guava.*$", COMPILE, PROVIDED);
-=======
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: guava-17.0");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*guava.*$", COMPILE, PROVIDED);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -201,15 +189,9 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
-<<<<<<< HEAD
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*commons\\-io.*$", COMPILE);
-=======
-    // 'app' module should have 'javawriter' as dependency.
-    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: javawriter-2.5.0");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*commons\\-io.*$", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -219,7 +201,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("library1", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: library1", COMPILE, false);
   }
 
   public void testJavaLibraryModuleDependencies() throws Exception {
@@ -227,23 +209,14 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-<<<<<<< HEAD
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
-=======
-    assertAbout(moduleDependencies()).that(appModule).contains("lib");
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib");
->>>>>>> goog/upstream-ij17
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: lib", COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib", COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib", COMPILE);
-=======
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
@@ -252,19 +225,11 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, ".*fakelib.*", COMPILE);
-=======
-    assertAbout(libraryDependencies()).that(library2Module).contains("Gradle: fakelib");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-<<<<<<< HEAD
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*fakelib.*", COMPILE);
-=======
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: fakelib");
->>>>>>> goog/upstream-ij17
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
   }
 }

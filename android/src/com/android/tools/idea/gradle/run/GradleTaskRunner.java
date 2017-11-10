@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.run;
 
-<<<<<<< HEAD
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-=======
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
->>>>>>> goog/upstream-ij17
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,17 +30,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
-<<<<<<< HEAD
-=======
 import java.nio.file.Path;
->>>>>>> goog/upstream-ij17
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public interface GradleTaskRunner {
-<<<<<<< HEAD
-  boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+  boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
   @NotNull
@@ -73,7 +65,7 @@ public interface GradleTaskRunner {
     }
 
     @Override
-    public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+    public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
       throws InvocationTargetException, InterruptedException {
       assert !ApplicationManager.getApplication().isDispatchThread();
 
@@ -114,46 +106,5 @@ public interface GradleTaskRunner {
     BuildAction getBuildAction() {
       return myBuildAction;
     }
-=======
-  String USE_SPLIT_APK = "USE_SPLIT_APK";
-
-  boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-    throws InvocationTargetException, InterruptedException;
-
-  static GradleTaskRunner newRunner(@NotNull Project project) {
-    return new GradleTaskRunner() {
-      @Override
-      public boolean run(@NotNull ListMultimap<Path, String> tasks,
-                         @Nullable BuildMode buildMode,
-                         @NotNull List<String> commandLineArguments) {
-        assert !ApplicationManager.getApplication().isDispatchThread();
-
-        final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-
-        final AtomicBoolean success = new AtomicBoolean();
-        final Semaphore done = new Semaphore();
-        done.down();
-
-        final GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
-          @Override
-          public void execute(@NotNull GradleInvocationResult result) {
-            success.set(result.isBuildSuccessful());
-            gradleBuildInvoker.remove(this);
-            done.up();
-          }
-        };
-
-        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-        // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-        TransactionGuard.submitTransaction(project, () -> {
-          gradleBuildInvoker.add(afterTask);
-          gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments);
-        });
-
-        done.waitFor();
-        return success.get();
-      }
-    };
->>>>>>> goog/upstream-ij17
   }
 }

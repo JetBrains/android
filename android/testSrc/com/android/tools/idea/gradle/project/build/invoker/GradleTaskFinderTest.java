@@ -35,6 +35,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuil
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,18 +80,18 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly("assemble");
   }
 
   public void testFindTasksToExecuteWhenAssemblingEmptyModuleList() {
-    List<String> tasks = myTaskFinder.findTasksToExecute(Module.EMPTY_ARRAY, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(Module.EMPTY_ARRAY, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly("assemble");
   }
 
   public void testFindTasksWithBuildSrcModule() {
     Module module = createModule("buildSrc");
-    List<String> tasks = myTaskFinder.findTasksToExecute(asArray(module), ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(asArray(module), ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
     assertThat(tasks).isEmpty();
   }
 
@@ -100,20 +101,20 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   }
 
   public void testFindTasksWithNonGradleModule() {
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
     assertThat(tasks).isEmpty();
   }
 
   public void testFindTasksWithEmptyGradlePath() {
     createAndAddGradleFacet(getModule());
 
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
     assertThat(tasks).isEmpty();
   }
 
   public void testFindTasksToExecuteWhenCleaningAndroidProject() {
     setUpModuleAsAndroidModule();
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, CLEAN, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, CLEAN, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteWhenCleaningAndroidProject:afterSyncTask1",
                                       ":testFindTasksToExecuteWhenCleaningAndroidProject:afterSyncTask2",
@@ -123,7 +124,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteForSourceGenerationInAndroidProject() {
     setUpModuleAsAndroidModule();
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForSourceGenerationInAndroidProject:afterSyncTask1",
                                       ":testFindTasksToExecuteForSourceGenerationInAndroidProject:afterSyncTask2",
@@ -133,7 +134,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteForAssemblingAndroidProject() {
     setUpModuleAsAndroidModule();
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForAssemblingAndroidProject:assembleTask1",
                                       ":testFindTasksToExecuteForAssemblingAndroidProject:assembleTask2");
@@ -141,7 +142,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteForRebuildingAndroidProject() {
     setUpModuleAsAndroidModule();
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, REBUILD, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, REBUILD, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly("clean",
                                       ":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask1",
@@ -150,7 +151,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteForCompilingAndroidProject() {
     setUpModuleAsAndroidModule();
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingAndroidProject:compileTask1",
                                       ":testFindTasksToExecuteForCompilingAndroidProject:compileTask2",
@@ -189,7 +190,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   public void testFindTasksToExecuteForAssemblingJavaModule() {
     setUpModuleAsJavaModule();
 
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForAssemblingJavaModule:assemble");
   }
@@ -197,7 +198,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   public void testFindTasksToExecuteForCompilingJavaModule() {
     setUpModuleAsJavaModule();
 
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, myTestCompileType);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, myTestCompileType).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingJavaModule:compileJava");
   }
@@ -205,7 +206,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   public void testFindTasksToExecuteForCompilingJavaModuleAndTests() {
     setUpModuleAsJavaModule();
 
-    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, UNIT_TESTS);
+    List<String> tasks = myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, UNIT_TESTS).get(Paths.get("project_path"));
 
     assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingJavaModuleAndTests:compileJava",
                                       ":testFindTasksToExecuteForCompilingJavaModuleAndTests:testClasses");

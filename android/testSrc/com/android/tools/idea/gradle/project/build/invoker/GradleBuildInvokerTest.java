@@ -18,12 +18,17 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,7 +79,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanUp() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
 
     myBuildInvoker.cleanProject();
 
@@ -87,7 +92,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanAndGenerateSources() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
 
     myBuildInvoker.cleanAndGenerateSources();
 
@@ -100,7 +105,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testGenerateSources() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.generateSources();
 
@@ -113,7 +118,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCompileJava() {
     List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
@@ -126,7 +131,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssemble() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.assemble(myModules, TestCompileType.ALL);
 
@@ -139,7 +144,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssembleWithCommandLineArgs() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 
@@ -156,6 +161,13 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     verify(myBuildSettings).setBuildMode(buildMode);
     verify(myFileDocumentManager).saveAllDocuments();
     verify(myTasksExecutor).queue();
+  }
+
+  @NotNull
+  private static ListMultimap<Path, String> createTasksMap(@NotNull List<String> taskNames) {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Paths.get("project_path"), taskNames);
+    return tasks;
   }
 
   private static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {

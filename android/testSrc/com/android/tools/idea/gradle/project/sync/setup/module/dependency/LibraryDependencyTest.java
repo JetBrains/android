@@ -30,13 +30,8 @@ public class LibraryDependencyTest extends IdeaTestCase {
   public void testConstructorWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);
-<<<<<<< HEAD
-    assertEquals("guava-11.0.2", dependency.getName());
-    File[] binaryPaths = dependency.getBinaryPaths();
-=======
     assertEquals("Gradle: guava-11.0.2", dependency.getName());
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
->>>>>>> goog/upstream-ij17
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);
     assertEquals(DependencyScope.TEST, dependency.getScope());

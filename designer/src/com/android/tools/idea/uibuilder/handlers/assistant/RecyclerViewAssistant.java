@@ -237,7 +237,7 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     Project project = facet.getModule().getProject();
     String resourceName = getTemplateName(facet, "recycler_view");
 
-    JBList<Template> templatesList = new JBList<>(TEMPLATES.toArray());
+    JBList<Template> templatesList = new JBList<>(TEMPLATES.toArray(new Template[0]));
     templatesList.setCellRenderer( new ListCellRendererWrapper<Template>() {
       @Override
       public void customize(JList list,

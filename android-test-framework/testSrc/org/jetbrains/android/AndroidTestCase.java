@@ -29,9 +29,8 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.reference.RefEntity;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
+import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -307,6 +306,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
+    if (sdk != null) {
+      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
+    }
     return facet;
   }
 
@@ -317,9 +319,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(facetModel::commit);
-    if (sdk != null) {
-      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
-    }
     return facet;
   }
 
@@ -382,7 +381,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
@@ -392,7 +391,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * inspection on the current test project and verify that its output matches that of the
    * expected file.
    */
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     myFixture.enableInspections(wrapper.getTool());
 

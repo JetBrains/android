@@ -85,11 +85,8 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-<<<<<<< HEAD
   @NotNull private final RunManagerImpl myRunManager;
   @NotNull private final ProvistionTasks myProvistionTasks;
-=======
->>>>>>> goog/upstream-ij17
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -108,14 +105,9 @@ public class PostSyncProjectSetup {
                               @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-<<<<<<< HEAD
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
-=======
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
-         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory());
->>>>>>> goog/upstream-ij17
   }
 
   @VisibleForTesting
@@ -131,13 +123,9 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-<<<<<<< HEAD
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
                        @NotNull RunManagerImpl runManager,
                        @NotNull ProvistionTasks provistionTasks) {
-=======
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
->>>>>>> goog/upstream-ij17
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -151,11 +139,8 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
-<<<<<<< HEAD
     myRunManager = runManager;
     myProvistionTasks = provistionTasks;
-=======
->>>>>>> goog/upstream-ij17
   }
 
   /**
@@ -205,11 +190,7 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-<<<<<<< HEAD
     SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
-=======
-    removeAllModuleCompiledArtifacts(myProject);
->>>>>>> goog/upstream-ij17
 
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
@@ -305,33 +286,19 @@ public class PostSyncProjectSetup {
     }
 
     if (targetProvider != null) {
-<<<<<<< HEAD
       // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
         RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
         AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
-=======
-      RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
-      // Set the correct "Make step" in the "JUnit Run Configuration" template.
-      for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
-        RunConfiguration runConfiguration = template.getConfiguration();
->>>>>>> goog/upstream-ij17
+        // Set the correct "Make step" in the "JUnit Run Configuration" template.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
         runConfiguration.setWorkingDirectory("$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$");
       }
 
-<<<<<<< HEAD
       // Fix existing JUnit Configurations.
-      RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(junitConfigurationType);
-      for (RunConfiguration runConfiguration : junitRunConfigurations) {
-        AndroidJUnitConfiguration androidJUnitConfiguration = (AndroidJUnitConfiguration)runConfiguration;
-        setMakeStepInJUnitConfiguration(targetProvider, androidJUnitConfiguration);
-=======
-      // Set the correct "Make step" in existing JUnit Configurations.
-      for (RunConfiguration runConfiguration : runManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+        // Set the correct "Make step" in existing JUnit Configurations.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
->>>>>>> goog/upstream-ij17
       }
     }
   }

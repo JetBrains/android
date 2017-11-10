@@ -19,6 +19,7 @@ import com.android.tools.idea.testartifacts.TestConfigurationTesting.createConte
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
+import com.intellij.execution.impl.ExecutionManagerKtImpl
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
@@ -63,8 +64,12 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     super.setUp()
     runInEdtAndWait {
       loadProject(TestProjectPaths.UNIT_TESTING)
+
       // Without this, the execution manager will not invoke gradle to compile the project, so no tests will be found.
-      ExecutionManagerImpl.getInstance(project).setForceCompilationInTests(true)
+      val executionManager = ExecutionManagerImpl.getInstance(project)
+      if (executionManager is ExecutionManagerKtImpl) {
+        executionManager.forceCompilationInTests = true
+      }
       log("project imported")
 
       // Calling the code below makes sure there are no mistakes in the test project and that all class files are in place. Doing this

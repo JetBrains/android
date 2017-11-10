@@ -176,11 +176,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-<<<<<<< HEAD
-    String libraryNameRegex = ".*guava.*";
-=======
     String libraryNameRegex = "Gradle: guava-.*";
->>>>>>> goog/upstream-ij17
     Library library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 
@@ -283,7 +279,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     }
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    Library appCompat = libraries.findMatchingLibrary("appcompat-v7.*");
+    Library appCompat = libraries.findMatchingLibrary("Gradle: appcompat-v7.*");
     assertNotNull(appCompat);
 
     File jarsFolderPath = null;
@@ -309,7 +305,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    Library guava = libraries.findMatchingLibrary("guava.*");
+    Library guava = libraries.findMatchingLibrary("Gradle: guava.*");
     assertNotNull(guava);
 
     String[] sources = guava.getUrls(SOURCES);

@@ -34,6 +34,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
+import com.google.common.collect.Lists;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -91,17 +92,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-<<<<<<< HEAD
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
                                        myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager,
                                        myProvisionTasks);
-=======
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
-                                       myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
-                                       myModuleValidatorFactory);
->>>>>>> goog/upstream-ij17
   }
 
   public void testJUnitRunConfigurationSetup() {
@@ -220,7 +215,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
 
     // Reset only in one of the configurations (e.g. open old projects with run configs already created)
-    myRunManager.resetBeforeRunTasks(androidRunConfiguration);
+    myRunManager.setBeforeRunTasks(androidRunConfiguration, Lists.newArrayList());
+    myRunManager.fireBeforeRunTasksUpdated();
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator);
