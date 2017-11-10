@@ -31,6 +31,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.util.ui.UIUtil;
@@ -75,15 +76,19 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myPreferredClients = Maps.newHashMap();
     Disposer.register(myProject, this);
 
-    initializeDeviceCombo();
-    initializeClientCombo();
-
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
   }
 
+  private void createUIComponents() {
+    initializeDeviceCombo();
+    initializeClientCombo();
+  }
+
   private void initializeDeviceCombo() {
+    myDeviceCombo = new ComboBox<>();
+
     AccessibleContextUtil.setName(myDeviceCombo, "Devices");
     myDeviceCombo.addActionListener(actionEvent -> {
       if (myIgnoreActionEvents) return;
@@ -120,6 +125,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   private void initializeClientCombo() {
+    myClientCombo = new ComboBox<>();
+
     AccessibleContextUtil.setName(myClientCombo, "Processes");
     myClientCombo.setName("Processes");
     myClientCombo.addActionListener(actionEvent -> {
