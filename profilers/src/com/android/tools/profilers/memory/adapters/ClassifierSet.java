@@ -22,6 +22,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,8 +30,8 @@ import java.util.stream.Stream;
  * A general base class for classifying/filtering objects into categories.
  */
 public abstract class ClassifierSet implements MemoryObject {
-  @NotNull private String myName;
-  @NotNull private Supplier<String> myNameSupplier = null;
+  @Nullable private String myName;
+  @Nullable private Supplier<String> myNameSupplier = null;
 
   @NotNull protected final Set<InstanceObject> myInstances = new LinkedHashSet<>(0);
 
@@ -288,7 +289,7 @@ public abstract class ClassifierSet implements MemoryObject {
     return isEmpty() || myIsFiltered;
   }
 
-  protected void applyFilter(@NotNull String filter) {
+  protected void applyFilter(@Nullable Pattern filter) {
     myIsFiltered = true;
     ensurePartition();
     myAllocatedCount = 0;
@@ -298,6 +299,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
 
+    assert myClassifier != null;
     for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
       classifierSet.applyFilter(filter);
       if (!classifierSet.isFiltered()) {

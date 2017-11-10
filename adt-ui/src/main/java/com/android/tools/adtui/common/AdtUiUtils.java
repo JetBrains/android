@@ -19,10 +19,13 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -108,5 +111,35 @@ public final class AdtUiUtils {
       Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
       Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
       Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
+  }
+
+  /**
+   * Returns the resulting Pattern that matches those containing the filter string.
+   *
+   * @param filter      the filter string
+   * @param isMatchCase if the Pattern is case sensitive
+   * @param isRegex     if the Pattern is a regex match
+   * @return the Pattern correspondent to the parameters
+   */
+  @Nullable
+  public static Pattern getFilterPattern(@Nullable String filter, boolean isMatchCase, boolean isRegex) {
+    Pattern pattern = null;
+
+    if (filter != null && !filter.isEmpty()) {
+      int flags = isMatchCase ? 0 : Pattern.CASE_INSENSITIVE;
+      if (isRegex) {
+        try {
+          pattern = Pattern.compile("^.*" + filter + ".*$", flags);
+        }
+        catch (PatternSyntaxException e) {
+          String error = e.getMessage();
+          assert (error != null);
+        }
+      }
+      if (pattern == null) {
+        pattern = Pattern.compile("^.*" + Pattern.quote(filter) + ".*$", flags);
+      }
+    }
+    return pattern;
   }
 }

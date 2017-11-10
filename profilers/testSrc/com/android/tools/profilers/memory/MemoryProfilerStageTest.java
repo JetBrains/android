@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
@@ -297,14 +298,16 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
-    myStage.selectCaptureFilter("Filter");
+    Pattern pattern = Pattern.compile("Filter");
+    myStage.selectCaptureFilter(pattern);
     Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
     Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
     Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     Truth.assertThat(myStage.getSelectedClassSet()).isNull();
     Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
-    Truth.assertThat(myStage.getCaptureFilter()).isEqualTo("Filter");
+    Truth.assertThat(myStage.getCaptureFilter()).isEqualTo(pattern);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
+    myStage.selectCaptureFilter(null);
 
     Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);

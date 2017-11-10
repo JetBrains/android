@@ -16,11 +16,13 @@
 package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -54,8 +56,12 @@ public class ClassSet extends ClassifierSet {
   }
 
   @Override
-  protected void applyFilter(@NotNull String filter) {
-    myIsFiltered = !myClassEntry.getSimpleClassName().startsWith(filter) && !myClassEntry.getClassName().startsWith(filter);
+  protected void applyFilter(@Nullable Pattern filter) {
+     if (filter == null) {
+      myIsFiltered = false;
+      return;
+    }
+    myIsFiltered = !filter.matcher(myClassEntry.getClassName()).matches();
   }
 
   private static final class ClassClassifier extends Classifier {

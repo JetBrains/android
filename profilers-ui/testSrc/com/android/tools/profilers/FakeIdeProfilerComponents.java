@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -162,6 +163,24 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       public String getText() {
         return "";
       }
+    };
+  }
+
+  @NotNull
+  @Override
+  public SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs) {
+    return new SearchComponent() {
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return null;
+      }
+
+      @Override
+      public void addOnFilterChange(@NotNull com.intellij.util.Consumer<Pattern> callback) {}
+
+      @Override
+      public void setText(@NotNull String text) {}
     };
   }
 

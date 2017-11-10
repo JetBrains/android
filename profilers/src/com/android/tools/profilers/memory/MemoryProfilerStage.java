@@ -51,6 +51,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting static final String HAS_USED_MEMORY_CAPTURE = "profiler.used.memory.capture";
@@ -78,7 +79,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @NotNull private String myFilter = "";
+  @Nullable private Pattern myFilter;
 
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
@@ -440,6 +441,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void selectHeapSet(@Nullable HeapSet heapSet) {
     mySelection.selectHeapSet(heapSet);
+    selectCaptureFilter(getCaptureFilter());
   }
 
   @Nullable
@@ -447,16 +449,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelection.getHeapSet();
   }
 
-  public void selectCaptureFilter(String filter) {
-    filter = filter.trim();
-    if (!myFilter.equals(filter)) {
-      myFilter = filter;
-      myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
+  public void selectCaptureFilter(@Nullable Pattern filter) {
+    myFilter = filter;
+    if (getSelectedHeapSet() != null) {
+      getSelectedHeapSet().selectFilter(filter);
     }
+    myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
   }
 
-  @NotNull
-  public String getCaptureFilter() {
+  @Nullable
+  public Pattern getCaptureFilter() {
     return myFilter;
   }
 
@@ -481,7 +483,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
-    if (durationData.getDuration() != Long.MAX_VALUE) {
+    if (durationData != null && durationData.getDuration() != Long.MAX_VALUE) {
       // TODO: (revisit) we have an special case in interacting with SelectionModel where if the user tries to select a heap dump that is on
       // top of an ongoing live allocation capture (duration == Long.MAX_VALUE), the live capture would take precedence given it always
       // intersects with the previous selection. Here we clear the previous selection first to avoid said interaction.
