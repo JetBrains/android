@@ -31,7 +31,7 @@ public interface RoomReindexStatement extends RoomStatement {
   RoomDatabaseName getDatabaseName();
 
   @Nullable
-  RoomTableName getTableName();
+  RoomDefinedTableName getDefinedTableName();
 
   @Nullable
   PsiElement getBacktickLiteral();

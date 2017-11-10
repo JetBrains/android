@@ -16,42 +16,31 @@
 
 // ATTENTION: This file has been automatically generated from roomSql.bnf. Do not edit it manually.
 
-package com.android.tools.idea.lang.roomSql.psi;
+package com.android.tools.idea.lang.roomSql.psi.impl;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
+import com.android.tools.idea.lang.roomSql.psi.*;
 
-public interface RoomDeleteStatement extends RoomStatement, HasWithClause {
+public class RoomTableDefinitionNameImpl extends AbstractRoomNameElement implements RoomTableDefinitionName {
 
-  @NotNull
-  List<RoomExpression> getExpressionList();
+  public RoomTableDefinitionNameImpl(ASTNode node) {
+    super(node);
+  }
 
-  @Nullable
-  RoomOrderClause getOrderClause();
+  public void accept(@NotNull RoomVisitor visitor) {
+    visitor.visitTableDefinitionName(this);
+  }
 
-  @NotNull
-  RoomSingleTableStatementTable getSingleTableStatementTable();
-
-  @Nullable
-  RoomWhereClause getWhereClause();
-
-  @Nullable
-  RoomWithClause getWithClause();
-
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
+    else super.accept(visitor);
+  }
 
 }

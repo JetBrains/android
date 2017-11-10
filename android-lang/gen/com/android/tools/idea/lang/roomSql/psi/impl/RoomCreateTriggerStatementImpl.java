@@ -55,15 +55,15 @@ public class RoomCreateTriggerStatementImpl extends RoomStatementImpl implements
   }
 
   @Override
-  @Nullable
-  public RoomExpression getExpression() {
-    return findChildByClass(RoomExpression.class);
+  @NotNull
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
   @Override
-  @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  @Nullable
+  public RoomExpression getExpression() {
+    return findChildByClass(RoomExpression.class);
   }
 
   @Override

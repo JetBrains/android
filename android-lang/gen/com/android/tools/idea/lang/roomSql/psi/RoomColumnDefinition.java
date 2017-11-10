@@ -22,6 +22,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomTableDefName extends RoomNameElement {
+public interface RoomColumnDefinition extends PsiElement {
+
+  @NotNull
+  List<RoomColumnConstraint> getColumnConstraintList();
+
+  @NotNull
+  RoomColumnDefinitionName getColumnDefinitionName();
+
+  @Nullable
+  RoomTypeName getTypeName();
 
 }

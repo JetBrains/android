@@ -265,6 +265,22 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
+          @Query("UPDATE user SET age = user.age+1 WHERE id=:id")
+          void birthday(int id);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
           @Query("UPDATE <error>foo</error> SET <error>bar</error> = <error>baz</error>+1 WHERE <error>quux</error> = :id")
           void birthday(int id);
         }
@@ -319,6 +335,78 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
         public interface UserDao {
           @Query("INSERT INTO <error>foo</error> WITH vals AS (SELECT :id, :age) SELECT * FROM <error>bar</error>")
           void insert(int id, int age);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testWhereSubquery_withClause() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+    myFixture.addRoomEntity("com.example.Bbb", "b" ofType "int")
+    myFixture.addRoomEntity("com.example.Ccc", "c" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (VALUES(1)) SELECT a FROM Aaa WHERE a IN (WITH t2 AS (VALUES(2)) SELECT b FROM Bbb WHERE a IN t2)") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (VALUES(1)) SELECT a FROM Aaa WHERE a IN (WITH t2 AS (VALUES(2)) SELECT b FROM Bbb WHERE <error>foo</error> IN <error>bar</error>)") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testWhereSubquery_aliases() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT max_a FROM minmax)")
+          List<Aaa> get();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT <error>foo</error> FROM minmax)")
+          List<Aaa> get();
         }
     """.trimIndent())
 

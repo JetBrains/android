@@ -46,10 +46,6 @@ interface SqlColumn : SqlDefinition {
   val type: SqlType?
 }
 
-interface SqlTableElement : PsiElement {
-  val sqlTable: SqlTable?
-}
-
 class AliasedTable(
     val delegate: SqlTable,
     override val name: String?,

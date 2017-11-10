@@ -25,7 +25,7 @@ import com.intellij.psi.PsiElement;
 public interface RoomCreateTableStatement extends RoomStatement {
 
   @NotNull
-  List<RoomColumnDef> getColumnDefList();
+  List<RoomColumnDefinition> getColumnDefinitionList();
 
   @Nullable
   RoomDatabaseName getDatabaseName();
@@ -37,6 +37,6 @@ public interface RoomCreateTableStatement extends RoomStatement {
   List<RoomTableConstraint> getTableConstraintList();
 
   @NotNull
-  RoomTableName getTableName();
+  RoomTableDefinitionName getTableDefinitionName();
 
 }

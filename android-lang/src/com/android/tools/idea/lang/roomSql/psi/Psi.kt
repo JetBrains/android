@@ -20,6 +20,7 @@ import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.Processor
@@ -64,4 +65,12 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
+
+interface SqlTableElement : PsiElement {
+  val sqlTable: SqlTable?
+}
+
+interface HasWithClause : PsiElement {
+  val withClause: RoomWithClause?
+}
 

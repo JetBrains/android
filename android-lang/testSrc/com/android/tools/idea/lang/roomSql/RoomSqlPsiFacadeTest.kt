@@ -27,14 +27,20 @@ class RoomSqlPsiFacadeTest : LightRoomTestCase() {
     facade = RoomSqlPsiFacade.getInstance(project)!!
   }
 
-  fun testCreateTableName() {
-    val userTable = facade.createTableName("user")!!
+  fun testCreateDefinedTableName() {
+    val userTable = facade.createDefinedTableName("user")!!
     assertThat(userTable.text).isEqualTo("user")
-    assertThat(userTable.node.elementType).isEqualTo(RoomPsiTypes.TABLE_NAME)
+    assertThat(userTable.node.elementType).isEqualTo(RoomPsiTypes.DEFINED_TABLE_NAME)
+  }
+
+  fun testCreateSelectedTableName() {
+    val userTable = facade.createSelectedTableName("user")!!
+    assertThat(userTable.text).isEqualTo("user")
+    assertThat(userTable.node.elementType).isEqualTo(RoomPsiTypes.SELECTED_TABLE_NAME)
   }
 
   fun testCreateTableName_quoting() {
-    assertThat(facade.createTableName("table")!!.text).isEqualTo("`table`")
+    assertThat(facade.createDefinedTableName("table")!!.text).isEqualTo("`table`")
   }
 
   fun testCreateColumnName() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.*
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -42,14 +43,14 @@ class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBa
 
   override fun resolveColumn(): SqlColumn? {
     val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
-    processSqlTables(element, AllColumnsProcessor(processor))
+    processSelectedSqlTables(element, AllColumnsProcessor(processor))
     return processor.foundValue
   }
 
   override fun getVariants(): Array<Any> {
     val columnsProcessor = CollectUniqueNamesProcessor<SqlColumn>()
     val tablesProcessor = AllColumnsProcessor(columnsProcessor)
-    processSqlTables(element, tablesProcessor)
+    processSelectedSqlTables(element, tablesProcessor)
 
     if (tablesProcessor.tablesProcessed == 0) {
       // Let's try to be helpful in the common case of a SELECT query with no FROM clause, even though referencing any columns will result
@@ -67,9 +68,9 @@ class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBa
 /** Reference to a column within a known table, e.g. `SELECT user.name FROM user`. */
 class QualifiedColumnPsiReference(
     columnName: RoomColumnName,
-    private val tableName: RoomTableName
+    private val tableName: RoomSelectedTableName
 ) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
-  private fun resolveTable() = RoomTablePsiReference(tableName).resolveSqlTable()
+  private fun resolveTable() = RoomSelectedTablePsiReference(tableName).resolveSqlTable()
 
   override fun resolveColumn(): SqlColumn? {
     val table = resolveTable() ?: return null
@@ -106,49 +107,62 @@ private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
       .toTypedArray()
 }
 
-
 /**
- * A [PsiReference] pointing from the table name in SQL to the PSI element defining the table name.
+ * A [PsiReference] pointing from the selected table name in SQL to the PSI element defining the table name.
  *
  * @see Entity.nameElement
  */
-class RoomTablePsiReference(
-    tableName: RoomTableName,
-    private val acceptViews: Boolean = true
-) : PsiReferenceBase<RoomTableName>(tableName) {
+class RoomSelectedTablePsiReference(
+    tableName: RoomSelectedTableName
+) : PsiReferenceBase<RoomSelectedTableName>(tableName) {
 
-  override fun resolve(): PsiElement? {
-    return resolveSqlTable()?.resolveTo
-  }
+  override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
   fun resolveSqlTable(): SqlTable? {
     val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
-    processSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
+    processSelectedSqlTables(element, processor)
     return processor.foundValue
   }
 
   override fun getVariants(): Array<Any> {
     val processor = CollectUniqueNamesProcessor<SqlTable>()
-    processSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
-
-    return processor.result
-        .map { table ->
-          val element = table.definingElement
-
-          LookupElementBuilder.create(element, RoomSqlLexer.getValidName(table.name!!))
-              .withTypeText((element as? PsiClass)?.qualifiedName, true)
-              // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
-              // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
-              // `Books` nor `books`. This is consistent with the Java editor, but probably not what most users want. Our own samples
-              // use lower-case table names and it seems a better UX is to insert `books` if the user types `b`. Setting this flag to
-              // false means that although we show `Books` in the UI, the actual inserted text is `books`, interpolating case from what
-              // the user has typed.
-              //
-              // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
-              .withCaseSensitivity(false)
-        }
-        .toTypedArray()
+    processSelectedSqlTables(element, processor)
+    return processor.result.map(::lookupElementForTable).toTypedArray()
   }
+}
+
+class RoomDefinedTablePsiReference(
+    tableName: RoomDefinedTableName,
+    private val acceptViews: Boolean = true
+) : PsiReferenceBase<RoomDefinedTableName>(tableName) {
+  override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
+
+  fun resolveSqlTable(): SqlTable? {
+    val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
+    processDefinedSqlTables(element, if(acceptViews) processor else IgnoreViewsProcessor(processor))
+    return processor.foundValue
+  }
+
+  override fun getVariants(): Array<Any> {
+    val processor = CollectUniqueNamesProcessor<SqlTable>()
+    processDefinedSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
+    return processor.result.map(::lookupElementForTable).toTypedArray()
+  }
+}
+
+private fun lookupElementForTable(table: SqlTable): LookupElement {
+  val element = table.definingElement
+  return LookupElementBuilder.create(element, RoomSqlLexer.getValidName(table.name!!))
+      .withTypeText((element as? PsiClass)?.qualifiedName, true)
+      // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
+      // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
+      // `Books` nor `books`. This is consistent with the Java editor, but probably not what most users want. Our own samples
+      // use lower-case table names and it seems a better UX is to insert `books` if the user types `b`. Setting this flag to
+      // false means that although we show `Books` in the UI, the actual inserted text is `books`, interpolating case from what
+      // the user has typed.
+      //
+      // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
+      .withCaseSensitivity(false)
 }
 
 /**

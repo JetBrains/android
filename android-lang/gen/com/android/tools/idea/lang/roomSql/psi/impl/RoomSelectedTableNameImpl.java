@@ -27,16 +27,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.RoomTablePsiReference;
+import com.android.tools.idea.lang.roomSql.RoomSelectedTablePsiReference;
 
-public class RoomTableNameImpl extends AbstractRoomNameElement implements RoomTableName {
+public class RoomSelectedTableNameImpl extends AbstractRoomNameElement implements RoomSelectedTableName {
 
-  public RoomTableNameImpl(ASTNode node) {
+  public RoomSelectedTableNameImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitTableName(this);
+    visitor.visitSelectedTableName(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,7 +45,7 @@ public class RoomTableNameImpl extends AbstractRoomNameElement implements RoomTa
   }
 
   @NotNull
-  public RoomTablePsiReference getReference() {
+  public RoomSelectedTablePsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

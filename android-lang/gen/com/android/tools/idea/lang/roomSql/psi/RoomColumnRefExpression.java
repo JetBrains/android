@@ -31,6 +31,6 @@ public interface RoomColumnRefExpression extends RoomExpression {
   RoomDatabaseName getDatabaseName();
 
   @Nullable
-  RoomTableName getTableName();
+  RoomSelectedTableName getSelectedTableName();
 
 }

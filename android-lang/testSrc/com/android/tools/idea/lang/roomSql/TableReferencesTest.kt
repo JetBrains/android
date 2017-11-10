@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.psi.RoomTableAliasName
-import com.android.tools.idea.lang.roomSql.psi.RoomTableDefName
+import com.android.tools.idea.lang.roomSql.psi.RoomTableDefinitionName
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
@@ -563,7 +563,7 @@ class TableReferencesTest : LightRoomTestCase() {
     """.trimIndent())
 
     val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(RoomTableDefName::class.java)
+    assertThat(elementAtCaret).isInstanceOf(RoomTableDefinitionName::class.java)
     assertThat(elementAtCaret.text).isEqualTo("ids")
     assertThat(elementAtCaret.parent.parent.text).startsWith("ids AS (SELECT ")
   }
