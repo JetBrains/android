@@ -63,6 +63,21 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     }
   }
 
+  public void testLayers() {
+    assertEmpty(mySurface.myLayers);
+    ModelBuilder modelBuilder = model("absolute.xml",
+                                      component(ABSOLUTE_LAYOUT)
+                                        .withBounds(0, 0, 1000, 1000)
+                                        .matchParentWidth()
+                                        .matchParentHeight());
+    NlModel model = modelBuilder.build();
+    mySurface.setModel(model);
+    assertNotEmpty(mySurface.myLayers);
+
+    mySurface.setModel(null);
+    assertEmpty(mySurface.myLayers);
+  }
+
   public void testScreenMode() {
     // Just in case, cleanup current preference to make testing environment consistence.
     PropertiesComponent.getInstance().unsetValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY());
