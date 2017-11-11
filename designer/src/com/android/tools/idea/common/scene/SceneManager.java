@@ -91,8 +91,6 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
-    // This takes care of disposing any existing layers
-    myDesignSurface.setLayers(ImmutableList.of());
     myRenderListeners.clear();
   }
 

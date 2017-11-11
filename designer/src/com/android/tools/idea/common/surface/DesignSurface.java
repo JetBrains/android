@@ -91,7 +91,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   protected boolean myDeviceFrames = false;
-  private ImmutableList<Layer> myLayers = ImmutableList.of();
+  @VisibleForTesting
+  public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -257,6 +258,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myModel = model;
     if (model == null) {
       mySceneManager = null;
+      setLayers(ImmutableList.of());
       return;
     }
 
@@ -282,6 +284,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
+    // This takes care of disposing any existing layers
+    setLayers(ImmutableList.of());
     myInteractionManager.unregisterListeners();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);

@@ -251,7 +251,6 @@ public class LayoutlibSceneManager extends SceneManager {
       sceneView = new ScreenView(getDesignSurface(), model);
     }
 
-    getDesignSurface().setLayers(sceneView.getLayers());
     getDesignSurface().updateErrorDisplay();
     getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getPreferredSize());
     return sceneView;
