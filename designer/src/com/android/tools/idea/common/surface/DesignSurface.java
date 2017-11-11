@@ -91,7 +91,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   protected boolean myDeviceFrames = false;
-  private ImmutableList<Layer> myLayers = ImmutableList.of();
+  @VisibleForTesting
+  public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -257,6 +258,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myModel = model;
     if (model == null) {
       mySceneManager = null;
+      myLayers = ImmutableList.of();
       return;
     }
 
