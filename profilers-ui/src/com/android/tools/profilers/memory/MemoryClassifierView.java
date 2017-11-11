@@ -17,10 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.InfoMessagePanel;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -65,7 +62,7 @@ final class MemoryClassifierView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+  @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
   @NotNull private final Map<ClassifierAttribute, AttributeColumn<ClassifierSet>> myAttributeColumns = new HashMap<>();
 
@@ -99,8 +96,8 @@ final class MemoryClassifierView extends AspectObserver {
 
   public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myIdeProfilerComponents = ideProfilerComponents;
-    myLoadingPanel = myIdeProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
+    myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+    myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
@@ -284,7 +281,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;

@@ -210,7 +210,7 @@ class CpuCaptureView {
     sorter.setModel(model, DEFAULT_SORT_ORDER);
 
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    stageView.getIdeComponents().installNavigationContextMenu(tree, navigator, () -> getCodeLocation(tree));
+    stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(tree, navigator, () -> getCodeLocation(tree));
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -331,7 +331,7 @@ class CpuCaptureView {
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
     TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
     chart.addMouseListener(handler);
-    stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     CpuChartTooltipView.install(chart, stageView);
 
     return chart;

@@ -60,7 +60,7 @@ public final class MemoryCaptureView extends AspectObserver {
 
     myExportButton = new FlatButton(AllIcons.Actions.Export);
     myExportButton.setToolTipText("Export capture to file");
-    myExportButton.addActionListener(e -> ideProfilerComponents.openExportDialog(
+    myExportButton.addActionListener(e -> ideProfilerComponents.createExportDialog().open(
       () -> "Export As",
       this::getFileExtension,
       file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));

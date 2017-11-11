@@ -70,24 +70,36 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new StackTraceViewStub(model);
   }
 
+  @NotNull
   @Override
-  public void installNavigationContextMenu(@NotNull JComponent component,
-                                           @NotNull CodeNavigator navigator,
-                                           @NotNull Supplier<CodeLocation> codeLocationSupplier) {
-    assertFalse(myComponentNavigations.containsKey(component));
-    myComponentNavigations.put(component, codeLocationSupplier);
+  public ContextMenuInstaller createContextMenuInstaller() {
+    return new ContextMenuInstaller() {
+      @Override
+      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+        List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
+        menus.add(contextMenuItem);
+      }
+
+      @Override
+      public void installNavigationContextMenu(@NotNull JComponent component,
+                                               @NotNull CodeNavigator navigator,
+                                               @NotNull Supplier<CodeLocation> codeLocationSupplier) {
+        assertFalse(myComponentNavigations.containsKey(component));
+        myComponentNavigations.put(component, codeLocationSupplier);
+      }
+    };
   }
 
+  @NotNull
   @Override
-  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
-    List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
-    menus.add(contextMenuItem);
-  }
-
-  @Override
-  public void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
-                               @NotNull Supplier<String> extensionSupplier,
-                               @NotNull Consumer<File> saveToFile) {
+  public ExportDialog createExportDialog() {
+    return new ExportDialog() {
+      @Override
+      public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull Supplier<String> extensionSupplier,
+                       @NotNull Consumer<File> saveToFile) {
+      }
+    };
   }
 
   @Nullable
@@ -175,7 +187,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     }
 
     @Override
-    public void installNavigationContextMenu(@NotNull IdeProfilerComponents components) {
+    public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     }
   }
 }
