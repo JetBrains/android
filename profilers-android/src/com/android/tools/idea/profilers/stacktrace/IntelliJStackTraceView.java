@@ -16,10 +16,13 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -166,8 +169,8 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
   }
 
   @Override
-  public void installNavigationContextMenu(@NotNull IdeProfilerComponents components) {
-    components.installNavigationContextMenu(myListView, myModel.getCodeNavigator(), () -> {
+  public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
+    contextMenuInstaller.installNavigationContextMenu(myListView, myModel.getCodeNavigator(), () -> {
       int index = myListView.getSelectedIndex();
       if (index >= 0 && index < myListView.getItemsCount()) {
         return myModel.getCodeLocations().get(index);
