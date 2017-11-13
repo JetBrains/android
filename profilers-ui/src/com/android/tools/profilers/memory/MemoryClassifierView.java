@@ -400,6 +400,30 @@ final class MemoryClassifierView extends AspectObserver {
         mySelectedClassifierSet = null;
       }
     }
+
+    if (myStage.getCaptureFilter() != null) {
+      MemoryClassifierTreeNode treeNode = myTreeRoot;
+      while (treeNode != null) {
+        if (treeNode.getAdapter().getIsMatched()) {
+          TreePath treePath = new TreePath(treeNode.getPathToRoot().toArray());
+          myTree.expandPath(treePath.getParentPath());
+          break;
+        }
+
+        treeNode.expandNode();
+        myTreeModel.nodeStructureChanged(treeNode);
+        MemoryClassifierTreeNode nextNode = null;
+        for (MemoryObjectTreeNode<ClassifierSet> child : treeNode.getChildren()) {
+          if (child.getAdapter().getIsFiltered()) {
+            break;
+          }
+          assert child instanceof MemoryClassifierTreeNode;
+          nextNode = (MemoryClassifierTreeNode)child;
+          break;
+        }
+        treeNode = nextNode;
+      }
+    }
   }
 
   private void refreshHeapSet() {
