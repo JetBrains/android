@@ -897,8 +897,8 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
-    List<NlComponent> children = root.children;
-    if (children != null && !children.isEmpty()) {
+    List<NlComponent> children = root.getChildren();
+    if (!children.isEmpty()) {
       for (NlComponent child : children) {
         fixBounds(child);
       }
