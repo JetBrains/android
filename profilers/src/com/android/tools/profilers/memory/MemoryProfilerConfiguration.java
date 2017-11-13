@@ -52,6 +52,7 @@ public class MemoryProfilerConfiguration {
       myClassGrouping = classGrouping;
       myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackChangeClassArrangment();
       myStage.getAspect().changed(MemoryProfilerAspect.CLASS_GROUPING);
+      myStage.selectCaptureFilter(myStage.getCaptureFilter());
     }
   }
 

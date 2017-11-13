@@ -307,10 +307,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     Truth.assertThat(myStage.getCaptureFilter()).isEqualTo(pattern);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
-    myStage.selectCaptureFilter(null);
 
     Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    // Retain Filter after Grouping change
+    Truth.assertThat(myStage.getCaptureFilter()).isEqualTo(pattern);
+    // Reset Filter
+    myStage.selectCaptureFilter(null);
     Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0, 0);
 
