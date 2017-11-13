@@ -24,11 +24,13 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.junit.Ignore;
 
 import java.util.Arrays;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
 
+@Ignore("b/69246107")
 public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
   /**
    * Checks {@code @BindingAdapter} annotation completion and uses {@link AndroidUnknownAttributeInspection} to check that the attribute

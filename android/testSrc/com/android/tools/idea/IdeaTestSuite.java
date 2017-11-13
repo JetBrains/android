@@ -34,8 +34,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
-  org.jetbrains.android.databinding.DataBindingScopeTest.class,
-  org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
 
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
