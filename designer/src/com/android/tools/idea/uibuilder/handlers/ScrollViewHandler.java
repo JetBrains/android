@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -83,7 +84,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new OneChildDragHandler(editor, this, layout, components, type);
+    return new FrameDragHandler(editor, this, layout, components, type);
   }
 
   @Nullable
@@ -142,35 +143,9 @@ public class ScrollViewHandler extends ViewGroupHandler {
     return maxScrollable;
   }
 
-  static class OneChildDragHandler extends DragHandler {
-    public OneChildDragHandler(@NotNull ViewEditor editor,
-                               @NotNull ViewGroupHandler handler,
-                               @NotNull SceneComponent layout,
-                               @NotNull List<NlComponent> components,
-                               @NotNull DragType type) {
-      super(editor, handler, layout, components, type);
-    }
-
-    @Nullable
-    @Override
-    public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-      super.update(x, y, modifiers);
-
-      // layout will already have the dragged components as child so we need to check if count > 1
-      if (layout.getChildCount() > 1 || components.size() > 1) {
-        return "Layout only allows 1 child";
-      }
-
-      return null;
-    }
-
-    @Override
-    public void paint(@NotNull NlGraphics graphics) {
-      if (layout.getChildCount() == 0) {
-        graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-        graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
-      }
-    }
+  @Override
+  public boolean acceptsChild(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
+    return layout.getChildCount() == 0;
   }
 
   @Override
