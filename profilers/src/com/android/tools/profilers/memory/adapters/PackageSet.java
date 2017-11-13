@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +73,7 @@ public class PackageSet extends ClassifierSet {
     @NotNull
     @Override
     public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.isFiltered()).collect(Collectors.toList());
+      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered()).collect(Collectors.toList());
     }
 
     @NotNull

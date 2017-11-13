@@ -71,7 +71,7 @@ public class HeapSet extends ClassifierSet {
 
   // Filter child ClassSets based on current selected filter string
   public void applyFilter() {
-    applyFilter(myFilter);
+    applyFilter(myFilter, false);
   }
 
   @NotNull

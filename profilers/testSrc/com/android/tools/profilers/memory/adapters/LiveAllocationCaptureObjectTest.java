@@ -270,18 +270,7 @@ public class LiveAllocationCaptureObjectTest {
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
-    //Filter with Regex
-    heapSet.selectFilter(getFilterPattern("bar", false, false));
-    expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
-    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
-
-    // Reset filter
+    // filter with package name and regex
     heapSet.selectFilter(getFilterPattern("T[a-z]is", false, true));
     expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
@@ -290,6 +279,38 @@ public class LiveAllocationCaptureObjectTest {
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
     expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
     expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+
+    // Reset filter
+    heapSet.selectFilter(null);
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+
+    // Filter with method name
+    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+    heapSet.selectFilter(getFilterPattern("MethodA", false, false));
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 3, 2, 4, 3, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
   }
 
