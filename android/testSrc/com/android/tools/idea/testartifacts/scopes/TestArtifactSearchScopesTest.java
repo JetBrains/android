@@ -213,30 +213,31 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of test-util
     // implementation project(':lib')
-    Module module = myModules.getModule("test-util");
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    Module testUtilModule = myModules.getModule("test-util");
+    Module libModule = myModules.getModule("lib");
+
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(testUtilModule);
     scopes.resolveDependencies();
 
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE));
+    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE, libModule));
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE));
+    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE, libModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", TEST));
+    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", TEST, libModule));
 
     // verify scope of lib
     // testImplementation project(':test-util')
-    module = myModules.getModule("lib");
-    scopes = TestArtifactSearchScopes.get(module);
+    scopes = TestArtifactSearchScopes.get(libModule);
     scopes.resolveDependencies();
 
     moduleDependencies = scopes.getMainDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":test-util", TEST));
+    assertThat(moduleDependencies).contains(new ModuleDependency(":test-util", TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();

@@ -17,17 +17,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -35,6 +31,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  */
 public class ModuleDependency extends Dependency {
   @NotNull private final String myGradlePath;
+  @Nullable private final Module myModule;
 
   @Nullable private LibraryDependency myBackupDependency;
 
@@ -46,31 +43,15 @@ public class ModuleDependency extends Dependency {
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public ModuleDependency(@NotNull String gradlePath, @NotNull DependencyScope scope) {
+  public ModuleDependency(@NotNull String gradlePath, @NotNull DependencyScope scope, @Nullable Module module) {
     super(scope);
     myGradlePath = gradlePath;
+    myModule = module;
   }
 
   @Nullable
-  public Module getModule(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    for (Module module : modelsProvider.getModules()) {
-      GradleFacet gradleFacet = findFacet(module, modelsProvider, GradleFacet.getFacetTypeId());
-      if (gradleFacet != null && hasEqualPath(gradleFacet)) {
-        return module;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public Module getModule(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet != null && hasEqualPath(gradleFacet)) {
-        return module;
-      }
-    }
-    return null;
+  public Module getModule() {
+    return myModule;
   }
 
   private boolean hasEqualPath(@NotNull GradleFacet facet) {

@@ -16,12 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -38,9 +37,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link JavaModuleSetup}.
  */
 public class JavaModuleSetupTest extends IdeaTestCase {
+  @Mock private ModuleSetupContext myContext;
   @Mock private JavaModuleModel myJavaModel;
-  @Mock private GradleModuleModels myModuleModels;
-  @Mock private ProgressIndicator myProgressIndicator;
   @Mock private JavaModuleSetupStep mySetupStep1;
   @Mock private JavaModuleSetupStep mySetupStep2;
 
@@ -53,55 +51,33 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     myModuleSetup = new JavaModuleSetup(mySetupStep1, mySetupStep2);
   }
 
-  public void testSetUpModuleWithProgressIndicator() {
+  public void testSetUpModule() {
     when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(false);
+    myModuleSetup.setUpModule(myContext, myJavaModel, false);
 
-    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
-
-    Module module = getModule();
-    myModuleSetup.setUpModule(module, modelsProvider, myJavaModel, myModuleModels, myProgressIndicator, false);
-
-    verify(mySetupStep1, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, myProgressIndicator);
-  }
-
-  public void testSetUpModuleWithoutProgressIndicator() {
-    when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(false);
-
-    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
-
-    Module module = getModule();
-    myModuleSetup.setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null, false);
-
-    verify(mySetupStep1, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
+    verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
   }
 
   public void testSetUpAndroidModuleWithSyncSkipped() {
     when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
-
-    myModuleSetup.setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null, true /* sync skipped */);
+    myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null);
-    verify(mySetupStep2, never()).setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
+    verify(mySetupStep2, times(0)).setUpModule(myContext, myJavaModel);
   }
 
   public void testSetUpAndroidModuleWithSyncNotSkipped() {
     when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
-
-    myModuleSetup.setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null, false /* sync not skipped */);
+    myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, modelsProvider, myJavaModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
+    verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
   }
 
   public void testSetUpAndroidModuleWithoutVariants() {
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
     when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(true);
 
     Module module = getModule();
@@ -117,7 +93,9 @@ public class JavaModuleSetupTest extends IdeaTestCase {
       modifiableModel.commit();
     });
 
-    myModuleSetup.setUpModule(module, modelsProvider, myJavaModel, myModuleModels, null, false);
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myContext = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    myModuleSetup.setUpModule(myContext, myJavaModel, false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Verify AndroidFacet was removed.

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -73,7 +74,8 @@ public class CompilerOutputModuleSetupStepTest extends IdeaTestCase {
     // Project has to be "buildable".
     when(myJavaModel.isBuildable()).thenReturn(true);
 
-    mySetupStep.doSetUpModule(getModule(), myModelsProvider, myJavaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(getModule(), myModelsProvider);
+    mySetupStep.doSetUpModule(context, myJavaModel);
 
     verify(myCompilerSettingsSetup).setOutputPaths(myRootModel, mainClassesFolderPath, testClassesFolderPath);
   }
@@ -87,7 +89,8 @@ public class CompilerOutputModuleSetupStepTest extends IdeaTestCase {
     // Project has to be "buildable".
     when(myJavaModel.isBuildable()).thenReturn(true);
 
-    mySetupStep.doSetUpModule(getModule(), myModelsProvider, myJavaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(getModule(), myModelsProvider);
+    mySetupStep.doSetUpModule(context, myJavaModel);
 
     File mainClassesFolderPath = new File(myBuildFolderPath, join("classes", "main"));
     File testClassesFolderPath = new File(myBuildFolderPath, join("classes", "test"));
@@ -104,7 +107,8 @@ public class CompilerOutputModuleSetupStepTest extends IdeaTestCase {
     // Project is not "buildable".
     when(myJavaModel.isBuildable()).thenReturn(false);
 
-    mySetupStep.doSetUpModule(getModule(), myModelsProvider, myJavaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(getModule(), myModelsProvider);
+    mySetupStep.doSetUpModule(context, myJavaModel);
 
     verify(myCompilerSettingsSetup, never()).setOutputPaths(any(), any(), any());
   }

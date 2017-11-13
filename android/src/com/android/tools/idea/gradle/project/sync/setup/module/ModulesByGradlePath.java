@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ModuleSetupStep<T> {
-  public final void setUpModule(@NotNull ModuleSetupContext context, @Nullable T gradleModel) {
-    if (gradleModel == null) {
-      return;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ModulesByGradlePath {
+  @NotNull private final Map<String, Module> myValues = new HashMap<>();
+
+  public void addModule(@NotNull Module module, @NotNull String gradlePath) {
+    myValues.put(gradlePath, module);
+  }
+
+  @Nullable
+  public Module findModuleByGradlePath(@NotNull String gradlePath) {
+    return myValues.get(gradlePath);
+  }
+
+  @Override
+  public String toString() {
+    return myValues.toString();
+  }
+
+  public static class Factory {
+    @NotNull
+    public ModulesByGradlePath create() {
+      return new ModulesByGradlePath();
     }
-    doSetUpModule(context, gradleModel);
-  }
-
-  protected abstract void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull T gradleModel);
-
-  public boolean invokeOnBuildVariantChange() {
-    return false;
-  }
-
-  public boolean invokeOnSkippedSync() {
-    return false;
   }
 }
