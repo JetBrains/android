@@ -23,7 +23,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.project.Project;
-import org.apache.commons.lang.StringUtils;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,7 +75,7 @@ public class UninstallIotLauncherAppsTask implements LaunchTask {
     Set<String> installedIotLauncherApps = myChecker.getInstalledIotLauncherApps(device);
     installedIotLauncherApps.remove(myPackageName);
     if (!installedIotLauncherApps.isEmpty()) {
-      String otherApplicationIds = StringUtils.join(installedIotLauncherApps, "\n");
+      String otherApplicationIds = StringUtil.join(installedIotLauncherApps, "\n");
       String reason = AndroidBundle.message("deployment.failed.uninstall.prompt.androidthings.text", otherApplicationIds);
       if (myPrompter.showQuestionPrompt(reason)) {
         Map<String, Throwable> failedUninstallApps = new TreeMap<>();
