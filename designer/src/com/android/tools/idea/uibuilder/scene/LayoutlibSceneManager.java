@@ -256,12 +256,15 @@ public class LayoutlibSceneManager extends SceneManager {
     return sceneView;
   }
 
+  @NotNull
   @Override
-  protected void buildSceneLayers(@NotNull ImmutableList.Builder<Layer> builder) {
-    super.buildSceneLayers(builder);
+  public ImmutableList<Layer> getLayers() {
+    ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
+    builder.addAll(super.getLayers());
     if (mySecondarySceneView != null) {
       builder.addAll(mySecondarySceneView.getLayers());
     }
+    return builder.build();
   }
 
   @Nullable

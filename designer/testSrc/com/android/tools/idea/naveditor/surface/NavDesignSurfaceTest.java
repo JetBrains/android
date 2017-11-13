@@ -22,13 +22,17 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.util.Disposer;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -41,15 +45,20 @@ import static org.mockito.Mockito.*;
 public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testLayers() {
+    ImmutableList<Layer> droppedLayers;
+
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     assertEmpty(surface.myLayers);
 
     SyncNlModel model = model("nav.xml", rootComponent("root")).build();
     surface.setModel(model);
-    assertNotEmpty(surface.myLayers);
+    assertEquals(1, surface.myLayers.size());
 
+    droppedLayers = ImmutableList.copyOf(surface.myLayers);
     surface.setModel(null);
     assertEmpty(surface.myLayers);
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
   }
 
   public void testComponentActivated() {

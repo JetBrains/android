@@ -36,8 +36,32 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOV
  * This is actually painted by {@link ScreenViewLayer}.
  */
 public class ScreenView extends ScreenViewBase {
+
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
     super(surface, model);
+  }
+
+  @NotNull
+  @Override
+  protected ImmutableList<Layer> createLayers() {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+
+    builder.add(new MyBottomLayer(this));
+    builder.add(new ScreenViewLayer(this));
+    builder.add(new SelectionLayer(this));
+
+    if (myModel.getType().isLayout()) {
+      builder.add(new ConstraintsLayer((NlDesignSurface) mySurface, this, true));
+    }
+
+    SceneLayer sceneLayer = new SceneLayer(mySurface, this, false);
+    sceneLayer.setAlwaysShowSelection(true);
+    builder.add(new WarningLayer(this));
+    builder.add(sceneLayer);
+    if (mySurface.getLayoutType().isSupportedByDesigner()) {
+      builder.add(new CanvasResizeLayer((NlDesignSurface) mySurface, this));
+    }
+    return builder.build();
   }
 
   @Override
@@ -49,31 +73,6 @@ public class ScreenView extends ScreenViewBase {
       return;
     }
     super.updateCursor(x, y);
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<Layer> getLayers() {
-    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-
-    builder.add(new MyBottomLayer(this));
-    builder.add(new ScreenViewLayer(this));
-    builder.add(new SelectionLayer(this));
-
-    NlDesignSurface surface = (NlDesignSurface)mySurface;
-    if (myModel.getType().isLayout()) {
-      builder.add(new ConstraintsLayer(surface, this, true));
-    }
-
-    SceneLayer sceneLayer = new SceneLayer(surface, this, false);
-    sceneLayer.setAlwaysShowSelection(true);
-    builder.add(new WarningLayer(this));
-    builder.add(sceneLayer);
-    if (surface.getLayoutType().isSupportedByDesigner()) {
-      builder.add(new CanvasResizeLayer(surface, this));
-    }
-
-    return builder.build();
   }
 
   private static class MyBottomLayer extends Layer {

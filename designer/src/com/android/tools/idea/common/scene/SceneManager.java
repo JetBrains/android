@@ -59,17 +59,16 @@ abstract public class SceneManager implements Disposable {
 
     myScene = new Scene(this, myDesignSurface);
 
-    updateSceneView();
+    createSceneView();
   }
 
   /**
-   * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
+   * Create the SceneView
    */
-  public final void updateSceneView() {
+  private void createSceneView() {
     mySceneView = doCreateSceneView();
-    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    buildSceneLayers(builder);
-    myDesignSurface.setLayers(builder.build());
+
+    myDesignSurface.addLayers(getLayers());
     myDesignSurface.notifySceneViewChanged();
   }
 
@@ -80,8 +79,14 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   protected abstract SceneView doCreateSceneView();
 
-  protected void buildSceneLayers(@NotNull ImmutableList.Builder<Layer> builder) {
-    builder.addAll(mySceneView.getLayers());
+  /**
+   * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
+   */
+  public void updateSceneView() {
+    myDesignSurface.removeLayers(getLayers());
+    getLayers().forEach(Layer::dispose);
+
+    createSceneView();
   }
 
   @NotNull
@@ -89,8 +94,14 @@ abstract public class SceneManager implements Disposable {
     return mySceneView;
   }
 
+  @NotNull
+  public ImmutableList<Layer> getLayers() {
+    return mySceneView.getLayers();
+  }
+
   @Override
   public void dispose() {
+    getLayers().forEach(Disposer::dispose);
     myRenderListeners.clear();
   }
 
