@@ -371,6 +371,7 @@ final class MemoryClassifierView extends AspectObserver {
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);
     }
     myClassifierPanel.revalidate();
+    myClassifierPanel.repaint();
   }
 
   private void refreshTree() {
