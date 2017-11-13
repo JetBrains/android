@@ -56,11 +56,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
@@ -340,7 +337,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (!GradleDependencyManager.userWantToAddDependencies(module, missing)) {
       return false;
     }
-    return manager.addDependencies(myEditor.getModel().getModule(), missing, () -> {
+    return manager.addDependenciesAndSync(myEditor.getModel().getModule(), missing, () -> {
       if (isVisible()) {
         ApplicationManager.getApplication().invokeLater(this::generatePreviews);
       }

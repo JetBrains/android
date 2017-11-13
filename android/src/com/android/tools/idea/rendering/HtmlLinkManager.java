@@ -203,6 +203,8 @@ public class HtmlLinkManager {
     else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
       assert module.getModuleFile() != null;
       handleAddDependency(url, ProjectSystemUtil.getModuleSystem(module));
+      ProjectSystemUtil.getSyncManager(module.getProject())
+        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     }
     else if (url.startsWith(URL_COMMAND)) {
       WriteCommandAction command = getLinkCommand(url);
@@ -947,7 +949,7 @@ public class HtmlLinkManager {
     }
 
     try {
-      moduleSystem.addDependency(artifactId, null);
+      moduleSystem.addDependencyWithoutSync(artifactId, null);
     }
     catch (DependencyManagementException e) {
       Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());

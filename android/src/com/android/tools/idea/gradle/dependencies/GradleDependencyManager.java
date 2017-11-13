@@ -59,7 +59,7 @@ public class GradleDependencyManager {
    * Returns the dependencies that are NOT included in the specified module.
    * Note: the version of the dependency is disregarded.
    *
-   * @param module the module to check dependencies in
+   * @param module       the module to check dependencies in
    * @param dependencies the dependencies of interest.
    * @return a list of the dependencies NOT included in the module
    */
@@ -147,29 +147,32 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Add all the specified dependencies to the module.
-   * <p/>
-   * The caller may supply a callback to determine when the requested dependencies have been added
-   * (this make take several seconds).
+   * Add all the specified dependencies to the module. Adding a dependency that already exists will result in a no-op.
+   * A sync will be triggered immediately after a successful addition (e.g. the list of dependencies didn't already exist);
+   * and caller may supply a callback to determine when the requested
+   * dependencies have been added (this make take several seconds).
    *
    * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest
    * @param callback     an optional callback to signal to completion of the added dependencies
    * @return true if the dependencies were successfully added or were already present in the module
    */
-  public boolean addDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies, @Nullable Runnable callback) {
-    List<GradleCoordinate> missing = findMissingDependencies(module, dependencies);
-    if (missing.isEmpty()) {
-      return true;
-    }
+  public boolean addDependenciesAndSync(@NotNull Module module,
+                                        @NotNull Iterable<GradleCoordinate> dependencies,
+                                        @Nullable Runnable callback) {
+    return addDependenciesInTransaction(module, dependencies, true, callback);
+  }
 
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
-    if (buildModel == null) {
-      return false;
-    }
-
-    addDependenciesInTransaction(buildModel, module, missing, callback);
-    return true;
+  /**
+   * Add all the specified dependencies to the module without triggering a sync afterwards.
+   * Adding a dependency that already exists will result in a no-op.
+   *
+   * @param module       the module to add dependencies to
+   * @param dependencies the dependencies of interest
+   * @return true if the dependencies were successfully added or were already present in the build script
+   */
+  public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
+    return addDependenciesInTransaction(module, dependencies, false, null);
   }
 
   /**
@@ -196,20 +199,37 @@ public class GradleDependencyManager {
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
-  private static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
-                                                   @NotNull Module module,
-                                                   @NotNull List<GradleCoordinate> coordinates,
-                                                   @Nullable Runnable callback) {
-    assert !coordinates.isEmpty();
+  private boolean addDependenciesInTransaction(@NotNull Module module,
+                                               @NotNull Iterable<GradleCoordinate> coordinates,
+                                               boolean performSync,
+                                               @Nullable Runnable callback) {
+    // callback method should never be provided when a sync is not requested.
+    if (!performSync && callback != null) {
+      throw new IllegalArgumentException("Callback must be null if sync is not requested.");
+    }
+
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel == null) {
+      return false;
+    }
 
     Project project = module.getProject();
     new WriteCommandAction(project, ADD_DEPENDENCY) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        addDependencies(buildModel, module, coordinates);
-        requestProjectSync(project, callback);
+        List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
+        if (missing.isEmpty()) {
+          return;
+        }
+
+        addDependencies(buildModel, module, missing);
+
+        if (performSync) {
+          requestProjectSync(project, callback);
+        }
       }
     }.execute();
+    return true;
   }
 
   private static void addDependencies(@NotNull GradleBuildModel buildModel,

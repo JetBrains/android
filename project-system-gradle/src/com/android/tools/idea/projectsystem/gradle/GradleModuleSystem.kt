@@ -31,7 +31,7 @@ import java.util.*
 
 class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
 
-  override fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+  override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
     val gradleVersion = if (version == null) {
       // Here we add a ":+" to the end of the artifact string because GradleCoordinate.parseCoordinateString uses a regex matcher
       // that won't match a coordinate within just it's group and artifact id.  Adding a ":+" to the end in the case passes the
@@ -53,7 +53,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
     val coordinateToAdd = GradleCoordinate.parseCoordinateString("$artifactId:$gradleVersion")
     val singleCoordinateList = Collections.singletonList(coordinateToAdd)
 
-    gradleDependencyManager.addDependencies(module, singleCoordinateList, null)
+    gradleDependencyManager.addDependenciesWithoutSync(module, singleCoordinateList)
   }
 
   override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {

@@ -22,13 +22,10 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
@@ -65,7 +62,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
 
-    boolean found = dependencyManager.addDependencies(myModules.getAppModule(), dependencies, null);
+    boolean found = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
     assertTrue(found);
 
     // @formatter:off
@@ -74,6 +71,49 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
+  }
+
+  @SuppressWarnings("unused")
+  public void ignore_testAddDependencyAndSync() throws Exception {
+    loadSimpleApplication();
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+
+    // Setup:
+    // 1. RecyclerView artifact should not be declared in build script.
+    // 2. RecyclerView should not be available from AppResourceRepository.
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+    assertFalse(isRecyclerViewAvailable());
+
+    boolean result = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
+
+    // If addDependencyAndSync worked correctly,
+    // 1. findMissingDependencies with the added dependency should return empty.
+    // 2. RecyclerView should be avilable AppResourceRepository (because the required artifact has been synced)
+    assertTrue(result);
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
+    assertTrue(isRecyclerViewAvailable());
+  }
+
+  public void testAddDependencyWithoutSync() throws Exception {
+    loadSimpleApplication();
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+
+    // Setup:
+    // 1. RecyclerView artifact should not be declared in build script.
+    // 2. RecyclerView should not be available from AppResourceRepository.
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+    assertFalse(isRecyclerViewAvailable());
+
+    boolean result = dependencyManager.addDependenciesWithoutSync(myModules.getAppModule(), dependencies);
+
+    // If addDependencyWithoutSync worked correctly,
+    // 1. findMissingDependencies with the added dependency should return empty.
+    // 2. RecyclerView should NOT be available AppResourceRepository because artifact is only available after sync.
+    assertTrue(result);
+    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
+    assertFalse(isRecyclerViewAvailable());
   }
 
   public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {
@@ -86,5 +126,10 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.size()).isEqualTo(1);
     assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
+  }
+
+  private boolean isRecyclerViewAvailable() {
+    return !AppResourceRepository.getOrCreateInstance(myAndroidFacet)
+      .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView").isEmpty();
   }
 }

@@ -32,7 +32,7 @@ class DependencyManagementTest : IdeaTestCase() {
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem()
+    projectSystem = TestProjectSystem(myProject)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
         projectSystem, testRootDisposable)
   }
