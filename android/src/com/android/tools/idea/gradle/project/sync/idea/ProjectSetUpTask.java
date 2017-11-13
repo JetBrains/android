@@ -139,9 +139,9 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void handleSyncFailure(@NotNull String errorMessage) {
-    String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-    getLogger().warn(newMessage);
+    getLogger().warn(errorMessage);
 
+    String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
@@ -155,7 +155,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (!myProject.isOpen()) {
       // if the project is not open yet (e.g. a project created with the NPW) the error will be ignored bt
       // ExternalSystemNotificationManager#processExternalProjectRefreshError
-      GradleProjectInfo.getInstance(myProject).setProjectCreationError(newMessage);
+      GradleProjectInfo.getInstance(myProject).setProjectCreationError(errorMessage);
     }
   }
 
