@@ -30,6 +30,7 @@ import java.awt.Dimension
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
 class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, model) {
+  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
   override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawX ?: 0)
   override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawY ?: 0)
   override fun getPreferredSize(dimension: Dimension?): Dimension {
@@ -43,6 +44,4 @@ class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, mo
   private val colorSet = NavColorSet()
 
   override fun getColorSet(): ColorSet = colorSet
-
-  override fun getLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
 }

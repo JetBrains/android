@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
@@ -92,7 +93,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final MyLayeredPane myLayeredPane;
   protected boolean myDeviceFrames = false;
   @VisibleForTesting
-  public ImmutableList<Layer> myLayers = ImmutableList.of();
+  @NotNull public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -260,12 +261,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       myModel.removeListener(myModelListener);
       // If myModel is not null, then mySceneManager must be not null as well.
       mySceneManager.removeRenderListener(myRenderListener);
+
+      // Removed the added layers.
+      removeLayers(mySceneManager.getLayers());
+
+      Disposer.dispose(mySceneManager);
     }
 
     myModel = model;
     if (model == null) {
       mySceneManager = null;
-      setLayers(ImmutableList.of());
       return;
     }
 
@@ -291,8 +296,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
-    // This takes care of disposing any existing layers
-    setLayers(ImmutableList.of());
     myInteractionManager.unregisterListeners();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
@@ -1266,18 +1269,24 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Attaches the given {@link Layer}s to the current design surface
+   * Attaches the given {@link Layer}s to the current design surface.
    */
-  public void setLayers(@NotNull ImmutableList<Layer> layers) {
-    myLayers.forEach(Disposer::dispose);
-    myLayers = ImmutableList.copyOf(layers);
+  public void addLayers(@NotNull ImmutableList<Layer> layers) {
+    myLayers = ImmutableList.copyOf(Iterables.concat(myLayers, layers));
+  }
+
+  /**
+   * Deattaches the given {@link Layer}s to the current design surface
+   */
+  public void removeLayers(@NotNull ImmutableList<Layer> layers) {
+   myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
   }
 
   /**
    * Returns the list of {@link Layer}s attached to this {@link DesignSurface}
    */
   @NotNull
-  protected ImmutableList<Layer> getLayers() {
+  protected List<Layer> getLayers() {
     return myLayers;
   }
 

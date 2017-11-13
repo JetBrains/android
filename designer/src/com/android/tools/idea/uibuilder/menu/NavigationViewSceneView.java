@@ -44,6 +44,12 @@ public final class NavigationViewSceneView extends ScreenView {
     super(surface, model);
   }
 
+  @NotNull
+  @Override
+  protected ImmutableList<Layer> createLayers() {
+    return ImmutableList.of(new ScreenViewLayer(this));
+  }
+
   /**
    * Returns the size of the NavigationView view object. The sizes of these SceneViews usually match the size of the device in the
    * configuration.
@@ -97,11 +103,5 @@ public final class NavigationViewSceneView extends ScreenView {
   @Override
   public ColorSet getColorSet() {
     return myColorSet;
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<Layer> getLayers() {
-    return ImmutableList.of(new ScreenViewLayer(this));
   }
 }
