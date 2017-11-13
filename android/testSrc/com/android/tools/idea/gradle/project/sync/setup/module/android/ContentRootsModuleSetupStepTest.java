@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -124,7 +125,8 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
     ModifiableRootModel moduleModel = myModelsProvider.getModifiableRootModel(getModule());
     when(myFactory.create(myAndroidModel, moduleModel, false)).thenReturn(mySetup);
 
-    mySetupStep.setUpModule(getModule(), myModelsProvider, myAndroidModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(getModule(), myModelsProvider);
+    mySetupStep.setUpModule(context, myAndroidModel);
     ContentEntry[] entries = moduleModel.getContentEntries();
 
     // Content roots "a", "b", and "c" should not be there, since they got removed.
@@ -147,7 +149,8 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
     ModifiableRootModel moduleModel = myModelsProvider.getModifiableRootModel(getModule());
     when(myFactory.create(myAndroidModel, moduleModel, true)).thenReturn(mySetup);
 
-    mySetupStep.setUpModule(getModule(), myModelsProvider, myAndroidModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(getModule(), myModelsProvider);
+    mySetupStep.setUpModule(context, myAndroidModel);
     Map<String, ContentEntry> entriesByName = indexByName(moduleModel.getContentEntries());
 
     // Content roots "a", "b", and "c" should be there, since they did not get removed because this is a native model.

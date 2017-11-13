@@ -36,16 +36,24 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link ModuleModelDataService}.
  */
 public class ModuleModelDataServiceTest extends IdeaTestCase {
+  private IdeModifiableModelsProviderImpl myModelsProvider;
+  private MyModuleModelDataService myDataService;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myDataService = new MyModuleModelDataService();
+  }
+
   public void testImportDataWithEmptyDataNodeCollection() {
     Collection<DataNode<NdkModuleModel>> toImport = new ArrayList<>();
     Project project = getProject();
-    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    MyModuleModelDataService dataService = new MyModuleModelDataService();
-    dataService.importData(toImport, mock(ProjectData.class), project, modelsProvider);
+    myDataService.importData(toImport, mock(ProjectData.class), project, myModelsProvider);
 
-    assertTrue(dataService.onModelsNotFoundInvoked);
-    assertFalse(dataService.importDataInvoked);
+    assertTrue(myDataService.onModelsNotFoundInvoked);
+    assertFalse(myDataService.importDataInvoked);
   }
 
   private static class MyModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
@@ -62,7 +70,7 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
                               @NotNull Project project,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @NotNull Map<String, NdkModuleModel> modelsByName) {
+                              @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
       importDataInvoked = true;
     }
 

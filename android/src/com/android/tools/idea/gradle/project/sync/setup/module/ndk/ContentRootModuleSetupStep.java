@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,12 +30,9 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public class ContentRootModuleSetupStep extends NdkModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull NdkModuleModel ndkModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+  protected void doSetUpModule(@NotNull ModuleSetupContext context,
+                               @NotNull NdkModuleModel ndkModuleModel) {
+    ModifiableRootModel moduleModel = context.getModifiableRootModel();
     NdkContentEntriesSetup setup = new NdkContentEntriesSetup(ndkModuleModel, moduleModel);
     List<ContentEntry> contentEntries = findContentEntries(moduleModel, ndkModuleModel);
     setup.execute(contentEntries);

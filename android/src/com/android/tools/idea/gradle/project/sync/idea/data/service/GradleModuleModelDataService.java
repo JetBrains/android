@@ -58,9 +58,9 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   protected void importData(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, GradleModuleModel> modelsByName) {
+                            @NotNull Map<String, GradleModuleModel> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      GradleModuleModel gradleModuleModel = modelsByName.get(module.getName());
+      GradleModuleModel gradleModuleModel = modelsByModuleName.get(module.getName());
       if (gradleModuleModel == null) {
         onModelNotFound(module, modelsProvider);
       }

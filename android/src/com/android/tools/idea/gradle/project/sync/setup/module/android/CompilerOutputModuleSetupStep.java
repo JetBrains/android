@@ -19,15 +19,11 @@ import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -35,11 +31,7 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
   private final CompilerSettingsSetup myCompilerSettingsSetup = new CompilerSettingsSetup();
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidModuleModel androidModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
     GradleVersion modelVersion = androidModel.getModelVersion();
     if (modelVersion == null) {
       // We are dealing with old model that does not have the 'class' folder.
@@ -52,7 +44,7 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
     JavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
-    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel rootModel = context.getModifiableRootModel();
     myCompilerSettingsSetup.setOutputPaths(rootModel, mainClassesFolder, testClassesFolder);
   }
 

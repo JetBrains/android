@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,12 +45,9 @@ public class JavaModuleSetup {
     mySetupSteps = setupSteps;
   }
 
-  public void setUpModule(@NotNull Module module,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull JavaModuleModel javaModuleModel,
-                          @Nullable GradleModuleModels models,
-                          @Nullable ProgressIndicator indicator,
-                          boolean syncSkipped) {
+  public void setUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel, boolean syncSkipped) {
+    Module module = context.getModule();
+
     if (javaModuleModel.isAndroidModuleWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       GradleSyncMessages messages = GradleSyncMessages.getInstance(module.getProject());
@@ -60,7 +55,7 @@ public class JavaModuleSetup {
         {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
           "Please fix the module's configuration in the build.gradle file and sync the project again.",};
       messages.report(new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, text));
-      cleanUpAndroidModuleWithoutVariants(module, ideModelsProvider);
+      cleanUpAndroidModuleWithoutVariants(module, context.getIdeModelsProvider());
       // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
       // happen due to a project configuration error and there is a lot of module configuration missing, there is no point on even trying.
       return;
@@ -70,7 +65,7 @@ public class JavaModuleSetup {
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }
-      step.setUpModule(module, ideModelsProvider, javaModuleModel, models, indicator);
+      step.setUpModule(context, javaModuleModel);
     }
   }
 

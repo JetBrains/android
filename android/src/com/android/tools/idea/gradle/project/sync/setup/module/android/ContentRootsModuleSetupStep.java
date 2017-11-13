@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +51,9 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidModuleModel androidModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-    boolean hasNativeModel = hasNativeModel(module, ideModelsProvider, gradleModels);
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
+    ModifiableRootModel moduleModel = context.getModifiableRootModel();
+    boolean hasNativeModel = context.hasNativeModel();
     AndroidContentEntriesSetup setup = myContentEntriesSetupFactory.create(androidModel, moduleModel, hasNativeModel);
     List<ContentEntry> contentEntries = findContentEntries(moduleModel, androidModel, hasNativeModel);
     setup.execute(contentEntries);

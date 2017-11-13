@@ -16,17 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
@@ -42,12 +40,10 @@ import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
+    ModifiableRootModel moduleModel = context.getModifiableRootModel();
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
     for (Map.Entry<String, Set<File>> entry : javaModuleModel.getArtifactsByConfiguration().entrySet()) {
       Set<File> artifacts = entry.getValue();

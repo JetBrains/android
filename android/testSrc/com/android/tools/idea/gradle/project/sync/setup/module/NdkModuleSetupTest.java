@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -31,13 +28,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link NdkModuleSetup}.
  */
 public class NdkModuleSetupTest {
-  @Mock private Module myModule;
-  @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private NdkModuleModel myNdkModel;
-  @Mock private GradleModuleModels myModuleModels;
-  @Mock private ProgressIndicator myProgressIndicator;
   @Mock private NdkModuleSetupStep mySetupStep1;
   @Mock private NdkModuleSetupStep mySetupStep2;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private NdkModuleSetup myModuleSetup;
 
@@ -49,39 +43,38 @@ public class NdkModuleSetupTest {
 
   @Test
   public void setUpAndroidModuleWithProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, myProgressIndicator, false);
+    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false);
 
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(mySetupStep2, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
   }
 
   @Test
   public void setUpAndroidModuleWithoutProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null, false);
+    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false);
 
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
   }
 
   @Test
   public void setUpAndroidModuleWithSyncSkipped() {
     when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
 
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null, true /* sync skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, true /* sync skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
-    verify(mySetupStep2, never()).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(mySetupStep2, times(0)).setUpModule(myModuleSetupContext, myNdkModel);
   }
 
   @Test
   public void setUpAndroidModuleWithSyncNotSkipped() {
     when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
 
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null, false /* sync not skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false /* sync not skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myNdkModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(mySetupStep2, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
   }
 }

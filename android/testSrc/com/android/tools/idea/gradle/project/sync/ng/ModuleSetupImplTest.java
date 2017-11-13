@@ -19,12 +19,14 @@ import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.ModuleSetup.ModuleSetupImpl;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
@@ -60,6 +62,9 @@ public class ModuleSetupImplTest extends IdeaTestCase {
   @Mock private ExtraGradleSyncModelsManager myExtraModelsManager;
   @Mock private IdeDependenciesFactory myDependenciesFactory;
   @Mock private ProjectDataNodeSetup myProjectDataNodeSetup;
+  @Mock private ModulesByGradlePath.Factory myModulesByGradlePathFactory;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModulesByGradlePath myModulesByGradlePath;
 
   private ModuleSetupImpl myModuleSetup;
 
@@ -68,11 +73,13 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
+    when(myModulesByGradlePathFactory.create()).thenReturn(myModulesByGradlePath);
+
     myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myExtraModelsManager, myModuleFactory, myGradleModuleSetup,
                                         myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,
                                         myVariantSelector, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
                                         myNativeAndroidProjectFactory, myJavaModuleModelFactory, myDependenciesFactory,
-                                        myProjectDataNodeSetup);
+                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesByGradlePathFactory);
   }
 
   public void testSetUpModulesFromCache() throws Exception {
@@ -109,19 +116,32 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     when(cachedJavaModels.findModel(JavaModuleModel.class)).thenReturn(javaModel);
     when(cachedJavaModels.findModel(GradleModuleModel.class)).thenReturn(javaGradleModel);
 
-    // Invoke the method to test.
     EmptyProgressIndicator indicator = new EmptyProgressIndicator();
+
+    ModuleSetupContext appModuleContext = mock(ModuleSetupContext.class);
+    when(myModuleSetupContextFactory.create(appModule, myModelsProvider, myModulesByGradlePath, cachedAppModels))
+      .thenReturn(appModuleContext);
+
+    ModuleSetupContext cppModuleContext = mock(ModuleSetupContext.class);
+    when(myModuleSetupContextFactory.create(cppModule, myModelsProvider, myModulesByGradlePath, cachedCppModels))
+      .thenReturn(cppModuleContext);
+
+    ModuleSetupContext javaModuleContext = mock(ModuleSetupContext.class);
+    when(myModuleSetupContextFactory.create(javaModule, myModelsProvider, myModulesByGradlePath, cachedJavaModels))
+      .thenReturn(javaModuleContext);
+
+    // Invoke the method to test.
     myModuleSetup.setUpModules(myCachedProjectModels, indicator);
 
     // Verify that the modules were set up from the models in the cache.
     verify(myGradleModuleSetup).setUpModule(appModule, myModelsProvider, appGradleModel);
-    verify(myAndroidModuleSetup).setUpModule(appModule, myModelsProvider, appAndroidModel, cachedAppModels, indicator, true);
+    verify(myAndroidModuleSetup).setUpModule(appModuleContext, appAndroidModel, true);
 
     verify(myGradleModuleSetup).setUpModule(cppModule, myModelsProvider, cppGradleModel);
-    verify(myNdkModuleSetup).setUpModule(cppModule, myModelsProvider, cppNdkModel, cachedCppModels, indicator, true);
+    verify(myNdkModuleSetup).setUpModule(cppModuleContext, cppNdkModel, true);
 
     verify(myGradleModuleSetup).setUpModule(javaModule, myModelsProvider, javaGradleModel);
-    verify(myJavaModuleSetup).setUpModule(javaModule, myModelsProvider, javaModel, cachedJavaModels, indicator, true);
+    verify(myJavaModuleSetup).setUpModule(javaModuleContext, javaModel, true);
   }
 
   private static void makeGradleModule(@NotNull Module module) {

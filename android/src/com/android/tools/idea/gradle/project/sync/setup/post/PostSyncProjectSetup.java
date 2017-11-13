@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -67,6 +68,7 @@ import org.jetbrains.jps.model.serialization.PathMacroUtil;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 
@@ -146,6 +148,10 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
+    if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
+      removeSyncContextDataFrom(myProject);
+    }
+
     myGradleProjectInfo.setNewOrImportedProject(false);
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
