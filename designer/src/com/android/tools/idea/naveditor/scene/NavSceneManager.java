@@ -87,6 +87,7 @@ public class NavSceneManager extends SceneManager {
   protected SceneView doCreateSceneView() {
     NlModel model = getModel();
     NavView navView = new NavView(getDesignSurface(), model);
+    getDesignSurface().setLayers(ImmutableList.of(new SceneLayer(getDesignSurface(), navView, true)));
     getDesignSurface().getLayeredPane().setPreferredSize(navView.getPreferredSize());
     getDesignSurface().setShowIssuePanel(false);
     return navView;
