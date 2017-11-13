@@ -220,7 +220,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
               myXmlPreviewDocument = myEditorFactory.createDocument("");
             }
             myXmlPreviewDocument.setReadOnly(false);
-            myXmlPreviewDocument.setText(xmlText);
+            myXmlPreviewDocument.setText(StringUtil.convertLineSeparators(xmlText));
             myXmlPreviewDocument.setReadOnly(true);
 
             if (myFilePreviewEditor == null) {
