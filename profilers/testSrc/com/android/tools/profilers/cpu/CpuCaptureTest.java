@@ -17,11 +17,13 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -132,5 +134,18 @@ public class CpuCaptureTest {
       assertTrue(executionExceptionCause.getCause() instanceof BufferUnderflowException);
       // CpuCaptureParser#traceBytesToCapture  catches the BufferUnderflowException and throw an IllegalStateException instead.
     }
+  }
+
+  @Test
+  public void dualClockPassedInConstructor() {
+    CpuThreadInfo info = new CpuThreadInfo(10, "main");
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode()).build();
+    CpuCapture capture = new CpuCapture(range, captureTrees, true);
+    assertTrue(capture.isDualClock());
+
+    capture = new CpuCapture(range, captureTrees, false);
+    assertFalse(capture.isDualClock());
   }
 }

@@ -65,7 +65,8 @@ public class CaptureModelTest {
     CpuCapture capture = new CpuCapture(new Range(0, 30),
                                         new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                           .put(info, root)
-                                          .build());
+                                          .build(),
+                                        true);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
@@ -90,7 +91,8 @@ public class CaptureModelTest {
     CpuCapture capture = new CpuCapture(new Range(0, 30),
                                         new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                           .put(info, root)
-                                          .build());
+                                          .build(),
+                                        true);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
