@@ -61,7 +61,7 @@ interface AndroidModuleSystem {
    * @throws DependencyManagementException if an error occurs when trying to add the dependency.
    */
   @Throws(DependencyManagementException::class)
-  fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null)
+  fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null)
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

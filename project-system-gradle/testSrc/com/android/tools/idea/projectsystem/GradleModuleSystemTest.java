@@ -57,10 +57,10 @@ public class GradleModuleSystemTest extends IdeaTestCase {
   public void testAddDependency() {
     GoogleMavenArtifactId toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
 
-    myGradleModuleSystem.addDependency(toAdd, null);
+    myGradleModuleSystem.addDependencyWithoutSync(toAdd, null);
 
     Mockito.verify(myGradleDependencyManager, times(1))
-      .addDependencies(myModule, Collections.singletonList(getLatestCoordinateForArtifactId(toAdd)), null);
+      .addDependenciesWithoutSync(myModule, Collections.singletonList(getLatestCoordinateForArtifactId(toAdd)));
   }
 
   public void testAddDependencyWithBadVersion() {
@@ -68,8 +68,8 @@ public class GradleModuleSystemTest extends IdeaTestCase {
     GoogleMavenArtifactVersion version = new GradleDependencyVersion(null);
 
     try {
-      myGradleModuleSystem.addDependency(toAdd, version);
-      fail("addDependencies should have thrown an exception.");
+      myGradleModuleSystem.addDependencyWithoutSync(toAdd, version);
+      fail("addDependenciesAndSync should have thrown an exception.");
     }
     catch (DependencyManagementException e) {
       assertThat(e.getErrorCode()).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT);
