@@ -40,9 +40,15 @@ public class CpuCapture implements ConfigurableDurationData {
   @NotNull
   private ClockType myClockType;
 
-  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees) {
+  /**
+   * Whether the capture supports dual clock, i.e. if the method trace data can be displayed in both thread and wall-clock time.
+   */
+  private boolean myDualClock;
+
+  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees, boolean isDualClock) {
     myRange = captureRange;
     myCaptureTrees = captureTrees;
+    myDualClock = isDualClock;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
@@ -133,5 +139,9 @@ public class CpuCapture implements ConfigurableDurationData {
       // CpuTraceArt should parse the capture into CaptureNode objects
       updateClockType(child, clockType);
     }
+  }
+
+  public boolean isDualClock() {
+    return myDualClock;
   }
 }

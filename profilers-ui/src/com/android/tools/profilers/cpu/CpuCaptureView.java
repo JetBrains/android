@@ -115,6 +115,9 @@ class CpuCaptureView {
                           view.getStage()::getClockTypes, view.getStage()::getClockType, view.getStage()::setClockType);
     clockTypes.bind();
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
+    CpuCapture capture = myView.getStage().getCapture();
+    clockTypeCombo.setEnabled(capture != null && capture.isDualClock());
+
     myTabsPanel.setOpaque(false);
 
     myPanel = new JPanel(new TabularLayout("*,150px,Fit", "Fit,*"));
