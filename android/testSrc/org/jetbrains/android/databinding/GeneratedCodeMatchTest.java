@@ -33,6 +33,7 @@ import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
  */
+@Ignore("b/69246107")
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
   @NotNull
