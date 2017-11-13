@@ -46,6 +46,7 @@ public abstract class ClassifierSet implements MemoryObject {
   protected int myInstancesWithStackInfoCount = 0;
 
   protected boolean myIsFiltered;
+  protected boolean myIsMatched;
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
@@ -285,11 +286,15 @@ public abstract class ClassifierSet implements MemoryObject {
   @NotNull
   protected abstract Classifier createSubClassifier();
 
-  public boolean isFiltered() {
+  public boolean getIsFiltered() {
     return isEmpty() || myIsFiltered;
   }
 
-  protected void applyFilter(@Nullable Pattern filter) {
+  public boolean getIsMatched() {
+    return myIsMatched;
+  }
+
+  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor) {
     myIsFiltered = true;
     ensurePartition();
     myAllocatedCount = 0;
@@ -299,10 +304,12 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
 
+    myIsMatched = matches(filter);
+
     assert myClassifier != null;
     for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
-      classifierSet.applyFilter(filter);
-      if (!classifierSet.isFiltered()) {
+      classifierSet.applyFilter(filter, hasMatchedAncestor || myIsMatched);
+      if (!classifierSet.getIsFiltered()) {
         myIsFiltered = false;
         myAllocatedCount += classifierSet.myAllocatedCount;
         myDeallocatedCount += classifierSet.myDeallocatedCount;
@@ -312,6 +319,10 @@ public abstract class ClassifierSet implements MemoryObject {
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
       }
     }
+  }
+
+  protected boolean matches(Pattern filter) {
+    return filter != null && filter.matcher(getName()).matches();
   }
 
   /**
