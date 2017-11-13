@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
