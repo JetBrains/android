@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -36,9 +37,6 @@ class NlDropInsertionPicker {
   private final JTree myTree;
 
   /**
-   * Construct a new {@link NlDropInsertionPicker} that will pick the insertion point from
-   * the provided tree
-   *
    * @param tree The tree used to find the insertion point
    */
   public NlDropInsertionPicker(@NotNull NlComponentTree tree) {
@@ -143,6 +141,12 @@ class NlDropInsertionPicker {
       else {
         result.receiver = parent;
         result.nextComponent = receiverComponent.getNextSibling();
+        if (result.depth <= 0) {
+          // If we are inserting in a parent of referencePath, we need to
+          // update the insertion mark to ensure it is displayed after
+          // all the descendants of reference path
+          updateInsertionPointAfterLastDescendant(referencePath, result);
+        }
       }
 
       // Now that we should be able to add the component, we do a final check.
@@ -157,6 +161,40 @@ class NlDropInsertionPicker {
   }
 
   /**
+   * Update the result with the row of the last and deepest expanded node of receiverPath.
+   *
+   * This is to ensure that we show the insertion line after all the children of a component to
+   * match what will happen after the insertion.
+   *
+   * @param receiverPath The path where the mouse is
+   * @param result       The result to update with the new row and depth insertion
+   */
+  private void updateInsertionPointAfterLastDescendant(@NotNull TreePath receiverPath, @NotNull Result result) {
+    TreePath currentPath = receiverPath;
+    TreePath lastDescendantPath = currentPath;
+    int lastDesendantRow = result.row;
+    int currentDepth = result.depth;
+
+
+    for (Enumeration<TreePath> descendants = myTree.getExpandedDescendants(currentPath);
+         descendants != null && descendants.hasMoreElements();
+         descendants = myTree.getExpandedDescendants(currentPath),
+           currentDepth-- // descendants are not null, which means we went one level deeper
+      ) {
+      do {
+        currentPath = descendants.nextElement();
+        lastDescendantPath = currentPath;
+        lastDesendantRow = Math.max(lastDesendantRow, myTree.getRowForPath(currentPath));
+      }
+      while (descendants.hasMoreElements());
+    }
+
+    result.row = lastDesendantRow + myTree.getModel().getChildCount(lastDescendantPath.getLastPathComponent());
+    result.depth = currentDepth;
+  }
+
+
+  /**
    * Find the insertion point for a drag happening on non-NlComponent.
    * <p>
    * The insertion point will only be searched inside the parent of the selected path.
@@ -164,7 +202,7 @@ class NlDropInsertionPicker {
    * @param location The location of the drop
    * @return The {@link Result} or null if the insertion cannot happen at the provided location
    */
-  public Result findInsertionPointAt(@NotNull Point location) {
+  private Result findInsertionPointAt(@NotNull Point location) {
     TreePath path = myTree.getSelectionPath();
     TreePath parent = path.getParentPath();
     TreePath referencePath = myTree.getClosestPathForLocation(location.x, location.y);
@@ -196,7 +234,7 @@ class NlDropInsertionPicker {
     return component.getNextSibling() == null && myTree.getExpandedDescendants(path) == null;
   }
 
-  protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
+  private static boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
     return model.canAddComponents(dragged, receiver, receiver.getChild(0))
            || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
                && !NlComponentUtil.isDescendant(receiver, dragged));
