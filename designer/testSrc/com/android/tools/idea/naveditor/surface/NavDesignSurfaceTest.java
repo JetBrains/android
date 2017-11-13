@@ -40,18 +40,6 @@ import static org.mockito.Mockito.*;
  */
 public class NavDesignSurfaceTest extends NavigationTestCase {
 
-  public void testLayers() {
-    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
-    assertEmpty(surface.myLayers);
-
-    SyncNlModel model = model("nav.xml", rootComponent("root")).build();
-    surface.setModel(model);
-    assertNotEmpty(surface.myLayers);
-
-    surface.setModel(null);
-    assertEmpty(surface.myLayers);
-  }
-
   public void testComponentActivated() {
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     SyncNlModel model = model("nav.xml", rootComponent("root")

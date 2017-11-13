@@ -18,12 +18,9 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
-import com.google.common.collect.ImmutableList
 import java.awt.Dimension
 
 /**
@@ -43,6 +40,4 @@ class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, mo
   private val colorSet = NavColorSet()
 
   override fun getColorSet(): ColorSet = colorSet
-
-  override fun getLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
 }
