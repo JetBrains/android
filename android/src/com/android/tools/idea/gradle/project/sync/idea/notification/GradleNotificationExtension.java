@@ -18,13 +18,11 @@ package com.android.tools.idea.gradle.project.sync.idea.notification;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,19 +74,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   }
 
   private void handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    Runnable runnable = () -> {
-      for (SyncErrorHandler errorHandler : myErrorHandlers) {
-        if (errorHandler.handleError(error, notification, project)) {
-          return;
-        }
+    for (SyncErrorHandler errorHandler : myErrorHandlers) {
+      if (errorHandler.handleError(error, notification, project)) {
+        return;
       }
-    };
-
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
-    }
-    else {
-      StartupManager.getInstance(project).runWhenProjectIsInitialized(runnable);
     }
   }
 }
