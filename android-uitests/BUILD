@@ -60,6 +60,7 @@ java_test(
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/base/bazel:offline_repo_repo.zip",
+        "//tools/data-binding:data_binding_runtime_repo.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
