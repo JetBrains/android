@@ -868,7 +868,9 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
     List<SceneComponent> within = Lists.newArrayList();
-    addWithin(within, getRoot(), x, y, width, height);
+    if (getRoot() != null) {
+      addWithin(within, getRoot(), x, y, width, height);
+    }
     return within;
   }
 
@@ -951,7 +953,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getSceneManager().getModel(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getSceneManager().getModel(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 }
