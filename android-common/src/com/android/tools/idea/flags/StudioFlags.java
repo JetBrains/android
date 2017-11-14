@@ -178,9 +178,11 @@ public final class StudioFlags {
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
     true);
   public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
-    GRADLE_IDE, "new.sync.enabled", "Enable \"New Sync\" infrastructure",
-    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.",
-    false);
+    GRADLE_IDE, "new.sync", "Enable \"New Sync\" infrastructure",
+    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
+  public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
+    GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
+    "Turns on the new \"Project Structure\" dialog.", false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
