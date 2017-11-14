@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.importer
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.resources.Density
 import com.android.tools.idea.resourceExplorer.getExternalResourceDirectory
+import com.intellij.ide.IdeEventQueue
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -34,6 +35,10 @@ class ImporterTest {
 
   @Before
   fun setUp() {
+    // Since the ApplicationManager does not restore 'null' application on Dispose
+    // make sure IdeEventQueue is initialized before we setApplication to a not-null value to
+    // prevent later attempts to initialize it accessing the already disposed MockApplication.
+    IdeEventQueue.getInstance()
     disposable = Disposer.newDisposable()
     ApplicationManager.setApplication(MockApplication(disposable), disposable)
   }
