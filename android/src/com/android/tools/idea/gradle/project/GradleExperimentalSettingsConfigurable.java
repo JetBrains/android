@@ -34,7 +34,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
-  private JCheckBox myUseNewProjectStructureCheckBox;
   private JCheckBox myUseL2DependenciesCheckBox;
 
   public GradleExperimentalSettingsConfigurable() {
@@ -82,7 +81,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public boolean isModified() {
     if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
         mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG != isUseNewProjectStructureDialog() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync()) {
       return true;
     }
@@ -94,8 +92,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
-
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = isUseNewProjectStructureDialog();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
 
     Integer value = getMaxModuleCountForSourceGen();
@@ -137,16 +133,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   }
 
   @VisibleForTesting
-  boolean isUseNewProjectStructureDialog() {
-    return myUseNewProjectStructureCheckBox.isSelected();
-  }
-
-  @TestOnly
-  void setUseNewProjectStructure(boolean value) {
-    myUseNewProjectStructureCheckBox.setSelected(value);
-  }
-
-  @VisibleForTesting
   boolean isUseL2DependenciesInSync() {
     return myUseL2DependenciesCheckBox.isSelected();
   }
@@ -161,7 +147,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
   }
 
