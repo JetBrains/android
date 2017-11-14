@@ -48,7 +48,6 @@ public class DataBindingTest {
    *   1. Ensure BlankFragment.java has no highlighted errors.
    * </pre>
    */
-  @Ignore("http://b/69176243")
   @Test
   @RunIn(TestGroup.QA)
   public void resolvesSymbols() throws Exception {

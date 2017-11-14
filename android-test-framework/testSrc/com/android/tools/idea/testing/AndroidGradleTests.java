@@ -19,12 +19,16 @@ import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.RegEx;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,19 +112,21 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String getLocalRepositories() {
-    String path = "prebuilts/tools/common/m2/repository";
-
-    File prebuiltsRepoDir;
+    List<File> repositories = new ArrayList<>();
+    String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
+    String publishLocalRepo = "out/repo";
     if (TestUtils.runningFromBazel()) {
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
-      prebuiltsRepoDir = new File(tmp, path);
+      repositories.add(new File(tmp, prebuiltsRepo));
+      // publish local should already be available inside prebuilts
     }
     else {
-      prebuiltsRepoDir = getWorkspaceFile(path);
+      repositories.add(getWorkspaceFile(prebuiltsRepo));
+      repositories.add(getWorkspaceFile(publishLocalRepo));
     }
-    String uri = prebuiltsRepoDir.toURI().toString();
-    return "maven { url \"" + uri + "\" }\n";
+    return StringUtil.join(repositories,
+                           file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
   }
 
 
