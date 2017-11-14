@@ -21,17 +21,16 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
-import org.junit.Ignore;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
  */
-@Ignore("b/69246107")
 public class DataBindingScopeTest extends AndroidGradleTestCase {
 
-  public void testAccessFromInaccessibleScope() throws Exception {
+  // Ignored due to b/69246107
+  public void /*test*/AccessFromInaccessibleScope() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
