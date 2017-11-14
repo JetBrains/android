@@ -266,8 +266,8 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
-    if (!target.getAdditionalLibraries().isEmpty()) {
-      // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
+    if (target.isPlatform() && !target.getAdditionalLibraries().isEmpty()) {
+      // Do not create an IntelliJ SDK for platform add-ons. Platform add-ons should be handled as module-level library dependencies.
       return null;
     }
 
