@@ -51,10 +51,12 @@ import org.junit.runners.model.Statement;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -185,6 +187,7 @@ public class GuiTestRule implements TestRule {
   private ImmutableList<Throwable> tearDown() {
     ImmutableList.Builder<Throwable> errors = ImmutableList.builder();
     errors.addAll(thrownFromRunning(this::waitForBackgroundTasks));
+    errors.addAll(checkForPopupMenus());
     errors.addAll(checkForModalDialogs());
     errors.addAll(thrownFromRunning(this::tearDownProject));
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
@@ -203,6 +206,20 @@ public class GuiTestRule implements TestRule {
       robot().close(modalDialog);
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
+    }
+    return errors;
+  }
+
+  private List<AssertionError> checkForPopupMenus() {
+    List<AssertionError> errors = new ArrayList<>();
+
+    // Close all opened popup menu items (File > New > etc) before continuing.
+    Collection<JPopupMenu> popupMenus = robot().finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
+    if (!popupMenus.isEmpty()) {
+      errors.add(new AssertionError(String.format("%d Popup Menus left open", popupMenus.size())));
+      for (int i = 0; i <= popupMenus.size(); i++) {
+        robot().pressAndReleaseKey(KeyEvent.VK_ESCAPE);
+      }
     }
     return errors;
   }
