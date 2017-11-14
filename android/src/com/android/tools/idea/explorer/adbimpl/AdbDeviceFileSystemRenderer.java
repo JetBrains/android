@@ -29,14 +29,10 @@ import java.util.stream.Collectors;
 
 public class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
   @NotNull private final DeviceNameRenderer myDeviceNameRenderer;
-  @NotNull private final AdbDeviceFileSystemService myService;
-  @NotNull private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
   public AdbDeviceFileSystemRenderer(@NotNull AdbDeviceFileSystemService service,
                                      @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
-    myService = service;
-    myDeviceNameRenderer = new DeviceNameRenderer();
-    myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
+    myDeviceNameRenderer = new DeviceNameRenderer(service, deviceNamePropertiesProvider);
   }
 
   @NotNull
@@ -45,12 +41,15 @@ public class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
     return myDeviceNameRenderer;
   }
 
-  private class DeviceNameRenderer implements ListCellRenderer<DeviceFileSystem> {
-    private final DeviceRenderer.DeviceComboBoxRenderer myRendererImpl;
+  private static class DeviceNameRenderer implements ListCellRenderer<DeviceFileSystem> {
+    @NotNull private final AdbDeviceFileSystemService myService;
+    @NotNull private final DeviceRenderer.DeviceComboBoxRenderer myRendererImpl;
 
-    public DeviceNameRenderer() {
+    public DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
+                              @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+      myService = service;
       myRendererImpl = new DeviceRenderer.DeviceComboBoxRenderer(
-        "No Connected Devices", false, myDeviceNamePropertiesProvider);
+        "No Connected Devices", false, deviceNamePropertiesProvider);
     }
 
     @Override
