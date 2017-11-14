@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,7 @@ public class DataBindingTest {
    *   1. Ensure BlankFragment.java has no highlighted errors.
    * </pre>
    */
+  @Ignore("http://b/69176243")
   @Test
   @RunIn(TestGroup.QA)
   public void resolvesSymbols() throws Exception {
