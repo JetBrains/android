@@ -50,7 +50,7 @@ import java.util.List;
 public class NlEditorPanel extends WorkBench<DesignSurface> {
   private final NlEditor myEditor;
   private final Project myProject;
-  private final XmlFile myFile;
+  private final VirtualFile myFile;
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private boolean myIsActive;
@@ -61,11 +61,12 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     myEditor = editor;
     myProject = project;
-    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert myFile != null : file;
+    myFile = file;
+    XmlFile psiFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
+    assert psiFile != null : file;
     myContentPanel = new JPanel(new BorderLayout());
 
-    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+    if (NlLayoutType.typeOf(psiFile) == NlLayoutType.NAV) {
       mySurface = new NavDesignSurface(project, editor);
     }
     else {
@@ -94,9 +95,11 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
       return;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(myFile);
+    XmlFile psiFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
+    assert psiFile != null;
+    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
     assert facet != null;
-    NlModel model = NlModel.create(mySurface, myEditor, facet, myFile);
+    NlModel model = NlModel.create(mySurface, myEditor, facet, psiFile);
     mySurface.setModel(model);
     Disposer.register(myEditor, mySurface);
 
@@ -107,7 +110,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
     // TODO: factor out tool creation
-    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+    if (NlLayoutType.typeOf(psiFile) == NlLayoutType.NAV) {
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
