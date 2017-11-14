@@ -105,10 +105,13 @@ public class ConstraintLayoutTest {
       .createConstraintFromRightToRightOfLayout();
 
     String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
-    assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
-    assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
+    int openButtonTagIndex = layoutContents.indexOf("<Button");
+    int closeButtonTagIndex = layoutContents.indexOf("/>", openButtonTagIndex);
+    String buttonTag = layoutContents.substring(openButtonTagIndex, closeButtonTagIndex);
+    assertThat(buttonTag).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
+    assertThat(buttonTag).contains("app:layout_constraintTop_toTopOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintStart_toStartOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintEnd_toEndOf=\"parent\"");
 
     layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
       .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
@@ -124,10 +127,13 @@ public class ConstraintLayoutTest {
       .createConstraintFromRightToRightOfLayout();
 
     layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
-    assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
-    assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
+    openButtonTagIndex = layoutContents.indexOf("<Button");
+    closeButtonTagIndex = layoutContents.indexOf("/>", openButtonTagIndex);
+    buttonTag = layoutContents.substring(openButtonTagIndex, closeButtonTagIndex);
+    assertThat(buttonTag).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
+    assertThat(buttonTag).contains("app:layout_constraintTop_toTopOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintStart_toStartOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintEnd_toEndOf=\"parent\"");
   }
 
   /**
