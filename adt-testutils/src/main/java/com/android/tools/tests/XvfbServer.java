@@ -80,7 +80,7 @@ class XvfbServer {
         display,
         workspace.getAbsolutePath(),
         DEFAULT_RESOLUTION
-      ).inheritIO().start();
+      ).start();
     }
     catch (IOException e) {
       throw new RuntimeException(e);

@@ -69,7 +69,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
     tags = [
         "block-network",
-        "no_linux",
         "no_mac",
         "no_windows",
     ],
