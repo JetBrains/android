@@ -18,6 +18,7 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
+import com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator
 import com.android.tools.idea.lang.roomSql.resolution.*
 import com.intellij.psi.PsiReference
 
@@ -59,8 +60,41 @@ fun getSqlTable(subquery: RoomSubquery): SqlTable? {
 }
 
 fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable {
-  val tableName = withClauseTable.withClauseTableDef.tableDefinitionName
-  return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
+  return if (withClauseTable.withClauseTableDef.columnDefinitionNameList.isNotEmpty()) {
+    WithClauseTable(withClauseTable)
+  } else {
+    val tableName = withClauseTable.withClauseTableDef.tableDefinitionName
+    AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
+  }
 }
 
 fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.definedTableName.reference.resolveSqlTable()
+
+fun getName(tableAliasName: RoomTableAliasName) = tableAliasName.nameAsString
+
+fun setName(tableAliasName: RoomTableAliasName, newName: String): RoomTableAliasName {
+  RoomNameElementManipulator().handleContentChange(tableAliasName, newName)
+  return tableAliasName
+}
+
+fun getName(tableDefinitionName: RoomTableDefinitionName) = tableDefinitionName.nameAsString
+
+fun setName(tableDefinitionName: RoomTableDefinitionName, newName: String): RoomTableDefinitionName {
+  RoomNameElementManipulator().handleContentChange(tableDefinitionName, newName)
+  return tableDefinitionName
+}
+
+fun getName(columnAliasName: RoomColumnAliasName) = columnAliasName.nameAsString
+
+fun setName(columnAliasName: RoomColumnAliasName, newName: String): RoomColumnAliasName {
+  RoomNameElementManipulator().handleContentChange(columnAliasName, newName)
+  return columnAliasName
+}
+
+fun getName(columnDefinitionName: RoomColumnDefinitionName) = columnDefinitionName.nameAsString
+
+fun setName(columnDefinitionName: RoomColumnDefinitionName, newName: String): RoomColumnDefinitionName {
+  RoomNameElementManipulator().handleContentChange(columnDefinitionName, newName)
+  return columnDefinitionName
+}
+

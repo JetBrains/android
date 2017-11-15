@@ -43,4 +43,14 @@ public class RoomTableAliasNameImpl extends AbstractRoomNameElement implements R
     else super.accept(visitor);
   }
 
+  @NotNull
+  public String getName() {
+    return PsiImplUtil.getName(this);
+  }
+
+  @NotNull
+  public RoomTableAliasName setName(String newName) {
+    return PsiImplUtil.setName(this, newName);
+  }
+
 }

@@ -625,4 +625,140 @@ class TableReferencesTest : LightRoomTestCase() {
     // "ids" is a view, you cannot delete from it.
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
   }
+
+  fun testAliasRenaming() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT u.id FROM user <caret>u")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("u1")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT u1.id FROM user u1")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+    }
+
+    fun testAliasRenaming_join() {
+      myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+      myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT u.id FROM user <caret>u JOIN user u2")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+      myFixture.renameElementAtCaret("u1")
+
+      myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT u1.id FROM user u1 JOIN user u2")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+    }
+
+  fun testWithTableRenaming_noColumns() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id FROM user) SELECT id FROM <caret>ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_ids")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH user_ids AS (SELECT id FROM user) SELECT id FROM user_ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+  }
+
+  fun testWithTableRenaming_columns() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids(x) AS (SELECT id FROM user) SELECT x FROM <caret>ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_ids")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH user_ids(x) AS (SELECT id FROM user) SELECT x FROM user_ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+  }
 }

@@ -21,6 +21,7 @@ package com.android.tools.idea.lang.roomSql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
 public class RoomVisitor extends PsiElementVisitor {
 
@@ -77,7 +78,8 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitColumnAliasName(@NotNull RoomColumnAliasName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitColumnConstraint(@NotNull RoomColumnConstraint o) {
@@ -89,7 +91,8 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitColumnDefinitionName(@NotNull RoomColumnDefinitionName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitColumnName(@NotNull RoomColumnName o) {
@@ -372,7 +375,8 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitTableAliasName(@NotNull RoomTableAliasName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitTableConstraint(@NotNull RoomTableConstraint o) {
@@ -380,7 +384,8 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitTableDefinitionName(@NotNull RoomTableDefinitionName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitTableOrIndexName(@NotNull RoomTableOrIndexName o) {
@@ -430,6 +435,10 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitWithClauseTableDef(@NotNull RoomWithClauseTableDef o) {
     visitPsiElement(o);
+  }
+
+  public void visitPsiNamedElement(@NotNull PsiNamedElement o) {
+    visitElement(o);
   }
 
   public void visitNameElement(@NotNull RoomNameElement o) {

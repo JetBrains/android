@@ -21,7 +21,14 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
-public interface RoomTableDefinitionName extends RoomNameElement {
+public interface RoomTableDefinitionName extends PsiNamedElement, RoomNameElement {
+
+  @NotNull
+  String getName();
+
+  @NotNull
+  RoomTableDefinitionName setName(String newName);
 
 }

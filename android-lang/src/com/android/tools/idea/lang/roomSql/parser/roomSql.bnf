@@ -147,7 +147,10 @@ defined_table_name ::= name {
 }
 
 // Name of a table being defined.
-table_definition_name ::= name
+table_definition_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 database_name ::= name
 
@@ -182,7 +185,10 @@ column_name ::= name {
   methods=[getReference]
 }
 
-column_definition_name ::= name
+column_definition_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 collation_name ::= name
 
@@ -427,14 +433,20 @@ subquery ::= '(' select_statement ')' ( ( AS )? table_alias_name )? {
   methods=[getSqlTable]
 }
 
-table_alias_name ::= name
+table_alias_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 result_column ::=
   '*'
   | selected_table_name '.' '*'
   | expression ( ( AS )? column_alias_name )?
 
-column_alias_name ::= name
+column_alias_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 join_operator ::= ',' | ( NATURAL )? ( LEFT ( OUTER )? | INNER | CROSS )? JOIN
 
