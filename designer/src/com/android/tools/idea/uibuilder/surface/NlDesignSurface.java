@@ -40,6 +40,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -398,7 +399,9 @@ public class NlDesignSurface extends DesignSurface {
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
     SceneManager manager = getSceneManager();
     SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    assert primarySceneView != null;
+    if(primarySceneView == null) {
+      return JBUI.emptySize();
+    }
     Dimension preferredSize = primarySceneView.getPreferredSize();
 
     int requiredWidth = preferredSize.width;
