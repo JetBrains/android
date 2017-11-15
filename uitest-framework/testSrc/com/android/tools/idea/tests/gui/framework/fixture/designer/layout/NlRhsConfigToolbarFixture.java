@@ -26,6 +26,7 @@ import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
  * Fixture representing the right hand side configuration in the first line toolbar above an associated layout editor
@@ -52,5 +53,12 @@ public class NlRhsConfigToolbarFixture {
       });
     new ActionButtonFixture(robot, button).click();
     waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
+  }
+
+  public void zoomToFit() {
+    Robot robot = myNlEditorFixture.robot();
+    ActionButton zoomToFit =
+      waitUntilShowingAndEnabled(robot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, "Zoom to Fit Screen (0)"));
+    new ActionButtonFixture(robot, zoomToFit).click();
   }
 }
