@@ -23,6 +23,7 @@ import com.intellij.psi.tree.IElementType;
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import static com.android.tools.idea.lang.roomSql.psi.LiteralTokenTypes.*;
 
 
 /**
@@ -190,38 +191,39 @@ public class _RoomSqlLexer implements FlexLexer {
 
   private static final String ZZ_ACTION_PACKED_0 =
     "\1\0\1\1\1\2\1\3\1\4\1\5\1\6\1\7"+
-    "\1\10\1\5\1\11\1\7\2\5\6\1\1\12\1\13"+
-    "\1\14\1\15\1\16\1\17\1\20\1\21\1\22\25\5"+
-    "\1\23\1\24\1\25\1\26\1\7\1\0\5\5\1\0"+
-    "\3\5\1\27\1\30\1\31\1\32\1\33\1\34\1\35"+
-    "\1\36\1\37\1\40\1\41\1\42\7\5\1\43\2\5"+
-    "\1\44\1\45\1\46\1\47\6\5\1\50\7\5\1\51"+
-    "\1\52\1\53\3\5\1\54\31\5\1\55\1\25\1\0"+
-    "\1\7\4\5\1\56\2\5\1\7\1\5\1\57\6\5"+
-    "\1\60\1\61\1\5\1\62\1\63\21\5\1\64\26\5"+
-    "\1\65\13\5\1\66\13\5\1\67\11\5\1\25\1\0"+
-    "\4\5\1\70\1\71\1\5\1\72\1\5\1\73\30\5"+
-    "\1\74\3\5\1\75\1\76\1\77\13\5\1\100\12\5"+
-    "\1\101\4\5\1\102\1\5\1\103\1\5\1\104\1\5"+
-    "\1\105\11\5\1\106\1\107\1\5\1\110\2\5\1\111"+
-    "\2\5\1\112\1\5\1\113\7\5\1\114\1\115\3\5"+
-    "\1\116\3\5\1\117\1\5\1\120\1\121\10\5\1\122"+
-    "\1\5\1\123\1\5\1\124\11\5\1\125\1\126\3\5"+
-    "\1\127\1\130\15\5\1\131\3\5\1\132\1\5\1\133"+
-    "\1\5\1\134\1\135\1\5\1\136\5\5\1\137\1\140"+
-    "\1\5\1\141\1\5\1\142\1\5\1\143\1\144\2\5"+
-    "\1\145\1\5\1\146\3\5\1\147\2\5\1\150\11\5"+
-    "\1\151\1\152\1\153\4\5\1\154\1\5\1\155\1\5"+
-    "\1\156\4\5\1\157\1\160\2\5\1\161\1\5\1\162"+
-    "\1\163\1\164\1\5\1\165\1\5\1\166\1\167\2\5"+
-    "\1\170\1\171\1\172\1\5\1\173\2\5\1\174\1\175"+
-    "\1\5\1\176\3\5\1\177\1\200\2\5\1\201\3\5"+
-    "\1\202\1\203\1\5\1\204\1\205\2\5\1\206\3\5"+
-    "\1\207\1\210\1\211\4\5\1\212\1\213\2\5\1\214"+
-    "\5\5\1\215\1\5\1\216\1\217\1\5\1\220\2\5"+
-    "\1\221\1\222\4\5\1\223\1\224\1\225\1\5\1\226"+
-    "\1\5\1\227\1\5\1\230\2\5\1\231\1\5\1\232"+
-    "\3\5\1\233\1\234\1\235\4\5\1\236";
+    "\1\10\1\5\1\11\1\7\2\5\1\1\1\12\1\13"+
+    "\1\14\1\15\1\1\1\16\1\17\1\20\1\21\1\22"+
+    "\1\23\1\24\1\25\1\26\25\5\1\27\1\30\1\31"+
+    "\1\32\1\7\1\0\5\5\1\0\3\5\1\33\1\34"+
+    "\1\35\1\36\1\37\1\40\1\41\1\42\1\43\1\44"+
+    "\1\45\1\46\7\5\1\47\2\5\1\50\1\51\1\52"+
+    "\1\53\6\5\1\54\7\5\1\55\1\56\1\57\3\5"+
+    "\1\60\31\5\1\61\1\31\1\0\1\7\4\5\1\62"+
+    "\2\5\1\7\1\5\1\63\6\5\1\64\1\65\1\5"+
+    "\1\66\1\67\21\5\1\70\26\5\1\71\13\5\1\72"+
+    "\13\5\1\73\11\5\1\31\1\0\4\5\1\74\1\75"+
+    "\1\5\1\76\1\5\1\77\30\5\1\100\3\5\1\101"+
+    "\1\102\1\103\13\5\1\104\12\5\1\105\4\5\1\106"+
+    "\1\5\1\107\1\5\1\110\1\5\1\111\11\5\1\112"+
+    "\1\113\1\5\1\114\2\5\1\115\2\5\1\116\1\5"+
+    "\1\117\7\5\1\120\1\121\3\5\1\122\3\5\1\123"+
+    "\1\5\1\124\1\125\10\5\1\126\1\5\1\127\1\5"+
+    "\1\130\11\5\1\131\1\132\3\5\1\133\1\134\15\5"+
+    "\1\135\3\5\1\136\1\5\1\137\1\5\1\140\1\141"+
+    "\1\5\1\142\5\5\1\143\1\144\1\5\1\145\1\5"+
+    "\1\146\1\5\1\147\1\150\2\5\1\151\1\5\1\152"+
+    "\3\5\1\153\2\5\1\154\11\5\1\155\1\156\1\157"+
+    "\4\5\1\160\1\5\1\161\1\5\1\162\4\5\1\163"+
+    "\1\164\2\5\1\165\1\5\1\166\1\167\1\170\1\5"+
+    "\1\171\1\5\1\172\1\173\2\5\1\174\1\175\1\176"+
+    "\1\5\1\177\2\5\1\200\1\201\1\5\1\202\3\5"+
+    "\1\203\1\204\2\5\1\205\3\5\1\206\1\207\1\5"+
+    "\1\210\1\211\2\5\1\212\3\5\1\213\1\214\1\215"+
+    "\4\5\1\216\1\217\2\5\1\220\5\5\1\221\1\5"+
+    "\1\222\1\223\1\5\1\224\2\5\1\225\1\226\4\5"+
+    "\1\227\1\230\1\231\1\5\1\232\1\5\1\233\1\5"+
+    "\1\234\2\5\1\235\1\5\1\236\3\5\1\237\1\240"+
+    "\1\241\4\5\1\242";
 
   private static int [] zzUnpackAction() {
     int [] result = new int[564];
@@ -1334,792 +1336,812 @@ public class _RoomSqlLexer implements FlexLexer {
             { return BAD_CHARACTER;
             } 
             // fall through
-          case 159: break;
+          case 163: break;
           case 2: 
             { return WHITE_SPACE;
             } 
             // fall through
-          case 160: break;
+          case 164: break;
           case 3: 
             { return DIV;
             } 
             // fall through
-          case 161: break;
+          case 165: break;
           case 4: 
             { return STAR;
             } 
             // fall through
-          case 162: break;
+          case 166: break;
           case 5: 
             { return IDENTIFIER;
             } 
             // fall through
-          case 163: break;
+          case 167: break;
           case 6: 
             { return MINUS;
             } 
             // fall through
-          case 164: break;
+          case 168: break;
           case 7: 
             { return NUMERIC_LITERAL;
             } 
             // fall through
-          case 165: break;
+          case 169: break;
           case 8: 
             { return DOT;
             } 
             // fall through
-          case 166: break;
+          case 170: break;
           case 9: 
             { return PLUS;
             } 
             // fall through
-          case 167: break;
-          case 10: 
-            { return EQ;
-            } 
-            // fall through
-          case 168: break;
-          case 11: 
-            { return MOD;
-            } 
-            // fall through
-          case 169: break;
-          case 12: 
-            { return AMP;
-            } 
-            // fall through
-          case 170: break;
-          case 13: 
-            { return LPAREN;
-            } 
-            // fall through
           case 171: break;
-          case 14: 
-            { return RPAREN;
+          case 10: 
+            { return UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL;
             } 
             // fall through
           case 172: break;
-          case 15: 
-            { return COMMA;
+          case 11: 
+            { return UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL;
             } 
             // fall through
           case 173: break;
-          case 16: 
-            { return SEMICOLON;
+          case 12: 
+            { return UNTERMINATED_BACKTICK_LITERAL;
             } 
             // fall through
           case 174: break;
-          case 17: 
-            { return LT;
+          case 13: 
+            { return UNTERMINATED_BRACKET_LITERAL;
             } 
             // fall through
           case 175: break;
-          case 18: 
-            { return GT;
+          case 14: 
+            { return EQ;
             } 
             // fall through
           case 176: break;
-          case 19: 
-            { return BAR;
+          case 15: 
+            { return MOD;
             } 
             // fall through
           case 177: break;
-          case 20: 
-            { return TILDE;
+          case 16: 
+            { return AMP;
             } 
             // fall through
           case 178: break;
-          case 21: 
-            { return COMMENT;
+          case 17: 
+            { return LPAREN;
             } 
             // fall through
           case 179: break;
-          case 22: 
-            { return LINE_COMMENT;
+          case 18: 
+            { return RPAREN;
             } 
             // fall through
           case 180: break;
-          case 23: 
-            { return PARAMETER_NAME;
+          case 19: 
+            { return COMMA;
             } 
             // fall through
           case 181: break;
-          case 24: 
-            { return SINGLE_QUOTE_STRING_LITERAL;
+          case 20: 
+            { return SEMICOLON;
             } 
             // fall through
           case 182: break;
-          case 25: 
-            { return DOUBLE_QUOTE_STRING_LITERAL;
+          case 21: 
+            { return LT;
             } 
             // fall through
           case 183: break;
-          case 26: 
-            { return BACKTICK_LITERAL;
+          case 22: 
+            { return GT;
             } 
             // fall through
           case 184: break;
-          case 27: 
-            { return BRACKET_LITERAL;
+          case 23: 
+            { return BAR;
             } 
             // fall through
           case 185: break;
-          case 28: 
-            { return NOT_EQ;
+          case 24: 
+            { return TILDE;
             } 
             // fall through
           case 186: break;
-          case 29: 
-            { return EQEQ;
+          case 25: 
+            { return COMMENT;
             } 
             // fall through
           case 187: break;
-          case 30: 
-            { return LTE;
+          case 26: 
+            { return LINE_COMMENT;
             } 
             // fall through
           case 188: break;
-          case 31: 
-            { return SHL;
+          case 27: 
+            { return PARAMETER_NAME;
             } 
             // fall through
           case 189: break;
-          case 32: 
-            { return UNEQ;
+          case 28: 
+            { return SINGLE_QUOTE_STRING_LITERAL;
             } 
             // fall through
           case 190: break;
-          case 33: 
-            { return GTE;
+          case 29: 
+            { return DOUBLE_QUOTE_STRING_LITERAL;
             } 
             // fall through
           case 191: break;
-          case 34: 
-            { return SHR;
+          case 30: 
+            { return BACKTICK_LITERAL;
             } 
             // fall through
           case 192: break;
-          case 35: 
-            { return AS;
+          case 31: 
+            { return BRACKET_LITERAL;
             } 
             // fall through
           case 193: break;
-          case 36: 
-            { return BY;
+          case 32: 
+            { return NOT_EQ;
             } 
             // fall through
           case 194: break;
-          case 37: 
-            { return OF;
+          case 33: 
+            { return EQEQ;
             } 
             // fall through
           case 195: break;
-          case 38: 
-            { return OR;
+          case 34: 
+            { return LTE;
             } 
             // fall through
           case 196: break;
-          case 39: 
-            { return ON;
+          case 35: 
+            { return SHL;
             } 
             // fall through
           case 197: break;
-          case 40: 
-            { return TO;
+          case 36: 
+            { return UNEQ;
             } 
             // fall through
           case 198: break;
-          case 41: 
-            { return IF;
+          case 37: 
+            { return GTE;
             } 
             // fall through
           case 199: break;
-          case 42: 
-            { return IN;
+          case 38: 
+            { return SHR;
             } 
             // fall through
           case 200: break;
-          case 43: 
-            { return IS;
+          case 39: 
+            { return AS;
             } 
             // fall through
           case 201: break;
-          case 44: 
-            { return NO;
+          case 40: 
+            { return BY;
             } 
             // fall through
           case 202: break;
-          case 45: 
-            { return CONCAT;
+          case 41: 
+            { return OF;
             } 
             // fall through
           case 203: break;
-          case 46: 
-            { return END;
+          case 42: 
+            { return OR;
             } 
             // fall through
           case 204: break;
-          case 47: 
-            { return FOR;
+          case 43: 
+            { return ON;
             } 
             // fall through
           case 205: break;
-          case 48: 
-            { return AND;
+          case 44: 
+            { return TO;
             } 
             // fall through
           case 206: break;
-          case 49: 
-            { return ADD;
+          case 45: 
+            { return IF;
             } 
             // fall through
           case 207: break;
-          case 50: 
-            { return ALL;
+          case 46: 
+            { return IN;
             } 
             // fall through
           case 208: break;
-          case 51: 
-            { return ASC;
+          case 47: 
+            { return IS;
             } 
             // fall through
           case 209: break;
-          case 52: 
-            { return ROW;
+          case 48: 
+            { return NO;
             } 
             // fall through
           case 210: break;
-          case 53: 
-            { return NOT;
+          case 49: 
+            { return CONCAT;
             } 
             // fall through
           case 211: break;
-          case 54: 
-            { return SET;
+          case 50: 
+            { return END;
             } 
             // fall through
           case 212: break;
-          case 55: 
-            { return KEY;
+          case 51: 
+            { return FOR;
             } 
             // fall through
           case 213: break;
-          case 56: 
-            { return EACH;
+          case 52: 
+            { return AND;
             } 
             // fall through
           case 214: break;
-          case 57: 
-            { return ELSE;
+          case 53: 
+            { return ADD;
             } 
             // fall through
           case 215: break;
-          case 58: 
-            { return FAIL;
+          case 54: 
+            { return ALL;
             } 
             // fall through
           case 216: break;
-          case 59: 
-            { return FROM;
+          case 55: 
+            { return ASC;
             } 
             // fall through
           case 217: break;
-          case 60: 
-            { return TEMP;
+          case 56: 
+            { return ROW;
             } 
             // fall through
           case 218: break;
-          case 61: 
-            { return THEN;
+          case 57: 
+            { return NOT;
             } 
             // fall through
           case 219: break;
-          case 62: 
-            { return CASE;
+          case 58: 
+            { return SET;
             } 
             // fall through
           case 220: break;
-          case 63: 
-            { return CAST;
+          case 59: 
+            { return KEY;
             } 
             // fall through
           case 221: break;
-          case 64: 
-            { return INTO;
+          case 60: 
+            { return EACH;
             } 
             // fall through
           case 222: break;
-          case 65: 
-            { return NULL;
+          case 61: 
+            { return ELSE;
             } 
             // fall through
           case 223: break;
-          case 66: 
-            { return DESC;
+          case 62: 
+            { return FAIL;
             } 
             // fall through
           case 224: break;
-          case 67: 
-            { return DROP;
+          case 63: 
+            { return FROM;
             } 
             // fall through
           case 225: break;
-          case 68: 
-            { return LEFT;
+          case 64: 
+            { return TEMP;
             } 
             // fall through
           case 226: break;
-          case 69: 
-            { return LIKE;
+          case 65: 
+            { return THEN;
             } 
             // fall through
           case 227: break;
-          case 70: 
-            { return GLOB;
+          case 66: 
+            { return CASE;
             } 
             // fall through
           case 228: break;
-          case 71: 
-            { return WITH;
+          case 67: 
+            { return CAST;
             } 
             // fall through
           case 229: break;
-          case 72: 
-            { return WHEN;
+          case 68: 
+            { return INTO;
             } 
             // fall through
           case 230: break;
-          case 73: 
-            { return PLAN;
+          case 69: 
+            { return NULL;
             } 
             // fall through
           case 231: break;
-          case 74: 
-            { return VIEW;
+          case 70: 
+            { return DESC;
             } 
             // fall through
           case 232: break;
-          case 75: 
-            { return JOIN;
+          case 71: 
+            { return DROP;
             } 
             // fall through
           case 233: break;
-          case 76: 
-            { return AFTER;
+          case 72: 
+            { return LEFT;
             } 
             // fall through
           case 234: break;
-          case 77: 
-            { return ABORT;
+          case 73: 
+            { return LIKE;
             } 
             // fall through
           case 235: break;
-          case 78: 
-            { return ALTER;
+          case 74: 
+            { return GLOB;
             } 
             // fall through
           case 236: break;
-          case 79: 
-            { return BEGIN;
+          case 75: 
+            { return WITH;
             } 
             // fall through
           case 237: break;
-          case 80: 
-            { return ORDER;
+          case 76: 
+            { return WHEN;
             } 
             // fall through
           case 238: break;
-          case 81: 
-            { return OUTER;
+          case 77: 
+            { return PLAN;
             } 
             // fall through
           case 239: break;
-          case 82: 
-            { return RAISE;
+          case 78: 
+            { return VIEW;
             } 
             // fall through
           case 240: break;
-          case 83: 
-            { return ROWID;
+          case 79: 
+            { return JOIN;
             } 
             // fall through
           case 241: break;
-          case 84: 
-            { return TABLE;
+          case 80: 
+            { return AFTER;
             } 
             // fall through
           case 242: break;
-          case 85: 
-            { return CROSS;
+          case 81: 
+            { return ABORT;
             } 
             // fall through
           case 243: break;
-          case 86: 
-            { return CHECK;
+          case 82: 
+            { return ALTER;
             } 
             // fall through
           case 244: break;
-          case 87: 
-            { return INNER;
+          case 83: 
+            { return BEGIN;
             } 
             // fall through
           case 245: break;
-          case 88: 
-            { return INDEX;
+          case 84: 
+            { return ORDER;
             } 
             // fall through
           case 246: break;
-          case 89: 
-            { return LIMIT;
+          case 85: 
+            { return OUTER;
             } 
             // fall through
           case 247: break;
-          case 90: 
-            { return UNION;
+          case 86: 
+            { return RAISE;
             } 
             // fall through
           case 248: break;
-          case 91: 
-            { return USING;
+          case 87: 
+            { return ROWID;
             } 
             // fall through
           case 249: break;
-          case 92: 
-            { return MATCH;
+          case 88: 
+            { return TABLE;
             } 
             // fall through
           case 250: break;
-          case 93: 
-            { return GROUP;
+          case 89: 
+            { return CROSS;
             } 
             // fall through
           case 251: break;
-          case 94: 
-            { return WHERE;
+          case 90: 
+            { return CHECK;
             } 
             // fall through
           case 252: break;
-          case 95: 
-            { return QUERY;
+          case 91: 
+            { return INNER;
             } 
             // fall through
           case 253: break;
-          case 96: 
-            { return EXCEPT;
+          case 92: 
+            { return INDEX;
             } 
             // fall through
           case 254: break;
-          case 97: 
-            { return EXISTS;
+          case 93: 
+            { return LIMIT;
             } 
             // fall through
           case 255: break;
-          case 98: 
-            { return ESCAPE;
+          case 94: 
+            { return UNION;
             } 
             // fall through
           case 256: break;
-          case 99: 
-            { return ATTACH;
+          case 95: 
+            { return USING;
             } 
             // fall through
           case 257: break;
-          case 100: 
-            { return ACTION;
+          case 96: 
+            { return MATCH;
             } 
             // fall through
           case 258: break;
-          case 101: 
-            { return BEFORE;
+          case 97: 
+            { return GROUP;
             } 
             // fall through
           case 259: break;
-          case 102: 
-            { return OFFSET;
+          case 98: 
+            { return WHERE;
             } 
             // fall through
           case 260: break;
-          case 103: 
-            { return RENAME;
+          case 99: 
+            { return QUERY;
             } 
             // fall through
           case 261: break;
-          case 104: 
-            { return REGEXP;
+          case 100: 
+            { return EXCEPT;
             } 
             // fall through
           case 262: break;
-          case 105: 
-            { return COLUMN;
+          case 101: 
+            { return EXISTS;
             } 
             // fall through
           case 263: break;
-          case 106: 
-            { return COMMIT;
+          case 102: 
+            { return ESCAPE;
             } 
             // fall through
           case 264: break;
-          case 107: 
-            { return CREATE;
+          case 103: 
+            { return ATTACH;
             } 
             // fall through
           case 265: break;
-          case 108: 
-            { return INSERT;
+          case 104: 
+            { return ACTION;
             } 
             // fall through
           case 266: break;
-          case 109: 
-            { return ISNULL;
+          case 105: 
+            { return BEFORE;
             } 
             // fall through
           case 267: break;
-          case 110: 
-            { return IGNORE;
+          case 106: 
+            { return OFFSET;
             } 
             // fall through
           case 268: break;
-          case 111: 
-            { return DETACH;
+          case 107: 
+            { return RENAME;
             } 
             // fall through
           case 269: break;
-          case 112: 
-            { return DELETE;
+          case 108: 
+            { return REGEXP;
             } 
             // fall through
           case 270: break;
-          case 113: 
-            { return SELECT;
+          case 109: 
+            { return COLUMN;
             } 
             // fall through
           case 271: break;
-          case 114: 
-            { return HAVING;
+          case 110: 
+            { return COMMIT;
             } 
             // fall through
           case 272: break;
-          case 115: 
-            { return UNIQUE;
+          case 111: 
+            { return CREATE;
             } 
             // fall through
           case 273: break;
-          case 116: 
-            { return UPDATE;
+          case 112: 
+            { return INSERT;
             } 
             // fall through
           case 274: break;
-          case 117: 
-            { return PRAGMA;
+          case 113: 
+            { return ISNULL;
             } 
             // fall through
           case 275: break;
-          case 118: 
-            { return VACUUM;
+          case 114: 
+            { return IGNORE;
             } 
             // fall through
           case 276: break;
-          case 119: 
-            { return VALUES;
+          case 115: 
+            { return DETACH;
             } 
             // fall through
           case 277: break;
-          case 120: 
-            { return EXPLAIN;
+          case 116: 
+            { return DELETE;
             } 
             // fall through
           case 278: break;
-          case 121: 
-            { return FOREIGN;
+          case 117: 
+            { return SELECT;
             } 
             // fall through
           case 279: break;
-          case 122: 
-            { return ANALYZE;
+          case 118: 
+            { return HAVING;
             } 
             // fall through
           case 280: break;
-          case 123: 
-            { return BETWEEN;
+          case 119: 
+            { return UNIQUE;
             } 
             // fall through
           case 281: break;
-          case 124: 
-            { return REINDEX;
+          case 120: 
+            { return UPDATE;
             } 
             // fall through
           case 282: break;
-          case 125: 
-            { return RELEASE;
+          case 121: 
+            { return PRAGMA;
             } 
             // fall through
           case 283: break;
-          case 126: 
-            { return REPLACE;
+          case 122: 
+            { return VACUUM;
             } 
             // fall through
           case 284: break;
-          case 127: 
-            { return TRIGGER;
+          case 123: 
+            { return VALUES;
             } 
             // fall through
           case 285: break;
-          case 128: 
-            { return CASCADE;
+          case 124: 
+            { return EXPLAIN;
             } 
             // fall through
           case 286: break;
-          case 129: 
-            { return COLLATE;
+          case 125: 
+            { return FOREIGN;
             } 
             // fall through
           case 287: break;
-          case 130: 
-            { return INDEXED;
+          case 126: 
+            { return ANALYZE;
             } 
             // fall through
           case 288: break;
-          case 131: 
-            { return INSTEAD;
+          case 127: 
+            { return BETWEEN;
             } 
             // fall through
           case 289: break;
-          case 132: 
-            { return NATURAL;
+          case 128: 
+            { return REINDEX;
             } 
             // fall through
           case 290: break;
-          case 133: 
-            { return NOTNULL;
+          case 129: 
+            { return RELEASE;
             } 
             // fall through
           case 291: break;
-          case 134: 
-            { return DEFAULT;
+          case 130: 
+            { return REPLACE;
             } 
             // fall through
           case 292: break;
-          case 135: 
-            { return WITHOUT;
+          case 131: 
+            { return TRIGGER;
             } 
             // fall through
           case 293: break;
-          case 136: 
-            { return PRIMARY;
+          case 132: 
+            { return CASCADE;
             } 
             // fall through
           case 294: break;
-          case 137: 
-            { return VIRTUAL;
+          case 133: 
+            { return COLLATE;
             } 
             // fall through
           case 295: break;
-          case 138: 
-            { return RESTRICT;
+          case 134: 
+            { return INDEXED;
             } 
             // fall through
           case 296: break;
-          case 139: 
-            { return ROLLBACK;
+          case 135: 
+            { return INSTEAD;
             } 
             // fall through
           case 297: break;
-          case 140: 
-            { return CONFLICT;
+          case 136: 
+            { return NATURAL;
             } 
             // fall through
           case 298: break;
-          case 141: 
-            { return DEFERRED;
+          case 137: 
+            { return NOTNULL;
             } 
             // fall through
           case 299: break;
-          case 142: 
-            { return DATABASE;
+          case 138: 
+            { return DEFAULT;
             } 
             // fall through
           case 300: break;
-          case 143: 
-            { return DISTINCT;
+          case 139: 
+            { return WITHOUT;
             } 
             // fall through
           case 301: break;
-          case 144: 
-            { return EXCLUSIVE;
+          case 140: 
+            { return PRIMARY;
             } 
             // fall through
           case 302: break;
-          case 145: 
-            { return RECURSIVE;
+          case 141: 
+            { return VIRTUAL;
             } 
             // fall through
           case 303: break;
-          case 146: 
-            { return TEMPORARY;
+          case 142: 
+            { return RESTRICT;
             } 
             // fall through
           case 304: break;
-          case 147: 
-            { return INTERSECT;
+          case 143: 
+            { return ROLLBACK;
             } 
             // fall through
           case 305: break;
-          case 148: 
-            { return INITIALLY;
+          case 144: 
+            { return CONFLICT;
             } 
             // fall through
           case 306: break;
-          case 149: 
-            { return IMMEDIATE;
+          case 145: 
+            { return DEFERRED;
             } 
             // fall through
           case 307: break;
-          case 150: 
-            { return SAVEPOINT;
+          case 146: 
+            { return DATABASE;
             } 
             // fall through
           case 308: break;
-          case 151: 
-            { return REFERENCES;
+          case 147: 
+            { return DISTINCT;
             } 
             // fall through
           case 309: break;
-          case 152: 
-            { return CONSTRAINT;
+          case 148: 
+            { return EXCLUSIVE;
             } 
             // fall through
           case 310: break;
-          case 153: 
-            { return DEFERRABLE;
+          case 149: 
+            { return RECURSIVE;
             } 
             // fall through
           case 311: break;
-          case 154: 
-            { return TRANSACTION;
+          case 150: 
+            { return TEMPORARY;
             } 
             // fall through
           case 312: break;
-          case 155: 
-            { return CURRENT_TIME;
+          case 151: 
+            { return INTERSECT;
             } 
             // fall through
           case 313: break;
-          case 156: 
-            { return CURRENT_DATE;
+          case 152: 
+            { return INITIALLY;
             } 
             // fall through
           case 314: break;
-          case 157: 
-            { return AUTOINCREMENT;
+          case 153: 
+            { return IMMEDIATE;
             } 
             // fall through
           case 315: break;
-          case 158: 
-            { return CURRENT_TIMESTAMP;
+          case 154: 
+            { return SAVEPOINT;
             } 
             // fall through
           case 316: break;
+          case 155: 
+            { return REFERENCES;
+            } 
+            // fall through
+          case 317: break;
+          case 156: 
+            { return CONSTRAINT;
+            } 
+            // fall through
+          case 318: break;
+          case 157: 
+            { return DEFERRABLE;
+            } 
+            // fall through
+          case 319: break;
+          case 158: 
+            { return TRANSACTION;
+            } 
+            // fall through
+          case 320: break;
+          case 159: 
+            { return CURRENT_TIME;
+            } 
+            // fall through
+          case 321: break;
+          case 160: 
+            { return CURRENT_DATE;
+            } 
+            // fall through
+          case 322: break;
+          case 161: 
+            { return AUTOINCREMENT;
+            } 
+            // fall through
+          case 323: break;
+          case 162: 
+            { return CURRENT_TIMESTAMP;
+            } 
+            // fall through
+          case 324: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }
