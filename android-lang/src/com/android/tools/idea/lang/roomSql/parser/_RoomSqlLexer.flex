@@ -41,10 +41,10 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 WHITE_SPACE=\s+
 
 COMMENT="/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
-IDENTIFIER=([:letter:]|_)([:letter:]|[:digit:]|_)*
+IDENTIFIER=([[:jletter:]--$])[:jletterdigit:]*
 LINE_COMMENT=--[^\r\n]*
 NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
-PARAMETER_NAME=:{IDENTIFIER}
+PARAMETER_NAME=:[:jletterdigit:]+
 
 // Unterminated strings are BAD_CHARACTER tokens.
 STRING_BAD_SINGLE=X?\'(\'\'|[^\'])*

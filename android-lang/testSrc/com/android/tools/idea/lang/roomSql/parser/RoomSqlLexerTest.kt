@@ -145,13 +145,16 @@ class RoomSqlLexerTest : TestCase() {
     )
 
     assertTokenTypes(
-        "select :P1, :_p2",
+        "select :P1, :_p2, :3p",
         "select" to SELECT,
         SPACE,
         ":P1" to PARAMETER_NAME,
         "," to COMMA,
         SPACE,
-        ":_p2" to PARAMETER_NAME)
+        ":_p2" to PARAMETER_NAME,
+        SPACE,
+        "," to COMMA,
+        ":3p" to PARAMETER_NAME)
 
     assertTokenTypes(
         "select :P1, ? from foo",
@@ -165,6 +168,13 @@ class RoomSqlLexerTest : TestCase() {
         "from" to FROM,
         SPACE,
         "foo" to IDENTIFIER)
+
+    assertTokenTypes(
+        "select ::P1",
+        "select" to SELECT,
+        SPACE,
+        ":" to BAD_CHARACTER,
+        ":P1" to PARAMETER_NAME)
 
     assertTokenTypes(
         "select [table].[column] from [database].[column]",
@@ -288,8 +298,11 @@ class RoomSqlLexerTest : TestCase() {
     assertTrue(RoomSqlLexer.needsQuoting("foo.bar"))
     assertTrue(RoomSqlLexer.needsQuoting("foo'bar"))
     assertTrue(RoomSqlLexer.needsQuoting("foo bar"))
-    assertTrue(RoomSqlLexer.needsQuoting("\$foo"))
     assertTrue(RoomSqlLexer.needsQuoting("foo`bar"))
+    assertTrue(RoomSqlLexer.needsQuoting(":foo"))
+    assertTrue(RoomSqlLexer.needsQuoting("@foo"))
+    assertTrue(RoomSqlLexer.needsQuoting("?foo"))
+    assertTrue(RoomSqlLexer.needsQuoting("\$foo"))
   }
 
   fun testValidName() {
