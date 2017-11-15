@@ -506,6 +506,7 @@ public class ConstraintLayoutTest {
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor(false)
+      .showOnlyDesignView()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 

@@ -233,22 +233,24 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   /**
-   * Ensures only the design view is being displayed.
+   * Ensures only the design view is being displayed, and zooms to fit.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   @NotNull
   public NlEditorFixture showOnlyDesignView() {
     getConfigToolbar().selectDesign();
+    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
   /**
-   * Ensures only the blueprint view is being displayed.
+   * Ensures only the blueprint view is being displayed, and zooms to fit.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   @NotNull
   public NlEditorFixture showOnlyBlueprintView() {
     getConfigToolbar().selectBlueprint();
+    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
