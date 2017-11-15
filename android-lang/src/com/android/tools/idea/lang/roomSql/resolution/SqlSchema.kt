@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.roomSql
+package com.android.tools.idea.lang.roomSql.resolution
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer

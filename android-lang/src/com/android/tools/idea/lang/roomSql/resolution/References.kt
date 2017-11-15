@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.roomSql
+package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.*
@@ -139,7 +139,7 @@ class RoomDefinedTablePsiReference(
 
   fun resolveSqlTable(): SqlTable? {
     val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
-    processDefinedSqlTables(element, if(acceptViews) processor else IgnoreViewsProcessor(processor))
+    processDefinedSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
     return processor.foundValue
   }
 

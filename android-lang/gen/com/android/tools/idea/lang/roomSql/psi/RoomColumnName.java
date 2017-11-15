@@ -21,7 +21,7 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.RoomColumnPsiReference;
+import com.android.tools.idea.lang.roomSql.resolution.RoomColumnPsiReference;
 
 public interface RoomColumnName extends RoomNameElement {
 

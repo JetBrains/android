@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.lang.roomSql.RoomSchemaManager
+import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction

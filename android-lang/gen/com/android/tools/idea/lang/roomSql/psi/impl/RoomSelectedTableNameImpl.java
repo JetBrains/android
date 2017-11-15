@@ -27,7 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.RoomSelectedTablePsiReference;
+import com.android.tools.idea.lang.roomSql.resolution.RoomSelectedTablePsiReference;
 
 public class RoomSelectedTableNameImpl extends AbstractRoomNameElement implements RoomSelectedTableName {
 
