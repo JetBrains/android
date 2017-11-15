@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
 
-class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
+class RoomUnresolvedReferenceInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : RoomVisitor() {

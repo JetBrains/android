@@ -44,7 +44,7 @@ class RoomAstNodeType(debugName: String) : IElementType(debugName, RoomSqlLangua
 
 class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RoomSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
-  override fun getIcon(flags: Int): Icon? = ROOM_SQL_ICON
+  override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
   val queryAnnotation: UAnnotation? get() {
     val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)

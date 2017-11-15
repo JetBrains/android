@@ -37,9 +37,7 @@ interface RoomColumnPsiReference : PsiReference {
  * @see EntityColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
-  override fun resolve(): PsiElement? {
-    return resolveColumn()?.resolveTo
-  }
+  override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
 
   override fun resolveColumn(): SqlColumn? {
     val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
@@ -79,9 +77,7 @@ class QualifiedColumnPsiReference(
     return processor.foundValue
   }
 
-  override fun resolve(): PsiElement? {
-    return resolveColumn()?.resolveTo
-  }
+  override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
 
   override fun getVariants(): Array<Any> {
     val table = resolveTable() ?: return emptyArray()

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
+class RoomUnresolvedReferenceInspectionTest : LightRoomTestCase() {
   override fun setUp() {
     super.setUp()
-    myFixture.enableInspections(UnresolvedRoomSqlReferenceInspection::class.java)
+    myFixture.enableInspections(RoomUnresolvedReferenceInspection::class.java)
   }
 
   fun testInvalidColumn() {
