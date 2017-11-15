@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.util.List;
 
@@ -199,7 +199,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    */
   @Override
   public boolean hasGoogleMavenRepository() {
-    GroovyPsiElement psiElement = getPsiElement();
+    PsiElement psiElement = getPsiElement();
     if (psiElement == null) {
       // No psiElement means that there is no repository block
       return false;

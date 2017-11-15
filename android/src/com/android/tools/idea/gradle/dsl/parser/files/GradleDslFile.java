@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +45,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
+  @NotNull private final GradleDslWriter myGradleDslWriter;
   @NotNull private final GradleDslParser myGradleDslParser;
 
   @Nullable private GradleDslFile myParentModuleDslFile;
@@ -61,11 +64,13 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     if (psiFile instanceof GroovyFile) {
       groovyPsiFile = (GroovyFile)psiFile;
       myGradleDslParser = new GroovyDslParser(groovyPsiFile, this);
+      myGradleDslWriter = new GroovyDslWriter();
     }
     else {
       // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
       // This means this file will produce an empty model.
       myGradleDslParser = new GradleDslParser.Adapter();
+      myGradleDslWriter = new GradleDslWriter.Adapter();
       return;
     }
 
@@ -133,5 +138,10 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Nullable
   public GradleDslFile getSiblingDslFile() {
     return mySiblingDslFile;
+  }
+
+  @NotNull
+  public GradleDslWriter getWriter() {
+    return myGradleDslWriter;
   }
 }

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MavenRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String MAVEN_BLOCK_NAME = "maven";

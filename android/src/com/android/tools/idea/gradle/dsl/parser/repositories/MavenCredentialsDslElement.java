@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public class MavenCredentialsDslElement extends GradleDslBlockElement {
   @NonNls public static final String CREDENTIALS_BLOCK_NAME = "credentials";
 
-  public MavenCredentialsDslElement(@Nullable GradleDslElement parent) {
+  public MavenCredentialsDslElement(@NotNull GradleDslElement parent) {
     super(parent, CREDENTIALS_BLOCK_NAME);
   }
 }

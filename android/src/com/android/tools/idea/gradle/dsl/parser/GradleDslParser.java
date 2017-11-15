@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+
 /**
  * A parser for BUILD.gradle files. Used to build up a {@link GradleBuildModel} from the underlying file.
  *
@@ -22,7 +25,7 @@ package com.android.tools.idea.gradle.dsl.parser;
  * when {@link #parse()} is called the parser should set the properties obtained on the {@link GradleDslFile}.
  *
  * This interface aims to allow the {@link GradleBuildModel} to support different languages, each language should have its
- * own implementation of a {@link GradleDslParser}.
+ * own implementation of both {@link GradleDslParser} and {@link GradleDslWriter}.
  */
 public interface GradleDslParser {
   void parse();

@@ -431,7 +431,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                           @NotNull String propertyName,
                                                           @NotNull GrExpression propertyExpression) {
     if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, (GrLiteral)propertyExpression);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression);
     }
 
     if (propertyExpression instanceof GrReferenceExpression) { // ex: compileSdkVersion SDK_VERSION or sourceCompatibility = VERSION_1_5

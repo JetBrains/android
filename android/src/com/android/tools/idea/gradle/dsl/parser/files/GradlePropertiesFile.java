@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.google.common.collect.ImmutableList;
@@ -56,6 +57,12 @@ public final class GradlePropertiesFile extends GradleDslFile {
     return propertyElement;
   }
 
+  @Override
+  @NotNull
+  public GradleDslWriter getWriter() {
+    return new GradleDslWriter.Adapter();
+  }
+
   private static class GradlePropertyElement extends GradleDslExpression {
     @Nullable private Object myValue;
 
@@ -86,9 +93,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Override
     @NotNull
-    protected Collection<GradleDslElement> getChildren() {
-      return ImmutableList.of();
-    }
+    public Collection<GradleDslElement> getChildren() { return ImmutableList.of(); }
 
     @Override
     protected void apply() {

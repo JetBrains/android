@@ -16,27 +16,26 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 
 import java.util.Collection;
 
 /**
- * Represents a {@link GrReferenceExpression} element.
+ * Represents a reference expression.
  */
 public final class GradleDslReference extends GradleDslExpression {
   public GradleDslReference(@NotNull GradleDslElement parent,
-                            @NotNull GroovyPsiElement psiElement,
+                            @NotNull PsiElement psiElement,
                             @NotNull String name,
-                            @NotNull GrReferenceExpression reference) {
+                            @NotNull PsiElement reference) {
     super(parent, psiElement, name, reference);
   }
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 
@@ -53,7 +52,7 @@ public final class GradleDslReference extends GradleDslExpression {
   }
 
   /**
-   * Returns the value of type {@code clazz} when the {@link GrReferenceExpression} element is referring to an element with the value
+   * Returns the value of type {@code clazz} when the reference expression is referring to an element with the value
    * of that type, or {@code null} otherwise.
    */
   @Nullable
@@ -83,7 +82,7 @@ public final class GradleDslReference extends GradleDslExpression {
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
+  public PsiElement create() {
     // TODO: Add support to create a new reference element.
     return getPsiElement();
   }

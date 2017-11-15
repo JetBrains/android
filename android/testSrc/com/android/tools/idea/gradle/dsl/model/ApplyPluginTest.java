@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -280,7 +281,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertThat(buildModel).isInstanceOf(GradleBuildModelImpl.class);
     GradleBuildModelImpl buildModelImpl = (GradleBuildModelImpl)buildModel;
 
-    GroovyPsiElement buildFilePsiElement = buildModelImpl.getPsiElement();
+    PsiElement buildFilePsiElement = buildModelImpl.getPsiElement();
     assertNotNull(buildFilePsiElement);
     assertEquals("buildText", buildText, buildFilePsiElement.getText());
   }

@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.apply;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
@@ -40,17 +40,17 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
 
   @Override
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return null; // This class is used to just group different kinds of apply statements and is never used to create a new element.
   }
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
+  public PsiElement create() {
     return myParent == null ? null : myParent.create();
   }
 
   @Override
-  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable PsiElement psiElement) {
   }
 }

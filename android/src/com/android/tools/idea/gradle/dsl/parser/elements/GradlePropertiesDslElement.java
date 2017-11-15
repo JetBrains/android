@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.util.*;
 
@@ -43,7 +43,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull private Set<String> myToBeRemovedProperties = new LinkedHashSet<>();
 
-  protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+  protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
     super(parent, psiElement, name);
   }
 
@@ -112,7 +112,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   protected void addAsParsedDslExpressionList(@NotNull String property, GradleDslExpression dslLiteral) {
-    GroovyPsiElement psiElement = dslLiteral.getPsiElement();
+    PsiElement psiElement = dslLiteral.getPsiElement();
     if (psiElement == null) {
       return;
     }
@@ -126,7 +126,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
-    GroovyPsiElement psiElement = element.getPsiElement();
+    PsiElement psiElement = element.getPsiElement();
     if (psiElement == null) {
       return;
     }
@@ -438,7 +438,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return getPropertyElements().values();
   }
 

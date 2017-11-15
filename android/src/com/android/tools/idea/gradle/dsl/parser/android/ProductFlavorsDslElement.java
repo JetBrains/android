@@ -33,7 +33,7 @@ public final class ProductFlavorsDslElement extends GradleDslElementMap {
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 
