@@ -68,33 +68,33 @@ public class NetworkDataPoller extends PollRunner {
       .setProcessId(myProcessId)
       .setStartTimestamp(myHttpRangeRequestStartTimeNs)
       .setEndTimestamp(Long.MAX_VALUE);
-    NetworkProfiler.HttpRangeResponse response = myPollingService.getHttpRange(requestBuilder.build());
+    NetworkProfiler.HttpRangeResponse httpRange = myPollingService.getHttpRange(requestBuilder.build());
 
-    for (NetworkProfiler.HttpConnectionData data : response.getDataList()) {
-      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getStartTimestamp() + 1);
-      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
-      NetworkProfiler.HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(data.getConnId(),
+    for (NetworkProfiler.HttpConnectionData connection : httpRange.getDataList()) {
+      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, connection.getStartTimestamp() + 1);
+      myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, connection.getEndTimestamp() + 1);
+      NetworkProfiler.HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(connection.getConnId(),
                                                                                                   mySession,
                                                                                                   NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
 
       NetworkProfiler.HttpDetailsResponse request = initialData;
       NetworkProfiler.HttpDetailsResponse requestBody =
-        myNetworkTable.getHttpDetailsResponseById(data.getConnId(), mySession, NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
-      NetworkProfiler.HttpDetailsResponse responseData = null;
-      NetworkProfiler.HttpDetailsResponse body = null;
-      NetworkProfiler.HttpDetailsResponse threads = null;
+        myNetworkTable.getHttpDetailsResponseById(connection.getConnId(), mySession, NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
+      NetworkProfiler.HttpDetailsResponse response = null;
+      NetworkProfiler.HttpDetailsResponse responseBody = null;
+      NetworkProfiler.HttpDetailsResponse threads;
       if (initialData == null) {
-        request = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+        request = pollHttpDetails(connection.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
       }
-      if (data.getUploadedTimestamp() != 0) {
-        requestBody = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
+      if (connection.getUploadedTimestamp() != 0) {
+        requestBody = pollHttpDetails(connection.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
       }
-      if (data.getEndTimestamp() != 0) {
-        responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
-        body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
+      if (connection.getEndTimestamp() != 0) {
+        response = pollHttpDetails(connection.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
+        responseBody = pollHttpDetails(connection.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
       }
-      threads = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, threads, requestBody, data);
+      threads = pollHttpDetails(connection.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+      myNetworkTable.insertOrReplace(myProcessId, mySession, request, response, requestBody, responseBody, threads, connection);
     }
   }
 
