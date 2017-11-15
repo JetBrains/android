@@ -18,7 +18,9 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.SdkConstants;
 import com.android.utils.CharSequences;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.util.LineSeparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -226,9 +228,9 @@ public class VectorDrawableTransformer {
   }
 
   private static String detectLineSeparator(CharSequence str) {
-    int pos = CharSequences.indexOf(str, '\n');
-    if (pos > 0 && str.charAt(pos - 1) == '\r') {
-      return "\r\n";
+    LineSeparator separator = StringUtil.detectSeparators(str);
+    if (separator != null) {
+      return separator.getSeparatorString();
     }
     return CodeStyleSettingsManager.getInstance().getCurrentSettings().getLineSeparator();
   }
