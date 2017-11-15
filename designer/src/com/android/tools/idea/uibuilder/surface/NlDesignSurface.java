@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -534,7 +535,9 @@ public class NlDesignSurface extends DesignSurface {
     Rectangle resizeZone =
       new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
     if (resizeZone.contains(mouseX, mouseY)) {
-      return new CanvasResizeInteraction(this);
+      Configuration configuration = getConfiguration();
+      assert configuration != null;
+      return new CanvasResizeInteraction(this, screenView, configuration);
     }
 
     SelectionModel selectionModel = screenView.getSelectionModel();
