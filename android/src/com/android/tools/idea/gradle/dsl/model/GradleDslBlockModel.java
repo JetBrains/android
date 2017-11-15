@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 /**
  * Base class for the models representing block elements.
@@ -34,12 +34,12 @@ public abstract class GradleDslBlockModel {
   }
 
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return myDslElement.getPsiElement();
   }
 
   public boolean hasValidPsiElement() {
-    GroovyPsiElement psiElement = getPsiElement();
+    PsiElement psiElement = getPsiElement();
     return psiElement != null && psiElement.isValid();
   }
 

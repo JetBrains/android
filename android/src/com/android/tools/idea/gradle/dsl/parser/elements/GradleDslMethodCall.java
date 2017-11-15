@@ -20,19 +20,13 @@ import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a {@link GrMethodCallExpression} element.
+ * Represents a method call expression element.
  */
 public final class GradleDslMethodCall extends GradleDslExpression {
   private final
@@ -42,7 +36,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Nullable private String myStatementName;
 
-  private GradleDslElement myToBeAddedArgument;
+  @Nullable private GradleDslElement myToBeAddedArgument;
 
   /**
    * Create a new method call.
@@ -59,7 +53,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   }
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
-                             @NotNull GrMethodCallExpression methodCall,
+                             @NotNull PsiElement methodCall,
                              @NotNull String name) {
     super(parent, methodCall, name, methodCall);
   }
@@ -82,6 +76,16 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     addNewArgumentInternal(mapArgument);
   }
 
+  /**
+   * This method should <b>not</b> be called outside of the GradleDslWriter classes.
+   * <p>
+   * If you need to add an argument to this GradleDslMethodCall please use {@link #addNewArgument(GradleDslExpression) addNewArgument}
+   * followed by a call to {@link #apply() apply} to ensure the change is written to the underlying file.
+   */
+  public void commitNewArgument(@NotNull GradleDslElement element) {
+    myArguments.add(element);
+  }
+
   private void addNewArgumentInternal(@NotNull GradleDslElement argument) {
     assert argument instanceof GradleDslExpression || argument instanceof GradleDslExpressionMap;
     // Only adding expression or map arguments to an empty method is supported.
@@ -90,6 +94,11 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       myToBeAddedArgument = argument;
       setModified(true);
     }
+  }
+
+  @Nullable
+  public GradleDslElement getToBeAddedArgument() {
+    return myToBeAddedArgument;
   }
 
   @NotNull
@@ -131,14 +140,14 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return getArguments();
   }
 
   @Nullable
   @Override
   public Object getValue() {
-    GroovyPsiElement psiElement = getPsiElement();
+    PsiElement psiElement = getPsiElement();
     return psiElement != null ? psiElement.getText() : null;
   }
 
@@ -208,6 +217,11 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     ((GradleDslExpression)pathArgument).setValue(file.getPath());
   }
 
+  @Nullable
+  public String getStatementName() {
+    return myStatementName;
+  }
+
   public void remove(GradleDslElement argument) {
     if (myArguments.contains(argument)) {
       myToBeRemovedArguments.add(argument);
@@ -223,21 +237,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       }
     }
 
-    GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement instanceof GrMethodCallExpression) {
-      GrMethodCallExpression methodCall = (GrMethodCallExpression)psiElement;
-      if (myToBeAddedArgument != null) {
-        myToBeAddedArgument.setPsiElement(methodCall.getArgumentList());
-        myToBeAddedArgument.applyChanges();
-        myArguments.add(myToBeAddedArgument);
-      }
-    }
-
-    for (GradleDslElement argument : myArguments) {
-      if (argument.isModified()) {
-        argument.applyChanges();
-      }
-    }
+    getDslFile().getWriter().applyDslMethodCall(this);
   }
 
   @Override
@@ -253,39 +253,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
-    GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement != null) {
-      return psiElement;
-    }
-
-    if (myParent == null) {
-      return null;
-    }
-
-    GroovyPsiElement parentPsiElement = myParent.create();
-    if (parentPsiElement == null) {
-      return null;
-    }
-
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String statementText = (myStatementName != null ? myStatementName + " " : "") + myName + "()";
-    GrStatement statement = factory.createStatementFromText(statementText);
-    PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
-
-    if (addedElement instanceof GrApplicationStatement) {
-      GrExpression[] expressionArguments = ((GrApplicationStatement)addedElement).getArgumentList().getExpressionArguments();
-      if (expressionArguments.length == 1 && expressionArguments[0] instanceof GrMethodCallExpression) {
-        setPsiElement(expressionArguments[0]);
-        return getPsiElement();
-      }
-    }
-
-    if (addedElement instanceof GrMethodCallExpression) {
-      setPsiElement((GrMethodCallExpression)addedElement);
-      return getPsiElement();
-    }
-
-    return null;
+  public PsiElement create() {
+    return getDslFile().getWriter().createDslMethodCall(this);
   }
 }

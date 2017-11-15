@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.util.Collection;
 import java.util.List;
@@ -82,23 +82,23 @@ public class GradleDslElementList extends GradleDslElement {
 
   @Override
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return null; // This class just act as a group of elements and doesn't represent any real elements on the file.
   }
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
+  public PsiElement create() {
     return myParent == null ? null : myParent.create();
   }
 
   @Override
-  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable PsiElement psiElement) {
   }
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return ImmutableList.copyOf(getElements());
   }
 

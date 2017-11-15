@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 
 /**
- * Represents a {@link GrClosableBlock}.
+ * Represents a closable block.
  */
 public class GradleDslClosure extends GradlePropertiesDslElement {
-  public GradleDslClosure(@Nullable GradleDslElement parent, @Nullable GrClosableBlock psiElement, @NotNull String name) {
+  public GradleDslClosure(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
     super(parent, psiElement, name);
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 }

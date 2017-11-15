@@ -21,10 +21,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -34,7 +34,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   }
 
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return myGradleDslFile.getPsiElement();
   }
 
@@ -70,7 +70,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     myGradleDslFile.applyChanges();
 
     // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
-    GroovyPsiElement psiElement = myGradleDslFile.getPsiElement();
+    PsiElement psiElement = myGradleDslFile.getPsiElement();
     assert psiElement instanceof PsiFile;
 
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());

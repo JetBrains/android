@@ -24,10 +24,9 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
 import java.io.File;
 import java.util.List;
@@ -38,24 +37,28 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
- * Represents a {@link GrExpression} element.
+ * Represents an expression element.
  */
 public abstract class GradleDslExpression extends GradleDslElement {
   @NotNull private List<GradleResolvedVariable> myResolvedVariables = ImmutableList.of();
 
-  @Nullable protected GrExpression myExpression;
+  @Nullable protected PsiElement myExpression;
 
   protected GradleDslExpression(@Nullable GradleDslElement parent,
-                                @Nullable GroovyPsiElement psiElement,
+                                @Nullable PsiElement psiElement,
                                 @NotNull String name,
-                                @Nullable GrExpression expression) {
+                                @Nullable PsiElement expression) {
     super(parent, psiElement, name);
     myExpression = expression;
   }
 
   @Nullable
-  public GrExpression getExpression() {
+  public PsiElement getExpression() {
     return myExpression;
+  }
+
+  public void setExpression(@NotNull PsiElement expression) {
+    myExpression = expression;
   }
 
   @Nullable

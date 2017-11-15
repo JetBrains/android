@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 
 public class DependencyConfigurationDslElement extends GradleDslClosure {
   public DependencyConfigurationDslElement(@Nullable GradleDslElement parent,
-                                           @Nullable GrClosableBlock psiElement,
+                                           @Nullable PsiElement psiElement,
                                            @NotNull String name) {
     super(parent, psiElement, name);
   }
