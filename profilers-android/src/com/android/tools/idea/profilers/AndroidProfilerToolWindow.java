@@ -67,6 +67,8 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       @Override
       public void componentResized(ComponentEvent e) {
         content.setBounds(0, 0, myLayeredPane.getWidth(), myLayeredPane.getHeight());
+        content.revalidate();
+        content.repaint();
       }
     });
   }
