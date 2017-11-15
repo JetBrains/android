@@ -68,21 +68,21 @@ public class NetworkTableTest {
 
   private void populateDatabase() {
     for( int i = 0; i < TEST_DATA; i++) {
-      NetworkProfiler.HttpConnectionData data = NetworkProfiler.HttpConnectionData.newBuilder()
+      NetworkProfiler.HttpConnectionData connection = NetworkProfiler.HttpConnectionData.newBuilder()
         .setConnId(VALID_CONN_ID + i)
         .setStartTimestamp(100 + i)
         .setEndTimestamp(101 + i)
         .build();
-      NetworkProfiler.HttpDetailsResponse requestData = NetworkProfiler.HttpDetailsResponse.newBuilder()
+      NetworkProfiler.HttpDetailsResponse request = NetworkProfiler.HttpDetailsResponse.newBuilder()
         .setRequest(NetworkProfiler.HttpDetailsResponse.Request.newBuilder()
                       .setUrl("TestUrl"))
         .build();
-      NetworkProfiler.HttpDetailsResponse threadsData = NetworkProfiler.HttpDetailsResponse.newBuilder()
+      NetworkProfiler.HttpDetailsResponse threads = NetworkProfiler.HttpDetailsResponse.newBuilder()
         .setAccessingThreads(NetworkProfiler.HttpDetailsResponse.AccessingThreads.newBuilder()
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
         .build();
-      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, requestData, null, null, threadsData, null, data);
+      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, request, null, null, null, threads, connection);
     }
   }
 
