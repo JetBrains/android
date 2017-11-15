@@ -40,6 +40,11 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
+  // By default we do not use preload or use the cache but we will offer this fields to debug cases of uses where the
+  // disk I/O is very slow. We could try these flags and see if it helps.
+  private static boolean USE_PRELOAD = Boolean.getBoolean("render.class.loader.preload");
+  private static boolean USE_CACHE = Boolean.getBoolean("render.class.loader.cache");
+
   protected UrlClassLoader myJarClassLoader;
   protected boolean myInsideJarClassLoader;
   protected final int myLayoutlibApiLevel;
@@ -109,7 +114,22 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   protected UrlClassLoader createClassLoader(List<URL> externalJars) {
-    UrlClassLoader.Builder builder = UrlClassLoader.build().parent(this).urls(externalJars).noPreload();
+    UrlClassLoader.Builder builder = UrlClassLoader.build()
+      .parent(this)
+      .urls(externalJars);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("usePreload = " + USE_PRELOAD);
+      LOG.debug("useCache = " + USE_CACHE);
+    }
+    if (!USE_PRELOAD) {
+      builder.noPreload();
+    }
+
+    if (USE_CACHE) {
+      builder.useCache();
+    }
+
     try {
       // The setLogErrorOnMissingJar was added in Android Studio. We need to call it via reflection until the
       // change gets upstreamed.
