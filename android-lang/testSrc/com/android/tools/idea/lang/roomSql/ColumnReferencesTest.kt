@@ -1064,4 +1064,72 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User", "losing_score")
   }
+
+  fun testAliasRenaming() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id AS i FROM user) SELECT <caret>i FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_id")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id AS user_id FROM user) SELECT user_id FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+  }
+
+  fun testWithTableRenaming_columns() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids(x) AS (SELECT id FROM user) SELECT <caret>x FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_id")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids(user_id) AS (SELECT id FROM user) SELECT user_id FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+  }
 }

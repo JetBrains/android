@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnDefinitionName
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.Processor
@@ -60,6 +61,11 @@ class AliasedColumn(
 
 class ExprColumn(override val definingElement: PsiElement) : SqlColumn {
   override val name get() = null
+  override val type get() = null
+}
+
+class DefinedColumn(override val definingElement: RoomColumnDefinitionName) : SqlColumn {
+  override val name get() = definingElement.nameAsString
   override val type get() = null
 }
 
