@@ -16,6 +16,10 @@
 package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BACKTICK_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BRACKET_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.TokenType
 import com.intellij.psi.TokenType.BAD_CHARACTER
@@ -253,31 +257,31 @@ class RoomSqlLexerTest : TestCase() {
         """select 'unterminated string""",
         "select" to SELECT,
         SPACE,
-        "'unterminated string" to BAD_CHARACTER)
+        "'unterminated string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
         """select 'unterminated '' string""",
         "select" to SELECT,
         SPACE,
-        "'unterminated '' string" to BAD_CHARACTER)
+        "'unterminated '' string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
         """select X"unterminated blob""",
         "select" to SELECT,
         SPACE,
-        "X\"unterminated blob" to BAD_CHARACTER)
+        "X\"unterminated blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
         """select X"unterminated "" blob""",
         "select" to SELECT,
         SPACE,
-        "X\"unterminated \"\" blob" to BAD_CHARACTER)
+        "X\"unterminated \"\" blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
         """select [unterminated bracket""",
         "select" to SELECT,
         SPACE,
-        "[unterminated bracket" to BAD_CHARACTER)
+        "[unterminated bracket" to UNTERMINATED_BRACKET_LITERAL)
 
     assertTokenTypes(
         "select `foo``bar`",
@@ -289,7 +293,7 @@ class RoomSqlLexerTest : TestCase() {
         """select `unterminated backtick""",
         "select" to SELECT,
         SPACE,
-        "`unterminated backtick" to BAD_CHARACTER)
+        "`unterminated backtick" to UNTERMINATED_BACKTICK_LITERAL)
   }
 
   fun testNeedsQuoting() {

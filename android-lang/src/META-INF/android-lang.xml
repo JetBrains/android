@@ -46,7 +46,6 @@
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomDefinedTableNameImpl"
                              implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomSelectedTableNameImpl"
@@ -68,6 +67,9 @@
                      level="ERROR"
                      implementationClass="com.android.tools.idea.lang.roomSql.RoomUnresolvedReferenceInspection"
                      displayName="Unresolved reference in Room SQL"/>
+
+    <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
+    <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.intellij.intelliLang">
