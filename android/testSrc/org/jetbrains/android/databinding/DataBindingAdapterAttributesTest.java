@@ -34,8 +34,7 @@ public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
    * Checks {@code @BindingAdapter} annotation completion and uses {@link AndroidUnknownAttributeInspection} to check that the attribute
    * has been defined.
    */
-  // Ignored due to b/69246107
-  public void /*test*/CompletionAndInspections() throws Exception {
+  public void testCompletionAndInspections() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
 
     myFixture.enableInspections(AndroidUnknownAttributeInspection.class);

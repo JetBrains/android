@@ -68,8 +68,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
   }
 
-  // Ignored due to b/69246107
-  public void /*test*/GeneratedCodeMatch() throws Exception {
+  public void testGeneratedCodeMatch() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
