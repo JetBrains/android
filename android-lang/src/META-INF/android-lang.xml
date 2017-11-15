@@ -66,7 +66,7 @@
                      shortName="AndroidUnresolvedRoomSqlReference"
                      enabledByDefault="true"
                      level="ERROR"
-                     implementationClass="com.android.tools.idea.lang.roomSql.UnresolvedRoomSqlReferenceInspection"
+                     implementationClass="com.android.tools.idea.lang.roomSql.RoomUnresolvedReferenceInspection"
                      displayName="Unresolved reference in Room SQL"/>
   </extensions>
 
