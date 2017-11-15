@@ -65,8 +65,7 @@ public class DataBindingRenameTest extends AndroidGradleTestCase {
    * Checks renaming of a resource IDs when a Java field generated from that resource by Data Binding is renamed.
    * @see com.android.tools.idea.databinding.DataBindingRenamer
    */
-  // Ignored due to b/69246107
-  public void /*test*/RenameFieldDerivedFromResource() throws Exception {
+  public void testRenameFieldDerivedFromResource() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
     // Temporary fix until test model can detect dependencies properly.
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");

@@ -29,8 +29,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_
  */
 public class DataBindingScopeTest extends AndroidGradleTestCase {
 
-  // Ignored due to b/69246107
-  public void /*test*/AccessFromInaccessibleScope() throws Exception {
+  public void testAccessFromInaccessibleScope() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
