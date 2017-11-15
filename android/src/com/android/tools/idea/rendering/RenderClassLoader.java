@@ -161,7 +161,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   protected byte[] convertClass(@NotNull byte[] data) {
-    return ClassConverter.rewriteClass(data, myLayoutlibApiLevel);
+    return ClassConverter.rewriteClass(data);
   }
 
   @NotNull
