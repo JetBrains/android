@@ -1205,9 +1205,6 @@
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
-    <extensionPoint qualifiedName="com.android.project.buildSystemService"
-                    interface="com.android.tools.idea.project.BuildSystemService"
-                    area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
