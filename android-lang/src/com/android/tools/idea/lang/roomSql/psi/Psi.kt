@@ -16,6 +16,8 @@
 package com.android.tools.idea.lang.roomSql.psi
 
 import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType

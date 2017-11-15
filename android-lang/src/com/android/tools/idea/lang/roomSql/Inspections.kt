@@ -55,9 +55,8 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
       /**
        * Checks if we have understand the given query type enough to highlight unresolved references.
        */
-      private fun isWellUnderstood(stmt: PsiElement): Boolean {
-        return stmt is RoomSelectStatement || stmt is RoomDeleteStatement || stmt is RoomUpdateStatement || stmt is RoomInsertStatement
-      }
+      private fun isWellUnderstood(stmt: PsiElement): Boolean =
+          stmt is RoomSelectStatement || stmt is RoomDeleteStatement || stmt is RoomUpdateStatement || stmt is RoomInsertStatement
     }
   }
 }

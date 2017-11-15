@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.roomSql
+package com.android.tools.idea.lang.roomSql.resolution
 
+import com.android.tools.idea.lang.roomSql.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager

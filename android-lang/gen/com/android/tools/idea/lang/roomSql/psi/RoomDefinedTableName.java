@@ -21,7 +21,7 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.RoomDefinedTablePsiReference;
+import com.android.tools.idea.lang.roomSql.resolution.RoomDefinedTablePsiReference;
 
 public interface RoomDefinedTableName extends RoomNameElement {
 

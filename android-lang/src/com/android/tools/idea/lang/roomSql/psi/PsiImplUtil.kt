@@ -18,7 +18,7 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.resolution.*
 import com.intellij.psi.PsiReference
 
 

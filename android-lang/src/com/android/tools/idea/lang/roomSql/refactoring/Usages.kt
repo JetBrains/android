@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.roomSql
+package com.android.tools.idea.lang.roomSql.refactoring
 
+import com.android.tools.idea.lang.roomSql.*
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
-import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
-import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes
+import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
+import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
+import com.android.tools.idea.lang.roomSql.resolution.SqlDefinition
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
 import com.intellij.lang.cacheBuilder.WordOccurrence
 import com.intellij.lang.cacheBuilder.WordsScanner
@@ -27,51 +29,12 @@ import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.ModuleUtil
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
-
-/**
- * [ElementManipulator] that inserts the new name (possibly quoted) into the PSI.
- *
- * It also specifies the range in element, which for quoted names does not include the quotes. This fixes the inline renamer,
- * because SQL remains valid when renaming quoted names.
- */
-class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>() {
-  override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String): RoomNameElement {
-    if (newContent.isEmpty()) {
-      return element
-    }
-
-    val newName = RoomSqlPsiFacade.getInstance(element.project)?.run {
-      when (element.node.elementType) {
-        RoomPsiTypes.DEFINED_TABLE_NAME, RoomPsiTypes.SELECTED_TABLE_NAME -> createDefinedTableName(newContent)
-        RoomPsiTypes.COLUMN_NAME -> createColumnName(newContent)
-        else -> error("Don't know how to rename ${element.node.elementType}")
-      }
-    } ?: return element
-
-    return element.replace(newName) as RoomNameElement
-  }
-
-  override fun getRangeInElement(nameElement: RoomNameElement): TextRange =
-      if (nameElement.nameIsQuoted) TextRange(1, nameElement.textLength - 1) else TextRange(0, nameElement.textLength)
-}
-
-class RoomBindParameterManipulator : AbstractElementManipulator<RoomBindParameter>() {
-  override fun handleContentChange(element: RoomBindParameter, range: TextRange, newContent: String): RoomBindParameter {
-    val newElement = RoomSqlPsiFacade.getInstance(element.project)?.createBindParamter(newContent) ?: return element
-    return element.replace(newElement) as RoomBindParameter
-  }
-
-  override fun getRangeInElement(element: RoomBindParameter): TextRange {
-    return TextRange(1, element.textLength)
-  }
-}
 
 /**
  * No-op [FindUsagesProvider] that provides the right [WordsScanner] for SQL.

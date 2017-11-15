@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.lang.roomSql.parser
 
-import com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade
+import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.android.tools.idea.lang.roomSql.psi.RoomDefinedTableName
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 import kotlin.reflect.KClass
@@ -28,8 +29,12 @@ class RoomNameElementTest : LightCodeInsightFixtureTestCase() {
   /**
    * Parses the given string and finds the first [PsiElement] of the requested class.
    */
-  private fun <T : PsiElement> parseAndFind(input: String, kclass: KClass<T>): T =
-      PsiTreeUtil.findChildOfType(RoomSqlPsiFacade.getInstance(myFixture.project)!!.createFileFromText(input), kclass.java)!!
+  private fun <T : PsiElement> parseAndFind(input: String, kclass: KClass<T>): T {
+    return PsiTreeUtil.findChildOfType(
+        PsiFileFactory.getInstance(project).createFileFromText("dummy.rsql", ROOM_SQL_FILE_TYPE, input),
+        kclass.java
+    )!!
+  }
 
   fun testTableNameAsText() {
     assertThat(parseAndFind("select * from table_name", RoomDefinedTableName::class).nameAsString).isEqualTo("table_name")
