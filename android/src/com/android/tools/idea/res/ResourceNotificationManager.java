@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.databinding.DataBindingUtil;
@@ -84,7 +85,7 @@ public class ResourceNotificationManager implements ProjectComponent {
   /**
    * File observers: one per observed file, with potentially multiple listeners
    */
-  private final Map<PsiFile, FileEventObserver> myFileToObserverMap = Maps.newHashMap();
+  private final Map<VirtualFile, FileEventObserver> myFileToObserverMap = Maps.newHashMap();
 
   /**
    * Configuration observers: one per observed configuration, with potentially multiple listeners
@@ -164,7 +165,7 @@ public class ResourceNotificationManager implements ProjectComponent {
      */
   public ResourceVersion addListener(@NotNull ResourceChangeListener listener,
                                      @NotNull AndroidFacet facet,
-                                     @Nullable PsiFile file,
+                                     @Nullable VirtualFile file,
                                      @Nullable Configuration configuration) {
     synchronized (this) {
       Module module = facet.getModule();
@@ -202,7 +203,7 @@ public class ResourceNotificationManager implements ProjectComponent {
         assert configuration == null : configuration;
       }
 
-      return getCurrentVersion(facet, file, configuration);
+      return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
     }
   }
 
@@ -216,7 +217,7 @@ public class ResourceNotificationManager implements ProjectComponent {
    */
   public void removeListener(@NotNull ResourceChangeListener listener,
                              @NonNull AndroidFacet facet,
-                             @Nullable PsiFile file,
+                             @Nullable VirtualFile file,
                              @Nullable Configuration configuration) {
     synchronized (this) {
       if (file != null) {
@@ -619,7 +620,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     private boolean isRelevantFile(PsiTreeChangeEvent event) {
       if (!myFileToObserverMap.isEmpty()) {
         final PsiFile file = event.getFile();
-        if (file != null && myFileToObserverMap.containsKey(file)) {
+        if (file != null && myFileToObserverMap.containsKey(file.getVirtualFile())) {
           return true;
         }
       }

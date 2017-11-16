@@ -129,7 +129,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         updateTheme();
       }
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-      manager.addListener(this, myFacet, null, null);
+      manager.addListener(this, myFacet, myFile, myConfiguration);
       myListeners.forEach(listener -> listener.modelActivated(this));
     }
   }
@@ -149,7 +149,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private void deactivate() {
     myListeners.forEach(listener -> listener.modelDeactivated(this));
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-    manager.removeListener(this, myFacet, null, null);
+    manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
   }
 
