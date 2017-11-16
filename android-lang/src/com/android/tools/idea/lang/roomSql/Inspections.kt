@@ -42,6 +42,11 @@ class RoomUnresolvedReferenceInspection : LocalInspectionTool() {
         checkReference(selectedTableName)
       }
 
+      override fun visitBindParameter(bindParameter: RoomBindParameter) {
+        super.visitBindParameter(bindParameter)
+        checkReference(bindParameter)
+      }
+
       private fun checkReference(referenceElement: PsiElement) {
         // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
         if ((referenceElement.containingFile as? RoomSqlFile)?.queryAnnotation == null) return

@@ -412,4 +412,38 @@ class RoomUnresolvedReferenceInspectionTest : LightRoomTestCase() {
 
     myFixture.checkHighlighting()
   }
+
+  fun testParameters() {
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT :<error>typo</error>")
+          String echo(String text);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT :text")
+          String echo(String text);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
 }
