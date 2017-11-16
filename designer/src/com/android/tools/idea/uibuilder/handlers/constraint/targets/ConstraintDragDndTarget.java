@@ -89,8 +89,8 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         verticalMatchParent = true;
       }
       if (horizontalMatchParent || verticalMatchParent) {
-        NlComponentHelperKt.setX(component, Coordinates.dpToPx(component.getModel(), dx));
-        NlComponentHelperKt.setY(component, Coordinates.dpToPx(component.getModel(), dy));
+        NlComponentHelperKt.setX(component, Coordinates.dpToPx(getComponent().getScene().getDesignSurface(), dx));
+        NlComponentHelperKt.setY(component, Coordinates.dpToPx(getComponent().getScene().getDesignSurface(), dy));
         ScoutWidget parentScoutWidget = new ScoutWidget(myComponent.getParent().getNlComponent(), null);
         ScoutWidget[] scoutWidgets = ScoutWidget.create(Arrays.asList(component), parentScoutWidget);
         int margin = Scout.getMargin();

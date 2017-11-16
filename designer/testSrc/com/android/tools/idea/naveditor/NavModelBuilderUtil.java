@@ -67,6 +67,7 @@ public class NavModelBuilderUtil {
       when(sceneView.getModel()).thenReturn(model);
       when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
       when(sceneView.getSelectionModel()).thenReturn(selectionModel);
+      when(sceneView.getSurface()).thenReturn(surface);
 
       when(surface.getCurrentSceneView()).thenReturn(sceneView);
 

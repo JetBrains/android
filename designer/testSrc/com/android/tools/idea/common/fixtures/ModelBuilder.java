@@ -169,6 +169,8 @@ public class ModelBuilder {
       DesignSurface surface = model.getSurface();
       Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
+      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      when(surface.getSceneScalingFactor()).thenCallRealMethod();
       SceneManager sceneManager = myManagerFactory.apply(model);
       SelectionModel selectionModel = surface.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
@@ -179,7 +181,6 @@ public class ModelBuilder {
       Scene scene = sceneManager.getScene();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
-      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();

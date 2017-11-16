@@ -53,12 +53,12 @@ public class DummyAlgorithmTest extends NavigationTestCase {
 
     assertEquals(20, scene.getSceneComponent("fragment1").getDrawX());
     assertEquals(20, scene.getSceneComponent("fragment1").getDrawY());
-    assertEquals(140, scene.getSceneComponent("fragment2").getDrawX());
+    assertEquals(200, scene.getSceneComponent("fragment2").getDrawX());
     assertEquals(20, scene.getSceneComponent("fragment2").getDrawY());
-    assertEquals(260, scene.getSceneComponent("fragment3").getDrawX());
+    assertEquals(380, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(20, scene.getSceneComponent("fragment3").getDrawY());
     assertEquals(20, scene.getSceneComponent("fragment4").getDrawX());
-    assertEquals(200, scene.getSceneComponent("fragment4").getDrawY());
+    assertEquals(320, scene.getSceneComponent("fragment4").getDrawY());
   }
 
   /**
@@ -94,23 +94,23 @@ public class DummyAlgorithmTest extends NavigationTestCase {
     DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
     root.flatten().forEach(c -> c.setPosition(-500, -500));
-    manual.setPosition(140, 100);
+    manual.setPosition(190, 100);
     root.flatten().filter(c -> c != manual).forEach(algorithm::layout);
 
-    assertEquals(140, manual.getDrawX());
+    assertEquals(190, manual.getDrawX());
     assertEquals(100, manual.getDrawY());
 
     assertEquals(20, scene.getSceneComponent("fragment2").getDrawX());
     assertEquals(20, scene.getSceneComponent("fragment2").getDrawY());
-    assertEquals(260, scene.getSceneComponent("fragment3").getDrawX());
+    assertEquals(380, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(20, scene.getSceneComponent("fragment3").getDrawY());
     assertEquals(20, scene.getSceneComponent("fragment4").getDrawX());
-    assertEquals(200, scene.getSceneComponent("fragment4").getDrawY());
-    assertEquals(260, scene.getSceneComponent("fragment5").getDrawX());
-    assertEquals(200, scene.getSceneComponent("fragment5").getDrawY());
-    assertEquals(140, scene.getSceneComponent("fragment6").getDrawX());
-    assertEquals(260, scene.getSceneComponent("fragment6").getDrawY());
+    assertEquals(320, scene.getSceneComponent("fragment4").getDrawY());
+    assertEquals(380, scene.getSceneComponent("fragment5").getDrawX());
+    assertEquals(320, scene.getSceneComponent("fragment5").getDrawY());
+    assertEquals(200, scene.getSceneComponent("fragment6").getDrawX());
+    assertEquals(380, scene.getSceneComponent("fragment6").getDrawY());
     assertEquals(20, scene.getSceneComponent("fragment7").getDrawX());
-    assertEquals(380, scene.getSceneComponent("fragment7").getDrawY());
+    assertEquals(620, scene.getSceneComponent("fragment7").getDrawY());
   }
 }

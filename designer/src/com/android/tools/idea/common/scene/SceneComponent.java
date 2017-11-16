@@ -401,8 +401,8 @@ public class SceneComponent {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
       if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
       }
       myScene.needsRebuildList();
     }
@@ -424,8 +424,8 @@ public class SceneComponent {
       myAnimatedDrawX.setTarget(dx, time);
       myAnimatedDrawY.setTarget(dy, time);
       if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
       }
       else {
         myScene.needsRebuildList();
@@ -442,8 +442,8 @@ public class SceneComponent {
       myAnimatedDrawWidth.setValue(width);
       myAnimatedDrawHeight.setValue(height);
       if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
       }
       myScene.needsRebuildList();
     }
@@ -465,8 +465,8 @@ public class SceneComponent {
       myAnimatedDrawWidth.setTarget(width, time);
       myAnimatedDrawHeight.setTarget(height, time);
       if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
       }
     }
   }
@@ -535,7 +535,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return Coordinates.pxToDp(myNlComponent.getModel(), NlComponentHelperKt.getBaseline(myNlComponent));
+    return Coordinates.pxToDp(getScene().getDesignSurface(), NlComponentHelperKt.getBaseline(myNlComponent));
   }
 
   public void setSelected(boolean selected) {

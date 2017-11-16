@@ -36,8 +36,8 @@ import java.awt.*;
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
  */
 public class NavigationDecorator extends SceneDecorator {
-  private static final int BASELINE_OFFSET = 35;
-  private static final int FONT_SIZE = 30;
+  private static final int BASELINE_OFFSET = 22;
+  private static final int FONT_SIZE = 12;
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {

@@ -110,7 +110,8 @@ public class NavSceneManager extends SceneManager {
             sceneComponent.setSize(-1, -1, false);
           }
           else {
-            sceneComponent.setSize(Coordinates.pxToDp(getModel(), SUBNAV_WIDTH), Coordinates.pxToDp(getModel(), SUBNAV_HEIGHT), false);
+            sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), SUBNAV_WIDTH),
+                                   Coordinates.pxToDp(getDesignSurface(), SUBNAV_HEIGHT), false);
           }
           break;
         case FRAGMENT:
@@ -132,7 +133,7 @@ public class NavSceneManager extends SceneManager {
             x *= 0.5;
             y *= 0.5;
           }
-          sceneComponent.setSize(Coordinates.pxToDp(getModel(), x), Coordinates.pxToDp(getModel(), y), true);
+          sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), x), Coordinates.pxToDp(getDesignSurface(), y), true);
           break;
         default:
           // nothing
