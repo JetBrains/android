@@ -23,8 +23,6 @@ import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -34,8 +32,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -65,7 +61,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
-  private StringResourceRepository myResourceRepository;
 
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
@@ -94,7 +89,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ParseTask("Loading string resource data").queue();
+      new ResourceLoadingTask(this).queue();
     }
   }
 
@@ -194,7 +189,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ParseTask("Updating string resource data").queue();
+      new ResourceLoadingTask(this).queue();
     }
   }
 
@@ -225,7 +220,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   @NotNull
-  public JPanel getComponent() {
+  JBLoadingPanel getLoadingPanel() {
     return myLoadingPanel;
   }
 
@@ -236,11 +231,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   StringResourceTable getTable() {
     return myTable;
-  }
-
-  @NotNull
-  StringResourceRepository getRepository() {
-    return myResourceRepository;
   }
 
   @Override
@@ -285,31 +275,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     //sb.append("&lang=en");
 
     BrowserUtil.browse(sb.toString());
-  }
-
-  private class ParseTask extends Task.Backgroundable {
-    public ParseTask(String description) {
-      super(myFacet.getModule().getProject(), description, false);
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      indicator.setIndeterminate(true);
-      ModuleResourceRepository.getOrCreateInstance(myFacet);
-    }
-
-    @Override
-    public void onSuccess() {
-      myResourceRepository = new StringResourceRepository((MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet));
-      myTable.setModel(new StringResourceTableModel(myResourceRepository.getData(myFacet)));
-
-      myLoadingPanel.stopLoading();
-    }
-
-    @Override
-    public void onCancel() {
-      myLoadingPanel.stopLoading();
-    }
   }
 
   private class CellSelectionListener implements ListSelectionListener {
