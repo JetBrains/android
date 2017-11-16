@@ -229,7 +229,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (myModel == null) {
       return NlLayoutType.UNKNOWN;
     }
-    return NlLayoutType.typeOf(myModel.getFile());
+    return myModel.getType();
   }
 
   @NotNull

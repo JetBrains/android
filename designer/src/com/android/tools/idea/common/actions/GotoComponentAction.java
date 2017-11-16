@@ -80,7 +80,7 @@ public class GotoComponentAction extends DumbAwareAction {
     // If the xml file is empty, just open the text editor
     FileEditorManager editorManager = FileEditorManager.getInstance(mySurface.getProject());
     editorManager.openTextEditor(
-      new OpenFileDescriptor(model.getProject(), model.getFile().getVirtualFile(), 0), true);
+      new OpenFileDescriptor(model.getProject(), model.getVirtualFile(), 0), true);
   }
 }
 

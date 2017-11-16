@@ -72,7 +72,7 @@ public class BackNavigationComponent extends JPanel {
     NlModel model = myDesignSurface.getModel();
     if (model != null) {
       LayoutNavigationManager layoutNavigationManager = LayoutNavigationManager.getInstance(myDesignSurface.getProject());
-      VirtualFile modelFile = model.getFile().getVirtualFile();
+      VirtualFile modelFile = model.getVirtualFile();
       VirtualFile parentFile = layoutNavigationManager.get(modelFile);
       if (parentFile != null) {
         setVisible(true);

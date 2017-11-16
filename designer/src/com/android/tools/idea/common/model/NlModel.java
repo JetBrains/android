@@ -172,6 +172,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
+  public VirtualFile getVirtualFile() {
+    return myFile;
+  }
+
+  @NotNull
   public XmlFile getFile() {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
     assert file != null;
