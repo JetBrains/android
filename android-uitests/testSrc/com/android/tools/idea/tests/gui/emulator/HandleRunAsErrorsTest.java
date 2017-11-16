@@ -19,11 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
-import org.fest.swing.exception.ComponentLookupException;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +64,7 @@ public class HandleRunAsErrorsTest {
    *   1. Import InstrumentationTest.
    *   2. Create an emulator.
    *   3. Add a two lines at onCreate() in MainActivity.java, make sure you comment second line.
-   *   4. Run application on the emulator.
+   *   4. Run application on the emulator, wait for app is running on emulator.
    *   5. Swap above lines in MainActivity.java.
    *   6. Stop application.
    *   7. Run.
@@ -71,9 +72,8 @@ public class HandleRunAsErrorsTest {
    *   1. Application should run successfully without any errors.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/38376451
+  @RunIn(TestGroup.QA)
   @Test
-  @Ignore("b/38376451")
   public void testHandleRunAsErrors() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -88,31 +88,32 @@ public class HandleRunAsErrorsTest {
         .selectDevice(emulator.getDefaultAvdName())
         .clickOk();
 
+    // Wait for app is running.
+    RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
+    waitForSessionStart(runToolWindowFixture);
+
     editor.moveBetween(BEFORE, AFTER)
         .select(REG_EXP)
         .enterText(TEXT_REVERSE);
 
-    try {
-      ideFrame.stopApp();
-    } catch (ComponentLookupException e) {
-      // Emulator went offline.
-      // Here we don't test emulator, but just to stop app.
-      // If "Stop" button is not enabled, that means the app has stopped.
-    }
+    ideFrame.stopApp();
 
     ideFrame.runApp(APP_NAME)
         .selectDevice(emulator.getDefaultAvdName())
         .clickOk();
 
-    RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
+    // TODO: Find the reason why emulator is disconnected without waiting, and do it in the right way.
+    // Workaround: Wait to skip the scenario encountering emulator disconnected.
+    Thread.sleep(10000);
+
     waitForSessionStart(runToolWindowFixture);
   }
 
   private static void waitForSessionStart(@NotNull RunToolWindowFixture runToolWindowFixture) {
     ExecutionToolWindowFixture.ContentFixture contentFixture = runToolWindowFixture
         .findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);
-    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 5);
-    contentFixture.waitForOutput(new PatternTextMatcher(RUN_CONNECTED_PATTERN), 60);
+    contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 20);
+    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 20);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_CONNECTED_PATTERN), 120);
   }
 }
