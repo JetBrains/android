@@ -16,20 +16,27 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Test
 
 class AtraceParserTest {
 
+  val myParser = AtraceParser(TEST_PID)
+
+  @Before
+  fun setup() {
+    myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+  }
+
   @Test
   fun testGetParseRange() {
-    val parser = AtraceParser(TEST_PID)
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
-
     // Value comes from atrace.ctrace file first entry and last entry.
     val expected = Range(EXPECTED_MIN_RANGE, EXPECTED_MAX_RANGE)
-    val actual = parser.range
+    val actual = myParser.range
     assertThat(actual.min).isWithin(DELTA).of(expected.min)
     assertThat(actual.max).isWithin(DELTA).of(expected.max)
     assertThat(actual.length).isWithin(DELTA).of(expected.length)
@@ -37,40 +44,53 @@ class AtraceParserTest {
 
   @Test
   fun testGetCaptureTrees() {
-    val parser = AtraceParser(TEST_PID)
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
-    val range = parser.range
-    val result = parser.captureTrees
-    assertThat(result.size).isEqualTo(1)
-    val cpuThreadInfo = result.keys.first()
+    val range = myParser.range
+    val result = myParser.captureTrees
+    assertThat(result).hasSize(20)
+    val cpuThreadInfo = Iterables.find(result.keys, {key -> key?.id == TEST_PID } )
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
 
     // Base node is a root node that is equivlant to the length of capture.
-    val captureNode = result[cpuThreadInfo]!!
+    var captureNode = result.get(cpuThreadInfo)!!
     assertThat(captureNode.startGlobal).isEqualTo(range.min.toLong())
     assertThat(captureNode.endGlobal).isEqualTo(range.max.toLong())
     assertThat(captureNode.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
     assertThat(captureNode.getChildAt(0).start).isEqualTo(SINGLE_CHILD_EXPECTED_START)
     assertThat(captureNode.getChildAt(0).end).isEqualTo(SINGLE_CHILD_EXPECTED_END)
     assertThat(captureNode.getChildAt(0).data.name).isEqualTo(EXPECTED_METHOD_NAME)
-    assertThat(captureNode.getChildAt(0).start).isGreaterThan(parser.range.min.toLong())
-    assertThat(captureNode.getChildAt(0).start).isLessThan(parser.range.max.toLong())
-    assertThat(captureNode.getChildAt(0).end).isGreaterThan(parser.range.min.toLong())
-    assertThat(captureNode.getChildAt(0).end).isLessThan(parser.range.max.toLong())
+    assertThat(captureNode.getChildAt(0).start).isGreaterThan(range.min.toLong())
+    assertThat(captureNode.getChildAt(0).start).isLessThan(range.max.toLong())
+    assertThat(captureNode.getChildAt(0).end).isGreaterThan(range.min.toLong())
+    assertThat(captureNode.getChildAt(0).end).isLessThan(range.max.toLong())
+    assertThat(captureNode.getChildAt(0).depth).isEqualTo(0)
+    assertThat(captureNode.getChildAt(2).getChildAt(0).depth).isEqualTo(1)
+
+  }
+
+  @Test
+  fun testGetThreadStateDataSeries() {
+    val dataSeries = myParser.threadStateDataSeries
+    assertThat(dataSeries).hasSize(THREAD_STATE_SERIES_SIZE)
+    assertThat(dataSeries[THREAD_ID]!!.size).isEqualTo(THREAD_STATE_SIZE)
+    assertThat(dataSeries[THREAD_ID]!!.get(0).x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
+    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
   }
 
   companion object {
     private val DELTA = .00000001
 
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private val EXPECTED_MIN_RANGE = 1.1008678125E11
-    private val EXPECTED_MAX_RANGE = 1.10097111995E11
-    private val SINGLE_CHILD_EXPECTED_START = 110091892263
-    private val SINGLE_CHILD_EXPECTED_END = 110091912914
-    private val EXPECTED_CHILD_COUNT = 3
-    private val EXPECTED_METHOD_NAME = "activityDestroy"
-    private val TEST_PID = 23340
+    private val EXPECTED_MIN_RANGE = 8.7688546875E10
+    private val EXPECTED_MAX_RANGE = 8.7701855499E10
+    private val SINGLE_CHILD_EXPECTED_START = 87691109747
+    private val SINGLE_CHILD_EXPECTED_END = 87691109965
+    private val EXPECTED_CHILD_COUNT = 213
+    private val EXPECTED_METHOD_NAME = "setupGridItem"
+    private val TEST_PID = 2652
+    private val THREAD_ID = 2659
+    private val THREAD_STATE_SERIES_SIZE = 20
+    private val THREAD_STATE_SIZE = 468
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerTooltip;
@@ -35,7 +36,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @NotNull private final CpuProfilerStage myStage;
 
   @Nullable private String myThreadName;
-  @Nullable private ThreadStateDataSeries mySeries;
+  @Nullable private DataSeries<CpuProfilerStage.ThreadState> mySeries;
   @Nullable private CpuProfilerStage.ThreadState myThreadState;
 
   CpuThreadsTooltip(@NotNull CpuProfilerStage stage) {
@@ -77,7 +78,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     changed(Aspect.THREAD_STATE);
   }
 
-  void setThread(@Nullable String threadName, @Nullable ThreadStateDataSeries stateSeries) {
+  void setThread(@Nullable String threadName, @Nullable DataSeries<CpuProfilerStage.ThreadState> stateSeries) {
     myThreadName = threadName;
     mySeries = stateSeries;
     updateThreadState();

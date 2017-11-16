@@ -38,6 +38,7 @@ public class ThreadStateDataSeriesTest {
   private static final int FAKE_PID = 1234;
   private static final Common.Session FAKE_SESSION = Common.Session.newBuilder().setSessionId(4321).setPid(FAKE_PID).build();
   private final FakeCpuService myService = new FakeCpuService();
+  private CpuProfilerStage myProfilerStage;
 
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadStateDataSeriesTest", myService, new FakeProfilerService());
@@ -50,21 +51,14 @@ public class ThreadStateDataSeriesTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_SESSION);
-  }
-
-  @Test
-  public void processIdMatchModelId() {
-    // Create a series with arbitrary range and tid
-    ThreadStateDataSeries series = createThreadSeries(new Range(), 10);
-
-    assertEquals(FAKE_PID, series.getProcessId());
+    myProfilerStage = new CpuProfilerStage(profilers);
+    myThreadsModel = new CpuThreadsModel(new Range(), myProfilerStage, FAKE_SESSION);
   }
 
   @Test
   public void emptyRange() {
     // Create a series with empty range and arbitrary tid
-    ThreadStateDataSeries series = createThreadSeries(new Range(), 10);
+    ThreadStateDataSeries series = createThreadSeries(10);
     List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range());
     assertNotNull(dataSeries);
     // No data within given range
@@ -76,7 +70,7 @@ public class ThreadStateDataSeriesTest {
     // Range of the threads from FakeCpuService#buildThreads
     Range range = new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(15));
     // Create a series with the range that contains both thread1 and thread2 and thread2 tid
-    ThreadStateDataSeries series = createThreadSeries(range, 2);
+    ThreadStateDataSeries series = createThreadSeries(2);
     // We don't want to get thread information from the trace
     myService.setValidTrace(false);
     List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
@@ -97,7 +91,7 @@ public class ThreadStateDataSeriesTest {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);
     // Create a series with trace file's main thread tid and the capture range
-    ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
+    ThreadStateDataSeries series = createThreadSeries(FakeCpuService.TRACE_TID);
     // We want the data series to consider the trace.
     myService.setValidTrace(true);
     // Start the capture 2 seconds before the first thread activity
@@ -119,7 +113,7 @@ public class ThreadStateDataSeriesTest {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);
     // Create a series with trace file's main thread tid and the capture range
-    ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
+    ThreadStateDataSeries series = createThreadSeries(FakeCpuService.TRACE_TID);
     // We want the data series to consider the trace.
     myService.setValidTrace(true);
     // Start the capture 1 second after the first thread activity
@@ -136,15 +130,8 @@ public class ThreadStateDataSeriesTest {
     assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
   }
 
-  private ThreadStateDataSeries createThreadSeries(Range range, int tid) {
-    CpuThreadsModel.RangedCpuThread rangedThread = myThreadsModel.new RangedCpuThread(range, tid, "any name");
-    List<RangedSeries<CpuProfilerStage.ThreadState>> seriesList = rangedThread.getModel().getSeries();
-    // A ThreadStateDataSeries is added to the model on RangedCpuThread constructor
-    assertFalse(seriesList.isEmpty());
-    DataSeries<CpuProfilerStage.ThreadState> dataSeries = seriesList.get(0).getDataSeries();
-    assertTrue(dataSeries instanceof ThreadStateDataSeries);
-    ThreadStateDataSeries threadSeries = (ThreadStateDataSeries)dataSeries;
-    assertNotNull(threadSeries);
-    return threadSeries;
+  private ThreadStateDataSeries createThreadSeries(int tid) {
+    ThreadStateDataSeries dataSeries = new ThreadStateDataSeries(myProfilerStage, FAKE_SESSION, tid);
+    return dataSeries;
   }
 }

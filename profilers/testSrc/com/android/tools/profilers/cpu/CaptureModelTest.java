@@ -18,10 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -46,6 +43,7 @@ public class CaptureModelTest {
                         new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CaptureModel myModel;
+
   @Before
   public void setUp() {
     FakeTimer timer = new FakeTimer();
@@ -105,11 +103,11 @@ public class CaptureModelTest {
     CaptureNode root = createFilterTestTree();
 
     CpuThreadInfo info = new CpuThreadInfo(101, "main");
-    CpuCapture capture = new CpuCapture(new Range(0, 30),
-                                        new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
-                                          .put(info, root)
-                                          .build(),
-                                        true);
+    TraceParser parser = new FakeTraceParser(new Range(0, 30),
+                                             new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
+                                               .put(info, root)
+                                               .build(), false);
+    CpuCapture capture = new CpuCapture(parser);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);

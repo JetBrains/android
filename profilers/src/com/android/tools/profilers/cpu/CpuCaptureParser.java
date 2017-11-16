@@ -131,25 +131,20 @@ public class CpuCaptureParser {
       }
 
       TraceParser parser;
-      boolean isCaptureDualClock;
       if (profilerType == CpuProfilerType.ART) {
         parser = new ArtTraceParser();
-        isCaptureDualClock = true;
       }
       else if (profilerType == CpuProfilerType.SIMPLEPERF) {
         parser = new SimpleperfTraceParser(myServices.getApplicationId());
-        isCaptureDualClock = false;
       }
       else if (profilerType == CpuProfilerType.ATRACE) {
         parser = new AtraceParser(session.getPid());
-        isCaptureDualClock = false;
       }
       else {
         throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART, simpleperf, or atrace) needs to be set.");
       }
 
-      parser.parse(trace);
-      return new CpuCapture(parser.getRange(), parser.getCaptureTrees(), isCaptureDualClock);
+      return parser.parse(trace);
     }
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);

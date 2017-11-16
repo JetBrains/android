@@ -15,17 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,14 +42,31 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   @NotNull private final AspectObserver myAspectObserver;
 
+  @VisibleForTesting
+  protected final HashMap<Integer, RangedCpuThread> myThreadIdToCpuThread;
+
   public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, @NotNull Common.Session session) {
     myRange = range;
     myStage = stage;
     mySession = session;
     myAspectObserver = new AspectObserver();
+    myThreadIdToCpuThread = new HashMap<>();
 
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+    myStage.getAspect().addDependency(myAspectObserver).onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::captureSelectionChanged);
     rangeChanged();
+  }
+
+  public void captureSelectionChanged() {
+    CpuCapture capture = myStage.getCapture();
+    if (capture instanceof AtraceCpuCapture) {
+      Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> threadToStateSeries =
+        ((AtraceCpuCapture)capture).getThreadIdToThreadStates();
+      threadToStateSeries.forEach((key,val) -> {
+        if (myThreadIdToCpuThread.containsKey(key)) {
+          myThreadIdToCpuThread.get(key).addAtraceCaptureSeries(capture.getRange(), val);
+        }});
+    }
   }
 
   public void rangeChanged() {
@@ -78,7 +97,9 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     }
     while (j < response.getThreadsCount()) {
       CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
-      addElement(new RangedCpuThread(myRange, newThread.getTid(), newThread.getName()));
+      RangedCpuThread cpuThread = new RangedCpuThread(myRange, newThread.getTid(), newThread.getName());
+      myThreadIdToCpuThread.put(newThread.getTid(), cpuThread);
+      addElement(cpuThread);
       j++;
     }
   }
@@ -93,15 +114,24 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     private final int myThreadId;
     private final String myName;
     private final Range myRange;
-    private final ThreadStateDataSeries mySeries;
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
+    // This data series combines the sampled data series pulled from perfd, and the Atrace data series
+    // populated when an atrace capture is parsed.
+    private final MergeCaptureDataSeries mySeries;
+    // The Atrace data series is added to the MergeCaptureDataSeries, however it is only populated
+    // when an Atrace capture is parsed. When the data series is populated the results from the
+    // Atrace data series are used in place of the ThreadStateDataSeries for the range that
+    // overlap.
+    private final AtraceThreadStateDataSeries myAtraceThreadStateDataSeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
       myRange = range;
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      mySeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
+      ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
+      myAtraceThreadStateDataSeries = new AtraceThreadStateDataSeries();
+      mySeries = new MergeCaptureDataSeries(threadStateDataSeries, myAtraceThreadStateDataSeries);
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 
@@ -117,8 +147,16 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       return myModel;
     }
 
-    public ThreadStateDataSeries getStateSeries() {
+    public MergeCaptureDataSeries getStateSeries() {
       return mySeries;
+    }
+
+    /**
+     * @param range the range of the capture. The range is expected to cover the full range of the series data.
+     * @param seriesData to be added to {@link AtraceThreadStateDataSeries}.
+     */
+    public void addAtraceCaptureSeries(Range range, List<SeriesData<CpuProfilerStage.ThreadState>> seriesData) {
+      myAtraceThreadStateDataSeries.addCaptureSeriesData(range, seriesData);
     }
   }
 }

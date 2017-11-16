@@ -17,8 +17,9 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.google.common.collect.ImmutableMap;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profilers.FakeTraceParser;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -143,10 +144,11 @@ public class CpuCaptureTest {
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
-    CpuCapture capture = new CpuCapture(range, captureTrees, true);
+    CpuCapture capture = new CpuCapture(new FakeTraceParser(range, captureTrees, true));
     assertThat(capture.isDualClock()).isTrue();
 
-    capture = new CpuCapture(range, captureTrees, false);
+    TraceParser parser = new FakeTraceParser(range, captureTrees, false);
+    capture = new CpuCapture(parser);
     assertThat(capture.isDualClock()).isFalse();
   }
 }

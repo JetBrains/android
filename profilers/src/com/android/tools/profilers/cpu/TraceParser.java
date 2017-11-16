@@ -23,13 +23,19 @@ import java.util.Map;
 
 /**
  * Parses a trace file into a {@link Map<CpuThreadInfo, CaptureNode>}.
- * Also provides a method to get the trace capture range.
+ * Also provides a method to get the trace capture range, and trace state data.
  */
 public interface TraceParser {
 
-  void parse(File file) throws IOException;
+  CpuCapture parse(File file) throws IOException;
 
   Map<CpuThreadInfo, CaptureNode> getCaptureTrees();
 
   Range getRange();
+
+  /**
+   * @return Whether the parser supports dual clock, i.e.
+   * if the method trace data can be displayed in both thread and wall-clock time.
+   */
+  boolean supportsDualClock();
 }
