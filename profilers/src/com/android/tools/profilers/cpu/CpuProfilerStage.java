@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -45,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting static final String HAS_USED_CPU_CAPTURE = "profiler.used.cpu.capture";
@@ -662,20 +662,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myCaptureState;
   }
 
-  public void setCaptureState(@NotNull CaptureState captureState) {
+  private void setCaptureState(@NotNull CaptureState captureState) {
     myCaptureState = captureState;
     // invalidate the capture start time when setting the capture state
     myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
     myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
   }
 
-  public void setCaptureFilter(@NotNull String filter) {
+  public void setCaptureFilter(@Nullable Pattern filter) {
     myCaptureModel.setFilter(filter);
-  }
-
-  @NotNull
-  public String getCaptureFilter() {
-    return myCaptureModel.getFilter();
   }
 
   @NotNull

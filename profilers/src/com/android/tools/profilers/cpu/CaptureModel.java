@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
 
 /**
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
@@ -51,11 +52,9 @@ class CaptureModel {
 
   /**
    * A filter that is applied to the current {@link CaptureNode}.
-   * After appling the filter, the transformed tree will contain of nodes
-   * whose either an ancestor matches to the filter or a descendant.
    */
-  @NotNull
-  private String myFilter;
+  @Nullable
+  private Pattern myFilter;
 
   @Nullable
   private Details myDetails;
@@ -69,7 +68,6 @@ class CaptureModel {
     myStage = stage;
     myCaptureConvertedRange = new Range();
     myThread = NO_THREAD;
-    myFilter = "";
 
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
@@ -129,11 +127,11 @@ class CaptureModel {
     return myClockType;
   }
 
-  void setFilter(@NotNull String filter) {
-    if (filter.trim().equals(myFilter)) {
+  void setFilter(@Nullable Pattern filter) {
+    if (Objects.equals(filter, myFilter)) {
       return;
     }
-    myFilter = filter.trim();
+    myFilter = filter;
     rebuildDetails();
   }
 
@@ -159,11 +157,6 @@ class CaptureModel {
       queue.addAll(curNode.getChildren());
     }
     return filters;
-  }
-
-  @NotNull
-  String getFilter() {
-    return myFilter;
   }
 
   void setDetails(@Nullable Details.Type type) {
@@ -229,7 +222,7 @@ class CaptureModel {
     if (!matches && allChildrenUnmatch) {
       node.setFilterType(CaptureNode.FilterType.UNMATCH);
     }
-    else if (nodeExactMatch && !myFilter.isEmpty()) {
+    else if (nodeExactMatch && myFilter != null) {
       node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
     }
     else {

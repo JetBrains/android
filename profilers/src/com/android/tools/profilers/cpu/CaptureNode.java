@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CaptureNode implements HNode<MethodModel> {
 
@@ -201,9 +202,13 @@ public class CaptureNode implements HNode<MethodModel> {
     myDepth = depth;
   }
 
-  public boolean matchesToFilter(@NotNull String filter) {
+  /**
+   * @return true if this node matches to the {@param filter}.
+   * Note: this node matches to the null {@param filter}.
+   */
+  public boolean matchesToFilter(@Nullable Pattern filter) {
     assert getMethodModel() != null;
-    return getMethodModel().getFullName().contains(filter);
+    return filter == null || filter.matcher(getMethodModel().getFullName()).matches();
   }
 
   public FilterType getFilterType() {

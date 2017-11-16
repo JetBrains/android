@@ -88,7 +88,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
     PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
     "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_MEMORY_CAPTURE_FILTER = Flag.create(
     PROFILER, "memory.capture.filter", "Enable Memory Capture Filter",

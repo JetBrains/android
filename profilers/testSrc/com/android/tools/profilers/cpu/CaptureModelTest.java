@@ -30,6 +30,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.regex.Pattern;
+
 import static com.google.common.truth.Truth.assertThat;
 
 
@@ -113,7 +115,7 @@ public class CaptureModelTest {
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
-    myModel.setFilter("myPackage");
+    myModel.setFilter(Pattern.compile("^.*" + Pattern.quote("myPackage") + ".*$"));
     CaptureNode node = (CaptureNode)((CaptureModel.CallChart)myModel.getDetails()).getNode();
     // mainPackage.main
     assertThat(node.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH);
