@@ -32,7 +32,7 @@ class NavComponentTypePropertyTest : NavigationTestCase() {
     assertEquals("Fragment", NavComponentTypeProperty(listOf(model.find("f1")!!)).value)
     assertEquals("Action", NavComponentTypeProperty(listOf(model.find("a1")!!)).value)
     assertEquals("Fragment", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("f2")!!)).value)
-    assertEquals("Multiple Types", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("activity")!!)).value)
-    assertEquals("Multiple Types", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("a1")!!)).value)
+    assertEquals("Multiple", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("activity")!!)).value)
+    assertEquals("Multiple", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("a1")!!)).value)
   }
 }
