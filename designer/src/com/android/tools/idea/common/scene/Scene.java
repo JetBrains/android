@@ -591,7 +591,7 @@ public class Scene implements SelectionListener, Disposable {
 
     if (!selectionModel.isEmpty()) {
       int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(x, y, max);
+      SelectionHandle handle = selectionModel.findHandle(x, y, max, getDesignSurface());
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;
@@ -953,7 +953,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(getSceneManager().getModel(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(getSceneManager().getModel(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 }

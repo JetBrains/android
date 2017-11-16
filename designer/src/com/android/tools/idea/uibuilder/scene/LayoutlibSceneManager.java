@@ -275,18 +275,18 @@ public class LayoutlibSceneManager extends SceneManager {
     NlComponent component = sceneComponent.getNlComponent();
     if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
-                                       Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)),
+      sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
+                                       Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
                                        time, true);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
-                                   Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)),
+      sceneComponent.setSizeTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
+                                   Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)),
                                    time, true);
     }
     else {
-      sceneComponent.setPosition(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)), true);
-      sceneComponent.setSize(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)), true);
+      sceneComponent.setPosition(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
+                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)), true);
+      sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
+                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)), true);
     }
   }
 

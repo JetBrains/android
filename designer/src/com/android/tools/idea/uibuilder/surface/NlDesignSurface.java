@@ -53,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
+import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
@@ -262,6 +263,15 @@ public class NlDesignSurface extends DesignSurface {
 
   public void setCentered(boolean centered) {
     myCentered = centered;
+  }
+
+  /**
+   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
+   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
+   */
+  @Override
+  public float getSceneScalingFactor() {
+    return getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
   }
 
   @NotNull

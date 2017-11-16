@@ -65,6 +65,11 @@ public class NavDesignSurface extends DesignSurface {
     super(project, parentDisposable);
   }
 
+  @Override
+  public float getSceneScalingFactor() {
+    return 1f;
+  }
+
   @NotNull
   public NavigationSchema getSchema() {
     // TODO: simplify this logic if possible:
