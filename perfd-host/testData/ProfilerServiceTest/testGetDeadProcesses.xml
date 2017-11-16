@@ -22,15 +22,15 @@
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
-        <Message>session {
-  device_serial: "SomeSerialId"
+        <Message>device {
+  serial: "SomeSerialId"
   boot_id: "SOME BOOT ID"
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
-        <message>session {
-  device_serial: "SomeSerialId"
+        <message>device {
+  serial: "SomeSerialId"
   boot_id: "SOME BOOT ID"
 }
 </message>
@@ -92,15 +92,15 @@ session {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
-        <Message>session {
-  device_serial: "SomeSerialId"
+        <Message>device {
+  serial: "SomeSerialId"
   boot_id: "SOME BOOT ID"
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
-        <message>session {
-  device_serial: "SomeSerialId"
+        <message>device {
+  serial: "SomeSerialId"
   boot_id: "SOME BOOT ID"
 }
 </message>

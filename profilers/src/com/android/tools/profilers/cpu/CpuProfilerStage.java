@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -25,9 +24,9 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -692,8 +691,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setProfilingConfiguration(configuration);
       }
     };
-    Profiler.Device selectedDevice = getStudioProfilers().getDevice();
-    int deviceFeatureLevel =  selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
+    Common.Device selectedDevice = getStudioProfilers().getDevice();
+    int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
     getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilerModel, deviceFeatureLevel, dialogCallback);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }

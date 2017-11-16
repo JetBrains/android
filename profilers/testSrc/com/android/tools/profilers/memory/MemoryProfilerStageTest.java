@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -426,10 +425,10 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAgentStatusUpdatesObjectSeries() {
     // Test that agent status change fires after a process is selected.
-    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
     myProfilerService.addDevice(device);
