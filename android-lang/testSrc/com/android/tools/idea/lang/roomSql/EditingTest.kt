@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-class EditingTest : LightRoomTestCase() {
+class EditingTest : RoomLightTestCase() {
   fun testParens() {
     myFixture.configureByText("UserDao.java", """
         package com.example;

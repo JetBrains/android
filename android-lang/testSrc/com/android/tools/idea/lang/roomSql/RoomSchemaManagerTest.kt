@@ -20,7 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 
-class RoomSchemaManagerTest : LightRoomTestCase() {
+class RoomSchemaManagerTest : RoomLightTestCase() {
 
   fun testEntities() {
     myFixture.addRoomEntity("User")

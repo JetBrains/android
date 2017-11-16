@@ -19,14 +19,18 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
+@SuppressWarnings("NewClassNamingConvention")
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidLangTestSuite.class)  // a suite mustn't contain itself
 public class AndroidLangTestSuite extends IdeaTestSuiteBase {
 
   static {
     symlinkToIdeaHome(
-        "tools/adt/idea/android-lang/testData",
-        "tools/idea/java"); // For the mock JDK.
+      "prebuilts/studio/sdk",
+      "tools/adt/idea/android-lang/testData",
+      "tools/adt/idea/android/annotations",
+      "tools/base/templates",
+      "tools/idea/java"); // For the mock JDK.
   }
 }
 

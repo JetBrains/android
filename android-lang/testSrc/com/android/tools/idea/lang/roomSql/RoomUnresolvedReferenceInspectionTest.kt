@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-class RoomUnresolvedReferenceInspectionTest : LightRoomTestCase() {
+class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(RoomUnresolvedReferenceInspection::class.java)

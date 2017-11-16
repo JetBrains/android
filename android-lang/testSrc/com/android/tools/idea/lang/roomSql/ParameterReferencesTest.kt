@@ -20,7 +20,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiParameter
 
-class ParameterReferencesTest : LightRoomTestCase() {
+class ParameterReferencesTest : RoomLightTestCase() {
   fun testReference_single() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")
 
