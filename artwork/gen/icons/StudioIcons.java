@@ -53,6 +53,7 @@ public class StudioIcons {
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.png"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.png"); // 16x16
     public static final Icon ERROR = load("/studio/icons/common/error.png"); // 16x16
+    public static final Icon FILTER = load("/studio/icons/common/filter.png"); // 16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.png"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.png"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.png"); // 16x16
@@ -401,12 +402,11 @@ public class StudioIcons {
 
   public static class LayoutInspector {
     public static final Icon CLEAR_OVERLAY = load("/studio/icons/layout-inspector/clear-overlay.png"); // 16x16
-    public static final Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.png"); // 16x16
     public static final Icon COLOR_PICKER = load("/studio/icons/layout-inspector/color-picker.png"); // 16x16
+    public static final Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.png"); // 16x16
   }
 
   public static class Logcat {
-    public static final Icon FILTER = load("/studio/icons/logcat/toolbar/filter.png"); // 16x16
     public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.png"); // 16x16
     public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.png"); // 16x16
     public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.png"); // 16x16
@@ -419,8 +419,8 @@ public class StudioIcons {
     }
 
     public static class Surface {
-      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 24x24
-      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 24x24
+      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 14x14
+      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 14x14
     }
 
     public static class Toolbar {
@@ -490,6 +490,7 @@ public class StudioIcons {
       public static final Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.png"); // 16x16
       public static final Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.png"); // 16x16
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.png"); // 16x16
+      public static final Icon PAUSE_LIVE = load("/studio/icons/profiler/toolbar/pause-live.png"); // 16x16
       public static final Icon RECORD = load("/studio/icons/profiler/toolbar/record.png"); // 16x16
       public static final Icon STOP_RECORDING = load("/studio/icons/profiler/toolbar/stop-recording.png"); // 16x16
     }
