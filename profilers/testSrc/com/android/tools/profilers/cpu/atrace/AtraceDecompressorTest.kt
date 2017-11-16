@@ -16,10 +16,9 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import org.junit.Assert.assertNull
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-import org.junit.Assert.assertTrue
 import org.junit.Before
 
 class AtraceDecompressorTest {
@@ -34,7 +33,26 @@ class AtraceDecompressorTest {
   @Test
   fun testDecompressedLineHasNewLineChar() {
     var slice = myDecompressor.next()
-    assertTrue(slice.toString().endsWith("\n"))
+    assertThat(slice.toString()).endsWith("\n");
+  }
+
+  @Test
+  fun testCompressBounderyProperlySetsNewLine() {
+    for (line in myDecompressor.lines) {
+      val tracerIndex = line.indexOf("# tracer: nop")
+      assertThat(tracerIndex == -1 || tracerIndex == 0).isTrue()
+    }
+  }
+
+  @Test
+  fun testDontLoseLastCompleteLineInDecompression() {
+    var knownTimestampOccurences = 0
+    for (line in myDecompressor.lines) {
+      if (line.indexOf(KNOWN_TIMESTAMP) >= 0) {
+        knownTimestampOccurences++;
+      }
+    }
+    assertThat(knownTimestampOccurences).isEqualTo(1)
   }
 
   @Test
@@ -45,6 +63,26 @@ class AtraceDecompressorTest {
     }
     while (line != null)
     // Validate that next returns null to indicate end of stream.
-    assertNull(myDecompressor.next())
+    assertThat(myDecompressor.next()).isNull()
+  }
+
+  // Adding a kotlin property fopr AtraceDecompressor to assist with iterating lines.
+  val AtraceDecompressor.lines: Iterator<String>
+    get() = object : Iterator<String> {
+      var line = this@lines.nextLine
+      override fun next(): String {
+        if (line == null)
+          throw NoSuchElementException()
+        val result = line!!
+        line = this@lines.nextLine
+        return result
+      }
+
+      override fun hasNext() = line != null
+    }
+
+  companion object {
+    // Setting const for atrace file in one location so if we update file we can update const in one location.
+    private val KNOWN_TIMESTAMP = "189393.076368"
   }
 }
