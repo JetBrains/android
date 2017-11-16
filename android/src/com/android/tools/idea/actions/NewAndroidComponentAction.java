@@ -40,9 +40,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.instantapp.InstantApps.isInstantAppProject;
 
 /**
  * An action to launch a wizard to create a component from a template.
@@ -87,13 +85,7 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
-      if (isProjectReady) {
-        // Instant apps, can not add a component to modules of type APP or INSTANTAPP
-        boolean isSimpleApp = !isInstantAppProject(module.getProject());
-        boolean isValidIappModule = facet.getProjectType() != PROJECT_TYPE_APP && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP;
-        isProjectReady = isSimpleApp || isValidIappModule;
-      }
+      boolean isProjectReady = facet != null && facet.getAndroidModel() != null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP;
       presentation.setEnabled(isProjectReady);
     }
   }

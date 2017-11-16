@@ -76,19 +76,6 @@ public class InstantApps {
   }
 
   /**
-   * Finds if the specified project has any instantapp feature module
-   */
-  public static boolean isInstantAppProject(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.getProjectType() == PROJECT_TYPE_FEATURE) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * This method will find and return a base feature if one exists and is associated with the given facet.
    *
    * @param facet the {@link AndroidFacet} for the Instant App application module whose base feature module you want to find.
