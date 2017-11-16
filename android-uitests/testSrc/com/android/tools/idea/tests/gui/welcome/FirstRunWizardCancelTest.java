@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.welcome;
 
+import com.android.flags.junit.RestoreFlagRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -29,14 +30,17 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.flags.StudioFlags.NPW_FIRST_RUN_WIZARD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @RunIn(TestGroup.UNRELIABLE) // Move later to PROJECT_WIZARD
 @RunWith(GuiTestRunner.class)
 public class FirstRunWizardCancelTest {
-  @Rule
-  public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Rule public final RestoreFlagRule<Boolean> myRestoreFlagRule = new RestoreFlagRule<>(NPW_FIRST_RUN_WIZARD);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
 
   private static final int DUMMY_SDK_VERSION = 123;
   private int mySdkUpdateVersion;
@@ -57,6 +61,41 @@ public class FirstRunWizardCancelTest {
 
   @Test
   public void cancelAndIgnore() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(true);
+    doCancelAndIgnore();
+  }
+
+  @Test
+  public void cancelAndRerunOnNextStartup() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(true);
+    doCancelAndRerunOnNextStartup();
+  }
+
+  @Test
+  public void cancelAndDontRerunOnNextStartup() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(true);
+    doCancelAndDontRerunOnNextStartup();
+  }
+
+  @Test
+  public void cancelAndIgnore_legacy() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(false);
+    doCancelAndIgnore();
+  }
+
+  @Test
+  public void cancelAndRerunOnNextStartup_legacy() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(false);
+    doCancelAndRerunOnNextStartup();
+  }
+
+  @Test
+  public void cancelAndDontRerunOnNextStartup_legacy() throws Exception {
+    NPW_FIRST_RUN_WIZARD.override(false);
+    doCancelAndDontRerunOnNextStartup();
+  }
+
+  private void doCancelAndIgnore() throws Exception {
     FirstRunWizardFixture
       .find(guiTest.robot())
       .clickCancel()
@@ -67,8 +106,7 @@ public class FirstRunWizardCancelTest {
     assertEquals(DUMMY_SDK_VERSION, getSdkUpdateVersion());
   }
 
-  @Test
-  public void cancelAndRerunOnNextStartup() throws Exception {
+  private void doCancelAndRerunOnNextStartup() throws Exception {
     FirstRunWizardFixture
       .find(guiTest.robot())
       .clickCancel()
@@ -79,8 +117,7 @@ public class FirstRunWizardCancelTest {
     assertEquals(DUMMY_SDK_VERSION, getSdkUpdateVersion());
   }
 
-  @Test
-  public void cancelAndDontRerunOnNextStartup() throws Exception {
+  public void doCancelAndDontRerunOnNextStartup() throws Exception {
     FirstRunWizardFixture
       .find(guiTest.robot())
       .clickCancel()
