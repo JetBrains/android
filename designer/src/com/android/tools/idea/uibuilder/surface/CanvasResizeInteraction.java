@@ -28,8 +28,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -37,7 +35,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -240,24 +238,23 @@ public class CanvasResizeInteraction extends Interaction {
     int minY = 0;
     int maxY = -1;
 
-    int dpi = screenView.getConfiguration().getDensity().getDpiValue();
     SmallestScreenWidthQualifier smallestWidthQualifier = config.getSmallestScreenWidthQualifier();
     if (smallestWidthQualifier != null) {
       // Restrict the area due to a sw<N>dp qualifier
-      minX = smallestWidthQualifier.getValue() * dpi / 160;
-      minY = smallestWidthQualifier.getValue() * dpi / 160;
+      minX = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
+      minY = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
     }
 
     ScreenWidthQualifier widthQualifier = config.getScreenWidthQualifier();
     if (widthQualifier != null) {
       // Restrict the area due to a w<N>dp qualifier
-      minX = Math.max(minX, widthQualifier.getValue() * dpi / 160);
+      minX = Math.max(minX, Coordinates.dpToPx(screenView, widthQualifier.getValue()));
     }
 
     ScreenHeightQualifier heightQualifier = config.getScreenHeightQualifier();
     if (heightQualifier != null) {
       // Restrict the area due to a h<N>dp qualifier
-      minY = Math.max(minY, heightQualifier.getValue() * dpi / 160);
+      minY = Math.max(minY, Coordinates.dpToPx(screenView, heightQualifier.getValue()));
     }
 
     ScreenSizeQualifier sizeQualifier = config.getScreenSizeQualifier();
@@ -265,18 +262,18 @@ public class CanvasResizeInteraction extends Interaction {
       // Restrict the area due to a screen size qualifier (SMALL, NORMAL, LARGE, XLARGE)
       switch (sizeQualifier.getValue()) {
         case SMALL:
-          maxX = 320 * dpi / 160;
-          maxY = 470 * dpi / 160;
+          maxX = Coordinates.dpToPx(screenView, 320);
+          maxY = Coordinates.dpToPx(screenView, 470);
           break;
         case NORMAL:
           break;
         case LARGE:
-          minX = 480 * dpi / 160;
-          minY = 640 * dpi / 160;
+          minX = Coordinates.dpToPx(screenView, 480);
+          minY = Coordinates.dpToPx(screenView, 640);
           break;
         case XLARGE:
-          minX = 720 * dpi / 160;
-          minY = 960 * dpi / 160;
+          minX = Coordinates.dpToPx(screenView, 720);
+          minY = Coordinates.dpToPx(screenView, 960);
           break;
       }
     }
@@ -690,16 +687,14 @@ public class CanvasResizeInteraction extends Interaction {
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
-      int width = Coordinates.getAndroidX(screenView, myCurrentX);
-      int height = Coordinates.getAndroidY(screenView, myCurrentY);
+      int width = Coordinates.getAndroidXDip(screenView, myCurrentX);
+      int height = Coordinates.getAndroidYDip(screenView, myCurrentY);
       if ((width > height && isDevicePortrait) || (width < height && !isDevicePortrait)) {
         return;
       }
 
-      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
-
-      int small = Math.min(width, height) * 160 / dpi;
-      int big = Math.max(width, height) * 160 / dpi;
+      int small = Math.min(width, height);
+      int big = Math.max(width, height);
 
       ScreenSize screenSizeBucket = getScreenSizeBucket(small, big);
 
@@ -761,24 +756,23 @@ public class CanvasResizeInteraction extends Interaction {
     private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull SceneView screenView, boolean isDevicePortrait) {
       int x0 = screenView.getX();
       int y0 = screenView.getY();
-      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
 
-      int smallX = Coordinates.getSwingX(screenView, 470 * dpi / 160);
-      int smallY = Coordinates.getSwingY(screenView, 470 * dpi / 160);
+      int smallX = Coordinates.getSwingXDip(screenView, 470);
+      int smallY = Coordinates.getSwingYDip(screenView, 470);
       Area smallArea = new Area(new Rectangle(x0 - 2, y0 - 2, smallX - x0 + 2, smallY - y0 + 2));
       if (screenSize == ScreenSize.SMALL) {
         return smallArea;
       }
 
-      int xlargeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 720 : 960) * dpi / 160);
-      int xlargeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 960 : 720) * dpi / 160);
+      int xlargeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 720 : 960);
+      int xlargeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 960 : 720);
       Area xlargeArea = new Area(new Rectangle(xlargeX, xlargeY, myTotalWidth, myTotalHeight));
       if (screenSize == ScreenSize.XLARGE) {
         return xlargeArea;
       }
 
-      int largeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 480 : 640) * dpi / 160);
-      int largeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 640 : 480) * dpi / 160);
+      int largeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 480 : 640);
+      int largeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 640 : 480);
       Area largeArea = new Area(new Rectangle(largeX, largeY, myTotalWidth, myTotalHeight));
       if (screenSize == ScreenSize.LARGE) {
         largeArea.subtract(xlargeArea);

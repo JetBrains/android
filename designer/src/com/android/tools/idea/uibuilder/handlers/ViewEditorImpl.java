@@ -112,11 +112,6 @@ public class ViewEditorImpl extends ViewEditor {
     myDependencyManager = NlDependencyManager.Companion.get();
   }
 
-  @Override
-  public int getDpi() {
-    return myConfiguration.getDensity().getDpiValue();
-  }
-
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {

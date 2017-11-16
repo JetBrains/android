@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -88,9 +89,8 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         verticalMatchParent = true;
       }
       if (horizontalMatchParent || verticalMatchParent) {
-        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-        NlComponentHelperKt.setX(component, (int)(dx * dpiFactor));
-        NlComponentHelperKt.setY(component, (int)(dy * dpiFactor));
+        NlComponentHelperKt.setX(component, Coordinates.dpToPx(component.getModel(), dx));
+        NlComponentHelperKt.setY(component, Coordinates.dpToPx(component.getModel(), dy));
         ScoutWidget parentScoutWidget = new ScoutWidget(myComponent.getParent().getNlComponent(), null);
         ScoutWidget[] scoutWidgets = ScoutWidget.create(Arrays.asList(component), parentScoutWidget);
         int margin = Scout.getMargin();
