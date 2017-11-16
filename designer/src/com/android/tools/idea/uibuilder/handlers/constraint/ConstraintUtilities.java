@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -115,13 +117,14 @@ public class ConstraintUtilities {
    * @param value     the attribute value we want to parse
    * @return the value of the attribute in Dp, or zero if impossible to resolve
    */
+  @AndroidDpCoordinate
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
         Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : (int)(0.5f + px / (configuration.getDensity().getDpiValue() / 160.0f));
+        return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
       }
     }
     return 0;

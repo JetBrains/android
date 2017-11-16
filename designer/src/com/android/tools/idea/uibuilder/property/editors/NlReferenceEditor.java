@@ -17,8 +17,9 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.configurations.Configuration;
@@ -362,7 +363,8 @@ public class NlReferenceEditor extends BaseComponentEditor {
     return true;
   }
 
-  private int getValueInDp(int defaultValue) {
+  @AndroidDpCoordinate
+  private int getValueInDp(@AndroidDpCoordinate int defaultValue) {
     String valueAsString = myProperty.getValue();
     if (valueAsString == null) {
       return defaultValue;
@@ -377,7 +379,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       return defaultValue;
     }
 
-    return value * Density.DEFAULT_DENSITY / configuration.getDensity().getDpiValue();
+    return Coordinates.pxToDp(myProperty.getModel(), value);
   }
 
   private double getValueAsFloat(double defaultValue) {
