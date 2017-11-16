@@ -61,7 +61,7 @@ final class NavigationViewHandler extends FrameLayoutHandler {
     }
 
     NlModel model = component.getModel();
-    editor.openResource(model.getConfiguration(), resource, model.getFile().getVirtualFile());
+    editor.openResource(model.getConfiguration(), resource, model.getVirtualFile());
   }
 
   private static boolean contains(@NotNull View view, @AndroidCoordinate int x, @AndroidCoordinate int y) {

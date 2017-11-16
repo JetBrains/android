@@ -296,7 +296,7 @@ public class NavSceneTest extends NavigationTestCase {
         fragmentComponent("fragment2")
           .withLayoutAttribute("activity_main2"));
     SyncNlModel model = model("nav.xml", root).build();
-    FileEditor editor = new TestNlEditor(model.getFile().getVirtualFile(), getProject());
+    FileEditor editor = new TestNlEditor(model.getVirtualFile(), getProject());
 
     Scene scene = model.getSurface().getScene();
 

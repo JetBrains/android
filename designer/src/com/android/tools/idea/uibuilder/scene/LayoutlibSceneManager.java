@@ -497,7 +497,7 @@ public class LayoutlibSceneManager extends SceneManager {
         Project project = model.getModule().getProject();
         if (project.isOpen()) {
           DumbService.getInstance(project).waitForSmartMode();
-          if (model.getFile().isValid() && !model.getFacet().isDisposed()) {
+          if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             try {
               updateModel();
             }
