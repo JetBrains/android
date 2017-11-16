@@ -30,6 +30,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 /**
  * Base Class for drawing text components
@@ -37,6 +38,7 @@ import java.awt.*;
 public class DrawTextRegion extends DrawRegion {
   protected static final int DEFAULT_FONT_SIZE = 14;
   protected static final float DEFAULT_SCALE = 1.0f;
+  protected static final float SCALE_ADJUST = .88f; // a factor to scale fonts from android to Java2d
   @SuppressWarnings("UseJBColor")
   private static final Color TEXT_PANE_BACKGROUND = new Color(0, 0, 0, 0);
 
@@ -154,7 +156,8 @@ public class DrawTextRegion extends DrawRegion {
     mFontSize = fontSize;
     mScale = scale;
 
-    mFont = FontCache.INSTANCE.getFont(mFontSize, mScale);
+    mFont = new Font("Helvetica", Font.PLAIN, mFontSize)
+      .deriveFont(AffineTransform.getScaleInstance(scale * SCALE_ADJUST, scale * SCALE_ADJUST));
 
     switch (mMode) {
       case DecoratorUtilities.ViewStates.SELECTED_VALUE:

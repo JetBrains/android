@@ -17,9 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
 
 /**
  * {@linkplain DrawActionHandle} is responsible for rendering the action handle
@@ -35,7 +38,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myInitialRadius;
   @SwingCoordinate private final int myFinalRadius;
-  private final DrawColor myBorderColor;
+  private final Color myBorderColor;
   private final int myDuration;
 
   private long myStartTime = -1;
@@ -44,7 +47,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
                           @SwingCoordinate int y,
                           @SwingCoordinate int initialRadius,
                           @SwingCoordinate int finalRadius,
-                          @NotNull DrawColor borderColor,
+                          @NotNull Color borderColor,
                           int duration) {
     myX = x;
     myY = y;
@@ -55,12 +58,12 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   }
 
   public DrawActionHandle(String s) {
-    this(parse(s, 6));
+    this(DrawCommandSerializationHelperKt.parse(s, 6));
   }
 
   private DrawActionHandle(String[] sp) {
     this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), Integer.parseInt(sp[2]),
-         Integer.parseInt(sp[3]), DrawColor.valueOf(sp[4]), Integer.parseInt(sp[5]));
+         Integer.parseInt(sp[3]), DrawCommandSerializationHelperKt.stringToColor(sp[4]), Integer.parseInt(sp[5]));
   }
 
   @Override
@@ -71,7 +74,8 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @Override
   @NotNull
   protected Object[] getProperties() {
-    return new Object[]{myX, myY, myInitialRadius, myFinalRadius, myBorderColor, myDuration};
+    return new Object[]{myX, myY, myInitialRadius, myFinalRadius, DrawCommandSerializationHelperKt.colorToString(myBorderColor),
+      myDuration};
   }
 
   @Override
@@ -91,7 +95,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
     fillCircle(g, r, sceneContext.getColorSet().getBackground());
 
     r *= INNER_CIRCLE_FRACTION;
-    fillCircle(g, r, myBorderColor.color(sceneContext));
+    fillCircle(g, r, myBorderColor);
 
     r -= INNER_CIRCLE_THICKNESS;
     fillCircle(g, r, sceneContext.getColorSet().getBackground());

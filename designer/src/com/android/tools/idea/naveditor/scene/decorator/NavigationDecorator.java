@@ -22,29 +22,24 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.android.tools.idea.common.scene.draw.DrawTextRegion;
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.draw.DrawColor;
+import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle;
 import com.android.tools.idea.naveditor.scene.draw.DrawRectangle;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.frameColor;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.strokeThickness;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
 
 
 /**
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
  */
 public class NavigationDecorator extends SceneDecorator {
-  private static final int BASELINE_OFFSET = 22;
-  private static final int FONT_SIZE = 12;
-
   // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
   @NavCoordinate private static final int NAVIGATION_ARC_SIZE = 12;
   @NavCoordinate private static final int NAVIGATION_BORDER_THICKNESS = 2;
@@ -66,22 +61,23 @@ public class NavigationDecorator extends SceneDecorator {
     Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
 
     @SwingCoordinate int arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE);
-    list.add(new DrawFilledRectangle(bounds, DrawColor.COMPONENT_BACKGROUND, arcSize));
+    list.add(new DrawFilledRectangle(bounds, sceneContext.getColorSet().getComponentBackground(), arcSize));
 
     @SwingCoordinate int strokeThickness = strokeThickness(sceneContext, component, NAVIGATION_BORDER_THICKNESS);
     Rectangle frameRectangle = new Rectangle(bounds);
     frameRectangle.grow(strokeThickness, strokeThickness);
 
-    DrawColor frameColor = frameColor(component);
+    Color frameColor = frameColor(sceneContext, component);
     list.add(new DrawRectangle(frameRectangle, frameColor, strokeThickness, arcSize));
 
-    // TODO: baseline based on text size
-    // TODO: add resource resolver here?
-    String label = NavComponentHelperKt.getUiName(component.getNlComponent(), null);
-    double scale = sceneContext.getScale();
-    list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
-                                (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
-                                DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
+    String text = NavComponentHelperKt.getIncludeFileName(component.getNlComponent());
+    if (text == null) {
+      text = "Nested Graph";
+    }
+
+    Font font = scaledFont(sceneContext, Font.BOLD);
+    list.add(new DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, bounds,
+                                   textColor(sceneContext, component), font, true));
   }
 
   @Override

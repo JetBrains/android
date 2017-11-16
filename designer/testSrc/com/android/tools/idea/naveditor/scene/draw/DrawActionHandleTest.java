@@ -46,7 +46,7 @@ public class DrawActionHandleTest extends TestCase {
     ColorSet colorSet = mock(ColorSet.class);
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
-    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, DrawColor.FRAMES, DURATION);
+    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, FRAMES_COLOR, DURATION);
 
     when(colorSet.getBackground()).thenReturn(BACKGROUND_COLOR);
     when(colorSet.getFrames()).thenReturn(FRAMES_COLOR);
