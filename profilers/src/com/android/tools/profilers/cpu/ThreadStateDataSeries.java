@@ -41,11 +41,6 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
     myThreadId = tid;
   }
 
-  @VisibleForTesting
-  int getProcessId() {
-    return mySession.getPid();
-  }
-
   @Override
   public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.

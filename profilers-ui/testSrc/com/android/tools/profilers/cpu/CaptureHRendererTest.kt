@@ -29,7 +29,7 @@ class CaptureNodeHRendererTest {
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
-    val unsupportedNode = CaptureNode(SingleNameModel("write"))
+    val unsupportedNode = CaptureNode(StubCaptureNodeModel())
     val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = TestGraphics2D()
@@ -231,5 +231,19 @@ class CaptureNodeHRendererTest {
   private class TestTextFitPredicate: CaptureNodeHRenderer.TextFitsPredicate {
     var fittingLength: Int = 0
     override fun test(text: String, metrics: FontMetrics, width: Float) = text.length <= fittingLength
+  }
+
+  private class StubCaptureNodeModel : CaptureNodeModel {
+    override fun getName(): String {
+      throw UnsupportedOperationException()
+    }
+
+    override fun getFullName(): String {
+      throw UnsupportedOperationException()
+    }
+
+    override fun getId(): String {
+      throw UnsupportedOperationException()
+    }
   }
 }

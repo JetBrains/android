@@ -83,6 +83,9 @@ class AtraceDecompressorTest {
 
   companion object {
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private val KNOWN_TIMESTAMP = "189393.076368"
+
+    // Timestamp is significant as it test that leftover lines properly end with \n and are parsed. When updating the atrace file
+    // the timestamp that precedes a buffer ending with \n should be selected.
+    private val KNOWN_TIMESTAMP = "87688.590600"
   }
 }

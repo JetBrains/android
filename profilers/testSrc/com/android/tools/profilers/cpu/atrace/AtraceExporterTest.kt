@@ -51,6 +51,7 @@ class AtraceExporterTest {
 
   fun createTempTraceFile() : File {
     val tempFile = File("temp.trace")
+    tempFile.deleteOnExit()
     val streamWriter = OutputStreamWriter(FileOutputStream(tempFile))
     // Copy the trace header output, and add a fake line to fail reading.
     streamWriter.write("TRACE:\n")

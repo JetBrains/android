@@ -79,6 +79,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
 
+  private List<CpuProfiler.GetThreadsResponse.Thread> myAdditionalThreads = new ArrayList<>();
+
+  private List<CpuProfiler.TraceInfo> myAdditionalTraceInfos = new ArrayList<>();
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
@@ -124,6 +128,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public CpuProfiler.CpuProfilerType getProfilerType() {
     return myProfilerType;
+  }
+
+  public void setProfilerType(CpuProfiler.CpuProfilerType profilerType) {
+    myProfilerType = profilerType;
   }
 
   public void setTraceId(int id) {
@@ -213,7 +221,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         response.addTraceInfo(traceInfo);
       }
     }
-
+    response.addAllTraceInfo(myAdditionalTraceInfos);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -255,20 +263,29 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myEmptyUsageData = emptyUsageData;
   }
 
+  public void addAdditionalThreads(int tid, String name, List<CpuProfiler.GetThreadsResponse.ThreadActivity> threads) {
+    myAdditionalThreads.add(newThread(tid, name, threads));
+  }
+
+  public void addTraceInfo(CpuProfiler.TraceInfo infoList) {
+    myAdditionalTraceInfos.add(infoList);
+  }
+
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-    List<CpuProfiler.GetThreadsResponse.Thread> threads;
+    List<CpuProfiler.GetThreadsResponse.Thread> threads = new ArrayList<>();
     if (myValidTrace) {
       try {
-        threads = buildTraceThreads();
+        threads.addAll(buildTraceThreads());
       } catch (InterruptedException | ExecutionException | IOException e) {
-        threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
+        threads.addAll(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
       }
     } else {
-      threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
+      threads.addAll(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
     }
 
+    threads.addAll(myAdditionalThreads);
     response.addAllThreads(threads);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();

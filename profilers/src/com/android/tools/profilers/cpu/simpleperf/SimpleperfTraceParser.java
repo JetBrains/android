@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -146,9 +147,15 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @Override
-  public void parse(File trace) throws IOException {
+  public CpuCapture parse(File trace) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
+    return new CpuCapture(this);
+  }
+
+  @Override
+  public boolean supportsDualClock() {
+    return false;
   }
 
   @Override

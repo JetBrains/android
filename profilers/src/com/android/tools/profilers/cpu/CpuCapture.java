@@ -32,29 +32,20 @@ public class CpuCapture implements ConfigurableDurationData {
   private final int myMainThreadId;
 
   @NotNull
-  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
-
-  @NotNull
-  private Range myRange;
-
-  @NotNull
   private ClockType myClockType;
 
-  /**
-   * Whether the capture supports dual clock, i.e. if the method trace data can be displayed in both thread and wall-clock time.
-   */
-  private boolean myDualClock;
+  @NotNull
+  private final TraceParser myParser;
 
-  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees, boolean isDualClock) {
-    myRange = captureRange;
-    myCaptureTrees = captureTrees;
-    myDualClock = isDualClock;
+  public CpuCapture(@NotNull TraceParser parser) {
+    myParser = parser;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
+
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
         foundMainThread = true;
@@ -81,12 +72,12 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @NotNull
   public Range getRange() {
-    return myRange;
+    return myParser.getRange();
   }
 
   @Nullable
   public CaptureNode getCaptureNode(int threadId) {
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();
       }
@@ -96,16 +87,16 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @NotNull
   Set<CpuThreadInfo> getThreads() {
-    return myCaptureTrees.keySet();
+    return myParser.getCaptureTrees().keySet();
   }
 
   public boolean containsThread(int threadId) {
-    return myCaptureTrees.keySet().stream().anyMatch(info -> info.getId() == threadId);
+    return myParser.getCaptureTrees().keySet().stream().anyMatch(info -> info.getId() == threadId);
   }
 
   @Override
   public long getDuration() {
-    return (long)myRange.getLength();
+    return (long)myParser.getRange().getLength();
   }
 
   @Override
@@ -125,7 +116,7 @@ public class CpuCapture implements ConfigurableDurationData {
     }
     myClockType = clockType;
 
-    for (CaptureNode tree : myCaptureTrees.values()) {
+    for (CaptureNode tree : myParser.getCaptureTrees().values()) {
       updateClockType(tree, clockType);
     }
   }
@@ -141,6 +132,6 @@ public class CpuCapture implements ConfigurableDurationData {
   }
 
   public boolean isDualClock() {
-    return myDualClock;
+    return myParser.supportsDualClock();
   }
 }

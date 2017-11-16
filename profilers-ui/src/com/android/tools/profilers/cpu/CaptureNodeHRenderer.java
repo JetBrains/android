@@ -17,10 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
-import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +66,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     else if (nodeModel instanceof NativeNodeModel) {
       return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
+    else if (nodeModel instanceof SingleNameModel) {
+      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+    }
     throw new IllegalStateException("Node type not supported.");
   }
 
@@ -79,6 +79,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     else if (nodeModel instanceof NativeNodeModel) {
       return NativeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
+    }
+    else if (nodeModel instanceof SingleNameModel) {
+      return SingleNameModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
     throw new IllegalStateException("Node type not supported.");
   }
