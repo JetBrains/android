@@ -51,7 +51,8 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
   private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = ImmutableMap.of(
     SdkConstants.ATTR_LABEL, "Title",
     SdkConstants.ATTR_ID, "ID",
-    SdkConstants.ATTR_NAME, "Class"
+    SdkConstants.ATTR_NAME, "Class",
+    NavigationSchema.ATTR_START_DESTINATION, "Start Destination"
   );
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();

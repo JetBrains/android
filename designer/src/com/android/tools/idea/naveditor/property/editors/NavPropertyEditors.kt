@@ -22,9 +22,9 @@ import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.common.property.editors.PropertyEditors
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
-import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
 
 class NavPropertyEditors : PropertyEditors() {
 
@@ -34,9 +34,10 @@ class NavPropertyEditors : PropertyEditors() {
     when (property.name) {
       TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor()
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
+      ATTR_START_DESTINATION -> return ChildDestinationsEditor()
     }
     // TODO: handle other types
-    return NlReferenceEditor.createForInspectorWithBrowseButton(property.model.project, DEFAULT_LISTENER)
+    return TextEditor(property.model.project, DEFAULT_LISTENER)
   }
 
   companion object Factory {

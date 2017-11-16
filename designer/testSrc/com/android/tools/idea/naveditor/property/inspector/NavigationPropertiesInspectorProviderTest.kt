@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
+import com.android.tools.idea.naveditor.property.editors.ChildDestinationsEditor
 import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEditor
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
@@ -84,6 +85,26 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, destinationProperty))
     assertInstanceOf(inspector.editors.first {it.property == typeProperty}, NonEditableEditor::class.java)
     assertInstanceOf(inspector.editors.first {it.property == destinationProperty}, VisibleDestinationsEditor::class.java)
+  }
+
+  fun testNavigationInspector() {
+    val inspectorProvider = NavigationPropertiesInspectorProvider()
+
+    val root = listOf(model.find("root")!!)
+
+    val dummyProperty = SimpleProperty("foo", root)
+    val typeProperty = SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, root)
+    val idProperty = SimpleProperty(ATTR_ID, root)
+    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+
+    val properties = listOf(typeProperty, idProperty, startDestinationProperty, dummyProperty).associateBy { it.name }
+
+    assertTrue(inspectorProvider.isApplicable(root, properties, propertiesManager))
+    val inspector = inspectorProvider.createCustomInspector(root, properties, propertiesManager)
+
+    assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, startDestinationProperty))
+    assertInstanceOf(inspector.editors.first {it.property == typeProperty}, NonEditableEditor::class.java)
+    assertInstanceOf(inspector.editors.first {it.property == startDestinationProperty}, ChildDestinationsEditor::class.java)
   }
 
 }
