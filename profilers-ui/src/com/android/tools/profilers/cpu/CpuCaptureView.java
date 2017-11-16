@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
@@ -36,6 +37,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.*;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,6 +89,9 @@ class CpuCaptureView {
 
   private final JTabbedPane myTabsPanel;
 
+  @NotNull
+  private final JPanel mySearchPanel;
+
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
   // Previously, we were creating a CaptureDetailsView temporarily and grabbing its UI
   // component only. However, in the case of subclass TreeChartView that contains an
@@ -119,19 +124,31 @@ class CpuCaptureView {
 
     myTabsPanel.setOpaque(false);
 
-    myPanel = new JPanel(new TabularLayout("*,150px,Fit", "Fit,*"));
+    myPanel = new JPanel(new TabularLayout("*,Fit,Fit", "Fit,*"));
+    mySearchPanel = new JPanel(new BorderLayout());
+    mySearchPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
+    mySearchPanel.setVisible(false);
 
-    boolean isFilterEnabled = view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled();
-    if (isFilterEnabled) {
-      AutoCompleteTextField filterField =
-        myView.getIdeComponents().createAutoCompleteTextField("Filter", myView.getStage().getCaptureFilter(),
-                                                              myView.getStage().getPossibleCaptureFilters());
-      filterField.addOnDocumentChange(() -> myView.getStage().setCaptureFilter(filterField.getText()));
+    if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
+      FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
+      myPanel.add(filterButton, new TabularLayout.Constraint(0, 2));
 
-      myPanel.add(filterField.getComponent(), new TabularLayout.Constraint(0, 1));
+      SearchComponent searchComponent = myView.getIdeComponents()
+        .createProfilerSearchTextArea(getClass().getName(), ProfilerLayout.FILTER_TEXT_FIELD_WIDTH,
+                                      ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+      searchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
+
+      mySearchPanel.add(searchComponent.getComponent(), BorderLayout.CENTER);
+
+      filterButton.addActionListener(event -> {
+        mySearchPanel.setVisible(filterButton.isSelected());
+        if (!filterButton.isSelected()) {
+          searchComponent.setText("");
+        }
+      });
     }
 
-    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 2));
+    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
     myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 3));
 
     myBinder = new ViewBinder<>();
@@ -148,6 +165,9 @@ class CpuCaptureView {
       // In the constructor, we make sure to use JPanel as root components of the tabs.
       assert tab instanceof JPanel;
       ((JPanel)tab).removeAll();
+    }
+    if (mySearchPanel.getParent() != null) {
+      mySearchPanel.getParent().remove(mySearchPanel);
     }
 
     CaptureModel.Details details = myView.getStage().getCaptureDetails();
@@ -170,10 +190,10 @@ class CpuCaptureView {
     // Update selected tab content. As we need to update the content of the tabs dynamically,
     // we use a JPanel (set on the constructor) to wrap the content of each tab's content.
     // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
-    Component selectedTab = myTabsPanel.getSelectedComponent();
-    assert selectedTab instanceof JPanel;
+    JPanel selectedTab = (JPanel)myTabsPanel.getSelectedComponent();
     myDetailsView = myBinder.build(myView, details);
-    ((JPanel)selectedTab).add(myDetailsView.getComponent(), BorderLayout.CENTER);
+    selectedTab.add(mySearchPanel, BorderLayout.NORTH);
+    selectedTab.add(myDetailsView.getComponent(), BorderLayout.CENTER);
     // We're replacing the content by removing and adding a new component.
     // JComponent#removeAll doc says that we should revalidate if it is already visible.
     selectedTab.revalidate();
