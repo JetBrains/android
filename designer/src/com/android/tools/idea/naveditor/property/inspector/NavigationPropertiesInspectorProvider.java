@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,12 +41,18 @@ import static com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 public class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
   private static final String[] NAVIGATION_PROPERTIES = {
     TYPE_EDITOR_PROPERTY_LABEL,
-    SdkConstants.ATTR_NAME,
     SdkConstants.ATTR_ID,
     SdkConstants.ATTR_LABEL,
+    SdkConstants.ATTR_NAME,
     NavigationSchema.ATTR_START_DESTINATION,
     NavigationSchema.ATTR_DESTINATION
   };
+
+  private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = ImmutableMap.of(
+    SdkConstants.ATTR_LABEL, "Title",
+    SdkConstants.ATTR_ID, "ID",
+    SdkConstants.ATTR_NAME, "Class"
+  );
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 
@@ -126,7 +133,10 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
         JLabel existing = editor.getLabel();
-        String propertyName = existing != null ? existing.getText() : property.getName();
+        String propertyName = existing != null ? existing.getText() : PROPERTY_NAME_UI_NAME_MAP.get(property.getName());
+        if (propertyName == null) {
+          propertyName = property.getName();
+        }
         JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
         editor.setLabel(label);
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.SdkConstants.ATTR_LABEL
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
