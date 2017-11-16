@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -34,15 +33,6 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
   );
-
-  protected static final int DRAW_BACKGROUND_LEVEL = 0;
-  protected static final int DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1;
-  protected static final int DRAW_ACTION_LEVEL = DRAW_FRAME_LEVEL + 1;
-  protected static final int DRAW_SCREEN_LABEL_LEVEL = DRAW_ACTION_LEVEL + 1;
-  protected static final int DRAW_ICON_LEVEL = DRAW_SCREEN_LABEL_LEVEL + 1;
-  protected static final int DRAW_NAV_SCREEN_LEVEL = DRAW_ICON_LEVEL + 1;
-  protected static final int DRAW_ACTION_HANDLE_LEVEL = DRAW_NAV_SCREEN_LEVEL + 1;
-  protected static final int DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1;
 
   @Override
   @NotNull
@@ -61,33 +51,6 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
   }
 
   protected abstract void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext);
-
-  @NotNull
-  protected static String rectToString(@NotNull Rectangle r) {
-    return r.x + "x" + r.y + "x" + r.width + "x" + r.height;
-  }
-
-  @NotNull
-  protected static Rectangle stringToRect(@NotNull String s) {
-    String[] sp = s.split("x");
-    int c = -1;
-    Rectangle r = new Rectangle();
-    r.x = Integer.parseInt(sp[++c]);
-    r.y = Integer.parseInt(sp[++c]);
-    r.width = Integer.parseInt(sp[++c]);
-    r.height = Integer.parseInt(sp[++c]);
-    return r;
-  }
-
-  @NotNull
-  protected static String[] parse(@NotNull String s, int expected) {
-    String[] sp = s.split(",");
-    if (sp.length != expected + 1) {
-      throw new IllegalArgumentException();
-    }
-
-    return Arrays.copyOfRange(sp, 1, sp.length);
-  }
 
   protected static void setRenderingHints(@NotNull Graphics2D g) {
     g.setRenderingHints(HQ_RENDERING_HITS);

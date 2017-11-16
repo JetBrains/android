@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
-import com.android.tools.idea.naveditor.scene.draw.DrawColor;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
@@ -131,7 +131,8 @@ public class ActionHandleTarget extends NavBaseTarget {
       newRadius = SMALL_RADIUS;
     }
 
-    DrawColor borderColor = getComponent().isSelected() ? DrawColor.SELECTED_FRAMES : DrawColor.FRAMES;
+    ColorSet colorSet = sceneContext.getColorSet();
+    Color borderColor = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getFrames();
     int duration = Math.abs(MAX_DURATION * (myCurrentRadius - newRadius) / SMALL_RADIUS);
 
     DrawActionHandle drawCommand =

@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_NAV_SCREEN_LEVEL;
+
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
  */

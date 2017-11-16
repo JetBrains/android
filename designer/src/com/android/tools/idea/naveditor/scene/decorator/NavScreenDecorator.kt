@@ -24,19 +24,18 @@ import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.destinationType
-import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.android.tools.idea.naveditor.scene.draw.DrawColor
+import com.android.tools.idea.naveditor.scene.*
 import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawRectangle
-import com.android.tools.idea.naveditor.scene.frameColor
-import com.android.tools.idea.naveditor.scene.strokeThickness
 import com.android.tools.idea.rendering.ImagePool.Image
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.awt.Font
 import java.awt.Rectangle
 import java.io.File
 import java.util.concurrent.ExecutionException
@@ -81,7 +80,7 @@ class NavScreenDecorator : SceneDecorator() {
 
   private fun addFragmentContent(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
-    list.add(DrawRectangle(drawRectangle, DrawColor.FRAMES, 1))
+    list.add(DrawRectangle(drawRectangle, sceneContext.colorSet.frames, 1))
 
     val imageRectangle = Rectangle(drawRectangle)
     imageRectangle.grow(-1, -1)
@@ -95,7 +94,7 @@ class NavScreenDecorator : SceneDecorator() {
         val outerRectangle = Rectangle(drawRectangle)
         outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
 
-        list.add(DrawRectangle(outerRectangle, frameColor(component), outerBorderThickness, 2 * borderSpacing))
+        list.add(DrawRectangle(outerRectangle, frameColor(sceneContext, component), outerBorderThickness, 2 * borderSpacing))
       }
       else -> {
       }
@@ -105,10 +104,10 @@ class NavScreenDecorator : SceneDecorator() {
   private fun addActivityContent(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
     val arcSize = Coordinates.getSwingDimension(sceneContext, ACTIVITY_ARC_SIZE)
-    list.add(DrawFilledRectangle(drawRectangle, DrawColor.COMPONENT_BACKGROUND, arcSize))
+    list.add(DrawFilledRectangle(drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
 
     @SwingCoordinate val strokeThickness = strokeThickness(sceneContext, component, ACTIVITY_BORDER_THICKNESS)
-    list.add(DrawRectangle(drawRectangle, frameColor(component), strokeThickness, arcSize))
+    list.add(DrawRectangle(drawRectangle, frameColor(sceneContext, component), strokeThickness, arcSize))
 
     val imageRectangle = Rectangle(drawRectangle)
 
@@ -119,13 +118,18 @@ class NavScreenDecorator : SceneDecorator() {
     imageRectangle.height -= (activityTextHeight - activityPadding)
 
     drawImage(list, sceneContext, component, imageRectangle)
-    // TODO: Add "Activity" text
+
+    val textRectangle = Rectangle(drawRectangle.x, imageRectangle.y + imageRectangle.height, drawRectangle.width, activityTextHeight)
+    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", textRectangle, textColor(sceneContext, component),
+        scaledFont(sceneContext, Font.BOLD), true))
   }
 
   private fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
     val image = buildImage(sceneContext, component)
     if (image == null) {
-      // TODO: Display "Image not available" message
+      list.add(DrawFilledRectangle(rectangle, sceneContext.colorSet.componentBackground, 0))
+      list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Preview Unavailable", rectangle, sceneContext.colorSet.text,
+          scaledFont(sceneContext, Font.PLAIN), true))
     }
     else {
       list.add(DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image))
