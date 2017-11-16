@@ -22,7 +22,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 
-abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
+abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
 
