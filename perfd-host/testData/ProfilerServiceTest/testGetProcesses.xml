@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesRequest">
         <Message></Message>
