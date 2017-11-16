@@ -29,7 +29,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -52,7 +51,6 @@ public final class NewAndroidComponentActionTest {
   private Disposable myDisposable;
   private AnActionEvent myActionEvent;
   private MockAndroidFacet mySelectedAndroidFacet;
-  private MockAndroidFacet myOtherAndroidFacet;
 
   @Before
   public void setUp() throws Exception {
@@ -65,17 +63,11 @@ public final class NewAndroidComponentActionTest {
     ApplicationManager.setApplication(mockApplication, myDisposable);
     mockApplication.getPicoContainer().registerComponentInstance(FacetTypeRegistry.class.getName(), facetTypeRegistry);
 
-    ModuleManager myModuleManager = mock(ModuleManager.class);
-
     Project project = mock(Project.class);
     Disposer.register(myDisposable, project);
     when(project.getPicoContainer()).thenReturn(mockApplication.getPicoContainer());
-    when(project.getComponent(ModuleManager.class)).thenReturn(myModuleManager);
 
     mySelectedAndroidFacet = new MockAndroidFacet(project);
-    myOtherAndroidFacet = new MockAndroidFacet(project);
-
-    when(myModuleManager.getModules()).thenReturn(new Module[] {mySelectedAndroidFacet.getModule(), myOtherAndroidFacet.getModule()});
 
     DataContext dataContext = mock(DataContext.class);
     when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mySelectedAndroidFacet.getModule());
@@ -109,18 +101,16 @@ public final class NewAndroidComponentActionTest {
   }
 
   @Test
-  public void appTypePresentationShouldBeDisabledForIapp() {
-    myOtherAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
+  public void appTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_APP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
 
   @Test
   public void instantTypePresentationShouldBeDisabledForIapp() {
-    myOtherAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
     mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_INSTANTAPP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
@@ -130,7 +120,6 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void libraryTypePresentationShouldBeEnabledForIapp() {
-    myOtherAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
     mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_LIBRARY);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
@@ -140,7 +129,6 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void testTypePresentationShouldBeEnabledForIapp() {
-    myOtherAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
     mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_TEST);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
@@ -150,7 +138,6 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void featureTypePresentationShouldBeEnabledForIapp() {
-    myOtherAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
     mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
