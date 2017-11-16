@@ -49,7 +49,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
     MultiResourceRepository parent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
 
-    myPanel.getTable().setModel(new StringResourceTableModel(new StringResourceRepository(parent).getData(myFacet)));
+    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
 
     myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
   }
