@@ -44,9 +44,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -378,6 +376,30 @@ public class TutorialStep extends JPanel {
       // Set the background manually as it appears to persist as an old color on theme change.
       editor.setBackgroundColor(UIUtils.getBackgroundColor());
       editor.addEditorMouseListener(new AutoTextSelectionListener(editor));
+
+      // a11y improvement, disable traversal and add custom key listener for tab/shift + tab so the Tutorial can be navigated using keyboard only
+      editor.getContentComponent().setFocusTraversalKeysEnabled(false);
+      editor.getContentComponent().addKeyListener(new KeyListener() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+          if (e.getKeyChar() != KeyEvent.VK_TAB) return;
+
+          if (e.getModifiers() == KeyEvent.SHIFT_MASK) {
+            editor.getContentComponent().transferFocusBackward();
+            return;
+          }
+          
+          editor.getContentComponent().transferFocus();
+        }
+      });
 
       JScrollPane scroll = editor.getScrollPane();
 
