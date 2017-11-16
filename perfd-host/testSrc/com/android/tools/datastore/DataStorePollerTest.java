@@ -24,6 +24,10 @@ import static org.mockito.Mockito.*;
 
 public class DataStorePollerTest {
 
+  protected static final Common.Device DEVICE = Common.Device.newBuilder()
+    .setBootId("TEST_BOOT_ID")
+    .setSerial("TEST_DEVICE_SERIAL")
+    .build();
 
   protected static final Common.Session SESSION = Common.Session.newBuilder()
     .setBootId("TEST_BOOT_ID")

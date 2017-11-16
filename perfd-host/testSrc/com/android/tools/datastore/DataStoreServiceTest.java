@@ -101,7 +101,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       myDataStore.getProfilerClient(DataStorePollerTest.SESSION);
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
+    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setDevice(DataStorePollerTest.DEVICE).build());
     assertEquals(response, EXPECTED_VERSION);
   }
 
@@ -111,7 +111,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build());
+    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setDevice(DataStorePollerTest.DEVICE).build());
     assertEquals(response, EXPECTED_VERSION);
     myDataStore.disconnect(DataStorePollerTest.SESSION);
     myExpectedException.expect(StatusRuntimeException.class);
@@ -145,13 +145,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @Override
     public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      String serial = DataStorePollerTest.SESSION.getDeviceSerial();
-      String bootid = DataStorePollerTest.SESSION.getBootId();
-      Profiler.Device device = Profiler.Device.newBuilder()
-        .setSerial(serial)
-        .setBootId(bootid)
-        .build();
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(device).build());
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
       responseObserver.onCompleted();
     }
 

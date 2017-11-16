@@ -20,7 +20,6 @@ import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.Device;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
 
@@ -32,9 +31,10 @@ import java.util.concurrent.TimeUnit;
 
 public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.DataStoreTableErrorCallback {
   private static final class DeviceData {
-    public final Profiler.Device device;
-    public final Set<Profiler.Process> processes = new HashSet<>();
-    public DeviceData(Device device) {
+    public final Common.Device device;
+    public final Set<Common.Process> processes = new HashSet<>();
+
+    public DeviceData(Common.Device device) {
       this.device = device;
     }
   }
@@ -67,7 +67,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
     try {
       Profiler.GetDevicesRequest devicesRequest = Profiler.GetDevicesRequest.newBuilder().build();
       Profiler.GetDevicesResponse deviceResponse = myPollingService.getDevices(devicesRequest);
-      for (Device device : deviceResponse.getDeviceList()) {
+      for (Common.Device device : deviceResponse.getDeviceList()) {
         myTable.insertOrUpdateDevice(device);
         // TODO Store off session, and if it changes fix any session specific data in the database.
         Common.Session session = Common.Session.newBuilder()
@@ -78,13 +78,13 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
 
         myService.setConnectedClients(session, myPollingService.getChannel());
         Profiler.GetProcessesRequest processesRequest =
-          Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
+          Profiler.GetProcessesRequest.newBuilder().setDevice(device).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
 
         // Gather the list of last known active processes.
-        Set<Profiler.Process> liveProcesses = new HashSet<>();
+        Set<Common.Process> liveProcesses = new HashSet<>();
 
-        for (Profiler.Process process : processesResponse.getProcessList()) {
+        for (Common.Process process : processesResponse.getProcessList()) {
           myTable.insertOrUpdateProcess(session, process);
           liveProcesses.add(process);
 
@@ -125,15 +125,15 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
     myDevices.clear();
   }
 
-  private void disconnectDevice(Device device) {
-    Device disconnectedDevice = device.toBuilder().setState(Device.State.DISCONNECTED).build();
+  private void disconnectDevice(Common.Device device) {
+    Common.Device disconnectedDevice = device.toBuilder().setState(Common.Device.State.DISCONNECTED).build();
     myTable.insertOrUpdateDevice(disconnectedDevice);
   }
 
-  private void killProcesses(Common.Session session, Set<Profiler.Process> processes) {
-    for (Profiler.Process process : processes) {
-      Profiler.Process updatedProcess = process.toBuilder()
-        .setState(Profiler.Process.State.DEAD)
+  private void killProcesses(Common.Session session, Set<Common.Process> processes) {
+    for (Common.Process process : processes) {
+      Common.Process updatedProcess = process.toBuilder()
+        .setState(Common.Process.State.DEAD)
         .build();
       myTable.insertOrUpdateProcess(session, updatedProcess);
     }

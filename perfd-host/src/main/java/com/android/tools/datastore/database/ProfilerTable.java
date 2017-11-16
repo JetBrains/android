@@ -116,7 +116,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE);
         while (results.next()) {
-          responseBuilder.addDevice(Profiler.Device.parseFrom(results.getBytes(1)));
+          responseBuilder.addDevice(Common.Device.parseFrom(results.getBytes(1)));
         }
       }
       catch (InvalidProtocolBufferException | SQLException ex) {
@@ -133,11 +133,14 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
       try {
+        // TODO fix the device->session translation. SELECT_PROCESSES should now be based on Device instead of Sessions.
+        Common.Device device = request.getDevice();
+        Common.Session session = Common.Session.newBuilder().setBootId(device.getBootId()).setDeviceSerial(device.getSerial()).build();
         ResultSet results =
-          executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getSession(), Long.MIN_VALUE, Long.MAX_VALUE);
+          executeQuery(ProfilerStatements.SELECT_PROCESSES, session, Long.MIN_VALUE, Long.MAX_VALUE);
         while (results.next()) {
           byte[] data = results.getBytes(1);
-          Profiler.Process process = data == null ? Profiler.Process.getDefaultInstance() : Profiler.Process.parseFrom(data);
+          Common.Process process = data == null ? Common.Process.getDefaultInstance() : Common.Process.parseFrom(data);
           responseBuilder.addProcess(process);
         }
       }
@@ -148,7 +151,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
-  public void insertOrUpdateDevice(Profiler.Device device) {
+  public void insertOrUpdateDevice(Common.Device device) {
     synchronized (myLock) {
       //TODO: Update start/end times with times polled from device.
       //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
@@ -166,7 +169,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
-  public void insertOrUpdateProcess(Common.Session session, Profiler.Process process) {
+  public void insertOrUpdateProcess(Common.Session session, Common.Process process) {
     synchronized (myLock) {
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, session, process.getPid(), 0L);
@@ -190,7 +193,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
    * If for some reason the agent freezes and we stop receiving a valid heartbeat momentarily, this will not downgrade the HasAgent status
    * in the process entry.
    */
-  public void updateAgentStatus(Common.Session session, Profiler.Process process, Profiler.AgentStatusResponse agentStatus) {
+  public void updateAgentStatus(Common.Session session, Common.Process process, Profiler.AgentStatusResponse agentStatus) {
     synchronized (myLock) {
       try {
         ResultSet results =

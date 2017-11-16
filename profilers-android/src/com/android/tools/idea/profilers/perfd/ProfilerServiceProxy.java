@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
@@ -58,8 +59,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
-  @NotNull private final Profiler.Device myProfilerDevice;
-  private final Map<Client, Profiler.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
+  @NotNull private final Common.Device myProfilerDevice;
+  private final Map<Client, Common.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
   private final boolean myIsDeviceApiSupported;
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
@@ -78,7 +79,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     else {
       // if device API level is not supported, sets an arbitrary boot id to be used in the device session
       myProfilerDevice =
-        profilerDeviceFromIDevice(device, Profiler.Device.newBuilder().setBootId(String.valueOf(device.getSerialNumber().hashCode())));
+        profilerDeviceFromIDevice(device, Common.Device.newBuilder().setBootId(String.valueOf(device.getSerialNumber().hashCode())));
     }
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
@@ -89,9 +90,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   /**
-   * Receives a {@link Profiler.Device.Builder} and converts it into a {@link Profiler.Device}.
+   * Receives a {@link Common.Device.Builder} and converts it into a {@link Common.Device}.
    */
-  private static Profiler.Device profilerDeviceFromIDevice(IDevice device, Profiler.Device.Builder builder) {
+  private static Common.Device profilerDeviceFromIDevice(IDevice device, Common.Device.Builder builder) {
     return builder.setSerial(device.getSerialNumber())
       .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
@@ -105,23 +106,23 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   @TestOnly
-  public static Profiler.Device profilerDeviceFromIDevice(IDevice device) {
-    return profilerDeviceFromIDevice(device, Profiler.Device.newBuilder());
+  public static Common.Device profilerDeviceFromIDevice(IDevice device) {
+    return profilerDeviceFromIDevice(device, Common.Device.newBuilder());
   }
 
-  private static Profiler.Device.State convertState(IDevice.DeviceState state) {
+  private static Common.Device.State convertState(IDevice.DeviceState state) {
     switch (state) {
       case OFFLINE:
-        return Profiler.Device.State.OFFLINE;
+        return Common.Device.State.OFFLINE;
 
       case ONLINE:
-        return Profiler.Device.State.ONLINE;
+        return Common.Device.State.ONLINE;
 
       case DISCONNECTED:
-        return Profiler.Device.State.DISCONNECTED;
+        return Common.Device.State.DISCONNECTED;
 
       default:
-        return Profiler.Device.State.UNSPECIFIED;
+        return Common.Device.State.UNSPECIFIED;
     }
   }
 
@@ -266,13 +267,14 @@ public class ProfilerServiceProxy extends PerfdProxyService
       String abiCpuArch;
       if (abi != null && abi.contains(")")) {
         abiCpuArch = abi.substring(abi.indexOf("(") + 1, abi.indexOf(")"));
-      } else {
+      }
+      else {
         abiCpuArch = Abi.getEnum(myDevice.getAbis().get(0)).getCpuArch();
       }
 
       // TODO: Set this to the applications actual start time.
-      myCachedProcesses.put(client, Profiler.Process.newBuilder().setName(client.getClientData().getClientDescription())
-        .setPid(client.getClientData().getPid()).setState(Profiler.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
+      myCachedProcesses.put(client, Common.Process.newBuilder().setName(client.getClientData().getClientDescription())
+        .setPid(client.getClientData().getPid()).setState(Common.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
         .setAbiCpuArch(abiCpuArch)
         .build());
     }
@@ -280,7 +282,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   @TestOnly
   @NotNull
-  Map<Client, Profiler.Process> getCachedProcesses() {
+  Map<Client, Common.Process> getCachedProcesses() {
     return myCachedProcesses;
   }
 }

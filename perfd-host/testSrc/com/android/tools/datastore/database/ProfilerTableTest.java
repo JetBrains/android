@@ -54,7 +54,7 @@ public class ProfilerTableTest {
       .setBootId("BootId")
       .setDeviceSerial("DeviceSerial")
       .build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(99)
       .setName("FakeProcess")
       .build();
@@ -86,10 +86,10 @@ public class ProfilerTableTest {
       .setBootId("BootId")
       .setDeviceSerial("DeviceSerial")
       .build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(99)
       .setName("FakeProcess")
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .build();
 
     // Setup initial process and status.
@@ -104,7 +104,7 @@ public class ProfilerTableTest {
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
 
     // Update the process entry and verify that the agent status remains the same.
-    process = process.toBuilder().setState(Profiler.Process.State.DEAD).build();
+    process = process.toBuilder().setState(Common.Process.State.DEAD).build();
     myTable.insertOrUpdateProcess(session, process);
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
   }

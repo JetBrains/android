@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -901,11 +900,12 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
-    Profiler.Device device =
-      Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Device device =
+      Common.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Common.Device.State.ONLINE).build();
+    Common.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Common.Device.State.ONLINE).build();
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
     Common.Session session = Common.Session.newBuilder()

@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +126,7 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
     myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
     myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
 
-    Profiler.Device selectedDevice = myProfilers.getDevice();
+    Common.Device selectedDevice = myProfilers.getDevice();
     // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
     // causing a null pointer exception here.
     boolean isSimplePerfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
@@ -149,7 +149,7 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
 
   private List<ProfilingConfiguration> filterConfigurations(List<ProfilingConfiguration> configurations, boolean filterOnDevice) {
     // Simpleperf/Atrace profiling is not supported by devices older than O
-    Profiler.Device selectedDevice = myProfilers.getDevice();
+    Common.Device selectedDevice = myProfilers.getDevice();
     Predicate<ProfilingConfiguration> filter = pref -> {
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;

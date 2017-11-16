@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.analytics;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
@@ -27,21 +27,17 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableMap;
-import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
-import com.google.wireless.android.sdk.stats.CpuCaptureMetadata;
-import com.google.wireless.android.sdk.stats.DeviceInfo;
+import com.google.wireless.android.sdk.stats.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class StudioFeatureTracker implements FeatureTracker {
 
   @Nullable
-  private Profiler.Device myActiveDevice;
+  private Common.Device myActiveDevice;
 
   @Nullable
-  private Profiler.Process myActiveProcess;
+  private Common.Process myActiveProcess;
 
   private final ImmutableMap<Class<? extends Stage>, AndroidProfilerEvent.Stage> STAGE_MAP =
     ImmutableMap.<Class<? extends Stage>, AndroidProfilerEvent.Stage>builder()
@@ -72,7 +68,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackChangeDevice(@Nullable Profiler.Device device) {
+  public void trackChangeDevice(@Nullable Common.Device device) {
     if (myActiveDevice != device) {
       myActiveDevice = device;
       newTracker(AndroidProfilerEvent.Type.CHANGE_DEVICE).setDevice(myActiveDevice).track();
@@ -80,7 +76,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackChangeProcess(@Nullable Profiler.Process process) {
+  public void trackChangeProcess(@Nullable Common.Process process) {
     if (myActiveProcess != process) {
       myActiveProcess = process;
       newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice).track();
@@ -248,7 +244,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private static final class Tracker {
     @NotNull private final AndroidProfilerEvent.Type myEventType;
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
-    @Nullable private Profiler.Device myDevice;
+    @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
@@ -257,7 +253,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
-    public Tracker setDevice(@Nullable Profiler.Device device) {
+    public Tracker setDevice(@Nullable Common.Device device) {
       myDevice = device;
       return this;
     }

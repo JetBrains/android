@@ -41,7 +41,7 @@ public class MemoryProfilerTest {
     new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myProfilerService, new FakeEventService(), new FakeCpuService(),
                         FakeNetworkService.newBuilder().build());
 
-  private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
+  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;
   private FakeTimer myTimer;
@@ -125,8 +125,6 @@ public class MemoryProfilerTest {
     // AllocationsInfo should be queried for {0ns, 1ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
     Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(-1));
     Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(2));
-
-
   }
 
   @Test
@@ -142,9 +140,9 @@ public class MemoryProfilerTest {
     Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
 
     // Switch to a different process. We should expect a suspend + resume pair.
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(21)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .setName("PreferredFakeProcess")
       .build();
     myStudioProfiler.setPreferredProcessName("PreferredFakeProcess");
@@ -175,14 +173,14 @@ public class MemoryProfilerTest {
   }
 
   private void setupODeviceAndProcess() {
-    Profiler.Device device = Profiler.Device.newBuilder()
+    Common.Device device = Common.Device.newBuilder()
       .setSerial("FakeDevice")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .setFeatureLevel(AndroidVersion.VersionCodes.O)
       .build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();

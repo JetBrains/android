@@ -56,7 +56,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    // TODO fix the device->session translation. myService.getProfilerClient should now be based on Device instead of Sessions.
+    Common.Device device = request.getDevice();
+    Common.Session session = Common.Session.newBuilder().setBootId(device.getBootId()).setDeviceSerial(device.getSerial()).build();
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(session);
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
     }
@@ -69,7 +72,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> observer) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    // TODO fix the device->session translation. myService.getProfilerClient should now be based on Device instead of Sessions.
+    Common.Device device = request.getDevice();
+    Common.Session session = Common.Session.newBuilder().setBootId(device.getBootId()).setDeviceSerial(device.getSerial()).build();
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(session);
     if (client != null) {
       observer.onNext(client.getVersion(request));
     }

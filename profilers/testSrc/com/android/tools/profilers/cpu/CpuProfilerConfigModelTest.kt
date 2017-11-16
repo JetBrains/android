@@ -16,7 +16,8 @@
 package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.profiler.proto.Profiler
+import com.android.tools.profiler.proto.Common.*
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -24,7 +25,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
-import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -166,7 +166,7 @@ class CpuProfilerConfigModelTest {
   }
 
   fun setDevice(featureLevel: Int) {
-    val device = Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial("TestSerial").setState(Profiler.Device.State.ONLINE).build()
+    val device = Device.newBuilder().setFeatureLevel(featureLevel).setSerial("TestSerial").setState(Device.State.ONLINE).build()
     myProfilers?.setDevice(device)
   }
 }

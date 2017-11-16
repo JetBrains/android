@@ -43,16 +43,15 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static final String DEVICE_SERIAL = "SomeSerialId";
   private static final String BOOT_ID = "SOME BOOT ID";
-  private static final Common.Session SESSION = Common.Session.newBuilder()
+  private static final Common.Device DEVICE = Common.Device.newBuilder()
     .setBootId(BOOT_ID)
-    .setDeviceSerial(DEVICE_SERIAL)
+    .setSerial(DEVICE_SERIAL)
     .build();
-
-  private static final Profiler.Process INITIAL_PROCESS = Profiler.Process.newBuilder()
+  private static final Common.Process INITIAL_PROCESS = Common.Process.newBuilder()
     .setPid(1234)
     .setName("INITIAL")
     .build();
-  private static final Profiler.Process FINAL_PROCESS = Profiler.Process.newBuilder()
+  private static final Common.Process FINAL_PROCESS = Common.Process.newBuilder()
     .setPid(4321)
     .setName("FINAL")
     .build();
@@ -109,7 +108,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testGetDevices() throws Exception {
     StreamObserver<Profiler.GetDevicesResponse> observer = mock(StreamObserver.class);
     Profiler.GetDevicesResponse expected = Profiler.GetDevicesResponse.newBuilder()
-      .addDevice(Profiler.Device.newBuilder()
+      .addDevice(Common.Device.newBuilder()
                    .setSerial(DEVICE_SERIAL)
                    .setBootId(BOOT_ID)
                    .build())
@@ -124,10 +123,10 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     getPollTicker().run();
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS.toBuilder().setState(Profiler.Process.State.DEAD))
+      .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
       .build();
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
-      .setSession(SESSION)
+      .setDevice(DEVICE)
       .build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
@@ -137,7 +136,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testGetProcesses() throws Exception {
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
-      .setSession(SESSION)
+      .setDevice(DEVICE)
       .build();
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS)
@@ -150,7 +149,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testGetDeadProcesses() throws Exception {
     StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
     Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
-      .setSession(SESSION)
+      .setDevice(DEVICE)
       .build();
     Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS)
@@ -165,7 +164,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     getPollTicker().run();
     observer = mock(StreamObserver.class);
     expected = Profiler.GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS.toBuilder().setState(Profiler.Process.State.DEAD))
+      .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
       .addProcess(FINAL_PROCESS)
       .build();
     myProfilerService.getProcesses(request, observer);
@@ -232,9 +231,9 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
-    Profiler.Process myProcessToReturn = INITIAL_PROCESS;
+    Common.Process myProcessToReturn = INITIAL_PROCESS;
 
-    public void setProcessToReturn(Profiler.Process process) {
+    public void setProcessToReturn(Common.Process process) {
       myProcessToReturn = process;
     }
 
@@ -263,7 +262,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
     @Override
     public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Profiler.Device.newBuilder()
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Common.Device.newBuilder()
                                                                                    .setSerial(DEVICE_SERIAL)
                                                                                    .setBootId(BOOT_ID)
                                                                                    .build()).build());

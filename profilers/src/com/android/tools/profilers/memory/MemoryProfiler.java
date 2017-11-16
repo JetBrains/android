@@ -47,7 +47,7 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Profiler.Process process) {
+  public void startProfiling(Common.Session session, Common.Process process) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setProcessId(process.getPid())
                                                                    .setSession(session).build());
@@ -65,7 +65,7 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Common.Process process) {
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
         myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
@@ -91,7 +91,8 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Common.Session session = myProfilers.getSession();
-    Profiler.Process process = myProfilers.getProcess();
+    Common.Device device = myProfilers.getDevice();
+    Common.Process process = myProfilers.getProcess();
     if (session == null || process == null) {
       // Early return if no profiling is in session.
       return;
@@ -106,7 +107,7 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build());
+      .getCurrentTime(Profiler.TimeRequest.newBuilder().setDevice(device).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.

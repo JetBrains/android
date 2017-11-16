@@ -41,7 +41,7 @@ public class NullMonitorStageTest {
     assertEquals(stage.getTitle(), NullMonitorStage.ANDROID_PROFILER_TITLE);
 
     // Add a device
-    Profiler.Device device = Profiler.Device.getDefaultInstance();
+    Common.Device device = Common.Device.getDefaultInstance();
     myRpcService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Device has no valid API. Check the message and the title have changed to the appropriate ones.
@@ -53,7 +53,7 @@ public class NullMonitorStageTest {
       .setBootId(device.getBootId())
       .setDeviceSerial(device.getSerial())
       .build();
-    Profiler.Device oldApiDevice = Profiler.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.KITKAT_WATCH).build();
+    Common.Device oldApiDevice = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.KITKAT_WATCH).build();
     myRpcService.updateDevice(session, device, oldApiDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Check the message and the title have not changed.
@@ -61,7 +61,7 @@ public class NullMonitorStageTest {
     assertEquals(stage.getTitle(), NullMonitorStage.DEVICE_NOT_SUPPORTED_TITLE);
 
     // Update the device to an API >= 21 and tick the timer to let it to be updated.
-    Profiler.Device newApiDevice = Profiler.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.LOLLIPOP).build();
+    Common.Device newApiDevice = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.LOLLIPOP).build();
     myRpcService.updateDevice(session, oldApiDevice, newApiDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Device has valid API, but no debuggable processes.

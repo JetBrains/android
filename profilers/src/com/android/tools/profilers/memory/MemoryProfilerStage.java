@@ -345,7 +345,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   public void trackAllocations(boolean enabled) {
     // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device time.
     Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+      .getCurrentTime(Profiler.TimeRequest.newBuilder().setDevice(getStudioProfilers().getDevice()).build());
     long timeNs = timeResponse.getTimestampNs();
 
     try {
@@ -391,7 +391,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   public long getAllocationTrackingElapsedTimeNs() {
     if (myTrackingAllocations) {
       Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-        .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+        .getCurrentTime(Profiler.TimeRequest.newBuilder().setDevice(getStudioProfilers().getDevice()).build());
       return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
     }
     return INVALID_START_TIME;
