@@ -79,7 +79,7 @@ public class SwitchDebuggersTest extends DebuggerTestBase {
    */
   @Ignore("b/37093995: Attaching the debugger to running process fails while switching one deubugger mode to other")
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/37093995
   public void switchDebuggersUsingAttachToDebugger() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SwitchDebuggers");
