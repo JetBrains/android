@@ -19,10 +19,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
-import com.android.tools.idea.naveditor.property.NavActionsProperty
-import com.android.tools.idea.naveditor.property.NavArgumentsProperty
-import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
-import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.collect.Table
@@ -66,6 +63,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testMultipleTypes() {
@@ -77,6 +75,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testInclude() {
@@ -87,6 +86,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
     assertFalse(captor.value.containsKey("Arguments"))
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testNested() {
@@ -97,6 +97,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testActivity() {
@@ -107,6 +108,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testAction() {
@@ -117,6 +119,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertFalse(captor.value.containsKey(SET_START_DESTINATION_PROPERTY_NAME))
   }
 
   fun testFragment() {
@@ -127,5 +130,6 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 }
