@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.module.Module;
@@ -23,15 +24,16 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.fd.InstantRunManager.MIN_IR_API_VERSION;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.API_TOO_LOW_FOR_INSTANT_RUN;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.DISABLE_INSTANT_RUN_WHEN_PROFILING;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -43,12 +45,14 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
   @Mock AndroidFacet facet;
   @Mock Executor executor;
   private AndroidRunConfigurationBase myRunConfig;
+  private ProfilerState myProfilerState;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
     myRunConfig = new AndroidTestRunConfiguration(getProject(), mock(ConfigurationFactory.class), false);
+    myProfilerState = new ProfilerState();
   }
 
   // canInstantRunTests
@@ -58,15 +62,34 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     devices.add(mock(AndroidDevice.class));
     devices.add(mock(AndroidDevice.class));
 
-    assertEquals(CANNOT_BUILD_FOR_MULTIPLE_DEVICES, myRunConfig.canInstantRun(module, devices));
+    assertEquals(CANNOT_BUILD_FOR_MULTIPLE_DEVICES, myRunConfig.canInstantRun(module, devices, executor, myProfilerState));
   }
 
   public void testApiTooLow() {
-    List<AndroidDevice> devices = new ArrayList(2);
+    List<AndroidDevice> devices = new ArrayList(1);
     AndroidDevice device = mock(AndroidDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(MIN_IR_API_VERSION - 1));
     devices.add(device);
-    assertEquals(API_TOO_LOW_FOR_INSTANT_RUN, myRunConfig.canInstantRun(module, devices));
+    assertEquals(API_TOO_LOW_FOR_INSTANT_RUN, myRunConfig.canInstantRun(module, devices, executor, myProfilerState));
+  }
+
+  public void testDisabledForProfilingExecutor() {
+    when(executor.getId()).thenReturn(ProfilerState.PROFILER_EXECUTOR_ID);
+    List<AndroidDevice> devices = new ArrayList(1);
+    AndroidDevice device = mock(AndroidDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(25));
+    devices.add(device);
+    assertEquals(DISABLE_INSTANT_RUN_WHEN_PROFILING, myRunConfig.canInstantRun(module, devices, executor, myProfilerState));
+  }
+
+  public void testDisabledForProfilingEnabled() {
+    when(executor.getId()).thenReturn(ID);
+    myProfilerState.ADVANCED_PROFILING_ENABLED = true;
+    List<AndroidDevice> devices = new ArrayList(1);
+    AndroidDevice device = mock(AndroidDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(25));
+    devices.add(device);
+    assertEquals(DISABLE_INSTANT_RUN_WHEN_PROFILING, myRunConfig.canInstantRun(module, devices, executor, myProfilerState));
   }
 
   // prepareInstantRunSession tests
