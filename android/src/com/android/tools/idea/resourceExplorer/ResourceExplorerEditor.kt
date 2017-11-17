@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.resourceExplorer
 
+import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.ui.JBColor
+import org.jetbrains.android.facet.AndroidFacet
+import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -28,14 +30,14 @@ import javax.swing.JPanel
 /**
  * Editor to manage the resources of the project
  */
-class ResourceExplorerEditor : UserDataHolderBase(), FileEditor {
-  private val component = JPanel()
+class ResourceExplorerEditor(facet : AndroidFacet) : UserDataHolderBase(), FileEditor {
+  private val root = JPanel(BorderLayout())
 
   init {
-    component.background = JBColor.green
+    root.add(ExternalResourceBrowser(facet), BorderLayout.EAST)
   }
 
-  override fun getComponent(): JComponent = component
+  override fun getComponent(): JComponent = root
 
   override fun getPreferredFocusedComponent(): JComponent? = null
 

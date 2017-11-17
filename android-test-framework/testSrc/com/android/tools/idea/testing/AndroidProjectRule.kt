@@ -90,7 +90,7 @@ class AndroidProjectRule private constructor(
      * using a [JavaTestFixtureFactory]
      */
     @JvmStatic
-    fun onDisk(fixtureName: String?) = AndroidProjectRule(
+    fun onDisk(fixtureName: String? = null) = AndroidProjectRule(
         lightFixture = false,
         fixtureName = fixtureName)
   }
