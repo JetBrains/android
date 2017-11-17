@@ -197,11 +197,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       for (Common.Device device : devices) {
-        Common.Session session = Common.Session.newBuilder()
-          .setDeviceSerial(device.getSerial())
-          .setBootId(device.getBootId())
-          .build();
-        GetProcessesRequest request = GetProcessesRequest.newBuilder().setDevice(device).build();
+        GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
         GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
 
         int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
@@ -314,10 +310,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       changed(ProfilerAspect.DEVICES);
 
       if (myDevice != null) {
-        mySessionData = Common.Session.newBuilder()
-          .setDeviceSerial(myDevice.getSerial())
-          .setBootId(myDevice.getBootId())
-          .build();
+        mySessionData = Common.Session.newBuilder().setDeviceId(myDevice.getDeviceId()).build();
       }
       else {
         mySessionData = null;
@@ -362,8 +355,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (myDevice != null && myProcess != null &&
           myDevice.getState() == Common.Device.State.ONLINE &&
           myProcess.getState() == Common.Process.State.ALIVE) {
-
-        TimeResponse response = myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDevice(myDevice).build());
+        TimeResponse response =
+          myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
         long currentDeviceTime = response.getTimestampNs();
         long runTime = currentDeviceTime - myProcess.getStartTimestampNs();
         myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
@@ -439,11 +432,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return AgentStatusResponse.getDefaultInstance().getStatus();
     }
 
-    Common.Session session = Common.Session.newBuilder()
-      .setDeviceSerial(myDevice.getSerial())
-      .setBootId(myDevice.getBootId())
-      .build();
-    AgentStatusRequest statusRequest = AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
+    AgentStatusRequest statusRequest =
+      AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setDeviceId(myDevice.getDeviceId()).build();
     return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
   }
 

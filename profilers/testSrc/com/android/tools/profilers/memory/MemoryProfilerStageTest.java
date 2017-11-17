@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 
@@ -431,18 +432,18 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAgentStatusUpdatesObjectSeries() {
     // Test that agent status change fires after a process is selected.
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();

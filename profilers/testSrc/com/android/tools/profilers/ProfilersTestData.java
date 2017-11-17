@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.Common;
 
 public class ProfilersTestData {
   public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
-    .setBootId("SOME_RANDOM_BOOT_ID")
-    .setDeviceSerial("TEST_DEVICE_SERIAL")
+    .setDeviceId(1234)
     .build();
 }

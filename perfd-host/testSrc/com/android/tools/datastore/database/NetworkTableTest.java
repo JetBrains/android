@@ -36,14 +36,8 @@ public class NetworkTableTest {
   private static final int VALID_CONN_ID = 3;
   private static final int INVALID_CONN_ID = -1;
   private static final int TEST_DATA = 10;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder()
-    .setBootId("VALID_SESSION")
-    .setDeviceSerial("SERIAL")
-    .build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder()
-    .setBootId("INVALID_SESSION")
-    .setDeviceSerial("SERIAL")
-    .build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
 
   private File myDbFile;
   private NetworkTable myTable;
@@ -67,7 +61,7 @@ public class NetworkTableTest {
   }
 
   private void populateDatabase() {
-    for( int i = 0; i < TEST_DATA; i++) {
+    for (int i = 0; i < TEST_DATA; i++) {
       NetworkProfiler.HttpConnectionData connection = NetworkProfiler.HttpConnectionData.newBuilder()
         .setConnId(VALID_CONN_ID + i)
         .setStartTimestamp(100 + i)
@@ -88,36 +82,40 @@ public class NetworkTableTest {
 
   @Test
   public void testGetHttpDetails() throws Exception {
-    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    NetworkProfiler.HttpDetailsResponse response =
+      myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertEquals("TestUrl", response.getRequest().getUrl());
   }
 
   @Test
   public void testGetHttpDetailsInvalidConnId() throws Exception {
-    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(INVALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    NetworkProfiler.HttpDetailsResponse response =
+      myTable.getHttpDetailsResponseById(INVALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertNull(response);
   }
 
   @Test
   public void testGetHttpDetailsInvalidSession() throws Exception {
-    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    NetworkProfiler.HttpDetailsResponse response =
+      myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
     assertNull(response);
   }
 
   @Test
   public void testGetHttpDetailsAccessingThreads() throws Exception {
-    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    NetworkProfiler.HttpDetailsResponse response =
+      myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
     assertEquals(2, response.getAccessingThreads().getThreadCount());
     assertEquals(0, response.getAccessingThreads().getThread(0).getId());
     assertEquals("threadA", response.getAccessingThreads().getThread(0).getName());
     assertEquals(1, response.getAccessingThreads().getThread(1).getId());
     assertEquals("threadB", response.getAccessingThreads().getThread(1).getName());
-
   }
 
   @Test
   public void testGetHttpDetailsAccessingThreadsInvalidSession() throws Exception {
-    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    NetworkProfiler.HttpDetailsResponse response =
+      myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
     assertNull(response);
   }
 

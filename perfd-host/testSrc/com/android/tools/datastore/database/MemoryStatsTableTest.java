@@ -37,15 +37,8 @@ public class MemoryStatsTableTest {
 
   private static final int VALID_PID = 1;
   private static final int INVALID_PID = -1;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder()
-    .setBootId("BOOT")
-    .setDeviceSerial("SERIAL")
-    .build();
-
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder()
-    .setBootId("INVALID_BOOT")
-    .setDeviceSerial("INVALID_SERIAL")
-    .build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
 
   private File myDbFile;
   private MemoryStatsTable myStatsTable;

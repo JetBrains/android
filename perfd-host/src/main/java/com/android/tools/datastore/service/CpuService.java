@@ -16,6 +16,7 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
@@ -126,13 +127,15 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
       int processId = request.getProcessId();
       myRunners
-        .put(processId, new CpuDataPoller(processId, request.getSession(), myCpuTable, myService.getCpuClient(request.getSession())));
+        .put(processId,
+             new CpuDataPoller(processId, request.getSession(), myCpuTable,
+                               myService.getCpuClient(DeviceId.fromSession(request.getSession()))));
       myFetchExecutor.accept(myRunners.get(processId));
     }
     else {
@@ -151,7 +154,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(request.getSession());
+    CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (service == null) {
       observer.onNext(CpuProfiler.CpuStopResponse.getDefaultInstance());
     }
@@ -165,7 +168,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startProfilingApp(request));
     }
@@ -178,7 +181,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     CpuProfiler.CpuProfilingAppStopResponse response = CpuProfiler.CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
@@ -192,7 +195,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void checkAppProfilingState(CpuProfiler.ProfilingStateRequest request,
                                      StreamObserver<CpuProfiler.ProfilingStateResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.checkAppProfilingState(request));
     }

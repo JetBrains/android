@@ -146,7 +146,7 @@ public class MemoryProfilerTest {
       .setName("PreferredFakeProcess")
       .build();
     myStudioProfiler.setPreferredProcessName("PreferredFakeProcess");
-    myProfilerService.addProcess(myStudioProfiler.getSession(), process);
+    myProfilerService.addProcess(myStudioProfiler.getDevice(), process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
@@ -185,10 +185,6 @@ public class MemoryProfilerTest {
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
   }
 }

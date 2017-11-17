@@ -39,6 +39,9 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -90,10 +93,30 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   /**
-   * Receives a {@link Common.Device.Builder} and converts it into a {@link Common.Device}.
+   * Converts an {@link IDevice} object into a {@link Common.Device}.
+   *
+   * @param device  the IDevice to retrieve information from.
+   * @param builder the device builder used for generating the device proto. Pre-determined information (e.g. device's boot_id) already
+   *                stored in the builder will be used if they are not overridden by ones from the IDevice instance.
+   * @return
    */
-  private static Common.Device profilerDeviceFromIDevice(IDevice device, Common.Device.Builder builder) {
-    return builder.setSerial(device.getSerialNumber())
+  @NotNull
+  private static Common.Device profilerDeviceFromIDevice(@NotNull IDevice device, @NotNull Common.Device.Builder builder) {
+    long device_id;
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      digest.update(builder.getBootId().getBytes());
+      digest.update(device.getSerialNumber().getBytes());
+      device_id = ByteBuffer.wrap(digest.digest()).getLong();
+    }
+    catch (NoSuchAlgorithmException e) {
+      getLog().info("SHA-256 is not available", e);
+      // Randomly generate an id if we cannot SHA.
+      device_id = new Random(System.currentTimeMillis()).nextLong();
+    }
+
+    return builder.setDeviceId(device_id)
+      .setSerial(device.getSerialNumber())
       .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setCodename(StringUtil.notNullize(device.getVersion().getCodename()))
@@ -106,11 +129,12 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   @TestOnly
-  public static Common.Device profilerDeviceFromIDevice(IDevice device) {
+  @NotNull
+  public static Common.Device profilerDeviceFromIDevice(@NotNull IDevice device) {
     return profilerDeviceFromIDevice(device, Common.Device.newBuilder());
   }
 
-  private static Common.Device.State convertState(IDevice.DeviceState state) {
+  private static Common.Device.State convertState(@NotNull IDevice.DeviceState state) {
     switch (state) {
       case OFFLINE:
         return Common.Device.State.OFFLINE;
@@ -126,6 +150,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     }
   }
 
+  @NotNull
   private static String getDeviceModel(@NotNull IDevice device) {
     return device.isEmulator() ? StringUtil.notNullize(device.getAvdName(), "Unknown") : DevicePropertyUtil.getModel(device, "Unknown");
   }
@@ -245,8 +270,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     Profiler.TimeResponse times;
     try {
-      // TODO: getTimes should take the device
-      times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
+      times = myServiceStub.getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceId(myProfilerDevice.getDeviceId()).build());
     }
     catch (Exception e) {
       // Most likely the destination server went down, and we're in shut down/disconnect mode.
@@ -273,8 +297,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
       }
 
       // TODO: Set this to the applications actual start time.
-      myCachedProcesses.put(client, Common.Process.newBuilder().setName(client.getClientData().getClientDescription())
-        .setPid(client.getClientData().getPid()).setState(Common.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
+      myCachedProcesses.put(client, Common.Process.newBuilder()
+        .setName(client.getClientData().getClientDescription())
+        .setPid(client.getClientData().getPid())
+        .setState(Common.Process.State.ALIVE)
+        .setStartTimestampNs(times.getTimestampNs())
         .setAbiCpuArch(abiCpuArch)
         .build());
     }

@@ -16,10 +16,11 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.StatusRuntimeException;
 
@@ -42,7 +43,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
   private final ProfilerTable myTable;
   private final DataStoreService myService;
   private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
-  private final Map<Common.Session, DeviceData> myDevices = new HashMap<>();
+  private final Map<DeviceId, DeviceData> myDevices = new HashMap<>();
 
   public ProfilerDevicePoller(DataStoreService service,
                               ProfilerTable table,
@@ -65,43 +66,37 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
   @Override
   public void poll() {
     try {
-      Profiler.GetDevicesRequest devicesRequest = Profiler.GetDevicesRequest.newBuilder().build();
-      Profiler.GetDevicesResponse deviceResponse = myPollingService.getDevices(devicesRequest);
+      GetDevicesRequest devicesRequest = GetDevicesRequest.newBuilder().build();
+      GetDevicesResponse deviceResponse = myPollingService.getDevices(devicesRequest);
       for (Common.Device device : deviceResponse.getDeviceList()) {
-        myTable.insertOrUpdateDevice(device);
-        // TODO Store off session, and if it changes fix any session specific data in the database.
-        Common.Session session = Common.Session.newBuilder()
-          .setBootId(device.getBootId())
-          .setDeviceSerial(device.getSerial())
-          .build();
-        DeviceData deviceData = myDevices.computeIfAbsent(session, s -> new DeviceData(device));
+        DeviceId deviceId = DeviceId.of(device.getDeviceId());
 
-        myService.setConnectedClients(session, myPollingService.getChannel());
-        Profiler.GetProcessesRequest processesRequest =
-          Profiler.GetProcessesRequest.newBuilder().setDevice(device).build();
-        Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
+        myTable.insertOrUpdateDevice(device);
+        DeviceData deviceData = myDevices.computeIfAbsent(deviceId, s -> new DeviceData(device));
+
+        myService.setConnectedClients(deviceId, myPollingService.getChannel());
+        GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(deviceId.get()).build();
+        GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
 
         // Gather the list of last known active processes.
         Set<Common.Process> liveProcesses = new HashSet<>();
 
         for (Common.Process process : processesResponse.getProcessList()) {
-          myTable.insertOrUpdateProcess(session, process);
+          myTable.insertOrUpdateProcess(deviceId, process);
           liveProcesses.add(process);
 
           // Remove any new processes from the list of last known processes.
           // Any processes that remain in the list is our list of dead processes.
           deviceData.processes.remove(process);
 
-          Profiler.AgentStatusRequest agentStatusRequest =
-            Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setSession(session).build();
-          Profiler.AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
-          myTable.updateAgentStatus(session, process, agentStatusResponse);
+          AgentStatusRequest agentStatusRequest =
+            AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(deviceId.get()).build();
+          AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
+          myTable.updateAgentStatus(deviceId, process, agentStatusResponse);
         }
 
-        //TODO: think about moving this to the device proxy.
-        // At this point, deviceData.processes only processes that don't match active processes,
-        // meaning they were just killed
-        killProcesses(session, deviceData.processes);
+        // At this point, deviceData.processes only contains processes that don't match active processes, meaning they were just killed.
+        killProcesses(deviceId, deviceData.processes);
         deviceData.processes.clear();
         deviceData.processes.addAll(liveProcesses);
       }
@@ -115,12 +110,10 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
   }
 
   private void disconnect() {
-    for (Map.Entry<Common.Session, DeviceData> entry : myDevices.entrySet()) {
-      Common.Session session = entry.getKey();
-      DeviceData activeDevice = entry.getValue();
-      disconnectDevice(activeDevice.device);
-      killProcesses(session, activeDevice.processes);
-      myService.disconnect(session);
+    for (Map.Entry<DeviceId, DeviceData> entry : myDevices.entrySet()) {
+      disconnectDevice(entry.getValue().device);
+      killProcesses(entry.getKey(), entry.getValue().processes);
+      myService.disconnect(entry.getKey());
     }
     myDevices.clear();
   }
@@ -130,12 +123,12 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
     myTable.insertOrUpdateDevice(disconnectedDevice);
   }
 
-  private void killProcesses(Common.Session session, Set<Common.Process> processes) {
+  private void killProcesses(DeviceId deviceId, Set<Common.Process> processes) {
     for (Common.Process process : processes) {
       Common.Process updatedProcess = process.toBuilder()
         .setState(Common.Process.State.DEAD)
         .build();
-      myTable.insertOrUpdateProcess(session, updatedProcess);
+      myTable.insertOrUpdateProcess(deviceId, updatedProcess);
     }
   }
 }
