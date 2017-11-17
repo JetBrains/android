@@ -63,7 +63,6 @@ public class HttpData {
   @NotNull private final StackTrace myTrace;
   @NotNull private final List<JavaThread> myThreads;
 
-  @Nullable private final String myResponsePayloadId;
 
   private int myStatusCode = NO_STATUS_CODE;
   // Field key is formatted as always lower case.
@@ -71,10 +70,12 @@ public class HttpData {
   // Field key is formatted as always lower case.
   private final Map<String, String> myRequestFields = new HashMap<>();
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
-  private File myResponsePayloadFile;
 
   @Nullable private final String myRequestPayloadId;
   @Nullable private File myRequestPayloadFile;
+
+  @Nullable private final String myResponsePayloadId;
+  @Nullable private File myResponsePayloadFile;
 
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
@@ -153,8 +154,8 @@ public class HttpData {
     return myRequestPayloadFile;
   }
 
-  public void setRequestPayloadFile(@NotNull File file) {
-    myRequestPayloadFile = file;
+  public void setRequestPayloadFile(@NotNull File payloadFile) {
+    myRequestPayloadFile = payloadFile;
   }
 
   @Nullable
