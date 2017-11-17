@@ -136,7 +136,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
         text = AdtUiUtils.getFittedString(list.getFontMetrics(list.getFont()), text, list.getWidth() - leftMargin - rightMargin, 1);
       }
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
-      mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
+      mySelectionForeground = hasFocus ? UIUtil.getTreeSelectionForeground(): UIUtil.getTreeForeground();
       append(text, SMALL_FONT);
     }
   }

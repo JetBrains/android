@@ -49,7 +49,6 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
     myEmpty = new JPanel();
     myLayout = new JBCardLayout();
     myCards = new JPanel(myLayout);
-    setBorder(IdeBorderFactory.createBorder(side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
     add(myCards, BorderLayout.CENTER);
     model.addListener(this);
   }

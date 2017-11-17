@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
@@ -47,7 +49,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 /**
  * UI component for Constraint Inspector
  */
-public class WidgetConstraintPanel extends JPanel {
+public class WidgetConstraintPanel extends AdtSecondaryPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private final SingleWidgetView mMain;
@@ -86,8 +88,8 @@ public class WidgetConstraintPanel extends JPanel {
     InspectorColorSet() {
       mDrawBackground = false;
       mDrawWidgetInfos = true;
-      mInspectorBackgroundColor = new JBColor(0xe8e8e8, 0x3c3f41);
-      mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
+      mInspectorBackgroundColor = StudioColorsKt.getSecondaryPanelBackground();
+      mInspectorFillColor = StudioColorsKt.getSecondaryPanelBackground();
       mInspectorHighlightsStrokeColor = JBColor.border();
       mInspectorStrokeColor = JBColor.foreground();
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
@@ -98,13 +100,10 @@ public class WidgetConstraintPanel extends JPanel {
     super(new GridBagLayout());
     super.setBorder(new EmptyBorder(4, 0, 0, 0));
     ColorSet colorSet = new InspectorColorSet();
-    setBackground(colorSet.getInspectorBackgroundColor());
     mMain = new SingleWidgetView(this, colorSet);
     setPreferredSize(new Dimension(200, 216));
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
-    mVerticalSlider.setBackground(colorSet.getInspectorBackgroundColor());
-    mHorizontalSlider.setBackground(colorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
     mVerticalSlider.setName(VERTICAL_BIAS_SLIDER);
@@ -128,6 +127,8 @@ public class WidgetConstraintPanel extends JPanel {
     add(mHorizontalSlider, gbc);
     mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, colorSet));
     mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, colorSet));
+    mHorizontalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    mVerticalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     mHorizontalSlider.addChangeListener(e -> setHorizontalBias());
     mVerticalSlider.addChangeListener(e -> setVerticalBias());
     mHorizontalSlider.addMouseListener(mDoubleClickListener);

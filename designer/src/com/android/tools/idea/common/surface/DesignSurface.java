@@ -78,7 +78,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -129,7 +128,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setOpaque(true);
     setFocusable(true);
     setRequestFocusEnabled(true);
-    setBackground(UIUtil.TRANSPARENT_COLOR);
 
     mySelectionModel = new SelectionModel();
     mySelectionModel.addListener(mySelectionListener);
@@ -151,6 +149,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
+    myScrollPane.getViewport().setBackground(getBackground());
 
     myIssuePanel = new IssuePanel(this, myIssueModel);
     Disposer.register(this, myIssuePanel);
@@ -808,8 +807,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
-      setOpaque(true);
-      setBackground(UIUtil.TRANSPARENT_COLOR);
       setupCorners();
     }
 
@@ -859,8 +856,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private class MyLayeredPane extends JLayeredPane implements Magnificator, DataProvider {
     public MyLayeredPane() {
-      setOpaque(true);
-      setBackground(UIUtil.TRANSPARENT_COLOR);
 
       // Enable pinching to zoom
       putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
@@ -916,7 +911,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
       int width = myScrollPane.getWidth();
       int height = myScrollPane.getHeight();
-      graphics.setColor(getBackgroundColor());
+      graphics.setColor(getBackground());
       graphics.fillRect(lx, ly, width, height);
     }
 
@@ -946,11 +941,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       return null;
     }
-  }
-
-  @NotNull
-  protected JBColor getBackgroundColor() {
-    return DESIGN_SURFACE_BG;
   }
 
   private static class GlassPane extends JComponent {

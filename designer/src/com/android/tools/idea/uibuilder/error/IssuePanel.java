@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
@@ -214,13 +215,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     JBScrollPane pane = new JBScrollPane(content);
     pane.setBorder(null);
     pane.setAlignmentX(CENTER_ALIGNMENT);
+    pane.getViewport().setBackground(content.getBackground());
     return pane;
   }
 
   @NotNull
   private static JPanel createErrorListPanel() {
-    JPanel panel = new JPanel(null, true);
-    panel.setBackground(UIUtil.getEditorPaneBackground());
+    JPanel panel = new AdtSecondaryPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     return panel;
   }

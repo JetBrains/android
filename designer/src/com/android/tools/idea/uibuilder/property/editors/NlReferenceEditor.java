@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.property.NlProperty;
@@ -111,7 +112,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
                               boolean isInspector,
                               int verticalSpacing) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout());
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);

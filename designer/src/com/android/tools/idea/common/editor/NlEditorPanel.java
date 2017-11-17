@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlLayoutType;
@@ -64,7 +65,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myEditor = editor;
     myProject = project;
     myFile = file;
-    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel = new AdtPrimaryPanel(new BorderLayout());
 
     if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
       mySurface = new NavDesignSurface(project, editor);
