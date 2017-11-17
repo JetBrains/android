@@ -636,8 +636,9 @@ public class GradleSyncTest {
   /**
    * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
    * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * TT ID: 01d7a0e9-a947-4cd1-a842-17c0b006d3f1
    * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
    * <pre>
    *   Steps:
    *   1. Import a project.
@@ -645,7 +646,7 @@ public class GradleSyncTest {
    *   3. Sync the project.
    *   Verify:
    *   Project syncs and minSdk version is updated.
-   *   </pre>
+   * </pre>
    */
   @RunIn(TestGroup.QA)
   @Test
