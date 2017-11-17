@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
@@ -78,7 +79,7 @@ public class NlResourceValueEditor extends PTableCellEditor {
         myTextEditorWithAutoCompletion.removeSelection();
       }
     });
-    myPanel = new JPanel(new BorderLayout());
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
     myPanel.add(myTextEditorWithAutoCompletion);
     myPanel.setFocusable(false);
   }

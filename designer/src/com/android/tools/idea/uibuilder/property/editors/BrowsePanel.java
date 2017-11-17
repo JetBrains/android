@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -49,7 +50,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
-public class BrowsePanel extends JPanel {
+public class BrowsePanel extends AdtSecondaryPanel {
   private final Context myContext;
   private final ActionButton myBrowseButton;
   private final ActionButton myDesignButton;

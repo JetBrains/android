@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
@@ -53,7 +55,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -78,7 +80,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 /**
  * Top level Palette UI.
  */
-public class PalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
+public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   @VisibleForTesting
   static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
   private static final int DEFAULT_CATEGORY_WIDTH = 100;
@@ -128,17 +130,20 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
 
-    myCategoryList.setBackground(UIUtil.getPanelBackground());
-    myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
+    myCategoryList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    myItemList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
 
     // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
     mySplitter = new ComponentsSplitter(false, true);
     Disposer.register(this, mySplitter);
-    mySplitter.setFirstComponent(createScrollPane(myCategoryList));
-    mySplitter.setInnerComponent(createScrollPane(myItemList));
+    mySplitter.setFirstComponent(createScrollPane(myCategoryList,
+                                                  BorderFactory.createMatteBorder(0, 0, 0, 1, StudioColorsKt.getBorderLight())));
+    mySplitter.setInnerComponent(createScrollPane(myItemList, BorderFactory.createEmptyBorder()));
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
     mySplitter.setFocusCycleRoot(false);
+    mySplitter.setDividerWidth(0);
+    mySplitter.setDividerMouseZoneSize(3);
     add(mySplitter, BorderLayout.CENTER);
 
     myFilterKeyListener = createFilterKeyListener();
@@ -192,11 +197,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   }
 
   @NotNull
-  private static JScrollPane createScrollPane(@NotNull JComponent component) {
+  private static JScrollPane createScrollPane(@NotNull JComponent component, @NotNull Border border) {
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(component, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     scrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
-    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setBorder(border);
     setMinimumWidth(scrollPane, JBUI.scale(MIN_CONTROL_WIDTH));
     return scrollPane;
   }

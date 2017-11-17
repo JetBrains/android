@@ -16,14 +16,15 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.util.PropertiesComponent;
@@ -47,7 +48,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
+public class NlPalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   static final String PALETTE_MODE = "palette.mode";
 
   private final CopyProvider myCopyProvider;

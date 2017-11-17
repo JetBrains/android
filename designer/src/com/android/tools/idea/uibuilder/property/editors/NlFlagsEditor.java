@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
@@ -64,7 +65,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
     myValue = new CustomTextField();
     myValue.setEditable(false);
     myValue.setFocusable(true);
-    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, 0));
     myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);
@@ -168,7 +169,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
-      JPanel panel = new JPanel();
+      JPanel panel = new AdtSecondaryPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
       AttributeDefinition definition = myProperty.getDefinition();
       assert definition != null;
