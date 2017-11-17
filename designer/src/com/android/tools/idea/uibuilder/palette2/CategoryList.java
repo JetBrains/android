@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -62,15 +64,10 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
     return hasMatchCounts() ? myMatchCountMargin : 0;
   }
 
-  private boolean displayFittedTextIfNecessary(int index) {
-    return !UIUtil.isClientPropertyTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
-           !getExpandableItemsHandler().getExpandedItems().contains(index);
-  }
-
-  private boolean displayMatchCounts(int index) {
+  private boolean displayMatchCounts() {
     CategoryListModel categoryModel = (CategoryListModel)getModel();
     assert categoryModel != null;
-    return categoryModel.hasMatchCounts() && displayFittedTextIfNecessary(index);
+    return categoryModel.hasMatchCounts();
   }
 
   private int getMatchCountAt(int index) {
@@ -112,7 +109,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
 
       CategoryList categoryList = (CategoryList)list;
       myMatchCount.setText(String.valueOf(categoryList.getMatchCountAt(index)));
-      myMatchCount.setVisible(categoryList.displayMatchCounts(index));
+      myMatchCount.setVisible(categoryList.displayMatchCounts());
       myMatchCount.setForeground(hasFocus ? UIUtil.getTreeSelectionForeground() : JBColor.GRAY);
 
       return myPanel;
@@ -128,13 +125,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
-      CategoryList categoryList = (CategoryList)list;
       String text = group.getName();
-      if (categoryList.displayFittedTextIfNecessary(index)) {
-        int leftMargin = getIpad().left;
-        int rightMargin = getIpad().right + (categoryList.displayMatchCounts(index) ? categoryList.getRightMarginWidth() : 0);
-        text = AdtUiUtils.getFittedString(list.getFontMetrics(list.getFont()), text, list.getWidth() - leftMargin - rightMargin, 1);
-      }
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = hasFocus ? UIUtil.getTreeSelectionForeground(): UIUtil.getTreeForeground();
       append(text, SMALL_FONT);
