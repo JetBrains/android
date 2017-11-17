@@ -900,21 +900,19 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
-    Common.Device device =
-      Common.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Common.Device.State.ONLINE).build();
-    Common.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(serial.hashCode())
+      .setFeatureLevel(featureLevel)
+      .setSerial(serial)
+      .setState(Common.Device.State.ONLINE).build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
     // Adds at least one ALIVE process as well. Otherwise, StudioProfilers would prefer selecting a device that has live processes.
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
     myStage.getStudioProfilers().setDevice(device);

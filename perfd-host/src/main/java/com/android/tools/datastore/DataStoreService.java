@@ -41,7 +41,6 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
-
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -79,7 +78,10 @@ public class DataStoreService {
     }
   }
 
-  private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private static final Logger getLogger() {
+    return Logger.getInstance(DataStoreService.class.getCanonicalName());
+  }
+
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
   private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
@@ -89,7 +91,7 @@ public class DataStoreService {
   private final Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
   private final ServerInterceptor myInterceptor;
-  private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
+  private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
 
   private final Timer myReportTimer;
 
@@ -116,7 +118,7 @@ public class DataStoreService {
       myServer.start();
     }
     catch (IOException ex) {
-      LOG.error(ex.getMessage());
+      getLogger().error(ex.getMessage());
     }
 
     myReportTimer = new Timer("DataStoreReportTimer");
@@ -179,9 +181,9 @@ public class DataStoreService {
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull Common.Session session) {
-    if (myConnectedClients.containsKey(session)) {
-      DataStoreClient client = myConnectedClients.remove(session);
+  public void disconnect(@NotNull DeviceId deviceId) {
+    if (myConnectedClients.containsKey(deviceId)) {
+      DataStoreClient client = myConnectedClients.remove(deviceId);
       client.shutdownNow();
       myProfilerService.stopMonitoring(client.getChannel());
     }
@@ -202,30 +204,30 @@ public class DataStoreService {
     return myServices;
   }
 
-  public void setConnectedClients(Common.Session session, Channel channel) {
-    if (!myConnectedClients.containsKey(session)) {
-      myConnectedClients.put(session, new DataStoreClient(channel));
+  public void setConnectedClients(@NotNull DeviceId deviceId, @NotNull Channel channel) {
+    if (!myConnectedClients.containsKey(deviceId)) {
+      myConnectedClients.put(deviceId, new DataStoreClient(channel));
     }
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getCpuClient() : null;
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getEventClient() : null;
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEventClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getNetworkClient() : null;
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getNetworkClient() : null;
   }
 
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getMemoryClient() : null;
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getMemoryClient() : null;
   }
 
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
   }
 
   /**

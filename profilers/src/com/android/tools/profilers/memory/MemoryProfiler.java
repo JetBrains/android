@@ -107,7 +107,7 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setDevice(device).build());
+      .getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceId(device.getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.

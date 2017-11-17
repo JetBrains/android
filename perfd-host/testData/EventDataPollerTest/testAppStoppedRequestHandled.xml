@@ -3,15 +3,13 @@
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.EventService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStartRequest">
         <Message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStartRequest</clazz>
         <functionCalled>profiler.proto.EventService/StartMonitoringApp</functionCalled>
         <message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </message>
     </GrpcCall>

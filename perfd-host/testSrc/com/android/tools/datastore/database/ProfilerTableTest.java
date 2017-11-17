@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.intellij.openapi.util.io.FileUtil;
@@ -29,7 +30,7 @@ import java.util.HashMap;
 import static org.junit.Assert.assertEquals;
 
 public class ProfilerTableTest {
-
+  private static final DeviceId FAKE_DEVICE_ID = DeviceId.of(1);
   private File myDbFile;
   private ProfilerTable myTable;
   private DataStoreDatabase myDatabase;
@@ -50,10 +51,6 @@ public class ProfilerTableTest {
 
   @Test
   public void testAgentStatusCannotDowngrade() throws Exception {
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId("BootId")
-      .setDeviceSerial("DeviceSerial")
-      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(99)
       .setName("FakeProcess")
@@ -62,30 +59,26 @@ public class ProfilerTableTest {
     // Setup initial process and status
     Profiler.AgentStatusResponse status =
       Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build();
-    myTable.insertOrUpdateProcess(session, process);
-    myTable.updateAgentStatus(session, process, status);
+    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
+    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
     Profiler.AgentStatusRequest request =
-      Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setSession(session).build();
+      Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
     assertEquals(Profiler.AgentStatusResponse.Status.DETACHED, myTable.getAgentStatus(request).getStatus());
 
     // Upgrading status to attach should work
     status = Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build();
-    myTable.updateAgentStatus(session, process, status);
+    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
 
     // Attempt to downgrade status
     status = Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build();
-    myTable.updateAgentStatus(session, process, status);
+    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
   }
 
   @Test
   public void testExistingProcessIsUpdated() throws Exception {
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId("BootId")
-      .setDeviceSerial("DeviceSerial")
-      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(99)
       .setName("FakeProcess")
@@ -95,17 +88,17 @@ public class ProfilerTableTest {
     // Setup initial process and status.
     Profiler.AgentStatusResponse status =
       Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build();
-    myTable.insertOrUpdateProcess(session, process);
-    myTable.updateAgentStatus(session, process, status);
+    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
+    myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
     // Double-check status has been set.
     Profiler.AgentStatusRequest request =
-      Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setSession(session).build();
+      Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
 
     // Update the process entry and verify that the agent status remains the same.
     process = process.toBuilder().setState(Common.Process.State.DEAD).build();
-    myTable.insertOrUpdateProcess(session, process);
+    myTable.insertOrUpdateProcess(FAKE_DEVICE_ID, process);
     assertEquals(Profiler.AgentStatusResponse.Status.ATTACHED, myTable.getAgentStatus(request).getStatus());
   }
 }

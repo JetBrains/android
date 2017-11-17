@@ -19,7 +19,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler.*;
+import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Profiler.VersionRequest;
+import com.android.tools.profiler.proto.Profiler.VersionResponse;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.google.common.collect.ImmutableList;
@@ -84,6 +86,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
 
     Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
       .setSerial("FakeDevice")
       .setState(Common.Device.State.ONLINE)
       .build();
@@ -99,10 +102,6 @@ public final class StudioProfilersTest {
     long timeOnDevice = System.nanoTime() + 1000;
     myProfilerService.setTimestampNs(timeOnDevice);
 
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setName("FakeProcess")
@@ -111,7 +110,7 @@ public final class StudioProfilersTest {
       .build();
 
     // Add a process and validate the stage goes to the monitor stage.
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Test that the process was attached correctly
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
@@ -128,6 +127,7 @@ public final class StudioProfilersTest {
     assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
 
     Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
       .setSerial("FakeDevice")
       .setState(Common.Device.State.ONLINE)
       .build();
@@ -138,10 +138,6 @@ public final class StudioProfilersTest {
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getStageClass()).isSameAs(NullMonitorStage.class);
 
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setName("FakeProcess")
@@ -149,7 +145,7 @@ public final class StudioProfilersTest {
       .build();
 
     // Add a process and validate the stage goes to the monitor stage.
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getStageClass()).isSameAs(StudioMonitorStage.class);
     // Add a second device with no processes, and select that device.
@@ -168,23 +164,19 @@ public final class StudioProfilersTest {
     assertThat(profilers.getDevice()).isNull();
     assertThat(profilers.getProcess()).isNull();
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     myProfilerService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getProcess()).isNull();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
 
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setName("FakeProcess")
       .setState(Common.Process.State.ALIVE)
       .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
@@ -198,7 +190,7 @@ public final class StudioProfilersTest {
       .setName("Preferred")
       .setState(Common.Process.State.ALIVE)
       .build();
-    myProfilerService.addProcess(session, preferred);
+    myProfilerService.addProcess(device, preferred);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
@@ -214,19 +206,14 @@ public final class StudioProfilersTest {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setName("FakeProcess")
       .setState(Common.Process.State.ALIVE)
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     // This should fail and not find any devices
     myProfilerService.setThrowErrorOnGetDevices(true);
@@ -246,18 +233,14 @@ public final class StudioProfilersTest {
   @Test
   public void testAlreadyConnected() throws Exception {
     FakeTimer timer = new FakeTimer();
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -273,7 +256,11 @@ public final class StudioProfilersTest {
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
@@ -281,11 +268,7 @@ public final class StudioProfilersTest {
       .setStartTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds))
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
@@ -323,7 +306,7 @@ public final class StudioProfilersTest {
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(0);
 
     // Test that agent status change fires after a process is selected.
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process1 = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
@@ -335,12 +318,8 @@ public final class StudioProfilersTest {
       .setName("FakeProcess2")
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process1);
-    myProfilerService.addProcess(session, process2);
+    myProfilerService.addProcess(device, process1);
+    myProfilerService.addProcess(device, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isEqualTo(process1);
     assertThat(profilers.isAgentAttached()).isTrue();
@@ -363,18 +342,14 @@ public final class StudioProfilersTest {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process1 = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess1")
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(device, process1);
 
     AgentStatusAspectObserver observer = new AgentStatusAspectObserver();
     profilers.addDependency(observer).onChange(ProfilerAspect.AGENT, observer::AgentStatusChanged);
@@ -404,32 +379,27 @@ public final class StudioProfilersTest {
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .setStartTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds))
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-
     profilers.setPreferredProcessName(process.getName());
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
 
     // Change the alive (active) process to DEAD, and create a new ALIVE process simulating a debugger restart.
-    myProfilerService.removeProcess(session, process);
+    myProfilerService.removeProcess(device, process);
     process = process.toBuilder()
       .setState(Common.Process.State.DEAD)
       .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     // Verify the process is in the dead state.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -440,7 +410,7 @@ public final class StudioProfilersTest {
       .setPid(21)
       .setState(Common.Process.State.ALIVE)
       .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     // The profiler should not automatically selects the alive, preferred process again.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -458,18 +428,14 @@ public final class StudioProfilersTest {
   public void testProcessStateChangesShouldNotTriggerStageChange() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").build();
+    Common.Device device = Common.Device.newBuilder().setDeviceId("FakeDevice".hashCode()).setSerial("FakeDevice").build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
     assertThat(Common.Process.State.ALIVE).isEqualTo(profilers.getProcess().getState());
@@ -479,11 +445,11 @@ public final class StudioProfilersTest {
       assert false;
     });
     // Change the alive (active) process to DEAD
-    myProfilerService.removeProcess(session, process);
+    myProfilerService.removeProcess(device, process);
     process = process.toBuilder()
       .setState(Common.Process.State.DEAD)
       .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     //Verify the process is in the dead state.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -495,18 +461,18 @@ public final class StudioProfilersTest {
   public void timelineShouldBeStreamingWhenProcessIsSelected() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
@@ -516,18 +482,18 @@ public final class StudioProfilersTest {
   public void timelineShouldStopStreamingWhenRangeIsSelected() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -546,18 +512,18 @@ public final class StudioProfilersTest {
   public void newOnlineDeviceShouldBeSelectedIfCurrentIsNotOnline() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getProcess()).isEqualTo(process);
@@ -567,22 +533,22 @@ public final class StudioProfilersTest {
       .setSerial(device.getSerial())
       .setState(Common.Device.State.DISCONNECTED)
       .build();
-    myProfilerService.updateDevice(session, device, disconnectedDevice);
+    myProfilerService.updateDevice(device, disconnectedDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connect a new device
-    Common.Device device2 = Common.Device.newBuilder().setSerial("FakeDevice2").setState(Common.Device.State.ONLINE).build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice2".hashCode())
+      .setSerial("FakeDevice2")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process2 = Common.Process.newBuilder()
       .setPid(3039)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session2 = Common.Session.newBuilder()
-      .setBootId(device2.getBootId())
-      .setDeviceSerial(device2.getSerial())
-      .build();
     myProfilerService.addDevice(device2);
-    myProfilerService.addProcess(session2, process2);
+    myProfilerService.addProcess(device2, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice2");
@@ -593,33 +559,33 @@ public final class StudioProfilersTest {
   public void onlineDeviceShouldNotOverrideExplicitlySetOfflineDevice() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.DISCONNECTED).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.DISCONNECTED)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connect a new device
-    Common.Device device2 = Common.Device.newBuilder().setSerial("FakeDevice2").setState(Common.Device.State.ONLINE).build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice2".hashCode())
+      .setSerial("FakeDevice2")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process2 = Common.Process.newBuilder()
       .setPid(3039)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session2 = Common.Session.newBuilder()
-      .setBootId(device2.getBootId())
-      .setDeviceSerial(device2.getSerial())
-      .build();
     myProfilerService.addDevice(device2);
-    myProfilerService.addProcess(session2, process2);
+    myProfilerService.addProcess(device2, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connecting an online device should override previously selection if it was not online
@@ -636,48 +602,48 @@ public final class StudioProfilersTest {
   public void deviceWithAliveProcessesHasPreference() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(1234)
       .setState(Common.Process.State.DEAD)
       .setName("FakeProcess")
       .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connect a device with a process that can be profiled
-    Common.Device device2 = Common.Device.newBuilder().setSerial("FakeDevice2").setState(Common.Device.State.ONLINE).build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice2".hashCode())
+      .setSerial("FakeDevice2")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process2 = Common.Process.newBuilder()
       .setPid(3039)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session2 = Common.Session.newBuilder()
-      .setBootId(device2.getBootId())
-      .setDeviceSerial(device2.getSerial())
-      .build();
     myProfilerService.addDevice(device2);
-    myProfilerService.addProcess(session2, process2);
+    myProfilerService.addProcess(device2, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connect another device.
-    Common.Device device3 = Common.Device.newBuilder().setSerial("FakeDevice3").setState(Common.Device.State.ONLINE).build();
+    Common.Device device3 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice3".hashCode())
+      .setSerial("FakeDevice3")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process3 = Common.Process.newBuilder()
       .setPid(3)
       .setState(Common.Process.State.DEAD)
       .setName("FakeProcess3")
       .build();
-    Common.Session session3 = Common.Session.newBuilder()
-      .setBootId(device3.getBootId())
-      .setDeviceSerial(device3.getSerial())
-      .build();
     myProfilerService.addDevice(device3);
-    myProfilerService.addProcess(session3, process3);
+    myProfilerService.addProcess(device3, process3);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Preferred device should be the one with process that can be profiled
@@ -689,33 +655,33 @@ public final class StudioProfilersTest {
   public void keepSelectedDeviceAfterDisconnectingAllDevices() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device1 = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device1 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process1 = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    Common.Session session1 = Common.Session.newBuilder()
-      .setBootId(device1.getBootId())
-      .setDeviceSerial(device1.getSerial())
-      .build();
     myProfilerService.addDevice(device1);
-    myProfilerService.addProcess(session1, process1);
+    myProfilerService.addProcess(device1, process1);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Connect a new device
-    Common.Device device2 = Common.Device.newBuilder().setSerial("FakeDevice2").setState(Common.Device.State.ONLINE).build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice2".hashCode())
+      .setSerial("FakeDevice2")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process2 = Common.Process.newBuilder()
       .setPid(3039)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session2 = Common.Session.newBuilder()
-      .setBootId(device2.getBootId())
-      .setDeviceSerial(device2.getSerial())
-      .build();
     myProfilerService.addDevice(device2);
-    myProfilerService.addProcess(session2, process2);
+    myProfilerService.addProcess(device2, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Update device1 state to disconnect
@@ -723,7 +689,7 @@ public final class StudioProfilersTest {
       .setSerial(device1.getSerial())
       .setState(Common.Device.State.DISCONNECTED)
       .build();
-    myProfilerService.updateDevice(session1, device1, disconnectedDevice);
+    myProfilerService.updateDevice(device1, disconnectedDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Update device2 state to disconnect
@@ -731,7 +697,7 @@ public final class StudioProfilersTest {
       .setSerial(device2.getSerial())
       .setState(Common.Device.State.DISCONNECTED)
       .build();
-    myProfilerService.updateDevice(session2, device2, disconnectedDevice2);
+    myProfilerService.updateDevice(device2, disconnectedDevice2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Selected device should be FakeDevice2, which was selected before disconnecting all devices
@@ -744,7 +710,11 @@ public final class StudioProfilersTest {
   public void testProfileOneProcessAtATime() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device1 = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device1 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process1 = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
@@ -755,15 +725,11 @@ public final class StudioProfilersTest {
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session1 = Common.Session.newBuilder()
-      .setBootId(device1.getBootId())
-      .setDeviceSerial(device1.getSerial())
-      .build();
     myProfilerService.addDevice(device1);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
-    myProfilerService.addProcess(session1, process1);
-    myProfilerService.addProcess(session1, process2);
+    myProfilerService.addProcess(device1, process1);
+    myProfilerService.addProcess(device1, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isEqualTo(process1);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
@@ -776,18 +742,18 @@ public final class StudioProfilersTest {
     assertThat(profilers.getProcess()).isEqualTo(process2);
 
     // Connect a new device with a process.
-    Common.Device device2 = Common.Device.newBuilder().setSerial("FakeDevice2").setState(Common.Device.State.ONLINE).build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice2".hashCode())
+      .setSerial("FakeDevice2")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process3 = Common.Process.newBuilder()
       .setPid(3039)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess3")
       .build();
-    Common.Session session2 = Common.Session.newBuilder()
-      .setBootId(device2.getBootId())
-      .setDeviceSerial(device2.getSerial())
-      .build();
     myProfilerService.addDevice(device2);
-    myProfilerService.addProcess(session2, process3);
+    myProfilerService.addProcess(device2, process3);
 
     // Switch to the new device.
     profilers.setDevice(device2);
@@ -796,22 +762,20 @@ public final class StudioProfilersTest {
     assertThat(profilers.getProcess()).isEqualTo(process3);
 
     // Update device2 state to disconnect
-    Common.Device disconnectedDevice2 = Common.Device.newBuilder()
-      .setSerial(device2.getSerial())
+    Common.Device disconnectedDevice2 = device2.toBuilder()
       .setState(Common.Device.State.DISCONNECTED)
       .build();
-    myProfilerService.updateDevice(session2, device2, disconnectedDevice2);
+    myProfilerService.updateDevice(device2, disconnectedDevice2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
     // Restart profiling process1 on device1.
     assertThat(profilers.getProcess()).isEqualTo(process1);
 
     // Update device1 state to disconnect
-    Common.Device disconnectedDevice = Common.Device.newBuilder()
-      .setSerial(device1.getSerial())
+    Common.Device disconnectedDevice = device1.toBuilder()
       .setState(Common.Device.State.DISCONNECTED)
       .build();
-    myProfilerService.updateDevice(session1, device1, disconnectedDevice);
+    myProfilerService.updateDevice(device1, disconnectedDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
   }
@@ -823,13 +787,9 @@ public final class StudioProfilersTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Common.Device.State.ONLINE);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     Common.Process process1 = createProcess(1, "FakeProcess1", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(device, process1);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -838,7 +798,7 @@ public final class StudioProfilersTest {
 
     fakeIdeService.enableJvmtiAgent(true);
     Common.Process process2 = createProcess(2, "FakeProcess2", Common.Process.State.ALIVE);
-    myProfilerService.addProcess(session, process2);
+    myProfilerService.addProcess(device, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.setProcess(process2);
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -854,13 +814,9 @@ public final class StudioProfilersTest {
 
     fakeIdeService.enableJvmtiAgent(true);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.N, "FakeDevice", Common.Device.State.ONLINE);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     Common.Process process1 = createProcess(1, "FakeProcess1", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(device, process1);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -883,13 +839,9 @@ public final class StudioProfilersTest {
     myProfilerService.setAgentStatus(AgentStatusResponse.Status.ATTACHED);
     fakeIdeService.enableJvmtiAgent(true);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Common.Device.State.ONLINE);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
     Common.Process process1 = createProcess(1, "FakeProcess1", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);
-    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(device, process1);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(device);
@@ -901,7 +853,11 @@ public final class StudioProfilersTest {
   public void testProfilingStops() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device1 = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+    Common.Device device1 = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
     Common.Process process1 = Common.Process.newBuilder()
       .setPid(20)
       .setState(Common.Process.State.ALIVE)
@@ -912,15 +868,11 @@ public final class StudioProfilersTest {
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess2")
       .build();
-    Common.Session session1 = Common.Session.newBuilder()
-      .setBootId(device1.getBootId())
-      .setDeviceSerial(device1.getSerial())
-      .build();
     myProfilerService.addDevice(device1);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
-    myProfilerService.addProcess(session1, process1);
-    myProfilerService.addProcess(session1, process2);
+    myProfilerService.addProcess(device1, process1);
+    myProfilerService.addProcess(device1, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isEqualTo(process1);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
@@ -945,16 +897,20 @@ public final class StudioProfilersTest {
     services.enableLiveAllocationTracking(true);
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), services, timer);
 
-    Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
-    Common.Process process = Common.Process.newBuilder().setPid(1).setState(Common.Process.State.ALIVE).setName("process").build();
-    Common.Session session1 = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("FakeDevice".hashCode())
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
+    Common.Process process = Common.Process.newBuilder()
+      .setPid(1)
+      .setState(Common.Process.State.ALIVE)
+      .setName("process")
       .build();
 
     myProfilerService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilerService.addProcess(session1, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(timer.isRunning()).isTrue();
 
@@ -1010,13 +966,9 @@ public final class StudioProfilersTest {
 
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
 
     Common.Process process = createProcess(20, "FakeProcess", Common.Process.State.ALIVE);
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     assertThat(profilers.getProcess()).isEqualTo(process);
     return profilers;
@@ -1024,7 +976,12 @@ public final class StudioProfilersTest {
 
   // TODO refactor tests to use this helper
   private Common.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Common.Device.State state) {
-    return Common.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(state).build();
+    return Common.Device.newBuilder()
+      .setDeviceId(serial.hashCode())
+      .setFeatureLevel(featureLevel)
+      .setSerial(serial)
+      .setState(state)
+      .build();
   }
 
   // TODO refactor tests to use this helper

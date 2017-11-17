@@ -40,14 +40,8 @@ public class CpuTableTest {
   private static final int TEST_DATA = 10;
   private static final int SESSION_ONE_OFFSET = 100;
   private static final int SESSION_TWO_OFFSET = 1000;
-  private static final Common.Session SESSION_HUNDREDS = Common.Session.newBuilder()
-    .setBootId("100s Session_Data")
-    .setDeviceSerial("SERIAL")
-    .build();
-  private static final Common.Session SESSION_THOUSANDS = Common.Session.newBuilder()
-    .setBootId("1000s Session_Data")
-    .setDeviceSerial("SERIAL")
-    .build();
+  private static final Common.Session SESSION_HUNDREDS = Common.Session.newBuilder().setDeviceId(100).build();
+  private static final Common.Session SESSION_THOUSANDS = Common.Session.newBuilder().setDeviceId(1000).build();
 
   private File myDbFile;
   private CpuTable myTable;
@@ -122,7 +116,8 @@ public class CpuTableTest {
         .setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
 
-      myTable.insertTrace(PROCESS_ID, trace.getTraceId(), SESSION_HUNDREDS, trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
+      myTable
+        .insertTrace(PROCESS_ID, trace.getTraceId(), SESSION_HUNDREDS, trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
       myTable.insertTraceInfo(PROCESS_ID, trace, SESSION_HUNDREDS);
     }
   }

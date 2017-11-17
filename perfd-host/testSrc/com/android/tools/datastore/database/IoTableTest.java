@@ -41,14 +41,8 @@ public class IoTableTest {
   private static final int SESSIONS_TEST_DATA_COUNT = 10;
   private static final int IO_CALLS_TEST_DATA_COUNT = 10;
   private static final int SPEED_TEST_DATA_COUNT = 10;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder()
-    .setBootId("VALID_SESSION")
-    .setDeviceSerial("SERIAL")
-    .build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder()
-    .setBootId("INVALID_SESSION")
-    .setDeviceSerial("SERIAL")
-    .build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
   private static final List<IoProfiler.FileSession> ourFileSessionsList = new ArrayList<>();
   private static final List<IoProfiler.IoSpeedData> ourReadSpeedDataList = new ArrayList<>();
   private static final List<IoProfiler.IoSpeedData> ourWriteSpeedDataList = new ArrayList<>();

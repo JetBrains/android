@@ -28,7 +28,9 @@ import java.util.Map;
 
 public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   public static final String VERSION = "3141592";
-  private final Map<Common.Session, Common.Device> myDevices;
+  public static final long FAKE_DEVICE_ID = 1234;
+
+  private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
   private long myTimestampNs;
@@ -52,50 +54,47 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
     if (connected) {
-      Common.Device device = Common.Device.newBuilder().setSerial("FakeDevice").setState(Common.Device.State.ONLINE).build();
+      Common.Device device = Common.Device.newBuilder()
+        .setDeviceId(FAKE_DEVICE_ID)
+        .setSerial("FakeDevice")
+        .setState(Common.Device.State.ONLINE)
+        .build();
       Common.Process process = Common.Process.newBuilder()
         .setPid(20)
         .setState(Common.Process.State.ALIVE)
         .setName("FakeProcess")
         .build();
       addDevice(device);
-      Common.Session session = Common.Session.newBuilder()
-        .setBootId(device.getBootId())
-        .setDeviceSerial(device.getSerial())
-        .build();
-      addProcess(session, process);
+      addProcess(device, process);
     }
   }
 
-  public void addProcess(Common.Session session, Common.Process process) {
-    if (!myDevices.containsKey(session)) {
-      throw new IllegalArgumentException("Invalid device serial: " + session);
+  public void addProcess(Common.Device device, Common.Process process) {
+    if (!myDevices.containsKey(device.getDeviceId())) {
+      throw new IllegalArgumentException("Invalid device: " + device.getDeviceId());
     }
-    myProcesses.putValue(myDevices.get(session), process);
+    myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
   }
 
-  public void removeProcess(Common.Session session, Common.Process process) {
-    if (!myDevices.containsKey(session)) {
-      throw new IllegalArgumentException("Invalid device serial: " + session);
+  public void removeProcess(Common.Device device, Common.Process process) {
+    if (!myDevices.containsKey(device.getDeviceId())) {
+      throw new IllegalArgumentException("Invalid device: " + device);
     }
-    myProcesses.remove(myDevices.get(session), process);
+    myProcesses.remove(myDevices.get(device.getDeviceId()), process);
   }
 
   public void addDevice(Common.Device device) {
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myDevices.put(session, device);
+    myDevices.put(device.getDeviceId(), device);
   }
 
-  public void updateDevice(Common.Session session, Common.Device oldDevice, Common.Device newDevice) {
+  public void updateDevice(Common.Device oldDevice, Common.Device newDevice) {
     // Move processes from old to new device
     myProcesses.putValues(newDevice, myProcesses.get(oldDevice));
     // Remove old device from processes map.
     myProcesses.remove(oldDevice);
     // Update device on devices map
-    myDevices.put(session, newDevice);
+    myDevices.remove(oldDevice.getDeviceId());
+    myDevices.put(newDevice.getDeviceId(), newDevice);
   }
 
   public void addFile(String id, ByteString contents) {
@@ -136,7 +135,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
     GetProcessesResponse.Builder response = GetProcessesResponse.newBuilder();
-    Common.Device device = request.getDevice();
+    Common.Device device = myDevices.get(request.getDeviceId());
     if (device != null) {
       for (Common.Process process : myProcesses.get(device)) {
         response.addProcess(process);

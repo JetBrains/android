@@ -16,6 +16,7 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
@@ -56,10 +57,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
-    // TODO fix the device->session translation. myService.getProfilerClient should now be based on Device instead of Sessions.
-    Common.Device device = request.getDevice();
-    Common.Session session = Common.Session.newBuilder().setBootId(device.getBootId()).setDeviceSerial(device.getSerial()).build();
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(session);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
     }
@@ -72,10 +71,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> observer) {
-    // TODO fix the device->session translation. myService.getProfilerClient should now be based on Device instead of Sessions.
-    Common.Device device = request.getDevice();
-    Common.Session session = Common.Session.newBuilder().setBootId(device.getBootId()).setDeviceSerial(device.getSerial()).build();
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(session);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client != null) {
       observer.onNext(client.getVersion(request));
     }
@@ -104,7 +101,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
     responseObserver.onNext(client == null ? Profiler.AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
     responseObserver.onCompleted();
   }
@@ -130,10 +128,11 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
     // TODO: Currently the cache is on demand, we want to look into caching all available files.
     Profiler.BytesResponse response = myTable.getBytes(request);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
 
     if (response == null && client != null) {
-      response = myService.getProfilerClient(request.getSession()).getBytes(request);
+      response = myService.getProfilerClient(DeviceId.fromSession(request.getSession())).getBytes(request);
       myTable.insertOrUpdateBytes(request.getId(), request.getSession(), response);
     }
     else if (response == null) {
