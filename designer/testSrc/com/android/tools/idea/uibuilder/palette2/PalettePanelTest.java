@@ -42,7 +42,6 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
-import com.intellij.util.ui.JBUI;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
@@ -149,7 +148,8 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
-    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, 690, 10, 1, false));
+    int x = itemList.getWidth() - 10;
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, x, 10, 1, false));
     verify(myDependencyManager).ensureLibraryIsIncluded(eq(itemList.getSelectedValue()));
   }
 
@@ -158,7 +158,8 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
-    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, 400, 10, 1, false));
+    int x = itemList.getWidth() - 30;
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, x, 10, 1, false));
     verify(myDependencyManager, never()).ensureLibraryIsIncluded(any(Palette.Item.class));
   }
 
@@ -182,32 +183,6 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("%");
     assertThat(myPanel.getCategoryList().getItemsCount()).isEqualTo(1);
     assertThat(myPanel.getItemList().getItemsCount()).isEqualTo(0);
-  }
-
-  public void testInitialCategoryWidthIsReadFromOptions() {
-    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
-    Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager);
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
-  }
-
-  public void testInitialCategoryWidthIsReadFromOptionsButOverriddenIfTooSmall() {
-    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "0");
-    Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager);
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(20));
-  }
-
-  public void testCategoryResize() {
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    setCategoryWidth(388);
-    fireComponentResize(myPanel.getCategoryList());
-    assertThat(PropertiesComponent.getInstance().getValue(PalettePanel.PALETTE_CATEGORY_WIDTH)).isEqualTo("388");
   }
 
   public void testLayoutTypes() {
@@ -434,7 +409,7 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   private boolean isCategoryListVisible() {
-    return myPanel.getSplitter().getFirstComponent().isVisible();
+    return myPanel.getCategoryList().getParent().getParent().isVisible();
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -442,14 +417,6 @@ public class PalettePanelTest extends LayoutTestCase {
     for (ComponentListener listener : component.getComponentListeners()) {
       listener.componentResized(event);
     }
-  }
-
-  private int getCategoryWidth() {
-    return myPanel.getSplitter().getFirstSize();
-  }
-
-  private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
-    myPanel.getSplitter().setFirstSize(width);
   }
 
   private static class StartFiltering implements StartFilteringListener {
