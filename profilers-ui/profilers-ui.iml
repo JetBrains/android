@@ -19,10 +19,10 @@
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
   </component>
 </module>
