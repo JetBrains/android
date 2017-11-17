@@ -269,8 +269,6 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  @Ignore
-  // Failing on mac -> font-family: [Lucida Grande] (Windows and Linux is -> font-family: Dialog)
   public void headerSectionIsSortedAndFormatted() {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
@@ -278,31 +276,23 @@ public class ConnectionDetailsViewTest {
     JPanel responseHeaders = (JPanel)firstDescendantWithName(headers, "Request Headers");
 
     String text = ((JTextPane)responseHeaders.getComponent(1)).getText();
-    String idealText = "<html>\n" +
-                       "  <head>\n" +
-                       "    <style type=\"text/css\">\n" +
-                       "      <!--\n" +
-                       "        body { font-family: Dialog; font-size: 10.0pt }\n" +
-                       "      -->\n" +
-                       "    </style>\n" +
-                       "    \n" +
-                       "  </head>\n" +
-                       "  <body>\n" +
-                       "    <p>\n" +
-                       "      <nobr><b>123:&#160;&#160;</b></nobr><span>value</span>\n" +
-                       "    </p>\n" +
-                       "    <p>\n" +
-                       "      <nobr><b>apple:&#160;&#160;</b></nobr><span>value</span>\n" +
-                       "    </p>\n" +
-                       "    <p>\n" +
-                       "      <nobr><b>border:&#160;&#160;</b></nobr><span>value</span>\n" +
-                       "    </p>\n" +
-                       "    <p>\n" +
-                       "      <nobr><b>car:&#160;&#160;</b></nobr><span>value</span>\n" +
-                       "    </p>\n" +
-                       "  </body>\n" +
-                       "</html>\n";
-    assertThat(text).isEqualTo(idealText);
+    String idealBody = "<body>" +
+                       "  <p>" +
+                       "    <nobr><b>123:&#160;&#160;</b></nobr><span>value</span>" +
+                       "  </p>" +
+                       "  <p>" +
+                       "    <nobr><b>apple:&#160;&#160;</b></nobr><span>value</span>" +
+                       "  </p>" +
+                       "  <p>" +
+                       "    <nobr><b>border:&#160;&#160;</b></nobr><span>value</span>" +
+                       "  </p>" +
+                       "  <p>" +
+                       "    <nobr><b>car:&#160;&#160;</b></nobr><span>value</span>" +
+                       "  </p>" +
+                       "</body>";
+    text = text.replaceAll("\\s", "");
+    idealBody = idealBody.replaceAll("\\s", "");
+    assertThat(text).contains(idealBody);
   }
 
   @Test
