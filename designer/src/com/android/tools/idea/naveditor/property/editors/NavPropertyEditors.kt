@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
@@ -35,6 +35,7 @@ class NavPropertyEditors : PropertyEditors() {
       TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor()
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
       ATTR_START_DESTINATION -> return ChildDestinationsEditor()
+      ATTR_NAME -> return DestinationClassEditor()
     }
     // TODO: handle other types
     return TextEditor(property.model.project, DEFAULT_LISTENER)
