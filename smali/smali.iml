@@ -15,9 +15,9 @@
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
   </component>
 </module>

@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="java-psi-api" />
     <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="module" module-name="ddmlib" />
@@ -32,5 +31,6 @@
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="library" name="analytics-protos" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" name="mockito-2" level="project" />
   </component>
 </module>

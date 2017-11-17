@@ -7,16 +7,16 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="lang-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android" scope="TEST" />
     <orderEntry type="module" module-name="spellchecker" scope="TEST" />
     <orderEntry type="module" module-name="xml-psi-api" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui-model" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="lang-impl" scope="TEST" />
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
-    <orderEntry type="module" module-name="dom-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="freemarker-2.3.20" level="project" />
@@ -74,7 +74,7 @@
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
-    <orderEntry type="module" module-name="junit" scope="TEST" />
+    <orderEntry type="module" module-name="dom-impl" scope="TEST" />
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
@@ -95,7 +95,7 @@
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
     <orderEntry type="module" module-name="artwork" scope="TEST" />
     <orderEntry type="module" module-name="android-common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
+    <orderEntry type="module" module-name="junit" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
