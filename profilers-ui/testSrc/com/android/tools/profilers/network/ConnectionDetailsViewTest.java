@@ -35,8 +35,6 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiPredicate;
-import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -61,6 +59,27 @@ public class ConnectionDetailsViewTest {
     new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService(false),
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
+  private static boolean hasDescendantWithName(Component root, String name) {
+    return new TreeWalker(root).descendantStream().anyMatch(c -> name.equals(c.getName()));
+  }
+
+  /**
+   * Will throw an exception if no match is found.
+   */
+  @NotNull
+  private static Component firstDescendantWithName(Component root, String name) {
+    return new TreeWalker(root).descendantStream().filter(c -> name.equals(c.getName())).findFirst().get();
+  }
+
+  /**
+   * Will throw an exception if no match is found.
+   */
+  @SuppressWarnings("unchecked") // Cast is safe as filter + findFirst guarantees a match
+  @NotNull
+  private static <C extends Component> C firstDescendantWithType(Component root, Class<C> type) {
+    return (C)new TreeWalker(root).descendantStream().filter(type::isInstance).findFirst().get();
+  }
+
   @Before
   public void before() {
     FakeTimer timer = new FakeTimer();
@@ -76,17 +95,13 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void requestTabIsOnlyPresentWhenEnabled() {
-    BiPredicate<ConnectionDetailsView, String> hasComponentWithName = (ConnectionDetailsView view, String name) -> {
-      Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-      return stream.anyMatch(c -> name.equals(c.getName()));
-    };
-    assertThat(hasComponentWithName.test(myView, "Headers")).isTrue();
-    assertThat(hasComponentWithName.test(myView, "Request")).isFalse();
+    assertThat(hasDescendantWithName(myView, "Headers")).isTrue();
+    assertThat(hasDescendantWithName(myView, "Request")).isFalse();
 
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
-    assertThat(hasComponentWithName.test(myView, "Headers")).isFalse();
-    assertThat(hasComponentWithName.test(myView, "Request")).isTrue();
+    assertThat(hasDescendantWithName(myView, "Headers")).isFalse();
+    assertThat(hasDescendantWithName(myView, "Request")).isTrue();
   }
 
   @Test
@@ -96,13 +111,11 @@ public class ConnectionDetailsViewTest {
     File file = new File("temp");
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     data.setRequestPayloadFile(file);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
+
     myView.setHttpData(data);
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    Component requestBody = stream.filter(c -> "REQUEST_BODY".equals(c.getName())).findFirst().get();
-    stream = new TreeWalker(requestBody).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isTrue();
+    Component requestBody = firstDescendantWithName(myView, "REQUEST_BODY");
+    assertThat(hasDescendantWithName(requestBody, "FileViewer")).isTrue();
   }
 
   @Test
@@ -110,11 +123,10 @@ public class ConnectionDetailsViewTest {
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+
     myView.setHttpData(data);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    Component requestBody = stream.filter(c -> "REQUEST_BODY".equals(c.getName())).findFirst().get();
-    stream = new TreeWalker(requestBody).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
+    Component requestBody = firstDescendantWithName(myView, "REQUEST_BODY");
+    assertThat(hasDescendantWithName(requestBody, "FileViewer")).isFalse();
   }
 
   @Test
@@ -156,16 +168,14 @@ public class ConnectionDetailsViewTest {
     myView.setHttpData(data);
     assertThat(stackFramesChangedCount[0]).isEqualTo(1);
 
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JComponent response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    JComponent response = (JComponent)firstDescendantWithName(myView, "Response");
     assertThat(response.getComponentCount()).isNotEqualTo(0);
     assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isNotEmpty();
 
     myView.setHttpData(null);
     assertThat(stackFramesChangedCount[0]).isEqualTo(2);
 
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    response = (JComponent)firstDescendantWithName(myView, "Response");
     assertThat(response.getComponentCount()).isEqualTo(0);
     assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEmpty();
   }
@@ -175,91 +185,83 @@ public class ConnectionDetailsViewTest {
     File file = new File("temp");
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     data.setResponsePayloadFile(file);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
+
     myView.setHttpData(data);
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isTrue();
+    assertThat(hasDescendantWithName(myView, "FileViewer")).isTrue();
   }
 
   @Test
   public void contentTypeHasProperValueFromData() {
     String valueName = "Content type";
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> valueName.equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, valueName)).isFalse();
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+
     myView.setHttpData(data);
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
     assertThat(value.getText()).isEqualTo("111");
   }
 
   @Test
   public void contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
     myView.setHttpData(DEFAULT_DATA);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "Content type".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "Content type")).isFalse();
   }
 
   @Test
   public void initiatingThreadFieldIsPresent() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Initiating thread".equals(c.getName()))).isTrue();
+    assertThat(hasDescendantWithName(myView, "Initiating thread")).isTrue();
   }
 
   @Test
   public void otherThreadsFieldIsPresent() {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).addJavaThread(new HttpData.JavaThread(1, "thread2")).build();
     myView.setHttpData(data);
-    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Other threads".equals(c.getName()))).isTrue();
+    assertThat(hasDescendantWithName(myView, "Other threads")).isTrue();
   }
 
   @Test
   public void otherThreadsFieldIsAbsentWhenOnlyOneThread() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Other threads".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "Other threads")).isFalse();
   }
 
   @Test
   public void urlHasProperValueFromData() {
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "URL".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "URL")).isFalse();
+
     myView.setHttpData(DEFAULT_DATA);
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JTextArea value = (JTextArea)stream.filter(c -> "URL".equals(c.getName())).findFirst().get();
+    JTextArea value = (JTextArea)firstDescendantWithName(myView, "URL");
     assertThat(value.getText()).isEqualTo("dumbUrl");
   }
 
   @Test
   public void sizeHasProperValueFromData() {
     String valueName = "Size";
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> valueName.equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, valueName)).isFalse();
+
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
-    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
     assertThat(value.getText()).isEqualTo("222B");
   }
 
   @Test
   public void contentLengthIsAbsentWhenDataHasNoContentLengthValue() {
     myView.setHttpData(DEFAULT_DATA);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "Content length".equals(c.getName()))).isFalse();
+    assertThat(hasDescendantWithName(myView, "Content Length")).isFalse();
   }
 
   @Test
   public void timingFieldIsPresent() {
     myView.setHttpData(DEFAULT_DATA);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    assertThat(stream.anyMatch(c -> "Timing".equals(c.getName()))).isTrue();
+    assertThat(hasDescendantWithName(myView, "Timing")).isTrue();
   }
 
   @Test
   public void headersIsUpdated() {
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
+    JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
     assertThat(headers.getComponentCount()).isEqualTo(0);
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
@@ -272,10 +274,8 @@ public class ConnectionDetailsViewTest {
   public void headerSectionIsSortedAndFormatted() {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
-    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
-    stream = new TreeWalker(headers).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
-    JPanel responseHeaders = (JPanel)stream.filter(c -> "Request Headers".equals(c.getName())).findFirst().get();
+    JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
+    JPanel responseHeaders = (JPanel)firstDescendantWithName(headers, "Request Headers");
 
     String text = ((JTextPane)responseHeaders.getComponent(1)).getText();
     String idealText = "<html>\n" +
@@ -365,8 +365,7 @@ public class ConnectionDetailsViewTest {
       .addJavaThread(new HttpData.JavaThread(0, "thread1")).build();
     myView.setHttpData(data);
 
-    LegendComponent legendComponent =
-      (LegendComponent)new TreeWalker(myView).descendantStream().filter(c -> c instanceof LegendComponent).findFirst().get();
+    LegendComponent legendComponent = firstDescendantWithType(myView, LegendComponent.class);
     List<Legend> legends = legendComponent.getModel().getLegends();
 
     assertThat(legends.get(0).getValue()).isEqualTo(sentLegend);
