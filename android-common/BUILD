@@ -10,8 +10,27 @@ iml_module(
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea:RegExpSupport",
+        "//tools/idea:xml-analysis-impl",
+        "//tools/idea:testExtensions",
+        "//tools/idea:lvcs-impl",
+        "//tools/idea:xml",
+        "//tools/idea:spellchecker",
+        "//tools/idea:relaxng",
+        "//tools/idea:json",
+        "//tools/idea:images",
+        "//tools/idea:xdebugger-impl",
+    ],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:built-in-server",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.common[module]",
@@ -23,7 +42,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.layoutlib-api[module]",
         "//tools/adt/idea/adt-ui[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:platform-impl[module, test]",
         "//tools/base/ninepatch:studio.ninepatch[module]",
         "//tools/base/sdklib:studio.sdklib[module]",
         "//tools/base/flags:studio.flags[module]",

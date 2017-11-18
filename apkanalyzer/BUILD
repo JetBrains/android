@@ -5,14 +5,28 @@ iml_module(
     srcs = ["src"],
     iml_files = ["apkanalyzer.iml"],
     tags = ["managed"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea:testExtensions",
+        "//tools/idea:external-system-impl",
+        "//tools/idea:execution-impl",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea:lvcs-impl",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/editor-ui-api[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:platform-impl[module]",
         "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/base/common:studio.common[module]",
         "//tools/base/apkparser:studio.binary-resources[module]",
