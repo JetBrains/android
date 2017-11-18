@@ -82,24 +82,23 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1050,928\n" +
-                 "DrawComponentBackground,490,400,76,128,1\n" +
-                 "DrawNavScreen,491,401,75,127\n" +
-                 "DrawScreenFrame,490x400x76x128,false,false\n" +
+                 "DrawRectangle,490x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,491,401,74,126\n" +
                  "DrawAction,NORMAL,490x400x76x128,580x400x70x19,NORMAL\n" +
                  "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
                  "DrawActionHandle,566,464,0,0,FRAMES,0\n" +
                  "DrawIcon,490x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,498,395,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,580x400x70x19\n" +
+                 "DrawFilledRectangle,580x400x70x19,COMPONENT_BACKGROUND,6\n" +
+                 "DrawRectangle,579x399x72x21,FRAMES,1,6\n" +
                  "DrawTextRegion,580,400,70,19,0,11,true,false,4,4,12,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,580x400x70x19,false,false\n" +
                  "DrawAction,NORMAL,580x400x70x19,400x400x76x128,NORMAL\n" +
                  "DrawActionHandle,650,409,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,580,395,subnav\n" +
                  "\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawFilledRectangle,400x400x76x128,COMPONENT_BACKGROUND,6\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,6\n" +
                  "DrawScreenLabel,400,395,activity\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
@@ -121,15 +120,14 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,960,928\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
                  "DrawAction,NORMAL,400x400x76x128,490x400x70x19,NORMAL\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,400,395,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,490x400x70x19\n" +
+                 "DrawFilledRectangle,490x400x70x19,COMPONENT_BACKGROUND,6\n" +
+                 "DrawRectangle,489x399x72x21,FRAMES,1,6\n" +
                  "DrawTextRegion,490,400,70,19,0,11,true,false,4,4,12,0.5,\"myCoolLabel\"\n" +
-                 "DrawNavigationFrame,490x400x70x19,false,false\n" +
                  "DrawScreenLabel,490,395,nav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
@@ -164,22 +162,19 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1126,1128\n" +
-                 "DrawComponentBackground,500,400,76,128,1\n" +
-                 "DrawNavScreen,501,401,75,127\n" +
-                 "DrawScreenFrame,500x400x76x128,false,false\n" +
+                 "DrawRectangle,500x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,501,401,74,126\n" +
                  "DrawActionHandle,576,464,0,0,FRAMES,0\n" +
                  "DrawIcon,500x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,508,395,fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,400,500,76,128,1\n" +
-                 "DrawNavScreen,401,501,75,127\n" +
-                 "DrawScreenFrame,400x500x76x128,false,false\n" +
+                 "DrawRectangle,400x500x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,501,74,126\n" +
                  "DrawActionHandle,477,564,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,400,495,fragment2\n" +
                  "\n" +
-                 "DrawComponentBackground,650,600,76,128,1\n" +
-                 "DrawNavScreen,651,601,75,127\n" +
-                 "DrawScreenFrame,650x600x76x128,false,false\n" +
+                 "DrawRectangle,650x600x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,651,601,74,126\n" +
                  "DrawActionHandle,726,664,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,650,595,fragment3\n" +
                  "\n" +
@@ -215,22 +210,19 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1126,1128\n" +
-                 "DrawComponentBackground,500,400,76,128,1\n" +
-                 "DrawNavScreen,501,401,75,127\n" +
-                 "DrawScreenFrame,500x400x76x128,false,false\n" +
+                 "DrawRectangle,500x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,501,401,74,126\n" +
                  "DrawActionHandle,576,464,0,0,FRAMES,0\n" +
                  "DrawIcon,500x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,508,395,fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,400,500,76,128,1\n" +
-                 "DrawNavScreen,401,501,75,127\n" +
-                 "DrawScreenFrame,400x500x76x128,false,false\n" +
+                 "DrawRectangle,400x500x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,501,74,126\n" +
                  "DrawActionHandle,476,564,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,400,495,fragment2\n" +
                  "\n" +
-                 "DrawComponentBackground,650,600,76,128,1\n" +
-                 "DrawNavScreen,651,601,75,127\n" +
-                 "DrawScreenFrame,650x600x76x128,false,false\n" +
+                 "DrawRectangle,650x600x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,651,601,74,126\n" +
                  "DrawActionHandle,726,664,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,650,595,fragment3\n" +
                  "\n" +
@@ -262,22 +254,19 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1056,928\n" +
-                 "DrawComponentBackground,490,400,76,128,1\n" +
-                 "DrawNavScreen,491,401,75,127\n" +
-                 "DrawScreenFrame,490x400x76x128,false,false\n" +
+                 "DrawRectangle,490x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,491,401,74,126\n" +
                  "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
                  "DrawActionHandle,566,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,490,395,fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawNavScreen,401,401,75,127\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,401,74,126\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,408,395,fragment2\n" +
                  "\n" +
-                 "DrawComponentBackground,580,400,76,128,1\n" +
-                 "DrawScreenFrame,580x400x76x128,false,false\n" +
+                 "DrawRectangle,580x400x76x128,FRAMES,1,0\n" +
                  "DrawActionHandle,656,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,580,395,fragment3\n" +
                  "\n" +
@@ -307,9 +296,8 @@ public class NavSceneTest extends NavigationTestCase {
     list.clear();
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,876,928\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawNavScreen,401,401,75,127\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,401,74,126\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,400,395,fragment1\n" +
                  "\n" +
@@ -323,16 +311,14 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,966,928\n" +
-                 "DrawComponentBackground,490,400,76,128,1\n" +
-                 "DrawNavScreen,491,401,75,127\n" +
-                 "DrawScreenFrame,490x400x76x128,false,false\n" +
+                 "DrawRectangle,490x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,491,401,74,126\n" +
                  "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
                  "DrawActionHandle,566,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,490,395,fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawNavScreen,401,401,75,127\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,401,74,126\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,408,395,fragment2\n" +
@@ -397,22 +383,20 @@ public class NavSceneTest extends NavigationTestCase {
     NavView view = new NavView(surface, model);
     scene.buildDisplayList(list, 0, view);
     assertEquals("Clip,0,0,56,-72\n" +
-                 "DrawComponentBackground,-10,-100,76,128,1\n" +
-                 "DrawScreenFrame,-10x-100x76x128,false,false\n" +
+                 "DrawRectangle,-10x-100x76x128,FRAMES,1,0\n" +
                  "DrawAction,NORMAL,-10x-100x76x128,80x-100x76x128,NORMAL\n" +
                  "DrawActionHandle,66,-36,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,-10,-105,fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,80,-100,76,128,1\n" +
-                 "DrawNavScreen,81,-99,75,127\n" +
-                 "DrawScreenFrame,80x-100x76x128,false,false\n" +
+                 "DrawRectangle,80x-100x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,81,-99,74,126\n" +
                  "DrawActionHandle,156,-36,0,0,FRAMES,0\n" +
                  "DrawIcon,80x-111x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,88,-105,fragment2\n" +
                  "\n" +
-                 "DrawNavigationBackground,-100x-100x70x19\n" +
+                 "DrawFilledRectangle,-100x-100x70x19,COMPONENT_BACKGROUND,6\n" +
+                 "DrawRectangle,-101x-101x72x21,FRAMES,1,6\n" +
                  "DrawTextRegion,-100,-100,70,19,0,11,true,false,4,4,12,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,-100x-100x70x19,false,false\n" +
                  "DrawAction,NORMAL,-100x-100x70x19,-10x-100x76x128,NORMAL\n" +
                  "DrawActionHandle,-30,-91,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,-100,-105,subnav\n" +
@@ -423,14 +407,12 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(view));
     scene.buildDisplayList(list, 0, view);
     assertEquals("Clip,0,0,-33,-72\n" +
-                 "DrawComponentBackground,-10,-100,76,128,1\n" +
-                 "DrawScreenFrame,-10x-100x76x128,false,false\n" +
+                 "DrawRectangle,-10x-100x76x128,FRAMES,1,0\n" +
                  "DrawAction,NORMAL,-10x-100x76x128,-100x-100x76x128,NORMAL\n" +
                  "DrawActionHandle,66,-36,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,-10,-105,fragment3\n" +
                  "\n" +
-                 "DrawComponentBackground,-100,-100,76,128,1\n" +
-                 "DrawScreenFrame,-100x-100x76x128,false,false\n" +
+                 "DrawRectangle,-100x-100x76x128,FRAMES,1,0\n" +
                  "DrawActionHandle,-24,-36,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,-100,-105,fragment4\n" +
                  "\n" +
@@ -453,8 +435,7 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
 
     assertEquals("Clip,0,0,876,928\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,400,395,fragment1\n" +
                  "\n" +
@@ -510,9 +491,8 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
 
     assertEquals("Clip,0,0,876,928\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawNavScreen,401,401,75,127\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,401,74,126\n" +
                  "DrawAction,SELF,400x400x76x128,400x400x76x128,NORMAL\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
@@ -539,9 +519,8 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
 
     assertEquals("Clip,0,0,876,928\n" +
-                 "DrawComponentBackground,400,400,76,128,1\n" +
-                 "DrawNavScreen,401,401,75,127\n" +
-                 "DrawScreenFrame,400x400x76x128,false,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawNavScreen,401,401,74,126\n" +
                  "DrawActionHandle,476,464,0,0,FRAMES,0\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,408,395,fragment1\n" +
@@ -571,15 +550,15 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
 
     assertEquals("Clip,0,0,960,928\n" +
-                 "DrawComponentBackground,400,400,76,128,3\n" +
-                 "DrawScreenFrame,400x400x76x128,true,false\n" +
+                 "DrawRectangle,400x400x76x128,FRAMES,1,0\n" +
+                 "DrawRectangle,398x398x80x132,SELECTED_FRAMES,1,2\n" +
                  "DrawActionHandle,476,464,0,6,SELECTED_FRAMES,200\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,408,395,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,490x400x70x19\n" +
+                 "DrawFilledRectangle,490x400x70x19,COMPONENT_BACKGROUND,6\n" +
+                 "DrawRectangle,489x399x72x21,SELECTED_FRAMES,1,6\n" +
                  "DrawTextRegion,490,400,70,19,0,11,true,false,4,4,12,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,490x400x70x19,true,false\n" +
                  "DrawActionHandle,560,409,0,6,SELECTED_FRAMES,200\n" +
                  "DrawScreenLabel,490,395,subnav\n" +
                  "\n" +
@@ -596,11 +575,10 @@ public class NavSceneTest extends NavigationTestCase {
     Scene scene = surface.getScene();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
-    assertEquals("Clip,0,0,838,864\n" +
-                 "DrawComponentBackground,400,400,38,64,1\n" +
-                 "DrawScreenFrame,400x400x38x64,false,false\n" +
-                 "DrawActionHandle,438,432,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,400,395,fragment1\n" +
+    assertEquals("Clip,0,0,977,1028\n" +
+                 "DrawRectangle,450x450x77x128,FRAMES,1,0\n" +
+                 "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,445,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -611,8 +589,7 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
     assertEquals("Clip,0,0,914,914\n" +
-                 "DrawComponentBackground,425,425,64,64,1\n" +
-                 "DrawScreenFrame,425x425x64x64,false,false\n" +
+                 "DrawRectangle,425x425x64x64,FRAMES,1,0\n" +
                  "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,425,420,fragment1\n" +
                  "\n" +
@@ -624,8 +601,7 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
     assertEquals("Clip,0,0,1028,972\n" +
-                 "DrawComponentBackground,450,450,128,72,1\n" +
-                 "DrawScreenFrame,450x450x128x72,false,false\n" +
+                 "DrawRectangle,450x450x128x72,FRAMES,1,0\n" +
                  "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
                  "DrawScreenLabel,450,445,fragment1\n" +
                  "\n" +

@@ -59,7 +59,7 @@ public class DrawAction extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_ACTION;
+    return DRAW_ACTION_LEVEL;
   }
 
   @Override
@@ -98,7 +98,7 @@ public class DrawAction extends NavBaseDrawCommand {
                            @SwingCoordinate Rectangle dest,
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
-    Color actionColor = (mode == SELECTED) ? color.getSelectedFrames() : color.getFrames();
+    Color actionColor = (mode == SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
 
     @SwingCoordinate int endX;
     @SwingCoordinate int endY;

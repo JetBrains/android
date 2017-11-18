@@ -50,7 +50,7 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_SCREEN_LABEL;
+    return DRAW_SCREEN_LABEL_LEVEL;
   }
 
   @Override

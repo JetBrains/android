@@ -51,7 +51,7 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_ACTION_HANDLE_DRAG;
+    return DRAW_ACTION_HANDLE_DRAG_LEVEL;
   }
 
   @Override

@@ -43,7 +43,7 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
   constructor(s: String) : this(parse(s, 2))
 
   override fun getLevel(): Int {
-    return NavBaseDrawCommand.DRAW_ICON
+    return NavBaseDrawCommand.DRAW_ICON_LEVEL
   }
 
   override fun getProperties(): Array<Any> {

@@ -16,33 +16,28 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.DrawCommand
 import java.awt.Graphics2D
 import java.awt.Rectangle
 
-/**
- * [DrawNavigationBackground] fills a rounded rectangle inside the subnavigation frame.
- */
-class DrawNavigationBackground(@SwingCoordinate private val myRectangle: Rectangle) : NavBaseDrawCommand() {
+class DrawFilledRectangle(@SwingCoordinate private val myRectangle: Rectangle,
+                          @SwingCoordinate private val myColor: DrawColor,
+                          @SwingCoordinate private val myArcSize: Int) : NavBaseDrawCommand() {
 
-  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]))
+  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]), DrawColor.valueOf(sp[1]), sp[2].toInt())
 
-  constructor(s: String) : this(parse(s, 1))
+  constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int {
-    return DrawCommand.COMPONENT_LEVEL
+    return NavBaseDrawCommand.DRAW_BACKGROUND_LEVEL
   }
 
   override fun getProperties(): Array<Any> {
-    return arrayOf(NavBaseDrawCommand.rectToString(myRectangle))
+    return arrayOf(NavBaseDrawCommand.rectToString(myRectangle), myColor, myArcSize)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.color = sceneContext.colorSet.componentBackground
-
-    val arc = Coordinates.getSwingDimension(sceneContext, DrawNavigationFrame.CORNER_RADIUS)
-    g.fillRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, arc, arc)
+    g.color = myColor.color(sceneContext)
+    g.fillRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, myArcSize, myArcSize)
   }
 }

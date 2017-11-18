@@ -44,7 +44,7 @@ public class DrawNavScreen extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_NAV_SCREEN;
+    return DRAW_NAV_SCREEN_LEVEL;
   }
 
   @Override
