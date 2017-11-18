@@ -48,31 +48,31 @@ public abstract class NavBaseTarget extends BaseTarget {
 
   @SwingCoordinate
   protected int getSwingLeft(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(myLeft);
+    return sceneContext.getSwingXDip(myLeft);
   }
 
   @SwingCoordinate
   protected int getSwingTop(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(myTop);
+    return sceneContext.getSwingYDip(myTop);
   }
 
   @SwingCoordinate
   protected int getSwingRight(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(myRight);
+    return sceneContext.getSwingXDip(myRight);
   }
 
   @SwingCoordinate
   protected int getSwingBottom(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(myBottom);
+    return sceneContext.getSwingYDip(myBottom);
   }
 
   @SwingCoordinate
   protected int getSwingCenterX(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(getCenterX());
+    return sceneContext.getSwingXDip(getCenterX());
   }
 
   @SwingCoordinate
   protected int getSwingCenterY(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(getCenterY());
+    return sceneContext.getSwingYDip(getCenterY());
   }
 }

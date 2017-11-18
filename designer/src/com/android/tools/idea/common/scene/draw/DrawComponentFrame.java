@@ -79,10 +79,10 @@ public class DrawComponentFrame extends DrawRegion {
                          SceneContext sceneContext,
                          @AndroidDpCoordinate Rectangle rect,
                          int mode) {
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
     list.add(new DrawComponentFrame(l, t, w, h, mode));
   }
 }

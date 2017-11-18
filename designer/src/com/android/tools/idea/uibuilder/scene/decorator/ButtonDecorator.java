@@ -100,9 +100,9 @@ public class ButtonDecorator extends SceneDecorator {
     public void paint(Graphics2D g, SceneContext sceneContext) {
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
-        int round = sceneContext.getSwingDimension(5);
+        int round = sceneContext.getSwingDimensionDip(5);
         Stroke stroke = g.getStroke();
-        int strokeWidth = sceneContext.getSwingDimension(2);
+        int strokeWidth = sceneContext.getSwingDimensionDip(2);
         g.setStroke(new BasicStroke(strokeWidth));
         g.setColor(colorSet.getButtonBackground());
         g.fillRect(x + mHorizontalMargin, y + mVerticalMargin,
@@ -121,14 +121,14 @@ public class ButtonDecorator extends SceneDecorator {
     super.addContent(list, time, sceneContext, component);
     @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
-    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
-    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
-    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingXDip(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingYDip(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
     float scale = (float)sceneContext.getScale();
-    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
     list.add(new DrawButton(l, t, w, h, mode, baseLineOffset, scale, fontSize, text));
   }

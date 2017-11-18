@@ -216,7 +216,7 @@ public class NlComponentFixture {
       .filter(t -> expectedTooltipText.equals(t.getToolTipText()))
       .findFirst().get());
     SceneContext context = SceneContext.get(sceneView);
-    Point p = new Point(context.getSwingX(target.getCenterX()), context.getSwingY(target.getCenterY()));
+    Point p = new Point(context.getSwingXDip(target.getCenterX()), context.getSwingYDip(target.getCenterY()));
     myComponentDriver.click(mySurface, p);
 
     Point sourceBaseline = getTopCenterPoint();

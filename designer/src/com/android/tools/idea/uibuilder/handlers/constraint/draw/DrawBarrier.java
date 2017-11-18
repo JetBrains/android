@@ -107,9 +107,9 @@ public class DrawBarrier extends DrawRegion {
   public static void add(DisplayList list, SceneContext transform,
                          @AndroidDpCoordinate float left, @AndroidDpCoordinate float top, @AndroidDpCoordinate float size,
                          int direction, boolean selected) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int pixSze = transform.getSwingDimension(size);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int pixSze = transform.getSwingDimensionDip(size);
     list.add(new DrawBarrier(l, t, pixSze, direction, selected));
   }
 }

@@ -790,10 +790,10 @@ public class SceneComponent {
     if (myDrawState == DrawState.HOVER) {
       myDrawState = DrawState.NORMAL;
     }
-    picker.addRect(this, 0, sceneTransform.getSwingX(myCurrentLeft),
-                   sceneTransform.getSwingY(myCurrentTop),
-                   sceneTransform.getSwingX(myCurrentRight),
-                   sceneTransform.getSwingY(myCurrentBottom));
+    picker.addRect(this, 0, sceneTransform.getSwingXDip(myCurrentLeft),
+                   sceneTransform.getSwingYDip(myCurrentTop),
+                   sceneTransform.getSwingXDip(myCurrentRight),
+                   sceneTransform.getSwingYDip(myCurrentBottom));
     int num = myTargets.size();
     for (int i = 0; i < num; i++) {
       Target target = myTargets.get(i);

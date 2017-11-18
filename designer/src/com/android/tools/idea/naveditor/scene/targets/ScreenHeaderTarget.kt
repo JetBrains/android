@@ -81,7 +81,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
       l += iconSize + textPadding
     }
 
-    val headerPadding = sceneContext.getSwingDimension(sceneContext.pxToDp(HEADER_PADDING))
+    val headerPadding = sceneContext.getSwingDimensionDip(sceneContext.pxToDp(HEADER_PADDING))
 
     val text = component.nlComponent.id ?: ""
     list.add(DrawScreenLabel(l, b - textPadding - headerPadding, text))

@@ -101,10 +101,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   private final static int[] ourOppositeDirection = {1, 0, 3, 2};
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
-    rect.x = sceneContext.getSwingX(rect.x);
-    rect.y = sceneContext.getSwingY(rect.y);
-    rect.width = sceneContext.getSwingDimension(rect.width);
-    rect.height = sceneContext.getSwingDimension(rect.height);
+    rect.x = sceneContext.getSwingXDip(rect.x);
+    rect.y = sceneContext.getSwingYDip(rect.y);
+    rect.width = sceneContext.getSwingDimensionDip(rect.width);
+    rect.height = sceneContext.getSwingDimensionDip(rect.height);
   }
 
   private static void gatherProperties(@NotNull SceneComponent component,
@@ -398,7 +398,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
             isMarginReference = true;
           }
           margin = ConstraintUtilities.getDpValue(child.getAuthoritativeNlComponent(), marginString);
-          marginDistance = sceneContext.getSwingDimension(margin);
+          marginDistance = sceneContext.getSwingDimensionDip(margin);
         }
         String biasString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
         if (biasString != null) {
@@ -452,8 +452,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     if (baseLineConnection != null) {
       baseLineConnection.fillDrawRect(time, dest_rect);  // get the destination rectangle
       convert(sceneContext, dest_rect);   // scale to screen space
-      int dest_offset = sceneContext.getSwingDimension(baseLineConnection.getBaseline());
-      int source_offset = sceneContext.getSwingDimension(child.getBaseline());
+      int dest_offset = sceneContext.getSwingDimensionDip(baseLineConnection.getBaseline());
+      int source_offset = sceneContext.getSwingDimensionDip(child.getBaseline());
       source_rect.y += source_offset;
       source_rect.height = 0;
       dest_rect.y += dest_offset;
