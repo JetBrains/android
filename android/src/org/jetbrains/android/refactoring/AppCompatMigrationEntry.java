@@ -16,7 +16,9 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -39,7 +41,7 @@ import java.util.*;
  *
  * @see MigrateToAppCompatProcessor
  */
-class AppCompatMigrationEntry {
+public class AppCompatMigrationEntry {
   /**
    * AppCompatMigrationEntry for denoting a class change.
    */
@@ -74,6 +76,13 @@ class AppCompatMigrationEntry {
    * Entry denoting an Xml attribute value change.
    */
   public static final int CHANGE_ATTR_VALUE = 8;
+
+  /**
+   * Entry denoting a package name change
+   */
+  public static final int CHANGE_PACKAGE = 9;
+
+  public static final int CHANGE_GRADLE_DEPENDENCY = 10;
 
   protected final int myType;
 
@@ -259,6 +268,17 @@ class AppCompatMigrationEntry {
     }
   }
 
+  static class PackageMigrationEntry extends AppCompatMigrationEntry {
+    @NonNull final String myOldName;
+    @NonNull final String myNewName;
+
+    public PackageMigrationEntry(@NotNull String oldName, @NotNull String newName) {
+      super(CHANGE_PACKAGE);
+      myOldName = oldName;
+      myNewName = newName;
+    }
+  }
+
   static class MethodMigrationEntry extends AppCompatMigrationEntry {
 
     @NonNull final String myOldClassName;
@@ -298,6 +318,33 @@ class AppCompatMigrationEntry {
                                     int qualifierParamIndex) {
       super(REPLACE_METHOD, oldClassName, oldMethodName, newClassName, newMethodName);
       myQualifierParamIndex = qualifierParamIndex;
+    }
+  }
+
+  static class GradleDependencyMigrationEntry extends AppCompatMigrationEntry {
+
+    @NotNull final String myOldGroupName;
+    @NotNull final String myOldArtifactName;
+    @NotNull final String myNewGroupName;
+    @NotNull final String myNewArtifactName;
+    @NotNull final String myNewBaseVersion;
+
+    public GradleDependencyMigrationEntry(@NotNull String oldGroupName, @NotNull String oldArtifactName,
+                                          @NotNull String newGroupName, @NotNull String newArtifactName, @NotNull String newBaseVersion) {
+      super(CHANGE_GRADLE_DEPENDENCY);
+      myOldGroupName = oldGroupName;
+      myOldArtifactName = oldArtifactName;
+      myNewGroupName = newGroupName;
+      myNewArtifactName = newArtifactName;
+      myNewBaseVersion = newBaseVersion;
+    }
+
+    public Pair<String, String> compactKey() {
+      return Pair.create(myOldGroupName, myOldArtifactName);
+    }
+
+    public String toCompactNotation() {
+      return new GradleCoordinate(myNewGroupName, myNewArtifactName, myNewBaseVersion).toString();
     }
   }
 }

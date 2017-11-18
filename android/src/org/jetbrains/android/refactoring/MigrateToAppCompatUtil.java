@@ -33,7 +33,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -45,6 +48,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
@@ -69,6 +73,11 @@ class MigrateToAppCompatUtil {
                                          @NonNull String qName) {
     PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project));
     return findRefs(project, aClass);
+  }
+
+  public static List<UsageInfo> findPackageUsages(Project project, PsiMigration migration, String qName) {
+    PsiPackage aPackage = findOrCreatePackage(project, migration, qName);
+    return findRefs(project, aPackage);
   }
 
   @NotNull
@@ -110,6 +119,16 @@ class MigrateToAppCompatUtil {
       aClass = WriteAction.compute(() -> migration.createClass(qName));
     }
     return aClass;
+  }
+
+  static PsiPackage findOrCreatePackage(Project project, final PsiMigration migration, final String qName) {
+    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
+    if (aPackage != null) {
+      return aPackage;
+    }
+    else {
+      return WriteAction.compute(() -> migration.createPackage(qName));
+    }
   }
 
   @NonNull
@@ -325,5 +344,19 @@ class MigrateToAppCompatUtil {
       }
     }
     infos.removeAll(toRemove);
+  }
+
+  static boolean isKotlinSimpleNameReference(PsiReference reference) {
+    PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
+    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManager.getPlugin(kotlinPluginId));
+    ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
+    try {
+      Class<?> simpleNameReferenceClass =
+        Class.forName("org.jetbrains.kotlin.idea.references.KtSimpleNameReference", true, pluginClassLoader);
+      return simpleNameReferenceClass.isInstance(reference);
+    }
+    catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 }
