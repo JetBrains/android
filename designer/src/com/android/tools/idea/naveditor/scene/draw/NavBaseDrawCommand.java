@@ -35,12 +35,14 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
   );
 
-  protected static final int DRAW_ACTION = COMPONENT_LEVEL + 1;
-  protected static final int DRAW_SCREEN_LABEL = DRAW_ACTION + 1;
-  protected static final int DRAW_ICON = DRAW_SCREEN_LABEL + 1;
-  protected static final int DRAW_NAV_SCREEN = DRAW_ICON + 1;
-  protected static final int DRAW_ACTION_HANDLE = DRAW_NAV_SCREEN + 1;
-  protected static final int DRAW_ACTION_HANDLE_DRAG = DRAW_ACTION_HANDLE + 1;
+  protected static final int DRAW_BACKGROUND_LEVEL = 0;
+  protected static final int DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1;
+  protected static final int DRAW_ACTION_LEVEL = DRAW_FRAME_LEVEL + 1;
+  protected static final int DRAW_SCREEN_LABEL_LEVEL = DRAW_ACTION_LEVEL + 1;
+  protected static final int DRAW_ICON_LEVEL = DRAW_SCREEN_LABEL_LEVEL + 1;
+  protected static final int DRAW_NAV_SCREEN_LEVEL = DRAW_ICON_LEVEL + 1;
+  protected static final int DRAW_ACTION_HANDLE_LEVEL = DRAW_NAV_SCREEN_LEVEL + 1;
+  protected static final int DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1;
 
   @Override
   @NotNull

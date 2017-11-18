@@ -22,8 +22,16 @@ import java.awt.Color
  * [DrawColor] is an enum used to allow colors to be serialized in draw commands.
  */
 enum class DrawColor {
+  COMPONENT_BACKGROUND {
+    override fun color(context: SceneContext): Color = context.colorSet.componentBackground
+  },
+
   FRAMES {
     override fun color(context: SceneContext): Color = context.colorSet.frames
+  },
+
+  HIGHLIGHTED_FRAMES {
+    override fun color(context: SceneContext): Color = context.colorSet.highlightedFrames
   },
 
   SELECTED_FRAMES {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -23,13 +24,18 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.draw.DrawNavigationBackground;
-import com.android.tools.idea.naveditor.scene.draw.DrawNavigationFrame;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.draw.DrawColor;
+import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle;
+import com.android.tools.idea.naveditor.scene.draw.DrawRectangle;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.frameColor;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.strokeThickness;
 
 
 /**
@@ -39,14 +45,16 @@ public class NavigationDecorator extends SceneDecorator {
   private static final int BASELINE_OFFSET = 22;
   private static final int FONT_SIZE = 12;
 
+  // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
+  @NavCoordinate private static final int NAVIGATION_ARC_SIZE = 12;
+  @NavCoordinate private static final int NAVIGATION_BORDER_THICKNESS = 2;
+
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    if (isDisplayRoot(sceneContext, component)) {
-      return;
-    }
+  }
 
-    Rectangle rect = Coordinates.getSwingRect(sceneContext, component.fillRect(null));
-    list.add(new DrawNavigationBackground(rect));
+  @Override
+  protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
   }
 
   @Override
@@ -56,6 +64,17 @@ public class NavigationDecorator extends SceneDecorator {
     }
 
     Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
+
+    @SwingCoordinate int arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE);
+    list.add(new DrawFilledRectangle(bounds, DrawColor.COMPONENT_BACKGROUND, arcSize));
+
+    @SwingCoordinate int strokeThickness = strokeThickness(sceneContext, component, NAVIGATION_BORDER_THICKNESS);
+    Rectangle frameRectangle = new Rectangle(bounds);
+    frameRectangle.grow(strokeThickness, strokeThickness);
+
+    DrawColor frameColor = frameColor(component);
+    list.add(new DrawRectangle(frameRectangle, frameColor, strokeThickness, arcSize));
+
     // TODO: baseline based on text size
     // TODO: add resource resolver here?
     String label = NavComponentHelperKt.getUiName(component.getNlComponent(), null);
@@ -63,17 +82,6 @@ public class NavigationDecorator extends SceneDecorator {
     list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
                                 (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
                                 DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
-  }
-
-  @Override
-  protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    if (isDisplayRoot(sceneContext, component)) {
-      return;
-    }
-
-    Rectangle rect = Coordinates.getSwingRect(sceneContext, component.fillRect(null));
-    list.add(new DrawNavigationFrame(rect, component.isSelected(),
-                                     component.getDrawState() == SceneComponent.DrawState.HOVER || component.isDragging()));
   }
 
   @Override

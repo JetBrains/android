@@ -28,19 +28,20 @@ public class NavColorSet extends ColorSet {
     mDrawBackground = true;
     mDrawWidgetInfos = false;
 
-    mFrames = new JBColor(0xa7a7a7, 0x888888);
-    mHighlightedFrames = mFrames;
-
+    mFrames = new JBColor(0xa7a7a7, 0x2d2f31);
+    mHighlightedFrames = new JBColor(0xa7a7a7, 0xa1a1a1);
     mSelectedFrames = new JBColor(0x1886f7, 0x9ccdff);
-    mSelectedText = mSelectedFrames;
 
     mBackground = new JBColor(0xf5f5f5, 0x2d2f31);
-    mComponentBackground = new JBColor(0xfdfdfd, 0xfdfdfd);
-    mComponentHighlightedBackground = mComponentBackground;
-
-    mText = JBColor.BLACK;
-
-    mSubduedText = new JBColor(0x000000, 0x888888);
     mSubduedBackground = new JBColor(0xfcfcfc, 0x313435);
+    mComponentBackground = new JBColor(0xfafafa, 0x515658);
+
+    mText = new JBColor(0xa7a7a7, 0x888888);
+    mSelectedText = new JBColor(0x1886f7, 0x9ccdff);
+    mSubduedText = new JBColor(0x656565, 0xbababb);
+
+    mConstraints = new JBColor(0xb2a7a7a7,0xb2888888);
+    mHighlightedConstraints = new JBColor(0xa7a7a7,0x888888);
+    mSelectedConstraints = new JBColor(0x1886f7, 0x9ccdff);
   }
 }
