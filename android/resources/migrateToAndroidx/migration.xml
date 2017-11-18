@@ -1,0 +1,55 @@
+<migration-map>
+  <!-- element name: migrate
+       attr old-name refers to the old class or package name
+       attr new-name refers to the new classname
+       attr type indicates whether the migration is a class or package migration
+  -->
+  <!-- Migrate classes-->
+  <migrate old-name="android.support.design.widget.CoordinatorLayout" new-name="androidx.widget.CoordinatorLayout" type="CLASS"/>
+  <migrate old-name="android.support.design.widget.DirectedAcyclicGraph" new-name="androidx.widget.DirectedAcyclicGraph" type="CLASS"/>
+  <migrate old-name="android.support.design.widget.ViewGroupUtils" new-name="androidx.widget.ViewGroupUtils" type="CLASS"/>
+  <migrate old-name="android.support.v4.view.ViewPager" new-name="androidx.widget.ViewPager" type="CLASS"/>
+  <migrate old-name="android.support.v4.view.PagerAdapter" new-name="androidx.widget.PagerAdapter" type="CLASS"/>
+  <migrate old-name="android.support.v4.view.PagerTabStrip" new-name="androidx.widget.PagerTabStrip" type="CLASS"/>
+  <migrate old-name="android.support.v4.view.PagerTitleStrip" new-name="androidx.widget.PagerTitleStrip" type="CLASS"/>
+  <migrate old-name="android.support.v7.graphics.ColorCutQuantizer" new-name="androidx.graphics.palette.ColorCutQuantizer" type="CLASS"/>
+  <migrate old-name="android.support.v7.graphics.Palette" new-name="androidx.graphics.palette.Palette" type="CLASS"/>
+  <migrate old-name="android.support.v7.graphics.Target" new-name="androidx.graphics.palette.Target" type="CLASS"/>
+
+  <!-- Migrate Packages -->
+  <migrate old-name="android.support.constraint" new-name="androidx.widget.constraint" type="PACKAGE"/>
+  <migrate old-name="android.support.v17.preference" new-name="androidx.leanback.preference" type="PACKAGE"/>
+  <migrate old-name="android.support.customtabs" new-name="androidx.browser.customtabs" type="PACKAGE"/>
+  <migrate old-name="android.support.v4" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.support.v7" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.support.v13" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.support.v14" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.support.v17" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.support.percent" new-name="androidx.widget" type="PACKAGE"/>
+  <migrate old-name="android.support" new-name="androidx" type="PACKAGE"/>
+  <migrate old-name="android.arch" new-name="androidx.arch" type="PACKAGE"/>
+  <migrate old-name="android.databinding" new-name="androidx.databinding" type="PACKAGE"/>
+
+  <!-- Migrate dependencies in build.gradle -->
+  <migrate-dependency
+      old-group-name="com.android.support.constraint"
+      old-artifact-name="constraint-layout"
+      new-group-name="androidx.constraint"
+      new-artifact-name="base"
+      base-version="2.0.0-alpha1" />
+
+  <migrate-dependency
+      old-group-name="com.android.support"
+      old-artifact-name="appcompat-v7"
+      new-group-name="androidx.appcompat"
+      new-artifact-name="base"
+      base-version="1.0.0-alpha1" />
+
+  <migrate-dependency
+      old-group-name="com.android.support"
+      old-artifact-name="design"
+      new-group-name="androidx.design"
+      new-artifact-name="base"
+      base-version="1.0.0-alpha1" />
+
+</migration-map>

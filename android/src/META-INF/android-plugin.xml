@@ -238,6 +238,10 @@
             description="Migrate App To AppCompat">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Refactor to AndroidX Packages..."
+            description="Migrate To AndroidX Package Names">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
     <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction" text="St_yle..."
             description="Pull out style-related attributes from layout and extract them as a new style">
       <add-to-group group-id="IntroduceActionsGroup"/>

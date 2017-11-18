@@ -59,7 +59,11 @@ class RoomFindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvider() {
  */
 class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
   private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
-    RoomSchemaManager.getInstance(element.project)?.getSchema(element.containingFile)
+    if (element.containingFile != null) {
+      RoomSchemaManager.getInstance(element.project)?.getSchema(element.containingFile)
+    } else {
+      null
+    }
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {

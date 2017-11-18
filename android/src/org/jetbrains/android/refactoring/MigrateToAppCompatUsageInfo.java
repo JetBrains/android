@@ -15,17 +15,25 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.annotations.NonNull;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
@@ -95,6 +103,79 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       if (element instanceof PsiJavaCodeReferenceElement) {
         PsiJavaCodeReferenceElement referenceElement = (PsiJavaCodeReferenceElement)element;
         return referenceElement.bindToElement(aClass);
+      }
+      else {
+        final TextRange range = getRangeInElement();
+        for (PsiReference reference : element.getReferences()) {
+          if (reference instanceof JavaClassReference) {
+            final JavaClassReference classReference = (JavaClassReference)reference;
+            if (classReference.getRangeInElement().equals(range)) {
+              return classReference.bindToElement(aClass);
+            }
+          }
+          else if (reference != null && reference.getElement() instanceof XmlTag) {
+            XmlTag ref = (XmlTag)reference.getElement();
+            String localName = ref.getLocalName();
+            if (mapEntry.myOldName.equals(localName)) {
+              ref.setName(mapEntry.myNewName);
+            }
+          }
+          else if (reference != null && MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference)) {
+            return reference.bindToElement(aClass);
+          }
+        }
+      }
+      return null;
+    }
+  }
+
+  /**
+   * UsageInfo specific to migrating a package
+   */
+  static class PackageMigrationUsageInfo extends MigrateToAppCompatUsageInfo {
+    final AppCompatMigrationEntry.PackageMigrationEntry mapEntry;
+
+    public PackageMigrationUsageInfo(@NotNull UsageInfo info, @NotNull AppCompatMigrationEntry.PackageMigrationEntry mapEntry) {
+      //noinspection ConstantConditions
+      super(info.getElement());
+      this.mapEntry = mapEntry;
+    }
+
+    @Override
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
+      PsiPackage aPackage = MigrateToAppCompatUtil.findOrCreatePackage(getProject(), migration, mapEntry.myNewName);
+      PsiElement element = getElement();
+      if (element == null || !element.isValid()) {
+        return element;
+      }
+      if (element instanceof PsiJavaCodeReferenceElement) {
+        PsiJavaCodeReferenceElement referenceElement = (PsiJavaCodeReferenceElement)element;
+        return referenceElement.bindToElement(aPackage);
+      }
+      else {
+        final TextRange range = getRangeInElement();
+        for (PsiReference reference : element.getReferences()) {
+          if (reference instanceof JavaClassReference) {
+            final JavaClassReference classReference = (JavaClassReference)reference;
+            if (classReference.getRangeInElement().equals(range)) {
+              return classReference.bindToElement(aPackage);
+            }
+          }
+          else if (reference != null && reference.getElement() instanceof XmlTag) {
+            XmlTag ref = (XmlTag)reference.getElement();
+            String localName = ref.getLocalName();
+            if (localName.startsWith(mapEntry.myOldName)) {
+              // Binding to element implemented in AndroidXmlReferenceProvider incorrectly adds the package
+              // as a prefix to the existing package, so use the local name replacement instead.
+              // reference.bindToElement(bindTo);
+              String newName = localName.replace(mapEntry.myOldName, mapEntry.myNewName);
+              ref.setName(newName);
+            }
+          }
+          else if (reference != null && MigrateToAppCompatUtil.isKotlinSimpleNameReference(reference)) {
+            return reference.bindToElement(aPackage);
+          }
+        }
       }
       return null;
     }
@@ -318,6 +399,76 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       assert file instanceof XmlFile;
       currentAttr.setValue(myEntry.myNewAttrValue);
       return null;
+    }
+  }
+
+  static class GradleDependencyUsageInfo extends MigrateToAppCompatUsageInfo {
+
+    private final GradleDependencyMigrationEntry mapEntry;
+
+    public GradleDependencyUsageInfo(@NotNull PsiElement element, @NonNull GradleDependencyMigrationEntry entry) {
+      super(element);
+      mapEntry = entry;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
+      PsiElement element = getElement();
+      if (element == null || !element.isValid() || !element.isWritable()) {
+        return null;
+      }
+      // This handles the case where the dependency was declared using the map notation
+      // e.g: implementation group: 'com.android.support', name:'appcompat-v7', version: '27.0.2'
+      if (element instanceof GrArgumentList) {
+        GrArgumentList list = (GrArgumentList)element;
+        GroovyPsiElement[] expressions = list.getAllArguments();
+        PsiElement group = null, name = null, version = null;
+        for (GroovyPsiElement expression : expressions) {
+          if (expression instanceof GrNamedArgument) {
+            GrNamedArgument namedArgument = (GrNamedArgument)expression;
+            String labelName = namedArgument.getLabelName();
+            if (labelName == null) {
+              continue;
+            }
+            PsiElement val = PsiTreeUtil.findChildOfType(namedArgument, GrLiteral.class);
+            switch (labelName) {
+              case "group":
+                group = val;
+                break;
+              case "name":
+                name = val;
+                break;
+              case "version":
+                version = val;
+                break;
+            }
+          }
+        }
+        if (group == null || name == null || version == null) {
+          return null;
+        }
+        renameElement(group, mapEntry.myOldGroupName, mapEntry.myNewGroupName);
+        renameElement(name, mapEntry.myOldArtifactName, mapEntry.myNewArtifactName);
+        if (version.getReference() != null) {
+          version.getReference().handleElementRename(mapEntry.myNewBaseVersion);
+        }
+      }
+      else if (element.getReference() != null) { // this was declared as a string literal for example
+        // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+        element.getReference().handleElementRename(mapEntry.toCompactNotation());
+      }
+      return null;
+    }
+
+    private static void renameElement(PsiElement current, String oldName, String newName) {
+      String elementText = StringUtil.trimStart(current.getText(), "'");
+      elementText = StringUtil.trimEnd(elementText, "'");
+      elementText = StringUtil.trimStart(elementText, "\"");
+      elementText = StringUtil.trimEnd(elementText, "\"");
+      if (elementText.equals(oldName) && current.getReference() != null) {
+        current.getReference().handleElementRename(newName);
+      }
     }
   }
 }
