@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionU
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.geom.Path2D
-import javax.naming.Context
 
 /**
  * The decorator for RelativeLayout
@@ -438,9 +437,9 @@ private class CenterConnection(parent: SceneComponent, child: SceneComponent): C
   }
 }
 
-// Helper functions to avoid repeating SceneContext.getSwingX(x.toFloat()) and SceneContext.getSwingY(y.toFloat())
-private fun SceneContext.getSwingX(x: Int) = getSwingX(x.toFloat())
-private fun SceneContext.getSwingY(y: Int) = getSwingY(y.toFloat())
+// Helper functions to avoid repeating SceneContext.getSwingXDip(x.toFloat()) and SceneContext.getSwingYDip(y.toFloat())
+private fun SceneContext.getSwingX(x: Int) = getSwingXDip(x.toFloat())
+private fun SceneContext.getSwingY(y: Int) = getSwingYDip(y.toFloat())
 
 private abstract class ZigZagLineCommand : DrawCommand {
   protected val path = Path2D.Float()
@@ -456,9 +455,9 @@ private abstract class ZigZagLineCommand : DrawCommand {
 }
 
 private class VerticalZigZagLineCommand(context: SceneContext, x: Int, y1: Int, y2: Int) : ZigZagLineCommand() {
-  val swingX = context.getSwingX(x.toFloat())
-  val swingY1 = context.getSwingY(y1.toFloat())
-  val swingY2 = context.getSwingY(y2.toFloat())
+  val swingX = context.getSwingXDip(x.toFloat())
+  val swingY1 = context.getSwingYDip(y1.toFloat())
+  val swingY2 = context.getSwingYDip(y2.toFloat())
 
   init {
     DrawConnectionUtils.drawVerticalZigZagLine(path, swingX, swingY1, swingY2)
@@ -468,9 +467,9 @@ private class VerticalZigZagLineCommand(context: SceneContext, x: Int, y1: Int, 
 }
 
 private class HorizontalZigZagLineCommand(context: SceneContext, x1: Int, x2: Int, y: Int) : ZigZagLineCommand() {
-  val swingX1 = context.getSwingX(x1.toFloat())
-  val swingX2 = context.getSwingX(x2.toFloat())
-  val swingY = context.getSwingY(y.toFloat())
+  val swingX1 = context.getSwingXDip(x1.toFloat())
+  val swingX2 = context.getSwingXDip(x2.toFloat())
+  val swingY = context.getSwingYDip(y.toFloat())
 
   init {
     DrawConnectionUtils.drawHorizontalZigZagLine(path, swingX1, swingX2, swingY)
@@ -482,9 +481,9 @@ private class HorizontalZigZagLineCommand(context: SceneContext, x1: Int, x2: In
 // TODO: refactr vertical and horizontal arrow drawing commands.
 private class DrawVerticalArrowCommand(sceneContext: SceneContext, x: Int, y1: Int, y2: Int,
                                        val isReference: Boolean, val text: String) : DrawCommand {
-  private val swingX = sceneContext.getSwingX(x.toFloat())
-  private val swingY1 = sceneContext.getSwingY(y1.toFloat())
-  private val swingY2 = sceneContext.getSwingY(y2.toFloat())
+  private val swingX = sceneContext.getSwingXDip(x.toFloat())
+  private val swingY1 = sceneContext.getSwingYDip(y1.toFloat())
+  private val swingY2 = sceneContext.getSwingYDip(y2.toFloat())
 
   private val paintImpl: (Graphics2D, SceneContext) -> Unit
 
@@ -518,9 +517,9 @@ private class DrawVerticalArrowCommand(sceneContext: SceneContext, x: Int, y1: I
 
 private class DrawHorizontalArrowCommand(sceneContext: SceneContext, x1: Int, x2: Int, y: Int,
                                          val isReference: Boolean, val text: String) : DrawCommand {
-  private val swingX1 = sceneContext.getSwingX(x1.toFloat())
-  private val swingX2 = sceneContext.getSwingX(x2.toFloat())
-  private val swingY = sceneContext.getSwingY(y.toFloat())
+  private val swingX1 = sceneContext.getSwingXDip(x1.toFloat())
+  private val swingX2 = sceneContext.getSwingXDip(x2.toFloat())
+  private val swingY = sceneContext.getSwingYDip(y.toFloat())
 
   private val paintImpl: (Graphics2D, SceneContext) -> Unit
 

@@ -729,8 +729,8 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   private static boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2, SceneContext transform) {
-    @SwingCoordinate int pos3 = transform.getSwingDimension(pos1);
-    @SwingCoordinate int pos4 = transform.getSwingDimension(pos2);
+    @SwingCoordinate int pos3 = transform.getSwingDimensionDip(pos1);
+    @SwingCoordinate int pos4 = transform.getSwingDimensionDip(pos2);
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 

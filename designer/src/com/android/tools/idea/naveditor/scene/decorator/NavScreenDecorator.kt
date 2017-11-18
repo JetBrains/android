@@ -70,10 +70,10 @@ class NavScreenDecorator : SceneDecorator() {
       return
     }
 
-    list.add(DrawNavScreen(sceneContext.getSwingX(component.drawX.toFloat()) + 1,
-        sceneContext.getSwingY(component.drawY.toFloat()) + 1,
-        sceneContext.getSwingDimension(component.drawWidth.toFloat()) - 1,
-        sceneContext.getSwingDimension(component.drawHeight.toFloat()) - 1,
+    list.add(DrawNavScreen(sceneContext.getSwingXDip(component.drawX.toFloat()) + 1,
+        sceneContext.getSwingYDip(component.drawY.toFloat()) + 1,
+        sceneContext.getSwingDimensionDip(component.drawWidth.toFloat()) - 1,
+        sceneContext.getSwingDimensionDip(component.drawHeight.toFloat()) - 1,
         image))
   }
 

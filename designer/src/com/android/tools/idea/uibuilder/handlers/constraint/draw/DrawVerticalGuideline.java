@@ -108,12 +108,12 @@ public class DrawVerticalGuideline extends DrawRegion {
                          @AndroidDpCoordinate float left, @AndroidDpCoordinate float top, @AndroidDpCoordinate float bottom,
                          @AndroidDpCoordinate float originX, @AndroidDpCoordinate float originY, @AndroidDpCoordinate float originWidth,
                          int begin, int end, float percent, boolean selected) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int h = transform.getSwingDimension(bottom - top);
-    int ox = transform.getSwingX(originX);
-    int oy = transform.getSwingY(originY);
-    int ow = transform.getSwingDimension(originWidth);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int h = transform.getSwingDimensionDip(bottom - top);
+    int ox = transform.getSwingXDip(originX);
+    int oy = transform.getSwingYDip(originY);
+    int ow = transform.getSwingDimensionDip(originWidth);
     list.add(new DrawVerticalGuideline(l, t, h, ox, oy, ow, begin, end, percent, selected));
   }
 }

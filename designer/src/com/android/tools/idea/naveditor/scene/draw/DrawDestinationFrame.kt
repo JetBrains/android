@@ -48,7 +48,7 @@ abstract class DrawDestinationFrame(@SwingCoordinate private val myRectangle: Re
     g.color = if (myIsSelected) colorSet.selectedFrames else colorSet.frames
 
     val strokeWidth = if (myIsSelected || myIsHover) THICK_STROKE_WIDTH else THIN_STROKE_WIDTH
-    g.stroke = BasicStroke(sceneContext.getSwingDimension(strokeWidth).toFloat())
+    g.stroke = BasicStroke(sceneContext.getSwingDimensionDip(strokeWidth).toFloat())
 
     drawFrame(g, sceneContext, myRectangle)
   }

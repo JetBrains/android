@@ -206,7 +206,7 @@ public class ActionTarget extends BaseTarget {
     SelfActionPoints selfActionPoints = new SelfActionPoints();
     selfActionPoints.dir = destDirection;
 
-    @SwingCoordinate int spacing = sceneContext.getSwingDimension(SPACING);
+    @SwingCoordinate int spacing = sceneContext.getSwingDimensionDip(SPACING);
 
     selfActionPoints.x[0] = getConnectionX(sourceDirection, rect);
     selfActionPoints.x[1] = selfActionPoints.x[0] + spacing;

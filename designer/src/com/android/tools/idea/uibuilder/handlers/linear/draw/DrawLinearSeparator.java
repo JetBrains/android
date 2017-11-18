@@ -73,9 +73,9 @@ public class DrawLinearSeparator extends DrawRegion {
     float length = layoutVertical ? right - left : bottom - top;
     DrawLinearSeparator separator =
       new DrawLinearSeparator(layoutVertical,
-                              context.getSwingX(left),
-                              context.getSwingY(top),
-                              context.getSwingDimension(length));
+                              context.getSwingXDip(left),
+                              context.getSwingYDip(top),
+                              context.getSwingDimensionDip(length));
     list.add(separator);
   }
 }

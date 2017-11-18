@@ -118,7 +118,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   private DrawCommand createDrawActionHandleDrag(@NotNull SceneContext sceneContext) {
     return new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
-                                    sceneContext.getSwingDimension(myCurrentRadius));
+                                    sceneContext.getSwingDimensionDip(myCurrentRadius));
   }
 
   private DrawCommand createDrawActionHandle(@NotNull SceneContext sceneContext) {
@@ -136,7 +136,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     DrawActionHandle drawCommand =
       new DrawActionHandle(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
-                           sceneContext.getSwingDimension(myCurrentRadius), sceneContext.getSwingDimension(newRadius),
+                           sceneContext.getSwingDimensionDip(myCurrentRadius), sceneContext.getSwingDimensionDip(newRadius),
                            borderColor, duration);
 
     myCurrentRadius = newRadius;
@@ -146,7 +146,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
-                     transform.getSwingDimension(LARGE_RADIUS));
+                     transform.getSwingDimensionDip(LARGE_RADIUS));
   }
 
   @Override

@@ -57,9 +57,9 @@ public class DrawVerticalLine extends DrawRegion {
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float bottom) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int h = transform.getSwingDimension(bottom - top);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int h = transform.getSwingDimensionDip(bottom - top);
     list.add(new DrawVerticalLine(l, t, h));
   }
 }

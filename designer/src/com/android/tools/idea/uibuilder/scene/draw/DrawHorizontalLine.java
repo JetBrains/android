@@ -57,9 +57,9 @@ public class DrawHorizontalLine extends DrawRegion {
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int w = transform.getSwingDimensionDip(right - left);
     list.add(new DrawHorizontalLine(l, t, w));
   }
 }

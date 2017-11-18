@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -128,8 +127,8 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     picker.addRect(this, 10,
-                   transform.getSwingX(myLeft), transform.getSwingY(myTop),
-                   transform.getSwingX(myRight) + 1, transform.getSwingY(myBottom) + 1);
+                   transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight) + 1, transform.getSwingYDip(myBottom) + 1);
   }
 
   /**

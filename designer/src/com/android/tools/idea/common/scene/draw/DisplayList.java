@@ -292,10 +292,10 @@ public class DisplayList {
                 @AndroidDpCoordinate float x2,
                 @AndroidDpCoordinate float y2,
                 Color c) {
-      this.x1 = transform.getSwingX(x1);
-      this.y1 = transform.getSwingY(y1);
-      this.x2 = transform.getSwingX(x2);
-      this.y2 = transform.getSwingY(y2);
+      this.x1 = transform.getSwingXDip(x1);
+      this.y1 = transform.getSwingYDip(y1);
+      this.x2 = transform.getSwingXDip(x2);
+      this.y2 = transform.getSwingYDip(y2);
       this.color = c;
     }
 
@@ -315,20 +315,20 @@ public class DisplayList {
   }
 
   public UNClip addClip(SceneContext context, @AndroidDpCoordinate Rectangle r) {
-    int l = context.getSwingX(r.x);
-    int t = context.getSwingY(r.y);
-    int w = context.getSwingDimension(r.width);
-    int h = context.getSwingDimension(r.height);
+    int l = context.getSwingXDip(r.x);
+    int t = context.getSwingYDip(r.y);
+    int w = context.getSwingDimensionDip(r.width);
+    int h = context.getSwingDimensionDip(r.height);
     Clip c = new Clip(l, t, w, h);
     myCommands.add(c);
     return new UNClip(c);
   }
 
   public void addRect(SceneContext context, @AndroidDpCoordinate Rectangle r, Color color) {
-    int l = context.getSwingX(r.x);
-    int t = context.getSwingY(r.y);
-    int w = context.getSwingDimension(r.width);
-    int h = context.getSwingDimension(r.height);
+    int l = context.getSwingXDip(r.x);
+    int t = context.getSwingYDip(r.y);
+    int w = context.getSwingDimensionDip(r.width);
+    int h = context.getSwingDimensionDip(r.height);
     myCommands.add(new Rect(l, t, w, h, color));
   }
 
@@ -338,10 +338,10 @@ public class DisplayList {
                       @AndroidDpCoordinate float right,
                       @AndroidDpCoordinate float bottom,
                       Color color) {
-    int l = context.getSwingX(left);
-    int t = context.getSwingY(top);
-    int w = context.getSwingDimension(right - left);
-    int h = context.getSwingDimension(bottom - top);
+    int l = context.getSwingXDip(left);
+    int t = context.getSwingYDip(top);
+    int w = context.getSwingDimensionDip(right - left);
+    int h = context.getSwingDimensionDip(bottom - top);
     add(new Rect(l, t, w, h, color));
   }
 
@@ -351,10 +351,10 @@ public class DisplayList {
                             @AndroidDpCoordinate float x2,
                             @AndroidDpCoordinate float y2,
                             int direction) {
-    int sx1 = context.getSwingX(x1);
-    int sy1 = context.getSwingY(y1);
-    int sx2 = context.getSwingX(x2);
-    int sy2 = context.getSwingY(y2);
+    int sx1 = context.getSwingXDip(x1);
+    int sy1 = context.getSwingYDip(y1);
+    int sx2 = context.getSwingXDip(x2);
+    int sy2 = context.getSwingYDip(y2);
     add(new Connection(sx1, sy1, sx2, sy2, direction));
   }
 

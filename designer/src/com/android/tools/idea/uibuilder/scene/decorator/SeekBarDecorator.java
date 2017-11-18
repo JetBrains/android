@@ -68,10 +68,10 @@ public class SeekBarDecorator extends SceneDecorator {
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
     list.add(new DrawSeekBar(l, t, w, h));
   }
 }
