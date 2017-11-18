@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException
 class NavScreenDecorator : SceneDecorator() {
 
   override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-    val rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null))
+    val rect = Coordinates.getSwingRect(sceneContext, component.fillRect(null))
     list.add(DrawScreenFrame(rect, component.isSelected,
         component.drawState == SceneComponent.DrawState.HOVER || component.isDragging))
   }
@@ -70,10 +70,10 @@ class NavScreenDecorator : SceneDecorator() {
       return
     }
 
-    list.add(DrawNavScreen(sceneContext.getSwingXDip(component.drawX.toFloat()) + 1,
-        sceneContext.getSwingYDip(component.drawY.toFloat()) + 1,
-        sceneContext.getSwingDimensionDip(component.drawWidth.toFloat()) - 1,
-        sceneContext.getSwingDimensionDip(component.drawHeight.toFloat()) - 1,
+    list.add(DrawNavScreen(sceneContext.getSwingX(component.drawX) + 1,
+        sceneContext.getSwingY(component.drawY) + 1,
+        sceneContext.getSwingDimension(component.drawWidth) - 1,
+        sceneContext.getSwingDimension(component.drawHeight) - 1,
         image))
   }
 

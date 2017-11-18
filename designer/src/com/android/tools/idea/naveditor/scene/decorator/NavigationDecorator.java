@@ -45,7 +45,7 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null));
+    Rectangle rect = Coordinates.getSwingRect(sceneContext, component.fillRect(null));
     list.add(new DrawNavigationBackground(rect));
   }
 
@@ -55,7 +55,7 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle bounds = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null));
+    Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
     // TODO: baseline based on text size
     // TODO: add resource resolver here?
     String label = NavComponentHelperKt.getUiName(component.getNlComponent(), null);
@@ -71,7 +71,7 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null));
+    Rectangle rect = Coordinates.getSwingRect(sceneContext, component.fillRect(null));
     list.add(new DrawNavigationFrame(rect, component.isSelected(),
                                      component.getDrawState() == SceneComponent.DrawState.HOVER || component.isDragging()));
   }

@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -26,6 +25,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -69,10 +69,10 @@ public class SelectionTest extends NavigationTestCase {
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
 
-    @AndroidDpCoordinate int x1 = component1.getDrawX() + component1.getDrawWidth() / 2;
-    @AndroidDpCoordinate int y1 = component1.getDrawY() + component1.getDrawHeight() / 2;
-    @AndroidDpCoordinate int x2 = component2.getDrawX() + component2.getDrawWidth() / 2;
-    @AndroidDpCoordinate int y2 = component2.getDrawY() + component2.getDrawHeight() / 2;
+    @NavCoordinate int x1 = component1.getDrawX() + component1.getDrawWidth() / 2;
+    @NavCoordinate int y1 = component1.getDrawY() + component1.getDrawHeight() / 2;
+    @NavCoordinate int x2 = component2.getDrawX() + component2.getDrawWidth() / 2;
+    @NavCoordinate int y2 = component2.getDrawY() + component2.getDrawHeight() / 2;
 
     checkSelection(x1, y1, x2, y2, component1, component2);
 
@@ -84,7 +84,12 @@ public class SelectionTest extends NavigationTestCase {
     myInteractionManager.unregisterListeners();
   }
 
-  private void checkSelection(@AndroidDpCoordinate int x1, @AndroidDpCoordinate int y1, @AndroidDpCoordinate int x2, @AndroidDpCoordinate int y2, SceneComponent component1, SceneComponent component2) {
+  private void checkSelection(@NavCoordinate int x1,
+                              @NavCoordinate int y1,
+                              @NavCoordinate int x2,
+                              @NavCoordinate int y2,
+                              SceneComponent component1,
+                              SceneComponent component2) {
     select(x1, y1, false);
     assertTrue(component1.isSelected());
     assertFalse(component2.isSelected());
@@ -102,13 +107,13 @@ public class SelectionTest extends NavigationTestCase {
     assertTrue(component2.isSelected());
   }
 
-  private void select(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, boolean shiftKey) {
+  private void select(@NavCoordinate int x, @NavCoordinate int y, boolean shiftKey) {
     int modifiers = (shiftKey) ? InputEvent.SHIFT_DOWN_MASK : 0;
 
-    LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, Coordinates.getSwingXDip(mySceneView, x),
-                                   Coordinates.getSwingYDip(mySceneView, y), modifiers);
+    LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, Coordinates.getSwingX(mySceneView, x),
+                                   Coordinates.getSwingY(mySceneView, y), modifiers);
 
-    LayoutTestUtilities.releaseMouse(myInteractionManager, BUTTON1, Coordinates.getSwingXDip(mySceneView, x),
-                                     Coordinates.getSwingYDip(mySceneView, y), modifiers);
+    LayoutTestUtilities.releaseMouse(myInteractionManager, BUTTON1, Coordinates.getSwingX(mySceneView, x),
+                                     Coordinates.getSwingY(mySceneView, y), modifiers);
   }
 }

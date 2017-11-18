@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
@@ -25,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawScreenLabel
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
@@ -35,10 +34,10 @@ import java.awt.Rectangle
  * It consists of an optional start destination icon, followed by
  * the label, followed by an optional deep link icon.
  */
-@AndroidCoordinate private const val ICON_SIZE = 14
-@AndroidCoordinate private const val TEXT_PADDING = 2
-@AndroidCoordinate private const val HEADER_PADDING = 8
-@AndroidCoordinate private const val HEADER_HEIGHT = ICON_SIZE + HEADER_PADDING
+@NavCoordinate private const val ICON_SIZE = 14
+@NavCoordinate private const val TEXT_PADDING = 2
+@NavCoordinate private const val HEADER_PADDING = 8
+@NavCoordinate private const val HEADER_HEIGHT = ICON_SIZE + HEADER_PADDING
 
 class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
 
@@ -60,11 +59,11 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
   }
 
   override fun layout(sceneTransform: SceneContext,
-                      @AndroidDpCoordinate l: Int,
-                      @AndroidDpCoordinate t: Int,
-                      @AndroidDpCoordinate r: Int,
-                      @AndroidDpCoordinate b: Int): Boolean {
-    layoutRectangle(l, t - sceneTransform.pxToDp(HEADER_HEIGHT).toInt(), r, t)
+                      @NavCoordinate l: Int,
+                      @NavCoordinate t: Int,
+                      @NavCoordinate r: Int,
+                      @NavCoordinate b: Int): Boolean {
+    layoutRectangle(l, t - HEADER_HEIGHT, r, t)
     return false
   }
 
@@ -81,10 +80,8 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
       l += iconSize + textPadding
     }
 
-    val headerPadding = sceneContext.getSwingDimensionDip(sceneContext.pxToDp(HEADER_PADDING))
-
     val text = component.nlComponent.id ?: ""
-    list.add(DrawScreenLabel(l, b - textPadding - headerPadding, text))
+    list.add(DrawScreenLabel(l, b - textPadding - Coordinates.getSwingDimension(sceneContext, HEADER_PADDING), text))
 
     if (hasDeepLink) {
       list.add(DrawIcon(Rectangle(r - iconSize, t, iconSize, iconSize), DrawIcon.IconType.DEEPLINK))

@@ -124,8 +124,8 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
     surface.getScene().layout(0, SceneContext.get(view));
     SceneComponent fragment = surface.getScene().getSceneComponent("fragment1");
-    int x = Coordinates.getSwingXDip(view, fragment.getDrawX()) + 5;
-    int y = Coordinates.getSwingYDip(view, fragment.getDrawY()) + 5;
+    int x = Coordinates.getSwingX(view, fragment.getDrawX()) + 5;
+    int y = Coordinates.getSwingY(view, fragment.getDrawY()) + 5;
     LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0);
 
     verify(surface).notifyComponentActivate(eq(fragment.getNlComponent()), anyInt(), anyInt());

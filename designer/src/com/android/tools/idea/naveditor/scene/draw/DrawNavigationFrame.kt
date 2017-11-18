@@ -16,9 +16,9 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.naveditor.model.NavCoordinate
 import java.awt.Graphics2D
 import java.awt.Rectangle
 
@@ -39,6 +39,6 @@ class DrawNavigationFrame : DrawDestinationFrame {
   }
 
   companion object {
-    @AndroidCoordinate const val CORNER_RADIUS = 6
+    @NavCoordinate const val CORNER_RADIUS = 6
   }
 }

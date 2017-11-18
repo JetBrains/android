@@ -48,15 +48,13 @@ abstract class DrawDestinationFrame(@SwingCoordinate private val myRectangle: Re
     g.color = if (myIsSelected) colorSet.selectedFrames else colorSet.frames
 
     val strokeWidth = if (myIsSelected || myIsHover) THICK_STROKE_WIDTH else THIN_STROKE_WIDTH
-    g.stroke = BasicStroke(sceneContext.getSwingDimensionDip(strokeWidth).toFloat())
+    g.stroke = BasicStroke(sceneContext.getSwingDimension(strokeWidth).toFloat())
 
     drawFrame(g, sceneContext, myRectangle)
   }
 
   protected abstract fun drawFrame(g: Graphics2D, sceneContext: SceneContext, rectangle: Rectangle)
-
-  private companion object {
-    val THIN_STROKE_WIDTH = 1.0f
-    val THICK_STROKE_WIDTH = 2.5f
-  }
 }
+
+private const val THIN_STROKE_WIDTH = 2
+private const val THICK_STROKE_WIDTH = 5
