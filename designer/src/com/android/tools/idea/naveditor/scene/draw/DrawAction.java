@@ -114,7 +114,7 @@ public class DrawAction extends NavBaseDrawCommand {
         ActionTarget.SelfActionPoints selfActionPoints = ActionTarget.getSelfActionPoints(source, sceneContext);
         PATH.moveTo(selfActionPoints.x[0], selfActionPoints.y[0]);
         DrawConnectionUtils
-          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimensionDip(ARCH_LEN));
+          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCH_LEN));
 
         endX = selfActionPoints.x[selfActionPoints.y.length - 1];
         endY = selfActionPoints.y[selfActionPoints.y.length - 1];

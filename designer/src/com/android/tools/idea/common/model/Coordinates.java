@@ -159,6 +159,26 @@ public class Coordinates {
   }
 
   /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static Rectangle getSwingRect(@NotNull SceneView view, @NotNull @AndroidCoordinate Rectangle rect) {
+    return new Rectangle(getSwingX(view, rect.x), getSwingY(view, rect.y),
+                         getSwingDimension(view, rect.width), getSwingDimension(view, rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static Rectangle getSwingRect(@NotNull SceneContext context, @NotNull @AndroidCoordinate Rectangle rect) {
+    return new Rectangle(context.getSwingX(rect.x), context.getSwingY(rect.y),
+                         getSwingDimension(context, rect.width), getSwingDimension(context, rect.height));
+  }
+
+  /**
    * Returns the Android x coordinate for the given Swing x coordinate (in
    * the {@link DesignSurface} coordinate system.)
    */

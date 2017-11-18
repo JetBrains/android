@@ -127,7 +127,7 @@ public class ActionTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    Rectangle sourceRect = Coordinates.getSwingRectDip(sceneContext, getComponent().fillRect(null));
+    Rectangle sourceRect = Coordinates.getSwingRect(sceneContext, getComponent().fillRect(null));
 
     String sourceId = getComponent().getId();
     if (sourceId == null) {
@@ -140,7 +140,7 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    myDestRect = Coordinates.getSwingRectDip(sceneContext, myDestination.fillRect(null));
+    myDestRect = Coordinates.getSwingRect(sceneContext, myDestination.fillRect(null));
     mySourceRect = sourceRect;
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
     DrawAction.buildDisplayList(list, sourceId.equals(targetId) ? ConnectionType.SELF : ConnectionType.NORMAL, sourceRect, myDestRect,
@@ -206,7 +206,7 @@ public class ActionTarget extends BaseTarget {
     SelfActionPoints selfActionPoints = new SelfActionPoints();
     selfActionPoints.dir = destDirection;
 
-    @SwingCoordinate int spacing = sceneContext.getSwingDimensionDip(SPACING);
+    @SwingCoordinate int spacing = sceneContext.getSwingDimension(SPACING);
 
     selfActionPoints.x[0] = getConnectionX(sourceDirection, rect);
     selfActionPoints.x[1] = selfActionPoints.x[0] + spacing;

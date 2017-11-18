@@ -573,14 +573,14 @@ public class NavSceneTest extends NavigationTestCase {
     assertEquals("Clip,0,0,960,928\n" +
                  "DrawComponentBackground,400,400,76,128,3\n" +
                  "DrawScreenFrame,400x400x76x128,true,false\n" +
-                 "DrawActionHandle,476,464,0,3,SELECTED_FRAMES,200\n" +
+                 "DrawActionHandle,476,464,0,6,SELECTED_FRAMES,200\n" +
                  "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawScreenLabel,408,395,fragment1\n" +
                  "\n" +
                  "DrawNavigationBackground,490x400x70x19\n" +
                  "DrawTextRegion,490,400,70,19,0,11,true,false,4,4,12,0.5,\"subnav\"\n" +
                  "DrawNavigationFrame,490x400x70x19,true,false\n" +
-                 "DrawActionHandle,560,409,0,3,SELECTED_FRAMES,200\n" +
+                 "DrawActionHandle,560,409,0,6,SELECTED_FRAMES,200\n" +
                  "DrawScreenLabel,490,395,subnav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());

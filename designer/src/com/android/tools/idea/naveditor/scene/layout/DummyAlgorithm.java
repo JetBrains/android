@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,9 +31,9 @@ import java.util.stream.Collectors;
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
-  @AndroidCoordinate private static final int WIDTH = 600;
-  @AndroidCoordinate private static final int INITIAL_OFFSET = 20;
-  @AndroidCoordinate private static final int INTERVAL = 60;
+  @NavCoordinate private static final int WIDTH = 600;
+  @NavCoordinate private static final int INITIAL_OFFSET = 20;
+  @NavCoordinate private static final int INTERVAL = 60;
 
   private final NavigationSchema mySchema;
 
@@ -57,10 +55,8 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
                                               .filter(c -> c.getParent() != null)
                                               .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
 
-    NlModel model = component.getNlComponent().getModel();
-
-    @AndroidDpCoordinate int xOffset = INITIAL_OFFSET;
-    @AndroidDpCoordinate int yOffset = INITIAL_OFFSET;
+    @NavCoordinate int xOffset = INITIAL_OFFSET;
+    @NavCoordinate int yOffset = INITIAL_OFFSET;
 
     while (true) {
       component.setPosition(xOffset, yOffset);

@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;

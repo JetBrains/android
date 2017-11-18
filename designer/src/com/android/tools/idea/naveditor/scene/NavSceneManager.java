@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
@@ -52,13 +53,13 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  @AndroidCoordinate private static final int SCREEN_LONG = 256;
+  @NavCoordinate private static final int SCREEN_LONG = 256;
 
-  @AndroidCoordinate private static final int SUBNAV_WIDTH = 140;
-  @AndroidCoordinate private static final int SUBNAV_HEIGHT = 38;
+  @NavCoordinate private static final int SUBNAV_WIDTH = 140;
+  @NavCoordinate private static final int SUBNAV_HEIGHT = 38;
 
   @SwingCoordinate private static final int PAN_LIMIT = 150;
-  @AndroidDpCoordinate private static final int BOUNDING_BOX_PADDING = 100;
+  @NavCoordinate private static final int BOUNDING_BOX_PADDING = 100;
 
   private final NavScreenTargetProvider myScreenTargetProvider;
 
@@ -110,8 +111,7 @@ public class NavSceneManager extends SceneManager {
             sceneComponent.setSize(-1, -1, false);
           }
           else {
-            sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), SUBNAV_WIDTH),
-                                   Coordinates.pxToDp(getDesignSurface(), SUBNAV_HEIGHT), false);
+            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT, false);
           }
           break;
         case FRAGMENT:
@@ -119,8 +119,8 @@ public class NavSceneManager extends SceneManager {
           State state = getModel().getConfiguration().getDeviceState();
           assert state != null;
           Screen screen = state.getHardware().getScreen();
-          @AndroidDpCoordinate int x = SCREEN_LONG;
-          @AndroidDpCoordinate int y = SCREEN_LONG;
+          @NavCoordinate int x = SCREEN_LONG;
+          @NavCoordinate int y = SCREEN_LONG;
           double ratio = screen.getXDimension() / (double)screen.getYDimension();
           if (ratio > 1) {
             y /= ratio;
@@ -133,7 +133,7 @@ public class NavSceneManager extends SceneManager {
             x *= 0.5;
             y *= 0.5;
           }
-          sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), x), Coordinates.pxToDp(getDesignSurface(), y), true);
+          sceneComponent.setSize(x, y, true);
           break;
         default:
           // nothing
@@ -154,23 +154,23 @@ public class NavSceneManager extends SceneManager {
     NavDesignSurface surface = getDesignSurface();
     @SwingCoordinate Dimension extentSize = surface.getExtentSize();
 
-    @AndroidDpCoordinate int extentWidth = Coordinates.getAndroidDimensionDip(surface, extentSize.width);
-    @AndroidDpCoordinate int extentHeight = Coordinates.getAndroidDimensionDip(surface, extentSize.height);
-    @AndroidDpCoordinate int panLimit = Coordinates.getAndroidDimensionDip(surface, PAN_LIMIT);
+    @NavCoordinate int extentWidth = Coordinates.getAndroidDimension(surface, extentSize.width);
+    @NavCoordinate int extentHeight = Coordinates.getAndroidDimension(surface, extentSize.height);
+    @NavCoordinate int panLimit = Coordinates.getAndroidDimension(surface, PAN_LIMIT);
 
-    @AndroidDpCoordinate Rectangle rootBounds = getBoundingBox(root);
+    @NavCoordinate Rectangle rootBounds = getBoundingBox(root);
     rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit);
 
-    @AndroidDpCoordinate int drawX = root.getDrawX();
-    @AndroidDpCoordinate int drawY = root.getDrawY();
+    @NavCoordinate int drawX = root.getDrawX();
+    @NavCoordinate int drawY = root.getDrawY();
 
     root.setPosition(rootBounds.x, rootBounds.y);
     root.setSize(rootBounds.width, rootBounds.height, false);
 
     SceneView view = surface.getCurrentSceneView();
     if (view != null) {
-      @SwingCoordinate int deltaX = Coordinates.getSwingDimensionDip(view, root.getDrawX() - drawX);
-      @SwingCoordinate int deltaY = Coordinates.getSwingDimensionDip(view, root.getDrawY() - drawY);
+      @SwingCoordinate int deltaX = Coordinates.getSwingDimension(view, root.getDrawX() - drawX);
+      @SwingCoordinate int deltaY = Coordinates.getSwingDimension(view, root.getDrawY() - drawY);
 
       @SwingCoordinate Point point = surface.getScrollPosition();
       surface.setScrollPosition(point.x - deltaX, point.y - deltaY);
@@ -320,13 +320,13 @@ public class NavSceneManager extends SceneManager {
     return result;
   }
 
-  @AndroidDpCoordinate
+  @NavCoordinate
   @NotNull
   public static Rectangle getBoundingBox(@NotNull SceneComponent root) {
-    @AndroidDpCoordinate Rectangle boundingBox = new Rectangle(0, 0, -1, -1);
+    @NavCoordinate Rectangle boundingBox = new Rectangle(0, 0, -1, -1);
 
     for (SceneComponent child : root.getChildren()) {
-      @AndroidDpCoordinate Rectangle childRect = child.fillDrawRect(0, null);
+      @NavCoordinate Rectangle childRect = child.fillDrawRect(0, null);
       if (boundingBox.width < 0) {
         boundingBox.setBounds(childRect);
       }

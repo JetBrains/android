@@ -30,8 +30,8 @@ import java.awt.Dimension
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
 class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, model) {
-  override fun getContentTranslationX() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawX ?: 0)
-  override fun getContentTranslationY() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawY ?: 0)
+  override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawX ?: 0)
+  override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawY ?: 0)
   override fun getPreferredSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 

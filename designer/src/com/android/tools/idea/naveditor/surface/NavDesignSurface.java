@@ -20,16 +20,19 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -166,9 +169,8 @@ public class NavDesignSurface extends DesignSurface {
       return new Dimension(0, 0);
     }
 
-    @AndroidDpCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
-    return new Dimension(Coordinates.dpToPx(view, boundingBox.width),
-                         Coordinates.dpToPx(view, boundingBox.height));
+    @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
+    return new Dimension(boundingBox.width, boundingBox.height);
   }
 
   @Override
