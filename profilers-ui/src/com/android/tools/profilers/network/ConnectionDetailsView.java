@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.adtui.ui.HideableDecoratorPanel;
+import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -45,7 +45,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -53,11 +52,11 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
@@ -80,8 +79,6 @@ public class ConnectionDetailsView extends JPanel {
   private static final float FIELD_FONT_SIZE = 11.f;
   private static final LongFunction<String> TIME_FORMATTER =
     time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
-  private static final Border HIDEABLE_PANEL_BORDER = new JBEmptyBorder(0, 10, 0, 5);
-  private static final Border HIDEABLE_CONTENT_BORDER = new JBEmptyBorder(0, 12, 0, 5);
 
   @NotNull
   private final JPanel myOverviewPanel;
@@ -240,7 +237,7 @@ public class ConnectionDetailsView extends JPanel {
     myResponsePanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
     String bodyTitle = getBodyTitle(httpData.getContentType());
     JComponent payloadComponent = createBodyComponent(httpData.getResponsePayloadFile());
-    HideableDecoratorPanel bodyPanel = createHideablePanel(bodyTitle, payloadComponent, null);
+    HideablePanel bodyPanel = createHideablePanel(bodyTitle, payloadComponent, null);
     bodyPanel.setName("RESPONSE_BODY");
     myResponsePanel.add(bodyPanel);
   }
@@ -291,20 +288,15 @@ public class ConnectionDetailsView extends JPanel {
       });
     }
 
-    HideableDecoratorPanel bodyPanel = createHideablePanel(getBodyTitle(contentType), payloadComponent, northEastComponent);
+    HideablePanel bodyPanel = createHideablePanel(getBodyTitle(contentType), payloadComponent, northEastComponent);
     bodyPanel.setName("REQUEST_BODY");
     myRequestPanel.add(bodyPanel);
   }
 
-  private static HideableDecoratorPanel createHideablePanel(@NotNull String title, @NotNull JComponent content,
-                                                            @Nullable JComponent northEastComponent) {
+  private static HideablePanel createHideablePanel(@NotNull String title, @NotNull JComponent content,
+                                                   @Nullable JComponent northEastComponent) {
     title = String.format("<html><b>%s</b></html>", title);
-    HideableDecoratorPanel panel = new HideableDecoratorPanel(title, northEastComponent);
-    panel.setOn(true);
-    content.setBorder(HIDEABLE_CONTENT_BORDER);
-    panel.setContentComponent(content);
-    panel.setBorder(HIDEABLE_PANEL_BORDER);
-    return panel;
+    return new HideablePanel.Builder(title, content).setNorthEastComponent(northEastComponent).build();
   }
 
   private static JComponent createStyledMapComponent(Map<String, String> map) {
