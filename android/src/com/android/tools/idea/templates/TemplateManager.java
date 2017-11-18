@@ -16,16 +16,18 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -41,7 +43,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -80,7 +81,6 @@ public class TemplateManager {
   public static final String CATEGORY_OTHER = "Other";
   private static final String CATEGORY_ACTIVITY = "Activity";
   private static final String ACTION_ID_PREFIX = "template.create.";
-  private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
   private static final String TEMPLATE_ZIP_NAME = "templates.zip";
@@ -154,23 +154,34 @@ public class TemplateManager {
    */
   @NotNull
   public static List<File> getExtraTemplateRootFolders() {
+    List<File> folders = getUserDefinedTemplateRootFolders();
+    folders.addAll(getAuxTemplateRootFolders());
+    return folders;
+  }
+
+  @NotNull
+  private static List<File> getUserDefinedTemplateRootFolders() {
+    List<File> folders = new ArrayList<>();
+
+    String homeFolder = AndroidLocation.getFolderWithoutWrites();
+    if (homeFolder != null && StudioFlags.NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER.get()) {
+      // Look in $userhome/.android/templates
+      File templatesFolder = new File(homeFolder, FD_TEMPLATES);
+      if (templatesFolder.isDirectory()) {
+        Collections.addAll(folders, templatesFolder);
+      }
+    }
+    return folders;
+  }
+
+  @NotNull
+  private static List<File> getAuxTemplateRootFolders() {
     List<File> folders = new ArrayList<>();
 
     // Check in various locations in the SDK
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData != null) {
       File location = sdkData.getLocation();
-
-      if (USE_SDK_TEMPLATES) {
-        // Look in SDK/tools/templates
-        File toolsTemplatesFolder = new File(location, FileUtil.join(FD_TOOLS, FD_TEMPLATES));
-        if (toolsTemplatesFolder.isDirectory()) {
-          File[] templateRoots = toolsTemplatesFolder.listFiles(FileUtilRt.ALL_DIRECTORIES);
-          if (templateRoots != null) {
-            Collections.addAll(folders, templateRoots);
-          }
-        }
-      }
 
       // Look in SDK/extras/*
       File extras = new File(location, FD_EXTRAS);
@@ -542,21 +553,29 @@ public class TemplateManager {
       myCategoryTable = TreeBasedTable.create();
       for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
         for (File newTemplate : listFiles(categoryDirectory)) {
-          addTemplateToTable(newTemplate);
+          addTemplateToTable(newTemplate, false);
         }
       }
 
-      for (File rootDirectory : getExtraTemplateRootFolders()) {
+      for (File rootDirectory : getUserDefinedTemplateRootFolders()) {
         for (File categoryDirectory : listFiles(rootDirectory)) {
           for (File newTemplate : listFiles(categoryDirectory)) {
-            addTemplateToTable(newTemplate);
+            addTemplateToTable(newTemplate, true);
+          }
+        }
+      }
+
+      for (File rootDirectory : getAuxTemplateRootFolders()) {
+        for (File categoryDirectory : listFiles(rootDirectory)) {
+          for (File newTemplate : listFiles(categoryDirectory)) {
+            addTemplateToTable(newTemplate, false);
           }
         }
       }
 
       for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
         for (File newTemplate : listFiles(aarDirectory)) {
-          addTemplateToTable(newTemplate);
+          addTemplateToTable(newTemplate, false);
         }
       }
     }
@@ -565,8 +584,8 @@ public class TemplateManager {
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private void addTemplateToTable(@NotNull File newTemplate) {
-    TemplateMetadata newMetadata = getTemplateMetadata(newTemplate);
+  private void addTemplateToTable(@NotNull File newTemplate, boolean userDefinedTemplate) {
+    TemplateMetadata newMetadata = getTemplateMetadata(newTemplate, userDefinedTemplate);
     if (newMetadata != null) {
       String title = newMetadata.getTitle();
       if (title == null || (newMetadata.getCategory() == null &&
@@ -682,6 +701,11 @@ public class TemplateManager {
    */
   @Nullable
   public TemplateMetadata getTemplateMetadata(@NotNull File templateRoot) {
+    return getTemplateMetadata(templateRoot, false);
+  }
+
+  @Nullable
+  private TemplateMetadata getTemplateMetadata(@NotNull File templateRoot, boolean userDefinedTemplate) {
     if (myTemplateMap != null) {
       TemplateMetadata metadata = myTemplateMap.get(templateRoot);
       if (metadata != null) {
@@ -696,7 +720,13 @@ public class TemplateManager {
       File templateFile = new File(templateRoot, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
         String xml = Files.toString(templateFile, Charsets.UTF_8);
-        Document doc = XmlUtils.parseDocumentSilently(xml, true);
+        Document doc;
+        if (userDefinedTemplate) {
+          doc = XmlUtils.parseDocument(xml, true);
+        }
+        else {
+          doc = XmlUtils.parseDocumentSilently(xml, true);
+        }
         if (doc != null && doc.getDocumentElement() != null) {
           TemplateMetadata metadata = new TemplateMetadata(doc);
           myTemplateMap.put(templateRoot, metadata);
@@ -704,7 +734,7 @@ public class TemplateManager {
         }
       }
     }
-    catch (IOException e) {
+    catch (Exception e) {
       LOG.warn(e);
     }
 
