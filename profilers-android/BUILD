@@ -8,6 +8,14 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea/plugins/maven:maven2-server-impl",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/core-api[module]",
         "//tools/idea/platform/platform-api[module]",
@@ -23,8 +31,9 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api[module]",
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:lang-impl[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
+        "//tools/idea:platform-impl[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/flags:studio.flags[module]",

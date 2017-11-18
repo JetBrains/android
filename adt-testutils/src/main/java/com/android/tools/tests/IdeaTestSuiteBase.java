@@ -106,10 +106,13 @@ public class IdeaTestSuiteBase {
     try {
       for (String target : targets) {
         File file = new File(TestUtils.getWorkspaceRoot(), target);
-        if (!file.exists() && !ignoreMissing) {
-          throw new IllegalStateException("Cannot symlink to idea home: " + target);
-        } else {
-          System.err.println("Ignoring missing directory to symlink to idea home: " + target);
+        if (!file.exists()) {
+          if (!ignoreMissing) {
+            throw new IllegalStateException("Cannot symlink to idea home: " + target);
+          }
+          else {
+            System.err.println("Ignoring missing directory to symlink to idea home: " + target);
+          }
         }
         Path targetPath = file.toPath();
         Path linkName = Paths.get(TMP_DIR, target);
