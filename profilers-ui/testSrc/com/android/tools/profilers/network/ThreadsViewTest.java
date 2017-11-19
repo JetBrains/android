@@ -44,7 +44,7 @@ import static org.junit.Assert.*;
 public class ThreadsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(newData(1, 0, 10, 11, "threadA"))
+      .add(newData(1, 1, 10, 11, "threadA"))
       .add(newData(2, 5, 12, 12, "threadB"))
       .add(newData(3, 13, 15, 11, "threadA"))
       .add(newData(4, 20, 25, 11, "threadA"))
@@ -147,7 +147,7 @@ public class ThreadsViewTest {
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
-    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(0L));
+    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
     assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
     assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
     assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
@@ -156,7 +156,7 @@ public class ThreadsViewTest {
     assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
     assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
     assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
-    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(0L));
+    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
   }
 
   private static HttpData getFirstHttpDataAtRow(JTable table, int row) {
@@ -183,7 +183,7 @@ public class ThreadsViewTest {
     selection.set(0, TimeUnit.SECONDS.toMicros(44));
 
     int badX = myThreadsView.getComponent().getWidth() - 1;
-    int goodX = getTable().getColumnModel().getColumn(0).getWidth() + 1;
+    int goodX = getTable().getColumnModel().getColumn(0).getWidth() + 10;
     int goodY = getTable().getRowHeight() / 2;
 
     assertNull(myStageView.getStage().getSelectedConnection());
@@ -206,8 +206,6 @@ public class ThreadsViewTest {
 
   @NotNull
   private static HttpData newData(long id, long startS, long endS, long threadId, String threadName) {
-    return FakeNetworkService.newHttpDataBuilder(id, startS, endS)
-      .addJavaThread(new HttpData.JavaThread(threadId, threadName))
-      .build();
+    return TestHttpData.newBuilder(id, startS, endS, new HttpData.JavaThread(threadId, threadName)).build();
   }
 }

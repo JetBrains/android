@@ -55,7 +55,7 @@ public class NetworkProfilerStageTest {
 
   private static final ImmutableList<HttpData> FAKE_HTTP_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpDataBuilder(1, 0, 14).build())
+      .add(TestHttpData.newBuilder(1, 1, 14).build())
       .build();
   private static final String TEST_PAYLOAD_ID = "test";
 
@@ -262,7 +262,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void testSelectedConnection() {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
       .setResponsePayloadId("payloadId");
     HttpData data = builder.build();
@@ -283,7 +283,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void testSelectedConnectionWhenIdIsEmpty() {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
       .setResponsePayloadId("");
     HttpData data = builder.build();
@@ -294,7 +294,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void setSelectionWithGzipEncodingResponsePayload() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
     builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
@@ -319,7 +319,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void responsePayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
     builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
@@ -338,7 +338,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void setSelectionWithGzipEncodingRequestPayload() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
     builder.setRequestPayloadId(TEST_PAYLOAD_ID);
     builder.setRequestFields("content-encoding=gzip \n");
     HttpData data = builder.build();
@@ -363,7 +363,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void requestPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
     builder.setRequestPayloadId(TEST_PAYLOAD_ID);
     builder.setRequestFields(" content-encoding=gzip \n");
     HttpData data = builder.build();
@@ -382,7 +382,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void setSelectionWithExistingPayloadFile() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
     builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
@@ -392,7 +392,7 @@ public class NetworkProfilerStageTest {
     // After payload file exists, remove file from profiler service.
     myProfilerService.removeFile(TEST_PAYLOAD_ID);
     // Set to a different selection because set the same selection twice will be skipped.
-    myStage.setSelectedConnection(new HttpData.Builder(2, 2, 20).build());
+    myStage.setSelectedConnection(TestHttpData.newBuilder(2, 2, 20).build());
 
     myStage.setSelectedConnection(data);
     try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
@@ -412,7 +412,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void testIoExceptionThrownWhenSelectConnection() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
       .setResponsePayloadId("payloadId");
     HttpData data = builder.build();
@@ -442,6 +442,7 @@ public class NetworkProfilerStageTest {
   @Test
   public void codeNavigationUnexpandsProfiler() {
     HttpData data = FAKE_HTTP_DATA.get(0);
+    // data.getStrackTrace() correlates to FakeNetworkService.FAKE_STACK_TRACE
     assertThat(data.getStackTrace().getCodeLocations()).hasSize(2);
     myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
 

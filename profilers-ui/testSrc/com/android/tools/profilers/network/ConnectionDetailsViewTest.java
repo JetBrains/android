@@ -39,9 +39,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class ConnectionDetailsViewTest {
   private static final String dumbTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
-  private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 25000, 50000, 100000)
-    .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET")
-    .addJavaThread(new HttpData.JavaThread(0, "thread1"))
+  private static final HttpData DEFAULT_DATA =
+    new HttpData.Builder(1, 10000, 25000, 50000, 100000, TestHttpData.FAKE_THREAD_LIST)
+      .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET")
     .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
@@ -108,7 +108,7 @@ public class ConnectionDetailsViewTest {
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
     File file = new File("temp");
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     data.setRequestPayloadFile(file);
     assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
 
@@ -121,7 +121,7 @@ public class ConnectionDetailsViewTest {
   public void fileViewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
     Component requestBody = firstDescendantWithName(myView, "REQUEST_BODY");
@@ -142,17 +142,6 @@ public class ConnectionDetailsViewTest {
     assertThat(myView.isVisible()).isFalse();
   }
 
-  @NotNull
-  private static HttpData.Builder getBuilderFromHttpData(@NotNull HttpData data) {
-    HttpData.Builder builder =
-      new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getUploadedTimeUs(), data.getDownloadingTimeUs(), data.getEndTimeUs())
-        .setUrl(data.getUrl())
-        .setMethod(data.getMethod())
-        .setTrace(data.getStackTrace().getTrace());
-    data.getJavaThreads().forEach(builder::addJavaThread);
-    return builder;
-  }
-
   @Test
   public void contentsAreEmptyWhenDataIsNull() {
     AspectObserver observer = new AspectObserver();
@@ -161,7 +150,7 @@ public class ConnectionDetailsViewTest {
       .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).build();
     data.setResponsePayloadFile(file);
 
     assertThat(stackFramesChangedCount[0]).isEqualTo(0);
@@ -183,7 +172,7 @@ public class ConnectionDetailsViewTest {
   @Test
   public void fileViewerExistWhenPayloadFileIsNotNull() {
     File file = new File("temp");
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     data.setResponsePayloadFile(file);
     assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
 
@@ -195,7 +184,7 @@ public class ConnectionDetailsViewTest {
   public void contentTypeHasProperValueFromData() {
     String valueName = "Content type";
     assertThat(hasDescendantWithName(myView, valueName)).isFalse();
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
     JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
@@ -216,7 +205,7 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void otherThreadsFieldIsPresent() {
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).addJavaThread(new HttpData.JavaThread(1, "thread2")).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).addJavaThread(new HttpData.JavaThread(1, "thread2")).build();
     myView.setHttpData(data);
     assertThat(hasDescendantWithName(myView, "Other threads")).isTrue();
   }
@@ -241,7 +230,7 @@ public class ConnectionDetailsViewTest {
     String valueName = "Size";
     assertThat(hasDescendantWithName(myView, valueName)).isFalse();
 
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
     JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
     assertThat(value.getText()).isEqualTo("222B");
@@ -263,14 +252,14 @@ public class ConnectionDetailsViewTest {
   public void headersIsUpdated() {
     JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
     assertThat(headers.getComponentCount()).isEqualTo(0);
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
     assertThat(headers.getComponentCount()).isNotEqualTo(0);
   }
 
   @Test
   public void headerSectionIsSortedAndFormatted() {
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
     JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
     JPanel responseHeaders = (JPanel)firstDescendantWithName(headers, "Request Headers");
@@ -312,7 +301,7 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void callStackNavigationChangesProfilerMode() {
-    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setTrace(FakeNetworkService.FAKE_STACK_TRACE).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setTrace(TestHttpData.FAKE_STACK_TRACE).build();
     myView.setHttpData(data);
     assertThat(data.getStackTrace().getCodeLocations().size()).isEqualTo(2);
 
@@ -353,8 +342,9 @@ public class ConnectionDetailsViewTest {
                                            String receivedLegend) {
     // uploadedTime isn't used in legends (at the moment anyway) so just stub it for now
     long uploadedTimeUs = startTimeUs;
-    HttpData data = new HttpData.Builder(0, startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs).setUrl("unusedUrl").setMethod("GET")
-      .addJavaThread(new HttpData.JavaThread(0, "thread1")).build();
+    HttpData data =
+      new HttpData.Builder(0, startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs, TestHttpData.FAKE_THREAD_LIST).setUrl("unusedUrl")
+        .build();
     myView.setHttpData(data);
 
     LegendComponent legendComponent = firstDescendantWithType(myView, LegendComponent.class);

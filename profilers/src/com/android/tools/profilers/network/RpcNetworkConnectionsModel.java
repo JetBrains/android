@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries. It sent queries to datastore, adding or removing
@@ -63,11 +64,17 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       long uploadedTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getUploadedTimestamp());
       long downloadingTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
+
       HttpData.Builder httpBuilder =
-        new HttpData.Builder(connection.getConnId(), startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs);
+        new HttpData.Builder(
+          connection.getConnId(),
+          startTimeUs,
+          uploadedTimeUs,
+          downloadingTimeUs,
+          endTimeUs,
+          requestAccessingThreads(connection.getConnId()));
 
       requestHttpRequest(connection.getConnId(), httpBuilder);
-      requestAccessingThreads(connection.getConnId(), httpBuilder);
 
       if (connection.getUploadedTimestamp() != 0) {
         requestHttpRequestBody(connection.getConnId(), httpBuilder);
@@ -123,11 +130,11 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     httpBuilder.setResponseFields(response.getResponse().getFields());
   }
 
-  private void requestAccessingThreads(long connectionId, @NotNull HttpData.Builder httpBuilder) {
+  private List<HttpData.JavaThread> requestAccessingThreads(long connectionId) {
     NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-    for (NetworkProfiler.JavaThread thread : response.getAccessingThreads().getThreadList()) {
-      httpBuilder.addJavaThread(new HttpData.JavaThread(thread.getId(), thread.getName()));
-    }
+    return response.getAccessingThreads().getThreadList().stream().map(proto -> new HttpData.JavaThread(proto.getId(), proto.getName()))
+      .collect(
+        Collectors.toList());
   }
 
   private NetworkProfiler.HttpDetailsResponse getDetails(long connectionId, NetworkProfiler.HttpDetailsRequest.Type type) {

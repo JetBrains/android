@@ -21,6 +21,8 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
@@ -28,7 +30,7 @@ import static org.junit.Assert.fail;
 public class HttpDataTest {
   @Test
   public void responseFieldsStringIsCorrectlySplitAndTrimmed() throws Exception {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
                               "first=1 \n  second  = 2\n equation=x+y=10");
     HttpData data = builder.build();
@@ -39,7 +41,7 @@ public class HttpDataTest {
 
   @Test
   public void testResponseStatusLine() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("   \n" +
                               "null  =  HTTP/1.1 302 Found  \n  " +
                               " Content-Type =  text/html; charset=UTF-8;  ");
@@ -50,7 +52,7 @@ public class HttpDataTest {
 
   @Test
   public void testResponseStatusLineWithoutKey() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("  HTTP/1.1 200 Found  \n  " +
                               " \n   \n  \n" +
                               "  Content-Type =  text/html; charset=UTF-8  ");
@@ -61,35 +63,35 @@ public class HttpDataTest {
 
   @Test
   public void emptyResponseFields() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("");
     assertThat(builder.build().getStatusCode()).isEqualTo(-1);
   }
 
   @Test
   public void emptyResponseFields2() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
     assertThat(builder.build().getStatusCode()).isEqualTo(-1);
   }
 
   @Test(expected = AssertionError.class)
   public void invalidResponseFields() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("Invalid response fields");
     builder.build();
   }
 
   @Test
   public void emptyRequestFields() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setRequestFields("");
     assertThat(builder.build().getRequestHeaders()).isEmpty();
   }
 
   @Test
   public void testSetRequestFields() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setRequestFields("\nfirst=1 \n  second  = 2\n equation=x+y=10");
     ImmutableMap<String, String> requestFields = builder.build().getRequestHeaders();
     assertThat(requestFields.size()).isEqualTo(3);
@@ -100,7 +102,7 @@ public class HttpDataTest {
 
   @Test
   public void responsePayloadFile() throws Exception {
-    HttpData data = new HttpData.Builder(1).build();
+    HttpData data = TestHttpData.newBuilder(1).build();
     File file = Mockito.mock(File.class);
     data.setResponsePayloadFile(file);
     assertThat(data.getResponsePayloadFile()).isEqualTo(file);
@@ -108,7 +110,7 @@ public class HttpDataTest {
 
   @Test
   public void requestPayloadFile() throws IOException {
-    HttpData data = new HttpData.Builder(1).build();
+    HttpData data = TestHttpData.newBuilder(1).build();
     File file = Mockito.mock(File.class);
     data.setRequestPayloadFile(file);
     assertThat(data.getRequestPayloadFile()).isEqualTo(file);
@@ -167,10 +169,9 @@ public class HttpDataTest {
     long startTime = 10, uploadTime = 100, downloadTime = 1000, endTime = 10000;
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
 
-    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime);
+    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime, TestHttpData.FAKE_THREAD_LIST);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
       .setResponsePayloadId("payloadId").setTrace(trace).setUrl("url").setRequestPayloadId("requestPayloadId");
-    builder.addJavaThread(new HttpData.JavaThread(1, "myThread"));
     HttpData data = builder.build();
 
     assertThat(data.getId()).isEqualTo(id);
@@ -185,8 +186,8 @@ public class HttpDataTest {
     assertThat(data.getRequestPayloadId()).isEqualTo("requestPayloadId");
     assertThat(data.getStackTrace().getTrace()).isEqualTo(trace);
     assertThat(data.getUrl()).isEqualTo("url");
-    assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(1L);
-    assertThat(data.getJavaThreads().get(0).getName()).isEqualTo("myThread");
+    assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(TestHttpData.FAKE_THREAD.getId());
+    assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(TestHttpData.FAKE_THREAD.getName());
   }
 
   @Test
@@ -229,7 +230,7 @@ public class HttpDataTest {
 
   @Test
   public void getContentLengthFromLowerCaseData() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("CoNtEnt-LEngtH = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
     assertThat(data.getResponseField("content-length")).isEqualTo("10000");
@@ -238,7 +239,7 @@ public class HttpDataTest {
 
   @Test
   public void getStatusCodeFromFields() {
-    HttpData.Builder builder = new HttpData.Builder(1);
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
     assertThat(data.getStatusCode()).isEqualTo(200);

@@ -92,10 +92,10 @@ public class HttpData {
     myResponsePayloadId = builder.myResponsePayloadId;
     myRequestPayloadId = builder.myRequestPayloadId;
 
-    if (builder.myResponseFields != null) {
+    if (!builder.myResponseFields.isEmpty()) {
       parseResponseFields(builder.myResponseFields);
     }
-    if (builder.myRequestFields != null) {
+    if (!builder.myRequestFields.isEmpty()) {
       parseRequestFields(builder.myRequestFields);
     }
   }
@@ -416,40 +416,38 @@ public class HttpData {
     private final long myDownloadingTimeUs;
     private final long myEndTimeUs;
 
-    private String myUrl;
-    private String myMethod;
+    private String myUrl = "";
+    private String myMethod = "";
 
-    private String myResponseFields;
-    private String myRequestFields;
-    private String myResponsePayloadId;
-    private String myRequestPayloadId;
+    private String myResponseFields = "";
+    private String myRequestFields = "";
+    private String myResponsePayloadId = "";
+    private String myRequestPayloadId = "";
     private String myTrace = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
-    /**
-     * Simple builder when you don't care about any timestamps at all. This will create an
-     * {@link HttpData} which basically uploaded / downloaded instantly.
-     */
-    @VisibleForTesting
-    Builder(long id) {
-      this(id, 1, 1, 1, 1);
-    }
-
-    /**
-     * Simple builder when you don't care about the intermediate (uploaded / downloading)
-     * timestamps.
-     */
-    @VisibleForTesting
-    Builder(long id, long startTimeUs, long endTimeUs) {
-      this(id, startTimeUs, startTimeUs, endTimeUs, endTimeUs);
-    }
-
-    public Builder(long id, long startTimeUs, long uploadedTimeUs, long downloadingTimeUs, long endTimeUs) {
+    public Builder(long id, long startTimeUs, long uploadedTimeUs, long downloadingTimeUs, long endTimeUs, List<JavaThread> threads) {
       myId = id;
       myStartTimeUs = startTimeUs;
       myUploadedTimeUs = uploadedTimeUs;
       myDownloadingTimeUs = downloadingTimeUs;
       myEndTimeUs = endTimeUs;
+
+      assert !threads.isEmpty() : "HttpData.Builder must be initialized with at least one thread";
+      threads.forEach(this::addJavaThread);
+    }
+
+    @VisibleForTesting
+    Builder(@NotNull HttpData template) {
+      this(template.getId(),
+           template.getStartTimeUs(),
+           template.getUploadedTimeUs(),
+           template.getDownloadingTimeUs(),
+           template.getEndTimeUs(),
+           template.getJavaThreads());
+      setUrl(template.getUrl());
+      setMethod(template.getMethod());
+      setTrace(template.getStackTrace().getTrace());
     }
 
     @NotNull
