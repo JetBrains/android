@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 public class RpcNetworkConnectionsModelTest {
   private static final String FAKE_PAYLOAD_ID = "Test Payload";
@@ -69,13 +69,13 @@ public class RpcNetworkConnectionsModelTest {
   @Test
   public void nonEmptyRequestPayload() {
     myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    assertEquals("Dummy Contents", myModel.requestPayload(FAKE_PAYLOAD_ID).toStringUtf8());
+    assertThat(myModel.requestPayload(FAKE_PAYLOAD_ID).toStringUtf8()).isEqualTo("Dummy Contents");
   }
 
   @Test
   public void emptyRequestPayload() {
     myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    assertEquals(ByteString.EMPTY, myModel.requestPayload(""));
+    assertThat(myModel.requestPayload("")).isEqualTo(ByteString.EMPTY);
   }
 
   @Test
@@ -106,26 +106,29 @@ public class RpcNetworkConnectionsModelTest {
   private void checkGetData(long startTimeS, long endTimeS, long... expectedIds) {
     Range range = new Range(TimeUnit.SECONDS.toMicros(startTimeS), TimeUnit.SECONDS.toMicros(endTimeS));
     List<HttpData> actualData = myModel.getData(range);
-    assertEquals(expectedIds.length, actualData.size());
+    assertThat(actualData).hasSize(expectedIds.length);
 
     for (int i = 0; i < actualData.size(); ++i) {
       HttpData data = actualData.get(i);
       long id = expectedIds[i];
-      assertEquals(id, data.getId());
-      assertEquals(FAKE_DATA.get((int)id).getStartTimeUs(), data.getStartTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getDownloadingTimeUs(), data.getDownloadingTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getEndTimeUs(), data.getEndTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getMethod(), data.getMethod());
-      assertEquals(FAKE_DATA.get((int)id).getUrl(), data.getUrl());
-      assertEquals(FAKE_DATA.get((int)id).getStackTrace().getTrace(), data.getStackTrace().getTrace());
-      assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
-      assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
-      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getId(), data.getJavaThreads().get(0).getId());
-      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getName(), data.getJavaThreads().get(0).getName());
+      assertThat(data.getId()).isEqualTo(id);
+      HttpData expectedData = FAKE_DATA.get((int)id);
+
+      assertThat(data.getStartTimeUs()).isEqualTo(expectedData.getStartTimeUs());
+      assertThat(data.getDownloadingTimeUs()).isEqualTo(expectedData.getDownloadingTimeUs());
+      assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
+      assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
+      assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
+      assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+      assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
+      assertThat(data.getResponseField("connId")).isEqualTo(expectedData.getResponseField("connId"));
+      assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(expectedData.getJavaThreads().get(0).getId());
+      assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(expectedData.getJavaThreads().get(0).getName());
+
       ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
-      assertEquals(2, requestHeaders.size());
-      assertEquals("Customized", requestHeaders.get("user-agent"));
-      assertEquals("text/plain", requestHeaders.get("accept"));
+      assertThat(requestHeaders).hasSize(2);
+      assertThat(requestHeaders.get("user-agent")).isEqualTo("Customized");
+      assertThat(requestHeaders.get("accept")).isEqualTo("text/plain");
     }
   }
 }
