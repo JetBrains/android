@@ -900,13 +900,15 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
+    int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()
-      .setDeviceId(serial.hashCode())
+      .setDeviceId(deviceId)
       .setFeatureLevel(featureLevel)
       .setSerial(serial)
       .setState(Common.Device.State.ONLINE).build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
+      .setDeviceId(deviceId)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();

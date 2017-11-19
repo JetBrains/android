@@ -91,7 +91,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run, new HashMap<>());
+  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
 
   public TestName myTestName = new TestName();
   public TestGrpcService<FakeCpuService> myService =

@@ -85,7 +85,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run, new HashMap<>());
+  private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run);
 
   private TestName myTestName = new TestName();
   private TestGrpcService<EventServiceMock> myService =

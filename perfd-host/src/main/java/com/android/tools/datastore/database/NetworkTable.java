@@ -56,10 +56,6 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
     return Logger.getInstance(NetworkTable.class);
   }
 
-  public NetworkTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);

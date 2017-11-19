@@ -23,21 +23,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class NetworkTableTest {
-
   private static final int PROCESS_ID = 1;
   private static final int PROCESS_ID_INVALID = 2;
   private static final int VALID_CONN_ID = 3;
   private static final int INVALID_CONN_ID = -1;
   private static final int TEST_DATA = 10;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
 
   private File myDbFile;
   private NetworkTable myTable;
@@ -45,11 +43,9 @@ public class NetworkTableTest {
 
   @Before
   public void setUp() throws Exception {
-    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
-    sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = File.createTempFile("NetworkTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
-    myTable = new NetworkTable(sessionLookup);
+    myTable = new NetworkTable();
     myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }

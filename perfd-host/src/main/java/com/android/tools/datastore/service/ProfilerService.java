@@ -21,7 +21,6 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
@@ -46,11 +45,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   private final DataStoreService myService;
 
   public ProfilerService(@NotNull DataStoreService service,
-                         Consumer<Runnable> fetchExecutor,
-                         @NotNull Map<Common.Session, Long> sessionIdLookup) {
+                         Consumer<Runnable> fetchExecutor) {
     myService = service;
     myFetchExecutor = fetchExecutor;
-    myTable = new ProfilerTable(sessionIdLookup);
+    myTable = new ProfilerTable();
   }
 
   @Override
@@ -104,6 +102,46 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
       myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
     responseObserver.onNext(client == null ? Profiler.AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void beginSession(Profiler.BeginSessionRequest request, StreamObserver<Profiler.BeginSessionResponse> responseObserver) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+    if (client == null) {
+      responseObserver.onNext(Profiler.BeginSessionResponse.getDefaultInstance());
+    }
+    else {
+      Profiler.BeginSessionResponse response = client.beginSession(request);
+      responseObserver.onNext(response);
+
+      // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
+      // The downside is we will have a delay before getSessions will see the data
+      myTable.insertOrUpdateSession(response.getSession());
+    }
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void endSession(Profiler.EndSessionRequest request, StreamObserver<Profiler.EndSessionResponse> responseObserver) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+    if (client == null) {
+      responseObserver.onNext(Profiler.EndSessionResponse.getDefaultInstance());
+    }
+    else {
+      Profiler.EndSessionResponse response = client.endSession(request);
+      responseObserver.onNext(response);
+
+      // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
+      // The downside is we will have a delay before getSessions will see the data
+      myTable.insertOrUpdateSession(response.getSession());
+    }
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getSessions(Profiler.GetSessionsRequest request, StreamObserver<Profiler.GetSessionsResponse> responseObserver) {
+    responseObserver.onNext(myTable.getSessions(request));
     responseObserver.onCompleted();
   }
 

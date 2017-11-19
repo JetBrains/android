@@ -34,8 +34,8 @@ import java.util.List;
 public class MemoryLiveAllocationTableTest {
   private static final int VALID_PID = 1;
   private static final int INVALID_PID = -1;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
 
   // Live allocation test data
   private final int HEAP0 = 0;
@@ -83,11 +83,9 @@ public class MemoryLiveAllocationTableTest {
 
   @Before
   public void setUp() throws Exception {
-    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
-    sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = FileUtil.createTempFile("MemoryStatsTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.PERFORMANT);
-    myAllocationTable = new MemoryLiveAllocationTable(sessionLookup);
+    myAllocationTable = new MemoryLiveAllocationTable();
     myAllocationTable.initialize(myDatabase.getConnection());
   }
 

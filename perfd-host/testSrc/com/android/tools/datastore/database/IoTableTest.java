@@ -41,8 +41,8 @@ public class IoTableTest {
   private static final int SESSIONS_TEST_DATA_COUNT = 10;
   private static final int IO_CALLS_TEST_DATA_COUNT = 10;
   private static final int SPEED_TEST_DATA_COUNT = 10;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setDeviceId(1234).build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setDeviceId(4321).build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
   private static final List<IoProfiler.FileSession> ourFileSessionsList = new ArrayList<>();
   private static final List<IoProfiler.IoSpeedData> ourReadSpeedDataList = new ArrayList<>();
   private static final List<IoProfiler.IoSpeedData> ourWriteSpeedDataList = new ArrayList<>();
@@ -53,11 +53,9 @@ public class IoTableTest {
 
   @Before
   public void setUp() throws Exception {
-    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
-    sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = File.createTempFile("IoTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
-    myTable = new IoTable(sessionLookup);
+    myTable = new IoTable();
     myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }

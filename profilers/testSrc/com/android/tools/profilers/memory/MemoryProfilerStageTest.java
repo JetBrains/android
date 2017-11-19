@@ -439,6 +439,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .build();
     Common.Process process = Common.Process.newBuilder()
       .setPid(20)
+      .setDeviceId(FAKE_DEVICE_ID)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();

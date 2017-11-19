@@ -52,12 +52,11 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   // TODO Revisit fetch mechanism
   public MemoryService(@NotNull DataStoreService dataStoreService,
-                       Consumer<Runnable> fetchExecutor,
-                       @NotNull Map<Common.Session, Long> sessionIdLookup) {
+                       Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
-    myStatsTable = new MemoryStatsTable(sessionIdLookup);
-    myAllocationsTable = new MemoryLiveAllocationTable(sessionIdLookup);
+    myStatsTable = new MemoryStatsTable();
+    myAllocationsTable = new MemoryLiveAllocationTable();
   }
 
   @Override

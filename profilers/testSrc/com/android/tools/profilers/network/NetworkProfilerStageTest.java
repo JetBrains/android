@@ -19,6 +19,9 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -61,6 +64,7 @@ public class NetworkProfilerStageTest {
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(true);
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
+                                                                   new FakeEventService(), new FakeCpuService(), new FakeMemoryService(),
                                                                    FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
                                                                      .setHttpDataList(FAKE_HTTP_DATA).build());
 

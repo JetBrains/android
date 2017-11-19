@@ -34,19 +34,13 @@ import java.util.Set;
  */
 public abstract class DataStoreTable<T extends Enum> {
   private static final Logger LOG = Logger.getInstance(DataStoreTable.class.getCanonicalName());
-  private static final long KEYS_ERROR = -1;
   private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet();
 
   private Connection myConnection;
   private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
-  protected final Map<Common.Session, Long> mySessionIdLookup;
 
   public interface DataStoreTableErrorCallback {
     void onDataStoreError(Throwable t);
-  }
-
-  public DataStoreTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    mySessionIdLookup = sesstionIdLookup;
   }
 
   /**
@@ -145,22 +139,6 @@ public abstract class DataStoreTable<T extends Enum> {
     }
   }
 
-  protected long executeWithGeneratedKeys(@NotNull T statement, Object... params) {
-    try {
-      if (isClosed()) {
-        return -1;
-      }
-      PreparedStatement stmt = getStatementMap().get(statement);
-      applyParams(stmt, params);
-      stmt.execute();
-      return stmt.getGeneratedKeys().getLong(1);
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-    return KEYS_ERROR;
-  }
-
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
     // TODO: Handle when the database conneciton is closed and a query is made.
     PreparedStatement stmt = getStatementMap().get(statement);
@@ -185,16 +163,10 @@ public abstract class DataStoreTable<T extends Enum> {
       else if (params[i] instanceof byte[]) {
         statement.setBytes(i + 1, (byte[])params[i]);
       }
+      // TODO remove once queries uses Session#sessionId directly
       else if (params[i] instanceof Common.Session) {
         Common.Session session = (Common.Session)params[i];
-        if (mySessionIdLookup.containsKey(session)) {
-          statement.setLong(i + 1, mySessionIdLookup.get(session));
-        }
-        else {
-          // TODO: Throw exception if a user attempts to insert / update a session id that is invalid
-          LOG.warn("Session not found: " + params[i]);
-          statement.setLong(i + 1, KEYS_ERROR);
-        }
+        statement.setLong(i + 1, session.getSessionId());
       }
       else {
         //Not implemented type cast

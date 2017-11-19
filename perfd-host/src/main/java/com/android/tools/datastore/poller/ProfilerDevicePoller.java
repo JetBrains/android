@@ -82,6 +82,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
         Set<Common.Process> liveProcesses = new HashSet<>();
 
         for (Common.Process process : processesResponse.getProcessList()) {
+          assert process.getDeviceId() == deviceId.get();
           myTable.insertOrUpdateProcess(deviceId, process);
           liveProcesses.add(process);
 
