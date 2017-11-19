@@ -28,7 +28,7 @@ import static org.junit.Assert.fail;
 public class HttpDataTest {
   @Test
   public void responseFieldsStringIsCorrectlySplitAndTrimmed() throws Exception {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
                               "first=1 \n  second  = 2\n equation=x+y=10");
     HttpData data = builder.build();
@@ -39,7 +39,7 @@ public class HttpDataTest {
 
   @Test
   public void testResponseStatusLine() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("   \n" +
                               "null  =  HTTP/1.1 302 Found  \n  " +
                               " Content-Type =  text/html; charset=UTF-8;  ");
@@ -50,7 +50,7 @@ public class HttpDataTest {
 
   @Test
   public void testResponseStatusLineWithoutKey() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("  HTTP/1.1 200 Found  \n  " +
                               " \n   \n  \n" +
                               "  Content-Type =  text/html; charset=UTF-8  ");
@@ -61,35 +61,35 @@ public class HttpDataTest {
 
   @Test
   public void emptyResponseFields() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("");
     assertThat(builder.build().getStatusCode()).isEqualTo(-1);
   }
 
   @Test
   public void emptyResponseFields2() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
     assertThat(builder.build().getStatusCode()).isEqualTo(-1);
   }
 
   @Test(expected = AssertionError.class)
   public void invalidResponseFields() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("Invalid response fields");
     builder.build();
   }
 
   @Test
   public void emptyRequestFields() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setRequestFields("");
     assertThat(builder.build().getRequestHeaders()).isEmpty();
   }
 
   @Test
   public void testSetRequestFields() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setRequestFields("\nfirst=1 \n  second  = 2\n equation=x+y=10");
     ImmutableMap<String, String> requestFields = builder.build().getRequestHeaders();
     assertThat(requestFields.size()).isEqualTo(3);
@@ -100,7 +100,7 @@ public class HttpDataTest {
 
   @Test
   public void responsePayloadFile() throws Exception {
-    HttpData data = new HttpData.Builder(1, 0, 0, 0).build();
+    HttpData data = new HttpData.Builder(1).build();
     File file = Mockito.mock(File.class);
     data.setResponsePayloadFile(file);
     assertThat(data.getResponsePayloadFile()).isEqualTo(file);
@@ -108,7 +108,7 @@ public class HttpDataTest {
 
   @Test
   public void requestPayloadFile() throws IOException {
-    HttpData data = new HttpData.Builder(1, 0, 0, 0).build();
+    HttpData data = new HttpData.Builder(1).build();
     File file = Mockito.mock(File.class);
     data.setRequestPayloadFile(file);
     assertThat(data.getRequestPayloadFile()).isEqualTo(file);
@@ -164,10 +164,10 @@ public class HttpDataTest {
   @Test
   public void testBuilder() {
     long id = 1111;
-    long startTime = 10, downloadTime = 100, endTime = 1000;
+    long startTime = 10, uploadTime = 100, downloadTime = 1000, endTime = 10000;
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
 
-    HttpData.Builder builder = new HttpData.Builder(id, startTime, endTime, downloadTime);
+    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
       .setResponsePayloadId("payloadId").setTrace(trace).setUrl("url").setRequestPayloadId("requestPayloadId");
     builder.addJavaThread(new HttpData.JavaThread(1, "myThread"));
@@ -175,6 +175,7 @@ public class HttpDataTest {
 
     assertThat(data.getId()).isEqualTo(id);
     assertThat(data.getStartTimeUs()).isEqualTo(startTime);
+    assertThat(data.getUploadedTimeUs()).isEqualTo(uploadTime);
     assertThat(data.getDownloadingTimeUs()).isEqualTo(downloadTime);
     assertThat(data.getEndTimeUs()).isEqualTo(endTime);
 
@@ -228,7 +229,7 @@ public class HttpDataTest {
 
   @Test
   public void getContentLengthFromLowerCaseData() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("CoNtEnt-LEngtH = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
     assertThat(data.getResponseField("content-length")).isEqualTo("10000");
@@ -237,7 +238,7 @@ public class HttpDataTest {
 
   @Test
   public void getStatusCodeFromFields() {
-    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    HttpData.Builder builder = new HttpData.Builder(1);
     builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
     assertThat(data.getStatusCode()).isEqualTo(200);

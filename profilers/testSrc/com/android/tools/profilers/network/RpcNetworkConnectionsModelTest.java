@@ -35,21 +35,30 @@ public class RpcNetworkConnectionsModelTest {
 
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14)
+      // Finished request (1-6)
+      .add(FakeNetworkService.newHttpDataBuilder(1, 1, 6)
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(0, "threadA"))
+             .addJavaThread(new HttpData.JavaThread(1, "threadA"))
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6)
+      // Finished request (2-5)
+      .add(FakeNetworkService.newHttpDataBuilder(2, 2, 5)
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(1, "threadB"))
+             .addJavaThread(new HttpData.JavaThread(2, "threadB"))
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0)
+      // Unfinished request (3-?)
+      .add(FakeNetworkService.newHttpDataBuilder(3, 3, 0, 0, 0)
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(2, "threadC"))
+             .addJavaThread(new HttpData.JavaThread(3, "threadC"))
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12)
+      // Unfinished request (4-?)
+      .add(FakeNetworkService.newHttpDataBuilder(4, 4, 5, 0, 0)
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(3, "threadD"))
+             .addJavaThread(new HttpData.JavaThread(4, "threadD"))
+             .build())
+      // Finished request (8-12)
+      .add(FakeNetworkService.newHttpDataBuilder(5, 8, 9, 10, 12)
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .addJavaThread(new HttpData.JavaThread(5, "threadE"))
              .build())
       .build();
 
@@ -80,27 +89,27 @@ public class RpcNetworkConnectionsModelTest {
 
   @Test
   public void rangeCanIncludeAllRequests() {
-    checkGetData(0, 10, 0, 1, 2, 3);
+    checkGetData(0, 10, 1, 2, 3, 4, 5);
   }
 
   @Test
   public void rangeCanExcludeTailRequests() {
-    checkGetData(0, 6, 0, 1, 2);
+    checkGetData(0, 6, 1, 2, 3, 4);
   }
 
   @Test
   public void rangeCanExcludeHeadRequests() {
-    checkGetData(8, 12, 0, 2, 3);
+    checkGetData(8, 12, 3, 4, 5);
   }
 
   @Test
   public void rangeCanIncludeRequestsThatAreStillDownloading() {
-    checkGetData(1000, 1002, 2);
+    checkGetData(1000, 1001, 3, 4);
   }
 
   @Test
   public void testRequestStartAndEndAreInclusive() {
-    checkGetData(6, 8, 0, 1, 2, 3);
+    checkGetData(6, 8, 1, 3, 4, 5);
   }
 
   private void checkGetData(long startTimeS, long endTimeS, long... expectedIds) {
@@ -112,9 +121,10 @@ public class RpcNetworkConnectionsModelTest {
       HttpData data = actualData.get(i);
       long id = expectedIds[i];
       assertThat(data.getId()).isEqualTo(id);
-      HttpData expectedData = FAKE_DATA.get((int)id);
+      HttpData expectedData = FAKE_DATA.stream().filter(d -> d.getId() == id).findFirst().get();
 
       assertThat(data.getStartTimeUs()).isEqualTo(expectedData.getStartTimeUs());
+      assertThat(data.getUploadedTimeUs()).isEqualTo(expectedData.getUploadedTimeUs());
       assertThat(data.getDownloadingTimeUs()).isEqualTo(expectedData.getDownloadingTimeUs());
       assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
       assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());

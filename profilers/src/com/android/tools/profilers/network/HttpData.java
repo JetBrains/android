@@ -56,8 +56,9 @@ public class HttpData {
 
   private final long myId;
   private final long myStartTimeUs;
-  private final long myEndTimeUs;
+  private final long myUploadedTimeUs;
   private final long myDownloadingTimeUs;
+  private final long myEndTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
   @NotNull private final StackTrace myTrace;
@@ -80,8 +81,9 @@ public class HttpData {
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
     myStartTimeUs = builder.myStartTimeUs;
-    myEndTimeUs = builder.myEndTimeUs;
+    myUploadedTimeUs = builder.myUploadedTimeUs;
     myDownloadingTimeUs = builder.myDownloadingTimeUs;
+    myEndTimeUs = builder.myEndTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
     myTrace = new StackTrace(builder.myTrace);
@@ -106,12 +108,16 @@ public class HttpData {
     return myStartTimeUs;
   }
 
-  public long getEndTimeUs() {
-    return myEndTimeUs;
+  public long getUploadedTimeUs() {
+    return myUploadedTimeUs;
   }
 
   public long getDownloadingTimeUs() {
     return myDownloadingTimeUs;
+  }
+
+  public long getEndTimeUs() {
+    return myEndTimeUs;
   }
 
   @NotNull
@@ -406,8 +412,9 @@ public class HttpData {
   public static final class Builder {
     private final long myId;
     private final long myStartTimeUs;
-    private final long myEndTimeUs;
+    private final long myUploadedTimeUs;
     private final long myDownloadingTimeUs;
+    private final long myEndTimeUs;
 
     private String myUrl;
     private String myMethod;
@@ -419,11 +426,30 @@ public class HttpData {
     private String myTrace = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
-    public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
+    /**
+     * Simple builder when you don't care about any timestamps at all. This will create an
+     * {@link HttpData} which basically uploaded / downloaded instantly.
+     */
+    @VisibleForTesting
+    Builder(long id) {
+      this(id, 1, 1, 1, 1);
+    }
+
+    /**
+     * Simple builder when you don't care about the intermediate (uploaded / downloading)
+     * timestamps.
+     */
+    @VisibleForTesting
+    Builder(long id, long startTimeUs, long endTimeUs) {
+      this(id, startTimeUs, startTimeUs, endTimeUs, endTimeUs);
+    }
+
+    public Builder(long id, long startTimeUs, long uploadedTimeUs, long downloadingTimeUs, long endTimeUs) {
       myId = id;
       myStartTimeUs = startTimeUs;
+      myUploadedTimeUs = uploadedTimeUs;
+      myDownloadingTimeUs = downloadingTimeUs;
       myEndTimeUs = endTimeUs;
-      myDownloadingTimeUs = downloadingTimeUS;
     }
 
     @NotNull

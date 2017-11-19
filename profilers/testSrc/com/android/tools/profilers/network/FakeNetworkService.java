@@ -91,13 +91,13 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void getHttpRange(HttpRangeRequest request,
                            StreamObserver<HttpRangeResponse> responseObserver) {
-    HttpRangeResponse.Builder builder =
-      HttpRangeResponse.newBuilder();
+    HttpRangeResponse.Builder builder = HttpRangeResponse.newBuilder();
     long requestStartTime = request.getStartTimestamp();
     long requestEndTime = request.getEndTimestamp();
 
     for (HttpData data : myHttpDataList) {
       long startTime = TimeUnit.MICROSECONDS.toNanos(data.getStartTimeUs());
+      long uploadTime = TimeUnit.MICROSECONDS.toNanos(data.getUploadedTimeUs());
       long downloadTime = TimeUnit.MICROSECONDS.toNanos(data.getDownloadingTimeUs());
       long endTime = TimeUnit.MICROSECONDS.toNanos(data.getEndTimeUs());
 
@@ -105,6 +105,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         HttpConnectionData.Builder dataBuilder = HttpConnectionData.newBuilder();
         dataBuilder.setConnId(data.getId())
           .setStartTimestamp(startTime)
+          .setUploadedTimestamp(uploadTime)
           .setDownloadingTimestamp(downloadTime)
           .setEndTimestamp(endTime)
           .build();
@@ -133,15 +134,20 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
           .setFields(requestHeaders);
         response.setRequest(requestBuilder.build());
         break;
+      case REQUEST_BODY:
+        HttpDetailsResponse.Body.Builder requestBodyBuilder = HttpDetailsResponse.Body.newBuilder();
+        requestBodyBuilder.setPayloadId(data.getRequestPayloadId());
+        response.setRequestBody(requestBodyBuilder.build());
+        break;
       case RESPONSE:
         HttpDetailsResponse.Response.Builder responseBuilder = HttpDetailsResponse.Response.newBuilder();
         responseBuilder.setFields(formatFakeResponseFields(data.getId()));
         response.setResponse(responseBuilder.build());
         break;
       case RESPONSE_BODY:
-        HttpDetailsResponse.Body.Builder bodyBuilder = HttpDetailsResponse.Body.newBuilder();
-        bodyBuilder.setPayloadId(data.getResponsePayloadId());
-        response.setResponseBody(bodyBuilder.build());
+        HttpDetailsResponse.Body.Builder responseBodyBuilder = HttpDetailsResponse.Body.newBuilder();
+        responseBodyBuilder.setPayloadId(data.getResponsePayloadId());
+        response.setResponseBody(responseBodyBuilder.build());
         break;
       case ACCESSING_THREADS:
         HttpDetailsResponse.AccessingThreads.Builder threadsBuilder = HttpDetailsResponse.AccessingThreads.newBuilder();
@@ -156,31 +162,42 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     responseObserver.onCompleted();
   }
 
+  /**
+   * {@link HttpData.Builder} that's useful for tests, using seconds instead of microseconds.
+   */
   @NotNull
-  public static HttpData newHttpData(long id, long startS, long downloadS, long endS) {
-    return newHttpDataBuilder(id, startS, downloadS, endS).build();
+  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long endS) {
+    return initHttpDataBuilder(new HttpData.Builder(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS)));
+  }
+
+  /**
+   * {@link HttpData.Builder} that's useful for tests, using seconds instead of microseconds.
+   */
+  @NotNull
+  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long uploadS, long downloadS, long endS) {
+    return initHttpDataBuilder(new HttpData.Builder(
+      id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(uploadS), TimeUnit.SECONDS.toMicros(downloadS),
+      TimeUnit.SECONDS.toMicros(endS)));
   }
 
   @NotNull
-  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS) {
-    return newHttpDataBuilder(id, startS, downloadS, endS, 0, "thread1");
-  }
+  private static HttpData.Builder initHttpDataBuilder(@NotNull HttpData.Builder builder) {
+    // Create a dummy data so we can read its values (the builder itself doesn't have or need
+    // getters)
+    HttpData temp = builder.build();
+    long id = temp.getId();
 
-  @NotNull
-  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS,
-                                                    long threadId, String threadName) {
-    long startUs = TimeUnit.SECONDS.toMicros(startS);
-    long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
-    long endUs = TimeUnit.SECONDS.toMicros(endS);
-    HttpData.Builder builder = new HttpData.Builder(id, startUs, endUs, downloadUs);
     builder.setTrace(String.format(FAKE_STACK_TRACE, id));
     builder.setUrl("http://example.com/" + id);
     builder.setMethod("method " + id);
-    builder.addJavaThread(new HttpData.JavaThread(threadId, threadName));
-    if (endS != 0) {
-      builder.setResponsePayloadId("payloadId " + id);
+    if (temp.getUploadedTimeUs() != 0) {
+      builder.setRequestPayloadId("requestPayloadId" + id);
+    }
+    if (temp.getEndTimeUs() != 0) {
+      builder.setResponsePayloadId("responsePayloadId" + id);
       builder.setResponseFields(formatFakeResponseFields(id));
     }
+
     return builder;
   }
 

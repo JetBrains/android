@@ -25,14 +25,13 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class ConnectionDetailsViewTest {
   private static final String dumbTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
-  private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 50000, 100000)
+  private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 25000, 50000, 100000)
     .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET")
     .addJavaThread(new HttpData.JavaThread(0, "thread1"))
     .build();
@@ -145,10 +144,11 @@ public class ConnectionDetailsViewTest {
 
   @NotNull
   private static HttpData.Builder getBuilderFromHttpData(@NotNull HttpData data) {
-    HttpData.Builder builder = new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getEndTimeUs(), data.getDownloadingTimeUs())
-      .setUrl(data.getUrl())
-      .setMethod(data.getMethod())
-      .setTrace(data.getStackTrace().getTrace());
+    HttpData.Builder builder =
+      new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getUploadedTimeUs(), data.getDownloadingTimeUs(), data.getEndTimeUs())
+        .setUrl(data.getUrl())
+        .setMethod(data.getMethod())
+        .setTrace(data.getStackTrace().getTrace());
     data.getJavaThreads().forEach(builder::addJavaThread);
     return builder;
   }
@@ -351,7 +351,9 @@ public class ConnectionDetailsViewTest {
                                            long endTimeUs,
                                            String sentLegend,
                                            String receivedLegend) {
-    HttpData data = new HttpData.Builder(0, startTimeUs, endTimeUs, downloadingTimeUs).setUrl("unusedUrl").setMethod("GET")
+    // uploadedTime isn't used in legends (at the moment anyway) so just stub it for now
+    long uploadedTimeUs = startTimeUs;
+    HttpData data = new HttpData.Builder(0, startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs).setUrl("unusedUrl").setMethod("GET")
       .addJavaThread(new HttpData.JavaThread(0, "thread1")).build();
     myView.setHttpData(data);
 
