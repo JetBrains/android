@@ -30,9 +30,6 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   public static final int FAKE_APP_ID = 1111;
-  public static final String FAKE_STACK_TRACE =
-    "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
-    "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)";
 
   private int myAppId;
 
@@ -141,7 +138,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         break;
       case RESPONSE:
         HttpDetailsResponse.Response.Builder responseBuilder = HttpDetailsResponse.Response.newBuilder();
-        responseBuilder.setFields(formatFakeResponseFields(data.getId()));
+        responseBuilder.setFields(TestHttpData.fakeResponseFields(data.getId()));
         response.setResponse(responseBuilder.build());
         break;
       case RESPONSE_BODY:
@@ -160,45 +157,6 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
-  }
-
-  /**
-   * {@link HttpData.Builder} that's useful for tests, using seconds instead of microseconds.
-   */
-  @NotNull
-  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long endS) {
-    return initHttpDataBuilder(new HttpData.Builder(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS)));
-  }
-
-  /**
-   * {@link HttpData.Builder} that's useful for tests, using seconds instead of microseconds.
-   */
-  @NotNull
-  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long uploadS, long downloadS, long endS) {
-    return initHttpDataBuilder(new HttpData.Builder(
-      id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(uploadS), TimeUnit.SECONDS.toMicros(downloadS),
-      TimeUnit.SECONDS.toMicros(endS)));
-  }
-
-  @NotNull
-  private static HttpData.Builder initHttpDataBuilder(@NotNull HttpData.Builder builder) {
-    // Create a dummy data so we can read its values (the builder itself doesn't have or need
-    // getters)
-    HttpData temp = builder.build();
-    long id = temp.getId();
-
-    builder.setTrace(String.format(FAKE_STACK_TRACE, id));
-    builder.setUrl("http://example.com/" + id);
-    builder.setMethod("method " + id);
-    if (temp.getUploadedTimeUs() != 0) {
-      builder.setRequestPayloadId("requestPayloadId" + id);
-    }
-    if (temp.getEndTimeUs() != 0) {
-      builder.setResponsePayloadId("responsePayloadId" + id);
-      builder.setResponseFields(formatFakeResponseFields(id));
-    }
-
-    return builder;
   }
 
   @NotNull
@@ -235,12 +193,6 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                            .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
     builder.setConnectionData(ConnectionData.newBuilder().setConnectionNumber(value).build());
     return builder.build();
-  }
-
-  @NotNull
-  private static String formatFakeResponseFields(long id) {
-    return "status line = HTTP/1.1 302 Found \n Content-Type = image/jpeg; \n" +
-           String.format("connId = %d\n Content-Length = %d\n", id, id);
   }
 
   @Nullable

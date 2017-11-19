@@ -35,13 +35,12 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
-  public static final HttpData.JavaThread FAKE_THREAD = new HttpData.JavaThread(0, "Dummy Thread");
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpDataBuilder(1, 1, 2).addJavaThread(FAKE_THREAD).build())
-      .add(FakeNetworkService.newHttpDataBuilder(2, 3, 5).addJavaThread(FAKE_THREAD).build())
-      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 13).addJavaThread(FAKE_THREAD).build())
-      .add(FakeNetworkService.newHttpDataBuilder(4, 21, 34).addJavaThread(FAKE_THREAD).build())
+      .add(TestHttpData.newBuilder(1, 1, 2).build())
+      .add(TestHttpData.newBuilder(2, 3, 5).build())
+      .add(TestHttpData.newBuilder(3, 8, 13).build())
+      .add(TestHttpData.newBuilder(4, 21, 34).build())
       .build();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
@@ -58,10 +57,14 @@ public class ConnectionsViewTest {
   @Test
   public void logicToExtractColumnValuesFromDataWorks() throws Exception {
     HttpData data = FAKE_DATA.get(2); // Request: id = 3, time = 8->13
-    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is("3"));
-    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(3));
-    assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is("image/jpeg"));
-    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(302));
+    long id = data.getId();
+    assertThat(id, is(3L));
+
+    // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
+    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is(Long.toString(id)));
+    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(TestHttpData.fakeContentLength(id)));
+    assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is(TestHttpData.FAKE_CONTENT_TYPE));
+    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(TestHttpData.FAKE_RESPONSE_CODE));
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(5)));
     assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(8)));
   }
