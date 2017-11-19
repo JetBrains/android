@@ -31,6 +31,7 @@ public class NavColorSet extends ColorSet {
     mFrames = new JBColor(0xa7a7a7, 0x2d2f31);
     mHighlightedFrames = new JBColor(0xa7a7a7, 0xa1a1a1);
     mSelectedFrames = new JBColor(0x1886f7, 0x9ccdff);
+    mSubduedFrames = new JBColor(0xa7a7a7, 0xa1a1a1);
 
     mBackground = new JBColor(0xf5f5f5, 0x2d2f31);
     mSubduedBackground = new JBColor(0xfcfcfc, 0x313435);
@@ -40,8 +41,8 @@ public class NavColorSet extends ColorSet {
     mSelectedText = new JBColor(0x1886f7, 0x9ccdff);
     mSubduedText = new JBColor(0x656565, 0xbababb);
 
-    mConstraints = new JBColor(0xb2a7a7a7,0xb2888888);
-    mHighlightedConstraints = new JBColor(0xa7a7a7,0x888888);
+    mConstraints = new JBColor(0xb2a7a7a7, 0xb2888888);
+    mHighlightedConstraints = new JBColor(0xa7a7a7, 0x888888);
     mSelectedConstraints = new JBColor(0x1886f7, 0x9ccdff);
   }
 }

@@ -65,8 +65,8 @@ class DrawTruncatedText(private var myLevel: Int,
       myY = myRectangle.y + myRectangle.height
 
       if (myIsCentered) {
-        myX = (myRectangle.width - fontMetrics.stringWidth(myTruncatedText)) / 2
-        myY = (myRectangle.height - fontMetrics.ascent) / 2
+        myX += (myRectangle.width - fontMetrics.stringWidth(myTruncatedText)) / 2
+        myY -= (myRectangle.height - fontMetrics.ascent) / 2
       }
     }
 
