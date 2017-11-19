@@ -300,6 +300,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       myCachedProcesses.put(client, Common.Process.newBuilder()
         .setName(client.getClientData().getClientDescription())
         .setPid(client.getClientData().getPid())
+        .setDeviceId(myProfilerDevice.getDeviceId())
         .setState(Common.Process.State.ALIVE)
         .setStartTimestampNs(times.getTimestampNs())
         .setAbiCpuArch(abiCpuArch)

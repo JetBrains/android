@@ -40,8 +40,8 @@ public class CpuTableTest {
   private static final int TEST_DATA = 10;
   private static final int SESSION_ONE_OFFSET = 100;
   private static final int SESSION_TWO_OFFSET = 1000;
-  private static final Common.Session SESSION_HUNDREDS = Common.Session.newBuilder().setDeviceId(100).build();
-  private static final Common.Session SESSION_THOUSANDS = Common.Session.newBuilder().setDeviceId(1000).build();
+  private static final Common.Session SESSION_HUNDREDS = Common.Session.newBuilder().setSessionId(1L).setDeviceId(100).build();
+  private static final Common.Session SESSION_THOUSANDS = Common.Session.newBuilder().setSessionId(2L).setDeviceId(1000).build();
 
   private File myDbFile;
   private CpuTable myTable;
@@ -49,12 +49,9 @@ public class CpuTableTest {
 
   @Before
   public void setUp() throws Exception {
-    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
-    sessionLookup.put(SESSION_HUNDREDS, 1L);
-    sessionLookup.put(SESSION_THOUSANDS, 2L);
     myDbFile = FileUtil.createTempFile("CpuTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
-    myTable = new CpuTable(sessionLookup);
+    myTable = new CpuTable();
     myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }

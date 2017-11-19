@@ -93,10 +93,6 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return Logger.getInstance(MemoryLiveAllocationTable.class);
   }
 
-  public MemoryLiveAllocationTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);

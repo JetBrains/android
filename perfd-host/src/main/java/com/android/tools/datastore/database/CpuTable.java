@@ -53,10 +53,6 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return Logger.getInstance(CpuTable.class);
   }
 
-  public CpuTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);

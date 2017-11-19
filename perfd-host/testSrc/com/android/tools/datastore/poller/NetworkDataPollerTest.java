@@ -98,7 +98,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run, new HashMap<>());
+  private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run);
 
 
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();

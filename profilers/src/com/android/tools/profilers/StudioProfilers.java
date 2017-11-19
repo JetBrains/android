@@ -134,6 +134,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myConnected = false;
     myDevice = null;
     myProcess = null;
+    // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
+    // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySessionData = Common.Session.getDefaultInstance();
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
@@ -295,26 +297,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setDevice(Common.Device device) {
     if (!Objects.equals(device, myDevice)) {
       // The device has changed and we need to reset the process.
-      // First, stop profiling the current process.
-      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
-      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
-      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
-      // a dead or non-being-profiled process is noop in all of our profilers.
+      // First, stop profiling the current process on the previous device.
       if (myDevice != null && myProcess != null &&
+          myDevice.getDeviceId() == myProcess.getDeviceId() &&
           myDevice.getState() == Common.Device.State.ONLINE &&
           myProcess.getState() == Common.Process.State.ALIVE) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(mySessionData, myProcess));
+        endSession();
       }
+
+      mySessionData = null;
 
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
-
-      if (myDevice != null) {
-        mySessionData = Common.Session.newBuilder().setDeviceId(myDevice.getDeviceId()).build();
-      }
-      else {
-        mySessionData = null;
-      }
 
       // Then set a new process.
       setProcess(null);
@@ -338,30 +332,30 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      // Check whether myProcess id and name exists in processes from myDevice, it avoids calling stopProfiling() twice. Otherwise,
-      // second calling might be sent to device which api is under 21 and grpc exception is thrown.
-      if (myDevice != null && myProcess != null && processes != null &&
-          processes.stream().anyMatch(p -> p.getPid() == myProcess.getPid() && p.getName().equals(myProcess.getName())) &&
+      if (myDevice != null && myProcess != null &&
           myDevice.getState() == Common.Device.State.ONLINE &&
+          // Avoids calling endSession() on a previous process if the device has already changed.
+          // In those cases, endSession() should have already been called during setDevice.
+          myDevice.getDeviceId() == myProcess.getDeviceId() &&
           myProcess.getState() == Common.Process.State.ALIVE) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
+        endSession();
       }
       boolean onlyStateChanged = isSameProcess(myProcess, process);
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
       myAgentStatus = getAgentStatus();
-      changed(ProfilerAspect.AGENT);
-
       if (myDevice != null && myProcess != null &&
           myDevice.getState() == Common.Device.State.ONLINE &&
           myProcess.getState() == Common.Process.State.ALIVE) {
+        // Starts a new session.
+        beginSession();
+
         TimeResponse response =
           myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
         long currentDeviceTime = response.getTimestampNs();
         long runTime = currentDeviceTime - myProcess.getStartTimestampNs();
         myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter, runTime);
-        myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
 
         // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
         if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
@@ -380,6 +374,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
       else {
         myTimeline.setIsPaused(true);
+
+        if (myDevice != null && myProcess != null) {
+          // The process is dead, find the previous session that was associated with the device and process.
+          GetSessionsResponse sessionsResponse = myClient.getProfilerClient().getSessions(GetSessionsRequest.getDefaultInstance());
+          // Sessions are sorted based on start time, reverse the traversal to find the most recent one.
+          for (int i = sessionsResponse.getSessionsCount() - 1; i >= 0; i--) {
+            Common.Session session = sessionsResponse.getSessions(i);
+            if (session.getDeviceId() == myDevice.getDeviceId() && session.getPid() == myProcess.getPid()) {
+              mySessionData = session;
+              break;
+            }
+          }
+        }
       }
 
       if (!onlyStateChanged) {
@@ -387,10 +394,36 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           setStage(new NullMonitorStage(this));
         }
         else {
+          assert mySessionData != null;
           setStage(new StudioMonitorStage(this));
         }
       }
+
+      // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
+      // is properly assigned before firing this aspect change.
+      changed(ProfilerAspect.AGENT);
     }
+  }
+
+  private void beginSession() {
+    assert myDevice != null && myProcess != null;
+    BeginSessionResponse response =
+      myClient.getProfilerClient().beginSession(BeginSessionRequest.newBuilder()
+                                                  .setDeviceId(myDevice.getDeviceId())
+                                                  .setProcessId(myProcess.getPid())
+                                                  .build());
+    mySessionData = response.getSession();
+    myProfilers.forEach(profiler -> profiler.startProfiling(mySessionData, myProcess));
+  }
+
+  private void endSession() {
+    assert mySessionData != null;
+    EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
+                                                                            .setDeviceId(myDevice.getDeviceId())
+                                                                            .setSessionId(mySessionData.getSessionId())
+                                                                            .build());
+    myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
+    mySessionData = null;
   }
 
   /**

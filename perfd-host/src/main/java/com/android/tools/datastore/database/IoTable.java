@@ -30,10 +30,6 @@ import java.util.Map;
 
 public class IoTable extends DataStoreTable<IoTable.IoStatements> {
 
-  public IoTable(@NotNull Map<Common.Session, Long> sessionIdLookup) {
-    super(sessionIdLookup);
-  }
-
   public enum IoStatements {
     INSERT_IO_DATA,
     QUERY_IO_DATA,

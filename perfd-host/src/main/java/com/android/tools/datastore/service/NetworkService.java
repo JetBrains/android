@@ -41,11 +41,10 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   private final Map<Integer, PollRunner> myRunners = new HashMap<>();
   private final DataStoreService myService;
 
-  public NetworkService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor,
-                        @NotNull Map<Common.Session, Long> sessionIdLookup) {
+  public NetworkService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
     myService = service;
-    myNetworkTable = new NetworkTable(sessionIdLookup);
+    myNetworkTable = new NetworkTable();
   }
 
   @Override

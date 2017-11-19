@@ -103,10 +103,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     return Logger.getInstance(MemoryStatsTable.class);
   }
 
-  public MemoryStatsTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);

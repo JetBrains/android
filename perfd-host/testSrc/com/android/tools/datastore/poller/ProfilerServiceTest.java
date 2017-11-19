@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Matchers.any;
@@ -49,17 +48,39 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     .setSerial(DEVICE_SERIAL)
     .build();
   private static final Common.Process INITIAL_PROCESS = Common.Process.newBuilder()
+    .setDeviceId(DEVICE_ID)
     .setPid(1234)
     .setName("INITIAL")
     .build();
   private static final Common.Process FINAL_PROCESS = Common.Process.newBuilder()
+    .setDeviceId(DEVICE_ID)
     .setPid(4321)
     .setName("FINAL")
+    .build();
+  private static final Common.Session START_SESSION_1 = Common.Session.newBuilder()
+    .setSessionId(1)
+    .setDeviceId(DEVICE_ID)
+    .setPid(1234)
+    .setStartTimestamp(100)
+    .setEndTimestamp(Long.MAX_VALUE)
+    .build();
+  private static final Common.Session END_SESSION_1 = START_SESSION_1.toBuilder()
+    .setEndTimestamp(200)
+    .build();
+  private static final Common.Session START_SESSION_2 = Common.Session.newBuilder()
+    .setSessionId(2)
+    .setDeviceId(DEVICE_ID)
+    .setPid(4321)
+    .setStartTimestamp(150)
+    .setEndTimestamp(Long.MAX_VALUE)
+    .build();
+  private static final Common.Session END_SESSION_2 = START_SESSION_2.toBuilder()
+    .setEndTimestamp(250)
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run, new HashMap<>());
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run);
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";
@@ -227,12 +248,73 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observerNoMatch, responseNoMatch);
   }
 
+  @Test
+  public void testGetSessionsAfterBeginEndSession() throws Exception {
+    StreamObserver<Profiler.GetSessionsResponse> observer = mock(StreamObserver.class);
+
+    // GetSessions should return an empty list initially
+    Profiler.GetSessionsResponse response = Profiler.GetSessionsResponse.getDefaultInstance();
+    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+
+    // Calling beginSession should put the Session into the ProfilerTable
+    myFakeService.setSessionToReturn(START_SESSION_1);
+    myProfilerService.beginSession(Profiler.BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    observer = mock(StreamObserver.class);
+    response = Profiler.GetSessionsResponse.newBuilder()
+      .addSessions(START_SESSION_1)
+      .build();
+    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+
+    // Beginning another session
+    myFakeService.setSessionToReturn(START_SESSION_2);
+    myProfilerService.beginSession(Profiler.BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    observer = mock(StreamObserver.class);
+    response = Profiler.GetSessionsResponse.newBuilder()
+      .addSessions(START_SESSION_1)
+      .addSessions(START_SESSION_2)
+      .build();
+    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+
+    // End the first session
+    myFakeService.setSessionToReturn(END_SESSION_1);
+    myProfilerService.endSession(Profiler.EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    observer = mock(StreamObserver.class);
+    response = Profiler.GetSessionsResponse.newBuilder()
+      .addSessions(END_SESSION_1)
+      .addSessions(START_SESSION_2)
+      .build();
+    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+
+    // End the second session
+    myFakeService.setSessionToReturn(END_SESSION_2);
+    myProfilerService.endSession(Profiler.EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    observer = mock(StreamObserver.class);
+    response = Profiler.GetSessionsResponse.newBuilder()
+      .addSessions(END_SESSION_1)
+      .addSessions(END_SESSION_2)
+      .build();
+    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+  }
+
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
-    Common.Process myProcessToReturn = INITIAL_PROCESS;
+    private Common.Process myProcessToReturn = INITIAL_PROCESS;
+    private Common.Session mySessionToReturn;
 
     public void setProcessToReturn(Common.Process process) {
       myProcessToReturn = process;
+    }
+
+    /**
+     * @param session The Session object to return when calling beginSession and endSession.
+     */
+    public void setSessionToReturn(Common.Session session) {
+      mySessionToReturn = session;
     }
 
     @Override
@@ -267,6 +349,26 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     @Override
     public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
       responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void beginSession(Profiler.BeginSessionRequest request, StreamObserver<Profiler.BeginSessionResponse> responseObserver) {
+      Profiler.BeginSessionResponse.Builder responseBuilder = Profiler.BeginSessionResponse.newBuilder();
+      if (mySessionToReturn != null) {
+        responseBuilder.setSession(mySessionToReturn);
+      }
+      responseObserver.onNext(responseBuilder.build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void endSession(Profiler.EndSessionRequest request, StreamObserver<Profiler.EndSessionResponse> responseObserver) {
+      Profiler.EndSessionResponse.Builder responseBuilder = Profiler.EndSessionResponse.newBuilder();
+      if (mySessionToReturn != null) {
+        responseBuilder.setSession(mySessionToReturn);
+      }
+      responseObserver.onNext(responseBuilder.build());
       responseObserver.onCompleted();
     }
 

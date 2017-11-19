@@ -55,11 +55,10 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private ResponseData<CpuProfiler.GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
   public CpuService(@NotNull DataStoreService dataStoreService,
-                    Consumer<Runnable> fetchExecutor,
-                    @NotNull Map<Common.Session, Long> sessionIdLookup) {
+                    Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
-    myCpuTable = new CpuTable(sessionIdLookup);
+    myCpuTable = new CpuTable();
   }
 
   @Override

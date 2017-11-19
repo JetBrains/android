@@ -33,6 +33,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
+  private final Map<Long, Common.Session> mySessions;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
   private boolean myAttachAgentCalled;
@@ -53,6 +54,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices = new HashMap<>();
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
+    mySessions = new HashMap<>();
     if (connected) {
       Common.Device device = Common.Device.newBuilder()
         .setDeviceId(FAKE_DEVICE_ID)
@@ -61,6 +63,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
         .build();
       Common.Process process = Common.Process.newBuilder()
         .setPid(20)
+        .setDeviceId(FAKE_DEVICE_ID)
         .setState(Common.Process.State.ALIVE)
         .setName("FakeProcess")
         .build();
@@ -73,6 +76,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     if (!myDevices.containsKey(device.getDeviceId())) {
       throw new IllegalArgumentException("Invalid device: " + device.getDeviceId());
     }
+    assert device.getDeviceId() == process.getDeviceId();
     myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
   }
 
@@ -80,6 +84,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     if (!myDevices.containsKey(device.getDeviceId())) {
       throw new IllegalArgumentException("Invalid device: " + device);
     }
+    assert device.getDeviceId() == process.getDeviceId();
     myProcesses.remove(myDevices.get(device.getDeviceId()), process);
   }
 
@@ -155,6 +160,43 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       builder.setContents(bytes);
     }
     responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
+    BeginSessionResponse.Builder builder = BeginSessionResponse.newBuilder();
+    long sessionId = request.getDeviceId() ^ request.getProcessId();
+    Common.Session session = Common.Session.newBuilder()
+      .setSessionId(sessionId)
+      .setDeviceId(request.getDeviceId())
+      .setPid(request.getProcessId())
+      .setEndTimestamp(Long.MAX_VALUE)
+      .build();
+    mySessions.put(sessionId, session);
+    builder.setSession(session);
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
+    assert (mySessions.containsKey(request.getSessionId()));
+    Common.Session session = mySessions.get(request.getSessionId()).toBuilder()
+      .setEndTimestamp(1000L) // set an arbitrary end time that is not Long.MAX_VALUE
+      .build();
+    mySessions.put(session.getSessionId(), session);
+    EndSessionResponse.Builder builder = EndSessionResponse.newBuilder().setSession(session);
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getSessions(GetSessionsRequest request, StreamObserver<GetSessionsResponse> responseObserver) {
+    GetSessionsResponse response = GetSessionsResponse.newBuilder()
+      .addAllSessions(mySessions.values())
+      .build();
+    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 

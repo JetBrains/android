@@ -16,7 +16,6 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
-import com.android.tools.profiler.proto.Common;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -26,8 +25,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertFalse;
@@ -39,6 +36,7 @@ public class DatabaseTableTest {
   private File myDbFile;
   private ThreadTestTable myTable;
   private DataStoreDatabase myDatabase;
+
   public enum ThreadTableStatement {
     INSERT_DATA,
     READ_DATA
@@ -48,7 +46,7 @@ public class DatabaseTableTest {
   public void setUp() throws Exception {
     myDbFile = File.createTempFile("DatabaseTableTest", "sql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
-    myTable = new ThreadTestTable(new HashMap<>());
+    myTable = new ThreadTestTable();
     myTable.initialize(myDatabase.getConnection());
   }
 
@@ -69,7 +67,7 @@ public class DatabaseTableTest {
   @Test
   public void testThreadMultiThreadExecute() throws Exception {
     // Insert some fake data
-    for(int i = 0; i < TEST_DATA_COUNT; i++) {
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
       myTable.insertData(i);
     }
 
@@ -77,24 +75,24 @@ public class DatabaseTableTest {
     TableTest[] tableRunnable = new TableTest[TEST_THREAD_COUNT];
     CountDownLatch ensureThreadsTickOnce = new CountDownLatch(TEST_THREAD_COUNT);
     Thread[] threads = new Thread[TEST_THREAD_COUNT];
-    for(int i = 0; i < TEST_THREAD_COUNT; i++) {
+    for (int i = 0; i < TEST_THREAD_COUNT; i++) {
       tableRunnable[i] = new TableTest(ensureThreadsTickOnce);
       threads[i] = new Thread(tableRunnable[i]);
       threads[i].start();
     }
 
-    while(ensureThreadsTickOnce.getCount() > 0 ) {
+    while (ensureThreadsTickOnce.getCount() > 0) {
       Thread.yield();
     }
 
     // Verify we did not hit any exceptions
-    for(TableTest test : tableRunnable) {
+    for (TableTest test : tableRunnable) {
       assertFalse(test.hasException());
       test.stop();
     }
 
     // Wait for each thread to finish before exiting the test.
-    for(Thread thread : threads) {
+    for (Thread thread : threads) {
       thread.join();
     }
   }
@@ -125,18 +123,18 @@ public class DatabaseTableTest {
       try {
         do {
           ResultSet rs = myTable.readDataRaw();
-          while(rs.next());
+          while (rs.next()) ;
 
           //Capture that this thread has captured the data.
           if (!ticked) {
             myLatch.countDown();
             ticked = true;
           }
-        } while (!myStop);
-
+        }
+        while (!myStop);
       }
       catch (SQLException ex) {
-        if(!ticked) {
+        if (!ticked) {
           myLatch.countDown();
         }
         myHasException = true;
@@ -148,16 +146,14 @@ public class DatabaseTableTest {
    * Setup a simple Datastore table to validate operations on.
    */
   private class ThreadTestTable extends DataStoreTable<ThreadTableStatement> {
-    public ThreadTestTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-      super(sesstionIdLookup);
-    }
 
     @Override
     public void initialize(@NotNull Connection connection) {
       super.initialize(connection);
       try {
         createTable("Thread_Table", "DataColumn INTEGER");
-      } catch (SQLException ex) {
+      }
+      catch (SQLException ex) {
         // Failed to create table.
       }
     }
@@ -167,13 +163,14 @@ public class DatabaseTableTest {
       try {
         createStatement(ThreadTableStatement.INSERT_DATA, "INSERT INTO Thread_Table (DataColumn) VALUES (?)");
         createStatement(ThreadTableStatement.READ_DATA, "SELECT DataColumn FROM Thread_Table");
-      } catch (SQLException ex) {
+      }
+      catch (SQLException ex) {
         // Failed to create statement
       }
     }
 
     public void insertData(int... someData) {
-      for (int i = 0; i < someData.length;i++) {
+      for (int i = 0; i < someData.length; i++) {
         execute(ThreadTableStatement.INSERT_DATA, someData[i]);
       }
     }

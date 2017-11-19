@@ -84,7 +84,6 @@ public class DataStoreService {
 
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
-  private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
   private final ServerBuilder myServerBuilder;
   private final Server myServer;
   private final List<ServicePassThrough> myServices = new ArrayList<>();
@@ -130,12 +129,12 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor, mySessionIdLookup);
+    myProfilerService = new ProfilerService(this, myFetchExecutor);
     registerService(myProfilerService);
-    registerService(new EventService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new CpuService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new MemoryService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new NetworkService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new EventService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new NetworkService(this, myFetchExecutor));
   }
 
   @VisibleForTesting

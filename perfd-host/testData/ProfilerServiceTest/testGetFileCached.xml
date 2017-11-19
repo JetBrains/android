@@ -35,6 +35,7 @@
         <Message>process {
   name: "INITIAL"
   pid: 1234
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesResponse</clazz>
@@ -42,6 +43,7 @@
         <message>process {
   name: "INITIAL"
   pid: 1234
+  device_id: 1234
 }
 </message>
     </GrpcCall>

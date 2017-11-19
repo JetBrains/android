@@ -45,11 +45,10 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
   private final DataStoreService myService;
 
   public EventService(@NotNull DataStoreService dataStoreService,
-                      Consumer<Runnable> fetchExecutor,
-                      @NotNull Map<Common.Session, Long> sessionIdLookup) {
+                      Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
-    myEventsTable = new EventsTable(sessionIdLookup);
+    myEventsTable = new EventsTable();
   }
 
   @Override
