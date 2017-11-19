@@ -44,14 +44,14 @@ import static org.junit.Assert.*;
 public class ThreadsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(newData(1, 0, 5, 10, 11, "threadA"))
-      .add(newData(2, 5, 10, 12, 12, "threadB"))
-      .add(newData(3, 13, 14, 15, 11, "threadA"))
-      .add(newData(4, 20, 21, 25, 11, "threadA"))
-      .add(newData(5, 14, 16, 21, 12, "threadB"))
+      .add(newData(1, 0, 10, 11, "threadA"))
+      .add(newData(2, 5, 12, 12, "threadB"))
+      .add(newData(3, 13, 15, 11, "threadA"))
+      .add(newData(4, 20, 25, 11, "threadA"))
+      .add(newData(5, 14, 21, 12, "threadB"))
 
-      .add(newData(11, 100, 101, 110, 13, "threadC"))
-      .add(newData(12, 115, 116, 120, 14, "threadC"))
+      .add(newData(11, 100, 110, 13, "threadC"))
+      .add(newData(12, 115, 120, 14, "threadC"))
       .build();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadsViewTest", new FakeProfilerService(false),
@@ -205,7 +205,9 @@ public class ThreadsViewTest {
   }
 
   @NotNull
-  private static HttpData newData(long id, long start, long download, long end, long threadId, String threadName) {
-    return FakeNetworkService.newHttpDataBuilder(id, start, download, end, threadId, threadName).build();
+  private static HttpData newData(long id, long startS, long endS, long threadId, String threadName) {
+    return FakeNetworkService.newHttpDataBuilder(id, startS, endS)
+      .addJavaThread(new HttpData.JavaThread(threadId, threadName))
+      .build();
   }
 }

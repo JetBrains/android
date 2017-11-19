@@ -35,12 +35,13 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
-  public static final ImmutableList<HttpData> FAKE_DATA =
+  public static final HttpData.JavaThread FAKE_THREAD = new HttpData.JavaThread(0, "Dummy Thread");
+  private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpData(1, 1, 1, 2))
-      .add(FakeNetworkService.newHttpData(2, 3, 4, 5))
-      .add(FakeNetworkService.newHttpData(3, 8, 10, 13))
-      .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
+      .add(FakeNetworkService.newHttpDataBuilder(1, 1, 2).addJavaThread(FAKE_THREAD).build())
+      .add(FakeNetworkService.newHttpDataBuilder(2, 3, 5).addJavaThread(FAKE_THREAD).build())
+      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 13).addJavaThread(FAKE_THREAD).build())
+      .add(FakeNetworkService.newHttpDataBuilder(4, 21, 34).addJavaThread(FAKE_THREAD).build())
       .build();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
