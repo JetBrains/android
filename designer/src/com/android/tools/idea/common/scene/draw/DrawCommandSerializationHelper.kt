@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.common.scene.draw
 
+import com.android.tools.idea.common.scene.LerpValue
 import com.google.common.base.Joiner
 import java.awt.Color
 import java.awt.Font
+import java.awt.Point
 import java.awt.Rectangle
 import java.lang.Long
 
 fun parse(s: String, expected: Int): Array<String> {
-  val sp = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+  val sp = splitString(s, ',').toTypedArray()
   return if (sp.size == expected) {
     sp
   }
@@ -32,12 +34,12 @@ fun parse(s: String, expected: Int): Array<String> {
 }
 
 fun stringToRect(s: String): Rectangle {
-  val sp = s.split("x".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+  val sp = splitString(s, 'x')
   val r = Rectangle()
-  r.x = Integer.parseInt(sp[0])
-  r.y = Integer.parseInt(sp[1])
-  r.width = Integer.parseInt(sp[2])
-  r.height = Integer.parseInt(sp[3])
+  r.x = sp[0].toInt()
+  r.y = sp[1].toInt()
+  r.width = sp[2].toInt()
+  r.height = sp[3].toInt()
   return r
 }
 
@@ -54,12 +56,43 @@ fun colorToString(c: Color): String {
 }
 
 fun stringToFont(s: String): Font {
-  val sp = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-  val style = Integer.parseInt(sp[1])
-  val size = Integer.parseInt(sp[2])
+  val sp = splitString(s, ':')
+  val style = sp[1].toInt()
+  val size = sp[2].toInt()
   return Font(sp[0], style, size)
 }
 
 fun fontToString(f: Font): String {
   return Joiner.on(':').join(f.name, f.style, f.size)
 }
+
+fun pointToString(p: Point): String {
+  return Joiner.on('x').join(p.x, p.y)
+}
+
+fun stringToPoint(s: String): Point {
+  val sp = splitString(s, 'x')
+  val p = Point()
+  p.x = sp[0].toInt()
+  p.y = sp[1].toInt()
+  return p
+}
+
+fun lerpToString(l: LerpValue): String {
+  return Joiner.on(':').join(l.start, l.end, l.duration)
+}
+
+fun stringToLerp(s: String): LerpValue {
+  val sp = splitString(s, ':')
+  val start = sp[0].toInt()
+  val end = sp[1].toInt()
+  val duration = sp[2].toInt()
+
+  return LerpValue(start, end, duration)
+}
+
+private fun splitString(s : String, delimiter : Char) : List<String> {
+  return s.split(delimiter).dropLastWhile { it.isEmpty() }
+}
+
+
