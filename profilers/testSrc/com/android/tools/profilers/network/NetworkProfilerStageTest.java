@@ -19,18 +19,18 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
@@ -38,8 +38,6 @@ import java.util.zip.GZIPOutputStream;
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 
 public class NetworkProfilerStageTest {
   private static final float EPSILON = 0.00001f;
@@ -53,11 +51,13 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
       .build();
 
+  private static final String TEST_PAYLOAD_ID = "test";
   private static final ImmutableList<HttpData> FAKE_HTTP_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(TestHttpData.newBuilder(1, 1, 14).build())
+      .add(TestHttpData.newBuilder(1, 1, 14)
+             .setRequestPayloadId(TEST_PAYLOAD_ID)
+             .setResponsePayloadId(TEST_PAYLOAD_ID).build())
       .build();
-  private static final String TEST_PAYLOAD_ID = "test";
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(true);
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
@@ -79,7 +79,11 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void getConnectionsModel() {
-    List<HttpData> dataList = myStage.getConnectionsModel().getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
+    String dummyPayloadContent = "Dummy Contents";
+    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(dummyPayloadContent));
+
+    NetworkConnectionsModel connectionsModel = myStage.getConnectionsModel();
+    List<HttpData> dataList = connectionsModel.getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
     assertThat(dataList).hasSize(1);
 
     HttpData data = dataList.get(0);
@@ -91,8 +95,14 @@ public class NetworkProfilerStageTest {
     assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
     assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
     assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+    assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
     assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
     assertThat(data.getResponseField("connId")).isEqualTo(expectedData.getResponseField("connId"));
+
+    assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes())
+      .isEqualTo(Payload.newRequestPayload(connectionsModel, data).getBytes());
+    assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes())
+      .isEqualTo(Payload.newResponsePayload(connectionsModel, data).getBytes());
   }
 
   @Test
@@ -274,7 +284,7 @@ public class NetworkProfilerStageTest {
     );
 
     myStage.setSelectedConnection(data);
-    File payloadFile = data.getResponsePayloadFile();
+    File payloadFile = Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile();
     assertThat(payloadFile).isNotNull();
     assertThat(payloadFile.canWrite()).isFalse();
     assertThat(myStage.getSelectedConnection()).isEqualTo(data);
@@ -289,7 +299,7 @@ public class NetworkProfilerStageTest {
     HttpData data = builder.build();
 
     myStage.setSelectedConnection(data);
-    assertThat(data.getResponsePayloadFile()).isNull();
+    assertThat(Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes()).isEmpty();
   }
 
   @Test
@@ -311,10 +321,8 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
-      String output = reader.readLine();
-      assertThat(output).isEqualTo(unzippedPayload);
-    }
+    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   @Test
@@ -330,10 +338,8 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
-      String output = reader.readLine();
-      assertThat(output).isEqualTo(unzippedPayload);
-    }
+    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   @Test
@@ -355,10 +361,8 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     myStage.setSelectedConnection(data);
-    try (BufferedReader reader = Files.newBufferedReader(data.getRequestPayloadFile().toPath())) {
-      String output = reader.readLine();
-      assertThat(output).isEqualTo(unzippedPayload);
-    }
+    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   @Test
@@ -374,30 +378,8 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     myStage.setSelectedConnection(data);
-    try (BufferedReader reader = Files.newBufferedReader(data.getRequestPayloadFile().toPath())) {
-      String output = reader.readLine();
-      assertThat(output).isEqualTo(unzippedPayload);
-    }
-  }
-
-  @Test
-  public void setSelectionWithExistingPayloadFile() throws IOException {
-    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
-    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
-    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
-    HttpData data = builder.build();
-    String payload = "payload";
-    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFrom(payload.getBytes(Charset.defaultCharset())));
-    myStage.setSelectedConnection(data);
-    // After payload file exists, remove file from profiler service.
-    myProfilerService.removeFile(TEST_PAYLOAD_ID);
-    // Set to a different selection because set the same selection twice will be skipped.
-    myStage.setSelectedConnection(TestHttpData.newBuilder(2, 2, 20).build());
-
-    myStage.setSelectedConnection(data);
-    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
-      assertThat(reader.readLine()).isEqualTo(payload);
-    }
+    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   private static ByteString gzip(String input) {
@@ -408,27 +390,6 @@ public class NetworkProfilerStageTest {
     catch (IOException ignored) {
     }
     return ByteString.copyFrom(byteOutputStream.toByteArray());
-  }
-
-  @Test
-  public void testIoExceptionThrownWhenSelectConnection() throws IOException {
-    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
-    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
-      .setResponsePayloadId("payloadId");
-    HttpData data = builder.build();
-
-    NetworkProfilerStage spyStage = spy(myStage);
-
-    AspectObserver observer = new AspectObserver();
-    final boolean[] connectionChanged = {false};
-    spyStage.getAspect().addDependency(observer).
-      onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> connectionChanged[0] = true);
-
-    doThrow(IOException.class).when(spyStage).getConnectionsModel();
-    assertThat(spyStage.setSelectedConnection(data)).isFalse();
-    assertThat(data.getResponsePayloadFile()).isNull();
-    assertThat(spyStage.getSelectedConnection()).isNull();
-    assertThat(connectionChanged[0]).isFalse();
   }
 
   @Test

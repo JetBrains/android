@@ -30,7 +30,8 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.truth.Truth.assertThat;
 
 public class RpcNetworkConnectionsModelTest {
-  private static final String FAKE_PAYLOAD_ID = "Test Payload";
+  private static final String FAKE_REQUEST_PAYLOAD_ID = "payloadRequest";
+  private static final String FAKE_RESPONSE_PAYLOAD_ID = "payloadResponse";
   private static final String FAKE_REQUEST_HEADERS = "User-Agent = Customized\n Accept = text/plain";
 
   private static final ImmutableList<HttpData> FAKE_DATA =
@@ -38,22 +39,30 @@ public class RpcNetworkConnectionsModelTest {
       // Finished request (1-6)
       .add(TestHttpData.newBuilder(1, 1, 6, new HttpData.JavaThread(1, "threadA"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 1)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 1)
              .build())
       // Finished request (2-5)
       .add(TestHttpData.newBuilder(2, 2, 5, new HttpData.JavaThread(2, "threadB"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 2)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 2)
              .build())
       // Unfinished request (3-?)
       .add(TestHttpData.newBuilder(3, 3, 0, 0, 0, new HttpData.JavaThread(3, "threadC"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
+             // No request / response payload, hasn't started uploading yet
              .build())
       // Unfinished request (4-?)
       .add(TestHttpData.newBuilder(4, 4, 5, 0, 0, new HttpData.JavaThread(4, "threadD"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
+             // No response payload, hasn't finished downloading yet
              .build())
       // Finished request (8-12)
       .add(TestHttpData.newBuilder(5, 8, 9, 10, 12, new HttpData.JavaThread(5, "threadE"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 5)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 5)
              .build())
       .build();
 
@@ -68,18 +77,23 @@ public class RpcNetworkConnectionsModelTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
                                              ProfilersTestData.SESSION_DATA);
+
+    for (int i = 0; i < FAKE_DATA.size(); i++) {
+      long id = FAKE_DATA.get(i).getId();
+      myProfilerService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
+      myProfilerService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
+    }
   }
 
   @Test
-  public void nonEmptyRequestPayload() {
-    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    assertThat(myModel.requestPayload(FAKE_PAYLOAD_ID).toStringUtf8()).isEqualTo("Dummy Contents");
+  public void nonEmptyPayload() {
+    myProfilerService.addFile("payloadid", ByteString.copyFromUtf8("Dummy Contents"));
+    assertThat(myModel.requestPayload("payloadid").toStringUtf8()).isEqualTo("Dummy Contents");
   }
 
   @Test
-  public void emptyRequestPayload() {
-    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    assertThat(myModel.requestPayload("")).isEqualTo(ByteString.EMPTY);
+  public void notFoundPayload_ReturnsEmptyByteString() {
+    assertThat(myModel.requestPayload("invalid id")).isEqualTo(ByteString.EMPTY);
   }
 
   @Test
@@ -125,6 +139,7 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
       assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
       assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+      assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
       assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
       assertThat(data.getResponseField("connId")).isEqualTo(expectedData.getResponseField("connId"));
       assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(expectedData.getJavaThreads().get(0).getId());
@@ -134,6 +149,11 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(requestHeaders).hasSize(2);
       assertThat(requestHeaders.get("user-agent")).isEqualTo("Customized");
       assertThat(requestHeaders.get("accept")).isEqualTo("text/plain");
+
+      assertThat(Payload.newRequestPayload(myModel, data).getBytes())
+        .isEqualTo(Payload.newRequestPayload(myModel, expectedData).getBytes());
+      assertThat(Payload.newResponsePayload(myModel, data).getBytes())
+        .isEqualTo(Payload.newResponsePayload(myModel, expectedData).getBytes());
     }
   }
 }

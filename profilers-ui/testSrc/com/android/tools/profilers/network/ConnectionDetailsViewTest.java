@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,6 +48,8 @@ public class ConnectionDetailsViewTest {
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
+  private static final String TEST_REQUEST_PAYLOAD_ID = "Request Payload";
+  private static final String TEST_RESPONSE_PAYLOAD_ID = "Response Payload";
 
   private ConnectionDetailsView myView;
 
@@ -54,8 +57,9 @@ public class ConnectionDetailsViewTest {
   private NetworkProfilerStageView myStageView;
   private FakeIdeProfilerServices myIdeProfilerServices;
 
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
   @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService(false),
+    new FakeGrpcChannel("StudioProfilerTestChannel", myProfilerService,
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
   private static boolean hasDescendantWithName(Component root, String name) {
@@ -105,11 +109,12 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void fileViewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
+    myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
-    File file = new File("temp");
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
-    data.setRequestPayloadFile(file);
+    HttpData data =
+      new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
     assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
 
     myView.setHttpData(data);
@@ -143,15 +148,15 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void contentsAreEmptyWhenDataIsNull() {
+  public void contentsAreEmptyWhenSelectedHttpDataIsCleared() {
+    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+
     AspectObserver observer = new AspectObserver();
     final int[] stackFramesChangedCount = {0};
     myView.getStackTraceView().getModel().addDependency(observer)
       .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
-    File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).build();
-    data.setResponsePayloadFile(file);
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
 
     assertThat(stackFramesChangedCount[0]).isEqualTo(0);
     myView.setHttpData(data);
@@ -170,10 +175,13 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void fileViewerExistWhenPayloadFileIsNotNull() {
-    File file = new File("temp");
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
-    data.setResponsePayloadFile(file);
+  public void fileViewerExistsWhenPayloadIsPresent() {
+    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+
+    HttpData data = new HttpData.Builder(DEFAULT_DATA)
+      .setResponseFields(RESPONSE_HEADERS)
+      .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID)
+      .build();
     assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
 
     myView.setHttpData(data);

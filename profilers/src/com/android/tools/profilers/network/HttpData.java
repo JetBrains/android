@@ -24,7 +24,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
@@ -47,11 +46,12 @@ public class HttpData {
     .put("/xml", ".xml")
     .build();
   private static final String STATUS_CODE_NAME = "response-status-code";
+  public static final int NO_STATUS_CODE = -1;
 
   public static final String FIELD_CONTENT_TYPE = "content-type";
   public static final String FIELD_CONTENT_LENGTH = "content-length";
   public static final String FIELD_CONTENT_ENCODING = "content-encoding";
-  public static final int NO_STATUS_CODE = -1;
+
   public static final String APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded";
 
   private final long myId;
@@ -63,20 +63,15 @@ public class HttpData {
   @NotNull private final String myMethod;
   @NotNull private final StackTrace myTrace;
   @NotNull private final List<JavaThread> myThreads;
-
-
-  private int myStatusCode = NO_STATUS_CODE;
   // Field key is formatted as always lower case.
   private final Map<String, String> myResponseFields = new HashMap<>();
   // Field key is formatted as always lower case.
   private final Map<String, String> myRequestFields = new HashMap<>();
-  // TODO: Move it to datastore, for now virtual file creation cannot select file type.
 
-  @Nullable private final String myRequestPayloadId;
-  @Nullable private File myRequestPayloadFile;
+  @NotNull private final String myRequestPayloadId;
+  @NotNull private final String myResponsePayloadId;
 
-  @Nullable private final String myResponsePayloadId;
-  @Nullable private File myResponsePayloadFile;
+  private int myStatusCode = NO_STATUS_CODE;
 
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
@@ -89,8 +84,8 @@ public class HttpData {
     myTrace = new StackTrace(builder.myTrace);
     myThreads = builder.myThreads;
 
-    myResponsePayloadId = builder.myResponsePayloadId;
     myRequestPayloadId = builder.myRequestPayloadId;
+    myResponsePayloadId = builder.myResponsePayloadId;
 
     if (!builder.myResponseFields.isEmpty()) {
       parseResponseFields(builder.myResponseFields);
@@ -141,36 +136,18 @@ public class HttpData {
     return myThreads;
   }
 
-  @Nullable
+  @NotNull
+  public String getRequestPayloadId() {
+    return myRequestPayloadId;
+  }
+
+  @NotNull
   public String getResponsePayloadId() {
     return myResponsePayloadId;
   }
 
   public int getStatusCode() {
     return myStatusCode;
-  }
-
-  @Nullable
-  public String getRequestPayloadId() {
-    return myRequestPayloadId;
-  }
-
-  @Nullable
-  public File getRequestPayloadFile() {
-    return myRequestPayloadFile;
-  }
-
-  public void setRequestPayloadFile(@NotNull File payloadFile) {
-    myRequestPayloadFile = payloadFile;
-  }
-
-  @Nullable
-  public File getResponsePayloadFile() {
-    return myResponsePayloadFile;
-  }
-
-  public void setResponsePayloadFile(@NotNull File payloadFile) {
-    myResponsePayloadFile = payloadFile;
   }
 
   @Nullable

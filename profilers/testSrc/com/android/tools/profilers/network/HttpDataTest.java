@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.model.Range;
 import com.google.common.collect.ImmutableMap;
+import com.google.protobuf3jarjar.ByteString;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -101,22 +100,6 @@ public class HttpDataTest {
   }
 
   @Test
-  public void responsePayloadFile() throws Exception {
-    HttpData data = TestHttpData.newBuilder(1).build();
-    File file = Mockito.mock(File.class);
-    data.setResponsePayloadFile(file);
-    assertThat(data.getResponsePayloadFile()).isEqualTo(file);
-  }
-
-  @Test
-  public void requestPayloadFile() throws IOException {
-    HttpData data = TestHttpData.newBuilder(1).build();
-    File file = Mockito.mock(File.class);
-    data.setRequestPayloadFile(file);
-    assertThat(data.getRequestPayloadFile()).isEqualTo(file);
-  }
-
-  @Test
   public void urlNameWithQueryParsedProperly() {
     String urlString = "www.google.com/l1/l2/test?query=1&other_query=2";
     assertThat(HttpData.getUrlName(urlString)).isEqualTo("test?query=1&other_query=2");
@@ -169,9 +152,15 @@ public class HttpDataTest {
     long startTime = 10, uploadTime = 100, downloadTime = 1000, endTime = 10000;
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
 
-    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime, TestHttpData.FAKE_THREAD_LIST);
-    builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
-      .setResponsePayloadId("payloadId").setTrace(trace).setUrl("url").setRequestPayloadId("requestPayloadId");
+    FakeNetworkConnectionsModel connectionsModel = new FakeNetworkConnectionsModel();
+    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime, TestHttpData.FAKE_THREAD_LIST)
+      .setResponseFields("status line =  HTTP/1.1 302 Found \n")
+      .setMethod("method")
+      .setRequestPayloadId(FakeNetworkConnectionsModel.REQUEST_PAYLOAD_ID)
+      .setResponsePayloadId(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD_ID)
+      .setTrace(trace)
+      .setUrl("url");
+
     HttpData data = builder.build();
 
     assertThat(data.getId()).isEqualTo(id);
@@ -182,12 +171,17 @@ public class HttpDataTest {
 
     assertThat(data.getStatusCode()).isEqualTo(302);
     assertThat(data.getMethod()).isEqualTo("method");
-    assertThat(data.getResponsePayloadId()).isEqualTo("payloadId");
-    assertThat(data.getRequestPayloadId()).isEqualTo("requestPayloadId");
+    assertThat(data.getRequestPayloadId()).isEqualTo(FakeNetworkConnectionsModel.REQUEST_PAYLOAD_ID);
+    assertThat(data.getResponsePayloadId()).isEqualTo(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD_ID);
     assertThat(data.getStackTrace().getTrace()).isEqualTo(trace);
     assertThat(data.getUrl()).isEqualTo("url");
     assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(TestHttpData.FAKE_THREAD.getId());
     assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(TestHttpData.FAKE_THREAD.getName());
+
+    assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes().toStringUtf8())
+      .isEqualTo(FakeNetworkConnectionsModel.REQUEST_PAYLOAD);
+    assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes().toStringUtf8())
+      .isEqualTo(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD);
   }
 
   @Test
@@ -243,5 +237,30 @@ public class HttpDataTest {
     builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
     assertThat(data.getStatusCode()).isEqualTo(200);
+  }
+
+  private static final class FakeNetworkConnectionsModel implements NetworkConnectionsModel {
+    public static final String REQUEST_PAYLOAD_ID = "requestId";
+    public static final String RESPONSE_PAYLOAD_ID = "responseId";
+    public static final String REQUEST_PAYLOAD = "requestPayload";
+    public static final String RESPONSE_PAYLOAD = "responsePayload";
+
+    @NotNull
+    @Override
+    public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
+      throw new UnsupportedOperationException();
+    }
+
+    @NotNull
+    @Override
+    public ByteString requestPayload(@NotNull String payloadId) {
+      if (payloadId.equals(REQUEST_PAYLOAD_ID)) {
+        return ByteString.copyFromUtf8(REQUEST_PAYLOAD);
+      }
+      else if (payloadId.equals(RESPONSE_PAYLOAD_ID)) {
+        return ByteString.copyFromUtf8(RESPONSE_PAYLOAD);
+      }
+      return ByteString.EMPTY;
+    }
   }
 }

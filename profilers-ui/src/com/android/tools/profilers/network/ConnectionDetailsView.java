@@ -28,9 +28,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.ThreadId;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
@@ -53,7 +51,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
@@ -205,8 +202,8 @@ public class ConnectionDetailsView extends JPanel {
     myRequestPanel.removeAll();
 
     if (httpData != null) {
-      Optional<File> payloadFile = Optional.ofNullable(httpData.getResponsePayloadFile());
-      DataViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile.orElse(new File("")));
+      File payloadFile = Payload.newResponsePayload(myStageView.getStage().getConnectionsModel(), httpData).toFile();
+      DataViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile);
       JComponent responsePayloadComponent = fileViewer.getComponent();
       responsePayloadComponent.setName("FileViewer");
       myOverviewPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
@@ -236,7 +233,7 @@ public class ConnectionDetailsView extends JPanel {
     headersComponent.setName("RESPONSE_HEADERS");
     myResponsePanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
     String bodyTitle = getBodyTitle(httpData.getContentType());
-    JComponent payloadComponent = createBodyComponent(httpData.getResponsePayloadFile());
+    JComponent payloadComponent = createBodyComponent(Payload.newResponsePayload(myStageView.getStage().getConnectionsModel(), httpData));
     HideablePanel bodyPanel = createHideablePanel(bodyTitle, payloadComponent, null);
     bodyPanel.setName("RESPONSE_BODY");
     myResponsePanel.add(bodyPanel);
@@ -248,17 +245,14 @@ public class ConnectionDetailsView extends JPanel {
     headersComponent.setName("REQUEST_HEADERS");
     myRequestPanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
 
-    File payloadFile = httpData.getRequestPayloadFile();
-    JComponent payloadComponent = createBodyComponent(payloadFile);
+    Payload requestPayload = Payload.newRequestPayload(myStageView.getStage().getConnectionsModel(), httpData);
+    JComponent payloadComponent = createBodyComponent(requestPayload);
     JComponent northEastComponent = null;
     Optional<String> contentTypeString = Optional.ofNullable(headers.get(HttpData.FIELD_CONTENT_TYPE));
     HttpData.ContentType contentType = new HttpData.ContentType(contentTypeString.orElse(""));
     String contentToParse = "";
-    if (payloadFile != null && contentType.isFormData()) {
-      try {
-        contentToParse = Files.toString(payloadFile, Charsets.UTF_8);
-      }
-      catch (IOException ignored) {}
+    if (contentType.isFormData()) {
+      contentToParse = requestPayload.getBytes().toStringUtf8();
     }
 
     if (!contentToParse.isEmpty()) {
@@ -316,18 +310,19 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   /**
-   * Returns payload component based on Ide components; if given parameter is null, returns a label instead of empty file's Ide component.
-   * <ul>
-   *   <li>Returned component has a minimum height to help view, for example, in Ide component, text would be hard to read when component
-   *       is too small and scroll bar is displayed.</li>
-   *   <li>Adjust component's layout to make it adjust to parent size.</li>
-   * </ul>
+   * Returns a payload component which can display the underlying data of the passed in
+   * {@link Payload}. If the payload is empty, this will return a label to indicate that the
+   * target payload is not set.
    */
-  private JComponent createBodyComponent(@Nullable File payloadFile) {
-    JComponent payloadComponent = new JLabel("No body available");
-    if (payloadFile != null) {
+  private JComponent createBodyComponent(@NotNull Payload payload) {
+    JComponent payloadComponent;
+
+    File payloadFile = payload.toFile();
+    if (payloadFile.length() > 0) {
       DataViewer viewer = myStageView.getIdeComponents().createFileViewer(payloadFile);
-      JComponent fileComponent  = myStageView.getIdeComponents().createFileViewer(payloadFile).getComponent();
+      JComponent fileComponent  = viewer.getComponent();
+      // We force a minimum height to make sure that the component always looks reasonable -
+      // useful, for example, when we are displaying a bunch of text.
       int minimumHeight = 300;
       int originalHeight = viewer.getDimension() != null ? (int) viewer.getDimension().getHeight() : minimumHeight;
       fileComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
@@ -335,6 +330,9 @@ public class ConnectionDetailsView extends JPanel {
       fileComponent.setName("FileViewer");
       payloadComponent = new JPanel(new TabularLayout("*"));
       payloadComponent.add(fileComponent, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+       payloadComponent = new JLabel("No body available");
     }
     return payloadComponent;
   }

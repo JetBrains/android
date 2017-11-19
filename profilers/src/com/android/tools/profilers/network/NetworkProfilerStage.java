@@ -27,18 +27,10 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
-import java.util.zip.GZIPInputStream;
 
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
@@ -154,47 +146,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       return false;
     }
 
-    if (data != null) {
-      try {
-        if (!StringUtil.isEmpty(data.getResponsePayloadId()) && data.getResponsePayloadFile() == null) {
-          File file = getConnectionPayload(data.getResponsePayloadId(), data.getResponseHeaders());
-          data.setResponsePayloadFile(file);
-        }
-        if (!StringUtil.isEmpty(data.getRequestPayloadId()) && data.getRequestPayloadFile() == null) {
-          File file = getConnectionPayload(data.getRequestPayloadId(), data.getRequestHeaders());
-          data.setRequestPayloadFile(file);
-        }
-      } catch (IOException e) {
-        return false;
-      }
-    }
-
     mySelectedConnection = data;
     getAspect().changed(NetworkProfilerAspect.SELECTED_CONNECTION);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkRequest();
 
     return true;
-  }
-
-  private File getConnectionPayload(@NotNull String payloadId, Map<String, String> headers) throws IOException {
-    ByteString payload = getConnectionsModel().requestPayload(payloadId);
-    byte[] bytes = payload.toByteArray();
-    String contentEncoding = headers.getOrDefault(HttpData.FIELD_CONTENT_ENCODING, "");
-    if (contentEncoding.toLowerCase().contains("gzip")) {
-      try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
-        bytes = FileUtil.loadBytes(inputStream);
-      }
-      catch (IOException ignored) {
-      }
-    }
-
-    HttpData.ContentType contentType = new HttpData.ContentType(headers.getOrDefault(HttpData.FIELD_CONTENT_TYPE, ""));
-    File file = FileUtil.createTempFile(payloadId, StringUtil.notNullize(contentType.guessFileExtension()), true);
-    FileUtil.writeToFile(file, bytes);
-    // We don't expect the following call to fail but don't care if it does
-    //noinspection ResultOfMethodCallIgnored
-    file.setReadOnly();
-    return file;
   }
 
   /**
