@@ -58,7 +58,6 @@ public class IdeaGradleSync implements GradleSync {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
-    boolean importedProject = myProjectInfo.isImportedProject();
     if (myProjectInfo.isNewProject()) {
       registerAsNewProject(myProject);
     }
@@ -70,17 +69,13 @@ public class IdeaGradleSync implements GradleSync {
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-
-          // @formatter:off
-          setupRequest.setUsingCachedGradleModels(true)
-                      .setGenerateSourcesAfterSync(false)
-                      .setLastSyncTimestamp(buildFileChecksums.getLastGradleSyncTimestamp());
-          // @formatter:on
+          setupRequest.usingCachedGradleModels = true;
+          setupRequest.generateSourcesAfterSync = false;
+          setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
 
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, importedProject, true /* select modules */,
-                                                            true /* sync skipped */);
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
           setUpTask.onSuccess(cache);
           return;
         }
@@ -88,17 +83,14 @@ public class IdeaGradleSync implements GradleSync {
     }
 
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
+    setupRequest.cleanProjectAfterSync = request.cleanProject;
 
-    // @formatter:off
-    setupRequest.setGenerateSourcesAfterSync(request.generateSourcesOnSuccess)
-                .setCleanProjectAfterSync(request.cleanProject);
-    // @formatter:on
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
     String externalProjectPath = getBaseDirPath(myProject).getPath();
 
-    ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, importedProject,
-                                                      importedProject /* select modules if it's a new project */, false);
+    ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false /* sync not skipped */);
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     refreshProject(myProject, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
@@ -107,7 +99,7 @@ public class IdeaGradleSync implements GradleSync {
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
-      setupRequest.setSkipAndroidPluginUpgrade();
+      setupRequest.skipAndroidPluginUpgrade = true;
     }
   }
 }

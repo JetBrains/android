@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
@@ -36,7 +34,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -101,10 +98,6 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
-    ProjectSubset projectSubset = mock(ProjectSubset.class);
-    IdeComponents.replaceService(project, ProjectSubset.class, projectSubset);
-    when(projectSubset.isFeatureEnabled()).thenReturn(false);
-
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();
     modulesByPath.putAll("path", Lists.newArrayList(myModule1, myModule2));
 
@@ -121,10 +114,6 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
   public void testFixAndReportFoundIssuesWithUniquePaths() throws Exception {
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-
-    ProjectSubset projectSubset = mock(ProjectSubset.class);
-    IdeComponents.replaceService(project, ProjectSubset.class, projectSubset);
-    when(projectSubset.isFeatureEnabled()).thenReturn(false);
 
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();
     modulesByPath.putAll("path1", Lists.newArrayList(myModule1));

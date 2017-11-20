@@ -94,7 +94,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any());
   }
 }

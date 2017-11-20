@@ -55,7 +55,8 @@ public class IdeaSyncPopulateProjectTaskTest extends IdeaTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=268806
   public void testDoSelectiveImportWithErrorAndCachedModels() {
-    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request().setUsingCachedGradleModels(true);
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = true;
 
     Project project = getProject();
     // Simulate an error when loading models from disk cache
@@ -70,7 +71,8 @@ public class IdeaSyncPopulateProjectTaskTest extends IdeaTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=268806
   public void testDoSelectiveImportWithErrorAndNonCachedModels() {
-    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request().setUsingCachedGradleModels(false);
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = false;
 
     Project project = getProject();
     // Simulate an error when loading models from disk cache

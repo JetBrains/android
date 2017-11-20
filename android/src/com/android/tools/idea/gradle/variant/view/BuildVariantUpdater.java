@@ -93,7 +93,8 @@ class BuildVariantUpdater {
     executeProjectChanges(project, () -> {
       doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-      setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
+      setupRequest.generateSourcesAfterSync = false;
+      setupRequest.cleanProjectAfterSync = false;
 
       PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
       generateSourcesIfNeeded(project, affectedAndroidFacets);
