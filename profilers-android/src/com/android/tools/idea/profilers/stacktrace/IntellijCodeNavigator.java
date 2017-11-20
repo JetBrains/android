@@ -19,22 +19,24 @@ import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.intellij.find.FindModel;
-import com.intellij.find.impl.FindInProjectUtil;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.usageView.UsageInfo;
-import com.intellij.usages.FindUsagesProcessPresentation;
-import com.intellij.usages.UsageViewPresentation;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
+import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
+import com.jetbrains.cidr.lang.symbols.OCSymbol;
+import com.jetbrains.cidr.lang.symbols.cpp.OCDeclaratorSymbol;
+import com.jetbrains.cidr.lang.symbols.cpp.OCFunctionSymbol;
+import com.jetbrains.cidr.lang.symbols.symtable.OCGlobalProjectSymbolsCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
@@ -97,36 +99,59 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   }
 
   /**
-   * Tries to find the method's full name in the project and return a {@link Navigatable} to its location in case of success.
-   * Returns null if the method is not found.
-   * TODO(b/67844304): The current approach uses IntelliJ's Find Usages utility functions to find matching methods.
-   *                   As a result, we won't have the most accurate results. In order to achieve best accuracy, we
-   *                   need to use the search utilities of cidr-lang module.
+   * Tries to find and return the method's corresponding {@link Navigatable} within the project. Returns null if the method is not found.
    */
+  @Nullable
   private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
-    // Create the model used to search for the method.
-    String fullMethodName = String.format("%s::%s", location.getClassName(), location.getMethodName());
-    FindModel findModel = new FindModel();
-    findModel.setStringToFind(fullMethodName);
-    findModel.setCaseSensitive(true);
-    findModel.setSearchContext(FindModel.SearchContext.EXCEPT_COMMENTS_AND_STRING_LITERALS);
+    // We use OCGlobalProjectSymbolsCache#processByQualifiedName to look for the target method. If it finds symbols that match the target
+    // method name, it will iterate the list of matched symbols and use the processor below in each one of them, until the processor returns
+    // false.
+    Navigatable[] navigatable = new Navigatable[1]; // Workaround to set the navigatable inside the processor.
 
-    // Workaround to set the navigatable from findUsages callback.
-    Navigatable[] navigatable = new Navigatable[1];
-    // Search for the method and assign its location to navigatable[0] in case of success.
-    Processor<UsageInfo> consumer = (usageInfo) -> {
-      VirtualFile file = usageInfo.getVirtualFile();
-      if (file == null) {
-        // Method not found within the project
-        return false;
+    Processor<OCSymbol> processor = symbol -> {
+      if (!(symbol instanceof OCFunctionSymbol)) {
+        return true; // Symbol is not a function. Continue the processing.
       }
-      navigatable[0] = new OpenFileDescriptor(myProject, file, usageInfo.getNavigationOffset());
-      return true;
-    };
-    FindUsagesProcessPresentation ignored = new FindUsagesProcessPresentation(new UsageViewPresentation());
+      OCFunctionSymbol function = ((OCFunctionSymbol)symbol);
+      if (!function.getName().equals(location.getMethodName())) {
+        return true; // Method name does not match. Continue the processing.
+      }
+      OCQualifiedName qualifier = function.getQualifiedName().getQualifier();
+      if (qualifier == null || qualifier.getName() == null || !qualifier.getName().equals(location.getClassName())) {
+        return true; // Class name does not match. Continue the processing.
+      }
 
-    // Try to find and return the method in the project
-    FindInProjectUtil.findUsages(findModel, myProject, consumer, ignored);
+      // Check if method parameters match the function's
+      String signature = location.getSignature();
+      if (signature != null) {
+        String[] splitParams = signature.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : signature.split(", ");
+
+        List<OCDeclaratorSymbol> functionParams = function.getParameterSymbols();
+        if (functionParams.size() != splitParams.length) {
+          return true; // Parameters count don't match. Continue the processing.
+        }
+
+        boolean match = true;
+        for (int i = 0; i < splitParams.length; i++) {
+          if (!splitParams[i].equals(functionParams.get(i).getType().getName())) {
+            match = false;
+            break;
+          }
+        }
+        if (!match) {
+          return true; // Parameters don't match. Continue the processing.
+        }
+      }
+
+      // We have found a match. Return it.
+      navigatable[0] = function;
+      //String name = function.getQualifiedName().getQualifier().getName();
+      return false;
+    };
+
+    assert location.getMethodName() != null;
+    OCGlobalProjectSymbolsCache.processByQualifiedName(myProject, processor, location.getMethodName());
+
     return navigatable[0];
   }
 
