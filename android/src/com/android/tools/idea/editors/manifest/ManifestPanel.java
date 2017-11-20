@@ -33,6 +33,7 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
+import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.Sets;
@@ -108,6 +109,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
+  private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/navigation(-[^/]*)?/[^/]*$");
 
   /**
    * We don't have an exact position for values coming from the
@@ -874,6 +876,42 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.add(" injection");
       } else {
         sb.add("build.gradle injection (source location unknown)");
+      }
+      return;
+    }
+
+    if (file != null && NAV_FILE_PATTERN.matcher(FileUtils.toSystemIndependentPath(file.toString())).matches()) {
+      String source = "";
+
+      File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
+      VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
+      if (vResDir != null) {
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+          if (provider.getResDirectories().contains(vResDir)) {
+            source += provider.getName() + " ";
+            break;
+          }
+        }
+      }
+      source += file.getName();
+
+      sb.addHtml("<a href=\"");
+      sb.add(file.toURI().toString());
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartLine()));
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartColumn()));
+      }
+      sb.addHtml("\">");
+
+      sb.add(source);
+      sb.addHtml("</a>");
+      sb.add(" navigation file");
+
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(", line ");
+        sb.add(Integer.toString(sourcePosition.getStartLine()));
       }
       return;
     }
