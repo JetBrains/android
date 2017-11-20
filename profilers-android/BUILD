@@ -40,5 +40,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/android-adb[module]",
+        "//tools/vendor/intellij/cidr:cidr-lang[module]",
     ],
 )

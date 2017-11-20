@@ -31,5 +31,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="cidr-lang" />
   </component>
 </module>
