@@ -33,6 +33,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
+  /**
+   * <p>TT ID: TODO this test case needs a TT ID.
+   *
+   */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testSessionRestart() throws Exception{
@@ -70,6 +74,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     stopDebugSession(debugToolWindowFixture);
   }
 
+  /**
+   * <p>TT ID: TODO this test case needs a TT ID.
+   *
+   */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testNativeDebuggerBreakpoints() throws Exception {
