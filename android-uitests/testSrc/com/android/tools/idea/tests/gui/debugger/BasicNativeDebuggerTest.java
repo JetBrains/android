@@ -75,8 +75,21 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   }
 
   /**
-   * <p>TT ID: TODO this test case needs a TT ID.
-   *
+   * Verify native debugger is attached to a running process.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 45e4c839-5c55-40f7-8264-4fe75ee02624
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI.
+   *   2. Select Native debugger on Edit Configurations dialog.
+   *   3. Set breakpoints both in Java and C++ code.
+   *   4. Debug on a device running M or earlier.
+   *   5. Verify that only native debugger is attached and running.
+   *   6. Stop debugging.
+   *   </pre>
    */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
