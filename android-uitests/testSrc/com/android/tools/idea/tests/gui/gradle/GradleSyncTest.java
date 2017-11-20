@@ -251,26 +251,6 @@ public class GradleSyncTest {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  @Ignore("Importing a project which opens on the ModulesToImportDialog is causing problem. Ignore for now.")
-  @Test
-  public void moduleSelectionOnImport() throws IOException {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    guiTest.importProject("Flavoredlib");
-
-    ModulesToImportDialogFixture projectSubsetDialog = ModulesToImportDialogFixture.find(guiTest.robot());
-    projectSubsetDialog.setSelected("lib", false).clickOk();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-
-    // subsequent project syncs should respect module selection
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=165576
   @Test
   public void javaModelSerialization() throws IOException {

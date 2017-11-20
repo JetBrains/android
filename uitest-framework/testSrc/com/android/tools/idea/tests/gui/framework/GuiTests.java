@@ -121,7 +121,6 @@ public final class GuiTests {
   }
 
   static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
 
     // Clear HTTP proxy settings, in case a test changed them.

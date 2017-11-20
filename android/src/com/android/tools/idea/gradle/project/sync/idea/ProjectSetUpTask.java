@@ -47,21 +47,15 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Nullable private final GradleSyncListener mySyncListener;
 
-  private final boolean myImportedProject;
-  private final boolean mySelectModulesToImport;
   private final boolean mySyncSkipped;
 
   ProjectSetUpTask(@NotNull Project project,
                    @NotNull PostSyncProjectSetup.Request setupRequest,
                    @Nullable GradleSyncListener syncListener,
-                   boolean importedProject,
-                   boolean selectModulesToImport,
                    boolean syncSkipped) {
     myProject = project;
     mySetupRequest = setupRequest;
     mySyncListener = syncListener;
-    myImportedProject = importedProject;
-    mySelectModulesToImport = selectModulesToImport;
     mySyncSkipped = syncSkipped;
   }
 
@@ -74,12 +68,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       mySyncListener.setupStarted(myProject);
     }
     GradleSyncState.getInstance(myProject).setupStarted();
-    populateProject(projectInfo);
+    boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
+    populateProject(projectInfo, importedProject);
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
       if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
-        if (myImportedProject) {
+        if (importedProject) {
           open(myProject);
         }
         if (!isTest) {
@@ -87,7 +82,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         }
       }
 
-      if (myImportedProject) {
+      if (importedProject) {
         // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
         // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
         // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
@@ -104,15 +99,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
   }
 
-  private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    if (!myImportedProject) {
+  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, boolean importedProject) {
+    if (!importedProject) {
       doPopulateProject(projectInfo);
       return;
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> {
-      doPopulateProject(projectInfo);
-    });
+    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo));
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
@@ -126,7 +119,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
           mySyncListener.syncSucceeded(myProject);
         }
       }
-    }, mySelectModulesToImport);
+    });
   }
 
   @Override

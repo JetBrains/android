@@ -137,10 +137,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     long lastSyncTimestamp = 2L;
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    // @formatter:off
-    request.setUsingCachedGradleModels(true)
-           .setLastSyncTimestamp(lastSyncTimestamp);
-    // @formatter:on
+    request.usingCachedGradleModels = true;
+    request.lastSyncTimestamp = lastSyncTimestamp;
 
     mySetup.setUpProject(request, myProgressIndicator);
 
@@ -157,11 +155,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-
-    // @formatter:off
-    request.setGenerateSourcesAfterSync(true)
-           .setCleanProjectAfterSync(true);
-    // @formatter:on
+    request.generateSourcesAfterSync = true;
+    request.cleanProjectAfterSync = true;
 
     mySetup.setUpProject(request, myProgressIndicator);
 
@@ -189,7 +184,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.setGenerateSourcesAfterSync(true);
+    request.generateSourcesAfterSync = true;
 
     myProjectStructure.currentAgpVersions = new AndroidPluginVersionsInProject() {
       @Override

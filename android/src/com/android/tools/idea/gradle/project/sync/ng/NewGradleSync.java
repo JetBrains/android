@@ -131,11 +131,9 @@ public class NewGradleSync implements GradleSync {
         CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
         if (projectModelsCache != null) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-
-          // @formatter:off
-          setupRequest.setUsingCachedGradleModels(true)
-                      .setGenerateSourcesAfterSync(false)
-                      .setLastSyncTimestamp(buildFileChecksums.getLastGradleSyncTimestamp());
+          setupRequest.usingCachedGradleModels = true;
+          setupRequest.generateSourcesAfterSync = false;
+          setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
           // @formatter:on
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -152,11 +150,8 @@ public class NewGradleSync implements GradleSync {
     }
 
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-
-    // @formatter:off
-    setupRequest.setGenerateSourcesAfterSync(request.generateSourcesOnSuccess)
-                .setCleanProjectAfterSync(request.cleanProject);
-    // @formatter:on
+    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
+    setupRequest.cleanProjectAfterSync = request.cleanProject;
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
     SyncExecutionCallback callback = myCallbackFactory.create();
@@ -170,7 +165,7 @@ public class NewGradleSync implements GradleSync {
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
-      setupRequest.setSkipAndroidPluginUpgrade();
+      setupRequest.skipAndroidPluginUpgrade = true;
     }
   }
 }

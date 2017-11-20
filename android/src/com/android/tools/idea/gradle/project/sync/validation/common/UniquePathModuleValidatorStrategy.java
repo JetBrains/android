@@ -15,28 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 
 class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy {
   @NotNull private final Multimap<String, Module> myModulesByPath = HashMultimap.create();
@@ -68,13 +64,11 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
       msg.append("The modules [");
 
       int i = 0;
-      Set<String> moduleNames = new HashSet<>();
       for (Module module : modules) {
         if (i++ != 0) {
           msg.append(", ");
         }
         String name = module.getName();
-        moduleNames.add(name);
         msg.append("'").append(name).append("'");
       }
       msg.append("] point to the same directory in the file system.");
@@ -82,37 +76,8 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
       String[] lines = {msg.toString(), "Each module must have a unique path."};
       SyncMessage message = new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, lines);
 
-      List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
       Project project = getProject();
-      if (ProjectSubset.getInstance(project).isFeatureEnabled()) {
-        DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(project).getCachedProjectData();
-        if (projectInfo != null) {
-          Collection<DataNode<ModuleData>> cachedModules = findAll(projectInfo, MODULE);
-          for (DataNode<ModuleData> moduleNode : cachedModules) {
-            if (moduleNames.contains(moduleNode.getData().getExternalName())) {
-              modulesToDisplayInDialog.add(moduleNode);
-            }
-          }
-        }
-      }
-
-      if (!modulesToDisplayInDialog.isEmpty()) {
-        message.add(new AddOrRemoveModulesHyperlink());
-      }
-
       GradleSyncMessages.getInstance(project).report(message);
-    }
-  }
-
-  private static class AddOrRemoveModulesHyperlink extends NotificationHyperlink {
-    AddOrRemoveModulesHyperlink() {
-      super("add.or.remove.modules", "Configure Project Subset");
-    }
-
-    @Override
-    protected void execute(@NotNull Project project) {
-      ProjectSubset subset = ProjectSubset.getInstance(project);
-      subset.addOrRemoveModules();
     }
   }
 
