@@ -402,7 +402,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  private void setActiveModel(@Nullable NlModel model) {
+  @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
+  public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
     SceneView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
