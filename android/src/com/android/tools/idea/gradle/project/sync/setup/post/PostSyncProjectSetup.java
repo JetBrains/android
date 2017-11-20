@@ -152,7 +152,8 @@ public class PostSyncProjectSetup {
       removeSyncContextDataFrom(myProject);
     }
 
-    myGradleProjectInfo.setNewOrImportedProject(false);
+    myGradleProjectInfo.setNewProject(false);
+    myGradleProjectInfo.setImportedProject(false);
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {

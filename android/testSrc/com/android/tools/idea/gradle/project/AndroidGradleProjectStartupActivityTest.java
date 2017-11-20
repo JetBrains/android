@@ -20,7 +20,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static org.mockito.Mockito.*;
 
 /**
@@ -54,7 +53,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   // http://b/62543184
   public void testRunActivityWithNewCreatedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
+    when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);
@@ -68,7 +67,9 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setUseCachedGradleModels(true).setTrigger(TRIGGER_PROJECT_LOADED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+    request.useCachedGradleModels = true;
+
     verify(mySyncInvoker, times(1)).requestProjectSync(project, request, null);
   }
 

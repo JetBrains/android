@@ -58,11 +58,10 @@ public class CommandLineArgsTest extends IdeaTestCase {
     List<String> args = myArgs.get(getProject());
     check(args);
     verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
-    verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenIncludingLocalMavenRepo() {
-    when(myGradleProjectInfo.canUseLocalMavenRepo()).thenReturn(true);
+    when(myGradleProjectInfo.isNewProject()).thenReturn(true);
 
     Project project = getProject();
     List<String> args = myArgs.get(project);
@@ -76,7 +75,6 @@ public class CommandLineArgsTest extends IdeaTestCase {
     List<String> args = myArgs.get(getProject());
     check(args);
     verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
-    verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {

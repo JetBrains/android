@@ -147,7 +147,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
     runWriteCommandAction(getProject(), () -> {
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.generateSourcesOnSuccess = false;
       GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
     });
 

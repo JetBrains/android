@@ -37,9 +37,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -76,7 +76,6 @@ import java.util.function.Predicate;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
@@ -126,7 +125,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
     ArtifactDependencySpec dependencySpec =
-        ArtifactDependencySpec.create(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
+      ArtifactDependencySpec.create(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
 
@@ -226,7 +225,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static String getConfigurationName(@NotNull Module module, @NotNull  DependencyScope scope, @Nullable VirtualFile openedFile) {
+  private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
 
@@ -262,7 +261,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         }
         GradleCoordinate coordinate;
         if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {
-            version = coordinate.getRevision();
+          version = coordinate.getRevision();
         }
       }
     }
@@ -272,8 +271,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
+
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {

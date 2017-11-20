@@ -84,7 +84,7 @@ public class GradleProjectSystemTest extends IdeaTestCase {
     };
     myIdeComponents.replaceService(project, StartupManager.class, startupManager);
     // http://b/62543184
-    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
+    when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
     GradleSyncInvoker mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
 
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(SyncReason.PROJECT_LOADED, true);

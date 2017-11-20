@@ -38,7 +38,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
@@ -174,7 +173,7 @@ public class GradleProjectImporter {
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
-    Project newProject = request.getProject();
+    Project newProject = request.project;
 
     if (newProject == null) {
       newProject = open
@@ -184,9 +183,11 @@ public class GradleProjectImporter {
       gradleSettings.setGradleVmOptions("");
     }
 
-    GradleProjectInfo.getInstance(newProject).setNewOrImportedProject(true);
+    GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
+    projectInfo.setNewProject(request.isNewProject);
+    projectInfo.setImportedProject(true);
 
-    myNewProjectSetup.prepareProjectForImport(newProject, request.getLanguageLevel());
+    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
@@ -195,58 +196,22 @@ public class GradleProjectImporter {
     myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
   }
 
-  @VisibleForTesting
   @NotNull
-  static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectSettings) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    // @formatter:off
-    request.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
-           .setRunInBackground(false)
-           .setUseCachedGradleModels(false)
-           .setNewOrImportedProject()
-           .setTrigger(TRIGGER_PROJECT_LOADED);
-    // @formatter:on
+  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest) {
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+    request.generateSourcesOnSuccess = importProjectRequest.generateSourcesOnSuccess;
+    request.runInBackground = false;
+    request.useCachedGradleModels = false;
     return request;
   }
 
   public static class Request {
     @NotNull private static final Request EMPTY_REQUEST = new Request();
 
-    @Nullable private Project myProject;
-    @Nullable private LanguageLevel myLanguageLevel;
+    @Nullable public Project project;
+    @Nullable public LanguageLevel javaLanguageLevel;
 
-    private boolean myGenerateSourcesOnSuccess = true;
-
-    @Nullable
-    public Project getProject() {
-      return myProject;
-    }
-
-    @NotNull
-    public Request setProject(@Nullable Project project) {
-      myProject = project;
-      return this;
-    }
-
-    @Nullable
-    public LanguageLevel getLanguageLevel() {
-      return myLanguageLevel;
-    }
-
-    @NotNull
-    public Request setLanguageLevel(@Nullable LanguageLevel languageLevel) {
-      myLanguageLevel = languageLevel;
-      return this;
-    }
-
-    public boolean isGenerateSourcesOnSuccess() {
-      return myGenerateSourcesOnSuccess;
-    }
-
-    @NotNull
-    public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
-      myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
-      return this;
-    }
+    public boolean generateSourcesOnSuccess = true;
+    public boolean isNewProject;
   }
 }
