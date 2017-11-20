@@ -214,6 +214,10 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * TT ID: 1eb26e7c-5127-49aa-83c9-32d9ff160315
    * <p>
+   * This test covers another test case as well. The second test ID is listed below.
+   * <p>
+   * TT ID: ae1223a3-b42d-4c8f-8837-5c6f7e8c583a
+   * <p>
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio
