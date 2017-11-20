@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -35,11 +34,8 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
@@ -85,7 +81,7 @@ public class NewGradleSync implements GradleSync {
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
       mySyncMessages.removeAllMessages();
-      sync(request, new EmptyProgressIndicator(), listener, request.isNewOrImportedProject());
+      sync(request, new EmptyProgressIndicator(), listener);
       return;
     }
     Task task = createSyncTask(request, listener);
@@ -102,32 +98,33 @@ public class NewGradleSync implements GradleSync {
     String title = "Gradle Sync"; // TODO show Gradle feedback
 
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-    boolean isNewProject = request.isNewOrImportedProject();
+    Task syncTask;
     switch (executionMode) {
       case MODAL_SYNC:
-        return new Task.Modal(myProject, title, true) {
+        syncTask = new Task.Modal(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(request, indicator, listener, isNewProject);
+            sync(request, indicator, listener);
           }
         };
+        break;
       case IN_BACKGROUND_ASYNC:
-        return new Task.Backgroundable(myProject, title, true) {
+        syncTask = new Task.Backgroundable(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(request, indicator, listener, isNewProject);
+            sync(request, indicator, listener);
           }
         };
+        break;
       default:
         throw new IllegalArgumentException(executionMode + " is not a supported execution mode");
     }
+    return syncTask;
   }
 
-  private void sync(@NotNull GradleSyncInvoker.Request request,
-                    @NotNull ProgressIndicator indicator,
-                    @Nullable GradleSyncListener syncListener,
-                    boolean isNewProject) {
-    if (request.isUseCachedGradleModels()) {
+  private void sync(@NotNull GradleSyncInvoker.Request request, @NotNull ProgressIndicator indicator,
+                    @Nullable GradleSyncListener syncListener) {
+    if (request.useCachedGradleModels) {
       // Use models from disk cache.
       ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
@@ -157,14 +154,14 @@ public class NewGradleSync implements GradleSync {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
 
     // @formatter:off
-    setupRequest.setGenerateSourcesAfterSync(request.isGenerateSourcesOnSuccess())
-                .setCleanProjectAfterSync(request.isCleanProject());
+    setupRequest.setGenerateSourcesAfterSync(request.generateSourcesOnSuccess)
+                .setCleanProjectAfterSync(request.cleanProject);
     // @formatter:on
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
     SyncExecutionCallback callback = myCallbackFactory.create();
     // @formatter:off
-    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener, isNewProject))
+    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
     mySyncExecutor.syncProject(indicator, callback);
@@ -172,7 +169,7 @@ public class NewGradleSync implements GradleSync {
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.isSkipAndroidPluginUpgrade()) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
       setupRequest.setSkipAndroidPluginUpgrade();
     }
   }

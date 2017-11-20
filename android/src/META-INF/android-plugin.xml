@@ -950,10 +950,6 @@
                       secondary="false"
                       icon="AndroidIcons.CapturesToolWindow"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings"/>
-    <projectConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettingsConfigurableProvider"
-                         nonDefaultProject="true"
-                         id ="android.studio.gradle" displayName="Android Studio" parentId="reference.settingsdialog.project.gradle"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>

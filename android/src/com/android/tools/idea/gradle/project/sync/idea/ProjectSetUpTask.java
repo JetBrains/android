@@ -34,6 +34,7 @@ import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.unregisterAsNewProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
@@ -46,20 +47,20 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Nullable private final GradleSyncListener mySyncListener;
 
-  private final boolean myProjectIsNew;
+  private final boolean myImportedProject;
   private final boolean mySelectModulesToImport;
   private final boolean mySyncSkipped;
 
   ProjectSetUpTask(@NotNull Project project,
                    @NotNull PostSyncProjectSetup.Request setupRequest,
                    @Nullable GradleSyncListener syncListener,
-                   boolean projectIsNew,
+                   boolean importedProject,
                    boolean selectModulesToImport,
                    boolean syncSkipped) {
     myProject = project;
     mySetupRequest = setupRequest;
     mySyncListener = syncListener;
-    myProjectIsNew = projectIsNew;
+    myImportedProject = importedProject;
     mySelectModulesToImport = selectModulesToImport;
     mySyncSkipped = syncSkipped;
   }
@@ -67,6 +68,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @Override
   public void onSuccess(@Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
+    unregisterAsNewProject(myProject);
 
     if (mySyncListener != null) {
       mySyncListener.setupStarted(myProject);
@@ -77,7 +79,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
       if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
-        if (myProjectIsNew) {
+        if (myImportedProject) {
           open(myProject);
         }
         if (!isTest) {
@@ -85,7 +87,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         }
       }
 
-      if (myProjectIsNew) {
+      if (myImportedProject) {
         // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
         // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
         // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
@@ -103,7 +105,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    if (!myProjectIsNew) {
+    if (!myImportedProject) {
       doPopulateProject(projectInfo);
       return;
     }
@@ -129,6 +131,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Override
   public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    unregisterAsNewProject(myProject);
+
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
     invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID));
 

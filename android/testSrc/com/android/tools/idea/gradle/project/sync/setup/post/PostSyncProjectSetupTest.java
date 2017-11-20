@@ -127,7 +127,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
 
-    verify(myGradleProjectInfo, times(2)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(2)).setNewProject(false);
+    verify(myGradleProjectInfo, times(2)).setImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -147,7 +148,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED, null);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
-    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(1)).setNewProject(false);
+    verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -179,7 +181,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
 
-    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(1)).setNewProject(false);
+    verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
   public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {

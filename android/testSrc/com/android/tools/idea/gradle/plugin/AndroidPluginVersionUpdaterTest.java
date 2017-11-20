@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -112,7 +111,9 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.cleanProject = true;
+
     verify(mySyncState, verificationMode).syncEnded();
     verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request, null);
   }

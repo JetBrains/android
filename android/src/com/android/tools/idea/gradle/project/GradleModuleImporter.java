@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Predicates.*;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -172,7 +171,7 @@ public final class GradleModuleImporter extends ModuleImporter {
         dependencyComputer = Suppliers.compose(parser, Suppliers.ofInstance(location));
       }
       else {
-        dependencyComputer = Suppliers.<Iterable<String>>ofInstance(ImmutableSet.<String>of());
+        dependencyComputer = Suppliers.ofInstance(ImmutableSet.<String>of());
       }
       modulesSet.add(new ModuleToImport(entry.getKey(), location, dependencyComputer));
     }
@@ -295,8 +294,8 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       gradleSettingsFile.addModule(name, targetFile);
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }
 

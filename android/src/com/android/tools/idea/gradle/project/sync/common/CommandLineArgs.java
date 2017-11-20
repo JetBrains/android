@@ -108,10 +108,23 @@ public class CommandLineArgs {
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (project == null || GradleProjectInfo.getInstance(project).canUseLocalMavenRepo()) {
-      // null project happens when is a new project.
+    if (useOfflineRepo(project)) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
+  }
+
+  private static boolean useOfflineRepo(@Nullable Project project) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isInternal() || application.isUnitTestMode() || GuiTestingService.getInstance().isGuiTestingMode()) {
+      return true; // Use offline repo in development mode or tests.
+    }
+    if (project == null) {
+      // "null" project happens when the project is an imported project, but not a project just created with the NPW. Only happens with
+      // IDEA's Gradle Sync, not with new Sync.
+      return false;
+    }
+    GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
+    return projectInfo.isNewProject();
   }
 }

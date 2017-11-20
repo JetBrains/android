@@ -47,7 +47,9 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     // Verify AndroidProject was copied.
     assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
-    SyncListener syncListener = requestSync(new GradleSyncInvoker.Request().setUseCachedGradleModels(true));
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.useCachedGradleModels = true;
+    SyncListener syncListener = requestSync(request);
     assertTrue(syncListener.isSyncSkipped());
 
     AndroidProject cached = getAndroidProjectInApp();
@@ -77,8 +79,9 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(wrapper);
     wrapper.updateDistributionUrl("3.5");
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    request.setGenerateSourcesOnSuccess(false).setSkipAndroidPluginUpgrade();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
+    request.skipAndroidPluginUpgrade = true;
     requestSyncAndWait(request);
   }
 

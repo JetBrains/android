@@ -77,7 +77,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     myImporter = createImporter(projects);
   }
 
-  protected GradleImport createImporter(@NotNull List<File> projects) {
+  @NotNull
+  private GradleImport createImporter(@NotNull List<File> projects) {
     GradleImport importer = new GradleImport();
     importer.setImportIntoExisting(!myCreateProject);
     if (myCreateProject) {
@@ -180,7 +181,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       };
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request().setProject(project);
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        request.project = project;
         importer.importProject(project.getName(), destDir, request, syncListener);
       } else {
         GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, syncListener);

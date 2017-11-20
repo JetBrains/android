@@ -67,11 +67,9 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    // @formatter:off
-    request.setGenerateSourcesOnSuccess(false)
-           .setUseCachedGradleModels(true);
-    // @formatter:on
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = false;
+    request.useCachedGradleModels = true;
 
     // Sync again, and a full sync should occur, since the cache is missing modules.
     // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync

@@ -233,7 +233,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify ProjectSetUpTask
     listener = mock(GradleSyncListener.class);
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
