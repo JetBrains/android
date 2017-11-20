@@ -42,6 +42,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ui.UIUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -283,6 +284,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
     }
+    else if (testName.equals("resourceOverride")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "level1", PROJECT_TYPE_LIBRARY, true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "level2", PROJECT_TYPE_LIBRARY, false);
+    }
   }
 
   // Regression test for https://code.google.com/p/android/issues/detail?id=65140
@@ -380,6 +385,66 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertEquals("Unique", firstValue.getValue());
 
     assertFalse(lib1Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+  }
+
+  // Regression test for https://issuetracker.google.com/issues/68799367
+  public void testResourceOverride() {
+    Modules modules = new Modules(getProject());
+    Module lib1 = modules.getModule("level1");
+    Module lib2 = modules.getModule("level2");
+    Module app = modules.getAppModule();
+
+    assertNotNull(lib1);
+    assertNotNull(lib2);
+    assertNotNull(app);
+
+    AndroidFacet appFacet = AndroidFacet.getInstance(app);
+
+    // Set up project dependencies
+    addModuleDependency(lib1, lib2);
+
+    // Dependencies: app -> lib1 -> lib2
+    assertTrue(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
+    assertTrue(ModuleRootManager.getInstance(app).isDependsOn(lib1));
+    assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib2));
+    assertFalse(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
+
+    @Language("XML")
+    final String level1Strings = "<resources>\n" +
+                                 "    <string name=\"test_string\">LEVEL 1</string>\n" +
+                                 "</resources>";
+    @Language("XML")
+    final String level2Strings = "<resources>\n" +
+                                 "    <string name=\"test_string\">LEVEL 2</string>\n" +
+                                 "</resources>";
+
+    // Set up string override
+    myFixture.addFileToProject(      "additionalModules/level1/res/values/strings.xml", level1Strings).getVirtualFile();
+    myFixture.addFileToProject("additionalModules/level2/res/values/strings.xml", level2Strings).getVirtualFile();
+
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(appFacet);
+    List<ResourceItem> resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    assertEquals(1, resolved.size());
+    assertEquals("LEVEL 1", resolved.get(0).getValueText());
+
+    // Retry reversing the library dependency to ensure the order does not depend on anything other than the
+    // dependency order (like for example, alphabetical order of the modules).
+    removeModuleDependency(lib1, lib2.getName());
+    removeModuleDependency(app, lib1.getName());
+
+    addModuleDependency(app, lib2);
+    addModuleDependency(lib2, lib1);
+
+    // app -> lib2 -> lib1
+    assertTrue(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
+    assertTrue(ModuleRootManager.getInstance(app).isDependsOn(lib2));
+    assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib1));
+    assertFalse(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
+
+    appResources = AppResourceRepository.getOrCreateInstance(appFacet);
+    resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    assertEquals(1, resolved.size());
+    assertEquals("LEVEL 2", resolved.get(0).getValueText());
   }
 
   private static void addModuleDependency(Module from, Module to) {
