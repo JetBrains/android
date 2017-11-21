@@ -22,10 +22,16 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +40,7 @@ import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
@@ -45,6 +52,7 @@ import static com.android.tools.idea.gradle.project.build.invoker.TestCompileTyp
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.testing.Facets.*;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -216,6 +224,17 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   private void setUpModuleAsGradleModule() {
     Module module = getModule();
+
+    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManager(module);
+    String projectPath = module.getProject().getBasePath();
+    String gradlePath = ":";
+    String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? module.getName() : gradlePath;
+    ProjectSystemId owner = GradleConstants.SYSTEM_ID;
+    String typeId = StdModuleTypes.JAVA.getId();
+    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, module.getName(), projectPath, projectPath);
+    ProjectData projectData = new ProjectData(owner, module.getName(), projectPath, projectPath);
+    modulePropertyManager.setExternalOptions(GradleUtil.GRADLE_SYSTEM_ID, moduleData, projectData);
+
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
   }
