@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -94,13 +95,12 @@ public class GradleTaskFinder {
                                                        @NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-
+    LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         tasks.put(projectPath.toPath(), DEFAULT_ASSEMBLE_TASK_NAME);
-        return tasks;
+        return ArrayListMultimap.create(tasks);
       }
     }
 
@@ -120,6 +120,10 @@ public class GradleTaskFinder {
         continue;
       }
 
+      if (buildMode == REBUILD && !tasks.isEmpty()) {
+        tasks.keys().elementSet().forEach(key -> tasks.get(key).add(CLEAN_TASK_NAME));
+      }
+
       Set<String> moduleTasks = new LinkedHashSet<>();
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
 
@@ -131,16 +135,13 @@ public class GradleTaskFinder {
       tasks.removeAll(keyPath);
       tasks.putAll(keyPath, moduleTasks);
     }
-    if (buildMode == REBUILD && !tasks.isEmpty()) {
-      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
-    }
 
     if (tasks.isEmpty()) {
       // Unlikely to happen.
       String format = "Unable to find Gradle tasks for project '%1$s' using BuildMode %2$s";
       getLogger().info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
     }
-    return tasks;
+    return ArrayListMultimap.create(tasks);
   }
 
   private static boolean canAssembleModules(@NotNull Module[] modules) {
