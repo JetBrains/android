@@ -7,7 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="uitest-framework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
@@ -36,5 +35,8 @@
     <orderEntry type="module" module-name="android-common" scope="TEST" />
     <orderEntry type="module" module-name="xdebugger-api" scope="TEST" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="uitest-framework" scope="TEST" />
+    <orderEntry type="module" module-name="uitest-framework-gradle" scope="TEST" />
+    <orderEntry type="module" module-name="uitest-framework-bazel" scope="TEST" />
   </component>
 </module>
