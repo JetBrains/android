@@ -33,6 +33,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -849,6 +850,134 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
   }
+
+  @Test
+  public void testCaptureFilter() {
+    final int appId = 1;
+    final int captureStartTime = 0;
+    // String containing data used for validating against each TreeNode.
+    // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
+    final String nodeFormat = "%s,%d,%d,%d,%d";
+
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA,
+                                                                          appId,
+                                                                          captureStartTime,
+                                                                          MoreExecutors.newDirectExecutorService(),
+                                                                          myStage);
+    // Bypass the stage's selection logic and manually alter the range selection ourselves.
+    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getSelectionModel().clearListeners();
+    myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
+                                  MoreExecutors.directExecutor());
+    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
+    // Changed to group by package so we can test nested node cases.
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+
+    JTree tree = myClassifierView.getTree();
+    assertThat(tree).isNotNull();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    assertThat(columnTreePane).isNotNull();
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
+
+    Object root = tree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+    assertThat(rootNode.getChildCount()).isEqualTo(0);
+
+    // Initial selection from 0 to 3
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    selectionRange.set(captureStartTime, captureStartTime + 3);
+    Queue<String> expected_0_to_3 = new LinkedList<>();
+    expected_0_to_3.add(String.format(nodeFormat, "default heap", 3, 1, 2, 2));
+    expected_0_to_3.add(" " + String.format(nodeFormat, "This", 2, 1, 1, 2));
+    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
+    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
+    expected_0_to_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
+    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    expected_0_to_3.add(" " + String.format(nodeFormat, "That", 1, 0, 1, 1));
+    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
+    expected_0_to_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Add a filter to remove That.is.Bar
+    myStage.selectCaptureFilter(Pattern.compile("^.*Foo.*$"));
+
+    expected_0_to_3 = new LinkedList<>();
+    expected_0_to_3.add(String.format(nodeFormat, "default heap", 2, 1, 1, 1));
+    expected_0_to_3.add(" " + String.format(nodeFormat, "This", 2, 1, 1, 2));
+    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
+    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
+    expected_0_to_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
+    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Expand right to 6
+    selectionRange.set(captureStartTime, captureStartTime + 6);
+    Queue<String> expected_0_to_6 = new LinkedList<>();
+    expected_0_to_6.add(String.format(nodeFormat, "default heap", 3, 2, 1, 1));
+    expected_0_to_6.add(" " + String.format(nodeFormat, "This", 3, 2, 1, 2));
+    expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
+    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
+    expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
+    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_6, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Shrink left to 3
+    selectionRange.set(captureStartTime + 3, captureStartTime + 6);
+    Queue<String> expected_3_to_6 = new LinkedList<>();
+    expected_3_to_6.add(String.format(nodeFormat, "default heap", 1, 1, 0, 1));
+    expected_3_to_6.add(" " + String.format(nodeFormat, "This", 1, 1, 0, 2));
+    expected_3_to_6.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
+    expected_3_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    expected_3_to_6.add("  " + String.format(nodeFormat, "Also", 0, 1, -1, 1));
+    expected_3_to_6.add("   " + String.format(nodeFormat, "Foo", 0, 1, -1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_6, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Displays snapshot at {10,10}
+    myFakeIdeProfilerServices.enableMemorySnapshot(true);
+    selectionRange.set(captureStartTime + 9, captureStartTime + 9);
+    Queue<String> expected_snapshot_3 = new LinkedList<>();
+    expected_snapshot_3.add(String.format(nodeFormat, "default heap", 1, 0, 1, 1));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "This", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_snapshot_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+
+    // Changed to group by callstack and update the rootNode
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    root = tree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+
+    // The "Foo" filter should apply to the new grouping automatically
+    myFakeIdeProfilerServices.enableMemorySnapshot(true);
+    expected_snapshot_3 = new LinkedList<>();
+    expected_snapshot_3.add(String.format(nodeFormat, "default heap", 2, 0, 2, 2));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "FooMethodA()", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "BarMethodB()", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
+    expected_snapshot_3.add(" " + String.format(nodeFormat, "BarMethodA()", 1, 0, 1, 1));
+    expected_snapshot_3.add("  " + String.format(nodeFormat, "FooMethodA()", 1, 0, 1, 1));
+    expected_snapshot_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_snapshot_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+  }
+
 
   @Test
   public void testSelectedClassSetAndInstance() {
