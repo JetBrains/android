@@ -330,6 +330,15 @@ abstract class ModuleSetup {
           myAndroidModuleSetup.setUpModule(context, androidModel, false /* sync not skipped */);
           myAndroidModules.add(module);
           cachedModels.addModel(androidModel);
+
+          // "Native" projects also both AndroidProject and AndroidNativeProject
+          NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
+          if (nativeAndroidProject != null) {
+            IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+            NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
+            myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
+            cachedModels.addModel(ndkModel);
+          }
         }
         else {
           // This is an Android module without variants. Treat as a non-buildable Java module.
@@ -345,15 +354,6 @@ abstract class ModuleSetup {
       }
       // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
       removeAndroidFacetFrom(module);
-
-      NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
-      if (nativeAndroidProject != null) {
-        IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-        NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
-        myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
-        cachedModels.addModel(ndkModel);
-        return;
-      }
       // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
       removeAllFacets(myModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
