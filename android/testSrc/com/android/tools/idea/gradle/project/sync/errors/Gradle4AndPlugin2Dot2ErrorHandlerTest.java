@@ -40,7 +40,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   }
 
   public void testHandleError() throws Exception {
-    loadSimpleApplication();
+    loadSimpleApplication_pre3dot0();
 
     // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
     // exception message.

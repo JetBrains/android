@@ -24,7 +24,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
     // On purpose select an older version of appcompat.
     // (see GradleDependencyManagerTest.testAddedSupportDependencyIsSameVersionAsExistingSupportDependency)
     implementation 'com.android.support:appcompat-v7:25.3.1'
