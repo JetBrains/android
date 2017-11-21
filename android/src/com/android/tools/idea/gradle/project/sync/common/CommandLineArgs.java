@@ -42,6 +42,8 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
+  private final boolean myEnableOfflineRepo = Boolean.getBoolean("android.studio.offline.repo.enabled");
+
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
@@ -114,7 +116,10 @@ public class CommandLineArgs {
     return args;
   }
 
-  private static boolean useOfflineRepo(@Nullable Project project) {
+  private boolean useOfflineRepo(@Nullable Project project) {
+    if (myEnableOfflineRepo) {
+      return true; // This is for QA testing.
+    }
     Application application = ApplicationManager.getApplication();
     if (application.isInternal() || application.isUnitTestMode() || GuiTestingService.getInstance().isGuiTestingMode()) {
       return true; // Use offline repo in development mode or tests.
