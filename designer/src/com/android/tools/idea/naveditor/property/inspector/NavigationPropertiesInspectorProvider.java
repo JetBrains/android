@@ -24,6 +24,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,15 +46,21 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     SdkConstants.ATTR_LABEL,
     SdkConstants.ATTR_NAME,
     NavigationSchema.ATTR_START_DESTINATION,
-    NavigationSchema.ATTR_DESTINATION
+    NavigationSchema.ATTR_DESTINATION,
+    NavigationSchema.ATTR_SINGLE_TOP,
+    NavigationSchema.ATTR_DOCUMENT,
+    NavigationSchema.ATTR_CLEAR_TASK
   };
 
-  private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = ImmutableMap.of(
-    SdkConstants.ATTR_LABEL, "Title",
-    SdkConstants.ATTR_ID, "ID",
-    SdkConstants.ATTR_NAME, "Class",
-    NavigationSchema.ATTR_START_DESTINATION, "Start Destination"
-  );
+  private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = new ContainerUtil.ImmutableMapBuilder()
+    .put(SdkConstants.ATTR_LABEL, "Title")
+    .put(SdkConstants.ATTR_ID, "ID")
+    .put(SdkConstants.ATTR_NAME, "Class")
+    .put(NavigationSchema.ATTR_START_DESTINATION, "Start Destination")
+    .put(NavigationSchema.ATTR_DESTINATION, "Destination")
+    .put(NavigationSchema.ATTR_SINGLE_TOP, "Single Top")
+    .put(NavigationSchema.ATTR_DOCUMENT, "Document")
+    .put(NavigationSchema.ATTR_CLEAR_TASK, "Clear Task").build();
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 

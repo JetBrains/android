@@ -21,8 +21,10 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
-import com.android.tools.idea.uibuilder.property.NlPropertyItem
-import com.google.common.collect.Table
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.Multimap
+import com.intellij.testFramework.UsefulTestCase.assertContainsElements
+import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
@@ -31,7 +33,6 @@ class NavInspectorPanelTest : NavigationTestCase() {
   private lateinit var panel: NavInspectorPanel
   private lateinit var manager: NavPropertiesManager
   private lateinit var inspectorProviders: NavInspectorProviders
-  private lateinit var properties: Table<String, String, NlPropertyItem>
 
   override fun setUp() {
     super.setUp()
@@ -51,11 +52,15 @@ class NavInspectorPanelTest : NavigationTestCase() {
     manager = spy(NavPropertiesManager(myFacet, model.surface))
     inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
-    properties = NlProperties.getInstance().getProperties(myFacet, manager, model.components)
+
+    // hack: make AttributeProcessingUtil.getNamespaceKeyByResourcePackage give us the right namespace
+    myFacet.properties.ALLOW_USER_CONFIGURATION = false
   }
 
   fun testMultipleFragments() {
-    panel.setComponent(listOf(model.find("f1")!!, model.find("f2")!!), properties, manager)
+    val components = listOf(model.find("f1")!!, model.find("f2")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -67,7 +72,9 @@ class NavInspectorPanelTest : NavigationTestCase() {
   }
 
   fun testMultipleTypes() {
-    panel.setComponent(listOf(model.find("a1")!!, model.find("nav")!!, model.find("activity")!!), properties, manager)
+    val components = listOf(model.find("a1")!!, model.find("nav")!!, model.find("activity")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -79,7 +86,9 @@ class NavInspectorPanelTest : NavigationTestCase() {
   }
 
   fun testInclude() {
-    panel.setComponent(listOf(model.find("nav")!!), properties, manager)
+    val components = listOf(model.find("nav")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -87,10 +96,13 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Deeplinks"))
     assertFalse(captor.value.containsKey("Arguments"))
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    validateProperties("include", captor.value.keys)
   }
 
   fun testNested() {
-    panel.setComponent(listOf(model.find("f2")!!), properties, manager)
+    val components = listOf(model.find("f2")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -98,10 +110,13 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    validateProperties("navigation", captor.value.keys)
   }
 
   fun testActivity() {
-    panel.setComponent(listOf(model.find("activity")!!), properties, manager)
+    val components = listOf(model.find("activity")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -109,10 +124,13 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    validateProperties("activity", captor.value.keys)
   }
 
   fun testAction() {
-    panel.setComponent(listOf(model.find("a2")!!), properties, manager)
+    val components = listOf(model.find("a2")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -120,10 +138,13 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertFalse(captor.value.containsKey("Deeplinks"))
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
     assertFalse(captor.value.containsKey(SET_START_DESTINATION_PROPERTY_NAME))
+    validateProperties("action", captor.value.keys)
   }
 
   fun testFragment() {
-    panel.setComponent(listOf(model.find("f3")!!), properties, manager)
+    val components = listOf(model.find("f3")!!)
+    val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
+    panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
@@ -131,5 +152,27 @@ class NavInspectorPanelTest : NavigationTestCase() {
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    validateProperties("fragment", captor.value.keys)
   }
+}
+
+private val typeToProperty: Multimap<String, String> = createPropertyMap()
+
+private fun createPropertyMap(): Multimap<String, String> {
+  val map: Multimap<String, String> = HashMultimap.create()
+  map.putAll("activity", listOf("name", "action", "data", "dataPattern"))
+  map.putAll("fragment", listOf("name"))
+  map.putAll("graph", listOf("startDestination"))
+  map.putAll("include", listOf("graph"))
+  map.keySet().forEach { map.putAll(it, listOf("id", "label"))}
+
+  map.putAll("action", listOf("id", "destination", "launchSingleTop", "launchDocument", "clearTask", "popUpTo",
+      "popUpToInclusive", "enterAnim", "exitAnim"))
+  return map
+}
+
+private fun validateProperties(type: String, properties: Set<String>) {
+  assertContainsElements(properties, typeToProperty[type])
+  val others = typeToProperty.values().removeAll(typeToProperty[type])
+  assertDoesntContain(properties, others)
 }

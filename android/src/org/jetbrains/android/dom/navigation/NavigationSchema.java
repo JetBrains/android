@@ -57,6 +57,7 @@ public class NavigationSchema implements Disposable {
   public static final String TAG_INCLUDE = "include";
 
   private static final String NAVIGATOR_CLASS_NAME = "android.arch.navigation.Navigator";
+  private static final String ACTION_CLASS_NAME = "android.arch.navigation.NavAction";
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   private static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
@@ -96,6 +97,7 @@ public class NavigationSchema implements Disposable {
   private Map<PsiClass, String> myNavigatorClassToTag;
 
   private final ClassMaps myClassMaps;
+  private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
 
   public enum DestinationType {
@@ -189,6 +191,8 @@ public class NavigationSchema implements Disposable {
 
     myNavigatorClassToTag = classToTag;
     myTagToDestinationType = tagToType;
+
+    myActionClass = javaPsiFacade.findClass(ACTION_CLASS_NAME, GlobalSearchScope.allScope(project));
   }
 
 
@@ -280,6 +284,10 @@ public class NavigationSchema implements Disposable {
 
   public Map<PsiClass, String> getNavigatorClassTagMap() {
     return Collections.unmodifiableMap(myNavigatorClassToTag);
+  }
+
+  public PsiClass getActionClass() {
+    return myActionClass;
   }
 
   @NotNull
