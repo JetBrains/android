@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
@@ -28,8 +27,6 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.
@@ -61,17 +58,6 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new CanvasResizeLayer((NlDesignSurface) mySurface, this));
     }
     return builder.build();
-  }
-
-  @Override
-  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Rectangle resizeZone =
-      new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(x, y)) {
-      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-      return;
-    }
-    super.updateCursor(x, y);
   }
 
   private static class MyBottomLayer extends Layer {

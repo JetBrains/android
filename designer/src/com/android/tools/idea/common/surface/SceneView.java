@@ -231,10 +231,11 @@ public abstract class SceneView {
     return 0;
   }
 
-  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  @Nullable
+  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     SceneContext.get(this).setMouseLocation(x, y);
     getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
-    mySurface.setCursor(getScene().getMouseCursor());
+    return getScene().getMouseCursor();
   }
 
   public SceneManager getSceneManager() {

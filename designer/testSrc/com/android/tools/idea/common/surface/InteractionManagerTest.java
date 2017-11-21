@@ -212,7 +212,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()));
-    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+    Mockito.verify(surface).setCursor(null);
   }
 
   public void testLinearLayoutCursorHoverSceneHandle() {
@@ -278,7 +278,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()));
-    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+    Mockito.verify(surface).setCursor(null);
   }
 
   public void testConstraintLayoutCursorHoverSceneHandle() {
