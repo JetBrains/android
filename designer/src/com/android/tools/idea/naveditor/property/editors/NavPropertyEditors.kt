@@ -21,8 +21,10 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.common.property.editors.PropertyEditors
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
+import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
 
@@ -36,6 +38,9 @@ class NavPropertyEditors : PropertyEditors() {
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
       ATTR_START_DESTINATION -> return ChildDestinationsEditor()
       ATTR_NAME -> return DestinationClassEditor()
+    }
+    if (property.definition?.formats?.contains(AttributeFormat.Boolean) == true) {
+      return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
     }
     // TODO: handle other types
     return TextEditor(property.model.project, DEFAULT_LISTENER)
