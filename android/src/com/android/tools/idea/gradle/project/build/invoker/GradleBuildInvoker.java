@@ -403,9 +403,8 @@ public class GradleBuildInvoker {
 
       @Override
       public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
-        File projectDirPath = getBaseDirPath(myProject);
-        String projectName = projectDirPath.getName();
-        FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(e, projectName, GRADLE_SYSTEM_ID, myProject);
+        String title = executionName + " failed";
+        FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
         buildViewManager.onEvent(
           new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
       }
