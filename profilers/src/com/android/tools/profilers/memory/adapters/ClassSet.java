@@ -55,9 +55,13 @@ public class ClassSet extends ClassifierSet {
   }
 
   @Override
-  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor) {
+  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor, boolean filterChanged) {
+    if (!filterChanged && !myNeedsRefiltering) {
+      return;
+    }
     myIsMatched = matches(filter);
     myIsFiltered = filter != null && !myIsMatched && !hasMatchedAncestor;
+    myNeedsRefiltering = false;
   }
 
   @Override
