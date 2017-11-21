@@ -62,6 +62,7 @@ public final class TestProjectPaths {
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String SIMPLE_APPLICATION_PRE_3DOT0 = "projects/simpleApplication_pre3.0";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
@@ -73,6 +74,7 @@ public final class TestProjectPaths {
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
+  public static final String TRANSITIVE_DEPENDENCIES_PRE3DOT0 = "projects/transitiveDependencies_pre3.0";
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
   public static final String UNIT_TESTING = "projects/unit_testing";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";

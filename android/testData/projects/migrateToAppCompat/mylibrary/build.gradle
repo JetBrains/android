@@ -13,5 +13,5 @@ android {
 }
 
 dependencies {
-    compile project(':mylibrarybase')
+    api project(':mylibrarybase')
 }

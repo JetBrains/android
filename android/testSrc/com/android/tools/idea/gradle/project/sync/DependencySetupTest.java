@@ -86,7 +86,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     assertNotNull(buildModel);
-    buildModel.dependencies().addModule("compile", ":fakeLibrary");
+    buildModel.dependencies().addModule("api", ":fakeLibrary");
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
     String failure = requestSyncAndGetExpectedFailure();
