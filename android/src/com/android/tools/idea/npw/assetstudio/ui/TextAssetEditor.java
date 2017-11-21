@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -58,7 +58,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     myBindings.bindTwoWay(new TextProperty(textField), myTextAsset.text());
 
     SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(fontCombo);
-    myBindings.bindTwoWay(new AsObjectProperty<>(selectedFont), myTextAsset.fontFamily());
+    myBindings.bindTwoWay(ObjectProperty.wrap(selectedFont), myTextAsset.fontFamily());
 
     InvalidationListener onTextChanged = sender -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);

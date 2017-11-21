@@ -31,7 +31,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.observable.*;
-import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -528,7 +528,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(myRamStorage.storage(), getModel().getAvdDeviceData().ramStorage());
     myBindings.bindTwoWay(myVmHeapStorage.storage(), getModel().vmHeapStorage());
     myBindings.bindTwoWay(myInternalStorage.storage(), getModel().internalStorage());
-    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new AsObjectProperty<>(getModel().sdCardStorage()));
+    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), ObjectProperty.wrap(getModel().sdCardStorage()));
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
 
@@ -561,11 +561,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
-    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myFrontCameraCombo)), getModel().selectedFrontCamera());
-    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myBackCameraCombo)), getModel().selectedBackCamera());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myFrontCameraCombo)), getModel().selectedFrontCamera());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myBackCameraCombo)), getModel().selectedBackCamera());
 
-    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(mySpeedCombo)), getModel().selectedNetworkSpeed());
-    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myLatencyCombo)), getModel().selectedNetworkLatency());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(mySpeedCombo)), getModel().selectedNetworkSpeed());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myLatencyCombo)), getModel().selectedNetworkLatency());
 
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());

@@ -33,7 +33,6 @@ import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -374,15 +373,15 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myImageRadioButton);
-    myForegroundColor = new AsObjectProperty<>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new AsObjectProperty<>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myCropped = new SelectedProperty(myCropRadioButton);
     myDogEared = new SelectedProperty(myDogEarRadioButton);
 
-    myTheme = new AsObjectProperty<>(new SelectedItemProperty<>(myThemeComboBox));
-    myThemeColor = new AsObjectProperty<>(new ColorProperty(myCustomThemeColorPanel));
+    myTheme = ObjectProperty.wrap(new SelectedItemProperty<>(myThemeComboBox));
+    myThemeColor = ObjectProperty.wrap(new ColorProperty(myCustomThemeColorPanel));
 
-    myShape = new AsObjectProperty<>(new SelectedItemProperty<>(myShapeComboBox));
+    myShape = ObjectProperty.wrap(new SelectedItemProperty<>(myShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 

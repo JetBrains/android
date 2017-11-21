@@ -34,7 +34,6 @@ import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -504,14 +503,14 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myForegroundImageRadioButton);
-    myForegroundColor = new AsObjectProperty<>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new AsObjectProperty<>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
     myGenerateWebIcon = new SelectedProperty(myGenerateWebIconYesRadioButton);
 
-    myLegacyIconShape = new AsObjectProperty<>(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
-    myWebIconShape = new AsObjectProperty<>(new SelectedItemProperty<>(myWebIconShapeComboBox));
+    myLegacyIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
+    myWebIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myWebIconShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 

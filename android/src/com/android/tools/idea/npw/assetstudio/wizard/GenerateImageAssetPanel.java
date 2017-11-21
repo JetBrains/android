@@ -35,7 +35,6 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
-import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
@@ -164,7 +163,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     DefaultComboBoxModel<AndroidIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
-    myOutputIconType = new AsObjectProperty<>(new SelectedItemProperty<>(myIconTypeCombo));
+    myOutputIconType = ObjectProperty.wrap(new SelectedItemProperty<>(myIconTypeCombo));
     myOutputPreviewPanel.setName("PreviewIconsPanel"); // for UI Tests
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
@@ -184,7 +183,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     densitiesModel.addElement(Density.XXHIGH);
     densitiesModel.addElement(Density.XXXHIGH);
     myPreviewResolutionComboBox.setModel(densitiesModel);
-    myPreviewDensityProperty = new AsObjectProperty<>(new SelectedItemProperty<>(myPreviewResolutionComboBox));
+    myPreviewDensityProperty = ObjectProperty.wrap(new SelectedItemProperty<>(myPreviewResolutionComboBox));
 
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);
