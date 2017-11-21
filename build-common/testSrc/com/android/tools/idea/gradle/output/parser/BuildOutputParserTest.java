@@ -2553,6 +2553,9 @@ public class BuildOutputParserTest {
   @Test
   public void duplicateMessages() {
 
+    // Do not run test on Windows (see b/69619617)
+    assumeFalse(SystemInfo.isWindows);
+
     String output =
       ":app:externalNativeBuildDebug\n" +
       "  building /foo/bar/libtest.so\n" +
