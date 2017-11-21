@@ -62,7 +62,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
-  private static final String TAB_TITLE_OVERVIEW = "Overview";
   private static final String TAB_TITLE_RESPONSE = "Response";
   private static final String TAB_TITLE_REQUEST = "Request";
   private static final String TAB_TITLE_STACK = "Call Stack";
@@ -213,9 +212,9 @@ public class ConnectionDetailsView extends JPanel {
         setHttpResponseData(httpData);
         setHttpRequestData(httpData);
       } else {
-        myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()));
+        myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeader()));
         myHeadersPanel.add(createSeparator());
-        myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
+        myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeader()));
       }
 
       myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
@@ -229,10 +228,10 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   private void setHttpResponseData(HttpData httpData) {
-    JComponent headersComponent = createStyledMapComponent(httpData.getResponseHeaders());
+    JComponent headersComponent = createStyledMapComponent(httpData.getResponseHeader().getFields());
     headersComponent.setName("RESPONSE_HEADERS");
     myResponsePanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
-    String bodyTitle = getBodyTitle(httpData.getContentType());
+    String bodyTitle = getBodyTitle(httpData.getResponseHeader().getContentType());
     JComponent payloadComponent = createBodyComponent(Payload.newResponsePayload(myStageView.getStage().getConnectionsModel(), httpData));
     HideablePanel bodyPanel = createHideablePanel(bodyTitle, payloadComponent, null);
     bodyPanel.setName("RESPONSE_BODY");
@@ -240,16 +239,15 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   private void setHttpRequestData(HttpData httpData) {
-    Map<String, String> headers = httpData.getRequestHeaders();
-    JComponent headersComponent = createStyledMapComponent(headers);
+    HttpData.RequestHeader header = httpData.getRequestHeader();
+    JComponent headersComponent = createStyledMapComponent(header.getFields());
     headersComponent.setName("REQUEST_HEADERS");
     myRequestPanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
 
     Payload requestPayload = Payload.newRequestPayload(myStageView.getStage().getConnectionsModel(), httpData);
     JComponent payloadComponent = createBodyComponent(requestPayload);
     JComponent northEastComponent = null;
-    Optional<String> contentTypeString = Optional.ofNullable(headers.get(HttpData.FIELD_CONTENT_TYPE));
-    HttpData.ContentType contentType = new HttpData.ContentType(contentTypeString.orElse(""));
+    HttpData.ContentType contentType = header.getContentType();
     String contentToParse = "";
     if (contentType.isFormData()) {
       contentToParse = requestPayload.getBytes().toStringUtf8();
@@ -353,11 +351,11 @@ public class ConnectionDetailsView extends JPanel {
     row++;
     myFieldsPanel.add(new NoWrapBoldLabel("Method"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(new JLabel(httpData.getMethod()), new TabularLayout.Constraint(row, 2));
-
-    if (httpData.getStatusCode() != HttpData.NO_STATUS_CODE) {
+    HttpData.ResponseHeader responseHeader = httpData.getResponseHeader();
+    if (responseHeader.getStatusCode() != HttpData.ResponseHeader.NO_STATUS_CODE) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Status"), new TabularLayout.Constraint(row, 0));
-      JLabel statusCode = new JLabel(String.valueOf(httpData.getStatusCode()));
+      JLabel statusCode = new JLabel(String.valueOf(responseHeader.getStatusCode()));
       statusCode.setName("StatusCode");
       myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
     }
@@ -370,22 +368,20 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
-    if (httpData.getContentType() != null) {
+    if (!responseHeader.getContentType().isEmpty()) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
-      JLabel contentTypeLabel = new JLabel(httpData.getContentType().getMimeType());
+      JLabel contentTypeLabel = new JLabel(responseHeader.getContentType().getMimeType());
       contentTypeLabel.setName("Content type");
       myFieldsPanel.add(contentTypeLabel, new TabularLayout.Constraint(row, 2));
     }
 
-    String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-    if (contentLength != null) {
-      contentLength = contentLength.split(";")[0];
+    int contentLength = responseHeader.getContentLength();
+    if (contentLength != -1) {
       try {
-        long number = Long.parseUnsignedLong(contentLength);
         row++;
         myFieldsPanel.add(new NoWrapBoldLabel("Size"), new TabularLayout.Constraint(row, 0));
-        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(number));
+        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(contentLength));
         contentLengthLabel.setName("Size");
         myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
       }
@@ -485,14 +481,14 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   @NotNull
-  private static JPanel createHeaderSection(@NotNull String title, @NotNull Map<String, String> map) {
+  private static JPanel createHeaderSection(@NotNull String title, @NotNull HttpData.Header header) {
     JPanel panel = new JPanel(new TabularLayout("*").setVGap(SECTION_VGAP));
     panel.setBorder(new JBEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
-    Map<String, String> sortedMap = new TreeMap<>(map);
+    Map<String, String> sortedMap = new TreeMap<>(header.getFields());
     panel.add(createMapComponent(sortedMap), new TabularLayout.Constraint(1, 0));
     new TreeWalker(panel).descendantStream().forEach(c -> {
       if (c != titleLabel) {

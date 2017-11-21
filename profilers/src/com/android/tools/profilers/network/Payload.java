@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -26,9 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
-
-import static com.android.tools.profilers.network.HttpData.FIELD_CONTENT_ENCODING;
-import static com.android.tools.profilers.network.HttpData.FIELD_CONTENT_TYPE;
 
 /**
  * A class for fetching the payload data associated with an {@link HttpData} instance.
@@ -53,9 +49,10 @@ public abstract class Payload {
         return httpData.getRequestPayloadId();
       }
 
+      @NotNull
       @Override
-      protected ImmutableMap<String, String> getHeaders() {
-        return httpData.getRequestHeaders();
+      protected HttpData.Header getHeader() {
+        return httpData.getRequestHeader();
       }
     };
   }
@@ -68,16 +65,18 @@ public abstract class Payload {
         return httpData.getResponsePayloadId();
       }
 
+      @NotNull
       @Override
-      protected ImmutableMap<String, String> getHeaders() {
-        return httpData.getResponseHeaders();
+      protected HttpData.Header getHeader() {
+        return httpData.getResponseHeader();
       }
     };
   }
 
   protected abstract String getId();
 
-  protected abstract ImmutableMap<String, String> getHeaders();
+  @NotNull
+  protected abstract HttpData.Header getHeader();
 
   /**
    * Get this payload as a byte string.
@@ -89,7 +88,7 @@ public abstract class Payload {
     }
 
     myCachedBytes = myModel.requestPayload(getId());
-    String contentEncoding = getHeaders().getOrDefault(FIELD_CONTENT_ENCODING, "");
+    String contentEncoding = getHeader().getContentEncoding();
     if (contentEncoding.toLowerCase().contains("gzip")) {
       try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(myCachedBytes.toByteArray()))) {
         myCachedBytes = ByteString.copyFrom(FileUtil.loadBytes(inputStream));
@@ -114,7 +113,7 @@ public abstract class Payload {
   public final File toFile() {
     File payloadFile;
     ByteString payload = getBytes();
-    HttpData.ContentType contentType = new HttpData.ContentType(getHeaders().getOrDefault(FIELD_CONTENT_TYPE, ""));
+    HttpData.ContentType contentType = getHeader().getContentType();
     try {
       payloadFile = FileUtil.createTempFile(getId(), StringUtil.notNullize(contentType.guessFileExtension()), true);
       FileUtil.writeToFile(payloadFile, payload.toByteArray());

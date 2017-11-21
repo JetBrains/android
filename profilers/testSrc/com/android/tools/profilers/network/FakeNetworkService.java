@@ -123,7 +123,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     switch (request.getType()) {
       case REQUEST:
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
-        String requestHeaders = data.getRequestHeaders().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
+        String requestHeaders = data.getRequestHeader().getFields().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
           .collect(Collectors.joining("\n"));
         requestBuilder.setTrace(data.getStackTrace().getTrace())
           .setMethod(data.getMethod())
