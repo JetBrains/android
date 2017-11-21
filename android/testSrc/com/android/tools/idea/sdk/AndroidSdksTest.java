@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.generated.common.v1.LibraryType;
 import com.android.tools.idea.IdeInfo;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -34,9 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
 import static com.android.testutils.TestUtils.getSdk;
@@ -215,6 +214,19 @@ public class AndroidSdksTest extends IdeaTestCase {
 
     Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
     assertNull(sdk);
+  }
+
+  public void testCreateSdkForAddonCreatesItsParent() {
+    IAndroidTarget parentTarget = findLatestAndroidTarget(mySdkPath);
+    String parentHash = getTargetHashString(parentTarget);
+
+    IAndroidTarget addonTarget = mock(IAndroidTarget.class);
+    when(addonTarget.getParent()).thenReturn(parentTarget);
+    when(addonTarget.getAdditionalLibraries()).thenReturn(Collections.singletonList(new LibraryType()));
+
+    assertNull(myAndroidSdks.findSuitableAndroidSdk(parentHash)); // Parent SDK doesn't exists
+    assertNull(myAndroidSdks.create(addonTarget, mySdkPath, myJdk, false)); // Addon sdk is not created
+    assertNotNull(myAndroidSdks.findSuitableAndroidSdk(parentHash)); // Parent SDK is now created
   }
 
   public void testChooseNameForNewLibrary() {
