@@ -112,12 +112,13 @@ public class GradleTaskFinder {
         continue;
       }
 
-      if (buildMode == REBUILD && !tasks.isEmpty()) {
+      List<String> moduleTasks = new ArrayList<>();
+      findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
+
+      if (buildMode == REBUILD && (!tasks.isEmpty() || !moduleTasks.isEmpty())) {
         tasks.keys().elementSet().forEach(key -> tasks.get(key).add(CLEAN_TASK_NAME));
       }
 
-      List<String> moduleTasks = new ArrayList<>();
-      findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
       tasks.putAll(Paths.get(rootProjectPath), moduleTasks);
     }
 
