@@ -14,6 +14,5 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea:platform-impl_and_others[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],
 )
