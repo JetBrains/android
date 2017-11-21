@@ -18,16 +18,16 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
+import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer<AdbDeviceFileSystem> {
+public class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
   @NotNull private final DeviceNameRenderer myDeviceNameRenderer;
 
   public AdbDeviceFileSystemRenderer(@NotNull AdbDeviceFileSystemService service,
@@ -37,39 +37,35 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
 
   @NotNull
   @Override
-  public ListCellRenderer<AdbDeviceFileSystem> getDeviceNameListRenderer() {
+  public ListCellRenderer<DeviceFileSystem> getDeviceNameListRenderer() {
     return myDeviceNameRenderer;
   }
 
-  private static final class DeviceNameRenderer extends ColoredListCellRenderer<AdbDeviceFileSystem> {
+  private static class DeviceNameRenderer implements ListCellRenderer<DeviceFileSystem> {
     @NotNull private final AdbDeviceFileSystemService myService;
-    private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
+    @NotNull private final DeviceRenderer.DeviceComboBoxRenderer myRendererImpl;
 
     public DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
                               @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myService = service;
-      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
+      myRendererImpl = new DeviceRenderer.DeviceComboBoxRenderer(
+        "No Connected Devices", false, deviceNamePropertiesProvider);
     }
 
     @Override
-    protected void customizeCellRenderer(@NotNull JList<? extends AdbDeviceFileSystem> list,
-                                         AdbDeviceFileSystem value,
-                                         int index,
-                                         boolean selected,
-                                         boolean focused) {
-      if (value == null) {
-        append("No Connected Devices", SimpleTextAttributes.ERROR_ATTRIBUTES);
-        return;
-      }
+    public Component getListCellRendererComponent(JList<? extends DeviceFileSystem> list,
+                                                  DeviceFileSystem value,
+                                                  int index,
+                                                  boolean isSelected,
+                                                  boolean cellHasFocus) {
+      List<IDevice> deviceList = myService.getDeviceList()
+        .stream()
+        .map(x -> ((AdbDeviceFileSystem)x).getDevice()).collect(Collectors.toList());
+      myRendererImpl.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(deviceList));
 
-      IDevice device = value.getDevice();
-
-      List<IDevice> devices = myService.getDeviceList().stream()
-        .map(system -> ((AdbDeviceFileSystem)system).getDevice())
-        .collect(Collectors.toList());
-
-      boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(devices);
-      DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, showSerialNumbers);
+      IDevice device = value == null ? null : ((AdbDeviceFileSystem)value).getDevice();
+      //noinspection unchecked
+      return myRendererImpl.getListCellRendererComponent(list, device, index, isSelected, cellHasFocus);
     }
   }
 }
