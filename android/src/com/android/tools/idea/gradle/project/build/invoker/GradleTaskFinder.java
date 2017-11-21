@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -86,8 +87,7 @@ public class GradleTaskFinder {
   public ListMultimap<Path, String> findTasksToExecute(@NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-
+    LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
     if (ASSEMBLE == buildMode) {
       Project project = modules[0].getProject();
       if (GradleSyncState.getInstance(project).lastSyncFailed()) {
@@ -98,7 +98,7 @@ public class GradleTaskFinder {
           .distinct()
           .map(path -> Paths.get(path))
           .forEach(path -> tasks.put(path, DEFAULT_ASSEMBLE_TASK_NAME));
-        return tasks;
+        return ArrayListMultimap.create(tasks);
       }
     }
 
@@ -112,12 +112,13 @@ public class GradleTaskFinder {
         continue;
       }
 
+      if (buildMode == REBUILD && !tasks.isEmpty()) {
+        tasks.keys().elementSet().forEach(key -> tasks.get(key).add(CLEAN_TASK_NAME));
+      }
+
       List<String> moduleTasks = new ArrayList<>();
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
       tasks.putAll(Paths.get(rootProjectPath), moduleTasks);
-    }
-    if (buildMode == REBUILD && !tasks.isEmpty()) {
-      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
 
     if (tasks.isEmpty()) {
@@ -125,7 +126,7 @@ public class GradleTaskFinder {
       String format = "Unable to find Gradle tasks for project '%1$s' using BuildMode %2$s";
       getLogger().info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
     }
-    return tasks;
+    return ArrayListMultimap.create(tasks);
   }
 
   private void findAndAddGradleBuildTasks(@NotNull Module module,
