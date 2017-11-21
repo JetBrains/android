@@ -23,7 +23,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
@@ -52,7 +51,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
   }
 
   private Document getDocument() {
-    VirtualFile buildFile = myFixture.getProject().getBaseDir().findFileByRelativePath(join("app", "build.gradle"));
+    VirtualFile buildFile = myFixture.getProject().getBaseDir().findFileByRelativePath("app/build.gradle");
     return FileDocumentManager.getInstance().getDocument(buildFile);
   }
 }
