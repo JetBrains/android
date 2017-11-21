@@ -298,14 +298,12 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    Cursor cursor = null;
     SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      sceneView.updateCursor(x, y);
-      if (mySurface.getCursor() != Cursor.getDefaultCursor()) {
-        return;
-      }
+      cursor = sceneView.getCursor(x, y);
     }
-    mySurface.setCursor(null);
+    mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
   /**
