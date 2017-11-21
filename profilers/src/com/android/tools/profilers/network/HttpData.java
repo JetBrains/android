@@ -45,14 +45,6 @@ public class HttpData {
     .put("/png", ".png")
     .put("/xml", ".xml")
     .build();
-  private static final String STATUS_CODE_NAME = "response-status-code";
-  public static final int NO_STATUS_CODE = -1;
-
-  public static final String FIELD_CONTENT_TYPE = "content-type";
-  public static final String FIELD_CONTENT_LENGTH = "content-length";
-  public static final String FIELD_CONTENT_ENCODING = "content-encoding";
-
-  public static final String APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded";
 
   private final long myId;
   private final long myStartTimeUs;
@@ -63,15 +55,12 @@ public class HttpData {
   @NotNull private final String myMethod;
   @NotNull private final StackTrace myTrace;
   @NotNull private final List<JavaThread> myThreads;
-  // Field key is formatted as always lower case.
-  private final Map<String, String> myResponseFields = new HashMap<>();
-  // Field key is formatted as always lower case.
-  private final Map<String, String> myRequestFields = new HashMap<>();
+
+  @NotNull private final RequestHeader myRequestHeader;
+  @NotNull private final ResponseHeader myResponseHeader;
 
   @NotNull private final String myRequestPayloadId;
   @NotNull private final String myResponsePayloadId;
-
-  private int myStatusCode = NO_STATUS_CODE;
 
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
@@ -87,12 +76,8 @@ public class HttpData {
     myRequestPayloadId = builder.myRequestPayloadId;
     myResponsePayloadId = builder.myResponsePayloadId;
 
-    if (!builder.myResponseFields.isEmpty()) {
-      parseResponseFields(builder.myResponseFields);
-    }
-    if (!builder.myRequestFields.isEmpty()) {
-      parseRequestFields(builder.myRequestFields);
-    }
+    myRequestHeader = new RequestHeader(builder.myRequestFields);
+    myResponseHeader = new ResponseHeader(builder.myResponseFields);
   }
 
   public long getId() {
@@ -146,73 +131,14 @@ public class HttpData {
     return myResponsePayloadId;
   }
 
-  public int getStatusCode() {
-    return myStatusCode;
-  }
-
-  @Nullable
-  public String getResponseField(@NotNull String field) {
-    return myResponseFields.get(field.toLowerCase());
-  }
-
-  @Nullable
-  public ContentType getContentType() {
-    String type = getResponseField(FIELD_CONTENT_TYPE);
-    return (type == null) ? null : new ContentType(type);
+  @NotNull
+  public RequestHeader getRequestHeader() {
+    return myRequestHeader;
   }
 
   @NotNull
-  public ImmutableMap<String, String> getResponseHeaders() {
-    return ImmutableMap.copyOf(myResponseFields);
-  }
-
-  @NotNull
-  public ImmutableMap<String, String> getRequestHeaders() {
-    return ImmutableMap.copyOf(myRequestFields);
-  }
-
-  private void parseResponseFields(@NotNull String fields) {
-    fields = fields.trim();
-    if (fields.isEmpty()) {
-      return;
-    }
-
-    // The status-line - should be formatted as per
-    // section 6.1 of RFC 2616.
-    // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
-    //
-    // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
-
-    String[] firstLineSplit = fields.split("\\n", 2);
-    String status = firstLineSplit[0].trim();
-    if (!status.isEmpty()) {
-      String[] tokens = status.split("=", 2);
-      status = tokens[tokens.length - 1].trim();
-      if (status.startsWith("HTTP/1.")) {
-        myStatusCode = Integer.parseInt(status.split(" ")[1]);
-        fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
-      }
-    }
-
-    parseHeaderFields(fields, myResponseFields);
-    if (myResponseFields.containsKey(STATUS_CODE_NAME)) {
-      String statusCode = myResponseFields.remove(STATUS_CODE_NAME);
-      myStatusCode = Integer.parseInt(statusCode);
-    }
-    assert myStatusCode != -1 : String.format("Unexpected http response (%s)", fields);
-  }
-
-  private void parseRequestFields(@NotNull String fields) {
-    parseHeaderFields(fields, myRequestFields);
-  }
-
-  private static void parseHeaderFields(@NotNull String fields, @NotNull Map<String, String> map) {
-    map.clear();
-    Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
-      String[] keyAndValue = line.split("=", 2);
-      assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
-      map.put(keyAndValue[0].trim().toLowerCase(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
-    });
+  public ResponseHeader getResponseHeader() {
+    return myResponseHeader;
   }
 
   /**
@@ -294,11 +220,16 @@ public class HttpData {
   }
 
   public static final class ContentType {
+    public static final String APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded";
 
     @NotNull private final String myContentType;
 
     public ContentType(@NotNull String contentType) {
       myContentType = contentType;
+    }
+
+    public boolean isEmpty() {
+      return myContentType.isEmpty();
     }
 
     /**
@@ -362,6 +293,115 @@ public class HttpData {
       boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
       String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
       return name.isEmpty() ? name : name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+  }
+
+  public static abstract class Header {
+    private static final String FIELD_CONTENT_ENCODING = "content-encoding";
+    private static final String FIELD_CONTENT_TYPE = "content-type";
+    public static final String FIELD_CONTENT_LENGTH = "content-length";
+
+    @NotNull
+    public abstract ImmutableMap<String, String> getFields();
+
+    @NotNull
+    public String getField(@NotNull String key) {
+      return getFields().getOrDefault(key.toLowerCase(), "");
+    }
+
+    @NotNull
+    public String getContentEncoding() {
+      return getField(FIELD_CONTENT_ENCODING);
+    }
+
+    @NotNull
+    public ContentType getContentType() {
+      return new ContentType(getField(FIELD_CONTENT_TYPE));
+    }
+
+    /**
+     * @return value of "content-length" in the headers, or -1 if the headers does not contain it.
+     */
+    public int getContentLength() {
+      String contentLength = getField(FIELD_CONTENT_LENGTH);
+      return contentLength.isEmpty() ? -1 : Integer.parseInt(contentLength);
+    }
+
+    @NotNull
+    protected static Map<String, String> parseHeaderFields(@NotNull String fields) {
+      Map<String, String> fieldsMap = new HashMap<>();
+      Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
+        String[] keyAndValue = line.split("=", 2);
+        assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
+        fieldsMap.put(keyAndValue[0].trim().toLowerCase(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+      });
+      return fieldsMap;
+    }
+  }
+
+  public static final class ResponseHeader extends Header {
+    private static final String STATUS_CODE_NAME = "response-status-code";
+    public static final int NO_STATUS_CODE = -1;
+
+    @NotNull private final ImmutableMap<String, String> myFields;
+    private int myStatusCode = NO_STATUS_CODE;
+
+    ResponseHeader(String fields) {
+      fields = fields.trim();
+      if (fields.isEmpty()) {
+        myFields = ImmutableMap.of();
+        return;
+      }
+
+      // The status-line - should be formatted as per
+      // section 6.1 of RFC 2616.
+      // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+      //
+      // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
+
+      String[] firstLineSplit = fields.split("\\n", 2);
+      String status = firstLineSplit[0].trim();
+      if (!status.isEmpty()) {
+        String[] tokens = status.split("=", 2);
+        status = tokens[tokens.length - 1].trim();
+        if (status.startsWith("HTTP/1.")) {
+          myStatusCode = Integer.parseInt(status.split(" ")[1]);
+          fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
+        }
+      }
+
+      Map<String, String> fieldsMap = parseHeaderFields(fields);
+
+      if (fieldsMap.containsKey(STATUS_CODE_NAME)) {
+         String statusCode = fieldsMap.remove(STATUS_CODE_NAME);
+        myStatusCode = Integer.parseInt(statusCode);
+      }
+      assert myStatusCode != -1 : String.format("Unexpected http response (%s)", fields);
+      myFields = ImmutableMap.copyOf(fieldsMap);
+    }
+
+    public int getStatusCode() {
+      return myStatusCode;
+    }
+
+    @NotNull
+    @Override
+    public ImmutableMap<String, String> getFields() {
+      return myFields;
+    }
+  }
+
+  public static final class RequestHeader extends Header {
+    @NotNull private final ImmutableMap<String, String> myFields;
+
+    RequestHeader(String fields) {
+      myFields = ImmutableMap.copyOf(parseHeaderFields(fields));
+    }
+
+    @NotNull
+    @Override
+    public ImmutableMap<String, String> getFields() {
+      return myFields;
     }
   }
 

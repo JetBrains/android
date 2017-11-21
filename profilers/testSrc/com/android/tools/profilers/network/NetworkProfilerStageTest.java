@@ -97,7 +97,7 @@ public class NetworkProfilerStageTest {
     assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
     assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
     assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
-    assertThat(data.getResponseField("connId")).isEqualTo(expectedData.getResponseField("connId"));
+    assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
 
     assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes())
       .isEqualTo(Payload.newRequestPayload(connectionsModel, data).getBytes());

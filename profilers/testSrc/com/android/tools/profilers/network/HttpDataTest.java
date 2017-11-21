@@ -33,9 +33,10 @@ public class HttpDataTest {
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
                               "first=1 \n  second  = 2\n equation=x+y=10");
     HttpData data = builder.build();
-    assertThat(data.getResponseField("first")).isEqualTo("1");
-    assertThat(data.getResponseField("second")).isEqualTo("2");
-    assertThat(data.getResponseField("equation")).isEqualTo("x+y=10");
+    HttpData.ResponseHeader header = data.getResponseHeader();
+    assertThat(header.getField("first")).isEqualTo("1");
+    assertThat(header.getField("second")).isEqualTo("2");
+    assertThat(header.getField("equation")).isEqualTo("x+y=10");
   }
 
   @Test
@@ -45,8 +46,8 @@ public class HttpDataTest {
                               "null  =  HTTP/1.1 302 Found  \n  " +
                               " Content-Type =  text/html; charset=UTF-8;  ");
     HttpData data = builder.build();
-    assertThat(data.getStatusCode()).isEqualTo(302);
-    assertThat(data.getResponseField("content-type")).isEqualTo("text/html; charset=UTF-8");
+    assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(302);
+    assertThat(data.getResponseHeader().getField("content-type")).isEqualTo("text/html; charset=UTF-8");
   }
 
   @Test
@@ -56,22 +57,22 @@ public class HttpDataTest {
                               " \n   \n  \n" +
                               "  Content-Type =  text/html; charset=UTF-8  ");
     HttpData data = builder.build();
-    assertThat(data.getStatusCode()).isEqualTo(200);
-    assertThat(data.getResponseField("content-type")).isEqualTo("text/html; charset=UTF-8");
+    assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(200);
+    assertThat(data.getResponseHeader().getField("content-type")).isEqualTo("text/html; charset=UTF-8");
   }
 
   @Test
   public void emptyResponseFields() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("");
-    assertThat(builder.build().getStatusCode()).isEqualTo(-1);
+    assertThat(builder.build().getResponseHeader().getStatusCode()).isEqualTo(-1);
   }
 
   @Test
   public void emptyResponseFields2() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
-    assertThat(builder.build().getStatusCode()).isEqualTo(-1);
+    assertThat(builder.build().getResponseHeader().getStatusCode()).isEqualTo(-1);
   }
 
   @Test(expected = AssertionError.class)
@@ -85,14 +86,14 @@ public class HttpDataTest {
   public void emptyRequestFields() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setRequestFields("");
-    assertThat(builder.build().getRequestHeaders()).isEmpty();
+    assertThat(builder.build().getRequestHeader().getFields()).isEmpty();
   }
 
   @Test
   public void testSetRequestFields() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setRequestFields("\nfirst=1 \n  second  = 2\n equation=x+y=10");
-    ImmutableMap<String, String> requestFields = builder.build().getRequestHeaders();
+    ImmutableMap<String, String> requestFields = builder.build().getRequestHeader().getFields();
     assertThat(requestFields.size()).isEqualTo(3);
     assertThat(requestFields.get("first")).isEqualTo("1");
     assertThat(requestFields.get("second")).isEqualTo("2");
@@ -169,7 +170,7 @@ public class HttpDataTest {
     assertThat(data.getDownloadingTimeUs()).isEqualTo(downloadTime);
     assertThat(data.getEndTimeUs()).isEqualTo(endTime);
 
-    assertThat(data.getStatusCode()).isEqualTo(302);
+    assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(302);
     assertThat(data.getMethod()).isEqualTo("method");
     assertThat(data.getRequestPayloadId()).isEqualTo(FakeNetworkConnectionsModel.REQUEST_PAYLOAD_ID);
     assertThat(data.getResponsePayloadId()).isEqualTo(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD_ID);
@@ -227,8 +228,8 @@ public class HttpDataTest {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("CoNtEnt-LEngtH = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
-    assertThat(data.getResponseField("content-length")).isEqualTo("10000");
-    assertThat(data.getResponseField("cOnTenT-leNGth")).isEqualTo("10000");
+    assertThat(data.getResponseHeader().getField("content-length")).isEqualTo("10000");
+    assertThat(data.getResponseHeader().getField("cOnTenT-leNGth")).isEqualTo("10000");
   }
 
   @Test
@@ -236,7 +237,7 @@ public class HttpDataTest {
     HttpData.Builder builder = TestHttpData.newBuilder(1);
     builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
     HttpData data = builder.build();
-    assertThat(data.getStatusCode()).isEqualTo(200);
+    assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(200);
   }
 
   private static final class FakeNetworkConnectionsModel implements NetworkConnectionsModel {

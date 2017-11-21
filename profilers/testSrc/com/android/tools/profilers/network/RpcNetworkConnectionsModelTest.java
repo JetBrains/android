@@ -141,11 +141,11 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
       assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
       assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
-      assertThat(data.getResponseField("connId")).isEqualTo(expectedData.getResponseField("connId"));
+      assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
       assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(expectedData.getJavaThreads().get(0).getId());
       assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(expectedData.getJavaThreads().get(0).getName());
 
-      ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
+      ImmutableMap<String, String> requestHeaders = data.getRequestHeader().getFields();
       assertThat(requestHeaders).hasSize(2);
       assertThat(requestHeaders.get("user-agent")).isEqualTo("Customized");
       assertThat(requestHeaders.get("accept")).isEqualTo("text/plain");
