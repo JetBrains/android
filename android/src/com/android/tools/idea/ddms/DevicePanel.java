@@ -58,8 +58,9 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @NotNull private final Map<String, String> myPreferredClients;
   private boolean myIgnoreActionEvents;
 
-  private JComboBox<IDevice> myDeviceCombo;
-  private JComboBox<Client> myClientCombo;
+  // TODO Use more specific type parameters
+  private JComboBox<Object> myDeviceCombo;
+  private JComboBox<Object> myClientCombo;
   private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
     @Nullable
     @Override

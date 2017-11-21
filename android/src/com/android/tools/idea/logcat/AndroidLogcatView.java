@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.Log.LogLevel;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
@@ -55,8 +54,6 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.IntStream;
 
 import static javax.swing.BoxLayout.X_AXIS;
 
@@ -76,7 +73,9 @@ public class AndroidLogcatView implements Disposable {
   private final boolean myHideMonitors;
 
   private JPanel myPanel;
-  private DefaultComboBoxModel<AndroidLogcatFilter> myFilterComboBoxModel;
+
+  // TODO Use a more specific type parameter
+  private DefaultComboBoxModel<Object> myFilterComboBoxModel;
 
   private volatile IDevice myDevice;
   private final AndroidLogConsole myLogConsole;
@@ -242,26 +241,11 @@ public class AndroidLogcatView implements Disposable {
 
   @NotNull
   public Component createEditFiltersComboBox() {
-    JComboBox<AndroidLogcatFilter> editFiltersCombo = new ComboBox<>();
+    // TODO Use a more specific type parameter
+    final ComboBox<Object> editFiltersCombo = new ComboBox<>();
     myFilterComboBoxModel = new DefaultComboBoxModel<>();
     myFilterComboBoxModel.addElement(myNoFilter);
-
-    myFilterComboBoxModel.addElement(new AndroidLogcatFilter() {
-      @NotNull
-      @Override
-      public String getName() {
-        return EDIT_FILTER_CONFIGURATION;
-      }
-
-      @Override
-      public boolean isApplicable(@NotNull String message, @NotNull String tag, @NotNull String p, int pid, @NotNull LogLevel logLevel) {
-        // I changed the type parameter of myFilterComboBoxModel to AndroidLogcatFilter and changed the String at Line 249 to this dumb
-        // AndroidLogcatFilter whose name equals the original string. isApplicable was never called on that string before so I'm failing
-        // loudly here in case it happens.
-
-        throw new UnsupportedOperationException();
-      }
-    });
+    myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
 
     updateDefaultFilters(null);
     updateUserFilters();
@@ -433,12 +417,15 @@ public class AndroidLogcatView implements Disposable {
   }
 
   private void selectFilterByName(String name) {
-    Optional<AndroidLogcatFilter> optionalFilter = IntStream.range(0, myFilterComboBoxModel.getSize())
-      .mapToObj(i -> myFilterComboBoxModel.getElementAt(i))
-      .filter(filter -> filter.getName().equals(name))
-      .findFirst();
-
-    optionalFilter.ifPresent(filter -> myFilterComboBoxModel.setSelectedItem(filter));
+    for (int i = 0; i < myFilterComboBoxModel.getSize(); i++) {
+      Object element = myFilterComboBoxModel.getElementAt(i);
+      if (element instanceof AndroidLogcatFilter) {
+        if (((AndroidLogcatFilter)element).getName().equals(name)) {
+          myFilterComboBoxModel.setSelectedItem(element);
+          break;
+        }
+      }
+    }
   }
 
   @NotNull
