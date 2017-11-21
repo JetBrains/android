@@ -30,7 +30,6 @@ import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringProperty;
@@ -185,7 +184,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     densitiesModel.addElement(Density.XXHIGH);
     densitiesModel.addElement(Density.XXXHIGH);
     myPreviewResolutionComboBox.setModel(densitiesModel);
-    myPreviewDensityProperty = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myPreviewResolutionComboBox));
+    myPreviewDensityProperty = new AsObjectProperty<>(new SelectedItemProperty<>(myPreviewResolutionComboBox));
 
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);

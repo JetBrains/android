@@ -27,9 +27,9 @@ import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.IconProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -260,7 +260,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
       SelectedItemProperty<Language> language = (SelectedItemProperty<Language>)row.getProperty();
       assert language != null; // LanguageComboProvider always sets this
-      myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<>(language), getModel().getLanguage());
+      myBindings.bindTwoWay(new AsObjectProperty<>(language), getModel().getLanguage());
     }
 
     if (myTemplates.size() > 1) {
@@ -271,7 +271,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       SelectedItemProperty<NamedModuleTemplate> template = (SelectedItemProperty<NamedModuleTemplate>)row.getProperty();
       assert template != null; // ModuleTemplateComboProvider always sets this
-      myBindings.bind(getModel().getTemplate(), new OptionalToValuePropertyAdapter<>(template));
+      myBindings.bind(getModel().getTemplate(), new AsObjectProperty<>(template));
       template.addListener(sender -> enqueueEvaluateParameters());
     }
 

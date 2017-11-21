@@ -29,11 +29,11 @@ import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
+import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -374,15 +374,15 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myImageRadioButton);
-    myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = new AsObjectProperty<>(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = new AsObjectProperty<>(new ColorProperty(myBackgroundColorPanel));
     myCropped = new SelectedProperty(myCropRadioButton);
     myDogEared = new SelectedProperty(myDogEarRadioButton);
 
-    myTheme = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myThemeComboBox));
-    myThemeColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myCustomThemeColorPanel));
+    myTheme = new AsObjectProperty<>(new SelectedItemProperty<>(myThemeComboBox));
+    myThemeColor = new AsObjectProperty<>(new ColorProperty(myCustomThemeColorPanel));
 
-    myShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myShapeComboBox));
+    myShape = new AsObjectProperty<>(new SelectedItemProperty<>(myShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
