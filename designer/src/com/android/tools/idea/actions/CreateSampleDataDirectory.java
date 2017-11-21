@@ -16,12 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -29,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
 /**
  * Action to create the main Sample Data directory
@@ -43,10 +44,20 @@ public class CreateSampleDataDirectory extends AnAction {
   }
 
   @Nullable
+  private static Module getModuleFromSelection(@NotNull DataContext dataContext) {
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
+
+    if (modules != null && modules.length > 0) {
+      return modules[0];
+    } else {
+      return  MODULE.getData(dataContext);
+    }
+  }
+
+  @Nullable
   private static AndroidFacet getFacet(@NotNull AnActionEvent e){
-    Project project = e.getProject();
-    Module[] modules = project != null ? GradleProjects.getModulesToBuildFromSelection(project, e.getDataContext()) : null;
-    return modules != null && modules.length > 0 ? AndroidFacet.getInstance(modules[0]) : null;
+    Module selected = getModuleFromSelection(e.getDataContext());
+    return (selected != null)? AndroidFacet.getInstance(selected): null;
   }
 
   @Override
