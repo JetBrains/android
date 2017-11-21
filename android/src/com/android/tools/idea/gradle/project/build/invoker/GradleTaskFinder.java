@@ -93,7 +93,13 @@ public class GradleTaskFinder {
       if (GradleSyncState.getInstance(project).lastSyncFailed()) {
         // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         StreamEx.of(modules)
-          .map(module -> ExternalSystemApiUtil.getExternalRootProjectPath(module))
+          .map(module -> {
+            String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+            if (projectPath == null) {
+              projectPath = project.getBaseDir().getPath();
+            }
+            return projectPath;
+          })
           .nonNull()
           .distinct()
           .map(path -> Paths.get(path))
@@ -116,7 +122,7 @@ public class GradleTaskFinder {
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
 
       if (buildMode == REBUILD && (!tasks.isEmpty() || !moduleTasks.isEmpty())) {
-        tasks.keys().elementSet().forEach(key -> tasks.get(key).add(CLEAN_TASK_NAME));
+        tasks.put(Paths.get(rootProjectPath), CLEAN_TASK_NAME);
       }
 
       tasks.putAll(Paths.get(rootProjectPath), moduleTasks);
