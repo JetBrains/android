@@ -31,8 +31,8 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.observable.*;
+import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
@@ -524,18 +524,18 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new TextProperty(mySystemImageDetails), getModel().systemImageDetails());
 
     myBindings.bindTwoWay(new SelectedProperty(myQemu2CheckBox), getModel().useQemu2());
-    myBindings.bindTwoWay(new SelectedItemProperty<Integer>(myCoreCount), getModel().cpuCoreCount());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myCoreCount), getModel().cpuCoreCount());
     myBindings.bindTwoWay(myRamStorage.storage(), getModel().getAvdDeviceData().ramStorage());
     myBindings.bindTwoWay(myVmHeapStorage.storage(), getModel().vmHeapStorage());
     myBindings.bindTwoWay(myInternalStorage.storage(), getModel().internalStorage());
-    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new OptionalToValuePropertyAdapter<Storage>(getModel().sdCardStorage()));
+    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new AsObjectProperty<>(getModel().sdCardStorage()));
 
-    myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
 
-    myBindings.bindTwoWay(new SelectedItemProperty<File>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -561,16 +561,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myFrontCameraCombo)),
-                          getModel().selectedFrontCamera());
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myBackCameraCombo)),
-                          getModel().selectedBackCamera());
+    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myFrontCameraCombo)), getModel().selectedFrontCamera());
+    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myBackCameraCombo)), getModel().selectedBackCamera());
 
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkSpeed>(new SelectedItemProperty<AvdNetworkSpeed>(mySpeedCombo)),
-                          getModel().selectedNetworkSpeed());
-    myBindings
-      .bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkLatency>(new SelectedItemProperty<AvdNetworkLatency>(myLatencyCombo)),
-                  getModel().selectedNetworkLatency());
+    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(mySpeedCombo)), getModel().selectedNetworkSpeed());
+    myBindings.bindTwoWay(new AsObjectProperty<>(new SelectedItemProperty<>(myLatencyCombo)), getModel().selectedNetworkLatency());
 
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
@@ -875,8 +870,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     };
     myOrientationToggle =
-      new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                                       orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
+      new ASGallery<>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
+                      orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
 
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());

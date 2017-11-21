@@ -156,42 +156,4 @@ public class AdapterPropertiesTest {
 
     assertThat(doubleString.get()).isEqualTo("0.123");
   }
-
-  @Test
-  public void bindingOptionalToValueAdapterWorks() throws Exception {
-    BindingsManager bindings = new BindingsManager(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
-    OptionalProperty<String> optionalValue = new OptionalValueProperty<>("Initial");
-    StringProperty stringValue = new StringValueProperty();
-
-    OptionalToValuePropertyAdapter<String> adapterProperty = new OptionalToValuePropertyAdapter<>(optionalValue);
-    bindings.bindTwoWay(stringValue, adapterProperty);
-
-    assertThat(stringValue.get()).isEqualTo("Initial");
-    Truth.assertThat(adapterProperty.inSync().get()).isTrue();
-
-    stringValue.set("Modified");
-    assertThat(optionalValue.getValue()).isEqualTo("Modified");
-    Truth.assertThat(adapterProperty.inSync().get()).isTrue();
-
-    optionalValue.clear();
-    assertThat(stringValue.get()).isEqualTo("Modified");
-    Truth.assertThat(adapterProperty.inSync().get()).isFalse();
-  }
-
-  @Test
-  public void bindingOptionalToValueAdapterWithDefaultValueWorks() throws Exception {
-    BindingsManager bindings = new BindingsManager(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
-    OptionalProperty<String> optionalValue = new OptionalValueProperty<>();
-    StringProperty stringValue = new StringValueProperty();
-
-    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<>(optionalValue, "Initial"));
-
-    assertThat(stringValue.get()).isEqualTo("Initial");
-
-    stringValue.set("Modified");
-    assertThat(optionalValue.getValue()).isEqualTo("Modified");
-
-    optionalValue.clear();
-    assertThat(stringValue.get()).isEqualTo("Modified");
-  }
 }

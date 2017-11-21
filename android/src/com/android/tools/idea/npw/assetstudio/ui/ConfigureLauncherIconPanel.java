@@ -30,11 +30,11 @@ import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
+import com.android.tools.idea.observable.expressions.value.AsObjectProperty;
 import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -504,14 +504,14 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myForegroundImageRadioButton);
-    myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = new AsObjectProperty<>(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = new AsObjectProperty<>(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
     myGenerateWebIcon = new SelectedProperty(myGenerateWebIconYesRadioButton);
 
-    myLegacyIconShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
-    myWebIconShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myWebIconShapeComboBox));
+    myLegacyIconShape = new AsObjectProperty<>(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
+    myWebIconShape = new AsObjectProperty<>(new SelectedItemProperty<>(myWebIconShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
