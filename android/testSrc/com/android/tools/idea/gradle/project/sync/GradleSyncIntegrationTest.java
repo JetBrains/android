@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -145,13 +146,27 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=224985
-  // Disabled until the prebuilt SDK has CMake.
-  public void /*test*/ExternalSystemSourceFolderSync() throws Exception {
+  public void testNdkProjectSync() throws Exception {
     loadProject(HELLO_JNI);
-    myModules.getAppModule();
+
+    Module appModule = myModules.getAppModule();
+    NdkFacet ndkFacet = NdkFacet.getInstance(appModule);
+    assertNotNull(ndkFacet);
+
+    ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
+    VirtualFile[] roots = rootManager.getSourceRoots(false /* do not include tests */);
+
+    boolean cppSourceFolderFound = false;
+    for (VirtualFile root : roots) {
+      if (root.getName().equals("cpp")) {
+        cppSourceFolderFound = true;
+        break;
+      }
+    }
+
+    assertTrue(cppSourceFolderFound);
   }
 
-  // Disabled until the prebuilt Maven repo has all dependencies.
   public void testWithUserDefinedLibrarySources() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
