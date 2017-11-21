@@ -17,19 +17,25 @@ package com.android.tools.idea.npw.platform;
 
 import com.android.annotations.NonNull;
 import com.android.repository.testframework.FakePackage;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.androidTarget.MockAddonTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.generated.addon.v1.AddonDetailsType;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.google.common.truth.Truth;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.sdklib.SdkVersionInfo.getCodeName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public final class AndroidVersionsInfoTest {
@@ -44,7 +50,7 @@ public final class AndroidVersionsInfoTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    Mockito.when(myMockAndroidVersionsInfo.getHighestInstalledVersion()).thenReturn(new AndroidVersion(HIGHEST_VERSION, null));
+    when(myMockAndroidVersionsInfo.getHighestInstalledVersion()).thenReturn(new AndroidVersion(HIGHEST_VERSION, null));
   }
 
   /**
@@ -113,5 +119,59 @@ public final class AndroidVersionsInfoTest {
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
     assertEquals(DEFAULT_VERSION, versionItem.getApiLevel());
     assertEquals(HIGHEST_VERSION, versionItem.getBuildApiLevel());
+  }
+
+  @Test
+  public void previewTargetShouldReturnPreviewInLabel() {
+    AndroidVersion androidVersion = new AndroidVersion(HIGHEST_KNOWN_API, "PREVIEW_CODE_NAME");
+    IAndroidTarget androidTarget = mock(IAndroidTarget.class);
+    when(androidTarget.getVersion()).thenReturn(androidVersion);
+
+    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
+    Truth.assertThat(versionItem.getLabel()).contains("PREVIEW_CODE_NAME");
+  }
+
+  @Test
+  public void platformTargetShouldReturnAndroidDesertNameInLabel() {
+    AndroidVersion androidVersion = new AndroidVersion(HIGHEST_KNOWN_API, null);
+    IAndroidTarget androidTarget = mock(IAndroidTarget.class);
+    when(androidTarget.getVersion()).thenReturn(androidVersion);
+    when(androidTarget.isPlatform()).thenReturn(true);
+
+    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
+    Truth.assertThat(versionItem.getLabel()).contains(getCodeName(HIGHEST_KNOWN_API));
+  }
+
+  /**
+   * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should be displayed using the
+   * add-on Description instead of the Android Target name.
+   */
+  @Test
+  public void nonPlatformTargetShouldReturnAddonDescription() {
+    AndroidVersion androidVersion = new AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/);
+    IAndroidTarget androidTarget = mock(IAndroidTarget.class);
+    when(androidTarget.getVersion()).thenReturn(androidVersion);
+    when(androidTarget.isPlatform()).thenReturn(false);
+    when(androidTarget.getDescription()).thenReturn("Addon Title");
+
+    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
+    assertEquals("API 27: Addon Title", versionItem.getLabel());
+  }
+
+  /**
+   * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should be displayed using the
+   * add-on Vendor/Name values instead of the Android Target name (if add-on description is missing).
+   */
+  @Test
+  public void nonPlatformTargetShouldReturnAddonNameInLabel() {
+    AndroidVersion androidVersion = new AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/);
+    IAndroidTarget androidTarget = mock(IAndroidTarget.class);
+    when(androidTarget.getVersion()).thenReturn(androidVersion);
+    when(androidTarget.isPlatform()).thenReturn(false);
+    when(androidTarget.getVendor()).thenReturn("AddonVendor");
+    when(androidTarget.getName()).thenReturn("AddonName");
+
+    AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
+    assertEquals(AndroidTargetHash.getAddonHashString("AddonVendor", "AddonName", androidVersion), versionItem.getLabel());
   }
 }
