@@ -268,6 +268,12 @@ public class AndroidSdks {
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
     if (!target.getAdditionalLibraries().isEmpty()) {
       // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
+      // Instead, create the add-on parent, if missing
+      String parentHashString = target.getParent() == null ? null : target.getParent().hashString();
+      if (parentHashString != null && findSuitableAndroidSdk(parentHashString) == null) {
+        tryToCreate(sdkPath, parentHashString);
+      }
+
       return null;
     }
 
