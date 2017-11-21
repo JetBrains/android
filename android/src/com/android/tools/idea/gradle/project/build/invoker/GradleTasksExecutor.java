@@ -56,7 +56,6 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerAdapter;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
@@ -70,6 +69,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
@@ -344,8 +345,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         finally {
           if (myBuildStopper.contains(id) && taskListener != null) {
             if (buildError != null) {
-              Throwable rootCause = getRootCause(buildError);
-              taskListener.onFailure(id, new ExternalSystemException(ExceptionUtil.getMessage(rootCause)));
+              GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
+              ExternalSystemException userFriendlyError =
+                projectResolverChain.getUserFriendlyError(buildError, myRequest.getBuildFilePath().getPath(), null);
+              taskListener.onFailure(id, userFriendlyError);
             }
             else {
               taskListener.onSuccess(id);
