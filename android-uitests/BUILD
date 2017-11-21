@@ -9,6 +9,7 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
     "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+    "//prebuilts/tools:bazel-dist",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
     "//tools/adt/idea/adt-ui/lib/libwebp",
@@ -43,7 +44,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/uitest-framework[module, test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
@@ -72,6 +72,9 @@ iml_module(
         "//tools/adt/idea/android-common[module, test]",
         "//tools/idea/platform/xdebugger-api[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/uitest-framework[module, test]",
+        "//tools/adt/idea/uitest-framework-gradle[module, test]",
+        "//tools/adt/idea/uitest-framework-bazel[module, test]",
     ],
 )
 

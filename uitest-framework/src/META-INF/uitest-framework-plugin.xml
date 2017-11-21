@@ -13,13 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <name>Android UI Test Framework</name>
-  <id>com.android.tools.idea.uitest.framework</id>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.ui">
-    <guiTestingStatusProvider implementation="com.android.tools.idea.tests.gui.StatusProvider" />
-  </extensions>
-
-  <xi:include href="/META-INF/uitest-framework-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<idea-plugin>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.project.guitestsystem"
+                    interface="com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem"/>
+  </extensionPoints>
 </idea-plugin>
