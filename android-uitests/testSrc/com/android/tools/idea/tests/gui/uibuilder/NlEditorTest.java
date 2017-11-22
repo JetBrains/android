@@ -83,7 +83,7 @@ public class NlEditorTest {
    *   1. The added component shows up in the xml
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void basicLayoutEdit() throws Exception {
     guiTest.importSimpleApplication()

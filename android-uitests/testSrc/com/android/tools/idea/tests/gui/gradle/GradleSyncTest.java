@@ -628,7 +628,7 @@ public class GradleSyncTest {
    *   Project syncs and minSdk version is updated.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
