@@ -23,8 +23,9 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectOpenProcessor;
-import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.util.containers.HashSet;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemIndependent;
@@ -51,8 +52,9 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
 
       String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
       GradleSettings gradleSettings = (GradleSettings)getSettings(project, GradleConstants.SYSTEM_ID);
-      Collection<GradleProjectSettings> projectsSettings = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
+      Collection<GradleProjectSettings> projectsSettings = new HashSet<>(gradleSettings.getLinkedProjectsSettings());
       GradleProjectSettings rootProjectCandidate = null;
+
       if (!projectsSettings.isEmpty()) {
         Optional<GradleProjectSettings> existingRootProjectSettings = StreamEx.of(projectsSettings)
           .findFirst(projectSettings -> FileUtil.pathsEqual(externalProjectPath, projectSettings.getExternalProjectPath()));
@@ -63,7 +65,11 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
       if (rootProjectCandidate == null) {
         GradleProjectOpenProcessor gradleProjectOpenProcessor =
           Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
-        if (gradleProjectOpenProcessor.canOpenProject(project.getBaseDir())) {
+
+        VirtualFile projectRootFolder = project.getBaseDir();
+        projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
+
+        if (gradleProjectOpenProcessor.canOpenProject(projectRootFolder)) {
           rootProjectCandidate = new GradleProjectSettings();
           rootProjectCandidate.setExternalProjectPath(externalProjectPath);
           projectsSettings.add(rootProjectCandidate);

@@ -39,9 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -176,7 +174,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: guava-.*";
+    String libraryNameRegex = "Gradle: com.google.guava:.*";
     Library library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 
@@ -268,7 +266,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(pluginInfo);
-    assertEquals(pluginInfo.getPluginGeneration(), ORIGINAL);
+    assertEquals(ORIGINAL, pluginInfo.getPluginGeneration());
     GradleVersion pluginVersion = pluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
 
@@ -484,11 +482,11 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     requestSyncAndWait();
 
     // Verify that the library has sources.
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "com.foo.bar:bar-0.1";
-    Library library = libraryTable.getLibraryByName(libraryName);
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    String libraryNameRegex = "Gradle: com.foo.bar:bar-0.1";
+    Library library = libraries.findMatchingLibrary(libraryNameRegex);
 
-    assertNotNull("Library " + libraryName + " is missing", library);
+    assertNotNull("Library com.foo.bar:bar-0.1 is missing", library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).asList().hasSize(1);
   }
