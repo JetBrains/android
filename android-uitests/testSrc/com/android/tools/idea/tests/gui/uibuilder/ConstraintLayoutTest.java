@@ -278,14 +278,14 @@ public class ConstraintLayoutTest {
       .requireDevice("Nexus 6");
 
     preview.getConfigToolbar()
-      .switchOrientation()
+      .setOrientationAsLandscape()
       .leaveConfigToolbar()
       .waitForRenderToFinish()
       .getConfigToolbar()
       .requireOrientation("Landscape");
 
     preview.getConfigToolbar()
-      .switchOrientation()
+      .setOrientationAsPortrait()
       .leaveConfigToolbar()
       .waitForRenderToFinish()
       .getConfigToolbar()
