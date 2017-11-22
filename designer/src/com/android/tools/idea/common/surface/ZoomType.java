@@ -27,12 +27,12 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen (0)", StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
+  FIT("Zoom to Fit Screen (0)", StudioIcons.Common.RESET_ZOOM),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
    */
-  FIT_INTO("Zoom out to Fit Screen", StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
+  FIT_INTO("Zoom out to Fit Screen", StudioIcons.Common.RESET_ZOOM),
 
   /**
    * Zoom to actual size (100%)
