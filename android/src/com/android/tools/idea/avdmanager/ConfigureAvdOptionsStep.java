@@ -24,14 +24,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
-import com.android.sdklib.EmulatorAdvFeatures;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.*;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -40,7 +38,6 @@ import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -48,7 +45,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -757,9 +753,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
     // Separately handle the Boot Option. It is only
     // shown if the Emulator supports it.
-    myBootOptionPanel.setVisible(show && EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
-                                                                                      new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
-                                                                                      new LogWrapper(Logger.getInstance(AvdManagerConnection.class))));
+    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler()));
 
     toggleSystemOptionals(false);
 
