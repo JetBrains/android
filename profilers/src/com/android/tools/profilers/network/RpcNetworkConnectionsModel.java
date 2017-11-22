@@ -16,8 +16,12 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.Profiler.BytesRequest;
+import com.android.tools.profiler.proto.Profiler.BytesResponse;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +95,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
 
   private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsResponse.Request result =
-        getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
+      getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
     httpBuilder.setTrace(result.getTrace());
@@ -116,12 +120,12 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       return ByteString.EMPTY;
     }
 
-    Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
+    BytesRequest request = BytesRequest.newBuilder()
       .setId(payloadId)
       .setSession(mySession)
       .build();
 
-    Profiler.BytesResponse response = myProfilerService.getBytes(request);
+    BytesResponse response = myProfilerService.getBytes(request);
     return response.getContents();
   }
 
@@ -139,6 +143,6 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
 
   private NetworkProfiler.HttpDetailsResponse getDetails(long connectionId, NetworkProfiler.HttpDetailsRequest.Type type) {
     return myNetworkService.getHttpDetails(
-        NetworkProfiler.HttpDetailsRequest.newBuilder().setConnId(connectionId).setSession(mySession).setType(type).build());
+      NetworkProfiler.HttpDetailsRequest.newBuilder().setConnId(connectionId).setSession(mySession).setType(type).build());
   }
 }

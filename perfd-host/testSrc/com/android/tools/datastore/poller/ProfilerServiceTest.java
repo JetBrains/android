@@ -20,7 +20,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
@@ -114,25 +114,25 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetTimes() throws Exception {
-    StreamObserver<Profiler.TimeResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getCurrentTime(Profiler.TimeRequest.getDefaultInstance(), observer);
-    validateResponse(observer, Profiler.TimeResponse.getDefaultInstance());
+    StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getCurrentTime(TimeRequest.getDefaultInstance(), observer);
+    validateResponse(observer, TimeResponse.getDefaultInstance());
   }
 
   @Test
   public void testGetVersion() throws Exception {
-    StreamObserver<Profiler.VersionResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getVersion(Profiler.VersionRequest.getDefaultInstance(), observer);
-    validateResponse(observer, Profiler.VersionResponse.getDefaultInstance());
+    StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getVersion(VersionRequest.getDefaultInstance(), observer);
+    validateResponse(observer, VersionResponse.getDefaultInstance());
   }
 
   @Test
   public void testGetDevices() throws Exception {
-    StreamObserver<Profiler.GetDevicesResponse> observer = mock(StreamObserver.class);
-    Profiler.GetDevicesResponse expected = Profiler.GetDevicesResponse.newBuilder()
+    StreamObserver<GetDevicesResponse> observer = mock(StreamObserver.class);
+    GetDevicesResponse expected = GetDevicesResponse.newBuilder()
       .addDevice(DEVICE)
       .build();
-    myProfilerService.getDevices(Profiler.GetDevicesRequest.getDefaultInstance(), observer);
+    myProfilerService.getDevices(GetDevicesRequest.getDefaultInstance(), observer);
     validateResponse(observer, expected);
   }
 
@@ -140,11 +140,11 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   public void testDeviceDisconnect() throws Exception {
     myService.shutdownServer();
     getPollTicker().run();
-    StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
-    Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
+    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
+    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
       .build();
-    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
+    GetProcessesRequest request = GetProcessesRequest.newBuilder()
       .setDeviceId(DEVICE.getDeviceId())
       .build();
     myProfilerService.getProcesses(request, observer);
@@ -153,11 +153,11 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetProcesses() throws Exception {
-    StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
-    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
+    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
+    GetProcessesRequest request = GetProcessesRequest.newBuilder()
       .setDeviceId(DEVICE.getDeviceId())
       .build();
-    Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
+    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS)
       .build();
     myProfilerService.getProcesses(request, observer);
@@ -166,11 +166,11 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetDeadProcesses() throws Exception {
-    StreamObserver<Profiler.GetProcessesResponse> observer = mock(StreamObserver.class);
-    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder()
+    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
+    GetProcessesRequest request = GetProcessesRequest.newBuilder()
       .setDeviceId(DEVICE.getDeviceId())
       .build();
-    Profiler.GetProcessesResponse expected = Profiler.GetProcessesResponse.newBuilder()
+    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS)
       .build();
     myProfilerService.getProcesses(request, observer);
@@ -182,7 +182,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setProcessToReturn(FINAL_PROCESS);
     getPollTicker().run();
     observer = mock(StreamObserver.class);
-    expected = Profiler.GetProcessesResponse.newBuilder()
+    expected = GetProcessesResponse.newBuilder()
       .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
       .addProcess(FINAL_PROCESS)
       .build();
@@ -192,22 +192,22 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Test
   public void testGetFile() throws Exception {
-    StreamObserver<Profiler.BytesResponse> observer1 = mock(StreamObserver.class);
-    Profiler.BytesRequest request1 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_1).build();
-    Profiler.BytesResponse response1 = Profiler.BytesResponse.newBuilder().setContents(BYTES_1).build();
+    StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
+    BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
+    BytesResponse response1 = BytesResponse.newBuilder().setContents(BYTES_1).build();
     myProfilerService.getBytes(request1, observer1);
     validateResponse(observer1, response1);
 
-    StreamObserver<Profiler.BytesResponse> observer2 = mock(StreamObserver.class);
-    Profiler.BytesRequest request2 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_2).build();
-    Profiler.BytesResponse response2 = Profiler.BytesResponse.newBuilder().setContents(BYTES_2).build();
+    StreamObserver<BytesResponse> observer2 = mock(StreamObserver.class);
+    BytesRequest request2 = BytesRequest.newBuilder().setId(BYTES_ID_2).build();
+    BytesResponse response2 = BytesResponse.newBuilder().setContents(BYTES_2).build();
     myProfilerService.getBytes(request2, observer2);
     validateResponse(observer2, response2);
 
-    StreamObserver<Profiler.BytesResponse> observerNoMatch = mock(StreamObserver.class);
-    Profiler.BytesRequest requestBad =
-      Profiler.BytesRequest.newBuilder().setId(BAD_ID).build();
-    Profiler.BytesResponse responseNoMatch = Profiler.BytesResponse.getDefaultInstance();
+    StreamObserver<BytesResponse> observerNoMatch = mock(StreamObserver.class);
+    BytesRequest requestBad =
+      BytesRequest.newBuilder().setId(BAD_ID).build();
+    BytesResponse responseNoMatch = BytesResponse.getDefaultInstance();
     myProfilerService.getBytes(requestBad, observerNoMatch);
     validateResponse(observerNoMatch, responseNoMatch);
   }
@@ -215,15 +215,15 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void testGetFileCached() throws Exception {
     // Pull data into the database cache.
-    StreamObserver<Profiler.BytesResponse> observer1 = mock(StreamObserver.class);
-    Profiler.BytesRequest request1 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_1).build();
-    Profiler.BytesResponse response1 = Profiler.BytesResponse.newBuilder().setContents(BYTES_1).build();
+    StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
+    BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
+    BytesResponse response1 = BytesResponse.newBuilder().setContents(BYTES_1).build();
     myProfilerService.getBytes(request1, observer1);
     validateResponse(observer1, response1);
 
-    StreamObserver<Profiler.BytesResponse> observer2 = mock(StreamObserver.class);
-    Profiler.BytesRequest request2 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_2).build();
-    Profiler.BytesResponse response2 = Profiler.BytesResponse.newBuilder().setContents(BYTES_2).build();
+    StreamObserver<BytesResponse> observer2 = mock(StreamObserver.class);
+    BytesRequest request2 = BytesRequest.newBuilder().setId(BYTES_ID_2).build();
+    BytesResponse response2 = BytesResponse.newBuilder().setContents(BYTES_2).build();
     myProfilerService.getBytes(request2, observer2);
     validateResponse(observer2, response2);
 
@@ -240,64 +240,64 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observer2, response2);
 
     // Validate that bad instances still return default.
-    StreamObserver<Profiler.BytesResponse> observerNoMatch = mock(StreamObserver.class);
-    Profiler.BytesRequest requestBad =
-      Profiler.BytesRequest.newBuilder().setId(BAD_ID).build();
-    Profiler.BytesResponse responseNoMatch = Profiler.BytesResponse.getDefaultInstance();
+    StreamObserver<BytesResponse> observerNoMatch = mock(StreamObserver.class);
+    BytesRequest requestBad =
+      BytesRequest.newBuilder().setId(BAD_ID).build();
+    BytesResponse responseNoMatch = BytesResponse.getDefaultInstance();
     myProfilerService.getBytes(requestBad, observerNoMatch);
     validateResponse(observerNoMatch, responseNoMatch);
   }
 
   @Test
   public void testGetSessionsAfterBeginEndSession() throws Exception {
-    StreamObserver<Profiler.GetSessionsResponse> observer = mock(StreamObserver.class);
+    StreamObserver<GetSessionsResponse> observer = mock(StreamObserver.class);
 
     // GetSessions should return an empty list initially
-    Profiler.GetSessionsResponse response = Profiler.GetSessionsResponse.getDefaultInstance();
-    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    GetSessionsResponse response = GetSessionsResponse.getDefaultInstance();
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
     // Calling beginSession should put the Session into the ProfilerTable
     myFakeService.setSessionToReturn(START_SESSION_1);
-    myProfilerService.beginSession(Profiler.BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myProfilerService.beginSession(BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = Profiler.GetSessionsResponse.newBuilder()
+    response = GetSessionsResponse.newBuilder()
       .addSessions(START_SESSION_1)
       .build();
-    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
     // Beginning another session
     myFakeService.setSessionToReturn(START_SESSION_2);
-    myProfilerService.beginSession(Profiler.BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myProfilerService.beginSession(BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = Profiler.GetSessionsResponse.newBuilder()
+    response = GetSessionsResponse.newBuilder()
       .addSessions(START_SESSION_1)
       .addSessions(START_SESSION_2)
       .build();
-    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
     // End the first session
     myFakeService.setSessionToReturn(END_SESSION_1);
-    myProfilerService.endSession(Profiler.EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myProfilerService.endSession(EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = Profiler.GetSessionsResponse.newBuilder()
+    response = GetSessionsResponse.newBuilder()
       .addSessions(END_SESSION_1)
       .addSessions(START_SESSION_2)
       .build();
-    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
     // End the second session
     myFakeService.setSessionToReturn(END_SESSION_2);
-    myProfilerService.endSession(Profiler.EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
+    myProfilerService.endSession(EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = Profiler.GetSessionsResponse.newBuilder()
+    response = GetSessionsResponse.newBuilder()
       .addSessions(END_SESSION_1)
       .addSessions(END_SESSION_2)
       .build();
-    myProfilerService.getSessions(Profiler.GetSessionsRequest.getDefaultInstance(), observer);
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
   }
 
@@ -318,20 +318,20 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
-      responseObserver.onNext(Profiler.TimeResponse.getDefaultInstance());
+    public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
+      responseObserver.onNext(TimeResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
-      responseObserver.onNext(Profiler.VersionResponse.getDefaultInstance());
+    public void getVersion(VersionRequest request, StreamObserver<VersionResponse> responseObserver) {
+      responseObserver.onNext(VersionResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
-      Profiler.BytesResponse.Builder builder = Profiler.BytesResponse.newBuilder();
+    public void getBytes(BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
+      BytesResponse.Builder builder = BytesResponse.newBuilder();
       ByteString bytes = PAYLOAD_CACHE.get(request.getId());
       if (bytes != null) {
         builder.setContents(bytes);
@@ -341,20 +341,20 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
+    public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
+    public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void beginSession(Profiler.BeginSessionRequest request, StreamObserver<Profiler.BeginSessionResponse> responseObserver) {
-      Profiler.BeginSessionResponse.Builder responseBuilder = Profiler.BeginSessionResponse.newBuilder();
+    public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
+      BeginSessionResponse.Builder responseBuilder = BeginSessionResponse.newBuilder();
       if (mySessionToReturn != null) {
         responseBuilder.setSession(mySessionToReturn);
       }
@@ -363,8 +363,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void endSession(Profiler.EndSessionRequest request, StreamObserver<Profiler.EndSessionResponse> responseObserver) {
-      Profiler.EndSessionResponse.Builder responseBuilder = Profiler.EndSessionResponse.newBuilder();
+    public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
+      EndSessionResponse.Builder responseBuilder = EndSessionResponse.newBuilder();
       if (mySessionToReturn != null) {
         responseBuilder.setSession(mySessionToReturn);
       }
@@ -373,8 +373,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getAgentStatus(Profiler.AgentStatusRequest request, StreamObserver<Profiler.AgentStatusResponse> responseObserver) {
-      responseObserver.onNext(Profiler.AgentStatusResponse.getDefaultInstance());
+    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
+      responseObserver.onNext(AgentStatusResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }

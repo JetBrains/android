@@ -24,10 +24,10 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
@@ -308,9 +308,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void requestHeapDump() {
-    MemoryProfiler.TriggerHeapDumpResponse response =
+    TriggerHeapDumpResponse response =
       myClient
-        .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
+        .triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myPendingCaptureStartTime = response.getInfo().getStartTime();
@@ -332,7 +332,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void forceGarbageCollection() {
     myClient.forceGarbageCollection(
-      MemoryProfiler.ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build());
+      ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build());
   }
 
   public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
@@ -345,15 +345,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   public void trackAllocations(boolean enabled) {
     // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device time.
-    Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
+    TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
 
     try {
       TrackAllocationsResponse response = myClient.trackAllocations(
-        MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+        TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
           .setEnabled(enabled).build());
-      MemoryProfiler.AllocationsInfo info = response.getInfo();
+      AllocationsInfo info = response.getInfo();
       switch (response.getStatus()) {
         case SUCCESS:
           myTrackingAllocations = enabled;
@@ -391,8 +391,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public long getAllocationTrackingElapsedTimeNs() {
     if (myTrackingAllocations) {
-      Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-        .getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
+      TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+        .getCurrentTime(TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
       return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
     }
     return INVALID_START_TIME;

@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
@@ -363,7 +364,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void startCapturing() {
     ProfilingConfiguration config = myProfilerModel.getProfilingConfiguration();
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-    CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
+    CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
       .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setMode(config.getMode())
@@ -382,9 +383,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
-  private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response,
+  private void startCapturingCallback(CpuProfilingAppStartResponse response,
                                       ProfilingConfiguration profilingConfiguration) {
-    if (response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
+    if (response.getStatus().equals(CpuProfilingAppStartResponse.Status.SUCCESS)) {
       myProfilerModel.setActiveConfig(profilingConfiguration.getProfilerType(), profilingConfiguration.getMode(),
                                       profilingConfiguration.getProfilingBufferSizeInMb(),
                                       profilingConfiguration.getProfilingSamplingIntervalUs());
@@ -404,7 +405,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void stopCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-    CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
+    CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
       .setProcessId(getStudioProfilers().getProcessId())
       .setProfilerType(myProfilerModel.getActiveConfig().getProfilerType())
       .setSession(getStudioProfilers().getSession())
@@ -421,9 +422,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
   }
 
-  private void stopCapturingCallback(CpuProfiler.CpuProfilingAppStopResponse response) {
+  private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerModel.getActiveConfig());
-    if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
+    if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
       setCaptureState(CaptureState.IDLE);
@@ -514,14 +515,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
                     .build());
     }
 
-    CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
+    TraceInfo traceInfo = TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(captureFrom)
       .setToTimestamp(captureTo)
       .setProfilerType(myProfilerModel.getActiveConfig().getProfilerType())
       .addAllThreads(threads).build();
 
-    CpuProfiler.SaveTraceInfoRequest request = CpuProfiler.SaveTraceInfoRequest.newBuilder()
+    SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
       .setProcessId(getStudioProfilers().getProcessId())
       .setTraceInfo(traceInfo)
@@ -538,13 +539,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private void updateProfilingState() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-    CpuProfiler.ProfilingStateRequest request = CpuProfiler.ProfilingStateRequest.newBuilder()
+    ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
       .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setTimestamp(currentTimeNs())
       .build();
     // TODO: move this call to a separate thread if we identify it's not fast enough.
-    CpuProfiler.ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
+    ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {
       // Make sure to consider the elapsed profiling time, obtained from the device, when setting the capture start time
@@ -555,7 +556,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
 
       // Sets the properties of myActiveConfig
-      CpuProfiler.CpuProfilingAppStartRequest startRequest = response.getStartRequest();
+      CpuProfilingAppStartRequest startRequest = response.getStartRequest();
       myProfilerModel.setActiveConfig(startRequest.getProfilerType(), startRequest.getMode(), startRequest.getBufferSizeInMb(),
                                       startRequest.getSamplingIntervalUs());
     }
@@ -743,15 +744,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (capture == null) {
       // Parser doesn't have any information regarding the capture. We need to request
       // trace data from CPU service and tell the parser to start parsing it.
-      CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
+      GetTraceRequest request = GetTraceRequest.newBuilder()
         .setProcessId(getStudioProfilers().getProcessId())
         .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
         .build();
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
       // TODO: investigate if this call can take too much time as it's blocking.
-      CpuProfiler.GetTraceResponse trace = cpuService.getTrace(request);
-      if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
+      GetTraceResponse trace = cpuService.getTrace(request);
+      if (trace.getStatus() == GetTraceResponse.Status.SUCCESS) {
         capture = myCaptureParser.parse(traceId, getStudioProfilers().getProcessId(), trace.getData(), trace.getProfilerType());
       }
     }
@@ -789,14 +790,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-      CpuProfiler.GetTraceInfoResponse response = cpuService.getTraceInfo(
-        CpuProfiler.GetTraceInfoRequest.newBuilder().
+      GetTraceInfoResponse response = cpuService.getTraceInfo(
+        GetTraceInfoRequest.newBuilder().
           setProcessId(getStudioProfilers().getProcessId()).
           setSession(getStudioProfilers().getSession()).
           setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (CpuProfiler.TraceInfo protoTraceInfo : response.getTraceInfoList()) {
+      for (TraceInfo protoTraceInfo : response.getTraceInfoList()) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
         seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }

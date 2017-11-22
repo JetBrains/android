@@ -18,6 +18,7 @@ package com.android.tools.datastore;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Profiler.*;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerServiceDefinition;
@@ -45,7 +46,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   private static final String SERVICE_PATH = "/tmp/";
   private static final String SERVICE_NAME = "DataStoreServiceTest";
   private static final String SERVER_NAME = "TestServer";
-  private static final Profiler.VersionResponse EXPECTED_VERSION = Profiler.VersionResponse.newBuilder().setVersion("TEST").build();
+  private static final VersionResponse EXPECTED_VERSION = VersionResponse.newBuilder().setVersion("TEST").build();
   private DataStoreService myDataStore;
   private Server myService;
 
@@ -100,7 +101,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       myDataStore.getProfilerClient(DeviceId.of(DEVICE.getDeviceId()));
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
     assertEquals(response, EXPECTED_VERSION);
   }
 
@@ -110,11 +111,11 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     myDataStore.connect(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
       ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
-    Profiler.VersionResponse response = stub.getVersion(Profiler.VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
+    VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build());
     assertEquals(response, EXPECTED_VERSION);
     myDataStore.disconnect(DeviceId.of(DEVICE.getDeviceId()));
     myExpectedException.expect(StatusRuntimeException.class);
-    stub.getVersion(Profiler.VersionRequest.getDefaultInstance());
+    stub.getVersion(VersionRequest.getDefaultInstance());
   }
 
   @Test
@@ -137,20 +138,20 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
     @Override
-    public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> responseObserver) {
+    public void getVersion(VersionRequest request, StreamObserver<VersionResponse> responseObserver) {
       responseObserver.onNext(EXPECTED_VERSION);
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
+    public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetProcessesResponse.getDefaultInstance());
+    public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(GetProcessesResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
