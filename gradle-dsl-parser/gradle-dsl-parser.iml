@@ -8,15 +8,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$APPLICATION_HOME_DIR$/redist/annotations-java8.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="core-api" />
     <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="groovy-psi" />
@@ -24,8 +15,8 @@
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
-    <orderEntry type="library" name="truth" level="project" />
-    <orderEntry type="library" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="project-system" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" name="Gradle" level="project" />
