@@ -21,7 +21,7 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
 import io.grpc.Channel;
@@ -52,7 +52,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> observer) {
+  public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
@@ -62,13 +62,13 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     }
     else {
       // Need to return something in the case of no device.
-      observer.onNext(Profiler.TimeResponse.getDefaultInstance());
+      observer.onNext(TimeResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
 
   @Override
-  public void getVersion(Profiler.VersionRequest request, StreamObserver<Profiler.VersionResponse> observer) {
+  public void getVersion(VersionRequest request, StreamObserver<VersionResponse> observer) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
       myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client != null) {
@@ -78,41 +78,41 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> observer) {
-    Profiler.GetDevicesResponse response = myTable.getDevices(request);
+  public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> observer) {
+    GetDevicesResponse response = myTable.getDevices(request);
     observer.onNext(response);
     observer.onCompleted();
   }
 
   @Override
-  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
-    Profiler.GetProcessesResponse response = myTable.getProcesses(request);
+  public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> observer) {
+    GetProcessesResponse response = myTable.getProcesses(request);
     observer.onNext(response);
     observer.onCompleted();
   }
 
   @Override
-  public void getAgentStatus(Profiler.AgentStatusRequest request, StreamObserver<Profiler.AgentStatusResponse> observer) {
+  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> observer) {
     observer.onNext(myTable.getAgentStatus(request));
     observer.onCompleted();
   }
 
   @Override
-  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
+  public void attachAgent(AgentAttachRequest request, StreamObserver<AgentAttachResponse> responseObserver) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
       myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
-    responseObserver.onNext(client == null ? Profiler.AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
+    responseObserver.onNext(client == null ? AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
     responseObserver.onCompleted();
   }
 
   @Override
-  public void beginSession(Profiler.BeginSessionRequest request, StreamObserver<Profiler.BeginSessionResponse> responseObserver) {
+  public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client == null) {
-      responseObserver.onNext(Profiler.BeginSessionResponse.getDefaultInstance());
+      responseObserver.onNext(BeginSessionResponse.getDefaultInstance());
     }
     else {
-      Profiler.BeginSessionResponse response = client.beginSession(request);
+      BeginSessionResponse response = client.beginSession(request);
       responseObserver.onNext(response);
 
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
@@ -123,13 +123,13 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void endSession(Profiler.EndSessionRequest request, StreamObserver<Profiler.EndSessionResponse> responseObserver) {
+  public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client == null) {
-      responseObserver.onNext(Profiler.EndSessionResponse.getDefaultInstance());
+      responseObserver.onNext(EndSessionResponse.getDefaultInstance());
     }
     else {
-      Profiler.EndSessionResponse response = client.endSession(request);
+      EndSessionResponse response = client.endSession(request);
       responseObserver.onNext(response);
 
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
@@ -140,7 +140,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getSessions(Profiler.GetSessionsRequest request, StreamObserver<Profiler.GetSessionsResponse> responseObserver) {
+  public void getSessions(GetSessionsRequest request, StreamObserver<GetSessionsResponse> responseObserver) {
     responseObserver.onNext(myTable.getSessions(request));
     responseObserver.onCompleted();
   }
@@ -163,9 +163,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
+  public void getBytes(BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
     // TODO: Currently the cache is on demand, we want to look into caching all available files.
-    Profiler.BytesResponse response = myTable.getBytes(request);
+    BytesResponse response = myTable.getBytes(request);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
       myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
 
@@ -174,7 +174,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
       myTable.insertOrUpdateBytes(request.getId(), request.getSession(), response);
     }
     else if (response == null) {
-      response = Profiler.BytesResponse.getDefaultInstance();
+      response = BytesResponse.getDefaultInstance();
     }
 
     responseObserver.onNext(response);

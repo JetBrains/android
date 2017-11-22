@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -74,7 +74,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to obtain the device
-      Profiler.GetDevicesResponse devices = myServiceStub.getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+      GetDevicesResponse devices = myServiceStub.getDevices(GetDevicesRequest.getDefaultInstance());
       //TODO Remove set functions when we move functionality over to perfd.
       assert devices.getDeviceList().size() == 1;
       myProfilerDevice = profilerDeviceFromIDevice(device, devices.getDevice(0).toBuilder());
@@ -161,28 +161,28 @@ public class ProfilerServiceProxy extends PerfdProxyService
     AndroidDebugBridge.removeClientChangeListener(this);
   }
 
-  public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-    Profiler.GetDevicesResponse response = Profiler.GetDevicesResponse.newBuilder().addDevice(myProfilerDevice).build();
+  public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
+    GetDevicesResponse response = GetDevicesResponse.newBuilder().addDevice(myProfilerDevice).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
-  public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
-    Profiler.TimeResponse response;
+  public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
+    TimeResponse response;
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to get the current time
       response = myServiceStub.getCurrentTime(request);
     }
     else {
       // otherwise, return a default (any) instance of TimeResponse
-      response = Profiler.TimeResponse.getDefaultInstance();
+      response = TimeResponse.getDefaultInstance();
     }
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
-  public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
+  public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
+    GetProcessesResponse response = GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -218,15 +218,15 @@ public class ProfilerServiceProxy extends PerfdProxyService
     Map<MethodDescriptor, ServerCallHandler> overrides = Maps.newHashMap();
     overrides.put(ProfilerServiceGrpc.METHOD_GET_DEVICES,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getDevices((Profiler.GetDevicesRequest)request, (StreamObserver)observer);
+                    getDevices((GetDevicesRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(ProfilerServiceGrpc.METHOD_GET_PROCESSES,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getProcesses((Profiler.GetProcessesRequest)request, (StreamObserver)observer);
+                    getProcesses((GetProcessesRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getCurrentTime((Profiler.TimeRequest)request, (StreamObserver)observer);
+                    getCurrentTime((TimeRequest)request, (StreamObserver)observer);
                   }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
@@ -268,9 +268,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     assert myDevice.isOnline();
 
-    Profiler.TimeResponse times;
+    TimeResponse times;
     try {
-      times = myServiceStub.getCurrentTime(Profiler.TimeRequest.newBuilder().setDeviceId(myProfilerDevice.getDeviceId()).build());
+      times = myServiceStub.getCurrentTime(TimeRequest.newBuilder().setDeviceId(myProfilerDevice.getDeviceId()).build());
     }
     catch (Exception e) {
       // Most likely the destination server went down, and we're in shut down/disconnect mode.

@@ -16,7 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.google.protobuf3jarjar.ByteString;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -125,19 +125,19 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     }
   }
 
-  public void insert(Common.Session session, CpuProfiler.CpuProfilerData data) {
+  public void insert(Common.Session session, CpuProfilerData data) {
     execute(CpuStatements.INSERT_CPU_DATA, data.getBasicInfo().getProcessId(), data.getBasicInfo().getEndTimestamp(), session,
             data.toByteArray());
   }
 
-  public List<CpuProfiler.CpuProfilerData> getCpuDataByRequest(CpuProfiler.CpuDataRequest request) {
-    List<CpuProfiler.CpuProfilerData> cpuData = new ArrayList<>();
+  public List<CpuProfilerData> getCpuDataByRequest(CpuDataRequest request) {
+    List<CpuProfilerData> cpuData = new ArrayList<>();
     try {
       ResultSet results =
         executeQuery(CpuStatements.QUERY_CPU_DATA, request.getProcessId(), request.getSession(), request.getStartTimestamp(),
                      request.getEndTimestamp());
       while (results.next()) {
-        CpuProfiler.CpuProfilerData.Builder data = CpuProfiler.CpuProfilerData.newBuilder();
+        CpuProfilerData.Builder data = CpuProfilerData.newBuilder();
         data.mergeFrom(results.getBytes(DATA_COLUMN));
         cpuData.add(data.build());
       }
@@ -152,8 +152,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                                Common.Session session,
                                int tid,
                                String name,
-                               List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities) {
-    for (CpuProfiler.GetThreadsResponse.ThreadActivity activity : activities) {
+                               List<GetThreadsResponse.ThreadActivity> activities) {
+    for (GetThreadsResponse.ThreadActivity activity : activities) {
       // TODO: optimize it by adding the states in batches
       execute(CpuStatements.INSERT_THREAD_ACTIVITY, appId, session, tid, activity.getTimestamp(), activity.getNewState().toString(), name);
     }
@@ -162,17 +162,17 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   public void insertSnapshot(long appId,
                              Common.Session session,
                              long timestamp,
-                             List<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots) {
+                             List<GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots) {
     // For now, insert it as activity. TODO: differentiate the concepts of snapshot and activity
-    for (CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot snapshot : snapshots) {
+    for (GetThreadsResponse.ThreadSnapshot.Snapshot snapshot : snapshots) {
       execute(CpuStatements.INSERT_THREAD_ACTIVITY,
               appId, session, snapshot.getTid(), timestamp, snapshot.getState().toString(), snapshot.getName());
     }
   }
 
-  public List<CpuProfiler.GetThreadsResponse.Thread> getThreadsDataByRequest(CpuProfiler.GetThreadsRequest request) {
+  public List<GetThreadsResponse.Thread> getThreadsDataByRequest(GetThreadsRequest request) {
     // Use a TreeMap to preserve the threads sorting order (by tid)
-    Map<Integer, CpuProfiler.GetThreadsResponse.Thread.Builder> threads = new TreeMap<>();
+    Map<Integer, GetThreadsResponse.Thread.Builder> threads = new TreeMap<>();
     try {
       ResultSet activities = executeQuery(CpuStatements.QUERY_THREAD_ACTIVITIES,
                                           // Used as the timestamp of the states that happened before the request
@@ -192,14 +192,14 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         int tid = activities.getInt(1);
         if (!threads.containsKey(tid)) {
           // Thread name should be the second column
-          CpuProfiler.GetThreadsResponse.Thread.Builder thread = createThreadBuilder(tid, activities.getString(2));
+          GetThreadsResponse.Thread.Builder thread = createThreadBuilder(tid, activities.getString(2));
           threads.put(tid, thread);
         }
         // State should be the third column
-        CpuProfiler.GetThreadsResponse.State state = CpuProfiler.GetThreadsResponse.State.valueOf(activities.getString(3));
+        GetThreadsResponse.State state = GetThreadsResponse.State.valueOf(activities.getString(3));
         // Timestamp should be the fourth column
-        CpuProfiler.GetThreadsResponse.ThreadActivity.Builder activity =
-          CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setNewState(state).setTimestamp(activities.getLong(4));
+        GetThreadsResponse.ThreadActivity.Builder activity =
+          GetThreadsResponse.ThreadActivity.newBuilder().setNewState(state).setTimestamp(activities.getLong(4));
         threads.get(tid).addActivities(activity.build());
       }
     }
@@ -208,15 +208,15 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     }
 
     // Add all threads that should be included in the response.
-    List<CpuProfiler.GetThreadsResponse.Thread> cpuData = new ArrayList<>();
-    for (CpuProfiler.GetThreadsResponse.Thread.Builder thread : threads.values()) {
+    List<GetThreadsResponse.Thread> cpuData = new ArrayList<>();
+    for (GetThreadsResponse.Thread.Builder thread : threads.values()) {
       cpuData.add(thread.build());
     }
     return cpuData;
   }
 
-  public List<CpuProfiler.TraceInfo> getTraceInfo(CpuProfiler.GetTraceInfoRequest request) {
-    List<CpuProfiler.TraceInfo> traceInfo = new ArrayList<>();
+  public List<TraceInfo> getTraceInfo(GetTraceInfoRequest request) {
+    List<TraceInfo> traceInfo = new ArrayList<>();
     try {
       ResultSet results =
         executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getProcessId(), request.getSession(), request.getToTimestamp(),
@@ -226,7 +226,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         // QUERY_TRACE_INFO will return only one column.
         byte[] data = results.getBytes(1);
         if (data != null) {
-          traceInfo.add(CpuProfiler.TraceInfo.parseFrom(data));
+          traceInfo.add(TraceInfo.parseFrom(data));
         }
       }
     }
@@ -243,8 +243,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       if (results.next()) {
         byte[] data = results.getBytes(DATA_COLUMN);
         if (data != null) {
-          CpuProfiler.CpuProfilerType profilerType =
-            CpuProfiler.CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
+          CpuProfilerType profilerType =
+            CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
           return new TraceData(ByteString.copyFrom(data), profilerType);
         }
       }
@@ -255,17 +255,17 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(int appId, int traceId, Common.Session session, CpuProfiler.CpuProfilerType profilerType, ByteString data) {
+  public void insertTrace(int appId, int traceId, Common.Session session, CpuProfilerType profilerType, ByteString data) {
     execute(CpuStatements.INSERT_TRACE_DATA, appId, traceId, session, profilerType.toString(), data.toByteArray());
   }
 
-  public void insertTraceInfo(int appId, CpuProfiler.TraceInfo trace, Common.Session session) {
+  public void insertTraceInfo(int appId, TraceInfo trace, Common.Session session) {
     execute(CpuStatements.INSERT_TRACE_INFO, appId, session, trace.getFromTimestamp(), trace.getToTimestamp(),
             trace.toByteArray());
   }
 
-  private static CpuProfiler.GetThreadsResponse.Thread.Builder createThreadBuilder(int tid, String name) {
-    CpuProfiler.GetThreadsResponse.Thread.Builder thread = CpuProfiler.GetThreadsResponse.Thread.newBuilder();
+  private static GetThreadsResponse.Thread.Builder createThreadBuilder(int tid, String name) {
+    GetThreadsResponse.Thread.Builder thread = GetThreadsResponse.Thread.newBuilder();
     thread.setTid(tid);
     thread.setName(name);
     return thread;
@@ -276,9 +276,9 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
    */
   public static class TraceData {
     private final ByteString myTraceBytes;
-    private final CpuProfiler.CpuProfilerType myProfilerType;
+    private final CpuProfilerType myProfilerType;
 
-    public TraceData(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType) {
+    public TraceData(ByteString traceBytes, CpuProfilerType profilerType) {
       myTraceBytes = traceBytes;
       myProfilerType = profilerType;
     }
@@ -287,7 +287,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       return myTraceBytes;
     }
 
-    public CpuProfiler.CpuProfilerType getProfilerType() {
+    public CpuProfilerType getProfilerType() {
       return myProfilerType;
     }
   }

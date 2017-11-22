@@ -18,7 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +74,7 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
   }
 
-  public void setActiveConfig(CpuProfiler.CpuProfilerType profilerType, CpuProfiler.CpuProfilingAppStartRequest.Mode mode,
+  public void setActiveConfig(CpuProfilerType profilerType, CpuProfilingAppStartRequest.Mode mode,
                               int bufferSizeLimitMb, int samplingIntervalUs) {
     // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
     // including their name, can be edited when a capture is still in progress. We only need to store the parameters used when starting
@@ -136,13 +137,13 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
       // If there is a preference for a native configuration, we select simpleperf.
       if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimplePerfEnabled) {
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF);
+          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.SIMPLEPERF);
       }
       // Otherwise we select ART sampled.
       else {
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfiler.CpuProfilerType.ART
-                                                 && pref.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
+                                                 && pref.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED);
       }
     }
   }
@@ -154,10 +155,10 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;
       }
-      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+      if (pref.getProfilerType() == CpuProfilerType.SIMPLEPERF) {
         return myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
       }
-      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      if (pref.getProfilerType() == CpuProfilerType.ATRACE) {
         return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
       }
       return true;

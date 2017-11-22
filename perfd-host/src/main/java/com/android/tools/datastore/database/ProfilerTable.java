@@ -17,7 +17,7 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -108,13 +108,13 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public Profiler.GetDevicesResponse getDevices(@NotNull Profiler.GetDevicesRequest request) {
+  public GetDevicesResponse getDevices(@NotNull GetDevicesRequest request) {
     if (isClosed()) {
-      return Profiler.GetDevicesResponse.getDefaultInstance();
+      return GetDevicesResponse.getDefaultInstance();
     }
 
     synchronized (myLock) {
-      Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
+      GetDevicesResponse.Builder responseBuilder = GetDevicesResponse.newBuilder();
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE);
         while (results.next()) {
@@ -129,12 +129,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public Profiler.GetProcessesResponse getProcesses(@NotNull Profiler.GetProcessesRequest request) {
+  public GetProcessesResponse getProcesses(@NotNull GetProcessesRequest request) {
     if (isClosed()) {
-      return Profiler.GetProcessesResponse.getDefaultInstance();
+      return GetProcessesResponse.getDefaultInstance();
     }
     synchronized (myLock) {
-      Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
+      GetProcessesResponse.Builder responseBuilder = GetProcessesResponse.newBuilder();
       try {
         ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getDeviceId(), Long.MIN_VALUE, Long.MAX_VALUE);
         while (results.next()) {
@@ -151,14 +151,14 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public Profiler.GetSessionsResponse getSessions(@NotNull Profiler.GetSessionsRequest request) {
+  public GetSessionsResponse getSessions(@NotNull GetSessionsRequest request) {
     if (isClosed()) {
-      return Profiler.GetSessionsResponse.getDefaultInstance();
+      return GetSessionsResponse.getDefaultInstance();
     }
 
     // Note - this is not being called from multiple threads at the moment.
     // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
-    Profiler.GetSessionsResponse.Builder responseBuilder = Profiler.GetSessionsResponse.newBuilder();
+    GetSessionsResponse.Builder responseBuilder = GetSessionsResponse.newBuilder();
     try {
       ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSIONS);
       while (results.next()) {
@@ -219,13 +219,13 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
    */
   public void updateAgentStatus(@NotNull DeviceId devicdId,
                                 @NotNull Common.Process process,
-                                @NotNull Profiler.AgentStatusResponse agentStatus) {
+                                @NotNull AgentStatusResponse agentStatus) {
     synchronized (myLock) {
       try {
         ResultSet results =
           executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid(), 0L);
         if (results.next()) {
-          Profiler.AgentStatusResponse.Status status = Profiler.AgentStatusResponse.Status.forNumber(results.getInt(1));
+          AgentStatusResponse.Status status = AgentStatusResponse.Status.forNumber(results.getInt(1));
           switch (status) {
             case DETACHED:
             case UNSPECIFIED:
@@ -247,9 +247,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public Profiler.AgentStatusResponse getAgentStatus(@NotNull Profiler.AgentStatusRequest request) {
+  public AgentStatusResponse getAgentStatus(@NotNull AgentStatusRequest request) {
     synchronized (myLock) {
-      Profiler.AgentStatusResponse.Builder responseBuilder = Profiler.AgentStatusResponse.newBuilder();
+      AgentStatusResponse.Builder responseBuilder = AgentStatusResponse.newBuilder();
       try {
         ResultSet results =
           executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getProcessId(), 0L);
@@ -266,17 +266,17 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
-  public void insertOrUpdateBytes(@NotNull String id, @NotNull Common.Session session, @NotNull Profiler.BytesResponse response) {
+  public void insertOrUpdateBytes(@NotNull String id, @NotNull Common.Session session, @NotNull BytesResponse response) {
     execute(ProfilerStatements.INSERT_BYTES, id, session, response.toByteArray());
   }
 
   @Nullable
-  public Profiler.BytesResponse getBytes(@NotNull Profiler.BytesRequest request) {
+  public BytesResponse getBytes(@NotNull BytesRequest request) {
     try {
       ResultSet results =
         executeQuery(ProfilerStatements.GET_BYTES, request.getId(), request.getSession());
       if (results.next()) {
-        return Profiler.BytesResponse.parseFrom(results.getBytes(1));
+        return BytesResponse.parseFrom(results.getBytes(1));
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {

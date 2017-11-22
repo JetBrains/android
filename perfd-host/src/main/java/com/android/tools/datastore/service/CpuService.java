@@ -22,7 +22,7 @@ import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -48,11 +48,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private final DataStoreService myService;
 
   @SuppressWarnings("unchecked")
-  private ResponseData<CpuProfiler.CpuDataResponse> myLastCpuResponse = ResponseData.createEmpty();
+  private ResponseData<CpuDataResponse> myLastCpuResponse = ResponseData.createEmpty();
   @SuppressWarnings("unchecked")
-  private ResponseData<CpuProfiler.GetThreadsResponse> myLastThreadsResponse = ResponseData.createEmpty();
+  private ResponseData<GetThreadsResponse> myLastThreadsResponse = ResponseData.createEmpty();
   @SuppressWarnings("unchecked")
-  private ResponseData<CpuProfiler.GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
+  private ResponseData<GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
   public CpuService(@NotNull DataStoreService dataStoreService,
                     Consumer<Runnable> fetchExecutor) {
@@ -62,11 +62,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> observer) {
+  public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> observer) {
     if (!myLastCpuResponse.matches(request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
-      CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-      List<CpuProfiler.CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
-      for (CpuProfiler.CpuProfilerData data : cpuData) {
+      CpuDataResponse.Builder response = CpuDataResponse.newBuilder();
+      List<CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
+      for (CpuProfilerData data : cpuData) {
         response.addData(data);
       }
       myLastCpuResponse = new ResponseData<>(request.getProcessId(),
@@ -80,10 +80,10 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> observer) {
+  public void getThreads(GetThreadsRequest request, StreamObserver<GetThreadsResponse> observer) {
     if (!myLastThreadsResponse.matches(
       request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
-      CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
+      GetThreadsResponse.Builder response = GetThreadsResponse.newBuilder();
       // TODO: make it consistent with perfd and return the activities and the snapshot separately
       response.addAllThreads(myCpuTable.getThreadsDataByRequest(request));
       myLastThreadsResponse = new ResponseData<>(request.getProcessId(),
@@ -98,11 +98,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
+  public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
     if (!myLastTraceInfoResponse.matches(
       request.getProcessId(), request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
-      CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-      List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceInfo(request);
+      GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
+      List<TraceInfo> responses = myCpuTable.getTraceInfo(request);
       response.addAllTraceInfo(responses);
       myLastTraceInfoResponse = new ResponseData<>(request.getProcessId(),
                                                    request.getSession(),
@@ -116,14 +116,14 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
+  public void saveTraceInfo(SaveTraceInfoRequest request, StreamObserver<EmptyCpuReply> responseObserver) {
     myCpuTable.insertTraceInfo(request.getProcessId(), request.getTraceInfo(), request.getSession());
-    responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
+    responseObserver.onNext(EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
   @Override
-  public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
+  public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
@@ -138,13 +138,13 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       myFetchExecutor.accept(myRunners.get(processId));
     }
     else {
-      observer.onNext(CpuProfiler.CpuStartResponse.getDefaultInstance());
+      observer.onNext(CpuStartResponse.getDefaultInstance());
       observer.onCompleted();
     }
   }
 
   @Override
-  public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> observer) {
+  public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> observer) {
     int processId = request.getProcessId();
     PollRunner runner = myRunners.remove(processId);
     if (runner != null) {
@@ -155,7 +155,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     // to stop monitoring the last app it was monitoring.
     CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (service == null) {
-      observer.onNext(CpuProfiler.CpuStopResponse.getDefaultInstance());
+      observer.onNext(CpuStopResponse.getDefaultInstance());
     }
     else {
       observer.onNext(service.stopMonitoringApp(request));
@@ -164,24 +164,24 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
-                                StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
+  public void startProfilingApp(CpuProfilingAppStartRequest request,
+                                StreamObserver<CpuProfilingAppStartResponse> observer) {
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startProfilingApp(request));
     }
     else {
-      observer.onNext(CpuProfiler.CpuProfilingAppStartResponse.getDefaultInstance());
+      observer.onNext(CpuProfilingAppStartResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
 
   @Override
-  public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
-                               StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
+  public void stopProfilingApp(CpuProfilingAppStopRequest request,
+                               StreamObserver<CpuProfilingAppStopResponse> observer) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
-    CpuProfiler.CpuProfilingAppStopResponse response = CpuProfiler.CpuProfilingAppStopResponse.getDefaultInstance();
+    CpuProfilingAppStopResponse response = CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
       myCpuTable.insertTrace(
@@ -192,27 +192,27 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void checkAppProfilingState(CpuProfiler.ProfilingStateRequest request,
-                                     StreamObserver<CpuProfiler.ProfilingStateResponse> observer) {
+  public void checkAppProfilingState(ProfilingStateRequest request,
+                                     StreamObserver<ProfilingStateResponse> observer) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.checkAppProfilingState(request));
     }
     else {
-      observer.onNext(CpuProfiler.ProfilingStateResponse.getDefaultInstance());
+      observer.onNext(ProfilingStateResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
 
   @Override
-  public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
+  public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> observer) {
     CpuTable.TraceData data = myCpuTable.getTraceData(request.getProcessId(), request.getTraceId(), request.getSession());
-    CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
+    GetTraceResponse.Builder builder = GetTraceResponse.newBuilder();
     if (data == null) {
-      builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
+      builder.setStatus(GetTraceResponse.Status.FAILURE);
     }
     else {
-      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data.getTraceBytes()).setProfilerType(data.getProfilerType());
+      builder.setStatus(GetTraceResponse.Status.SUCCESS).setData(data.getTraceBytes()).setProfilerType(data.getProfilerType());
     }
 
     observer.onNext(builder.build());
@@ -236,7 +236,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
    *
    * Often, there is no need for querying the database to get the response corresponding to the request made.
    * For example, in the threads monitor each thread has a ThreadStateDataSeries that will call
-   * {@link #getThreads(CpuProfiler.GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
+   * {@link #getThreads(GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
    * pid, and session). In these cases, we can query the database once and return a cached result for the subsequent calls.
    *
    * @param <T> type of the response stored
