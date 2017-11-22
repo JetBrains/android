@@ -151,7 +151,7 @@ class CaptureModel {
     while (!queue.isEmpty()) {
       CaptureNode curNode = queue.poll();
       assert curNode.getData() != null;
-      filters.add(curNode.getData().getClassName());
+      filters.add(curNode.getData().getClassOrNamespace());
       filters.add(curNode.getData().getFullName());
 
       queue.addAll(curNode.getChildren());
