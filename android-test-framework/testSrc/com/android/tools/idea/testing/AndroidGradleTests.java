@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.application.PathManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,14 +94,7 @@ public class AndroidGradleTests {
   public static String getLocalRepositories() {
     String path = "prebuilts/tools/common/m2/repository";
 
-    File prebuiltsRepoDir;
-    if (TestUtils.runningFromBazel()) {
-      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
-      File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
-      prebuiltsRepoDir = new File(tmp, path);
-    } else {
-      prebuiltsRepoDir = getWorkspaceFile(path);
-    }
+    File prebuiltsRepoDir = getWorkspaceFile(path);
     String uri = prebuiltsRepoDir.toURI().toString();
     return "maven { url \"" + uri + "\" }\n";
   }
