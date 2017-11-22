@@ -41,7 +41,6 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ZoomLabelAction(mySurface));
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
     group.add(new ZoomToFitAction(mySurface));
-    // TODO group.add(new TogglePanningDialogAction(mySurface));
     return group;
   }
 

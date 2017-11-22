@@ -74,7 +74,6 @@ public class NlDesignSurface extends DesignSurface {
   private MockupEditor myMockupEditor;
   private boolean myCentered;
   private final boolean myInPreview;
-  private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
@@ -106,12 +105,6 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   public boolean isLayoutDisabled() {
     return myIsCanvasResizing;
-  }
-
-  @Override
-  public void activate() {
-    super.activate();
-    showPanZoomPanelIfRequired();
   }
 
   @NotNull
@@ -471,58 +464,6 @@ public class NlDesignSurface extends DesignSurface {
   public MockupEditor getMockupEditor() {
     return myMockupEditor;
   }
-
-  private void setPanZoomPanel(@Nullable PanZoomPanel panZoomPanel) {
-    myPanZoomPanel = new WeakReference<>(panZoomPanel);
-  }
-
-  @Nullable
-  public PanZoomPanel getPanZoomPanel() {
-    return myPanZoomPanel.get();
-  }
-
-  /**
-   * Shows the {@link PanZoomPanel} if the {@link PropertiesComponent} {@link PanZoomPanel#PROP_OPEN} is true
-   */
-  private void showPanZoomPanelIfRequired() {
-    if (PanZoomPanel.isPropertyComponentOpen()) {
-      setPanZoomPanelVisible(true);
-    }
-  }
-
-  /**
-   * If show is true, displays the {@link PanZoomPanel}.
-   *
-   * If the {@link DesignSurface} is not shows yet, it register a callback that will show the {@link PanZoomPanel}
-   * once the {@link DesignSurface} is visible, otherwise it shows it directly.
-   */
-  public void setPanZoomPanelVisible(boolean show) {
-    PanZoomPanel panel = myPanZoomPanel.get();
-    if (show) {
-      if (panel == null) {
-        panel = new PanZoomPanel(this);
-      }
-      setPanZoomPanel(panel);
-      if (isShowing()) {
-        panel.showPopup();
-      }
-      else {
-        PanZoomPanel finalPanel = panel;
-        ComponentAdapter adapter = new ComponentAdapter() {
-          @Override
-          public void componentShown(ComponentEvent e) {
-            finalPanel.showPopup();
-            removeComponentListener(this);
-          }
-        };
-        addComponentListener(adapter);
-      }
-    }
-    else if (panel != null) {
-      panel.closePopup();
-    }
-  }
-
 
   /**
    * Notifies the design surface that the given screen view (which must be showing in this design surface)
