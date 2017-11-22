@@ -24,8 +24,6 @@
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="module" module-name="ddmlib" />
     <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="artwork" />

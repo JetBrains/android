@@ -29,8 +29,6 @@
     <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
     <orderEntry type="module" module-name="designer" scope="TEST" />
     <orderEntry type="module" module-name="flags" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-shared" />
-    <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="artwork" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
