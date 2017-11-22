@@ -172,6 +172,8 @@ public class IssueView extends JPanel {
     myIsExpanded = expanded;
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
+    myContainerIssuePanel.revalidate();
+    myContainerIssuePanel.repaint();
   }
 
   /**
@@ -265,6 +267,17 @@ public class IssueView extends JPanel {
   @NotNull
   FixEntry[] getFixEntries() {
     return Arrays.copyOf(myFixPanel.getComponents(), myFixPanel.getComponentCount(), FixEntry[].class);
+  }
+
+  /**
+   * Get the x coordinates of each columns of this view
+   *
+   * @return An array of the x coordinates for each columns
+   * from left to right
+   */
+  @NotNull
+  int[] getColumsX() {
+    return new int[]{myExpandIcon.getX(), mySourceLabel.getX()};
   }
 
   @SuppressWarnings("unused") // Used in the design form
