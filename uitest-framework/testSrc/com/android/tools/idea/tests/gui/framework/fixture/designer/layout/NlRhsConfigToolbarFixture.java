@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
@@ -43,5 +47,20 @@ public class NlRhsConfigToolbarFixture {
     ActionButton zoomToFit =
       waitUntilShowingAndEnabled(robot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, "Zoom to Fit Screen (0)"));
     new ActionButtonFixture(robot, zoomToFit).click();
+  }
+
+  public void openIssuePanel() {
+    Robot robot = myNlEditorFixture.robot();
+    ActionButton button = waitUntilShowing(
+      robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+        @Override
+        protected boolean isMatching(@NotNull ActionButton component) {
+          String text = component.getAction().getTemplatePresentation().getText();
+          return text != null && (text.equals(IssueNotificationAction.SHOW_ISSUE)
+                                  || text.equals(IssueNotificationAction.NO_ISSUE));
+        }
+      });
+    new ActionButtonFixture(robot, button).click();
+    waitUntilShowing(robot, Matchers.byType(IssuePanel.class));
   }
 }

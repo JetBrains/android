@@ -76,15 +76,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ZoomLabelAction(mySurface));
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
     group.add(new SetZoomAction(mySurface, ZoomType.FIT));
-
-    return group;
-  }
-
-  @NotNull
-  @Override
-  protected ActionGroup getEastGroup() {
-    DefaultActionGroup group = new DefaultActionGroup();
-
+    group.addSeparator();
     group.add(new IssueNotificationAction(mySurface));
 
     return group;
