@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleCleanupStep;
 import com.intellij.facet.ModifiableFacetModel;
@@ -23,6 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
 
@@ -33,7 +35,11 @@ public class NdkModuleCleanupStep extends ModuleCleanupStep {
     ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
     removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
 
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-    removeExistingContentEntries(moduleModel);
+    // remove existing content entries only in android modules
+    GradleFacet facet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());
+    if (facet != null) {
+      ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+      removeExistingContentEntries(moduleModel);
+    }
   }
 }
