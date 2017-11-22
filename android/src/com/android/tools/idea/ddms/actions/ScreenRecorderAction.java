@@ -17,8 +17,14 @@
 package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.DeviceStateCache;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
@@ -32,6 +38,7 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
 
   private final Project myProject;
   private final DeviceStateCache<CompletableFuture> myCache;
+  private boolean mUseEmuScreenRecording = false;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
     super(context,
@@ -50,6 +57,19 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
     }
 
     IDevice device = myDeviceContext.getSelectedDevice();
+
+    // Use emulator recording feature if it is supported.
+    if (device.isEmulator()) {
+      AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+      mUseEmuScreenRecording = EmulatorAdvFeatures.emulatorSupportsScreenRecording(
+                                            handler,
+                                            new StudioLoggerProgressIndicator(ScreenRecorderAction.class),
+                                            new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
+      if (mUseEmuScreenRecording) {
+        return true;
+      }
+    }
+
     CompletableFuture<Boolean> cf = myCache.get(device, PKG_NAME);
     // first time execution for this device, async query if device supports recording and save it in the cache.
     if (cf == null) {
@@ -63,6 +83,6 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
 
   @Override
   protected void performAction(@NotNull IDevice device) {
-    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device).performAction();
+    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, mUseEmuScreenRecording).performAction();
   }
 }
