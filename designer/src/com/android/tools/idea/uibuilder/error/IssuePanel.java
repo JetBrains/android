@@ -193,17 +193,9 @@ public class IssuePanel extends JPanel implements Disposable {
 
   @NotNull
   private JComponent createTitlePanel(@NotNull JBLabel titleLabel) {
-    JBCheckBox checkBox = new JBCheckBox(SHOW_ISSUES_CHECKBOX_TEXT,
-                                         AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
-    checkBox.addItemListener(e -> {
-      AndroidEditorSettings.getInstance().getGlobalState()
-        .setShowLint(e.getStateChange() == ItemEvent.SELECTED);
-      mySurface.repaint();
-    });
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);
     JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    rightPanel.add(checkBox);
     rightPanel.add(createToolbar().getComponent());
     titlePanel.add(rightPanel, BorderLayout.EAST);
     titlePanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
