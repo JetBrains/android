@@ -208,10 +208,33 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
 
-    myFrontCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
-    myBackCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
+            AndroidSdks.getInstance().tryToChooseSdkHandler(),
+            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
+            new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+
+    setupCameraComboBox(myFrontCameraCombo, false);
+    setupCameraComboBox(myBackCameraCombo, supportsVirtualCamera);
+
     mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
     myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
+  }
+
+  private static void setupCameraComboBox(JComboBox comboBox, boolean withVirtualScene) {
+    AvdCamera[] allCameras = AvdCamera.values();
+    if (!withVirtualScene) {
+      List<AvdCamera> allCamerasButVirtualSceneList = new ArrayList(Arrays.asList(allCameras));
+      allCamerasButVirtualSceneList.remove(AvdCamera.VIRTUAL_SCENE);
+      comboBox.setModel(new DefaultComboBoxModel(allCamerasButVirtualSceneList.toArray()));
+    } else {
+      comboBox.setModel(new DefaultComboBoxModel(allCameras));
+    }
+    comboBox.setToolTipText("<html>" +
+            "None - no camera installed for AVD<br>" +
+            (withVirtualScene ? "VirtualScene - use a virtual camera in a simulated environment<br>" : "") +
+            "Emulated - use a simulated camera<br>" +
+            "Device - use host computer webcam or built-in camera" +
+            "</html>");
   }
 
   private void initCpuCoreDropDown() {
