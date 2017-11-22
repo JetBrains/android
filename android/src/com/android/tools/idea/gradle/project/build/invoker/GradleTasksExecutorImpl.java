@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
-import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -39,7 +37,6 @@ import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -51,15 +48,12 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.project.VetoableProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerAdapter;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import net.jcip.annotations.GuardedBy;
@@ -67,12 +61,12 @@ import org.gradle.tooling.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,10 +77,13 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAN
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.ui.MessageType.*;
-import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ExceptionUtil.getMessage;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -111,7 +108,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   private volatile int myErrorCount;
-  private volatile int myWarningCount;
 
   @NotNull private volatile ProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
 
@@ -130,7 +126,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   @Nullable
   public NotificationInfo getNotificationInfo() {
     return new NotificationInfo(myErrorCount > 0 ? "Gradle Invocation (errors)" : "Gradle Invocation (success)",
-                                "Gradle Invocation Finished", myErrorCount + " Errors, " + myWarningCount + " Warnings", true);
+                                "Gradle Invocation Finished", myErrorCount + " Errors", true);
   }
 
   @Override
@@ -208,13 +204,12 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       ExternalSystemTaskId id = myRequest.getTaskId();
       ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
       CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
+
       if (taskListener != null) {
         taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
-        taskListener.onTaskOutput(
-          id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
+        taskListener.onTaskOutput(id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
       }
 
-      // TODO(alruiz): confirm this is still needed
       BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
@@ -322,24 +317,25 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         handleTaskExecutionError(e);
       }
       finally {
-        if (myBuildStopper.contains(id) && taskListener != null) {
+        if (myBuildStopper.contains(id)) {
           if (buildError != null) {
-            Throwable rootCause = getRootCause(buildError);
-            taskListener.onFailure(id, new ExternalSystemException(ExceptionUtil.getMessage(rootCause)));
+            if (wasBuildCanceled(buildError)) {
+              buildState.buildFinished(CANCELED);
+            }
+            else {
+              buildState.buildFinished(FAILED);
+            }
           }
-          else {
-            taskListener.onSuccess(id);
-          }
-          taskListener.onEnd(id);
-        }
 
-        // TODO(alruiz): Are both notifications needed?
-        if (buildError != null) {
-          if (wasBuildCanceled(buildError)) {
-            buildState.buildFinished(CANCELED);
-          }
-          else {
-            buildState.buildFinished(FAILED);
+          if (taskListener != null) {
+            if (buildError != null) {
+              Throwable rootCause = getRootCause(buildError);
+              taskListener.onFailure(id, new ExternalSystemException(getMessage(rootCause)));
+            }
+            else {
+              taskListener.onSuccess(id);
+            }
+            taskListener.onEnd(id);
           }
         }
 
@@ -352,11 +348,31 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
           if (isNotEmpty(testOutput)) {
-            gradleOutput = testOutput;
             application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
           }
         }
-        showGradleOutput(gradleOutput, stopwatch, buildError, model.get());
+
+        application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
+
+        if (!getProject().isDisposed()) {
+          List<Message> buildMessages = new ArrayList<>();
+          if (buildError instanceof BuildException) {
+            String message = buildError.getMessage();
+            Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
+            buildMessages.add(msg);
+          }
+          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model);
+          for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
+            task.execute(result);
+          }
+        }
+
+        if (!getProject().isDisposed()) {
+          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), Collections.emptyList(), buildError, model);
+          for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
+            task.execute(result);
+          }
+        }
       }
       return null;
     };
@@ -371,64 +387,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       }
     }
 
-    myHelper.execute( myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
-  }
-
-  private void showGradleOutput(@NotNull String gradleOutput,
-                                @NotNull Stopwatch stopwatch,
-                                @Nullable Throwable buildError,
-                                @Nullable Object model) {
-    Application application = ApplicationManager.getApplication();
-
-    List<Message> buildMessages = new ArrayList<>();
-    collectMessages(gradleOutput, buildMessages).doWhenDone(() -> {
-      stopwatch.stop();
-      add(buildMessages);
-
-      application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
-      if (getProject().isDisposed()) {
-        return;
-      }
-
-      GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model);
-      for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
-        task.execute(result);
-      }
-    });
+    myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
     return hasCause(buildError, BuildCancelledException.class);
-  }
-
-  @NotNull
-  private static ActionCallback collectMessages(@NotNull String gradleOutput, @NotNull List<Message> messages) {
-    ActionCallback callback = new ActionCallback();
-
-    Runnable task = () -> {
-      Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-      List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput, true);
-      messages.addAll(compilerMessages);
-      callback.setDone();
-    };
-
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode()) {
-      task.run();
-    }
-    else {
-      application.executeOnPooledThread(task);
-    }
-    return callback;
-  }
-
-  private void add(@NotNull List<Message> buildMessages) {
-    Runnable addMessageTask = () -> {
-      for (Message message : buildMessages) {
-        incrementErrorOrWarningCount(message);
-      }
-    };
-    TransactionGuard.submitTransaction(myProject, addMessageTask);
   }
 
   private void handleTaskExecutionError(@NotNull Throwable e) {
@@ -436,22 +399,13 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       getLogger().info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
       return;
     }
-    //noinspection ThrowableResultOfMethodCallIgnored
     Throwable rootCause = getRootCause(e);
     String error = nullToEmpty(rootCause.getMessage());
     if (error.contains("Build cancelled")) {
       return;
     }
     Runnable showErrorTask = () -> {
-      String msg = "Failed to complete Gradle execution.";
-      if (isEmpty(error)) {
-        // Unlikely that 'error' is null or empty, since now we catch the real exception.
-        msg += " Cause: unknown.";
-      }
-      else {
-        msg += "\n\nCause:\n" + error;
-      }
-      incrementErrorOrWarningCount(new Message(Message.Kind.ERROR, msg, SourceFilePosition.UNKNOWN));
+      myErrorCount++;
 
       // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
       // hyperlink to set the JDK home.
@@ -471,16 +425,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     invokeLaterIfProjectAlive(myRequest.getProject(), showErrorTask);
   }
 
-  private void incrementErrorOrWarningCount(@NotNull Message message) {
-    Message.Kind kind = message.getKind();
-    if (kind == Message.Kind.WARNING) {
-      myWarningCount++;
-    }
-    else if (kind == Message.Kind.ERROR) {
-      myErrorCount++;
-    }
-  }
-
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(GradleBuildInvoker.class);
@@ -490,7 +434,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     Project project = myRequest.getProject();
     if (!project.isDisposed()) {
       String statusMsg = createStatusMessage(durationMillis);
-      MessageType messageType = myErrorCount > 0 ? ERROR : myWarningCount > 0 ? WARNING : INFO;
+      MessageType messageType = myErrorCount > 0 ? ERROR : INFO;
       if (durationMillis > ONE_MINUTE_MS) {
         BALLOON_NOTIFICATION.createNotification(statusMsg, messageType).notify(project);
       }
@@ -505,15 +449,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   private String createStatusMessage(long durationMillis) {
     String message = "Gradle build finished";
     if (myErrorCount > 0) {
-      if (myWarningCount > 0) {
-        message += String.format(" with %d error(s) and %d warning(s)", myErrorCount, myWarningCount);
-      }
-      else {
-        message += String.format(" with %d error(s)", myErrorCount);
-      }
-    }
-    else if (myWarningCount > 0) {
-      message += String.format(" with %d warning(s)", myWarningCount);
+      message += String.format(" with %d error(s)", myErrorCount);
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;

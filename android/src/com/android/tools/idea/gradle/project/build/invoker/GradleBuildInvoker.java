@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.SdkConstants;
-import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
@@ -51,24 +46,18 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.gradle.tooling.BuildAction;
-import one.util.streamex.StreamEx;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.settings.GradleExtensionsSettings;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
@@ -76,14 +65,9 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.util.AndroidCommonUtils.isInstrumentationTestConfiguration;
-import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -293,69 +277,74 @@ public class GradleBuildInvoker {
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
-    List<BuildOutputParser> buildOutputParsers = Lists.newArrayList(new JavacOutputParser(), new KotlincOutputParser());
-    //noinspection IOResourceOpenedButNotSafelyClosed
-    final BuildOutputInstantReaderImpl buildOutputInstantReader =
-      new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
-    return new ExternalSystemTaskNotificationListenerAdapter() {
-      @Override
-      public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
-        AnAction restartAction = new AnAction() {
-          @Override
-          public void update(@NotNull AnActionEvent e) {
-            super.update(e);
-            Presentation p = e.getPresentation();
-            p.setEnabled(!myBuildStopper.contains(id));
-          }
+    List<BuildOutputParser> buildOutputParsers = Arrays.asList(new JavacOutputParser(), new KotlincOutputParser());
 
-          @Override
-          public void actionPerformed(AnActionEvent e) {
-            executeTasks(request);
-          }
-        };
-        restartAction.getTemplatePresentation().setText("Restart");
-        restartAction.getTemplatePresentation().setDescription("Restart");
-        restartAction.getTemplatePresentation().setIcon(AllIcons.Actions.Compile);
-        long eventTime = System.currentTimeMillis();
-        buildViewManager.onEvent(new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime), "running...")
-                                   .withRestartAction(restartAction)
-                                   .withExecutionFilter(new AndroidReRunBuildFilter(workingDir)));
-      }
+    try (BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+                                                                                                  buildOutputParsers)) {
+      return new ExternalSystemTaskNotificationListenerAdapter() {
+        @Override
+        public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
+          AnAction restartAction = new AnAction() {
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+              super.update(e);
+              e.getPresentation().setEnabled(!myBuildStopper.contains(id));
+            }
 
-      @Override
-      public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
-        if (event instanceof ExternalSystemTaskExecutionEvent) {
-          BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-          buildViewManager.onEvent(buildEvent);
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+              executeTasks(request);
+            }
+          };
+
+          Presentation presentation = restartAction.getTemplatePresentation();
+          presentation.setText("Restart");
+          presentation.setDescription("Restart");
+          presentation.setIcon(AllIcons.Actions.Compile);
+
+          long eventTime = System.currentTimeMillis();
+          StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
+                                                              "running...");
+          event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
+          buildViewManager.onEvent(event);
         }
-      }
 
-      @Override
-      public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-        buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
-        buildOutputInstantReader.append(text);
-      }
+        @Override
+        public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
+          if (event instanceof ExternalSystemTaskExecutionEvent) {
+            BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
+            buildViewManager.onEvent(buildEvent);
+          }
+        }
 
-      @Override
-      public void onEnd(@NotNull ExternalSystemTaskId id) {
-        buildOutputInstantReader.close();
-      }
+        @Override
+        public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+          buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
+          buildOutputInstantReader.append(text);
+        }
 
-      @Override
-      public void onSuccess(@NotNull ExternalSystemTaskId id) {
-        buildViewManager.onEvent(new FinishBuildEventImpl(
-          id, null, System.currentTimeMillis(), "completed successfully", new SuccessResultImpl()));
-      }
+        @Override
+        public void onEnd(@NotNull ExternalSystemTaskId id) {
+          buildOutputInstantReader.close();
+        }
 
-      @Override
-      public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
-        File projectDirPath = getBaseDirPath(myProject);
-        String projectName = projectDirPath.getName();
-        FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(e, projectName, GRADLE_SYSTEM_ID, myProject);
-        buildViewManager.onEvent(
-          new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
-      }
-    };
+        @Override
+        public void onSuccess(@NotNull ExternalSystemTaskId id) {
+          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "completed successfully",
+                                                                new SuccessResultImpl());
+          buildViewManager.onEvent(event);
+        }
+
+        @Override
+        public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
+          File projectDirPath = getBaseDirPath(myProject);
+          String projectName = projectDirPath.getName();
+          FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(e, projectName, GRADLE_SYSTEM_ID, myProject);
+          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult);
+          buildViewManager.onEvent(event);
+        }
+      };
+    }
   }
 
   public void executeTasks(@NotNull Request request) {
