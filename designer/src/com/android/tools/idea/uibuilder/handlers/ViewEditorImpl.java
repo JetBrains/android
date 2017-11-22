@@ -46,6 +46,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -202,21 +203,23 @@ public class ViewEditorImpl extends ViewEditor {
   private void createResourceFile(@NotNull String resourceDirectory,
                                   @NotNull String resourceFileName,
                                   @NotNull CharSequence resourceFileContent) {
-    try {
-      VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
+    WriteCommandAction.runWriteCommandAction(myModel.getProject(), () -> {
+      try {
+        VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
 
-      if (directory == null) {
-        return;
+        if (directory == null) {
+          return;
+        }
+
+        Document document = FileDocumentManager.getInstance().getDocument(directory.createChildData(this, resourceFileName));
+        assert document != null;
+
+        document.setText(resourceFileContent);
       }
-
-      Document document = FileDocumentManager.getInstance().getDocument(directory.createChildData(this, resourceFileName));
-      assert document != null;
-
-      document.setText(resourceFileContent);
-    }
-    catch (IOException exception) {
-      Logger.getInstance(ViewEditorImpl.class).warn(exception);
-    }
+      catch (IOException exception) {
+        Logger.getInstance(ViewEditorImpl.class).warn(exception);
+      }
+    });
   }
 
   @Nullable
