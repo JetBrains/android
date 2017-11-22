@@ -59,8 +59,17 @@ public class EmbeddedDistributionPaths {
       }
     }
     else {
-      String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-      repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
+      // trying to detect workspace root the same way as TestUtils#getWorkspaceRoot()
+      String workspace = System.getenv("TEST_WORKSPACE");
+      String workspaceParent = System.getenv("TEST_SRCDIR");
+      if (workspace != null && workspaceParent != null) {
+        File workspaceRoot = new File(workspaceParent, workspace);
+        repoPath = new File(workspaceRoot, toCanonicalPath(toSystemIndependentName("/prebuilts/tools/common/m2/repository")));
+      }
+      else {
+        String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
+        repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
+      }
     }
     getLog().info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
     if (repoPath.isDirectory()) {
