@@ -50,6 +50,7 @@ public class IntellijDataViewer implements DataViewer {
       editor.getSettings().setLineNumbersShown(false);
       editor.getSettings().setLineMarkerAreaShown(false);
       editor.getSettings().setFoldingOutlineShown(false);
+      editor.getSettings().setUseSoftWraps(true);
       if (contentType != null) {
         editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
       }
