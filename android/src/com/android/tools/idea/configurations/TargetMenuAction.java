@@ -147,7 +147,7 @@ public class TargetMenuAction extends DropDownAction {
         break;
       }
 
-      String title = getRenderingTargetLabel(target, false);
+      String title = getRenderingTargetLabel(target, true);
       boolean select = current == target;
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
@@ -193,9 +193,6 @@ public class TargetMenuAction extends DropDownAction {
       if (target.isPlatform()) {
         String codename = version.getCodename();
         if (codename != null && !codename.isEmpty()) {
-          if (codename.equals("MNC")) {
-            return "M";
-          }
           // The target menu brief label is deliberately short; typically it's just a 2 digit
           // API number. If this is a preview platform we should display the codename, but only
           // if it's a really short codename; if not, just display the first letter (since Android
