@@ -45,7 +45,7 @@ public class CpuTreeSorterTest {
     assertTrue(o2.getUserObject() instanceof TopDownNode);
     TopDownNode topDown1 = (TopDownNode)o1.getUserObject();
     TopDownNode topDown2 = (TopDownNode)o2.getUserObject();
-    return topDown1.getMethodName().compareTo(topDown2.getMethodName());
+    return topDown1.getMethodModel().getName().compareTo(topDown2.getMethodModel().getName());
   };
 
   @Before
@@ -143,7 +143,7 @@ public class CpuTreeSorterTest {
   }
 
   private static void preOrderTraversal(TreeNode node, List<String> nodes) {
-    String methodName = ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getMethodName();
+    String methodName = ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getMethodModel().getName();
     nodes.add(methodName);
     for (int i = 0; i < node.getChildCount(); i++) {
       preOrderTraversal(node.getChildAt(i), nodes);
@@ -153,7 +153,7 @@ public class CpuTreeSorterTest {
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(method));
+    node.setMethodModel(new MethodModel.Builder(method).build());
     node.setStartGlobal(start);
     node.setEndGlobal(start);
 

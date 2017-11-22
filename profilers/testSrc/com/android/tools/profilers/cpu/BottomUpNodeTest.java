@@ -364,7 +364,7 @@ public class BottomUpNodeTest {
 
   private static CaptureNode newNode(String method, long start, long end, boolean unmatched) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(method));
+    node.setMethodModel(new MethodModel.Builder(method).build());
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     node.setStartThread(start);
@@ -401,7 +401,7 @@ public class BottomUpNodeTest {
     private boolean myIsUnmatch = false;
 
     private ExpectedNode(String method, double total, double childrenTotal, boolean unmatch) {
-      myId = new MethodModel(method).getId();
+      myId = new MethodModel.Builder(method).build().getId();
       myTotal = total;
       myChildrenTotal = childrenTotal;
       myIsUnmatch = unmatch;

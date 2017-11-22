@@ -178,7 +178,7 @@ public class FlameChartTest {
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(method));
+    node.setMethodModel(new MethodModel.Builder(method).build());
     node.setStartGlobal(start);
     node.setEndGlobal(end);
 

@@ -101,11 +101,8 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
     myChildrenTotal = 0;
   }
 
-  abstract public String getMethodName();
-
-  abstract public String getClassName();
-
-  abstract public String getSignature();
+  @NotNull
+  abstract public MethodModel getMethodModel();
 
   abstract public CaptureNode.FilterType getFilterType();
 
