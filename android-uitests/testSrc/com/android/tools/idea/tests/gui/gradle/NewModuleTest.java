@@ -109,7 +109,7 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
@@ -138,7 +138,7 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()

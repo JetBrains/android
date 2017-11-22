@@ -115,7 +115,7 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   public void createAndRunInstantApp() throws Exception {
     String runConfigName = "instantapp";
     NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();

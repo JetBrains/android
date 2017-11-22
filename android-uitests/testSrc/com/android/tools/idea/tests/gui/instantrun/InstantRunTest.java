@@ -83,6 +83,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -245,6 +246,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -424,6 +426,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
+  @RunIn(TestGroup.SANITY)
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");

@@ -62,7 +62,7 @@ public class GoogleApiIntegrationTest {
    *   </pre>
    */
   @Test
-  @RunIn (TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   public void testGoogleApiIntegration() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 

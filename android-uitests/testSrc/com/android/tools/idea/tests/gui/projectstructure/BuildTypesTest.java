@@ -50,7 +50,7 @@ public class BuildTypesTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void addNewBuildType() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
