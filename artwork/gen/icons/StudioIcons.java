@@ -106,6 +106,8 @@ public class StudioIcons {
       public static final Icon APP_BAR_LAYOUT_LARGE = load("/studio/icons/layout-editor/palette/app-bar-layout_large.png"); // 24x24
       public static final Icon AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/auto-complete-text-view.png"); // 16x16
       public static final Icon AUTO_COMPLETE_TEXT_VIEW_LARGE = load("/studio/icons/layout-editor/palette/auto-complete-text-view_large.png"); // 24x24
+      public static final Icon BOTTOM_NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/bottom-navigation-view.png"); // 16x16
+      public static final Icon BOTTOM_NAVIGATION_VIEW_LARGE = load("/studio/icons/layout-editor/palette/bottom-navigation-view_large.png"); // 24x24
       public static final Icon BUTTON = load("/studio/icons/layout-editor/palette/button.png"); // 16x16
       public static final Icon BUTTON_LARGE = load("/studio/icons/layout-editor/palette/button_large.png"); // 24x24
       public static final Icon CALENDAR_VIEW = load("/studio/icons/layout-editor/palette/calendar-view.png"); // 16x16
@@ -178,6 +180,8 @@ public class StudioIcons {
       public static final Icon MERGE_LARGE = load("/studio/icons/layout-editor/palette/merge_large.png"); // 24x24
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view.png"); // 16x16
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW_LARGE = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view_large.png"); // 24x24
+      public static final Icon NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/navigation-view.png"); // 16x16
+      public static final Icon NAVIGATION_VIEW_LARGE = load("/studio/icons/layout-editor/palette/navigation-view_large.png"); // 24x24
       public static final Icon NESTED_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/nested-scroll-view.png"); // 16x16
       public static final Icon NESTED_SCROLL_VIEW_LARGE = load("/studio/icons/layout-editor/palette/nested-scroll-view_large.png"); // 24x24
       public static final Icon NUMBER_DECIMAL_TEXTFIELD = load("/studio/icons/layout-editor/palette/number-decimal-textfield.png"); // 16x16
