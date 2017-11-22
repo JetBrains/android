@@ -99,6 +99,7 @@ public class AvdWizardUtils {
 
   public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
   public static final String COLD_BOOT_ONCE_VALUE = AvdManager.AVD_INI_COLD_BOOT_ONCE;
+  public static final String FEATURE_FAST_BOOT = "FastSnapshotV1"; // Emulator feature support
 
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
 
@@ -142,6 +143,8 @@ public class AvdWizardUtils {
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
+
+  private static Map<String, String> ourEmuAdvFeatures; // Advanced Emulator features
 
   private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
 
@@ -338,6 +341,38 @@ public class AvdWizardUtils {
     }
 
     return false;
+  }
+
+  /**
+   * Indicates if the Emulator supports the requested advanced feature
+   *
+   * @param theFeature The name of the requested feature
+   * @return true if the feature is "on" in the Emulator
+   */
+
+  public static boolean emulatorSupportsFeature(@NotNull String theFeature, @Nullable AndroidSdkHandler sdkHandler) {
+    if (ourEmuAdvFeatures == null) {
+      if (sdkHandler == null) return false; // 'False' is the safer guess
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+      if (emulatorPackage != null) {
+        File emuAdvFeaturesFile = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_ADVANCED_FEATURES);
+        FileOp fop = sdkHandler.getFileOp();
+        if (fop.exists(emuAdvFeaturesFile)) {
+          ourEmuAdvFeatures = ProjectProperties.parsePropertyFile(new FileOpFileWrapper(emuAdvFeaturesFile, fop, false),
+                                                                  new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+        }
+      }
+    }
+    return ourEmuAdvFeatures != null && "on".equals(ourEmuAdvFeatures.get(theFeature));
+  }
+
+  /**
+   * Indicates if the Emulator supports the Fast Boot feature
+   *
+   * @return true if Fast Boot is supported
+   */
+  public static boolean emulatorSupportsFastBoot(@Nullable AndroidSdkHandler sdkHandler) {
+    return emulatorSupportsFeature(FEATURE_FAST_BOOT, sdkHandler);
   }
 
   /**

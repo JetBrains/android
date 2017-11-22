@@ -16,14 +16,10 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.EmulatorAdvFeatures
 import com.android.tools.idea.avdmanager.AvdWizardUtils.COLD_BOOT_ONCE_VALUE
 import com.android.tools.idea.avdmanager.AvdWizardUtils.USE_COLD_BOOT
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.diagnostic.Logger
 
 import java.awt.event.ActionEvent
 
@@ -49,8 +45,6 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
 
   override fun isEnabled(): Boolean {
     return avdInfo != null
-        && EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
-                                                        StudioLoggerProgressIndicator(ColdBootNowAction::class.java),
-                                                        LogWrapper(Logger.getInstance(AvdManagerConnection::class.java)))
+        && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())
   }
 }
