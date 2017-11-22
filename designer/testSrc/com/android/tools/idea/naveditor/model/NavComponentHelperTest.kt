@@ -31,12 +31,15 @@ class NavComponentHelperTest {
   @Test
   fun testUiName() {
     val component = mock(NlComponent::class.java)
+    `when`(component.id).thenCallRealMethod()
     `when`(component.tagName).thenReturn("myTag")
     assertEquals("myTag", component.getUiName(null))
+    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.Foo")
+    assertEquals("Foo", component.getUiName(null))
+    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("Bar")
+    assertEquals("Bar", component.getUiName(null))
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
     assertEquals("myId", component.getUiName(null))
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("myName")
-    assertEquals("myName", component.getUiName(null))
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("myLabel")
     assertEquals("myLabel", component.getUiName(null))
   }

@@ -216,7 +216,7 @@ public class DestinationListTest extends NavigationTestCase {
                               rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
                                 fragmentComponent("fragment2"),
-                                navigationComponent("subnav").withAttribute(ANDROID_URI, ATTR_NAME, "navName"),
+                                navigationComponent(null).withAttribute(ANDROID_URI, ATTR_NAME, "navName"),
                                 navigationComponent(null),
                                 includeComponent("navigation")))
       .build();

@@ -54,7 +54,7 @@ public class NlEnumEditor extends EnumEditor {
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
                          @NotNull CustomComboBox comboBox, @Nullable BrowsePanel browsePanel, boolean includeBorder) {
-    super(listener, comboBox, browsePanel, includeBorder);
+    super(listener, comboBox, browsePanel, includeBorder, true);
   }
 
   @Override

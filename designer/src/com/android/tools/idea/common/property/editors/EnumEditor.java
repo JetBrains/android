@@ -69,7 +69,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
   @TestOnly
   public static EnumEditor createForTest(@NotNull NlEditingListener listener, CustomComboBox comboBox) {
-    return new EnumEditor(listener, comboBox, null, false) {
+    return new EnumEditor(listener, comboBox, null, false, true) {
 
       @Override
       protected EnumSupport getEnumSupport(@NotNull NlProperty property) {
@@ -87,7 +87,8 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
   protected EnumEditor(@NotNull NlEditingListener listener,
                        @NotNull NlEnumEditor.CustomComboBox comboBox,
                        @Nullable BrowsePanel browsePanel,
-                       boolean includeBorder) {
+                       boolean includeBorder,
+                       boolean comboEditable) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
     myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
@@ -95,7 +96,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     myBrowsePanel = browsePanel;
 
     myCombo = comboBox;
-    myCombo.setEditable(true);
+    myCombo.setEditable(comboEditable);
 
     myCombo.addPopupMenuListener(new PopupMenuHandler());
     myCombo.addActionListener(this::comboValuePicked);
