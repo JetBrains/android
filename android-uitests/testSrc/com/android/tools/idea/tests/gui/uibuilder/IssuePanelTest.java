@@ -67,7 +67,7 @@ public class IssuePanelTest {
       .findView("TextView", 0);
     textView.click();
 
-    layoutEditor.getRhsToolbar().openIssuePanel();
+    layoutEditor.getRhsConfigToolbar().openIssuePanel();
     IssuePanelFixture panelFixture = layoutEditor.getIssuePanel();
     assertEquals("No issues", panelFixture.getTitle());
 
@@ -77,7 +77,7 @@ public class IssuePanelTest {
     textView.click();
 
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.getRhsToolbar().openIssuePanel();
+    layoutEditor.getRhsConfigToolbar().openIssuePanel();
     assertEquals("1 Warning", panelFixture.getTitle().trim());
 
     String hardcodedTextErrorTitle = "Hardcoded text";
@@ -106,7 +106,7 @@ public class IssuePanelTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-    layout.getRhsToolbar().openIssuePanel();
+    layout.getRhsConfigToolbar().openIssuePanel();
     IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
     String errorTitle = "Unknown fragments";
     GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
@@ -128,7 +128,7 @@ public class IssuePanelTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-    layout.getRhsToolbar().openIssuePanel();
+    layout.getRhsConfigToolbar().openIssuePanel();
     IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
     String errorTitle = "Unknown fragments";
     GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
