@@ -89,20 +89,15 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
-    <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="analyzer" />
     <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
     <orderEntry type="module" module-name="wizard" />
-    <orderEntry type="library" name="commons-io-2.4" level="project" />
     <orderEntry type="module" module-name="smali" />
     <orderEntry type="module" module-name="java-lib-model" />
     <orderEntry type="module" module-name="java-lib-model-builder" />

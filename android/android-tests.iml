@@ -18,7 +18,6 @@
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="external-system-impl" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
@@ -51,15 +50,6 @@
     <orderEntry type="module" module-name="observable" scope="TEST" />
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
     <orderEntry type="module" module-name="common" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/commons-io-2.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="gradle-tooling-extension-api" scope="TEST" />
     <orderEntry type="module" module-name="manifest-merger" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
@@ -78,11 +68,8 @@
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="wizard" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
     <orderEntry type="module" module-name="fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="adt-branding" scope="TEST" />
     <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
