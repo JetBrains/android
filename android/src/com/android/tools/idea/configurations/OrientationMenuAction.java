@@ -80,15 +80,6 @@ public class OrientationMenuAction extends DropDownAction {
       Device device = configuration.getDevice();
       if (device != null) {
         List<State> states = device.getAllStates();
-        State current = configuration.getDeviceState();
-
-        if (states.size() > 1 && current != null) {
-          State flip = configuration.getNextDeviceState(current);
-          State nextSate = flip == null ? current : flip;
-          String title = getPresentationDescription(nextSate);
-          add(new SetDeviceStateAction(myRenderContext, title, nextSate, true));
-          addSeparator();
-        }
 
         for (State config : states) {
           String stateName = config.getName();
