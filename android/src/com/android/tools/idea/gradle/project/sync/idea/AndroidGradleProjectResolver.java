@@ -51,7 +51,6 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
@@ -181,16 +180,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    if (!IdeInfo.getInstance().isAndroidStudio() && !isAndroidGradleProject()) {
+      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      return;
+    }
+
     ImportedModule importedModule = new ImportedModule(gradleModule);
     ideModule.createChild(IMPORTED_MODULE, importedModule);
-
-    GradleProject gradleProject = gradleModule.getGradleProject();
-    GradleScript buildScript = null;
-    try {
-      buildScript = gradleProject.getBuildScript();
-    }
-    catch (UnsupportedOperationException ignore) {
-    }
 
     // do not derive module root dir based on *.iml file location
     File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
@@ -239,6 +235,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     BuildScriptClasspathModel buildScriptModel = resolverCtx.getExtraProject(BuildScriptClasspathModel.class);
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
+    GradleProject gradleProject = gradleModule.getGradleProject();
+    GradleScript buildScript = null;
+    try {
+      buildScript = gradleProject.getBuildScript();
+    }
+    catch (UnsupportedOperationException ignore) {
+    }
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
     GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
