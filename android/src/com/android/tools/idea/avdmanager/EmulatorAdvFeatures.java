@@ -35,6 +35,8 @@ public final class EmulatorAdvFeatures {
     public static final String FEATURE_FAST_BOOT = "FastSnapshotV1"; // Emulator feature support
     public static final String FEATURE_SCREEN_RECORDING =
             "ScreenRecording"; // Emulator screen recording feature
+    public static final String FEATURE_VIRTUAL_SCENE =
+            "VirtualScene"; // Emulator virtual scene feature
 
     private static Map<String, String> mEmuAdvFeatures; // Advanced Emulator Features
 
@@ -94,5 +96,18 @@ public final class EmulatorAdvFeatures {
             @NonNull ILogger log) {
         return emulatorSupportsFeature(
                 FEATURE_SCREEN_RECORDING, sdkHandler, progressIndicator, log);
+    }
+
+    /**
+     * Indicates if the Emulator supports the virtual scene feature
+     *
+     * @return true if virtual scene is supported
+     */
+    public static boolean emulatorSupportsVirtualScene(
+            @Nullable AndroidSdkHandler sdkHandler,
+            @NonNull ProgressIndicator progressIndicator,
+            @NonNull ILogger log) {
+        return emulatorSupportsFeature(
+                FEATURE_VIRTUAL_SCENE, sdkHandler, progressIndicator, log);
     }
 }

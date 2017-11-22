@@ -25,6 +25,7 @@ import java.util.Locale;
  */
 public enum AvdCamera {
   NONE("None"),
+  VIRTUAL_SCENE("VirtualScene"),
   EMULATED("Emulated"),
   WEBCAM("Webcam0");
 
