@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
@@ -31,7 +30,6 @@ import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -39,15 +37,15 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ConnectionDetailsViewTest {
-  private static final String dumbTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
+  private static final String fakeTraceId = "fakeTraceId";
+  private static final String fakeTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA =
     new HttpData.Builder(1, 10000, 25000, 50000, 100000, TestHttpData.FAKE_THREAD_LIST)
-      .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET")
+      .setUrl("dumbUrl").setTraceId(fakeTraceId).setMethod("GET")
     .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
-  private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
   private static final String TEST_REQUEST_PAYLOAD_ID = "Request Payload";
   private static final String TEST_RESPONSE_PAYLOAD_ID = "Response Payload";
 
@@ -94,6 +92,8 @@ public class ConnectionDetailsViewTest {
     myStageView = (NetworkProfilerStageView)view.getStageView();
     myStage = myStageView.getStage();
     myView = new ConnectionDetailsView(myStageView);
+
+    myProfilerService.addFile(fakeTraceId, ByteString.copyFromUtf8(fakeTrace));
   }
 
   @Test
@@ -300,18 +300,23 @@ public class ConnectionDetailsViewTest {
       .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
     assertThat(stackFramesChangedCount[0]).isEqualTo(0);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations().size()).isEqualTo(0);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).hasSize(0);
 
     myView.setHttpData(DEFAULT_DATA);
     assertThat(stackFramesChangedCount[0]).isEqualTo(1);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEqualTo(DEFAULT_DATA.getStackTrace().getCodeLocations());
+
+    StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), DEFAULT_DATA);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEqualTo(stackTrace.getCodeLocations());
   }
 
   @Test
   public void callStackNavigationChangesProfilerMode() {
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setTrace(TestHttpData.FAKE_STACK_TRACE).build();
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).build();
     myView.setHttpData(data);
-    assertThat(data.getStackTrace().getCodeLocations().size()).isEqualTo(2);
+
+    StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), data);
+    assertThat(stackTrace.getTrace()).isEqualTo(fakeTrace);
+    assertThat(stackTrace.getCodeLocations()).hasSize(1);
 
     // Expands Profiler Mode
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);

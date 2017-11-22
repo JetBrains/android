@@ -87,7 +87,7 @@ public abstract class Payload {
       return myCachedBytes;
     }
 
-    myCachedBytes = myModel.requestPayload(getId());
+    myCachedBytes = myModel.requestBytes(getId());
     String contentEncoding = getHeader().getContentEncoding();
     if (contentEncoding.toLowerCase().contains("gzip")) {
       try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(myCachedBytes.toByteArray()))) {

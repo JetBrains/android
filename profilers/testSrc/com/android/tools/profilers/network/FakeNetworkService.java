@@ -125,7 +125,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
         String requestHeaders = data.getRequestHeader().getFields().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
           .collect(Collectors.joining("\n"));
-        requestBuilder.setTrace(data.getStackTrace().getTrace())
+        requestBuilder.setTraceId(data.getTraceId())
           .setMethod(data.getMethod())
           .setUrl(data.getUrl())
           .setFields(requestHeaders);

@@ -86,14 +86,14 @@ public class RpcNetworkConnectionsModelTest {
   }
 
   @Test
-  public void nonEmptyPayload() {
-    myProfilerService.addFile("payloadid", ByteString.copyFromUtf8("Dummy Contents"));
-    assertThat(myModel.requestPayload("payloadid").toStringUtf8()).isEqualTo("Dummy Contents");
+  public void nonEmptyBytes() {
+    myProfilerService.addFile("dummyid", ByteString.copyFromUtf8("Dummy Contents"));
+    assertThat(myModel.requestBytes("dummyid").toStringUtf8()).isEqualTo("Dummy Contents");
   }
 
   @Test
-  public void notFoundPayload_ReturnsEmptyByteString() {
-    assertThat(myModel.requestPayload("invalid id")).isEqualTo(ByteString.EMPTY);
+  public void notFoundBytes_ReturnsEmptyByteString() {
+    assertThat(myModel.requestBytes("invalid id")).isEqualTo(ByteString.EMPTY);
   }
 
   @Test
@@ -138,7 +138,7 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
       assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
       assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
-      assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+      assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());
       assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
       assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
       assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
