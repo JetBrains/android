@@ -18,14 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
@@ -39,20 +36,6 @@ public class NlRhsConfigToolbarFixture {
   public NlRhsConfigToolbarFixture(@NotNull NlEditorFixture nlEditorFixture, @NotNull ActionToolbar toolbar) {
     myNlEditorFixture = nlEditorFixture;
     myToolBar = toolbar;
-  }
-
-  public void openPanZoomPanel() {
-    Robot robot = myNlEditorFixture.robot();
-    ActionButton button = waitUntilShowing(
-      robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull ActionButton component) {
-          String text = component.getAction().getTemplatePresentation().getText();
-          return text != null && text.contains("Pan and Zoom");
-        }
-      });
-    new ActionButtonFixture(robot, button).click();
-    waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
   }
 
   public void zoomToFit() {

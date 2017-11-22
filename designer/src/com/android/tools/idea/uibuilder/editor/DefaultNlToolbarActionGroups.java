@@ -26,7 +26,6 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -77,7 +76,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ZoomLabelAction(mySurface));
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
     group.add(new SetZoomAction(mySurface, ZoomType.FIT));
-    group.add(new TogglePanningDialogAction((NlDesignSurface)mySurface));
 
     return group;
   }
