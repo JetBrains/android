@@ -340,7 +340,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myProcess.getState() == Common.Process.State.ALIVE) {
         endSession();
       }
-      boolean onlyStateChanged = isSameProcess(myProcess, process);
+
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
       myAgentStatus = getAgentStatus();
@@ -389,14 +389,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
 
-      if (!onlyStateChanged) {
-        if (myProcess == null) {
-          setStage(new NullMonitorStage(this));
-        }
-        else {
-          assert mySessionData != null;
-          setStage(new StudioMonitorStage(this));
-        }
+      if (myProcess == null) {
+        setStage(new NullMonitorStage(this));
+      }
+      else if (myProcess.getState() == Common.Process.State.ALIVE) {
+        assert mySessionData != null;
+        setStage(new StudioMonitorStage(this));
       }
 
       // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
