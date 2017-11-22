@@ -113,7 +113,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
-    northEastToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
 
     ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
