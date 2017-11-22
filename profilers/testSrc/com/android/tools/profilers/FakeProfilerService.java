@@ -171,6 +171,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .setSessionId(sessionId)
       .setDeviceId(request.getDeviceId())
       .setPid(request.getProcessId())
+      .setStartTimestamp(myTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
     mySessions.put(sessionId, session);

@@ -225,7 +225,6 @@ public final class StudioProfilersTest {
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    process = process.toBuilder().setStartTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds)).build();
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
 
@@ -233,17 +232,12 @@ public final class StudioProfilersTest {
 
     int dataNow = nowInSeconds - StudioProfilers.TIMELINE_BUFFER;
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(dataNow));
-    // Because we check for System.nanotime when we update devices, we need to set the delta for the test to account for the time
-    // it takes for the execution path to go from setDevice, to setProcess where the timeline gets reset and we calculate the deice time.
-    // same with below.
-    assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(TimeUnit.MILLISECONDS.toMicros(10))
-      .of(TimeUnit.SECONDS.toMicros(dataNow));
+    assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(dataNow));
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS * 5);
 
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(dataNow));
-    assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(TimeUnit.MILLISECONDS.toMicros(10))
-      .of(TimeUnit.SECONDS.toMicros(dataNow + 5));
+    assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(dataNow + 5));
   }
 
   @Test

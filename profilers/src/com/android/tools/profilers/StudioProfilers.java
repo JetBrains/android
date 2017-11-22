@@ -353,8 +353,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         TimeResponse response =
           myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
         long currentDeviceTime = response.getTimestampNs();
-        long runTime = currentDeviceTime - myProcess.getStartTimestampNs();
-        myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        long runTime = currentDeviceTime - mySessionData.getStartTimestamp();
+        myRelativeTimeConverter = new RelativeTimeConverter(mySessionData.getStartTimestamp() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter, runTime);
 
         // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
