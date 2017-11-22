@@ -21,7 +21,9 @@ import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
@@ -151,15 +153,24 @@ public class HttpDataTest {
   public void testBuilder() {
     long id = 1111;
     long startTime = 10, uploadTime = 100, downloadTime = 1000, endTime = 10000;
+    String traceId = "traceId";
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
+    String requestPayloadId = "requestPayloadId";
+    String responsePayloadId = "responsePayloadId";
+    String requestPayload = "requestPayload";
+    String responsePayload = "responsePayload";
 
     FakeNetworkConnectionsModel connectionsModel = new FakeNetworkConnectionsModel();
+    connectionsModel.addBytes(traceId, ByteString.copyFromUtf8(trace));
+    connectionsModel.addBytes(requestPayloadId, ByteString.copyFromUtf8(requestPayload));
+    connectionsModel.addBytes(responsePayloadId, ByteString.copyFromUtf8(responsePayload));
+
     HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime, TestHttpData.FAKE_THREAD_LIST)
       .setResponseFields("status line =  HTTP/1.1 302 Found \n")
       .setMethod("method")
-      .setRequestPayloadId(FakeNetworkConnectionsModel.REQUEST_PAYLOAD_ID)
-      .setResponsePayloadId(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD_ID)
-      .setTrace(trace)
+      .setRequestPayloadId(requestPayloadId)
+      .setResponsePayloadId(responsePayloadId)
+      .setTraceId(traceId)
       .setUrl("url");
 
     HttpData data = builder.build();
@@ -172,17 +183,17 @@ public class HttpDataTest {
 
     assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(302);
     assertThat(data.getMethod()).isEqualTo("method");
-    assertThat(data.getRequestPayloadId()).isEqualTo(FakeNetworkConnectionsModel.REQUEST_PAYLOAD_ID);
-    assertThat(data.getResponsePayloadId()).isEqualTo(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD_ID);
-    assertThat(data.getStackTrace().getTrace()).isEqualTo(trace);
+    assertThat(data.getRequestPayloadId()).isEqualTo(requestPayloadId);
+    assertThat(data.getResponsePayloadId()).isEqualTo(responsePayloadId);
+    assertThat(data.getTraceId()).isEqualTo(traceId);
     assertThat(data.getUrl()).isEqualTo("url");
     assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(TestHttpData.FAKE_THREAD.getId());
     assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(TestHttpData.FAKE_THREAD.getName());
 
-    assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes().toStringUtf8())
-      .isEqualTo(FakeNetworkConnectionsModel.REQUEST_PAYLOAD);
-    assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes().toStringUtf8())
-      .isEqualTo(FakeNetworkConnectionsModel.RESPONSE_PAYLOAD);
+    assertThat(new StackTrace(connectionsModel, data).getTrace()).isEqualTo(trace);
+
+    assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(requestPayload);
+    assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(responsePayload);
   }
 
   @Test
@@ -241,10 +252,11 @@ public class HttpDataTest {
   }
 
   private static final class FakeNetworkConnectionsModel implements NetworkConnectionsModel {
-    public static final String REQUEST_PAYLOAD_ID = "requestId";
-    public static final String RESPONSE_PAYLOAD_ID = "responseId";
-    public static final String REQUEST_PAYLOAD = "requestPayload";
-    public static final String RESPONSE_PAYLOAD = "responsePayload";
+    private static final Map<String, ByteString> myBytesCache = new HashMap<>();
+
+    public void addBytes(@NotNull String id, @NotNull ByteString bytes) {
+      myBytesCache.put(id, bytes);
+    }
 
     @NotNull
     @Override
@@ -254,14 +266,8 @@ public class HttpDataTest {
 
     @NotNull
     @Override
-    public ByteString requestPayload(@NotNull String payloadId) {
-      if (payloadId.equals(REQUEST_PAYLOAD_ID)) {
-        return ByteString.copyFromUtf8(REQUEST_PAYLOAD);
-      }
-      else if (payloadId.equals(RESPONSE_PAYLOAD_ID)) {
-        return ByteString.copyFromUtf8(RESPONSE_PAYLOAD);
-      }
-      return ByteString.EMPTY;
+    public ByteString requestBytes(@NotNull String id) {
+      return myBytesCache.getOrDefault(id, ByteString.EMPTY);
     }
   }
 }

@@ -217,7 +217,8 @@ public class ConnectionDetailsView extends JPanel {
         myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeader()));
       }
 
-      myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
+      StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), httpData);
+      myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, stackTrace.getCodeLocations());
     }
     else {
       myStackTraceView.getModel().clearStackFrames();
