@@ -829,6 +829,50 @@ public final class StudioProfilersTest {
     assertThat(profilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
   }
 
+  @Test
+  public void testNewSessionResetsStage() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    assertThat(profilers.getSession()).isNotNull();
+    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
+    assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
+    assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+
+    // Goes into a different stage
+    profilers.setStage(new FakeStage(profilers));
+    assertThat(profilers.getStage()).isInstanceOf(FakeStage.class);
+
+    // Ending a session should not leave the stage automatically.
+    myProfilerService.removeProcess(device, process);
+    process = process.toBuilder().setState(Common.Process.State.DEAD).build();
+    myProfilerService.addProcess(device, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getSession()).isNotNull();
+    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
+    assertThat(profilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
+    assertThat(profilers.getStage()).isInstanceOf(FakeStage.class);
+
+    // Restarting a session on the same process should re-enter the StudioMonitorStage
+    myProfilerService.removeProcess(device, process);
+    process = process.toBuilder().setState(Common.Process.State.ALIVE).build();
+    myProfilerService.addProcess(device, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getSession()).isNotNull();
+    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
+    assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
+    assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
@@ -875,6 +919,20 @@ public final class StudioProfilersTest {
 
     int getAgentStatusChangedCount() {
       return myAgentStatusChangedCount;
+    }
+  }
+
+  private static class FakeStage extends Stage {
+    private FakeStage(@NotNull StudioProfilers profilers) {
+      super(profilers);
+    }
+
+    @Override
+    public void enter() {
+    }
+
+    @Override
+    public void exit() {
     }
   }
 }
