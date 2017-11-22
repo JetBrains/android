@@ -690,9 +690,6 @@ public class InteractionManager {
           sceneView.toggleOrientation();
         }
       }
-      else if (keyChar == 'f') {
-        mySurface.toggleDeviceFrames();
-      }
       else if (keyChar == 'e') {
         IssuePanel panel = mySurface.getIssuePanel();
         panel.setMinimized(!panel.isMinimized());

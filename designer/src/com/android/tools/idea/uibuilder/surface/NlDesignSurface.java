@@ -135,10 +135,6 @@ public class NlDesignSurface extends DesignSurface {
     }
   }
 
-  public boolean isDeviceFrameVisible() {
-    return myDeviceFrames;
-  }
-
   @NotNull
   @Override
   protected SceneManager createSceneManager(@NotNull NlModel model) {
@@ -312,14 +308,8 @@ public class NlDesignSurface extends DesignSurface {
         myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
-        if (myDeviceFrames) {
-          myScreenX = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_X;
-          myScreenY = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_Y;
-        }
-        else {
-          myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-          myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
-        }
+        myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
+        myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
       }
     }
 

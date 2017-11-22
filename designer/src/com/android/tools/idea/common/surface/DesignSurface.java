@@ -91,7 +91,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
-  protected boolean myDeviceFrames = false;
   @VisibleForTesting
   @NotNull public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
@@ -794,12 +793,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     return getCurrentSceneView();
-  }
-
-  public void toggleDeviceFrames() {
-    myDeviceFrames = !myDeviceFrames;
-    layoutContent();
-    repaint();
   }
 
   @Nullable
