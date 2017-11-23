@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -79,74 +80,98 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
     return method.getFullName().startsWith("openjdkjvmti::");
   }
 
-  private Color getFillColor(MethodModel m) {
+  private Color getFillColor(CaptureNode node) {
+    Color color;
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(m)) {
-        return ProfilerColors.CPU_CALLCHART_VENDOR;
+      if (isMethodVendor(node.getMethodModel())) {
+        color = ProfilerColors.CPU_CALLCHART_VENDOR;
       }
-      else if (isMethodPlatform(m)) {
-        return ProfilerColors.CPU_CALLCHART_PLATFORM;
+      else if (isMethodPlatform(node.getMethodModel())) {
+        color = ProfilerColors.CPU_CALLCHART_PLATFORM;
       }
       else {
-        return ProfilerColors.CPU_CALLCHART_APP;
+        color = ProfilerColors.CPU_CALLCHART_APP;
       }
     }
     else {
-      if (isMethodVendor(m)) {
-        return ProfilerColors.CPU_FLAMECHART_VENDOR;
+      if (isMethodVendor(node.getMethodModel())) {
+        color = ProfilerColors.CPU_FLAMECHART_VENDOR;
       }
-      else if (isMethodPlatform(m)) {
-        return ProfilerColors.CPU_FLAMECHART_PLATFORM;
+      else if (isMethodPlatform(node.getMethodModel())) {
+        color = ProfilerColors.CPU_FLAMECHART_PLATFORM;
       }
       else {
-        return ProfilerColors.CPU_FLAMECHART_APP;
+        color = ProfilerColors.CPU_FLAMECHART_APP;
       }
     }
+
+    return node.isUnmatched() ? toUnmatchColor(color) : color;
   }
 
-  private Color getBordColor(MethodModel m) {
+  private Color getBordColor(CaptureNode node) {
+    Color color;
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(m)) {
-        return ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
+      if (isMethodVendor(node.getMethodModel())) {
+        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
       }
-      else if (isMethodPlatform(m)) {
-        return ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
+      else if (isMethodPlatform(node.getMethodModel())) {
+        color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
       }
       else {
-        return ProfilerColors.CPU_CALLCHART_APP_BORDER;
+        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
       }
     }
     else {
-      if (isMethodVendor(m)) {
-        return ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
+      if (isMethodVendor(node.getMethodModel())) {
+        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
       }
-      else if (isMethodPlatform(m)) {
-        return ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
+      else if (isMethodPlatform(node.getMethodModel())) {
+        color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
       }
       else {
-        return ProfilerColors.CPU_FLAMECHART_APP_BORDER;
+        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
       }
     }
+    return node.isUnmatched() ? toUnmatchColor(color) : color;
+  }
+
+  /**
+   * @return the same color but with 20% opacity that is used to represent an unmatching node.
+   */
+  @NotNull
+  private static Color toUnmatchColor(@NotNull Color color) {
+    // TODO: maybe cache for performance?
+    return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255 * 0.2));
   }
 
   @Override
-  public void render(Graphics2D g, HNode<MethodModel> node, Rectangle2D drawingArea) {
+  public void render(@NotNull Graphics2D g, @NotNull HNode<MethodModel> node, @NotNull Rectangle2D drawingArea) {
     // Draw rectangle background
-    g.setPaint(getFillColor(node.getData()));
+    CaptureNode captureNode = (CaptureNode)node;
+    g.setPaint(getFillColor(captureNode));
     g.fill(drawingArea);
 
     // Draw rectangle outline.
-    g.setPaint(getBordColor(node.getData()));
+    g.setPaint(getBordColor(captureNode));
     g.draw(drawingArea);
 
     // Draw text
-    FontMetrics fontMetrics = g.getFontMetrics(g.getFont());
-    String text = generateFittingText(node.getData(), drawingArea, fontMetrics);
-    g.setPaint(Color.BLACK);
-
+    Font font = g.getFont();
+    FontMetrics fontMetrics = g.getFontMetrics(font);
+    if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
+      g.setPaint(toUnmatchColor(Color.BLACK));
+    } else if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
+      g.setPaint(Color.BLACK);
+    } else {
+      g.setPaint(Color.BLACK);
+      g.setFont(font.deriveFont(Font.BOLD));
+    }
+    String text = generateFittingText(node.getData(), drawingArea, g.getFontMetrics());
     float textPositionX = LEFT_MARGIN_PX + (float)drawingArea.getX();
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
+
+    g.setFont(font);
   }
 
   /**

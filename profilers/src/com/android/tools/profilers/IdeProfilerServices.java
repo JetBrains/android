@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -84,19 +85,28 @@ public interface IdeProfilerServices {
   FeatureConfig getFeatureConfig();
 
   /**
-   * Open the dialog for managing the CPU profiling configurations.
-   * @param configuration Profiling configuration to be selected when opening the dialog
-   * @param isDeviceAtLeastO Whether device API level is O or higher
-   * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
-   *                       that was selected on the configurations list when the dialog was closed.
+   * Allows the profiler to cache settings across profiling sessions.
+   * e.g. If we only want to display an instruction overlay the first time the user interacts with a feature.
    */
-  void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  @NotNull
+  ProfilerPreferences getProfilerPreferences();
+
+  /**
+   * Open the dialog for managing the CPU profiling configurations.
+   *
+   * @param configuration    Profiling configuration to be selected when opening the dialog
+   * @param deviceLevel API level of the device
+   * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
+   *                         that was selected on the configurations list when the dialog was closed.
+   */
+  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, int deviceLevel,
                                             Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
    * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
+   *
    * @param yesCallback callback to be run if user clicks "Yes"
-   * @param noCallback callback to be run if user clicks "No"
+   * @param noCallback  callback to be run if user clicks "No"
    */
   void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
 

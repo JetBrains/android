@@ -17,26 +17,29 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -47,105 +50,178 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   @Mock private FileDocumentManager myDocumentManager;
 
   private GradleFiles myGradleFiles;
-  private long myLastSyncTime;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
-    myLastSyncTime = System.currentTimeMillis() - MINUTES.toMillis(2);
-    myGradleFiles = new GradleFiles(getProject(), myDocumentManager);
+    myGradleFiles = GradleFiles.getInstance(getProject());
   }
 
-  public void testAreGradleFilesModifiedWithNegativeReferenceTime() {
-    try {
-      myGradleFiles.areGradleFilesModified(-1);
-      fail();
-    }
-    catch (IllegalArgumentException expected) {
-      // expected
-    }
+  @Override
+  protected void loadSimpleApplication() throws Exception {
+    super.loadSimpleApplication();
+    // Make sure the file hashes are updated before the test is run
+    myGradleFiles.getSyncListener().syncStarted(getProject());
+    myGradleFiles.getSyncListener().syncSucceeded(getProject());
   }
 
-  public void testAreGradleFilesModifiedWithReferenceTimeEqualToZero() {
-    try {
-      myGradleFiles.areGradleFilesModified(0);
-      fail();
-    }
-    catch (IllegalArgumentException expected) {
-      // expected
-    }
+  public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false);
   }
 
-  public void testAreGradleFilesModifiedWithModifiedWrapperPropertiesFile() throws IOException {
+  public void testModifiedWhenAddingTextChildInBuildFile() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_SETTINGS_GRADLE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_SETTINGS_GRADLE);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInPropertiesFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_GRADLE_PROPERTIES);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInPropertiesFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_GRADLE_PROPERTIES);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInWrapperPropertiesFile() throws Exception {
+    loadSimpleApplication();
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
-    VirtualFile propertiesFile = wrapper.getPropertiesFile();
-    simulateUnsavedChanges(propertiesFile);
-
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
+    VirtualFile virtualFile = wrapper.getPropertiesFile();
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
-  public void testAreGradleFilesModifiedWithModifiedSettingsDotGradleFile() {
-    findOrCreateFilePathInProjectRootFolder(FN_SETTINGS_GRADLE);
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
-  }
-
-  public void testAreGradleFilesModifiedWithUnmodifiedChangesInSettingsDotGradleFile() {
-    VirtualFile file = findOrCreateFileInProjectRootFolder(FN_SETTINGS_GRADLE);
-    simulateUnsavedChanges(file);
-
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
-  }
-
-  public void testAreGradleFilesModifiedWithModifiedGradleDotPropertiesFile() {
-    findOrCreateFilePathInProjectRootFolder(FN_GRADLE_PROPERTIES);
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
-  }
-
-  public void testAreGradleFilesModifiedWithUnmodifiedChangesInGradleDotPropertiesFile() {
-    VirtualFile file = findOrCreateFileInProjectRootFolder(FN_GRADLE_PROPERTIES);
-    simulateUnsavedChanges(file);
-
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
-  }
-
-  public void testAreGradleFilesModifiedWithModifiedBuildDotGradleFile() throws Exception {
+  public void testModifiedWhenAddingTextChildInWrapperPropertiesFile() throws Exception {
     loadSimpleApplication();
-
-    VirtualFile buildFile = getAppBuildFile();
-    File buildFilePath = virtualToIoFile(buildFile);
-    modifyFile(buildFilePath);
-
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    VirtualFile virtualFile = wrapper.getPropertiesFile();
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
   }
 
-  private static void modifyFile(@NotNull File filePath) throws IOException {
-    appendToFile(filePath, SystemProperties.getLineSeparator());
-  }
-
-  public void testAreGradleFilesModifiedWithUnmodifiedChangesInBuildDotGradleFile() throws Exception {
+  public void testModifiedWhenReplacingChild() throws Exception {
     loadSimpleApplication();
-
-    VirtualFile buildFile = getAppBuildFile();
-    simulateUnsavedChanges(buildFile);
-
-    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
-    assertTrue(filesModified);
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }), true);
   }
 
-  @NotNull
-  private VirtualFile getAppBuildFile() {
-    Module appModule = myModules.getAppModule();
-    VirtualFile buildFile = getGradleBuildFile(appModule);
-    assertNotNull(buildFile);
-    return buildFile;
+  public void testModifiedWhenChildRemoved() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.deleteChildRange(file.getFirstChild(), file.getFirstChild());
+    }), true);
+  }
+
+  public void testNotModifiedWhenInnerWhiteSpaceIsAdded() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isAtLeast(3);
+      PsiElement element = file.getChildren()[2];
+      assertThat(element).isInstanceOf(GrMethodCallExpression.class);
+      element.addAfter(factory.createWhiteSpace(), element.getLastChild());
+    }), false);
+  }
+
+  public void testNotModifiedWhenInnerNewLineIsAdded() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isAtLeast(3);
+      PsiElement element = file.getChildren()[2];
+      assertThat(element).isInstanceOf(GrMethodCallExpression.class);
+      element.addAfter(factory.createLineTerminator("\n   \t\t\n "), element.getLastChild());
+    }), false);
+  }
+
+  public void testNotModifiedWhenTextIsIdentical() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }), true);
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
+    }), false, false, getAppBuildFile());
+  }
+
+  public void testModifiedWhenDeleteAfterSync() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }), true);
+    myGradleFiles.getSyncListener().syncStarted(getProject());
+    myGradleFiles.getSyncListener().syncSucceeded(getProject());
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
+    }), true);
+  }
+
+  public void testNotModifiedAfterSync() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }, true);
+    myGradleFiles.getSyncListener().syncStarted(getProject());
+    myGradleFiles.getSyncListener().syncSucceeded(getProject());
+    assertFalse(myGradleFiles.areGradleFilesModified());
+  }
+
+  public void testModifiedWhenModifiedDuringSync() throws Exception {
+    loadSimpleApplication();
+    myGradleFiles.getSyncListener().syncStarted(getProject());
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }, true);
+    myGradleFiles.getSyncListener().syncSucceeded(getProject());
+    assertTrue(myGradleFiles.areGradleFilesModified());
+  }
+
+  public void testNotModifiedWhenChangedBackDuringSync() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
+    }), true);
+    myGradleFiles.getSyncListener().syncStarted(getProject());
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+    }, true);
+    runFakeModificationTest(((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
+    }), false, false, getAppBuildFile());
+    myGradleFiles.getSyncListener().syncSucceeded(getProject());
   }
 
   public void testIsGradleFileWithBuildDotGradleFile() {
@@ -163,6 +239,14 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
     assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  @NotNull
+  private VirtualFile getAppBuildFile() {
+    Module appModule = myModules.getAppModule();
+    VirtualFile buildFile = getGradleBuildFile(appModule);
+    assertNotNull(buildFile);
+    return buildFile;
   }
 
   @NotNull
@@ -193,7 +277,46 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     return filePath;
   }
 
+  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                       boolean expectedResult) throws Exception {
+    runFakeModificationTest(editFunction, expectedResult, true, getAppBuildFile());
+  }
+
+  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                       boolean expectedResult,
+                                       @NotNull VirtualFile file) throws Exception {
+    runFakeModificationTest(editFunction, expectedResult, true, file);
+  }
+
   private void simulateUnsavedChanges(@NotNull VirtualFile file) {
     when(myDocumentManager.isFileModified(file)).thenReturn(true);
+  }
+
+  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                       boolean expectedResult,
+                                       boolean preCheckEnabled,
+                                       @NotNull VirtualFile file) throws Exception {
+    PsiFile psiFile = findPsiFile(file);
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
+
+    boolean filesModified = myGradleFiles.areGradleFilesModified();
+    if (preCheckEnabled) {
+      assertFalse(filesModified);
+    }
+
+    CommandProcessor.getInstance().executeCommand(getProject(), () ->
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        editFunction.accept(factory, psiFile);
+        psiFile.subtreeChanged();
+      }), "Fake Edit Test", null);
+
+    filesModified = myGradleFiles.areGradleFilesModified();
+    if (expectedResult) {
+      assertTrue(filesModified);
+    }
+    else {
+      assertFalse(filesModified);
+    }
   }
 }

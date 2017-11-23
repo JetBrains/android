@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -25,6 +24,7 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.naveditor.scene.draw.DrawColor;
@@ -43,11 +43,11 @@ import java.util.List;
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
 public class ActionHandleTarget extends NavBaseTarget {
-  @AndroidDpCoordinate public static final int SMALL_RADIUS = 6;
-  @AndroidDpCoordinate public static final int LARGE_RADIUS = 8;
+  @NavCoordinate public static final int SMALL_RADIUS = 12;
+  @NavCoordinate public static final int LARGE_RADIUS = 16;
   public static final int MAX_DURATION = 200;
 
-  @AndroidDpCoordinate private int myCurrentRadius;
+  @NavCoordinate private int myCurrentRadius;
   private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
@@ -62,23 +62,23 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform,
-                        @AndroidDpCoordinate int l,
-                        @AndroidDpCoordinate int t,
-                        @AndroidDpCoordinate int r,
-                        @AndroidDpCoordinate int b) {
+                        @NavCoordinate int l,
+                        @NavCoordinate int t,
+                        @NavCoordinate int r,
+                        @NavCoordinate int b) {
     layoutCircle(r, t + (b - t) / 2, myCurrentRadius);
     return false;
   }
 
   @Override
-  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  public void mouseDown(@NavCoordinate int x, @NavCoordinate int y) {
     myIsDragging = true;
     myComponent.getScene().needsRebuildList();
     getComponent().setDragging(true);
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTargets) {
     myIsDragging = false;
     getComponent().setDragging(false);
   }

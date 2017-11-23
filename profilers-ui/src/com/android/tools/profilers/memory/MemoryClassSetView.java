@@ -53,7 +53,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   @NotNull private final RelativeTimeConverter myTimeConverter;
 
-  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+  @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn<MemoryObject>> myAttributeColumns = new HashMap<>();
 
@@ -80,7 +80,7 @@ final class MemoryClassSetView extends AspectObserver {
   public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
-    myIdeProfilerComponents = ideProfilerComponents;
+    myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
@@ -372,7 +372,7 @@ final class MemoryClassSetView extends AspectObserver {
   private void installTreeContextMenus() {
     assert myTree != null;
 
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -391,7 +391,7 @@ final class MemoryClassSetView extends AspectObserver {
       return null;
     });
 
-    myIdeProfilerComponents.installContextMenu(myTree, new ContextMenuItem() {
+    myContextMenuInstaller.installGenericContextMenu(myTree, new ContextMenuItem() {
       @NotNull
       @Override
       public String getText() {

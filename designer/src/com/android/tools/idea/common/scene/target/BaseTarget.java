@@ -93,8 +93,8 @@ public abstract class BaseTarget implements Target {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
-    picker.addRect(this, 0, transform.getSwingX(myLeft), transform.getSwingY(myTop),
-                   transform.getSwingX(myRight), transform.getSwingY(myBottom));
+    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
   }
 
   @Override

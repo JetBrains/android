@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -39,7 +39,7 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
-import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
+import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 
 public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {

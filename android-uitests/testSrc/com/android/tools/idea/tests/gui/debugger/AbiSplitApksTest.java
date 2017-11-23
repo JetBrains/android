@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +48,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   2. Enable split by adding the following to app/build.gradle: android.splits.abi.enable true.
    *   3. Start a native debugging session in Android Studio (deploy in emulator X86_64).
    *   4. Now hit the stop button.
-   *   4. Go the folder ~<project folder="">/app/build/outputs/apk and check
+   *   4. Go the folder ~<project folder="">/app/build/intermediates/instant-run-apk/debug and check
    *      the apk generated (Verify 1, 2).
    *   Verify:
    *   1. APK generated should not be universal (You can verify this by trying to install the apk
@@ -58,7 +57,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/63850391
+  @RunIn(TestGroup.QA)
   public void testX64AbiSplitApks() throws Exception {
     testAbiSplitApks(ABI_TYPE_X86_64);
   }
@@ -85,7 +84,6 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   2. APK generated should explicitly for the ABI X86
    *   </pre>
    */
-  @Ignore("b/68138951")
   @Test
   @RunIn(TestGroup.QA)
   public void testX86AbiSplitApks() throws Exception {
@@ -142,8 +140,8 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     projectPane.clickPath("BasicCmakeAppForUI",
                           "app",
                           "build",
-                          "outputs",
-                          "apk",
+                          "intermediates",
+                          "instant-run-apk",
                           "debug",
                           apkName);
     ideFrame.getProjectView().selectAndroidPane();

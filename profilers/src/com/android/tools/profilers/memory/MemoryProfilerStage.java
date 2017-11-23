@@ -24,10 +24,10 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
@@ -51,8 +51,11 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
+  @VisibleForTesting static final String HAS_USED_MEMORY_CAPTURE = "profiler.used.memory.capture";
+
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
@@ -66,6 +69,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final AxisComponentModel myObjectsAxis;
   private final MemoryStageLegends myLegends;
   private final MemoryStageLegends myTooltipLegends;
+  private final EaseOutModel myInstructionsEaseOutModel;
 
   private final int myProcessId;
   @Nullable
@@ -75,7 +79,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @NotNull private String myFilter = "";
+  @Nullable private Pattern myFilter;
 
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
@@ -128,6 +132,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
 
+    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
+
     myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
@@ -141,6 +147,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         selectCaptureFromSelectionRange();
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        profilers.getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+        myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
       @Override
@@ -150,6 +158,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     });
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+  }
+
+  public boolean hasUserUsedMemoryCapture() {
+    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_MEMORY_CAPTURE, false);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -296,9 +308,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void requestHeapDump() {
-    MemoryProfiler.TriggerHeapDumpResponse response =
+    TriggerHeapDumpResponse response =
       myClient
-        .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
+        .triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myPendingCaptureStartTime = response.getInfo().getStartTime();
@@ -314,11 +326,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     getStudioProfilers().getTimeline().setStreaming(true);
+    getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+    myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
   public void forceGarbageCollection() {
     myClient.forceGarbageCollection(
-      MemoryProfiler.ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build());
+      ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build());
   }
 
   public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
@@ -331,15 +345,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   public void trackAllocations(boolean enabled) {
     // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device time.
-    Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+    TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
 
     try {
       TrackAllocationsResponse response = myClient.trackAllocations(
-        MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+        TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
           .setEnabled(enabled).build());
-      MemoryProfiler.AllocationsInfo info = response.getInfo();
+      AllocationsInfo info = response.getInfo();
       switch (response.getStatus()) {
         case SUCCESS:
           myTrackingAllocations = enabled;
@@ -366,6 +380,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     if (myTrackingAllocations) {
       getStudioProfilers().getTimeline().setStreaming(true);
+      getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+      myInstructionsEaseOutModel.setCurrentPercentage(1);
     }
   }
 
@@ -375,8 +391,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public long getAllocationTrackingElapsedTimeNs() {
     if (myTrackingAllocations) {
-      Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
-        .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+      TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+        .getCurrentTime(TimeRequest.newBuilder().setDeviceId(getStudioProfilers().getDevice().getDeviceId()).build());
       return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
     }
     return INVALID_START_TIME;
@@ -425,6 +441,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void selectHeapSet(@Nullable HeapSet heapSet) {
     mySelection.selectHeapSet(heapSet);
+    selectCaptureFilter(getCaptureFilter());
   }
 
   @Nullable
@@ -432,16 +449,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelection.getHeapSet();
   }
 
-  public void selectCaptureFilter(String filter) {
-    filter = filter.trim();
-    if (!myFilter.equals(filter)) {
-      myFilter = filter;
-      myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
+  public void selectCaptureFilter(@Nullable Pattern filter) {
+    myFilter = filter;
+    if (getSelectedHeapSet() != null) {
+      getSelectedHeapSet().selectFilter(filter);
     }
+    myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
   }
 
-  @NotNull
-  public String getCaptureFilter() {
+  @Nullable
+  public Pattern getCaptureFilter() {
     return myFilter;
   }
 
@@ -466,7 +483,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
-    if (durationData.getDuration() != Long.MAX_VALUE) {
+    if (durationData != null && durationData.getDuration() != Long.MAX_VALUE) {
       // TODO: (revisit) we have an special case in interacting with SelectionModel where if the user tries to select a heap dump that is on
       // top of an ongoing live allocation capture (duration == Long.MAX_VALUE), the live capture would take precedence given it always
       // intersects with the previous selection. Here we clear the previous selection first to avoid said interaction.
@@ -553,6 +570,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public MemoryStageLegends getTooltipLegends() {
     return myTooltipLegends;
+  }
+
+  @NotNull
+  public EaseOutModel getInstructionsEaseOutModel() {
+    return myInstructionsEaseOutModel;
   }
 
   public EventMonitor getEventMonitor() {

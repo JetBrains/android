@@ -189,25 +189,18 @@ public class LayoutTestUtilities {
 
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
-    ScreenView screenView = mock(ScreenView.class);
-    when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
-    when(screenView.getModel()).thenReturn(model);
-    when(screenView.getScale()).thenReturn(scale);
-    when(screenView.getSize()).thenReturn(new Dimension());
-    DesignSurface surface = model.getSurface();
-    when(screenView.getSelectionModel()).thenCallRealMethod();
-    when(screenView.getSurface()).thenReturn((NlDesignSurface)surface);
-    when(screenView.getX()).thenReturn(x);
-    when(screenView.getY()).thenReturn(y);
-
-    when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
-    when(surface.getCurrentSceneView()).thenReturn(screenView);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
-    Scene scene = builder.getScene();
-    scene.buildDisplayList(new DisplayList(), 0);
-
-    when(screenView.getScene()).thenReturn(scene);
-    when(screenView.getSceneManager()).thenReturn(builder);
+    NlDesignSurface surface = (NlDesignSurface) model.getSurface();
+    ScreenView screenView = new ScreenView(surface, model) {
+      @Override
+      public double getScale() {
+        return scale;
+      }
+    };
+    screenView.setLocation(x, y);
+    LayoutlibSceneManager spy = spy(surface.getSceneManager());
+    when(spy.getSceneView()).thenReturn(screenView);
+    when(surface.getSceneManager()).thenReturn(spy);
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
   }
 

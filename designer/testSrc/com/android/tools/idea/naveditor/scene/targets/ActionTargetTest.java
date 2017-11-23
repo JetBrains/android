@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -55,20 +54,21 @@ public class ActionTargetTest extends NavigationTestCase {
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
 
     Scene scene = model.getSurface().getScene();
+    SceneComponent component = scene.getSceneComponent("fragment1");
+    SceneComponent component2 = scene.getSceneComponent("fragment2");
+
+    component.setPosition(0, 0);
+    component2.setPosition(500, 0);
+
     scene.layout(0, SceneContext.get());
     scene.buildDisplayList(new DisplayList(), 0, view);
 
-    SceneComponent component = scene.getSceneComponent("fragment1");
-    SceneComponent component2 = scene.getSceneComponent("fragment2");
 
     InteractionManager interactionManager = new InteractionManager(surface);
     interactionManager.registerListeners();
 
-    @AndroidDpCoordinate int x = (component.getCenterX() + component2.getCenterX()) / 2;
-    @AndroidDpCoordinate int y = (component.getCenterY() + component2.getCenterY()) / 2;
-
-    LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, x),
-                                   Coordinates.getSwingYDip(view, y), 0);
+    LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
+                                   Coordinates.getSwingYDip(view, component.getCenterY()), 0);
 
     assertEquals(model.find("action1"), surface.getSelectionModel().getPrimary());
     interactionManager.unregisterListeners();

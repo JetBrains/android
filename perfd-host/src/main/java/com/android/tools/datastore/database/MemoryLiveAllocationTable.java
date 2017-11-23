@@ -47,6 +47,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_LATEST_ALLOC_TIME("SELECT MAX(AllocTime) FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ?"),
+    QUERY_LATEST_FREE_TIME("SELECT MAX(FreeTime) FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime < ?"),
     QUERY_SNAPSHOT(
       "SELECT Tag, ClassTag, AllocTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
       "WHERE Pid = ? AND Session = ? AND AllocTime < ? AND FreeTime > ?"),
@@ -89,10 +91,6 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryLiveAllocationTable.class);
-  }
-
-  public MemoryLiveAllocationTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
   }
 
   @Override
@@ -201,8 +199,28 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     catch (SQLException ex) {
       getLogger().error(ex);
     }
-
     return sampleBuilder.build();
+  }
+
+  @NotNull
+  public LatestAllocationTimeResponse getLatestDataTimestamp(int pid, Common.Session session) {
+    LatestAllocationTimeResponse.Builder builder = LatestAllocationTimeResponse.newBuilder();
+    try {
+      long latest = 0;
+      ResultSet result = executeQuery(QUERY_LATEST_ALLOC_TIME, pid, session);
+      if (result.next()) {
+        latest = Math.max(latest, result.getLong(1));
+      }
+      result = executeQuery(QUERY_LATEST_FREE_TIME, pid, session, Long.MAX_VALUE);
+      if (result.next()) {
+        latest = Math.max(latest, result.getLong(1));
+      }
+      builder.setTimestamp(latest);
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return builder.build();
   }
 
   @NotNull

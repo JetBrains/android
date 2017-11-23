@@ -38,6 +38,21 @@ public class BlueprintView extends ScreenView {
 
   @NotNull
   @Override
+  protected ImmutableList<Layer> createLayers() {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+    builder.add(
+      new MyBottomLayer(this),
+      new SelectionLayer(this),
+      new MockupLayer(this));
+    if (!myIsSecondary) {
+      builder.add(new CanvasResizeLayer((NlDesignSurface) mySurface, this));
+    }
+    builder.add(new SceneLayer(mySurface, this, true));
+    return builder.build();
+  }
+
+  @NotNull
+  @Override
   public ColorSet getColorSet() {
     return myColorSet;
   }
@@ -45,21 +60,6 @@ public class BlueprintView extends ScreenView {
   @Override
   public void paintBorder(@NotNull Graphics2D g) {
     ScreenView.BorderPainter.paint(g, this);
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<Layer> getLayers() {
-    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    builder.add(
-      new MyBottomLayer(this),
-      new SelectionLayer(this),
-      new MockupLayer(this));
-    if (!myIsSecondary) {
-      builder.add(new CanvasResizeLayer((NlDesignSurface)mySurface, this));
-    }
-    builder.add(new SceneLayer(mySurface, this, true));
-    return builder.build();
   }
 
   private static class MyBottomLayer extends Layer {

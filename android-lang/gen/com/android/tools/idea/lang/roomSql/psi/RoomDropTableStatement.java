@@ -28,6 +28,6 @@ public interface RoomDropTableStatement extends RoomStatement {
   RoomDatabaseName getDatabaseName();
 
   @NotNull
-  RoomTableName getTableName();
+  RoomDefinedTableName getDefinedTableName();
 
 }

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

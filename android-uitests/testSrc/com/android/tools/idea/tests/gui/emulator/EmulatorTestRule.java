@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
@@ -70,7 +71,7 @@ public class EmulatorTestRule extends ExternalResource {
     avdEditWizard.getConfigureAvdOptionsStep()
       .setAvdName(avdName)
       .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
+    avdEditWizard.clickFinish(Wait.seconds(30));
     avdManagerDialog.close();
   }
 

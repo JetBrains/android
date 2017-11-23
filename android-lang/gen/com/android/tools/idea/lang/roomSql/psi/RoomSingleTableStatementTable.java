@@ -21,8 +21,7 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.SqlTableElement;
-import com.android.tools.idea.lang.roomSql.SqlTable;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public interface RoomSingleTableStatementTable extends SqlTableElement {
 
@@ -30,7 +29,7 @@ public interface RoomSingleTableStatementTable extends SqlTableElement {
   RoomDatabaseName getDatabaseName();
 
   @NotNull
-  RoomTableName getTableName();
+  RoomDefinedTableName getDefinedTableName();
 
   @Nullable
   SqlTable getSqlTable();

@@ -19,9 +19,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
@@ -39,7 +37,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
-import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.res.ResourceHelper.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
@@ -70,17 +67,15 @@ public abstract class ViewEditor {
     return null;
   }
 
-  public abstract int getDpi();
-
   /**
    * Converts a device independent pixel to a screen pixel for the current screen density
    *
    * @param dp the device independent pixel dimension
    * @return the corresponding pixel dimension
    */
-  public int dpToPx(int dp) {
-    int dpi = getDpi();
-    return dp * dpi / DEFAULT_DENSITY;
+  @AndroidCoordinate
+  public int dpToPx(@AndroidDpCoordinate int dp) {
+    return Coordinates.dpToPx(getScene().getDesignSurface(), dp);
   }
 
   /**
@@ -89,9 +84,9 @@ public abstract class ViewEditor {
    * @param px the pixel dimension (in Android screen pixels)
    * @return the corresponding dp dimension
    */
+  @AndroidDpCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
-    int dpi = getDpi();
-    return px * DEFAULT_DENSITY / dpi;
+    return Coordinates.pxToDp(getScene().getDesignSurface(), px);
   }
 
   /**

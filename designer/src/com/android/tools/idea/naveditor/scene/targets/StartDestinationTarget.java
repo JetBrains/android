@@ -53,7 +53,7 @@ public class StartDestinationTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    Rectangle dest = Coordinates.getSwingRectDip(sceneContext, getComponent().fillRect(null));
+    Rectangle dest = Coordinates.getSwingRect(sceneContext, getComponent().fillRect(null));
     Rectangle src = new Rectangle();
     src.setBounds(dest);
     src.translate(-1 * (dest.width + LENGTH), 0);

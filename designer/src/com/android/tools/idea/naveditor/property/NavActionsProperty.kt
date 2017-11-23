@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -32,14 +33,12 @@ class NavActionsProperty(components: List<NlComponent>) : ListProperty("Actions"
   override fun refreshList() {
     properties.clear()
 
-    for (component in components) {
-      for (child in component.children ?: listOf()) {
-        if (child.tagName == NavigationSchema.TAG_ACTION) {
+    components.flatMap { it.children }
+        .filter { it.tagName == NavigationSchema.TAG_ACTION }
+        .forEach { child ->
           child.resolveAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION)?.let {
-            properties.put(it, ListPropertyItem(stripId(it) ?: it, listOf(child)))
+            properties.put(it, SimpleProperty(stripId(it) ?: it, listOf(child)))
           }
         }
-      }
-    }
   }
 }

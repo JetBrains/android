@@ -69,7 +69,7 @@ public class NlXmlPropertyBuilder {
     }
     NlComponent component = myComponents.get(0);
     List<PTableItem> items = new ArrayList<>();
-    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getFile().getVirtualFile().getPath())));
+    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
     for (AttributeSnapshot attribute : component.getAttributes()) {
       NlPropertyItem item = myProperties.get(attribute.namespace, attribute.name);
       if (item != null) {

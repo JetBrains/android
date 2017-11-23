@@ -512,7 +512,8 @@ public class TemplateManager {
         continue;
       }
       TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(category, templateName));
-      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
+      int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
+      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, minSdkVersion);
       String actionId = ACTION_ID_PREFIX + category + templateName;
       am.unregisterAction(actionId);
       am.registerAction(actionId, templateAction);

@@ -28,16 +28,19 @@ import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -52,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
@@ -60,6 +64,7 @@ import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllF
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.ROOT_PROJECT_PATH_KEY;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 abstract class ModuleSetup {
   abstract void setUpModules(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator);
@@ -87,7 +92,9 @@ abstract class ModuleSetup {
                                  new IdeNativeAndroidProjectImpl.FactoryImpl(),
                                  new JavaModuleModelFactory(),
                                  new IdeDependenciesFactory(),
-                                 new ProjectDataNodeSetup());
+                                 new ProjectDataNodeSetup(),
+                                 new ModuleSetupContext.Factory(),
+                                 new ModulesByGradlePath.Factory());
     }
   }
 
@@ -110,6 +117,8 @@ abstract class ModuleSetup {
     @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
     @NotNull private final IdeDependenciesFactory myDependenciesFactory;
     @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
+    @NotNull private final ModuleSetupContext.Factory myModuleSetupFactory;
+    @NotNull private final ModulesByGradlePath.Factory myModulesByGradlePathFactory;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -129,7 +138,9 @@ abstract class ModuleSetup {
                     @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                     @NotNull JavaModuleModelFactory javaModuleModelFactory,
                     @NotNull IdeDependenciesFactory dependenciesFactory,
-                    @NotNull ProjectDataNodeSetup projectDataNodeSetup) {
+                    @NotNull ProjectDataNodeSetup projectDataNodeSetup,
+                    @NotNull ModuleSetupContext.Factory moduleSetupFactory,
+                    @NotNull ModulesByGradlePath.Factory modulesByGradlePathFactory) {
       myProject = project;
       myModelsProvider = modelsProvider;
       myModuleFactory = moduleFactory;
@@ -147,6 +158,8 @@ abstract class ModuleSetup {
       myExtraModelsManager = extraModelsManager;
       myDependenciesFactory = dependenciesFactory;
       myProjectDataNodeSetup = projectDataNodeSetup;
+      myModuleSetupFactory = moduleSetupFactory;
+      myModulesByGradlePathFactory = modulesByGradlePathFactory;
     }
 
     @Override
@@ -159,19 +172,35 @@ abstract class ModuleSetup {
       }
 
       notifyModuleConfigurationStarted(indicator);
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+
+      List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
+      List<GradleFacet> gradleFacets = new ArrayList<>();
+
+      ModulesByGradlePath modulesByGradlePath = myModulesByGradlePathFactory.create();
+      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true /* fail fast */, module -> {
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
         if (gradleFacet != null) {
           String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-          CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(gradlePath);
-          if (moduleModelsCache != null) {
-            setUpModule(gradleFacet, moduleModelsCache, indicator);
+          if (isNotEmpty(gradlePath)) {
+            modulesByGradlePath.addModule(module, gradlePath);
+            gradleFacets.add(gradleFacet);
           }
+        }
+        return true;
+      });
+
+      for (GradleFacet gradleFacet : gradleFacets) {
+        String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(gradlePath);
+        if (moduleModelsCache != null) {
+          setUpModule(gradleFacet, moduleModelsCache, modulesByGradlePath);
         }
       }
     }
 
-    private void setUpModule(@NotNull GradleFacet gradleFacet, @NotNull CachedModuleModels cache, @NotNull ProgressIndicator indicator)
+    private void setUpModule(@NotNull GradleFacet gradleFacet,
+                             @NotNull CachedModuleModels cache,
+                             @NotNull ModulesByGradlePath modulesByGradlePath)
       throws ModelNotFoundInCacheException {
       Application application = ApplicationManager.getApplication();
       if (!application.isUnitTestMode()) {
@@ -186,22 +215,24 @@ abstract class ModuleSetup {
       }
       myGradleModuleSetup.setUpModule(module, myModelsProvider, gradleModel);
 
+      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, modulesByGradlePath, cache);
+
       AndroidModuleModel androidModel = cache.findModel(AndroidModuleModel.class);
       if (androidModel != null) {
-        myAndroidModuleSetup.setUpModule(module, myModelsProvider, androidModel, cache, indicator, true /* sync skipped */);
+        myAndroidModuleSetup.setUpModule(context, androidModel, true /* sync skipped */);
         myAndroidModules.add(module);
         return;
       }
 
       NdkModuleModel ndkModel = cache.findModel(NdkModuleModel.class);
       if (ndkModel != null) {
-        myNdkModuleSetup.setUpModule(module, myModelsProvider, ndkModel, cache, indicator, true /* sync skipped */);
+        myNdkModuleSetup.setUpModule(context, ndkModel, true /* sync skipped */);
         return;
       }
 
       JavaModuleModel javaModel = cache.findModel(JavaModuleModel.class);
       if (javaModel != null) {
-        myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, cache, indicator, true /* sync skipped */);
+        myJavaModuleSetup.setUpModule(context, javaModel, true /* sync skipped */);
       }
     }
 
@@ -214,7 +245,7 @@ abstract class ModuleSetup {
       if (globalLibraryMap != null) {
         myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
       }
-      createAndSetUpModules(projectModels, cache, indicator);
+      createAndSetUpModules(projectModels, cache);
       myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
       myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
       myProjectCleanup.cleanUpProject(myProject, myModelsProvider, indicator);
@@ -227,14 +258,13 @@ abstract class ModuleSetup {
       notifyProgress(indicator, "Configuring modules");
     }
 
-    private void createAndSetUpModules(@NotNull SyncProjectModels projectModels,
-                                       @NotNull CachedProjectModels cache,
-                                       @NotNull ProgressIndicator indicator) {
+    private void createAndSetUpModules(@NotNull SyncProjectModels projectModels, @NotNull CachedProjectModels cache) {
       populateModuleBuildFolders(projectModels);
       List<ModuleSetupInfo> moduleSetupInfos = new ArrayList<>();
 
       String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
 
+      ModulesByGradlePath modulesByGradlePath = myModulesByGradlePathFactory.create();
       for (String gradlePath : projectModels.getProjectPaths()) {
         GradleModuleModels moduleModels = projectModels.getModels(gradlePath);
         if (moduleModels != null) {
@@ -248,12 +278,13 @@ abstract class ModuleSetup {
           CachedModuleModels cachedModels = cache.addModule(module, gradlePath);
           cachedModels.addModel(gradleModel);
 
+          modulesByGradlePath.addModule(module, gradleModel.getGradlePath());
           moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
         }
       }
 
       for (ModuleSetupInfo moduleSetupInfo : moduleSetupInfos) {
-        setUpModule(moduleSetupInfo, indicator);
+        setUpModule(moduleSetupInfo, modulesByGradlePath);
       }
     }
 
@@ -280,8 +311,7 @@ abstract class ModuleSetup {
       }
     }
 
-    private void setUpModule(@NotNull ModuleSetupInfo setupInfo,
-                             @NotNull ProgressIndicator indicator) {
+    private void setUpModule(@NotNull ModuleSetupInfo setupInfo, @NotNull ModulesByGradlePath modulesByGradlePath) {
       Module module = setupInfo.module;
       GradleModuleModels moduleModels = setupInfo.moduleModels;
       CachedModuleModels cachedModels = setupInfo.cachedModels;
@@ -291,13 +321,24 @@ abstract class ModuleSetup {
       File moduleRootFolderPath = findModuleRootFolderPath(module);
       assert moduleRootFolderPath != null;
 
+      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, modulesByGradlePath, moduleModels);
+
       AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
       if (androidProject != null) {
         AndroidModuleModel androidModel = createAndroidModel(module, androidProject);
         if (androidModel != null) {
-          myAndroidModuleSetup.setUpModule(module, myModelsProvider, androidModel, moduleModels, indicator, false /* sync not skipped */);
+          myAndroidModuleSetup.setUpModule(context, androidModel, false /* sync not skipped */);
           myAndroidModules.add(module);
           cachedModels.addModel(androidModel);
+
+          // "Native" projects also both AndroidProject and AndroidNativeProject
+          NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
+          if (nativeAndroidProject != null) {
+            IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+            NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
+            myNdkModuleSetup.setUpModule(context, ndkModel, false /* sync not skipped */);
+            cachedModels.addModel(ndkModel);
+          }
         }
         else {
           // This is an Android module without variants. Treat as a non-buildable Java module.
@@ -306,22 +347,13 @@ abstract class ModuleSetup {
           assert gradleProject != null;
 
           JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, androidProject);
-          myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, moduleModels, indicator, false /* sync not skipped */);
+          myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
           cachedModels.addModel(javaModel);
         }
         return;
       }
       // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
       removeAndroidFacetFrom(module);
-
-      NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
-      if (nativeAndroidProject != null) {
-        IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-        NdkModuleModel ndkModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
-        myNdkModuleSetup.setUpModule(module, myModelsProvider, ndkModel, moduleModels, indicator, false /* sync not skipped */);
-        cachedModels.addModel(ndkModel);
-        return;
-      }
       // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
       removeAllFacets(myModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
@@ -331,7 +363,7 @@ abstract class ModuleSetup {
       if (gradleProject != null && javaProject != null) {
         JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject,
                                                                     javaProject /* regular Java module */);
-        myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, moduleModels, indicator, false /* sync not skipped */);
+        myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
         cachedModels.addModel(javaModel);
 
         myExtraModelsManager.applyModelsToModule(moduleModels, module, myModelsProvider);
@@ -343,7 +375,7 @@ abstract class ModuleSetup {
       ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
       if (gradleProject != null && jarAarProject != null) {
         JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject, jarAarProject);
-        myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, moduleModels, indicator, false /* sync not skipped */);
+        myJavaModuleSetup.setUpModule(context, javaModel, false /* sync not skipped */);
         cachedModels.addModel(javaModel);
       }
     }

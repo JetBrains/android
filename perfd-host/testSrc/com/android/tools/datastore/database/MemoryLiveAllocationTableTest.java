@@ -34,15 +34,8 @@ import java.util.List;
 public class MemoryLiveAllocationTableTest {
   private static final int VALID_PID = 1;
   private static final int INVALID_PID = -1;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder()
-    .setBootId("BOOT")
-    .setDeviceSerial("SERIAL")
-    .build();
-
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder()
-    .setBootId("INVALID_BOOT")
-    .setDeviceSerial("INVALID_SERIAL")
-    .build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
 
   // Live allocation test data
   private final int HEAP0 = 0;
@@ -90,11 +83,9 @@ public class MemoryLiveAllocationTableTest {
 
   @Before
   public void setUp() throws Exception {
-    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
-    sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = FileUtil.createTempFile("MemoryStatsTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.PERFORMANT);
-    myAllocationTable = new MemoryLiveAllocationTable(sessionLookup);
+    myAllocationTable = new MemoryLiveAllocationTable();
     myAllocationTable.initialize(myDatabase.getConnection());
   }
 
@@ -182,6 +173,36 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEventsCount()).isEqualTo(1);
     Truth.assertThat(querySample.getEvents(0)).isEqualTo(alloc2);
     Truth.assertThat(querySample.getTimestamp()).isEqualTo(alloc2.getTimestamp());
+  }
+
+  @Test
+  public void testLatestDataTimestamp() throws Exception {
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(0);
+
+    // A klass1 instance allocation event (t = 1)
+    AllocationEvent alloc1 = AllocationEvent.newBuilder()
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
+      .setTimestamp(1).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc1).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(1);
+
+    // A klass1 instance deallocation event (t = 7)
+    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
+      .setFreeData(
+        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
+      .setTimestamp(7).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(dealloc1).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(7);
+
+    // A klass2 instance allocation event (t = 6)
+    AllocationEvent alloc2 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
+      .setTimestamp(6).build();
+    myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, BatchAllocationSample.newBuilder().addEvents(alloc2).build());
+    Truth.assertThat(myAllocationTable.getLatestDataTimestamp(VALID_PID, VALID_SESSION).getTimestamp()).isEqualTo(7);
   }
 
   @Test

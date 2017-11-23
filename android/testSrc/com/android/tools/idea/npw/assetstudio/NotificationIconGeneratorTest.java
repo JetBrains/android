@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.NotificationOptions;
+import com.intellij.openapi.util.Disposer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -30,7 +31,7 @@ public class NotificationIconGeneratorTest {
 
     NotificationIconGenerator generator = new NotificationIconGenerator(minSdk);
     BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
-    generator.dispose();
+    Disposer.dispose(generator);
   }
 
   @SuppressWarnings("SameParameterValue")

@@ -17,7 +17,9 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
@@ -25,8 +27,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryProfiler extends StudioProfiler {
 
@@ -47,7 +47,7 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Profiler.Process process) {
+  public void startProfiling(Common.Session session, Common.Process process) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setProcessId(process.getPid())
                                                                    .setSession(session).build());
@@ -65,7 +65,7 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Common.Process process) {
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
         myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
@@ -91,7 +91,8 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Common.Session session = myProfilers.getSession();
-    Profiler.Process process = myProfilers.getProcess();
+    Common.Device device = myProfilers.getDevice();
+    Common.Process process = myProfilers.getProcess();
     if (session == null || process == null) {
       // Early return if no profiling is in session.
       return;
@@ -105,8 +106,8 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build());
+    TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
+      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(device.getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.

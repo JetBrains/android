@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
@@ -74,17 +74,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
    */
-  private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
+  private Map<Common.Device, List<Common.Process>> myProcesses;
 
   @Nullable
-  private Profiler.Process myProcess;
+  private Common.Process myProcess;
 
-  private Profiler.AgentStatusResponse.Status myAgentStatus;
+  private AgentStatusResponse.Status myAgentStatus;
 
   @Nullable
   private String myPreferredProcessName;
 
-  private Profiler.Device myDevice;
+  private Common.Device myDevice;
 
   @Nullable
   private Common.Session mySessionData;
@@ -134,6 +134,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myConnected = false;
     myDevice = null;
     myProcess = null;
+    // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
+    // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySessionData = Common.Session.getDefaultInstance();
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
@@ -166,7 +168,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     changed(ProfilerAspect.STAGE);
   }
 
-  public List<Profiler.Device> getDevices() {
+  public List<Common.Device> getDevices() {
     return Lists.newArrayList(myProcesses.keySet());
   }
 
@@ -188,26 +190,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myRefreshDevices = 0;
 
     try {
-      Profiler.GetDevicesResponse response = myClient.getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+      GetDevicesResponse response = myClient.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
       if (!myConnected) {
         this.changed(ProfilerAspect.CONNECTION);
       }
 
       myConnected = true;
-      Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
-      Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
-      for (Profiler.Device device : devices) {
-        Common.Session session = Common.Session.newBuilder()
-          .setDeviceSerial(device.getSerial())
-          .setBootId(device.getBootId())
-          .build();
-        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
-        Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
+      Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
+      Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
+      for (Common.Device device : devices) {
+        GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
+        GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
 
         int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-        List<Profiler.Process> processList = processes.getProcessList()
+        List<Common.Process> processList = processes.getProcessList()
           .stream()
-          .filter(process -> process.getState() == Profiler.Process.State.ALIVE ||
+          .filter(process -> process.getState() == Common.Process.State.ALIVE ||
                              process.getPid() == lastProcessId)
           .collect(Collectors.toList());
 
@@ -228,11 +226,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
       if (myProcess != null) {
-        Profiler.AgentStatusResponse.Status agentStatus = getAgentStatus();
+        AgentStatusResponse.Status agentStatus = getAgentStatus();
         if (myAgentStatus != agentStatus) {
           myAgentStatus = agentStatus;
           changed(ProfilerAspect.AGENT);
-          if (isProcessAlive() && myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED) {
+          if (isProcessAlive() && myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
         }
@@ -257,36 +255,36 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * Finally, currently selected device (in case its state has changed) has preference over others.
    */
   @Nullable
-  private Profiler.Device findPreferredDevice() {
-    if (myDevice != null && myDevice.getState().equals(Profiler.Device.State.ONLINE) && deviceHasAliveProcesses(myDevice)) {
+  private Common.Device findPreferredDevice() {
+    if (myDevice != null && myDevice.getState().equals(Common.Device.State.ONLINE) && deviceHasAliveProcesses(myDevice)) {
       // Current selected device is online and has alive processes that can be profiled. We don't need to change it.
       return myDevice;
     }
 
-    Set<Profiler.Device> devices = myProcesses.keySet();
-    Set<Profiler.Device> onlineDevices =
-      devices.stream().filter(device -> device.getState().equals(Profiler.Device.State.ONLINE)).collect(Collectors.toSet());
+    Set<Common.Device> devices = myProcesses.keySet();
+    Set<Common.Device> onlineDevices =
+      devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
     if (!onlineDevices.isEmpty()) {
       // There are online devices. First try to find a device with alive processes that can be profiled.
       // If cant't find one, return any online device.
-      Profiler.Device anyOnlineDevice = onlineDevices.iterator().next();
+      Common.Device anyOnlineDevice = onlineDevices.iterator().next();
       return onlineDevices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyOnlineDevice);
     }
 
-    // In case the currently selected device state has changed, it will be represented as a new Profiler.Device object.
+    // In case the currently selected device state has changed, it will be represented as a new Common.Device object.
     // Therefore, try to find a device with same serial as the selected one. If can't find it, return any device.
-    Profiler.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
+    Common.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
     return myDevice == null ? anyDevice :
            devices.stream().filter(device -> device.getSerial().equals(myDevice.getSerial())).findAny().orElse(anyDevice);
   }
 
-  private boolean deviceHasAliveProcesses(@NotNull Profiler.Device device) {
-    List<Profiler.Process> deviceProcesses = myProcesses.get(device);
+  private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
+    List<Common.Process> deviceProcesses = myProcesses.get(device);
     if (deviceProcesses == null) {
       return false;
     }
-    for (Profiler.Process process : deviceProcesses) {
-      if (process.getState().equals(Profiler.Process.State.ALIVE)) {
+    for (Common.Process process : deviceProcesses) {
+      if (process.getState().equals(Common.Process.State.ALIVE)) {
         return true;
       }
     }
@@ -296,32 +294,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
    */
-  public void setDevice(Profiler.Device device) {
+  public void setDevice(Common.Device device) {
     if (!Objects.equals(device, myDevice)) {
       // The device has changed and we need to reset the process.
-      // First, stop profiling the current process.
-      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
-      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
-      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
-      // a dead or non-being-profiled process is noop in all of our profilers.
+      // First, stop profiling the current process on the previous device.
       if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(mySessionData, myProcess));
+          myDevice.getDeviceId() == myProcess.getDeviceId() &&
+          myDevice.getState() == Common.Device.State.ONLINE &&
+          myProcess.getState() == Common.Process.State.ALIVE) {
+        endSession();
       }
+
+      mySessionData = null;
 
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
-
-      if (myDevice != null) {
-        mySessionData = Common.Session.newBuilder()
-          .setDeviceSerial(myDevice.getSerial())
-          .setBootId(myDevice.getBootId())
-          .build();
-      }
-      else {
-        mySessionData = null;
-      }
 
       // Then set a new process.
       setProcess(null);
@@ -339,37 +326,36 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * @param process the process that will be selected. If it is null, a process will be determined
    *                automatically by heuristics.
    */
-  public void setProcess(@Nullable Profiler.Process process) {
-    List<Profiler.Process> processes = myProcesses.get(myDevice);
+  public void setProcess(@Nullable Common.Process process) {
+    List<Common.Process> processes = myProcesses.get(myDevice);
     if (process == null || processes == null || !processes.contains(process)) {
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      // Check whether myProcess id and name exists in processes from myDevice, it avoids calling stopProfiling() twice. Otherwise,
-      // second calling might be sent to device which api is under 21 and grpc exception is thrown.
-      if (myDevice != null && myProcess != null && processes != null &&
-          processes.stream().anyMatch(p -> p.getPid() == myProcess.getPid() && p.getName().equals(myProcess.getName())) &&
-          myDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Common.Device.State.ONLINE &&
+          // Avoids calling endSession() on a previous process if the device has already changed.
+          // In those cases, endSession() should have already been called during setDevice.
+          myDevice.getDeviceId() == myProcess.getDeviceId() &&
+          myProcess.getState() == Common.Process.State.ALIVE) {
+        endSession();
       }
-      boolean onlyStateChanged = isSameProcess(myProcess, process);
+
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
       myAgentStatus = getAgentStatus();
-      changed(ProfilerAspect.AGENT);
-
       if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
+          myDevice.getState() == Common.Device.State.ONLINE &&
+          myProcess.getState() == Common.Process.State.ALIVE) {
+        // Starts a new session.
+        beginSession();
 
-        Profiler.TimeResponse
-          response = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+        TimeResponse response =
+          myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
         long currentDeviceTime = response.getTimestampNs();
-        long runTime = currentDeviceTime - myProcess.getStartTimestampNs();
-        myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        long runTime = currentDeviceTime - mySessionData.getStartTimestamp();
+        myRelativeTimeConverter = new RelativeTimeConverter(mySessionData.getStartTimestamp() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter, runTime);
-        myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
 
         // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
         if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
@@ -377,28 +363,65 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
           // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
           myClient.getProfilerClient()
-            .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid())
+            .attachAgent(AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid())
                            .setAgentLibFileName(String.format("libperfa_%s.so", myProcess.getAbiCpuArch())).build());
         }
 
         myIdeServices.getFeatureTracker().trackProfilingStarted();
-        if (myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED) {
+        if (myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
           getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
         }
       }
       else {
         myTimeline.setIsPaused(true);
+
+        if (myDevice != null && myProcess != null) {
+          // The process is dead, find the previous session that was associated with the device and process.
+          GetSessionsResponse sessionsResponse = myClient.getProfilerClient().getSessions(GetSessionsRequest.getDefaultInstance());
+          // Sessions are sorted based on start time, reverse the traversal to find the most recent one.
+          for (int i = sessionsResponse.getSessionsCount() - 1; i >= 0; i--) {
+            Common.Session session = sessionsResponse.getSessions(i);
+            if (session.getDeviceId() == myDevice.getDeviceId() && session.getPid() == myProcess.getPid()) {
+              mySessionData = session;
+              break;
+            }
+          }
+        }
       }
 
-      if (!onlyStateChanged) {
-        if (myProcess == null) {
-          setStage(new NullMonitorStage(this));
-        }
-        else {
-          setStage(new StudioMonitorStage(this));
-        }
+      if (myProcess == null) {
+        setStage(new NullMonitorStage(this));
       }
+      else if (myProcess.getState() == Common.Process.State.ALIVE) {
+        assert mySessionData != null;
+        setStage(new StudioMonitorStage(this));
+      }
+
+      // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
+      // is properly assigned before firing this aspect change.
+      changed(ProfilerAspect.AGENT);
     }
+  }
+
+  private void beginSession() {
+    assert myDevice != null && myProcess != null;
+    BeginSessionResponse response =
+      myClient.getProfilerClient().beginSession(BeginSessionRequest.newBuilder()
+                                                  .setDeviceId(myDevice.getDeviceId())
+                                                  .setProcessId(myProcess.getPid())
+                                                  .build());
+    mySessionData = response.getSession();
+    myProfilers.forEach(profiler -> profiler.startProfiling(mySessionData, myProcess));
+  }
+
+  private void endSession() {
+    assert mySessionData != null;
+    EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
+                                                                            .setDeviceId(myDevice.getDeviceId())
+                                                                            .setSessionId(mySessionData.getSessionId())
+                                                                            .build());
+    myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
+    mySessionData = null;
   }
 
   /**
@@ -407,14 +430,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * process.
    */
   @Nullable
-  private Profiler.Process getPreferredProcess(List<Profiler.Process> processes) {
+  private Common.Process getPreferredProcess(List<Common.Process> processes) {
     if (processes == null || processes.isEmpty()) {
       return null;
     }
     // Prefer the project's app if available.
     if (myPreferredProcessName != null) {
-      for (Profiler.Process process : processes) {
-        if (process.getName().equals(myPreferredProcessName) && process.getState() == Profiler.Process.State.ALIVE) {
+      for (Common.Process process : processes) {
+        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE) {
           // Only switch to the preferred process once. If the user intentionally selects something else, the profiler should not switch
           // back to the preferred process in any cases.
           myPreferredProcessName = null;
@@ -424,7 +447,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
     if (myProcess != null) {
-      for (Profiler.Process process : processes) {
+      for (Common.Process process : processes) {
         if (isSameProcess(myProcess, process)) {
           return process;
         }
@@ -435,17 +458,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  private Profiler.AgentStatusResponse.Status getAgentStatus() {
+  private AgentStatusResponse.Status getAgentStatus() {
     if (myDevice == null || myProcess == null) {
-      return Profiler.AgentStatusResponse.getDefaultInstance().getStatus();
+      return AgentStatusResponse.getDefaultInstance().getStatus();
     }
 
-    Common.Session session = Common.Session.newBuilder()
-      .setDeviceSerial(myDevice.getSerial())
-      .setBootId(myDevice.getBootId())
-      .build();
-    Profiler.AgentStatusRequest statusRequest =
-      Profiler.AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
+    AgentStatusRequest statusRequest =
+      AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setDeviceId(myDevice.getDeviceId()).build();
     return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
   }
 
@@ -454,14 +473,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * have changed between process1 and process2, but they should be considered the same as long as we have matching pids and names, so we
    * don't reset the stage.
    */
-  private static boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
+  private static boolean isSameProcess(@Nullable Common.Process process1, @Nullable Common.Process process2) {
     return process1 != null &&
            process2 != null &&
            process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
   }
 
-  public List<Profiler.Process> getProcesses() {
-    List<Profiler.Process> processes = myProcesses.get(myDevice);
+  public List<Common.Process> getProcesses() {
+    List<Common.Process> processes = myProcesses.get(myDevice);
     return processes == null ? ImmutableList.of() : processes;
   }
 
@@ -501,16 +520,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myRelativeTimeConverter;
   }
 
-  public Profiler.Device getDevice() {
+  public Common.Device getDevice() {
     return myDevice;
   }
 
-  public Profiler.Process getProcess() {
+  public Common.Process getProcess() {
     return myProcess;
   }
 
   public boolean isProcessAlive() {
-    return myProcess != null && myProcess.getState() == Profiler.Process.State.ALIVE;
+    return myProcess != null && myProcess.getState() == Common.Process.State.ALIVE;
   }
 
   public boolean isLiveAllocationEnabled() {
@@ -519,7 +538,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isAgentAttached() {
-    return myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED;
+    return myAgentStatus == AgentStatusResponse.Status.ATTACHED;
   }
 
   public List<StudioProfiler> getProfilers() {

@@ -105,6 +105,8 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
     return listBuilder.build()
   }
+
+  override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = true
 }
 
 // The resize behaviour is similar to the FrameResizeTarget so far.

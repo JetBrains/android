@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode.DependencyCollectorFunction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeStructure;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
+import com.android.tools.idea.gradle.structure.configurables.issues.DependencyViewIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
@@ -86,7 +86,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     initializeDependencyDetails();
 
-    setIssuesViewer(new IssuesViewer(myContext, new IssuesRenderer()));
+    setIssuesViewer(new IssuesViewer(myContext, new DependencyViewIssuesRenderer()));
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {

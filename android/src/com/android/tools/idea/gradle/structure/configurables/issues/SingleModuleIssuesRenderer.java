@@ -16,15 +16,13 @@
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.model.PsPath;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+public class SingleModuleIssuesRenderer extends DependencyViewIssuesRenderer {
+  private final IssueRenderer myIssueRenderer = new DependencyViewIssueRenderer(false, true);
 
-public class SingleModuleIssuesRenderer extends IssuesRenderer {
   @Override
   @NotNull
   public String render(@NotNull Collection<PsIssue> issues) {
@@ -32,16 +30,8 @@ public class SingleModuleIssuesRenderer extends IssuesRenderer {
     buffer.append("<html><body><ol>");
 
     for (PsIssue issue : issues) {
-      buffer.append("<li>").append(issue.getText());
-      PsPath quickFixPath = issue.getQuickFixPath();
-      if (quickFixPath != null) {
-        buffer.append(" ").append(quickFixPath.toText(HTML));
-      }
-
-      String description = issue.getDescription();
-      if (isNotEmpty(description)) {
-        buffer.append("<br/><br/>").append(description);
-      }
+      buffer.append("<li>");
+      myIssueRenderer.renderIssue(buffer, issue);
       buffer.append("</li>");
     }
 

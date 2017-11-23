@@ -31,10 +31,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
     myParentDisposable = parentDisposable;
     myContext = context;
 
-    myMinSdkInfoMessageLabel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
+    myMinSdkInfoMessageLabel.setBorder(JBUI.Borders.emptyTop(10));
     myMinSdkInfoMessageLabel.setIcon(AllIcons.General.BalloonWarning);
 
     context.addModuleChangeListener(e -> myAvdCombo.startUpdatingAvds(ModalityState.current()));

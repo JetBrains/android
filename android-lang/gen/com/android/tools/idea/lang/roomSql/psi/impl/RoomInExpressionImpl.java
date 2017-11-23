@@ -49,6 +49,12 @@ public class RoomInExpressionImpl extends RoomExpressionImpl implements RoomInEx
   }
 
   @Override
+  @Nullable
+  public RoomDefinedTableName getDefinedTableName() {
+    return findChildByClass(RoomDefinedTableName.class);
+  }
+
+  @Override
   @NotNull
   public List<RoomExpression> getExpressionList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpression.class);
@@ -58,12 +64,6 @@ public class RoomInExpressionImpl extends RoomExpressionImpl implements RoomInEx
   @Nullable
   public RoomSelectStatement getSelectStatement() {
     return findChildByClass(RoomSelectStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
   }
 
 }

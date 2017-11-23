@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
@@ -30,7 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
+public class NlBooleanEditor extends BaseComponentEditor implements NlComponentEditor {
   @VisibleForTesting static final String TIP_TEXT_DONT_CARE = "(No value)";
   @VisibleForTesting static final String TIP_TEXT_NOT_SELECTED = "false";
   @VisibleForTesting static final String TIP_TEXT_SELECTED = "true";

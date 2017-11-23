@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -26,6 +25,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -66,15 +66,15 @@ public class ScreenDragTargetTest extends NavigationTestCase {
     try {
       interactionManager.registerListeners();
 
-      @AndroidDpCoordinate int x = component.getDrawX();
-      @AndroidDpCoordinate int y = component.getDrawY();
+      @NavCoordinate int x = component.getDrawX();
+      @NavCoordinate int y = component.getDrawY();
 
-      LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 10),
-                                     Coordinates.getSwingYDip(view, y + 10), 0);
-      LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y),
-                                    Coordinates.getSwingXDip(view, x + 30), Coordinates.getSwingYDip(view, y + 40), 0);
-      LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 30),
-                                       Coordinates.getSwingYDip(view, y + 40), 0);
+      LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingX(view, x + 10),
+                                     Coordinates.getSwingY(view, y + 10), 0);
+      LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y),
+                                    Coordinates.getSwingX(view, x + 30), Coordinates.getSwingY(view, y + 40), 0);
+      LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingX(view, x + 30),
+                                       Coordinates.getSwingY(view, y + 40), 0);
 
       assertEquals(x + 20, component.getDrawX());
       assertEquals(y + 30, component.getDrawY());

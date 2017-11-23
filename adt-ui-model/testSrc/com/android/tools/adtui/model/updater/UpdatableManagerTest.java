@@ -16,16 +16,8 @@
 package com.android.tools.adtui.model.updater;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.StopwatchTimer;
-import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.adtui.model.updater.Updater;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,29 +57,6 @@ public class UpdatableManagerTest {
 
     myUpdatableManager.releaseAll();
     assertEquals(2, myUpdater.getUpdatables().size());
-  }
-
-  private static class FakeUpdater extends Updater {
-    private List<Updatable> myUpdatables;
-
-    public FakeUpdater(@NotNull StopwatchTimer timer) {
-      super(timer);
-      myUpdatables = new ArrayList<>();
-    }
-
-    @Override
-    public void register(Updatable updatable) {
-      myUpdatables.add(updatable);
-    }
-
-    @Override
-    public void unregister(@NotNull Updatable updatable) {
-      myUpdatables.remove(updatable);
-    }
-
-    public List<Updatable> getUpdatables() {
-      return myUpdatables;
-    }
   }
 
   private static class FakeUpdatable implements Updatable {

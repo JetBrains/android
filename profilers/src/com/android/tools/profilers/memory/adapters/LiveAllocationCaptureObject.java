@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TLongObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -62,6 +64,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
   private final TIntObjectHashMap<AllocationStack> myCallstackMap;
   private final TIntObjectHashMap<ThreadId> myThreadIdMap;
+  private final TLongObjectHashMap<StackFrameInfoResponse> myFrameInfoResponseMap;
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
@@ -97,6 +100,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myInstanceMap = new TIntObjectHashMap<>();
     myCallstackMap = new TIntObjectHashMap<>();
     myThreadIdMap = new TIntObjectHashMap<>();
+    myFrameInfoResponseMap = new TLongObjectHashMap<>();
 
     myClient = client;
     mySession = session;
@@ -208,6 +212,21 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return true;
   }
 
+  @Nullable
+  @Override
+  public MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+    StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
+    if (frameInfo == null) {
+      frameInfo = getClient().getStackFrameInfo(
+        StackFrameInfoRequest.newBuilder().setProcessId(getProcessId()).setSession(getSession())
+          .setMethodId(methodId).build()
+      );
+      myFrameInfoResponseMap.put(methodId, frameInfo);
+    }
+
+    return frameInfo;
+  }
+
   @Override
   public boolean isDoneLoading() {
     return true;
@@ -285,12 +304,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
         // We +1 because current range is left close and right open
         if (newEndTimeNs > myEventsEndTimeNs + 1) {
-          // TODO - optimize. We should't need to query allocations just to retrieve a timestamp.
-          BatchAllocationSample sampleResponse =
-            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                      .setStartTime(myEventsEndTimeNs + 1).setEndTime(newEndTimeNs).build());
-
-          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, sampleResponse.getTimestamp());
+          LatestAllocationTimeResponse timeResponse = myClient
+            .getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).build());
+          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, timeResponse.getTimestamp());
           if (newEndTimeNs > myEventsEndTimeNs + 1) {
             newEndTimeNs = myEventsEndTimeNs + 1;
             newStartTimeNs = Math.min(newStartTimeNs, newEndTimeNs);

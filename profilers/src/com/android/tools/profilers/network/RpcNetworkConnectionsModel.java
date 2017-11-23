@@ -16,8 +16,12 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.Profiler.BytesRequest;
+import com.android.tools.profiler.proto.Profiler.BytesResponse;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
- * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries.
+ * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries. It sent queries to datastore, adding or removing
+ * data queries may need change datastore.
  */
 public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   @NotNull
@@ -59,13 +65,24 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     List<HttpData> httpDataList = new ArrayList<>(response.getDataList().size());
     for (NetworkProfiler.HttpConnectionData connection : response.getDataList()) {
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
+      long uploadedTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getUploadedTimestamp());
+      long downloadingTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
-      long downloadTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
-      HttpData.Builder httpBuilder = new HttpData.Builder(connection.getConnId(), startTimeUs, endTimeUs, downloadTimeUs);
+
+      HttpData.Builder httpBuilder =
+        new HttpData.Builder(
+          connection.getConnId(),
+          startTimeUs,
+          uploadedTimeUs,
+          downloadingTimeUs,
+          endTimeUs,
+          requestAccessingThreads(connection.getConnId()));
 
       requestHttpRequest(connection.getConnId(), httpBuilder);
-      requestAccessingThreads(connection.getConnId(), httpBuilder);
 
+      if (connection.getUploadedTimestamp() != 0) {
+        requestHttpRequestBody(connection.getConnId(), httpBuilder);
+      }
       if (connection.getEndTimestamp() != 0) {
         requestHttpResponse(connection.getConnId(), httpBuilder);
         requestHttpResponseBody(connection.getConnId(), httpBuilder);
@@ -77,66 +94,55 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   }
 
   private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(connectionId)
-      .setSession(mySession)
-      .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
-      .build();
-    NetworkProfiler.HttpDetailsResponse.Request result = myNetworkService.getHttpDetails(request).getRequest();
+    NetworkProfiler.HttpDetailsResponse.Request result =
+      getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
     httpBuilder.setTrace(result.getTrace());
     httpBuilder.setRequestFields(result.getFields());
   }
 
-  private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(connectionId)
-      .setSession(mySession)
-      .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
-      .build();
-    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
+  private void requestHttpRequestBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
+    NetworkProfiler.HttpDetailsResponse result = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
+    httpBuilder.setRequestPayloadId(result.getRequestBody().getPayloadId());
+  }
 
+  private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
+    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
     String payloadId = response.getResponseBody().getPayloadId();
     httpBuilder.setResponsePayloadId(payloadId);
   }
 
   @NotNull
   @Override
-  public ByteString requestResponsePayload(@NotNull HttpData data) {
-    if (StringUtil.isEmpty(data.getResponsePayloadId())) {
+  public ByteString requestPayload(@NotNull String payloadId) {
+    if (StringUtil.isEmpty(payloadId)) {
       return ByteString.EMPTY;
     }
 
-    Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
-      .setId(data.getResponsePayloadId())
+    BytesRequest request = BytesRequest.newBuilder()
+      .setId(payloadId)
       .setSession(mySession)
       .build();
 
-    Profiler.BytesResponse response = myProfilerService.getBytes(request);
+    BytesResponse response = myProfilerService.getBytes(request);
     return response.getContents();
   }
 
   private void requestHttpResponse(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(connectionId)
-      .setSession(mySession)
-      .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
-      .build();
-    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
-
+    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
     httpBuilder.setResponseFields(response.getResponse().getFields());
   }
 
-  private void requestAccessingThreads(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(connectionId)
-      .setSession(mySession)
-      .setType(NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS)
-      .build();
-    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
-    for (NetworkProfiler.JavaThread thread : response.getAccessingThreads().getThreadList()) {
-      httpBuilder.addJavaThread(new HttpData.JavaThread(thread.getId(), thread.getName()));
-    }
+  private List<HttpData.JavaThread> requestAccessingThreads(long connectionId) {
+    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    return response.getAccessingThreads().getThreadList().stream().map(proto -> new HttpData.JavaThread(proto.getId(), proto.getName()))
+      .collect(
+        Collectors.toList());
+  }
+
+  private NetworkProfiler.HttpDetailsResponse getDetails(long connectionId, NetworkProfiler.HttpDetailsRequest.Type type) {
+    return myNetworkService.getHttpDetails(
+      NetworkProfiler.HttpDetailsRequest.newBuilder().setConnId(connectionId).setSession(mySession).setType(type).build());
   }
 }

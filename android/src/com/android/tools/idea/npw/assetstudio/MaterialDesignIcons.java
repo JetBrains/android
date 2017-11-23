@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,90 +34,122 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getResourcesNames;
 
+/**
+ * Methods for accessing library of material design icons.
+ */
 public final class MaterialDesignIcons {
-    public static final String PATH = "images/material_design_icons/";
-    private static final Pattern CATEGORY = Pattern.compile(PATH + "(\\w+)/");
+  private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
+  private static final String PATH = "images/material_design_icons/";
+  private static final Pattern CATEGORY_PATTERN = Pattern.compile(PATH + "(\\w+)/");
 
-    private MaterialDesignIcons() {
+  /** Do not instantiate - all methods are static. */
+  private MaterialDesignIcons() {
+  }
+
+  @Nullable
+  public static String getPathForBasename(@NotNull String basename) {
+    return getBasenameToPathMap(path -> getResourcesNames(path, DOT_XML)).get(basename);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static Map<String, String> getBasenameToPathMap(@NotNull Function<String, List<String>> generator) {
+    ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
+    int dotXmlLength = DOT_XML.length();
+
+    for (String category : getCategories()) {
+      String path = PATH + category + '/';
+
+      for (String name : generator.apply(path)) {
+        builder.put(name.substring(0, name.length() - dotXmlLength), path + name);
+      }
     }
 
-    @Nullable
-    public static String getPathForBasename(@NonNull String basename) {
-        return getBasenameToPathMap(path -> BuiltInImages.getResourcesNames(path, DOT_XML)).get(basename);
+    return builder.build();
+  }
+
+  @NotNull
+  public static Collection<String> getCategories() {
+    return getCategories(getResourceUrl(PATH));
+  }
+
+  @NotNull
+  public static List<String> getIconNames(@NotNull String categoryName) {
+    return getResourcesNames(getIconDirectoryPath(categoryName), SdkConstants.DOT_XML);
+  }
+
+  @NotNull
+  public static URL getIcon(@NotNull String iconName, @NotNull String categoryName) {
+    return getResourceUrl(getIconDirectoryPath(categoryName) + iconName);
+  }
+
+  @NotNull
+  public static URL getDefaultIcon() {
+    URL url = getResourceUrl(PATH + DEFAULT_ICON_NAME);
+    assert url != null;
+    return url;
+  }
+
+  @VisibleForTesting
+  static Collection<String> getCategories(@Nullable URL url) {
+    if (url == null) {
+      return Collections.emptyList();
     }
 
-    @NonNull
-    @VisibleForTesting
-    static Map<String, String> getBasenameToPathMap(@NonNull Function<String, List<String>> generator) {
-        ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
-        int dotXmlLength = DOT_XML.length();
-
-        for (String category : getCategories()) {
-            String path = PATH + category + '/';
-
-            for (String name : generator.apply(path)) {
-                builder.put(name.substring(0, name.length() - dotXmlLength), path + name);
-            }
+    switch (url.getProtocol()) {
+      case "file":
+        return getCategoriesFromFile(new File(url.getPath()));
+      case "jar":
+        try {
+          JarURLConnection connection = (JarURLConnection)url.openConnection();
+          return getCategoriesFromJar(connection.getJarFile());
+        } catch (IOException e) {
+          return Collections.emptyList();
         }
+      default:
+        return Collections.emptyList();
+    }
+  }
 
-        return builder.build();
+  @NotNull
+  @VisibleForTesting
+  static Collection<String> getCategoriesFromFile(@NotNull File file) {
+    String[] array = file.list();
+
+    if (array == null) {
+      return Collections.emptyList();
     }
 
-    @NonNull
-    public static Collection<String> getCategories() {
-        return getCategories(IconGenerator.class.getClassLoader().getResource(PATH));
-    }
+    List<String> list = Arrays.asList(array);
+    list.sort(String::compareTo);
 
-    @VisibleForTesting
-    static Collection<String> getCategories(@Nullable URL url) {
-        if (url == null) {
-            return Collections.emptyList();
-        }
+    return list;
+  }
 
-        switch (url.getProtocol()) {
-            case "file":
-                return getCategoriesFromFile(new File(url.getPath()));
-            case "jar":
-                try {
-                    JarURLConnection connection = (JarURLConnection) url.openConnection();
-                    return getCategoriesFromJar(connection.getJarFile());
-                } catch (IOException exception) {
-                    return Collections.emptyList();
-                }
-            default:
-                return Collections.emptyList();
-        }
-    }
+  @NotNull
+  @VisibleForTesting
+  static Collection<String> getCategoriesFromJar(@NotNull ZipFile jar) {
+    return jar.stream()
+        .map(MaterialDesignIcons::getCategory)
+        .filter(Objects::nonNull)
+        .sorted()
+        .collect(Collectors.toList());
+  }
 
-    @NonNull
-    @VisibleForTesting
-    static Collection<String> getCategoriesFromFile(@NonNull File file) {
-        String[] array = file.list();
+  @Nullable
+  private static String getCategory(@NotNull ZipEntry entry) {
+    Matcher matcher = CATEGORY_PATTERN.matcher(entry.getName());
+    return matcher.matches() ? matcher.group(1) : null;
+  }
 
-        if (array == null) {
-            return Collections.emptyList();
-        }
+  @NotNull
+  private static String getIconDirectoryPath(String categoryName) {
+    return PATH + categoryName.toLowerCase(Locale.ENGLISH) + '/';
+  }
 
-        List<String> list = Arrays.asList(array);
-        list.sort(String::compareTo);
-
-        return list;
-    }
-
-    @NonNull
-    @VisibleForTesting
-    static Collection<String> getCategoriesFromJar(@NonNull ZipFile jar) {
-        return jar.stream()
-                .map(MaterialDesignIcons::getCategory)
-                .filter(Objects::nonNull)
-                .sorted()
-                .collect(Collectors.toList());
-    }
-
-    @Nullable
-    private static String getCategory(@NonNull ZipEntry entry) {
-        Matcher matcher = CATEGORY.matcher(entry.getName());
-        return matcher.matches() ? matcher.group(1) : null;
-    }
+  private static URL getResourceUrl(String iconPath) {
+    return MaterialDesignIcons.class.getClassLoader().getResource(iconPath);
+  }
 }

@@ -19,10 +19,7 @@ import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
@@ -42,10 +39,11 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
@@ -372,7 +370,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    ContextMenuInstaller contextMenuInstaller = myIdeProfilerComponents.createContextMenuInstaller();
+    contextMenuInstaller.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = tree.getSelectionPath();
       if (selection == null) {
         return null;
@@ -388,7 +387,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
+    contextMenuInstaller.installGenericContextMenu(tree, new ContextMenuItem() {
       @NotNull
       @Override
       public String getText() {

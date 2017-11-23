@@ -35,7 +35,13 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.DumbServiceImpl;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.util.ui.JBUI;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -255,9 +261,29 @@ public class PalettePanelTest extends LayoutTestCase {
     when(event.getPoint()).thenReturn(new Point(50, 50));
     JList<Palette.Item> list = myPanel.getItemList();
     TransferHandler handler = list.getTransferHandler();
-    imitateDrop(handler, list);
+    imitateDragAndDrop(handler, list);
 
     verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, PaletteMode.ICON_AND_NAME, "Layouts", -1);
+  }
+
+  public void testDragAndDropInDumbMode() throws Exception {
+    try {
+      DumbServiceImpl.getInstance(getProject()).setDumb(true);
+      StatusBarEx statusBar = registerMockStatusBar();
+      myTrackingDesignSurface = setUpLayoutDesignSurface();
+      myPanel.setToolContext(myTrackingDesignSurface);
+      myPanel.getCategoryList().setSelectedIndex(4); // Layouts
+      myPanel.getItemList().setSelectedIndex(0);     // ConstraintLayout (to avoid preview)
+      MouseEvent event = mock(MouseEvent.class);
+      when(event.getPoint()).thenReturn(new Point(50, 50));
+      JList<Palette.Item> list = myPanel.getItemList();
+      TransferHandler handler = list.getTransferHandler();
+      assertFalse(imitateDragAndDrop(handler, list));
+      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."), isNull(), isNull());
+    }
+    finally {
+      DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    }
   }
 
   public void testAddToDesignFromEnterKey() throws Exception {
@@ -344,14 +370,30 @@ public class PalettePanelTest extends LayoutTestCase {
     verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull());
   }
 
-  private static void imitateDrop(@NotNull TransferHandler handler, @NotNull JComponent component) throws Exception {
+  @NotNull
+  private StatusBarEx registerMockStatusBar() {
+    WindowManager windowManager = mock(WindowManagerEx.class);
+    IdeFrame frame = mock(IdeFrame.class);
+    StatusBarEx statusBar = mock(StatusBarEx.class);
+    registerApplicationComponentImplementation(WindowManager.class, windowManager);
+    when(windowManager.getIdeFrame(getProject())).thenReturn(frame);
+    when(frame.getStatusBar()).thenReturn(statusBar);
+    return statusBar;
+  }
+
+  // Imitate a Drag & Drop operation. Return true if a transferable object was created.
+  private static boolean imitateDragAndDrop(@NotNull TransferHandler handler, @NotNull JComponent component) throws Exception {
     Method createTransferable = handler.getClass().getDeclaredMethod("createTransferable", JComponent.class);
     createTransferable.setAccessible(true);
     Transferable transferable = (Transferable)createTransferable.invoke(handler, component);
+    if (transferable == null) {
+      return false;
+    }
 
     Method exportDone = handler.getClass().getDeclaredMethod("exportDone", JComponent.class, Transferable.class, int.class);
     exportDone.setAccessible(true);
     exportDone.invoke(handler, component, transferable, ACTION_MOVE);
+    return true;
   }
 
   private void checkTypingStartsFiltering(@NotNull JComponent component) {

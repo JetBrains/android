@@ -16,10 +16,13 @@
 package com.android.tools.idea.lang.roomSql.psi
 
 import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.Processor
@@ -41,7 +44,7 @@ class RoomAstNodeType(debugName: String) : IElementType(debugName, RoomSqlLangua
 
 class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RoomSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
-  override fun getIcon(flags: Int): Icon? = ROOM_SQL_ICON
+  override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
   val queryAnnotation: UAnnotation? get() {
     val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
@@ -64,4 +67,12 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
+
+interface SqlTableElement : PsiElement {
+  val sqlTable: SqlTable?
+}
+
+interface HasWithClause : PsiElement {
+  val withClause: RoomWithClause?
+}
 

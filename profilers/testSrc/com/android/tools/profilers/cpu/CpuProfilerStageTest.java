@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -560,129 +559,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void profilingModesAvailableDependOnDeviceApi() {
-    myServices.enableSimplePerf(true);
-    myServices.enableAtrace(true);
-    // Set a device that doesn't support simpleperf, or atrace
-    addAndSetDevice(14, "FakeDevice1");
-
-    List<ProfilingConfiguration> configs = myStage.getProfilingConfigurations();
-    // First configuration in the list should be a dummy entry used to open the configurations dialog
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(configs);
-    assertThat(realConfigs).hasSize(2);
-    // First actual configuration should be ART Sampled
-    assertThat(realConfigs.get(0).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(realConfigs.get(0).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(realConfigs.get(1).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-
-    // Simpleperf, and atrae are supported on API 26 and greater.
-    addAndSetDevice(26, "FakeDevice2");
-
-    configs = myStage.getProfilingConfigurations();
-    // Dummy configuration
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-
-    realConfigs = filterFakeConfigs(configs);
-    assertThat(realConfigs).hasSize(4);
-
-    // First and second actual configurations should be the same
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-    // Third configuration should be simpleperf
-    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-    assertThat(realConfigs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
-    // Fourth should be atrace
-    assertThat(realConfigs.get(3).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE);
-  }
-
-  @Test
-  public void simpleperfIsOnlyAvailableWhenFlagIsTrue() {
-    myServices.enableSimplePerf(true);
-
-    // Set a device that supports simpleperf
-    addAndSetDevice(26, "Fake Device 1");
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-
-    assertThat(realConfigs).hasSize(3);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
-
-    // Now disable simpleperf
-    myServices.enableSimplePerf(false);
-
-    // Set a device that supports simpleperf
-    addAndSetDevice(26, "Fake Device 2");
-    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-    // Simpleperf should not be listed as a profiling option
-    assertThat(realConfigs).hasSize(2);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-  }
-
-  @Test
-  public void atraceIsOnlyAvailableWhenFlagIsTrue() {
-    myServices.enableAtrace(true);
-
-    // Set a device that supports atrace
-    addAndSetDevice(26, "Fake Device 1");
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-
-    assertThat(realConfigs).hasSize(3);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.ATRACE);
-
-    // Now disable atrace
-    myServices.enableAtrace(false);
-
-    addAndSetDevice(26, "Fake Device 2");
-    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-    // Atrace should not be listed as a profiling option
-    assertThat(realConfigs).hasSize(2);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-  }
-
-  @Test
-  public void allAreAvailableWhenFlagIsTrue() {
-    myServices.enableSimplePerf(true);
-    myServices.enableAtrace(true);
-
-    // Set a device that supports simpleperf, and atrace
-    addAndSetDevice(26, "Fake Device 1");
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-
-    assertThat(realConfigs).hasSize(4);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
-    assertThat(realConfigs.get(3).getName()).isEqualTo(ProfilingConfiguration.ATRACE);
-
-    // Now disable simpleperf, and atrace
-    myServices.enableSimplePerf(false);
-    myServices.enableAtrace(false);
-
-    // Set a device that supports simpleperf, and atrace
-    addAndSetDevice(26, "Fake Device 2");
-    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-    // Simpleperf, and atrace should not be listed as profiling options
-    assertThat(realConfigs).hasSize(2);
-    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
-  }
-
-  @Test
   public void editConfigurationsEntryCantBeSetAsProfilingConfiguration() {
     assertThat(myStage.getProfilingConfiguration()).isNotNull();
     // ART Sampled should be the default configuration when starting the stage,
@@ -936,8 +812,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.ART,
-                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
@@ -1014,21 +890,31 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(timeline.isStreaming()).isTrue();
   }
 
+  @Test
+  public void testHasUserUsedCapture() {
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
+    startCapturing();
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
-    Profiler.Device device =
-      Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    int deviceId = serial.hashCode();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(deviceId)
+      .setFeatureLevel(featureLevel)
+      .setSerial(serial)
+      .setState(Common.Device.State.ONLINE).build();
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setDeviceId(deviceId)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
-      .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
       .build();
     myProfilerService.addDevice(device);
     // Adds at least one ALIVE process as well. Otherwise, StudioProfilers would prefer selecting a device that has live processes.
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
     myStage.getStudioProfilers().setDevice(device);

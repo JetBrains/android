@@ -37,7 +37,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -99,7 +98,7 @@ public class BuildVariantView {
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
     myUpdater = new BuildVariantUpdater();
-    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(IdeBorderFactory.createEmptyBorder());
+    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
   }
 
   @VisibleForTesting

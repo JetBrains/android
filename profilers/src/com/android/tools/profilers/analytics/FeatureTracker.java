@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.analytics;
 
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import org.jetbrains.annotations.NotNull;
@@ -52,13 +52,13 @@ public interface FeatureTracker {
    * Track when the user takes an action to change the current device. This will only be tracked
    * if the device actually changes.
    */
-  void trackChangeDevice(@Nullable Profiler.Device device);
+  void trackChangeDevice(@Nullable Common.Device device);
 
   /**
    * Track when the user takes an action to change the current process. This will only be tracked
    * if the process actually changes.
    */
-  void trackChangeProcess(@Nullable Profiler.Process process);
+  void trackChangeProcess(@Nullable Common.Process process);
 
   /**
    * Track when the user takes an action to return back to the top-level monitor view (from a

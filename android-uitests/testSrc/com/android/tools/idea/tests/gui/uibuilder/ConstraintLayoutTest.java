@@ -66,6 +66,7 @@ public class ConstraintLayoutTest {
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   /**
    * Verifies the UI for adding side constraints for a ConstraintLayout in the layout editor.
@@ -86,7 +87,7 @@ public class ConstraintLayoutTest {
    *      in xml view of layout editor.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/69269653
   @Test
   public void testSideConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
@@ -104,10 +105,13 @@ public class ConstraintLayoutTest {
       .createConstraintFromRightToRightOfLayout();
 
     String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
-    assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
-    assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
+    int openButtonTagIndex = layoutContents.indexOf("<Button");
+    int closeButtonTagIndex = layoutContents.indexOf("/>", openButtonTagIndex);
+    String buttonTag = layoutContents.substring(openButtonTagIndex, closeButtonTagIndex);
+    assertThat(buttonTag).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
+    assertThat(buttonTag).contains("app:layout_constraintTop_toTopOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintStart_toStartOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintEnd_toEndOf=\"parent\"");
 
     layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
       .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
@@ -123,10 +127,13 @@ public class ConstraintLayoutTest {
       .createConstraintFromRightToRightOfLayout();
 
     layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
-    assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
-    assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
-    assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
+    openButtonTagIndex = layoutContents.indexOf("<Button");
+    closeButtonTagIndex = layoutContents.indexOf("/>", openButtonTagIndex);
+    buttonTag = layoutContents.substring(openButtonTagIndex, closeButtonTagIndex);
+    assertThat(buttonTag).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
+    assertThat(buttonTag).contains("app:layout_constraintTop_toTopOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintStart_toStartOf=\"parent\"");
+    assertThat(buttonTag).contains("app:layout_constraintEnd_toEndOf=\"parent\"");
   }
 
   /**
@@ -271,14 +278,14 @@ public class ConstraintLayoutTest {
       .requireDevice("Nexus 6");
 
     preview.getConfigToolbar()
-      .switchOrientation()
+      .setOrientationAsLandscape()
       .leaveConfigToolbar()
       .waitForRenderToFinish()
       .getConfigToolbar()
       .requireOrientation("Landscape");
 
     preview.getConfigToolbar()
-      .switchOrientation()
+      .setOrientationAsPortrait()
       .leaveConfigToolbar()
       .waitForRenderToFinish()
       .getConfigToolbar()
@@ -499,6 +506,7 @@ public class ConstraintLayoutTest {
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor(false)
+      .showOnlyDesignView()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 

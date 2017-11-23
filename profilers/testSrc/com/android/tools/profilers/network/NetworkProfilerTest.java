@@ -15,24 +15,21 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
 
-  private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
+  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private NetworkProfiler myProfiler;
 
   @Before

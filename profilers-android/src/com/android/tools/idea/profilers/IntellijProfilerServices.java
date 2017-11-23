@@ -23,7 +23,9 @@ import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
@@ -58,10 +60,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
 
   @NotNull private final Project myProject;
+  @NotNull private final IntellijProfilerPreferences myPreferences;
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
+    myPreferences = new IntellijProfilerPreferences();
   }
 
   @NotNull
@@ -187,15 +191,26 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isAtraceEnabled() {
         return StudioFlags.PROFILER_USE_ATRACE.get();
       }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
+      }
     };
   }
 
+  @NotNull
   @Override
-  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  public ProfilerPreferences getProfilerPreferences() {
+    return myPreferences;
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> dialogCallback) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   isDeviceAtLeastO,
-                                                                                   configuration,
+                                                                                   deviceLevel,
+                                                                                   model,
                                                                                    dialogCallback,
                                                                                    myFeatureTracker);
     dialog.show();

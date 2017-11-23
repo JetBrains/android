@@ -19,10 +19,11 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
@@ -32,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ContentEntry;
@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Arrays;
@@ -76,19 +75,21 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidModuleModel androidModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant());
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
+    ModulesByGradlePath modulesByGradlePath = context.getModulesByGradlePath();
+    assert modulesByGradlePath != null;
+
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
+    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant(), modulesByGradlePath);
+
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidModel);
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
       // Skip if dependency is in test scope and it is the current module.
       // See https://issuetracker.google.com/issues/68016998.
-      if (!isSelfDependencyByTest(module, ideModelsProvider, dependency)) {
+      if (!isSelfDependencyByTest(module, dependency)) {
         updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
       }
     }
@@ -110,10 +111,8 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
    * @return true if the module dependency is in test scope, and it is the current module.
    */
   @VisibleForTesting
-  static boolean isSelfDependencyByTest(@NotNull Module module,
-                                        @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                        @NotNull ModuleDependency dependency) {
-    return dependency.getScope().equals(TEST) && module.equals(dependency.getModule(ideModelsProvider));
+  static boolean isSelfDependencyByTest(@NotNull Module module, @NotNull ModuleDependency dependency) {
+    return dependency.getScope().equals(TEST) && module.equals(dependency.getModule());
   }
 
   private static boolean getExported(@NotNull AndroidModuleModel androidModuleModel) {
@@ -125,7 +124,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull ModuleDependency dependency,
                               @NotNull AndroidModuleModel moduleModel) {
-    Module moduleDependency = dependency.getModule(modelsProvider);
+    Module moduleDependency = dependency.getModule();
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {

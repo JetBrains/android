@@ -218,16 +218,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
     XmlTag tagAbsoluteLayout = myAbsoluteLayout.getTag();
 
     // Mix the component references
-    myRelativeLayout.children = null;
+    myRelativeLayout.setChildren(null);
     myLinearLayout.setTag(tagAbsoluteLayout);
     myLinearLayout.setSnapshot(null);
-    myLinearLayout.children = null;
+    myLinearLayout.setChildren(null);
     myTextView.setTag(tagLinearLayout);
     myTextView.setSnapshot(null);
-    myTextView.children = null;
+    myTextView.setChildren(null);
     myAbsoluteLayout.setTag(tagTextView);
     myAbsoluteLayout.setSnapshot(null);
-    myAbsoluteLayout.children = null;
+    myAbsoluteLayout.setChildren(null);
 
     NlComponent newRelativeLayout = myRelativeLayout;
     NlComponent newLinearLayout = myTextView;

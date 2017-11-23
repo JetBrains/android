@@ -27,7 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.SqlTable;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public class RoomSubqueryImpl extends ASTWrapperPsiElement implements RoomSubquery {
 

@@ -71,10 +71,13 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   }
 
   protected final void updateMaximumLabelDimensions() {
+    int oldMaxWidth = myMaximumWidth;
     myMaximumWidth = Math.max(myMaximumWidth, myHeadingLabel.getPreferredSize().width);
     myMaximumWidth = Math.max(myMaximumWidth, myTooltipComponent == null ? 0 : myTooltipComponent.getPreferredSize().width);
-    // Set the minimum size so that the tooltip width doesn't flap.
-    myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
+    if (oldMaxWidth != myMaximumWidth) {
+      // Set the minimum size so that the tooltip width doesn't flap.
+      myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
+    }
   }
 
   @NotNull

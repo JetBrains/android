@@ -85,8 +85,8 @@ class RelativeParentTarget(val type: Type) : BaseRelativeTarget() {
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     if (myIsHighlight) {
-      list.add(DrawLine(sceneContext.getSwingX(x1.toFloat()), sceneContext.getSwingY(y1.toFloat()),
-          sceneContext.getSwingX(x2.toFloat()), sceneContext.getSwingY(y2.toFloat())))
+      list.add(DrawLine(sceneContext.getSwingXDip(x1.toFloat()), sceneContext.getSwingYDip(y1.toFloat()),
+          sceneContext.getSwingXDip(x2.toFloat()), sceneContext.getSwingYDip(y2.toFloat())))
     }
     if (DEBUG) {
       drawDebug(list, sceneContext)

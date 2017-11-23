@@ -21,22 +21,20 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.util.PositionInFile;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,14 +42,13 @@ import com.intellij.pom.NonNavigatable;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 
 public class JdkModuleSetupStep extends AndroidModuleSetupStep {
@@ -74,13 +71,9 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidModuleModel androidModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
-      setUpInAndroidStudio(module, androidModel);
+      setUpInAndroidStudio(context.getModule(), androidModel);
     }
   }
 

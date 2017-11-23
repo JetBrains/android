@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.fixtures.EditorFixtureBase;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor.SliderWithTimeDelay;
@@ -38,7 +39,7 @@ import java.time.temporal.ChronoUnit;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 
-public class NlReferenceEditorFixture extends NlEditorFixtureBase {
+public class NlReferenceEditorFixture extends EditorFixtureBase {
   private final NlReferenceEditor myComponentEditor;
   private final TextFieldWithCompletion myEditor;
   private final SliderWithTimeDelay mySlider;

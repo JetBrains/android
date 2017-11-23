@@ -316,7 +316,8 @@ public class NlPreviewManager implements ProjectComponent {
       .orElse(null);
   }
 
-  private boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
+  @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
+  public boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 

@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -29,6 +30,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -38,6 +40,8 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class ProjectStructure {
+  @NotNull private static final ModulesByGradlePath EMPTY = new ModulesByGradlePath();
+
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -53,6 +57,10 @@ public class ProjectStructure {
   @GuardedBy("myLock")
   @NotNull
   private final List<Module> myLeafModules = new ArrayList<>();
+
+  @GuardedBy("myLock")
+  @NotNull
+  private final Ref<ModulesByGradlePath> myModulesByGradlePathRef = new Ref<>(EMPTY);
 
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
@@ -72,11 +80,15 @@ public class ProjectStructure {
     List<Module> modules = Arrays.asList(moduleManager.getModules());
     List<Module> leafModules = new ArrayList<>(modules);
 
+    ModulesByGradlePath modulesByGradlePath = new ModulesByGradlePath();
+
     JobLauncher jobLauncher = JobLauncher.getInstance();
     jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        modulesByGradlePath.addModule(module, gradlePath);
+
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           pluginVersionsInProject.add(gradlePath, androidModel);
@@ -111,6 +123,8 @@ public class ProjectStructure {
 
       myAppModules.clear();
       myAppModules.addAll(appModules);
+
+      myModulesByGradlePathRef.set(modulesByGradlePath);
     }
   }
 
@@ -145,11 +159,19 @@ public class ProjectStructure {
     }
   }
 
+  @NotNull
+  public ModulesByGradlePath getModulesByGradlePath() {
+    synchronized (myLock) {
+      return myModulesByGradlePathRef.get();
+    }
+  }
+
   public void clearData() {
     synchronized (myLock) {
       myPluginVersionsInProject.clear();
       myAppModules.clear();
       myLeafModules.clear();
+      myModulesByGradlePathRef.set(EMPTY);
     }
   }
 

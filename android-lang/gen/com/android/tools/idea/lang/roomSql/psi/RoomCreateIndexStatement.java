@@ -28,10 +28,10 @@ public interface RoomCreateIndexStatement extends RoomStatement {
   RoomDatabaseName getDatabaseName();
 
   @NotNull
-  List<RoomIndexedColumn> getIndexedColumnList();
+  RoomDefinedTableName getDefinedTableName();
 
   @NotNull
-  RoomTableName getTableName();
+  List<RoomIndexedColumn> getIndexedColumnList();
 
   @Nullable
   RoomWhereClause getWhereClause();

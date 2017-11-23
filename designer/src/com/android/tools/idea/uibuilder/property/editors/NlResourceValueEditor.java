@@ -36,7 +36,7 @@ import java.awt.event.KeyEvent;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.android.tools.idea.common.property.editors.NlBaseComponentEditor.*;
+import static com.android.tools.idea.common.property.editors.BaseComponentEditor.*;
 
 public class NlResourceValueEditor extends PTableCellEditor {
   private final JPanel myPanel;
@@ -49,7 +49,6 @@ public class NlResourceValueEditor extends PTableCellEditor {
   }
 
   private NlResourceValueEditor(@NotNull Project project) {
-    //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
                                                                                               HORIZONTAL_PADDING,
                                                                                               VERTICAL_SPACING + VERTICAL_PADDING,

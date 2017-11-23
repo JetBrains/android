@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -25,7 +24,6 @@ import org.junit.Test;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PsDependencyTest {
   private PsDependency myPsDependency;
@@ -144,23 +142,23 @@ public class PsDependencyTest {
     }
   }
 
-  private static class TestDependencyModel extends DependencyModel {
+  private static class TestDependencyModel implements DependencyModel {
 
-    @NotNull private final GradleDslElement myDslElement;
+    @NotNull
+    private final String myName;
 
-    public TestDependencyModel () {
-      this("testName");
+    public TestDependencyModel() {
+      myName = "Default Name";
     }
 
     public TestDependencyModel(@NotNull String name) {
-      myDslElement = mock(GradleDslElement.class);
-      when(myDslElement.getName()).thenReturn(name);
+      myName = name;
     }
 
     @NotNull
     @Override
-    protected GradleDslElement getDslElement() {
-      return myDslElement;
+    public String configurationName() {
+      return myName;
     }
   }
 }

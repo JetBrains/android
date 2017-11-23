@@ -62,8 +62,8 @@ public class RoomCreateVirtualTableStatementImpl extends RoomStatementImpl imple
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public RoomTableDefinitionName getTableDefinitionName() {
+    return findNotNullChildByClass(RoomTableDefinitionName.class);
   }
 
 }

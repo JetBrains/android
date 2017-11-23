@@ -387,7 +387,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       if (myModel != null) {
         Disposer.dispose(myModel);
       }
-      myModel = NlModel.create(null, facet, xmlFile);
+      myModel = NlModel.create(null, facet, xmlFile.getVirtualFile());
 
       mySurface.setModel(myModel);
       myPendingFile = new Pending(xmlFile, myModel);
@@ -402,7 +402,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  private void setActiveModel(@Nullable NlModel model) {
+  @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
+  public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
     SceneView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {

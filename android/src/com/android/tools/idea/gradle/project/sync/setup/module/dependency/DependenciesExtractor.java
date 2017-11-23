@@ -22,13 +22,15 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
 /**
@@ -43,19 +45,20 @@ public class DependenciesExtractor {
   /**
    * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
    *
-   * @param variant the variant to extract dependencies from.
+   * @param variant             the variant to extract dependencies from.
+   * @param modulesByGradlePath
    * @return Instance of {@link DependencySet} retrieved from given variant.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeVariant variant) {
+  public DependencySet extractFrom(@NotNull IdeVariant variant, @NotNull ModulesByGradlePath modulesByGradlePath) {
     DependencySet dependencies = new DependencySet();
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(dependencies, testArtifact, TEST);
+      populate(dependencies, testArtifact, modulesByGradlePath, TEST);
     }
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(dependencies, mainArtifact, COMPILE);
+    populate(dependencies, mainArtifact, modulesByGradlePath, COMPILE);
 
     return dependencies;
   }
@@ -66,14 +69,17 @@ public class DependenciesExtractor {
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact, @NotNull DependencyScope scope) {
+  public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact,
+                                   @NotNull DependencyScope scope,
+                                   @NotNull ModulesByGradlePath modulesByGradlePath) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, scope);
+    populate(dependencies, artifact, modulesByGradlePath, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull IdeBaseArtifact artifact,
+                               @NotNull ModulesByGradlePath modulesByGradlePath,
                                @NotNull DependencyScope scope) {
     IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
@@ -88,9 +94,10 @@ public class DependenciesExtractor {
     }
 
     for (Library library : artifactDependencies.getModuleDependencies()) {
-      String gradleProjectPath = library.getProjectPath();
-      if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
-        ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
+      String gradlePath = library.getProjectPath();
+      if (isNotEmpty(gradlePath)) {
+        Module module = modulesByGradlePath.findModuleByGradlePath(gradlePath);
+        ModuleDependency dependency = new ModuleDependency(gradlePath, scope, module);
         dependencies.add(dependency);
       }
     }
@@ -119,7 +126,7 @@ public class DependenciesExtractor {
    * For example, artifactId[:/-]version for external library dependency, and moduleName::variant for module dependency.
    */
   @NotNull
-  public static String getDependencyName(@NotNull Library library, @NotNull String separator) {
+  private static String getDependencyName(@NotNull Library library, @NotNull String separator) {
     String artifactAddress = library.getArtifactAddress();
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
     // Artifact address for external libraries are in the format of groupId:artifactId:version@packing, thus can be converted to GradleCoordinate.
@@ -132,7 +139,7 @@ public class DependenciesExtractor {
         name += separator + version;
       }
       assert name != null;
-      if (StringUtil.isNotEmpty(coordinates.getGroupId())) {
+      if (isNotEmpty(coordinates.getGroupId())) {
         return coordinates.getGroupId() + ":" + name;
       }
       return name;
@@ -147,8 +154,8 @@ public class DependenciesExtractor {
    *
    * E.g.
    * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
-   *         android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
-   *                         com.google.guava:guava:11.0.2@jar -> guava:11.0.2
+   * android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
+   * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
    */
   @NotNull
   public static String getDependencyDisplayName(@NotNull Library library) {

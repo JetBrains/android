@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator.LauncherLegacyOptions;
+import com.intellij.openapi.util.Disposer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -46,12 +47,11 @@ public class LauncherLegacyIconGeneratorTest {
 
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(15);
     BitmapGeneratorTests.checkGraphic(5 + (generateWebIcon ? 1 : 0), "launcher", baseName, generator, options);
-    generator.dispose();
+    Disposer.dispose(generator);
   }
 
   @Test
   public void testLauncher_simpleCircle() throws Exception {
-    checkGraphic("red_simple_circle", IconGenerator.Shape.CIRCLE,
-                 IconGenerator.Style.SIMPLE, true, 0xFF0000, true);
+    checkGraphic("red_simple_circle", IconGenerator.Shape.CIRCLE, IconGenerator.Style.SIMPLE, true, 0xFF0000, true);
   }
 }

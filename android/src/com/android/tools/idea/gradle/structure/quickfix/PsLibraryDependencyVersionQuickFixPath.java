@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.structure.configurables.issues.QuickFixLinkHandler.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX;
 
@@ -69,8 +70,14 @@ public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
 
   @NotNull
   private String getHtmlText() {
-    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
-    String href = QUICK_FIX_PATH_TYPE + path;
+    String href = getHyperlinkDestination();
     return String.format("<a href='%1$s'>%2$s</a>", href, myHrefText);
+  }
+
+  @Override
+  @NotNull
+  public String getHyperlinkDestination() {
+    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
+    return QUICK_FIX_PATH_TYPE + path;
   }
 }

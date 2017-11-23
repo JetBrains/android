@@ -34,8 +34,8 @@ class GridBarriers(val context: SceneContext,val left: Int, val top: Int, val ri
 fun getGridBarriers(sceneContext: SceneContext, gridComponent: SceneComponent): GridBarriers {
   val isSupportLibrary = gridComponent.nlComponent.tagName == SdkConstants.GRID_LAYOUT_V7
 
-  fun toSwingX(x: Int) = sceneContext.getSwingX(x.toFloat())
-  fun toSwingY(y: Int) = sceneContext.getSwingY(y.toFloat())
+  fun toSwingX(x: Int) = sceneContext.getSwingXDip(x.toFloat())
+  fun toSwingY(y: Int) = sceneContext.getSwingYDip(y.toFloat())
   fun pxToSwing(px: Int) = (sceneContext.pxToDp(px) + 0.5f).toInt()
 
   val padding = retrievePaddings(gridComponent.authoritativeNlComponent)

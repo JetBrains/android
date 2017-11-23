@@ -24,10 +24,14 @@ import static org.mockito.Mockito.*;
 
 public class DataStorePollerTest {
 
+  protected static final Common.Device DEVICE = Common.Device.newBuilder()
+    .setDeviceId(1234)
+    .setBootId("TEST_BOOT_ID")
+    .setSerial("TEST_DEVICE_SERIAL")
+    .build();
 
   protected static final Common.Session SESSION = Common.Session.newBuilder()
-    .setBootId("TEST_BOOT_ID")
-    .setDeviceSerial("TEST_DEVICE_SERIAL")
+    .setDeviceId(1234)
     .build();
 
   private PollTicker myPollTicker = new PollTicker();

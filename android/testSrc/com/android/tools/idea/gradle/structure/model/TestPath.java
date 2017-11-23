@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
 
@@ -37,4 +38,10 @@ public class TestPath extends PsPath {
   public String toText(@NotNull TexType type) {
       return type == FOR_COMPARE_TO ? myComparisonValue : myOtherValue;
     }
+
+  @Nullable
+  @Override
+  public String getHyperlinkDestination() {
+    return null;
+  }
 }

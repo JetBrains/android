@@ -61,9 +61,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      for (ScreenFixture fixture : myScreenFixtures) {
-        fixture.tearDown();
-      }
       myScreenFixtures.clear();
     }
     finally {

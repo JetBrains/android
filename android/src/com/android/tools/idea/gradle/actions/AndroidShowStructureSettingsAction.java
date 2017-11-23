@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
@@ -64,7 +64,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
-    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG) {
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
       ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
       AtomicBoolean needsSync = new AtomicBoolean();
       ProjectStructureChangeListener changeListener = () -> needsSync.set(true);

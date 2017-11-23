@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.mockito.Mockito.mock;
@@ -92,7 +92,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
 
   @NotNull
   private static ArtifactDependencyModel findAndroidPlugin(@NotNull GradleBuildModel buildModel) {
-    List<ArtifactDependencyModel> dependencies = buildModel.buildscript().dependencies().artifacts(CLASSPATH);
+    List<? extends ArtifactDependencyModel> dependencies = buildModel.buildscript().dependencies().artifacts(CLASSPATH);
     for (ArtifactDependencyModel dependency : dependencies) {
       if (AndroidPluginGeneration.find(dependency.name().value(), dependency.group().value()) != null) {
         return dependency;

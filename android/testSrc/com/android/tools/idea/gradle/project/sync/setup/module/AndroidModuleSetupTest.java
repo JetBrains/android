@@ -16,15 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -32,57 +28,35 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link AndroidModuleSetup}.
  */
 public class AndroidModuleSetupTest {
-  @Mock private Module myModule;
-  @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private AndroidModuleModel myAndroidModel;
-  @Mock private GradleModuleModels myModuleModels;
-  @Mock private ProgressIndicator myProgressIndicator;
   @Mock private AndroidModuleSetupStep mySetupStep1;
   @Mock private AndroidModuleSetupStep mySetupStep2;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private AndroidModuleSetup myModuleSetup;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     initMocks(this);
     myModuleSetup = new AndroidModuleSetup(mySetupStep1, mySetupStep2);
-  }
-
-  @Test
-  public void setUpAndroidModuleWithProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator, false);
-
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, myProgressIndicator);
-  }
-
-  @Test
-  public void setUpAndroidModuleWithoutProgressIndicator() {
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, false);
-
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true); // Only mySetupStep1 can be invoked when sync is skipped.
   }
 
   @Test
   public void setUpAndroidModuleWithSyncSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, true /* sync skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
-    verify(mySetupStep2, never()).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
+    verify(mySetupStep2, times(0)).setUpModule(myModuleSetupContext, myAndroidModel);
   }
 
   @Test
   public void setUpAndroidModuleWithSyncNotSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-
-    myModuleSetup.setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null, false /* sync not skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
-    verify(mySetupStep2, times(1)).setUpModule(myModule, myModelsProvider, myAndroidModel, myModuleModels, null);
+    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
+    verify(mySetupStep2, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
   }
 }

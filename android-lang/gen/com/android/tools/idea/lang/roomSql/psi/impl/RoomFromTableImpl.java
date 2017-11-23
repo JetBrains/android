@@ -27,7 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.SqlTable;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public class RoomFromTableImpl extends ASTWrapperPsiElement implements RoomFromTable {
 
@@ -51,15 +51,15 @@ public class RoomFromTableImpl extends ASTWrapperPsiElement implements RoomFromT
   }
 
   @Override
-  @Nullable
-  public RoomTableAliasName getTableAliasName() {
-    return findChildByClass(RoomTableAliasName.class);
+  @NotNull
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
   @Override
-  @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  @Nullable
+  public RoomTableAliasName getTableAliasName() {
+    return findChildByClass(RoomTableAliasName.class);
   }
 
   @Override

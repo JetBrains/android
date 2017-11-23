@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
   private JXLabel myScopesLabel;
 
   public JavaDependencyScopesPanel(@NotNull PsJavaModule module) {
-    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
+    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
 

@@ -17,11 +17,10 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.pom.java.LanguageLevel;
@@ -37,24 +36,20 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
 public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
     LanguageLevel languageLevel = javaModuleModel.getJavaLanguageLevel();
 
     if (languageLevel == null) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
-      languageLevel = getMinimumLanguageLevelForAndroidModules(ideModelsProvider);
+      languageLevel = getMinimumLanguageLevelForAndroidModules(context.getIdeModelsProvider());
     }
 
     if (languageLevel == null) {
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
-    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel rootModel = context.getModifiableRootModel();
     LanguageLevelModuleExtensionImpl moduleExtension = rootModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class);
     moduleExtension.setLanguageLevel(languageLevel);
   }

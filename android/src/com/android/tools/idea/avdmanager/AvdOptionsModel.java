@@ -27,9 +27,11 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -37,6 +39,7 @@ import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
@@ -59,8 +62,14 @@ import static com.google.common.base.Strings.nullToEmpty;
  * See also {@link AvdDeviceData}, which these options supplement.
  */
 public final class AvdOptionsModel extends WizardModel {
-  final static int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
-  final static int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
+  static final int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
+  static final int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
+
+  private static final Storage minGeneralInternalMemSize = new Storage(200, Storage.Unit.MiB);
+  private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
+  private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
+  private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
+
   private final AvdInfo myAvdInfo;
 
   /**
@@ -75,8 +84,8 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
     new ObjectValueProperty<>(ScreenOrientation.PORTRAIT);
-  private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
-  private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
+  private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera;
+  private ObjectProperty<AvdCamera> mySelectedAvdBackCamera;
 
   private BoolProperty myHasDeviceFrame = new BoolValueProperty(true);
   private BoolProperty myUseExternalSdCard = new BoolValueProperty(false);
@@ -131,6 +140,15 @@ public final class AvdOptionsModel extends WizardModel {
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
     myAvdDeviceData = new AvdDeviceData();
+
+    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
+            AndroidSdks.getInstance().tryToChooseSdkHandler(),
+            new StudioLoggerProgressIndicator(AvdOptionsModel.class),
+            new LogWrapper(Logger.getInstance(AvdOptionsModel.class)));
+    mySelectedAvdFrontCamera = new ObjectValueProperty<>(AvdCamera.EMULATED);
+    mySelectedAvdBackCamera = new ObjectValueProperty<>(
+            supportsVirtualCamera ? AvdCamera.VIRTUAL_SCENE : AvdCamera.EMULATED);
+
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
     }
@@ -148,6 +166,36 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.updateSkinFromDeviceAndSystemImage(myDevice.getValue(), mySystemImage.getValueOrNull());
       }
     });
+  }
+
+  public boolean isPlayStoreCompatible() {
+    return myDevice != null &&
+           myDevice.isPresent().get() &&
+           myDevice.getValue().hasPlayStore() &&
+           mySystemImage.isPresent().get() &&
+           mySystemImage.getValue().getSystemImage().hasPlayStore();
+  }
+
+  public Storage minSdCardSize() {
+    return isPlayStoreCompatible() ? minPlayStoreSdSize : minGeneralSdSize;
+  }
+
+  public Storage minInternalMemSize() {
+    return isPlayStoreCompatible() ? minPlayStoreInternalMemSize : minGeneralInternalMemSize;
+  }
+
+  /**
+   * Ensure that the SD card size and internal memory
+   * size are large enough. (If a device is Play Store
+   * enabled, a larger size is required.)
+   */
+  public void ensureMinimumMemory() {
+    if (mySdCardStorage.getValue().lessThan(minSdCardSize())) {
+      mySdCardStorage.setValue(minSdCardSize());
+    }
+    if (myInternalStorage.get().lessThan(minInternalMemSize())) {
+      myInternalStorage.set(minInternalMemSize());
+    }
   }
 
   /**

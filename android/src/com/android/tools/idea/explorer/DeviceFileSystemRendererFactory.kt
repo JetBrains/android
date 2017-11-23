@@ -16,8 +16,9 @@
 package com.android.tools.idea.explorer
 
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer
 
 interface DeviceFileSystemRendererFactory {
-  fun create(deviceNamePropertiesProvider: DeviceNamePropertiesProvider): DeviceFileSystemRenderer
+  fun create(deviceNamePropertiesProvider: DeviceNamePropertiesProvider): DeviceFileSystemRenderer<AdbDeviceFileSystem>
 }

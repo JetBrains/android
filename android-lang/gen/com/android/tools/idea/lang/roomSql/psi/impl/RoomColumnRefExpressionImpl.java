@@ -56,8 +56,8 @@ public class RoomColumnRefExpressionImpl extends RoomExpressionImpl implements R
 
   @Override
   @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
+  public RoomSelectedTableName getSelectedTableName() {
+    return findChildByClass(RoomSelectedTableName.class);
   }
 
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.configurations.Configuration;
@@ -42,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -68,7 +70,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
-  private final XmlFile myFile;
+  private final VirtualFile myFile;
 
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
@@ -86,23 +88,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
-                               @NotNull XmlFile file) {
+                               @NotNull VirtualFile file) {
     return new NlModel(parent, facet, file);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @NotNull AndroidFacet facet,
-                    @NotNull XmlFile file) {
+                    @NotNull VirtualFile file) {
     myFacet = facet;
     myFile = file;
-    myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile.getVirtualFile());
+    myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
       Disposer.register(parent, this);
     }
-    myType = NlLayoutType.typeOf(file);
+    myType = NlLayoutType.typeOf(getFile());
   }
 
   /**
@@ -146,7 +148,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private void deactivate() {
     myListeners.forEach(listener -> listener.modelDeactivated(this));
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
     manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
   }
@@ -170,8 +172,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  public XmlFile getFile() {
+  public VirtualFile getVirtualFile() {
     return myFile;
+  }
+
+  @NotNull
+  public XmlFile getFile() {
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
+    assert file != null;
+    return file;
   }
 
   @NotNull
@@ -205,7 +214,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ApplicationManager.getApplication().runReadAction(() -> {
         Set<NlComponent> unique = Sets.newIdentityHashSet();
         Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
-        checkUnique(myFile.getRootTag(), uniqueTags);
+        checkUnique(getFile().getRootTag(), uniqueTags);
         uniqueTags.clear();
         if (myRootComponent != null) {
           checkUnique(myRootComponent.getTag(), uniqueTags);
@@ -706,7 +715,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public ImmutableList<NlComponent> findByOffset(int offset) {
-    XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(myFile, offset, XmlTag.class, false);
+    XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(getFile(), offset, XmlTag.class, false);
     return (tag != null) ? findViewsByTag(tag) : ImmutableList.of();
   }
 
@@ -751,7 +760,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", getFile()) {
       @Override
       protected void run(@NotNull Result<Void> result) {
         handleDeletion(components);
@@ -1024,7 +1033,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   private void transferNamespaces(@NotNull XmlTag tag) {
     // Transfer namespace attributes
-    XmlDocument xmlDocument = myFile.getDocument();
+    XmlFile file = getFile();
+    XmlDocument xmlDocument = file.getDocument();
     assert xmlDocument != null;
     XmlTag rootTag = xmlDocument.getRootTag();
     assert rootTag != null;
@@ -1041,7 +1051,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       String currentPrefix = namespaceToPrefix.get(namespace);
       if (currentPrefix == null) {
         // The namespace isn't used in the document. Import it.
-        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(myFile, namespace, prefix);
+        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
         if (!prefix.equals(newPrefix)) {
           // We imported the namespace, but the prefix used in the new document isn't available
           // so we need to update all attribute references to the new name

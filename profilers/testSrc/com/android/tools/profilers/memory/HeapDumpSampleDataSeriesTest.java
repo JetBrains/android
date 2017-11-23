@@ -17,13 +17,12 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,10 +42,14 @@ public class HeapDumpSampleDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() {
-    MemoryProfiler.HeapDumpInfo dumpInfo1 = com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos(2)).setEndTime(TimeUnit.MICROSECONDS.toNanos(7)).build();
-    MemoryProfiler.HeapDumpInfo dumpInfo2 = com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(Long.MAX_VALUE).build();
+    HeapDumpInfo dumpInfo1 = HeapDumpInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(2))
+      .setEndTime(TimeUnit.MICROSECONDS.toNanos(7))
+      .build();
+    HeapDumpInfo dumpInfo2 = HeapDumpInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(17))
+      .setEndTime(Long.MAX_VALUE)
+      .build();
     myService.addExplicitHeapDumpInfo(dumpInfo1);
     myService.addExplicitHeapDumpInfo(dumpInfo2);
 

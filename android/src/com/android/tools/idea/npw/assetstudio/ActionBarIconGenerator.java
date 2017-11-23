@@ -32,8 +32,11 @@ import java.awt.image.BufferedImage;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class ActionBarIconGenerator extends IconGenerator {
-  private final ObjectProperty<Theme> myTheme = new ObjectValueProperty<>(Theme.HOLO_LIGHT);
-  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(new Color(51, 181, 229));
+  public static final Theme DEFAULT_THEME = Theme.HOLO_LIGHT;
+  public static final Color DEFAULT_COLOR = new Color(51, 181, 229);
+
+  private final ObjectProperty<Theme> myTheme = new ObjectValueProperty<>(DEFAULT_THEME);
+  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(DEFAULT_COLOR);
 
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
@@ -109,7 +112,7 @@ public class ActionBarIconGenerator extends IconGenerator {
 
     if (actionBarOptions.theme == Theme.CUSTOM) {
       AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8)});
-    } else if (actionBarOptions.theme == Theme.HOLO_LIGHT) {
+    } else if (actionBarOptions.theme == DEFAULT_THEME) {
       AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0x333333), 0.6)});
     } else {
       assert actionBarOptions.theme == Theme.HOLO_DARK;
@@ -125,7 +128,7 @@ public class ActionBarIconGenerator extends IconGenerator {
   /** Options specific to generating action bar icons. */
   public static class ActionBarOptions extends Options {
     /** The theme to generate icons for. */
-    public Theme theme = Theme.HOLO_LIGHT;
+    public Theme theme = DEFAULT_THEME;
 
     /** Whether or not the source image is a clipart source. */
     public boolean sourceIsClipart = false;

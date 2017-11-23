@@ -55,13 +55,13 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private synchronized static void addProfileredProcess(Common.Session session, int pid) {
-    ProfiledProcess process = new ProfiledProcess(session, pid);
+    ProfiledProcess process = new ProfiledProcess(session.getSessionId(), pid);
     int profilerCount = ourProfiledProcesses.getOrDefault(process, 0);
     ourProfiledProcesses.put(process, profilerCount + 1);
   }
 
   private synchronized static void removeProfileredProcess(Common.Session session, int pid) {
-    ProfiledProcess process = new ProfiledProcess(session, pid);
+    ProfiledProcess process = new ProfiledProcess(session.getSessionId(), pid);
     Integer profilerCount = ourProfiledProcesses.get(process);
     if (profilerCount != null) {
       if (profilerCount.intValue() > 1) {
@@ -74,11 +74,11 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private static class ProfiledProcess {
-    private final Common.Session mySession;
+    private final long mySessionId;
     private final int myPid;
 
-    ProfiledProcess(Common.Session session, int pid) {
-      mySession = session;
+    ProfiledProcess(long sessionId, int pid) {
+      mySessionId = sessionId;
       myPid = pid;
     }
 
@@ -91,12 +91,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
         return false;
       }
       ProfiledProcess other = (ProfiledProcess)o;
-      return Objects.equals(mySession, other.mySession) && this.myPid == other.myPid;
+      return this.mySessionId == other.mySessionId && this.myPid == other.myPid;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(mySession, myPid);
+      return Objects.hash(mySessionId, myPid);
     }
   }
 

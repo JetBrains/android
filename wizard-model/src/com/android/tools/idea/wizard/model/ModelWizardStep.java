@@ -16,7 +16,7 @@
 package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,6 @@ import java.util.Collection;
  * and storing the user's data in the target model.
  */
 public abstract class ModelWizardStep<M extends WizardModel> implements Disposable {
-
   @NotNull private final M myModel;
   @NotNull private final String myTitle;
   @Nullable private Icon myIcon;
@@ -56,7 +55,6 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   public Icon getIcon() {
     return myIcon;
   }
-
 
   /**
    * The step icon (likely shown somewhere in the step's header area). Ideally this should be
@@ -112,6 +110,13 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   }
 
   /**
+   * Called once when a wizard is completed because the user hit "Finish" for every step, whether
+   * it was visited or not.
+   */
+  public void onWizardFinished() {
+  }
+
+  /**
    * Returns {@code true} to indicate the that this step should be shown, or {@code false} if it
    * should be skipped.
    */
@@ -128,7 +133,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    */
   @NotNull
   protected ObservableBool canGoForward() {
-    return BooleanExpressions.alwaysTrue();
+    return BooleanExpression.ALWAYS_TRUE;
   }
 
   /**
@@ -142,9 +147,6 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   /**
    * Called on the step just before it is shown. This method is not called when returning back to a
    * step. This is a good time to copy any relevant data out of the model to initialize the UI.
-   * <p/>
-   * TODO: Should we pass the wizard parameter to this method? This TODO can be safely removed
-   * if the dynamic wizard migration is complete and we never needed it.
    */
   protected void onEntering() {
   }

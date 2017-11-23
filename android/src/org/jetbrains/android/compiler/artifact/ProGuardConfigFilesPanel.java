@@ -9,7 +9,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.AnActionButton;
+import com.intellij.ui.AnActionButtonRunnable;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
@@ -55,7 +58,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     tablePanel.setMinimumSize(new Dimension(-1, JBUI.scale(120)));
     add(tablePanel, BorderLayout.CENTER);
     final JBLabel label = new JBLabel("Config file paths:");
-    label.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 5, 0));
+    label.setBorder(JBUI.Borders.empty(0, 0, 5, 0));
     add(label, BorderLayout.NORTH);
   }
 

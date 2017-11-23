@@ -19,15 +19,13 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -36,11 +34,9 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
     JavaFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
 
     GradleFacet gradleFacet = findFacet(module, ideModelsProvider, GradleFacet.getFacetTypeId());

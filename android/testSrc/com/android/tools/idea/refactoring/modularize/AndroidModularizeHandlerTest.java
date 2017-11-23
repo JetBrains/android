@@ -41,6 +41,10 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
     myFixture.copyDirectoryToProject(BASE_PATH + "/res", "res/");
     myFixture.copyDirectoryToProject(BASE_PATH + "/src", "src/");
     myFixture.copyFileToProject(BASE_PATH + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+
+    Module feature = ModuleManager.getInstance(getProject()).findModuleByName("feature");
+    ModuleRootModificationUtil.addDependency(feature, myModule);
+
     myProcessor = new AndroidModularizeHandler()
       .createProcessor(getProject(), new PsiElement[] { myFixture.getJavaFacade().findClass("google.MainActivity") });
   }
@@ -53,10 +57,7 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
   }
 
   public void testPullUpDependency() {
-    Module feature = ModuleManager.getInstance(getProject()).findModuleByName("feature");
-    ModuleRootModificationUtil.addDependency(feature, myModule);
-
-    myProcessor.setTargetModule(feature);
+    myProcessor.setTargetModule(ModuleManager.getInstance(getProject()).findModuleByName("feature"));
 
     AndroidCodeAndResourcesGraph graph = myProcessor.getReferenceGraph();
     assertTrue("Util class is referenced from Other",

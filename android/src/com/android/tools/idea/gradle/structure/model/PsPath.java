@@ -17,19 +17,23 @@ package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
 
 public abstract class PsPath implements Comparable<PsPath> {
-  @NonNls public static final String GO_TO_PATH_TYPE = "psdGoTo://";
-  @NonNls public static final String QUICK_FIX_PATH_TYPE = "psdFix://";
-
   @NotNull
   public static final PsPath EMPTY_PATH = new PsPath() {
     @Override
     @NotNull
     public String toText(@NotNull TexType type) {
       return "";
+    }
+
+    @Nullable
+    @Override
+    public String getHyperlinkDestination() {
+      return null;
     }
 
     @Override
@@ -55,6 +59,9 @@ public abstract class PsPath implements Comparable<PsPath> {
 
   @NotNull
   public abstract String toText(@NotNull TexType type);
+
+  @Nullable
+  public abstract String getHyperlinkDestination();
 
   @Override
   public String toString() {

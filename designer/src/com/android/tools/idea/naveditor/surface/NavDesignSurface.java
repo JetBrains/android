@@ -20,18 +20,20 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -59,12 +61,16 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
  * {@link DesignSurface} for the navigation editor.
  */
 public class NavDesignSurface extends DesignSurface {
-  private NavView myNavView;
   private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
+  }
+
+  @Override
+  public float getSceneScalingFactor() {
+    return 1f;
   }
 
   @NotNull
@@ -127,34 +133,10 @@ public class NavDesignSurface extends DesignSurface {
     repaint();
   }
 
-  @Override
-  protected void doCreateSceneViews() {
-    NlModel model = getModel();
-    if (model == null && myNavView == null) {
-      return;
-    }
-    myNavView = null;
-    if (model != null) {
-      myNavView = new NavView(this, model);
-      setLayers(ImmutableList.of(new SceneLayer(this, myNavView, true)));
-
-      getLayeredPane().setPreferredSize(myNavView.getPreferredSize());
-
-      layoutContent();
-    }
-    setShowIssuePanel(false);
-  }
-
   @Nullable
   @Override
   public Dimension getScrolledAreaSize() {
     return getContentSize(null);
-  }
-
-  @Nullable
-  @Override
-  public SceneView getCurrentSceneView() {
-    return myNavView;
   }
 
   @NotNull
@@ -187,9 +169,8 @@ public class NavDesignSurface extends DesignSurface {
       return new Dimension(0, 0);
     }
 
-    @AndroidDpCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
-    return new Dimension(Coordinates.dpToPx(view, boundingBox.width),
-                         Coordinates.dpToPx(view, boundingBox.height));
+    @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
+    return new Dimension(boundingBox.width, boundingBox.height);
   }
 
   @Override
@@ -198,12 +179,12 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected int getContentOriginX() {
+  public int getContentOriginX() {
     return 0;
   }
 
   @Override
-  protected int getContentOriginY() {
+  public int getContentOriginY() {
     return 0;
   }
 

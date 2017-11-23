@@ -15,10 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;

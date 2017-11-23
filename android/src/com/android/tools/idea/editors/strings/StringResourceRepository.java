@@ -22,6 +22,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.Maps;
@@ -42,7 +43,7 @@ public class StringResourceRepository {
   // TODO Drop support for dynamic resources?
   private final LocalResourceRepository myDynamicResourceRepository;
 
-  public StringResourceRepository(@NotNull MultiResourceRepository parent) {
+  private StringResourceRepository(@NotNull MultiResourceRepository parent) {
     Collection<? extends LocalResourceRepository> children = parent.getChildren();
     Map<VirtualFile, LocalResourceRepository> resourceDirectoryRespositoryMap = Maps.newLinkedHashMapWithExpectedSize(children.size());
     LocalResourceRepository dynamicResourceRespository = null;
@@ -63,8 +64,40 @@ public class StringResourceRepository {
     myDynamicResourceRepository = dynamicResourceRespository;
   }
 
+  private StringResourceRepository(@NotNull ResourceFolderRepository repository) {
+    repository.sync();
+
+    myResourceDirectoryRespositoryMap = Collections.singletonMap(repository.getResourceDir(), repository);
+    myDynamicResourceRepository = null;
+  }
+
+  private StringResourceRepository(@NotNull LocalResourceRepository repository) {
+    repository.sync();
+
+    myResourceDirectoryRespositoryMap = Collections.emptyMap();
+    myDynamicResourceRepository = repository;
+  }
+
   @NotNull
-  final StringResourceData getData(@NotNull AndroidFacet facet) {
+  public static StringResourceRepository create() {
+    return new StringResourceRepository(new EmptyRepository());
+  }
+
+  @NotNull
+  static StringResourceRepository create(@NotNull LocalResourceRepository repository) {
+    if (repository instanceof MultiResourceRepository) {
+      return new StringResourceRepository((MultiResourceRepository)repository);
+    }
+
+    if (repository instanceof ResourceFolderRepository) {
+      return new StringResourceRepository((ResourceFolderRepository)repository);
+    }
+
+    return new StringResourceRepository(repository);
+  }
+
+  @NotNull
+  public final StringResourceData getData(@NotNull AndroidFacet facet) {
     Map<StringResourceKey, StringResource> map = new LinkedHashMap<>();
     Project project = facet.getModule().getProject();
 

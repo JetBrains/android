@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -61,7 +62,8 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
     when(javaModel.isBuildable()).thenReturn(buildable);
 
     Module module = getModule();
-    mySetupStep.doSetUpModule(module, myModelsProvider, javaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, myModelsProvider);
+    mySetupStep.doSetUpModule(context, javaModel);
 
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 
@@ -82,7 +84,8 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
     when(javaModel.isBuildable()).thenReturn(buildable);
 
     Module module = getModule();
-    mySetupStep.doSetUpModule(module, myModelsProvider, javaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, myModelsProvider);
+    mySetupStep.doSetUpModule(context, javaModel);
 
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 
@@ -120,7 +123,8 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
     when(javaModel.isBuildable()).thenReturn(buildable);
 
     Module module = getModule();
-    mySetupStep.doSetUpModule(module, myModelsProvider, javaModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, myModelsProvider);
+    mySetupStep.doSetUpModule(context, javaModel);
 
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
@@ -80,6 +82,22 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether a native CPU profiling configuration is preferred over a Java one.
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
+
+  /**
+   * Whether network request payload is tracked and shown.
+   */
+  private boolean myIsRequestPayloadEnabled = false;
+
+  /**
+   * List of custom CPU profiling configurations.
+   */
+  private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
+
+  @NotNull private final ProfilerPreferences myPreferences;
+
+  public FakeIdeProfilerServices() {
+    myPreferences = new FakeProfilerPreferences();
+  }
 
   @NotNull
   @Override
@@ -167,11 +185,22 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isAtraceEnabled() {
         return isAtraceEnabled;
       }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return myIsRequestPayloadEnabled;
+      }
     };
   }
 
+  @NotNull
   @Override
-  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  public ProfilerPreferences getProfilerPreferences() {
+    return myPreferences;
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> callbackDialog) {
     // No-op.
   }
@@ -190,9 +219,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
+  public void addCustomProfilingConfiguration(String name) {
+    ProfilingConfiguration config = new ProfilingConfiguration(name, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+    myCustomProfilingConfigurations.add(config);
+  }
+
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
-    return new ArrayList<>();
+    return myCustomProfilingConfigurations;
   }
 
   @Override
@@ -230,5 +265,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableMemorySnapshot(boolean enabled) {
     isMemorySnapshotEnabled = enabled;
+  }
+
+  public void enableRequestPayload(boolean enabled) {
+    myIsRequestPayloadEnabled = enabled;
   }
 }

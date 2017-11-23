@@ -741,7 +741,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("WITH ids AS (SELECT <caret> FROM user) SELECT uid FROM ids") List<Integer> getAll();
+          @Query("WITH ids AS (SELECT <caret> FROM user) SELECT 42") List<Integer> getAll();
         }
     """.trimIndent())
 
@@ -750,7 +750,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
             Pair("uid", myFixture.findField("com.example.User", "uid")))
   }
 
-  fun testSubquery_allColumns() {
+  fun testFromSubquery_allColumns() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
@@ -774,7 +774,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
             Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 
-  fun testSubquery_allTableColumns() {
+  fun testFromSubquery_allTableColumns() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
@@ -796,7 +796,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
             Pair("name", myFixture.findField("com.example.User", "name")))
   }
 
-  fun testSubquery_specificColumns() {
+  fun testFromSubquery_specificColumns() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
 
@@ -816,5 +816,320 @@ class ColumnReferencesTest : LightRoomTestCase() {
         .containsExactly(
             Pair("uid", myFixture.findField("com.example.User", "uid")),
             Pair("title", myFixture.findField("com.example.Book", "title")))
+  }
+
+  fun testWhereSubquery_selectedTablesInOuterQueries() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+    myFixture.addRoomEntity("com.example.Bbb", "b" ofType "int")
+    myFixture.addRoomEntity("com.example.Ccc", "c" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT a FROM Aaa WHERE a IN (SELECT b FROM Bbb WHERE <caret>)") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT a FROM Aaa WHERE a IN (SELECT b FROM Bbb WHERE b IN (SELECT c FROM Ccc WHERE <caret>))") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b", "c")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT a FROM Aaa WHERE a IN (SELECT b FROM Bbb WHERE b IN (SELECT c FROM Ccc WHERE <caret>))") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "b", "c")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT a FROM Aaa WHERE a IN (SELECT b FROM Bbb WHERE b IN (SELECT c FROM Ccc WHERE Aaa.<caret>))") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a")
+  }
+
+  fun testWhereSubquery_withClause() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+    myFixture.addRoomEntity("com.example.Bbb", "b" ofType "int")
+    myFixture.addRoomEntity("com.example.Ccc", "c" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (VALUES(1)) SELECT a FROM Aaa WHERE a IN (WITH t2 AS (VALUES(2)) SELECT b FROM <caret>)")
+          List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("Aaa", "Bbb", "Ccc", "t1", "t2")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (VALUES(1)) SELECT a FROM Aaa WHERE a IN (WITH t2 AS (VALUES(2)) SELECT b FROM Bbb WHERE a IN <caret>)")
+          List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("Aaa", "Bbb", "Ccc", "t1", "t2")
+  }
+
+  fun testValueSubquery() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT (SELECT min(a) FROM aaa), (SELECT max(a) FROM <caret>)") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("Aaa")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT (SELECT min(a) FROM aaa), (SELECT max(<caret>) FROM Aaa)") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a")
+  }
+
+  fun testValuesSubqueryAliases() {
+    myFixture.addRoomEntity("com.example.Aaa", "a" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM minmax WHERE <caret>")
+          List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("max_a")
+  }
+
+  fun testSubqueryDelete() {
+    myFixture.addRoomEntity("com.example.User", "score" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM user WHERE score=(SELECT min(score) FROM <caret>)")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM user WHERE score=(SELECT min(<caret>) FROM user)")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("score")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH losing_score AS (SELECT min(score) FROM user) DELETE FROM user WHERE score IN <caret>")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User", "losing_score")
+  }
+
+  fun testSubqueryUpdate() {
+    myFixture.addRoomEntity("com.example.User", "score" ofType "int", "alive" ofType "boolean")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE user SET alive=0 WHERE score=(SELECT min(score) FROM <caret>)")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE user SET alive=0 WHERE score=(SELECT min(<caret>) FROM user)")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("score", "alive")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH losing_score AS (SELECT min(score) FROM user) UPDATE user SET alive=0 WHERE score IN <caret>")
+          void deleteLosers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User", "losing_score")
+  }
+
+  fun testAliasRenaming() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id AS i FROM user) SELECT <caret>i FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_id")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id AS user_id FROM user) SELECT user_id FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+  }
+
+  fun testWithTableRenaming_columns() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids(x) AS (SELECT id FROM user) SELECT <caret>x FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("user_id")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids(user_id) AS (SELECT id FROM user) SELECT user_id FROM ids")
+          List<Integer> getIds();
+        }
+    """.trimIndent())
   }
 }

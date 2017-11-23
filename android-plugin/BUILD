@@ -7,6 +7,14 @@ iml_module(
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea/plugins/maven:maven2-server-impl",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android[module]",
         "//tools/adt/idea/android-adb[module]",

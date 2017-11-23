@@ -39,7 +39,7 @@ public class CanvasResizeTest {
       .waitForRenderToFinish()
       .showOnlyDesignView()
       .getConfigToolbar()
-      .switchOrientation()
+      .setOrientationAsLandscape()
       .requireOrientation("Landscape")
       .leaveConfigToolbar()
       .startResizeInteraction()

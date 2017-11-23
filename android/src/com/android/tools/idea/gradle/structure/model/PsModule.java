@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -51,12 +51,13 @@ public abstract class PsModule extends PsChildModel {
 
   protected PsModule(@NotNull PsProject parent,
                      @NotNull Module resolvedModel,
-                     @NotNull String gradlePath) {
+                     @NotNull String gradlePath,
+                     @NotNull GradleBuildModel parsedModel) {
     super(parent);
     myResolvedModel = resolvedModel;
     myGradlePath = gradlePath;
     myModuleName = resolvedModel.getName();
-    myParsedModel = GradleBuildModel.get(myResolvedModel);
+    myParsedModel = parsedModel;
   }
 
   protected PsModule(@NotNull PsProject parent, @NotNull String name) {
@@ -141,11 +142,11 @@ public abstract class PsModule extends PsChildModel {
     GradleBuildModel parsedModel = getParsedModel();
     if (parsedModel != null) {
       for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-        if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
+        if (repositoryModel.getType() == RepositoryModel.RepositoryType.JCENTER_DEFAULT) {
           repositories.add(new JCenterRepository());
           continue;
         }
-        if (repositoryModel instanceof MavenCentralRepositoryModel) {
+        if (repositoryModel.getType() == RepositoryModel.RepositoryType.MAVEN_CENTRAL) {
           repositories.add(new MavenCentralRepository());
         }
       }
@@ -154,6 +155,22 @@ public abstract class PsModule extends PsChildModel {
 
   public boolean canDependOn(@NotNull PsModule module) {
     return false;
+  }
+
+  public void applyChanges() {
+    if (isModified()) {
+      GradleBuildModel parsedModel = getParsedModel();
+      if (parsedModel != null && parsedModel.isModified()) {
+        String name = String.format("Applying changes to module '%1$s'", getName());
+        new WriteCommandAction(getParent().getResolvedModel(), name) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            parsedModel.applyChanges();
+            setModified(false);
+          }
+        }.execute();
+      }
+    }
   }
 
   public interface DependenciesChangeListener extends EventListener {

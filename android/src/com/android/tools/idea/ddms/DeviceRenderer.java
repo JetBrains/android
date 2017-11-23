@@ -122,8 +122,7 @@ public class DeviceRenderer {
     return false;
   }
 
-  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
-
+  static final class DeviceComboBoxRenderer extends ColoredListCellRenderer<IDevice> {
     @NotNull
     private String myEmptyText;
     private boolean myShowSerial;
@@ -142,17 +141,17 @@ public class DeviceRenderer {
     }
 
     @Override
-    protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-      if (value instanceof String) {
-        append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
-      }
-      else if (value instanceof IDevice) {
-        IDevice device = (IDevice)value;
-        renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, myShowSerial);
-      }
-      else if (value == null) {
+    protected void customizeCellRenderer(@NotNull JList<? extends IDevice> list,
+                                         IDevice value,
+                                         int index,
+                                         boolean selected,
+                                         boolean focused) {
+      if (value == null) {
         append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+        return;
       }
+
+      renderDeviceName(value, myDeviceNamePropertiesProvider.get(value), this, myShowSerial);
     }
   }
 

@@ -48,6 +48,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavActionElement;
 import org.jetbrains.android.dom.navigation.NavDestinationElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
@@ -274,7 +275,8 @@ public class AttributeProcessingUtil {
     String qualifiedName = psiClass.getQualifiedName();
     return qualifiedName != null &&
            qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
-           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
+           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+           !qualifiedName.startsWith(ANDROID_ARCH_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
   }
 
   @Nullable
@@ -565,6 +567,10 @@ public class AttributeProcessingUtil {
     }
     else if (element instanceof NavDestinationElement) {
       processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
+    }
+    else if (element instanceof NavActionElement) {
+      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.getOrCreateSchema(facet).getActionClass(), callback,
+                                                skippedAttributes);
     }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition

@@ -101,6 +101,10 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_BACKGROUND = new JBColor(0xECF2FA, 0x323940);
 
+  public static final Color CPU_CAPTURE_SPARKLINE = new JBColor(0xC1D6F6, 0x5A6E7D);
+
+  public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0xC1D6F6, 0xC1D6F6);
+
   public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
 
   public static final Color CPU_CALLCHART_VENDOR_BORDER = new JBColor(AdtUiUtils.overlayColor(0xA2DEFF, Color.BLACK.getRGB(), 0.4f),

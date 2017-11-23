@@ -16,13 +16,15 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.core.StringProperty;
+import com.intellij.openapi.components.PersistentStateComponent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
 
-public interface ConfigureIconView {
+public interface ConfigureIconView extends PersistentStateComponent<PersistentState> {
   /**
    * Returns the root panel for this view.
    */

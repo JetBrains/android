@@ -16,12 +16,12 @@
 
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.FileTreeDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -224,11 +224,11 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     DependenciesModel dependencies = model.dependencies();
     assertNotNull(dependencies);
 
-    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    List<? extends ArtifactDependencyModel> artifacts = dependencies.artifacts();
     assertThat(artifacts).hasSize(1);
     assertEquals("com.google.guava:guava:22.0", artifacts.get(0).compactNotation().value());
 
-    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    List<? extends FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTreeModel = fileTrees.get(0);
     assertEquals("lib", fileTreeModel.dir().value());
@@ -240,7 +240,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     DependenciesModel dependencies = model.dependencies();
     assertNotNull(dependencies);
 
-    List<ModuleDependencyModel> modules = dependencies.modules();
+    List<? extends ModuleDependencyModel> modules = dependencies.modules();
 
     assertThat(modules).hasSize(1);
     assertEquals(":library", modules.get(0).path().value());

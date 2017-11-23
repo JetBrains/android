@@ -16,17 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
@@ -48,13 +46,10 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   }
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
     File mainClassesFolderPath = null;
     File testClassesFolderPath = null;
+
     ExtIdeaCompilerOutput compilerOutput = javaModuleModel.getCompilerOutput();
     if (compilerOutput != null) {
       mainClassesFolderPath = compilerOutput.getMainClassesDir();
@@ -74,7 +69,7 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
     if (mainClassesFolderPath != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
-      ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+      ModifiableRootModel moduleModel = context.getModifiableRootModel();
       myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolderPath, testClassesFolderPath);
     }
   }

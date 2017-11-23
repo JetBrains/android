@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +103,7 @@ public class MethodSet extends ClassifierSet {
     @NotNull
     @Override
     public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.isFiltered())
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered())
         .collect(Collectors.toList());
     }
 
@@ -197,11 +196,8 @@ public class MethodSet extends ClassifierSet {
       }
 
       assert myMethodId != INVALID_METHOD_ID;
-      StackFrameInfoResponse frameInfo = myCaptureObject.getClient().getStackFrameInfo(
-        StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId()).setSession(myCaptureObject.getSession())
-          .setMethodId(myMethodId).build()
-      );
-
+      StackFrameInfoResponse frameInfo = myCaptureObject.getStackFrameInfoResponse(myMethodId);
+      assert frameInfo != null;
       myClassName = frameInfo.getClassName();
       myMethodName = frameInfo.getMethodName();
       myResolvedNames = true;

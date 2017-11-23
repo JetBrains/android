@@ -80,7 +80,6 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createPro
 import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -234,7 +233,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(TRIGGER_PROJECT_MODIFIED);
+
+        GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+        request.runInBackground = false;
+
         GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener.Adapter() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {

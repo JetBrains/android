@@ -19,7 +19,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerData;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,14 +53,14 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     // Get an extra padding on each side, to have a smooth rendering at the edges.
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
+    CpuDataRequest.Builder dataRequestBuilder = CpuDataRequest.newBuilder()
       .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
-    CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
-    CpuProfiler.CpuProfilerData lastCpuData = null;
-    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
+    CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
+    CpuProfilerData lastCpuData = null;
+    for (CpuProfilerData data : response.getDataList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
 
       // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.
@@ -78,7 +80,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     return seriesData;
   }
 
-  private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {
+  private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfilerData data, CpuProfilerData lastData) {
     long elapsed = (data.getCpuUsage().getElapsedTimeInMillisec() - lastData.getCpuUsage().getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
     double app = 100.0 * (data.getCpuUsage().getAppCpuTimeInMillisec() - lastData.getCpuUsage().getAppCpuTimeInMillisec()) / elapsed;

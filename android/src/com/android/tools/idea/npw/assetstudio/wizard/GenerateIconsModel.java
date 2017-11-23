@@ -30,21 +30,15 @@ import org.jetbrains.annotations.Nullable;
  * icons, and child classes must implement the final logic which generates the final Android icon
  * assets to disk.
  *
- * A wizard that owns this model is expected to call
- * {@link #setIconGenerator(IconGenerator)} at some point before finishing.
+ * A wizard that owns this model is expected to call {@link #setIconGenerator(IconGenerator)}
+ * at some point before finishing.
  */
 public abstract class GenerateIconsModel extends WizardModel {
   @Nullable private IconGenerator myIconGenerator;
-
   @NotNull private AndroidModuleTemplate myPaths;
 
   public GenerateIconsModel(@NotNull AndroidFacet facet) {
     myPaths = AndroidPackageUtils.getModuleTemplates(facet, null).get(0).getPaths();
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(GenerateIconsModel.class);
   }
 
   public final void setPaths(@NotNull AndroidModuleTemplate paths) {
@@ -79,4 +73,9 @@ public abstract class GenerateIconsModel extends WizardModel {
    * Serializes the icons into files on disk. This method will be called within a WriteAction.
    */
   protected abstract void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull IconGenerator iconGenerator);
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(GenerateIconsModel.class);
+  }
 }

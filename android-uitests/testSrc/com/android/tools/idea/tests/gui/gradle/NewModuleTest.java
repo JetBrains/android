@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
@@ -150,33 +149,6 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
-  }
-
-  /**
-   * Similar to {@link #createNewLibraryModuleWithDefaults()}, but creates two default Android Libraries and checks that both library
-   * package paths are different.
-   */
-  @RunIn(TestGroup.UNRELIABLE)
-  @Test // b/68177735
-  public void createTwoNewLibraryModulesWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("My Library")
-      .clickFinish()
-      .waitForBuildToFinish(BuildMode.SOURCE_GEN)
-      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("My Library")
-      .clickFinish()
-      .waitForBuildToFinish(BuildMode.SOURCE_GEN);
-
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary")).isDirectory();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary/src/main/java/com/example/mylibrary")).isDirectory();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary2")).isDirectory();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary2/src/main/java/com/example/mylibrary2")).isDirectory();
   }
 
   @Test

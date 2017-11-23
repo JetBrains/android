@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util.ui;
 
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -35,7 +35,7 @@ public abstract class LabeledComboBoxAction extends ComboBoxAction {
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(new JLabel(myLabel), BorderLayout.WEST);
     panel.add(createComboBoxButton(presentation), BorderLayout.CENTER);
-    panel.setBorder(IdeBorderFactory.createEmptyBorder(2, 6, 2, 0));
+    panel.setBorder(JBUI.Borders.empty(2, 6, 2, 0));
     return panel;
   }
 }

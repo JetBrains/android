@@ -36,7 +36,6 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
       when (myIconType) {
         DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
         DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
-        else -> throw IllegalArgumentException()
       }
 
   private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]), IconType.valueOf(sp[1]))
@@ -44,7 +43,7 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
   constructor(s: String) : this(parse(s, 2))
 
   override fun getLevel(): Int {
-    return NavBaseDrawCommand.DRAW_ICON
+    return NavBaseDrawCommand.DRAW_ICON_LEVEL
   }
 
   override fun getProperties(): Array<Any> {
@@ -52,6 +51,8 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
+    setRenderingHints(g)
+
     val scaleX = myRectangle.width.toDouble() / myIcon.iconWidth
     val scaleY = myRectangle.height.toDouble() / myIcon.iconHeight
 

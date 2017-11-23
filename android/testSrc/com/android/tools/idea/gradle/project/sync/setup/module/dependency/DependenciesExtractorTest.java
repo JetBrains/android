@@ -20,13 +20,17 @@ import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.testing.Facets;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -45,12 +49,15 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public class DependenciesExtractorTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
-
+  private ModulesByGradlePath myModulesByGradlePath;
   private DependenciesExtractor myDependenciesExtractor;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    myModulesByGradlePath = new ModulesByGradlePath();
+
     myAndroidProject = TestProjects.createBasicProject();
     myVariant = myAndroidProject.getFirstVariant();
     assertNotNull(myVariant);
@@ -77,7 +84,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
 
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -126,7 +133,8 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
 
-    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(myVariant).onLibraries());
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath);
+    List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = dependencies.get(0);
@@ -139,7 +147,11 @@ public class DependenciesExtractorTest extends IdeaTestCase {
   }
 
   public void testExtractFromModuleDependency() {
-    String gradlePath = "abc:xyz:library";
+    Module libModule = createModule("lib");
+    GradleFacet gradleFacet = Facets.createAndAddGradleFacet(libModule);
+    String gradlePath = ":lib";
+    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
+
     ModuleLibraryStub library = new ModuleLibraryStub() {
       @Override
       @NotNull
@@ -147,9 +159,13 @@ public class DependenciesExtractorTest extends IdeaTestCase {
         return gradlePath;
       }
     };
+
+    myModulesByGradlePath = new ModulesByGradlePath();
+    myModulesByGradlePath.addModule(libModule, ":lib");
+
     myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
@@ -157,6 +173,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     assertEquals(gradlePath, dependency.getGradlePath());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
+    assertSame(libModule, dependency.getModule());
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);

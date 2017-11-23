@@ -101,12 +101,9 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
         OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file);
         List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
 
-        if (LayoutInspectorContext.isDumpDisplayListEnabled()) {
-          Optional<FileEditor> optionalEditor = editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst();
-          if (optionalEditor.isPresent()) {
-            ((LayoutInspectorEditor)optionalEditor.get()).setSources(myClient, myWindow);
-          }
-        }
+        editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst().ifPresent((editor) -> {
+          ((LayoutInspectorEditor)editor).setSources(myClient, myWindow);
+        });
       }));
     }
     catch (IOException e) {

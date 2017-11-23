@@ -32,6 +32,6 @@ public final class NewRowInstruction extends RenderInstruction {
   @Override
   public void moveCursor(@NotNull InstructionsRenderer renderer, @NotNull Point cursor) {
     cursor.y += renderer.getRowHeight() + myVerticalMargin;
-    cursor.x = 0;
+    cursor.x = renderer.getStartX(cursor.y);
   }
 }

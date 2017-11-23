@@ -23,7 +23,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-class NonEditableEditor(listener: NlEditingListener) : NlBaseComponentEditor(listener) {
+class NonEditableEditor(listener: NlEditingListener) : BaseComponentEditor(listener) {
   val component = JPanel(BorderLayout())
   val textField = EditorTextField()
   lateinit var _property: NlProperty

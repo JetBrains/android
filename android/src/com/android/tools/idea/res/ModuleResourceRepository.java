@@ -209,9 +209,8 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     return new ModuleResourceRepository(facet, delegates);
   }
 
-  private static class EmptyRepository extends LocalResourceRepository {
-
-    protected EmptyRepository() {
+  public static final class EmptyRepository extends LocalResourceRepository {
+    public EmptyRepository() {
       super("");
     }
 

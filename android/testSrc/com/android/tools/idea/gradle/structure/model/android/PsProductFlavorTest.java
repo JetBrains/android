@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PsProductFlavorTest {
   @Test
@@ -46,7 +45,9 @@ public class PsProductFlavorTest {
 
   @NotNull
   private static ProductFlavorModel getParsedModelStub() {
-    return new ProductFlavorModel(new ProductFlavorDslElement(mock(GradleDslElement.class), "resolvedName"));
+    ProductFlavorModel model = mock(ProductFlavorModel.class);
+    when(model.name()).thenReturn("resolvedName");
+    return model;
   }
 
   @Test

@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.*;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -39,6 +40,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidModuleModelDataService extends ModuleModelDataService<AndroidModuleModel> {
+  @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final AndroidModuleSetup myModuleSetup;
   @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final AndroidModuleCleanupStep myCleanupStep;
@@ -46,13 +48,15 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidModuleModelDataService() {
-    this(new AndroidModuleSetup(), new AndroidModuleValidator.Factory(), new AndroidModuleCleanupStep());
+    this(new ModuleSetupContext.Factory(), new AndroidModuleSetup(), new AndroidModuleValidator.Factory(), new AndroidModuleCleanupStep());
   }
 
   @VisibleForTesting
-  AndroidModuleModelDataService(@NotNull AndroidModuleSetup moduleSetup,
+  AndroidModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
+                                @NotNull AndroidModuleSetup moduleSetup,
                                 @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
                                 @NotNull AndroidModuleCleanupStep cleanupStep) {
+    myModuleSetupContextFactory = moduleSetupContextFactory;
     myModuleSetup = moduleSetup;
     myModuleValidatorFactory = moduleValidatorFactory;
     myCleanupStep = cleanupStep;
@@ -68,16 +72,16 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   protected void importData(@NotNull Collection<DataNode<AndroidModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, AndroidModuleModel> modelsByName) {
+                            @NotNull Map<String, AndroidModuleModel> modelsByModuleName) {
     AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
     boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
 
     for (Module module : modelsProvider.getModules()) {
-      AndroidModuleModel androidModel = modelsByName.get(module.getName());
+      AndroidModuleModel androidModel = modelsByModuleName.get(module.getName());
       setUpModule(module, moduleValidator, modelsProvider, androidModel, syncSkipped);
     }
 
-    if (!modelsByName.isEmpty()) {
+    if (!modelsByModuleName.isEmpty()) {
       moduleValidator.fixAndReportFoundIssues();
     }
   }
@@ -88,7 +92,8 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
                            @Nullable AndroidModuleModel androidModel,
                            boolean syncSkipped) {
     if (androidModel != null) {
-      myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null, syncSkipped);
+      ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
+      myModuleSetup.setUpModule(context, androidModel, syncSkipped);
       moduleValidator.validate(module, androidModel);
     }
     else {

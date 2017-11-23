@@ -45,6 +45,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     private val propertyType: Class<PropertyType>, val icon: Icon)
   : InspectorProvider<NavPropertiesManager> {
 
+  // If we decide to guarantee that each subclass only handles a single tag this map can be replaced with a single value
   private val myInspectors = HashMap<String, InspectorComponent<NavPropertiesManager>>()
 
   private val whiteIcon = WhiteIconGenerator.generateWhiteIcon(icon)

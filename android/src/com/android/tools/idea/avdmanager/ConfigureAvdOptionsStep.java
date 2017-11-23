@@ -30,14 +30,16 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.*;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -45,6 +47,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -177,7 +180,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private String myOriginalName;
   /**
-   * Device's original Sd card size
+   * Device's original SD card size. Used to warn about changing the size.
    */
   private Storage myOriginalSdCard;
   /**
@@ -185,9 +188,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private int mySelectedCoreCount;
 
+  private AvdOptionsModel myModel;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     super(model, "Android Virtual Device (AVD)");
+    myModel = model;
     myValidatorPanel = new ValidatorPanel(this, myRoot);
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
 
@@ -203,10 +208,33 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
 
-    myFrontCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
-    myBackCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
+            AndroidSdks.getInstance().tryToChooseSdkHandler(),
+            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
+            new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+
+    setupCameraComboBox(myFrontCameraCombo, false);
+    setupCameraComboBox(myBackCameraCombo, supportsVirtualCamera);
+
     mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
     myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
+  }
+
+  private static void setupCameraComboBox(JComboBox comboBox, boolean withVirtualScene) {
+    AvdCamera[] allCameras = AvdCamera.values();
+    if (!withVirtualScene) {
+      List<AvdCamera> allCamerasButVirtualSceneList = new ArrayList(Arrays.asList(allCameras));
+      allCamerasButVirtualSceneList.remove(AvdCamera.VIRTUAL_SCENE);
+      comboBox.setModel(new DefaultComboBoxModel(allCamerasButVirtualSceneList.toArray()));
+    } else {
+      comboBox.setModel(new DefaultComboBoxModel(allCameras));
+    }
+    comboBox.setToolTipText("<html>" +
+            "None - no camera installed for AVD<br>" +
+            (withVirtualScene ? "VirtualScene - use a virtual camera in a simulated environment<br>" : "") +
+            "Emulated - use a simulated camera<br>" +
+            "Device - use host computer webcam or built-in camera" +
+            "</html>");
   }
 
   private void initCpuCoreDropDown() {
@@ -294,6 +322,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myBuiltInSdCardStorage.setEnabled(true);
       myExternalSdCard.setEnabled(false);
     }
+    myModel.ensureMinimumMemory();
+    // Set 'myOriginalSdCard' so we don't warn the user about making this change
+    myOriginalSdCard = myModel.sdCardStorage().getValue();
   }
 
   @NotNull
@@ -519,18 +550,18 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new TextProperty(mySystemImageDetails), getModel().systemImageDetails());
 
     myBindings.bindTwoWay(new SelectedProperty(myQemu2CheckBox), getModel().useQemu2());
-    myBindings.bindTwoWay(new SelectedItemProperty<Integer>(myCoreCount), getModel().cpuCoreCount());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myCoreCount), getModel().cpuCoreCount());
     myBindings.bindTwoWay(myRamStorage.storage(), getModel().getAvdDeviceData().ramStorage());
     myBindings.bindTwoWay(myVmHeapStorage.storage(), getModel().vmHeapStorage());
     myBindings.bindTwoWay(myInternalStorage.storage(), getModel().internalStorage());
-    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new OptionalToValuePropertyAdapter<Storage>(getModel().sdCardStorage()));
+    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), ObjectProperty.wrap(getModel().sdCardStorage()));
 
-    myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
 
-    myBindings.bindTwoWay(new SelectedItemProperty<File>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -556,16 +587,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myFrontCameraCombo)),
-                          getModel().selectedFrontCamera());
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myBackCameraCombo)),
-                          getModel().selectedBackCamera());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myFrontCameraCombo)), getModel().selectedFrontCamera());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myBackCameraCombo)), getModel().selectedBackCamera());
 
-    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkSpeed>(new SelectedItemProperty<AvdNetworkSpeed>(mySpeedCombo)),
-                          getModel().selectedNetworkSpeed());
-    myBindings
-      .bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkLatency>(new SelectedItemProperty<AvdNetworkLatency>(myLatencyCombo)),
-                  getModel().selectedNetworkLatency());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(mySpeedCombo)), getModel().selectedNetworkSpeed());
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myLatencyCombo)), getModel().selectedNetworkLatency());
 
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
@@ -579,7 +605,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage ram) {
         return (ram.getSizeAsUnit(Storage.Unit.MiB) < 128)
-               ? new Result(Severity.ERROR, "RAM must be a numeric (integer) value of at least 128 MB. Recommendation is 1 GB.")
+               ? new Result(Severity.ERROR, "RAM must be at least 128 MB. Recommendation is 1 GB.")
                : Result.OK;
       }
     });
@@ -589,7 +615,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage heap) {
         return (heap.getSizeAsUnit(Storage.Unit.MiB) < 16)
-               ? new Result(Severity.ERROR, "VM Heap must be a numeric (integer) value of at least 16 MB.")
+               ? new Result(Severity.ERROR, "VM Heap must be at least 16 MB.")
                : Result.OK;
       }
     });
@@ -597,10 +623,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<Storage>() {
       @NotNull
       @Override
-      public Result validate(@NotNull Storage heap) {
-        return (heap.getSizeAsUnit(Storage.Unit.MiB) < 200)
-               ? new Result(Severity.ERROR, "Internal storage must be a numeric (integer) value of at least 200 MB.")
-               : Result.OK;
+      public Result validate(@NotNull Storage internalMem) {
+        if (!internalMem.lessThan(myModel.minInternalMemSize())) {
+          return Result.OK;
+        }
+        String errorMessage = myModel.isPlayStoreCompatible() ?
+                              "Internal storage for Play Store devices must be at least %s." :
+                              "Internal storage must be at least %s.";
+        return new Result(Severity.ERROR, String.format(errorMessage, myModel.minInternalMemSize()));
       }
     });
 
@@ -624,9 +654,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           myOriginalSdCard = getModel().sdCardStorage().getValue();
         }
 
-        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
-            getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10) {
-          return new Result(Severity.ERROR, "The SD card must be at least 10 MB.");
+        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent()) {
+          // Internal storage has been selected. Make sure it's big enough.
+          if (getModel().sdCardStorage().getValue().lessThan(myModel.minSdCardSize())) {
+            String errorMessage = myModel.isPlayStoreCompatible() ?
+                                  "The SD card for Play Store devices must be at least %s." :
+                                  "The SD card must be at least %s.";
+            return new Result(Severity.ERROR, String.format(errorMessage, myModel.minSdCardSize()));
+          }
         }
         if (!getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
           return new Result(Severity.WARNING, "Modifying the SD card size will erase the card's contents! " +
@@ -744,7 +779,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
     // Separately handle the Boot Option. It is only
     // shown if the Emulator supports it.
-    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler()));
+    myBootOptionPanel.setVisible(show && EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
+                                                                                      new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
+                                                                                      new LogWrapper(Logger.getInstance(AvdManagerConnection.class))));
 
     toggleSystemOptionals(false);
 
@@ -766,10 +803,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private void enforcePlayStore() {
     boolean deviceIsPresent = getModel().device().isPresent().get();
     // Enable if NOT Play Store
-    boolean enable = !(deviceIsPresent &&
-                         getModel().device().getValue().hasPlayStore() &&
-                         getModel().systemImage().isPresent().get() &&
-                         getModel().systemImage().getValue().getSystemImage().hasPlayStore());
+    boolean enable = !myModel.isPlayStoreCompatible();
 
     // Enforce the restrictions
     myChangeDeviceButton.setEnabled(enable);
@@ -779,10 +813,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myQemu2CheckBox.setEnabled(enable);
     myRamStorage.setEnabled(enable);
     myVmHeapStorage.setEnabled(enable);
-    myInternalStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
-    myBuiltInSdCardStorage.setEnabled(enable);
     mySkinComboBox.setEnabled(enable);
     if (!enable) {
       // Selectively disable, but don't enable
@@ -866,8 +898,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     };
     myOrientationToggle =
-      new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                                       orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
+      new ASGallery<>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
+                      orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
 
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
@@ -977,6 +1009,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         if (image != null) {
           getModel().systemImage().setValue(image);
         }
+        myModel.ensureMinimumMemory();
+        // Set 'myOriginalSdCard' so we don't warn the user about making this change
+        myOriginalSdCard = myModel.sdCardStorage().getValue();
       }
     }
   };

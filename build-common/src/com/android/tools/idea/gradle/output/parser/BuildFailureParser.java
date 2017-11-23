@@ -239,7 +239,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
             matcher = COMPILE_LINE_PARSER.matcher(currentLine);
             if (matcher.matches()) {
               file = new SourceFile(new File(matcher.group(1)));
-              position = new SourcePosition(Integer.parseInt(matcher.group(2)) - 1, Integer.parseInt(matcher.group(3)) - 1, 0);
+              position = new SourcePosition(Integer.parseInt(matcher.group(2)) - 1, Integer.parseInt(matcher.group(3)) - 1, -1);
               String text = matcher.group(4);
               String type = matcher.group(5);
               Message.Kind kind = Message.Kind.UNKNOWN;

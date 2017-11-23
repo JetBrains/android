@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.android.tools.idea.lang.roomSql.resolution.*
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager

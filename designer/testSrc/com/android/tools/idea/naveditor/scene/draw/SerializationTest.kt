@@ -28,27 +28,6 @@ class SerializationTest : TestCase() {
     testSerialization("DrawIcon,20x10x200x100,START_DESTINATION", DrawIcon(Rectangle(20, 10, 200, 100), DrawIcon.IconType.START_DESTINATION), factory)
   }
 
-  fun testDrawNavigationFrame() {
-    val factory = { s: String -> DrawNavigationFrame(s) }
-
-    testSerialization("DrawNavigationFrame,10x20x100x200,true,false", DrawNavigationFrame(Rectangle(10, 20, 100, 200), true, false), factory)
-    testSerialization("DrawNavigationFrame,20x10x200x100,false,true", DrawNavigationFrame(Rectangle(20, 10, 200, 100), false, true), factory)
-  }
-
-  fun testDrawScreenFrame() {
-    val factory = { s: String -> DrawScreenFrame(s) }
-
-    testSerialization("DrawScreenFrame,10x20x100x200,true,false", DrawScreenFrame(Rectangle(10, 20, 100, 200), true, false), factory)
-    testSerialization("DrawScreenFrame,20x10x200x100,false,true", DrawScreenFrame(Rectangle(20, 10, 200, 100), false, true), factory)
-  }
-
-  fun testDrawNavigationBackground() {
-    val factory = { s: String -> DrawNavigationBackground(s) }
-
-    testSerialization("DrawNavigationBackground,10x20x100x200", DrawNavigationBackground(Rectangle(10, 20, 100, 200)), factory)
-    testSerialization("DrawNavigationBackground,20x10x200x100", DrawNavigationBackground(Rectangle(20, 10, 200, 100)), factory)
-  }
-
   fun testDrawAction() {
     val factory = { s: String -> DrawAction(s) }
 
@@ -84,6 +63,30 @@ class SerializationTest : TestCase() {
 
     testSerialization("DrawScreenLabel,10,20,foo", DrawScreenLabel(10, 20, "foo"), factory)
     testSerialization("DrawScreenLabel,30,40,bar", DrawScreenLabel(30, 40, "bar"), factory)
+  }
+
+  fun testDrawRectangle() {
+    val factory = { s: String -> DrawRectangle(s) }
+
+    testSerialization("DrawRectangle,10x20x30x40,SELECTED_FRAMES,1,0",
+        DrawRectangle(Rectangle(10, 20, 30, 40),
+            DrawColor.SELECTED_FRAMES, 1), factory)
+
+    testSerialization("DrawRectangle,50x60x70x80,HIGHLIGHTED_FRAMES,3,4",
+        DrawRectangle(Rectangle(50, 60, 70, 80),
+            DrawColor.HIGHLIGHTED_FRAMES, 3, 4), factory)
+  }
+
+  fun testDrawFilledRectangle() {
+    val factory = { s: String -> DrawFilledRectangle(s) }
+
+    testSerialization("DrawFilledRectangle,10x20x30x40,SELECTED_FRAMES,2",
+        DrawFilledRectangle(Rectangle(10, 20, 30, 40),
+            DrawColor.SELECTED_FRAMES, 2), factory)
+
+    testSerialization("DrawFilledRectangle,50x60x70x80,HIGHLIGHTED_FRAMES,4",
+        DrawFilledRectangle(Rectangle(50, 60, 70, 80),
+            DrawColor.HIGHLIGHTED_FRAMES, 4), factory)
   }
 
   companion object {

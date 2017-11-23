@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,7 @@ public class NullMonitorStage extends Stage {
   }
 
   private void updateType() {
-    Profiler.Device device = getStudioProfilers().getDevice();
+    Common.Device device = getStudioProfilers().getDevice();
     if (device == null) {
       myType = Type.NO_DEVICE;
     } else {

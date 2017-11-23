@@ -17,8 +17,10 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -67,7 +69,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   private FileRootSearchScope mySharedTestsExcludeScope;
   private FileRootSearchScope myUnitTestDependencyExcludeScope;
 
-  private final Object myLock = new Object();
+  private static final Object ourLock = new Object();
 
   private DependencySet myMainDependencies;
   private DependencySet myUnitTestDependencies;
@@ -214,7 +216,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
     boolean isAndroidTest = ARTIFACT_ANDROID_TEST.equals(artifactName);
     Collection<File> excluded;
-    synchronized (myLock) {
+    synchronized (ourLock) {
       DependencySet dependenciesToInclude = isAndroidTest ? myAndroidTestDependencies : myUnitTestDependencies;
       DependencySet dependenciesToExclude = isAndroidTest ? myUnitTestDependencies : myAndroidTestDependencies;
 
@@ -224,7 +226,7 @@ public final class TestArtifactSearchScopes implements Disposable {
       excludedModules.remove(myMainDependencies);
 
       ExcludedRoots excludedRoots =
-        new ExcludedRoots(myModule, excludedModules, dependenciesToExclude, dependenciesToInclude, isAndroidTest);
+        new ExcludedRoots(excludedModules, dependenciesToExclude, dependenciesToInclude, isAndroidTest);
       excludedRoots.removeLibraryPaths(myMainDependencies);
       excluded = excludedRoots.get();
     }
@@ -235,7 +237,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @VisibleForTesting
   void resolveDependencies() {
     AndroidModuleModel androidModel = getAndroidModel();
-    synchronized (myLock) {
+    synchronized (ourLock) {
       if (androidModel == null || myAlreadyResolved) {
         return;
       }
@@ -258,7 +260,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   private void extractMainDependencies(@NotNull AndroidModuleModel androidModel) {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       if (myMainDependencies == null) {
         myMainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact());
       }
@@ -266,7 +268,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   private void extractUnitTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       if (myUnitTestDependencies == null) {
         IdeBaseArtifact artifact = androidModel.getSelectedVariant().getUnitTestArtifact();
         myUnitTestDependencies = extractTestDependencies(artifact);
@@ -275,7 +277,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   private void extractAndroidTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       if (myAndroidTestDependencies == null) {
         IdeBaseArtifact artifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
         myAndroidTestDependencies = extractTestDependencies(artifact);
@@ -284,13 +286,17 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   @NotNull
-  private static DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
+  private DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
     return extractDependencies(TEST, artifact);
   }
 
   @NotNull
-  private static DependencySet extractDependencies(@NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
-    return artifact != null ? DependenciesExtractor.getInstance().extractFrom(artifact, scope) : DependencySet.EMPTY;
+  private DependencySet extractDependencies(@NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
+    if (artifact != null) {
+      ModulesByGradlePath modulesByGradlePath = ProjectStructure.getInstance(myModule.getProject()).getModulesByGradlePath();
+      return DependenciesExtractor.getInstance().extractFrom(artifact, scope, modulesByGradlePath);
+    }
+    return DependencySet.EMPTY;
   }
 
   @Nullable
@@ -306,15 +312,15 @@ public final class TestArtifactSearchScopes implements Disposable {
    * @param toMergeAndroid the set in which should be merged children's android test dependencies
    * @param toMergeUnit    the set in which should be merged children's unit test dependencies
    */
-  private void mergeSubmoduleDependencies(@NotNull DependencySet original,
-                                          @Nullable DependencySet toMergeMain,
-                                          @Nullable DependencySet toMergeAndroid,
-                                          @Nullable DependencySet toMergeUnit) {
+  private static void mergeSubmoduleDependencies(@NotNull DependencySet original,
+                                                 @Nullable DependencySet toMergeMain,
+                                                 @Nullable DependencySet toMergeAndroid,
+                                                 @Nullable DependencySet toMergeUnit) {
     // We have to copy the collection because the Map where it comes from is modified inside the loop (see http://b.android.com/230391)
     Set<ModuleDependency> moduleDependencies = new HashSet<>(original.onModules());
-    synchronized (myLock) {
+    synchronized (ourLock) {
       for (ModuleDependency moduleDependency : moduleDependencies) {
-        Module module = moduleDependency.getModule(myModule.getProject());
+        Module module = moduleDependency.getModule();
         if (module != null) {
           TestArtifactSearchScopes moduleScope = get(module);
           if (moduleScope != null) {
@@ -342,7 +348,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @VisibleForTesting
   @Nullable
   DependencySet getMainDependencies() {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       return myMainDependencies;
     }
   }
@@ -350,7 +356,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @VisibleForTesting
   @Nullable
   DependencySet getUnitTestDependencies() {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       return myUnitTestDependencies;
     }
   }
@@ -358,7 +364,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   @VisibleForTesting
   @Nullable
   DependencySet getAndroidTestDependencies() {
-    synchronized (myLock) {
+    synchronized (ourLock) {
       return myAndroidTestDependencies;
     }
   }

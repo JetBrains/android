@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
 
-class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
+class RoomUnresolvedReferenceInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : RoomVisitor() {
@@ -32,14 +32,19 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
         checkReference(columnName)
       }
 
-      override fun visitTableName(tableName: RoomTableName) {
-        super.visitTableName(tableName)
-        checkReference(tableName)
+      override fun visitDefinedTableName(definedTableName: RoomDefinedTableName) {
+        super.visitDefinedTableName(definedTableName)
+        checkReference(definedTableName)
+      }
+
+      override fun visitSelectedTableName(selectedTableName: RoomSelectedTableName) {
+        super.visitSelectedTableName(selectedTableName)
+        checkReference(selectedTableName)
       }
 
       private fun checkReference(referenceElement: PsiElement) {
         // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
-        if ((referenceElement.containingFile as RoomSqlFile).queryAnnotation == null) return
+        if ((referenceElement.containingFile as? RoomSqlFile)?.queryAnnotation == null) return
 
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
@@ -50,9 +55,8 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
       /**
        * Checks if we have understand the given query type enough to highlight unresolved references.
        */
-      private fun isWellUnderstood(stmt: PsiElement): Boolean {
-        return stmt is RoomSelectStatement || stmt is RoomDeleteStatement || stmt is RoomUpdateStatement || stmt is RoomInsertStatement
-      }
+      private fun isWellUnderstood(stmt: PsiElement): Boolean =
+          stmt is RoomSelectStatement || stmt is RoomDeleteStatement || stmt is RoomUpdateStatement || stmt is RoomInsertStatement
     }
   }
 }

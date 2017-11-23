@@ -26,6 +26,7 @@ import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
@@ -63,6 +64,13 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
 
   @NotNull
   private String getHtmlText() {
+    String href = getHyperlinkDestination();
+    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
+  }
+
+  @Override
+  @NotNull
+  public String getHyperlinkDestination() {
     Place place = new Place();
 
     ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
@@ -72,8 +80,7 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     putPath(place, target);
     target.putNavigationPath(place, myModuleName, myNavigationText);
 
-    String href = GO_TO_PATH_TYPE + serialize(place);
-    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
+    return GO_TO_PATH_TYPE + serialize(place);
   }
 
   @Override

@@ -18,10 +18,14 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
  */
 public abstract class Stage extends AspectObserver {
+
+  protected static final long PROFILING_INSTRUCTIONS_EASE_OUT_NS = TimeUnit.SECONDS.toNanos(3);
 
   private final StudioProfilers myProfilers;
 

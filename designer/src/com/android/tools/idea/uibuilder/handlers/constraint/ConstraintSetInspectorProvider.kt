@@ -25,7 +25,7 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.android.tools.idea.uibuilder.property.EmptyProperty
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor
+import com.android.tools.idea.common.property.editors.BaseComponentEditor
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
@@ -87,7 +87,7 @@ class ConstraintSetInspectorProvider : InspectorProvider<NlPropertiesManager> {
   /**
    * Combobox editor for the constraint set attribute
    */
-  private class ConstraintSetEditor(listener: NlEditingListener) : NlBaseComponentEditor(listener), PopupMenuListener {
+  private class ConstraintSetEditor(listener: NlEditingListener) : BaseComponentEditor(listener), PopupMenuListener {
     var myPanel: JPanel = JPanel(BorderLayout())
     var myProperty: NlProperty = EmptyProperty.INSTANCE
     var myComboBox: JComboBox<String> = JComboBox()
@@ -185,7 +185,7 @@ class ConstraintSetInspectorProvider : InspectorProvider<NlPropertiesManager> {
         return
       }
 
-      val list: ArrayList<String> = myComponent!!.getChildren()
+      val list: ArrayList<String> = myComponent!!.children
           .filter { it.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS) }
           .mapNotNullTo(ArrayList()) { it.getLiveAttribute(ANDROID_URI, ATTR_ID) }
       val constraintSet = myComponent!!.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET)

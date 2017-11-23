@@ -123,11 +123,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
     myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
 
-    // do not offer option to "use same selection" if Instant Run is enabled since we automatically
-    if (!InstantRunSettings.isInstantRunEnabled()) {
-      DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
-      setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
-    }
+    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
+    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
+
     setTitle("Select Deployment Target");
     setModal(true);
     init();

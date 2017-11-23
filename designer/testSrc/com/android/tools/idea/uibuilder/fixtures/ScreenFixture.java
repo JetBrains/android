@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -44,12 +43,6 @@ public class ScreenFixture {
 
   public ScreenFixture(@NotNull SyncNlModel model) {
     myModel = model;
-  }
-
-  public void tearDown() {
-    if (myScreen != null) {
-      Mockito.reset(myScreen);
-    }
   }
 
   /**

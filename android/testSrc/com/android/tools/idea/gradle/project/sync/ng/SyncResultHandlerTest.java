@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
@@ -35,6 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class SyncResultHandlerTest extends IdeaTestCase {
   @Mock private SyncExecutionCallback mySyncCallback;
+  @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncListener mySyncListener;
   @Mock private GradleSyncState mySyncState;
   @Mock private ProjectSetup.Factory myProjectSetupFactory;
@@ -49,7 +51,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     initMocks(this);
 
     myIndicator = new MockProgressIndicator();
-    myResultHandler = new SyncResultHandler(getProject(), mySyncState, myProjectSetupFactory, myPostSyncProjectSetup);
+    myResultHandler = new SyncResultHandler(getProject(), mySyncState, myProjectInfo, myProjectSetupFactory, myPostSyncProjectSetup);
   }
 
   public void testOnSyncFinished() {
@@ -62,7 +64,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     when(myProjectSetupFactory.create(project)).thenReturn(projectSetup);
 
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    myResultHandler.onSyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener, false);
+    myResultHandler.onSyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
     verify(mySyncState, never()).syncFailed(any());

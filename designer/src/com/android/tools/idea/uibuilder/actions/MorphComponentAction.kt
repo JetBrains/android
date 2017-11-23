@@ -99,7 +99,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     val document = factory.createDocument(buildRangesAndGetString(myNlComponent, myAttributes))
     val editor = factory.createEditor(document, myProject, XmlFileType.INSTANCE, false) as EditorEx
 
-    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.file?.virtualFile)
+    val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.virtualFile)
     syntaxHighlighter?.let {
       editor.highlighter = LexerEditorHighlighter(it, EditorColorsManager.getInstance().globalScheme)
     }
@@ -147,7 +147,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
               myNlComponent.tag.setAttribute(it, null)
             }
         myNlComponent.removeObsoleteAttributes()
-        myNlComponent.getChildren().forEach(NlComponent::removeObsoleteAttributes)
+        myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
       }
     })
   }

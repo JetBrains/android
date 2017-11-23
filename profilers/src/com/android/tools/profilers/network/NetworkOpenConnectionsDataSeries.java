@@ -19,7 +19,10 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkProfiler.ConnectionData;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,16 +55,16 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
 
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
+    NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
       .setSession(mySession)
-      .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
+      .setType(NetworkDataRequest.Type.CONNECTIONS)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
-    NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
-    for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
+    NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
+    for (NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
-      NetworkProfiler.ConnectionData connectionData = data.getConnectionData();
+      ConnectionData connectionData = data.getConnectionData();
       seriesData.add(new SeriesData<>(xTimestamp, (long)connectionData.getConnectionNumber()));
     }
     return seriesData;

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
@@ -57,18 +58,21 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
  * Updates the contents/settings of a module when a build variant changes.
  */
 class BuildVariantUpdater {
+  @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final List<AndroidModuleSetupStep> myAndroidModuleSetupSteps;
   @NotNull private final NdkModuleSetupStep[] myNdkModuleSetupSteps = {new ContentRootModuleSetupStep()};
 
   BuildVariantUpdater() {
-    this(new IdeModifiableModelsProviderFactory(),
+    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(),
          Arrays.asList(new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()));
   }
 
   @VisibleForTesting
-  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
+  BuildVariantUpdater(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
+                      @NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
                       @NotNull List<AndroidModuleSetupStep> androidModuleSetupSteps) {
+    myModuleSetupContextFactory = moduleSetupContextFactory;
     myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
     myAndroidModuleSetupSteps = androidModuleSetupSteps;
   }
@@ -89,7 +93,8 @@ class BuildVariantUpdater {
     executeProjectChanges(project, () -> {
       doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-      setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
+      setupRequest.generateSourcesAfterSync = false;
+      setupRequest.cleanProjectAfterSync = false;
 
       PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
       generateSourcesIfNeeded(project, affectedAndroidFacets);
@@ -190,10 +195,12 @@ class BuildVariantUpdater {
   @NotNull
   private Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
+    ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
       for (AndroidModuleSetupStep setupStep : myAndroidModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
-          setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
+          // TODO get modules by gradle path
+          setupStep.setUpModule(context, androidModel);
         }
       }
       modelsProvider.commit();
@@ -207,10 +214,12 @@ class BuildVariantUpdater {
 
   private void setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+    ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
       for (NdkModuleSetupStep setupStep : myNdkModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
-          setupStep.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+          // TODO get modules by gradle path
+          setupStep.setUpModule(context, ndkModuleModel);
         }
       }
       modelsProvider.commit();

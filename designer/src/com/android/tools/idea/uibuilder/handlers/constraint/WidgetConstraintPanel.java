@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -617,8 +618,7 @@ public class WidgetConstraintPanel extends JPanel {
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_WIDTH);
         if (oldValue == null) {
-          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + NlComponentHelperKt.getW(mComponent) / dipValue)) + "dp";
+          oldValue = Coordinates.pxToDp(mComponent.getModel(), NlComponentHelperKt.getW(mComponent)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, oldValue);
         break;
@@ -642,8 +642,7 @@ public class WidgetConstraintPanel extends JPanel {
       case SingleWidgetView.FIXED:
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_HEIGHT);
         if (oldValue == null) {
-          float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + NlComponentHelperKt.getH(mComponent) / dipValue)) + "dp";
+          oldValue = Coordinates.pxToDp(mComponent.getModel(), NlComponentHelperKt.getH(mComponent)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, oldValue);
         break;

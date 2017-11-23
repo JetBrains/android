@@ -17,8 +17,20 @@ iml_module(
         "//tools/base/templates",
         "//tools/idea:platform-build-info",
     ],
+    test_runtime_deps = ["//tools/idea/plugins/maven:maven2-server-impl"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/adt-branding",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:xdebugger-impl",
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea:lvcs-impl",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android[module, test]",
@@ -26,11 +38,9 @@ iml_module(
         "//tools/idea/java/openapi[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/idea/java/java-psi-impl[module, test]",
-        "//tools/idea:compiler-impl_and_others[module]",
+        "//tools/idea:compiler-impl_and_others[module, test]",
         "//tools/adt/idea/android-plugin[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/adt-branding[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

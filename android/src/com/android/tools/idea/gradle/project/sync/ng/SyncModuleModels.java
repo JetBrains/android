@@ -50,14 +50,11 @@ public class SyncModuleModels implements GradleModuleModels {
     myModelsByType.put(GradleProject.class, gradleProject);
     AndroidProject androidProject = findAndAddModel(gradleProject, controller, AndroidProject.class);
     if (androidProject != null) {
+      // "Native" projects also both AndroidProject and AndroidNativeProject
+      findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
       for (Class<?> type : myExtraAndroidModelTypes) {
         findAndAddModel(gradleProject, controller, type);
       }
-      // No need to query extra models.
-      return;
-    }
-    NativeAndroidProject ndkAndroidProject = findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
-    if (ndkAndroidProject != null) {
       // No need to query extra models.
       return;
     }

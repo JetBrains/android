@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -83,7 +83,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -249,26 +249,6 @@ public class GradleSyncTest {
 
     editor.open("app/src/main/res/values/strings.xml", Tab.EDITOR);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
-  }
-
-  @Ignore("Importing a project which opens on the ModulesToImportDialog is causing problem. Ignore for now.")
-  @Test
-  public void moduleSelectionOnImport() throws IOException {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    guiTest.importProject("Flavoredlib");
-
-    ModulesToImportDialogFixture projectSubsetDialog = ModulesToImportDialogFixture.find(guiTest.robot());
-    projectSubsetDialog.setSelected("lib", false).clickOk();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-
-    // subsequent project syncs should respect module selection
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=165576
@@ -636,8 +616,9 @@ public class GradleSyncTest {
   /**
    * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
    * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * TT ID: 01d7a0e9-a947-4cd1-a842-17c0b006d3f1
    * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
    * <pre>
    *   Steps:
    *   1. Import a project.
@@ -645,7 +626,7 @@ public class GradleSyncTest {
    *   3. Sync the project.
    *   Verify:
    *   Project syncs and minSdk version is updated.
-   *   </pre>
+   * </pre>
    */
   @RunIn(TestGroup.QA)
   @Test

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.components.PersistentStateComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,13 +34,19 @@ import java.awt.image.BufferedImage;
  * Asset fields are all {@link AbstractProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
  */
-@SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons
-public abstract class BaseAsset {
+public abstract class BaseAsset implements PersistentStateComponent<PersistentState> {
+  @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons.
+  private static final Color DEFAULT_COLOR = Color.BLACK;
+
+  private static final String TRIMMED_PROPERTY = "trimmed";
+  private static final String PADDING_PERCENT_PROPERTY = "paddingPercent";
+  private static final String SCALING_PERCENT_PROPERTY = "scalingPercent";
+  private static final String COLOR_PROPERTY = "color";
+
   private final BoolProperty myTrimmed = new BoolValueProperty();
   private final IntProperty myPaddingPercent = new IntValueProperty(0);
   private final IntProperty myScalingPercent = new IntValueProperty(100);
-  private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(Color.BLACK);
-  private final BoolValueProperty myIsResizable = new BoolValueProperty(true);
+  private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(DEFAULT_COLOR);
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.
@@ -76,7 +85,7 @@ public abstract class BaseAsset {
    */
   @NotNull
   public ObservableBool isResizable() {
-    return myIsResizable;
+    return BooleanExpression.ALWAYS_TRUE;
   }
 
   /**
@@ -86,4 +95,23 @@ public abstract class BaseAsset {
    */
   @Nullable
   public abstract ListenableFuture<BufferedImage> toImage();
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    state.set(TRIMMED_PROPERTY, myTrimmed.get(), false);
+    state.set(PADDING_PERCENT_PROPERTY, myPaddingPercent.get(), 0);
+    state.set(SCALING_PERCENT_PROPERTY, myScalingPercent.get(), 100);
+    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    myTrimmed.set(state.get(TRIMMED_PROPERTY, false));
+    myPaddingPercent.set(state.get(PADDING_PERCENT_PROPERTY, 0));
+    myScalingPercent.set(state.get(SCALING_PERCENT_PROPERTY, 100));
+    myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
+  }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.CountListener;
 import com.google.common.base.Objects;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -55,6 +56,30 @@ public final class ObjectPropertyTest {
     assertThat(listener.getCount()).isEqualTo(1);
     personProperty.set(cloneB);
     assertThat(listener.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testObjectPropertyCanWrapOptionalProperty() {
+    Person person1 = new Person("John Doe", 25);
+    Person person2 = new Person("Jane Doe", 21);
+
+    OptionalProperty<Person> optionalPersonProperty = new OptionalValueProperty<>(person1);
+
+    ObjectProperty<Person> personProperty = ObjectProperty.wrap(optionalPersonProperty);
+    assertThat(personProperty.get()).isEqualTo(person1);
+
+    personProperty.set(person2);
+
+    assertThat(optionalPersonProperty.getValue()).isEqualTo(person2);
+
+    optionalPersonProperty.clear();
+
+    try {
+      personProperty.get();
+      Assert.fail();
+    }
+    catch (Exception expected) {
+    }
   }
 
   private static class Person {

@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,12 +108,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
     northToolbarComponent.setName("NlConfigToolbar");
-    northToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
+    northToolbarComponent.setBorder(JBUI.Borders.empty());
 
     myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
-    northEastToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
 
     ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
@@ -120,13 +120,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent centerToolbarComponent = centerToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
-    centerToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
+    centerToolbarComponent.setBorder(JBUI.Borders.empty());
 
     ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
     JComponent eastToolbarComponent = eastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
-    eastToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
+    eastToolbarComponent.setBorder(JBUI.Borders.empty());
 
     JComponent northPanel = new JPanel(new BorderLayout());
     northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));

@@ -19,8 +19,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,15 +53,15 @@ public final class MemoryDataSeries implements DataSeries<Long> {
   public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
+    MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
       .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
-    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
+    MemoryData response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<Long>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.MemoryData.MemorySample sample : response.getMemSamplesList()) {
+    for (MemoryData.MemorySample sample : response.getMemSamplesList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
       seriesData.add(new SeriesData<>(dataTimestamp, mySampleTransformer.apply(sample)));
     }

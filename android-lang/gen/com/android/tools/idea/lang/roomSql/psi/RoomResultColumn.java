@@ -31,6 +31,6 @@ public interface RoomResultColumn extends PsiElement {
   RoomExpression getExpression();
 
   @Nullable
-  RoomTableName getTableName();
+  RoomSelectedTableName getSelectedTableName();
 
 }

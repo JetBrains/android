@@ -18,18 +18,23 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator
+import com.android.tools.idea.lang.roomSql.resolution.*
 import com.intellij.psi.PsiReference
 
 
-fun getReference(tableName: RoomTableName): RoomTablePsiReference {
-  return RoomTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStatementTable)
+fun getReference(tableName: RoomSelectedTableName): RoomSelectedTablePsiReference {
+  return RoomSelectedTablePsiReference(tableName)
+}
+
+fun getReference(tableName: RoomDefinedTableName): RoomDefinedTablePsiReference {
+  return RoomDefinedTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStatementTable)
 }
 
 fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
   val parent = columnName.parent
   if (parent is RoomColumnRefExpression) {
-    val tableName = parent.tableName
+    val tableName = parent.selectedTableName
     if (tableName != null) {
       return QualifiedColumnPsiReference(columnName, tableName)
     }
@@ -43,9 +48,9 @@ fun getReference(bindParameter: RoomBindParameter): PsiReference? = RoomParamete
 fun getParameterNameAsString(bindParameter: RoomBindParameter) = bindParameter.text.substring(startIndex = 1)
 
 fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
-  val realTable = fromTable.tableName.reference.resolveSqlTable() ?: return null
+  val realTable = fromTable.definedTableName.reference.resolveSqlTable() ?: return null
   val alias = fromTable.tableAliasName
-  return if (alias == null) realTable else AliasedTable(realTable, name = alias.nameAsString, resolveTo = alias)
+  return if (alias != null) AliasedTable(realTable, name = alias.nameAsString, resolveTo = alias) else realTable
 }
 
 fun getSqlTable(subquery: RoomSubquery): SqlTable? {
@@ -54,9 +59,42 @@ fun getSqlTable(subquery: RoomSubquery): SqlTable? {
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
 
-fun getSqlTable(withClauseTable: RoomWithClauseTable): SqlTable? {
-  val tableName = withClauseTable.withClauseTableDef.tableDefName
-  return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
+fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable {
+  return if (withClauseTable.withClauseTableDef.columnDefinitionNameList.isNotEmpty()) {
+    WithClauseTable(withClauseTable)
+  } else {
+    val tableName = withClauseTable.withClauseTableDef.tableDefinitionName
+    AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStatement))
+  }
 }
 
-fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.tableName.reference.resolveSqlTable()
+fun getSqlTable(table: RoomSingleTableStatementTable): SqlTable? = table.definedTableName.reference.resolveSqlTable()
+
+fun getName(tableAliasName: RoomTableAliasName) = tableAliasName.nameAsString
+
+fun setName(tableAliasName: RoomTableAliasName, newName: String): RoomTableAliasName {
+  RoomNameElementManipulator().handleContentChange(tableAliasName, newName)
+  return tableAliasName
+}
+
+fun getName(tableDefinitionName: RoomTableDefinitionName) = tableDefinitionName.nameAsString
+
+fun setName(tableDefinitionName: RoomTableDefinitionName, newName: String): RoomTableDefinitionName {
+  RoomNameElementManipulator().handleContentChange(tableDefinitionName, newName)
+  return tableDefinitionName
+}
+
+fun getName(columnAliasName: RoomColumnAliasName) = columnAliasName.nameAsString
+
+fun setName(columnAliasName: RoomColumnAliasName, newName: String): RoomColumnAliasName {
+  RoomNameElementManipulator().handleContentChange(columnAliasName, newName)
+  return columnAliasName
+}
+
+fun getName(columnDefinitionName: RoomColumnDefinitionName) = columnDefinitionName.nameAsString
+
+fun setName(columnDefinitionName: RoomColumnDefinitionName, newName: String): RoomColumnDefinitionName {
+  RoomNameElementManipulator().handleContentChange(columnDefinitionName, newName)
+  return columnDefinitionName
+}
+

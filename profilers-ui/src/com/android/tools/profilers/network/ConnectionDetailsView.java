@@ -20,7 +20,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.CloseButton;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.DataViewer;
@@ -33,6 +35,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
@@ -48,11 +51,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
+import java.util.stream.Stream;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 
@@ -61,6 +63,7 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
  */
 public class ConnectionDetailsView extends JPanel {
   private static final String TAB_TITLE_RESPONSE = "Response";
+  private static final String TAB_TITLE_REQUEST = "Request";
   private static final String TAB_TITLE_STACK = "Call Stack";
   private static final String TAB_TITLE_HEADERS = "Headers";
 
@@ -74,9 +77,13 @@ public class ConnectionDetailsView extends JPanel {
     time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
   @NotNull
-  private final JPanel myResponsePanel;
+  private final JPanel myOverviewPanel;
   @NotNull
-  private final JPanel myHeadersPanel;
+  private final JPanel myHeadersPanel = new JPanel();
+  @NotNull
+  private final JPanel myResponsePanel = new JPanel();
+  @NotNull
+  private final JPanel myRequestPanel = new JPanel();
   @NotNull
   private final StackTraceView myStackTraceView;
 
@@ -85,6 +92,8 @@ public class ConnectionDetailsView extends JPanel {
 
   @NotNull
   private final FlatTabbedPane myTabsPanel;
+
+  private final boolean myRequestPayloadEnabled;
 
   public ConnectionDetailsView(@NotNull NetworkProfilerStageView stageView) {
     super(new BorderLayout());
@@ -100,31 +109,34 @@ public class ConnectionDetailsView extends JPanel {
     myTabsPanel = new FlatTabbedPane();
     myTabsPanel.getTabAreaInsets().top = -1;
 
+    myRequestPayloadEnabled =
+      myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkRequestPayloadEnabled();
+
     TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
-    myResponsePanel = new JPanel(layout);
-    myResponsePanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, 0, HGAP));
-    myResponsePanel.setName("Response");
-    JBScrollPane responseScroll = new JBScrollPane(myResponsePanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+    myOverviewPanel = new JPanel(layout);
+    myOverviewPanel.setBorder(BorderFactory.createEmptyBorder(PAGE_VGAP, HGAP, 0, HGAP));
+    JBScrollPane overviewScroll = new JBScrollPane(myOverviewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    responseScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
-    responseScroll.addComponentListener(new ComponentAdapter() {
+    overviewScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    overviewScroll.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
         layout.setRowSizing(0, new TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED,
-                                                            (int)(responseScroll.getViewport().getHeight() * 0.4f)));
-        layout.layoutContainer(myResponsePanel);
+                                                            (int)(overviewScroll.getViewport().getHeight() * 0.4f)));
+        layout.layoutContainer(myOverviewPanel);
       }
     });
-    responseScroll.setBorder(DEFAULT_TOP_BORDER);
-    myTabsPanel.addTab(TAB_TITLE_RESPONSE, responseScroll);
+    overviewScroll.setBorder(DEFAULT_TOP_BORDER);
+    myOverviewPanel.setName(myRequestPayloadEnabled ? "Overview" : "Response");
+    myTabsPanel.addTab(myOverviewPanel.getName(), overviewScroll);
 
-    myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
-    myHeadersPanel.setName("Headers");
-    JBScrollPane headersScroll = new JBScrollPane(myHeadersPanel);
-    headersScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
-    headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
-    headersScroll.setBorder(DEFAULT_TOP_BORDER);
-    myTabsPanel.addTab(TAB_TITLE_HEADERS, headersScroll);
+    if (myRequestPayloadEnabled) {
+      setupTab(TAB_TITLE_RESPONSE, myResponsePanel);
+      setupTab(TAB_TITLE_REQUEST, myRequestPanel);
+    } else {
+      setupTab(TAB_TITLE_HEADERS, myHeadersPanel);
+      myHeadersPanel.setLayout(new VerticalFlowLayout(0, PAGE_VGAP));
+    }
 
     myStackTraceView = myStageView.getIdeComponents().createStackView(stageView.getStage().getStackTraceModel());
     myStackTraceView.getComponent().setName("StackTrace");
@@ -143,6 +155,16 @@ public class ConnectionDetailsView extends JPanel {
     rootPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
+  }
+
+  private void setupTab(String title, JComponent tabComponent) {
+    tabComponent.setName(title);
+    tabComponent.setLayout(new VerticalFlowLayout(0, JBUI.scale(12)));
+    JBScrollPane scrollPane = new JBScrollPane(tabComponent);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    scrollPane.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    scrollPane.setBorder(DEFAULT_TOP_BORDER);
+    myTabsPanel.addTab(title, scrollPane);
   }
 
   private void trackActiveTab() {
@@ -173,19 +195,27 @@ public class ConnectionDetailsView extends JPanel {
    */
   public void setHttpData(@Nullable HttpData httpData) {
     setBackground(JBColor.background());
-    myResponsePanel.removeAll();
+    myOverviewPanel.removeAll();
     myHeadersPanel.removeAll();
+    myResponsePanel.removeAll();
+    myRequestPanel.removeAll();
 
     if (httpData != null) {
-      Optional<File> payloadFile = Optional.ofNullable(httpData.getResponsePayloadFile());
-      DataViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile.orElse(new File("")));
-      fileViewer.getComponent().setName("FileViewer");
-      myResponsePanel.add(fileViewer.getComponent(), new TabularLayout.Constraint(0, 0));
-      myResponsePanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
+      File payloadFile = Payload.newResponsePayload(myStageView.getStage().getConnectionsModel(), httpData).toFile();
+      DataViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile);
+      JComponent responsePayloadComponent = fileViewer.getComponent();
+      responsePayloadComponent.setName("FileViewer");
+      myOverviewPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
+      myOverviewPanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
 
-      myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()));
-      myHeadersPanel.add(createSeparator());
-      myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
+      if (myRequestPayloadEnabled) {
+        setHttpResponseData(httpData);
+        setHttpRequestData(httpData);
+      } else {
+        myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeader()));
+        myHeadersPanel.add(createSeparator());
+        myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeader()));
+      }
 
       myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
     }
@@ -195,6 +225,114 @@ public class ConnectionDetailsView extends JPanel {
     setVisible(httpData != null);
     revalidate();
     repaint();
+  }
+
+  private void setHttpResponseData(HttpData httpData) {
+    JComponent headersComponent = createStyledMapComponent(httpData.getResponseHeader().getFields());
+    headersComponent.setName("RESPONSE_HEADERS");
+    myResponsePanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
+    String bodyTitle = getBodyTitle(httpData.getResponseHeader().getContentType());
+    JComponent payloadComponent = createBodyComponent(Payload.newResponsePayload(myStageView.getStage().getConnectionsModel(), httpData));
+    HideablePanel bodyPanel = createHideablePanel(bodyTitle, payloadComponent, null);
+    bodyPanel.setName("RESPONSE_BODY");
+    myResponsePanel.add(bodyPanel);
+  }
+
+  private void setHttpRequestData(HttpData httpData) {
+    HttpData.RequestHeader header = httpData.getRequestHeader();
+    JComponent headersComponent = createStyledMapComponent(header.getFields());
+    headersComponent.setName("REQUEST_HEADERS");
+    myRequestPanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
+
+    Payload requestPayload = Payload.newRequestPayload(myStageView.getStage().getConnectionsModel(), httpData);
+    JComponent payloadComponent = createBodyComponent(requestPayload);
+    JComponent northEastComponent = null;
+    HttpData.ContentType contentType = header.getContentType();
+    String contentToParse = "";
+    if (contentType.isFormData()) {
+      contentToParse = requestPayload.getBytes().toStringUtf8();
+    }
+
+    if (!contentToParse.isEmpty()) {
+      final CardLayout cardLayout = new CardLayout();
+      final JPanel payloadPanel = new JPanel(cardLayout);
+      String cardViewParsed = "view parsed";
+      String cardViewSource = "view source";
+
+      final Map<String, String> parsedContent = new LinkedHashMap<>();
+      Stream<String[]> parsedContentStream = Arrays.stream(contentToParse.trim().split("&")).map(s -> s.split("=", 2));
+      parsedContentStream.forEach(a -> parsedContent.put(a[0], a.length > 1 ? a[1] : ""));
+      payloadPanel.add(createStyledMapComponent(parsedContent), cardViewParsed);
+      payloadPanel.add(payloadComponent, cardViewSource);
+      payloadComponent = payloadPanel;
+
+      final JLabel toggleLabel = new JLabel(cardViewSource);
+      northEastComponent = toggleLabel;
+      toggleLabel.setForeground(ProfilerColors.MESSAGE_COLOR);
+      toggleLabel.setFont(UIManager.getFont("Label.font").deriveFont(FIELD_FONT_SIZE));
+      toggleLabel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
+      toggleLabel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          toggleLabel.setText(cardViewSource.equals(toggleLabel.getText())? cardViewParsed : cardViewSource);
+          cardLayout.next(payloadPanel);
+        }
+      });
+    }
+
+    HideablePanel bodyPanel = createHideablePanel(getBodyTitle(contentType), payloadComponent, northEastComponent);
+    bodyPanel.setName("REQUEST_BODY");
+    myRequestPanel.add(bodyPanel);
+  }
+
+  private static HideablePanel createHideablePanel(@NotNull String title, @NotNull JComponent content,
+                                                   @Nullable JComponent northEastComponent) {
+    title = String.format("<html><b>%s</b></html>", title);
+    return new HideablePanel.Builder(title, content).setNorthEastComponent(northEastComponent).build();
+  }
+
+  private static JComponent createStyledMapComponent(Map<String, String> map) {
+    JComponent component = createMapComponent(map);
+    if (component instanceof JTextPane) {
+      ((HTMLDocument) ((JTextPane) component).getDocument()).getStyleSheet().addRule("p { margin: 5 0 5 0; }");
+    }
+    return component;
+  }
+
+  private static String getBodyTitle(@Nullable HttpData.ContentType contentType) {
+    String contentTypeName = contentType != null ? contentType.getTypeDisplayName() : null;
+    if (StringUtil.isEmpty(contentTypeName)) {
+      return "Body";
+    }
+    return String.format("Body ( %s )", contentTypeName);
+  }
+
+  /**
+   * Returns a payload component which can display the underlying data of the passed in
+   * {@link Payload}. If the payload is empty, this will return a label to indicate that the
+   * target payload is not set.
+   */
+  private JComponent createBodyComponent(@NotNull Payload payload) {
+    JComponent payloadComponent;
+
+    File payloadFile = payload.toFile();
+    if (payloadFile.length() > 0) {
+      DataViewer viewer = myStageView.getIdeComponents().createFileViewer(payloadFile);
+      JComponent fileComponent  = viewer.getComponent();
+      // We force a minimum height to make sure that the component always looks reasonable -
+      // useful, for example, when we are displaying a bunch of text.
+      int minimumHeight = 300;
+      int originalHeight = viewer.getDimension() != null ? (int) viewer.getDimension().getHeight() : minimumHeight;
+      fileComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
+      fileComponent.setBorder(new JBEmptyBorder(6, 0, 0, 0));
+      fileComponent.setName("FileViewer");
+      payloadComponent = new JPanel(new TabularLayout("*"));
+      payloadComponent.add(fileComponent, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+       payloadComponent = new JLabel("No body available");
+    }
+    return payloadComponent;
   }
 
   private static JSeparator createSeparator() {
@@ -213,11 +351,11 @@ public class ConnectionDetailsView extends JPanel {
     row++;
     myFieldsPanel.add(new NoWrapBoldLabel("Method"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(new JLabel(httpData.getMethod()), new TabularLayout.Constraint(row, 2));
-
-    if (httpData.getStatusCode() != HttpData.NO_STATUS_CODE) {
+    HttpData.ResponseHeader responseHeader = httpData.getResponseHeader();
+    if (responseHeader.getStatusCode() != HttpData.ResponseHeader.NO_STATUS_CODE) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Status"), new TabularLayout.Constraint(row, 0));
-      JLabel statusCode = new JLabel(String.valueOf(httpData.getStatusCode()));
+      JLabel statusCode = new JLabel(String.valueOf(responseHeader.getStatusCode()));
       statusCode.setName("StatusCode");
       myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
     }
@@ -230,22 +368,20 @@ public class ConnectionDetailsView extends JPanel {
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
-    if (httpData.getContentType() != null) {
+    if (!responseHeader.getContentType().isEmpty()) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
-      JLabel contentTypeLabel = new JLabel(httpData.getContentType().getMimeType());
+      JLabel contentTypeLabel = new JLabel(responseHeader.getContentType().getMimeType());
       contentTypeLabel.setName("Content type");
       myFieldsPanel.add(contentTypeLabel, new TabularLayout.Constraint(row, 2));
     }
 
-    String contentLength = httpData.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-    if (contentLength != null) {
-      contentLength = contentLength.split(";")[0];
+    int contentLength = responseHeader.getContentLength();
+    if (contentLength != -1) {
       try {
-        long number = Long.parseUnsignedLong(contentLength);
         row++;
         myFieldsPanel.add(new NoWrapBoldLabel("Size"), new TabularLayout.Constraint(row, 0));
-        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(number));
+        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(contentLength));
         contentLengthLabel.setName("Size");
         myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
       }
@@ -345,35 +481,15 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   @NotNull
-  private static JPanel createHeaderSection(@NotNull String title, @NotNull Map<String, String> map) {
+  private static JPanel createHeaderSection(@NotNull String title, @NotNull HttpData.Header header) {
     JPanel panel = new JPanel(new TabularLayout("*").setVGap(SECTION_VGAP));
-    panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
+    panel.setBorder(new JBEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
-
-    if (map.isEmpty()) {
-      JLabel emptyLabel = new JLabel("No data available");
-      // TODO: Adjust color.
-
-      panel.add(emptyLabel, new TabularLayout.Constraint(1, 0));
-    }
-    else {
-      StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.append("<html>");
-      Map<String, String> sortedMap = new TreeMap<>(map);
-
-      for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-        stringBuilder.append("<p><nobr><b>").append(entry.getKey()).append(":&nbsp&nbsp</b></nobr>");
-        stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
-      }
-
-      stringBuilder.append("</html>");
-      JTextPane pane = createTextPane(stringBuilder.toString());
-      panel.add(pane, new TabularLayout.Constraint(1, 0));
-    }
-
+    Map<String, String> sortedMap = new TreeMap<>(header.getFields());
+    panel.add(createMapComponent(sortedMap), new TabularLayout.Constraint(1, 0));
     new TreeWalker(panel).descendantStream().forEach(c -> {
       if (c != titleLabel) {
         adjustFont(c);
@@ -383,6 +499,21 @@ public class ConnectionDetailsView extends JPanel {
     // Set name so tests can get a handle to this panel.
     panel.setName(title);
     return panel;
+  }
+
+  private static JComponent createMapComponent(Map<String, String> argsMap) {
+    if (argsMap.isEmpty()) {
+      return new JLabel("No data available");
+    }
+
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("<html>");
+    for (Map.Entry<String, String> entry : argsMap.entrySet()) {
+      stringBuilder.append("<p><nobr><b>").append(entry.getKey()).append(":&nbsp&nbsp</b></nobr>");
+      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
+    }
+    stringBuilder.append("</html>");
+    return createTextPane(stringBuilder.toString());
   }
 
   private static JTextPane createTextPane(String text) {

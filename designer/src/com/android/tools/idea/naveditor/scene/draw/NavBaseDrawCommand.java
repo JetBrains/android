@@ -18,21 +18,31 @@ package com.android.tools.idea.naveditor.scene.draw;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * {@link NavBaseDrawCommand} Base class for navigation related draw commands.
  */
 public abstract class NavBaseDrawCommand implements DrawCommand {
-  protected static final int DRAW_ACTION = COMPONENT_LEVEL + 1;
-  protected static final int DRAW_SCREEN_LABEL = DRAW_ACTION + 1;
-  protected static final int DRAW_ICON = DRAW_SCREEN_LABEL + 1;
-  protected static final int DRAW_NAV_SCREEN = DRAW_ICON + 1;
-  protected static final int DRAW_ACTION_HANDLE = DRAW_NAV_SCREEN + 1;
-  protected static final int DRAW_ACTION_HANDLE_DRAG = DRAW_ACTION_HANDLE + 1;
+  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
+  );
+
+  protected static final int DRAW_BACKGROUND_LEVEL = 0;
+  protected static final int DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1;
+  protected static final int DRAW_ACTION_LEVEL = DRAW_FRAME_LEVEL + 1;
+  protected static final int DRAW_SCREEN_LABEL_LEVEL = DRAW_ACTION_LEVEL + 1;
+  protected static final int DRAW_ICON_LEVEL = DRAW_SCREEN_LABEL_LEVEL + 1;
+  protected static final int DRAW_NAV_SCREEN_LEVEL = DRAW_ICON_LEVEL + 1;
+  protected static final int DRAW_ACTION_HANDLE_LEVEL = DRAW_NAV_SCREEN_LEVEL + 1;
+  protected static final int DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1;
 
   @Override
   @NotNull
@@ -77,5 +87,9 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
     }
 
     return Arrays.copyOfRange(sp, 1, sp.length);
+  }
+
+  protected static void setRenderingHints(@NotNull Graphics2D g) {
+    g.setRenderingHints(HQ_RENDERING_HITS);
   }
 }

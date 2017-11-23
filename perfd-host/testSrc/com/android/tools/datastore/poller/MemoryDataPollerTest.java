@@ -97,7 +97,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run, new HashMap<>());
+  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run);
   private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
   private TestName myTestName = new TestName();

@@ -33,7 +33,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
@@ -42,8 +41,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
  * Fixture representing the configuration toolbar above an associated layout editor
  */
 public class NlConfigurationToolbarFixture<ParentFixture> {
-  private static final Pattern SWITCH_TO_LANDSCAPE_PORTRAIT = Pattern.compile("Switch to (Landscape|Portrait)");
-
   @NotNull private final ParentFixture myParentFixture;
   private final Robot myRobot;
   private final ActionToolbar myToolBar;
@@ -186,11 +183,13 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     selectDropDownActionButtonItem("Select Design Surface", Predicate.isEqual("Blueprint"));
   }
 
-  /**
-   * Click on the "Orientation in Editor" button
-   */
-  public NlConfigurationToolbarFixture<ParentFixture> switchOrientation() {
-    selectDropDownActionButtonItem("Orientation in Editor", item -> SWITCH_TO_LANDSCAPE_PORTRAIT.matcher(item).matches());
+  public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsLandscape() {
+    selectDropDownActionButtonItem("Orientation in Editor", item -> item.equals("Landscape"));
+    return this;
+  }
+
+  public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsPortrait() {
+    selectDropDownActionButtonItem("Orientation in Editor", item -> item.equals("Portrait"));
     return this;
   }
 

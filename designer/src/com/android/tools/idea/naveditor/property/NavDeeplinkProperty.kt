@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property
 import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_URI
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
 /**
  * Property representing all the actions (possibly zero) for a destinations.
@@ -31,14 +32,12 @@ class NavDeeplinkProperty(components: List<NlComponent>) : ListProperty("Deeplin
   override fun refreshList() {
     properties.clear()
 
-    for (component in components) {
-      for (child in component.children ?: listOf()) {
-        if (child.tagName == SdkConstants.TAG_DEEPLINK) {
+    components.flatMap { it.children }
+        .filter { it.tagName == SdkConstants.TAG_DEEPLINK }
+        .forEach { child ->
           child.resolveAttribute(SdkConstants.AUTO_URI, ATTR_URI)?.let {
-            properties.put(it, ListPropertyItem(it, listOf(child)))
+            properties.put(it, SimpleProperty(it, listOf(child)))
           }
         }
-      }
-    }
   }
 }

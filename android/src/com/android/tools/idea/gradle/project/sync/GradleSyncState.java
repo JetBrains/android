@@ -417,14 +417,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    boolean modifiedAfterSyncStarted = myLastSyncStartTime > 0 && myGradleFiles.areGradleFilesModified(myLastSyncStartTime);
-
-    if (!modifiedAfterSyncStarted && mySummary.getSyncTimestamp() <= 0) {
-      // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
-      return ThreeState.UNSURE;
-    }
-
-    return modifiedAfterSyncStarted? ThreeState.YES: ThreeState.NO;
+    return myGradleFiles.areGradleFilesModified()? ThreeState.YES: ThreeState.NO;
   }
 
   @NotNull

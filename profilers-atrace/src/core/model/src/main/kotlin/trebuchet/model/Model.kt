@@ -22,16 +22,22 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
     val processes: List<ProcessModel>
     val beginTimestamp: Double
     val endTimestamp: Double
+    val parentTimestamp: Double
+    val realtimeTimestamp: Long
     val duration get() = endTimestamp - beginTimestamp
 
     init {
         val processBuilder = mutableListOf<ProcessModel>()
         var beginTimestamp = Double.MAX_VALUE
         var endTimestamp = 0.0
+        var parentTimestamp = 0.0
+        var realtimeTimestamp = 0L
         fragments.forEach {
             it.autoCloseOpenSlices()
             beginTimestamp = minOf(beginTimestamp, it.globalStartTime)
             endTimestamp = maxOf(endTimestamp, it.globalEndTime)
+            parentTimestamp = maxOf(parentTimestamp, it.parentTimestamp)
+            realtimeTimestamp = maxOf(realtimeTimestamp, it.realtimeTimestamp)
             it.processes.forEach {
                 if (it.id != InvalidId) {
                     // TODO: Merge
@@ -43,6 +49,8 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
         processes = processBuilder
         this.beginTimestamp = minOf(beginTimestamp, endTimestamp)
         this.endTimestamp = endTimestamp
+        this.parentTimestamp = parentTimestamp
+        this.realtimeTimestamp = realtimeTimestamp
     }
 
     constructor(fragment: ModelFragment) : this(listOf(fragment))

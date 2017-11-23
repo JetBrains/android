@@ -16,16 +16,19 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +54,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   private final AvdRefreshProvider myRefreshProvider;
   private final JBPopupMenu myOverflowMenu = new JBPopupMenu();
   private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.ToolbarDecorator.Mac.MoveDown);
-  private final Border myMargins = IdeBorderFactory.createEmptyBorder(5, 3, 5, 3);
+  private final Border myMargins = JBUI.Borders.empty(5, 3, 5, 3);
 
   public List<FocusableHyperlinkLabel> myVisibleComponents = Lists.newArrayList();
 
@@ -60,6 +63,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   public interface AvdRefreshProvider {
     void refreshAvds();
+    void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect);
     @Nullable Project getProject();
 
     @NotNull JComponent getComponent();
@@ -68,7 +72,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
     myRefreshProvider = refreshProvider;
     setOpaque(true);
-    setBorder(IdeBorderFactory.createEmptyBorder(10, 10, 10, 10));
+    setBorder(JBUI.Borders.empty(10));
     myAvdInfo = avdInfo;
     List<AvdUiAction> actions = getActions();
     setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 0));
@@ -142,7 +146,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import
     actionList.add(new WipeAvdDataAction(this));
 
-    if (AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
+    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
+                                                     new StudioLoggerProgressIndicator(AvdActionPanel.class),
+                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
       actionList.add(new ColdBootNowAction(this));
     }
     actionList.add(new ShowAvdOnDiskAction(this));
@@ -162,6 +168,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public void refreshAvds() {
     myRefreshProvider.refreshAvds();
+  }
+
+  @Override
+  public void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    myRefreshProvider.refreshAvdsAndSelect(avdToSelect);
   }
 
   @Nullable

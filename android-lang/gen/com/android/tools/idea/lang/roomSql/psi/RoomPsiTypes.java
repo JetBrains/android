@@ -40,8 +40,8 @@ public interface RoomPsiTypes {
   IElementType COLLATION_NAME = new RoomAstNodeType("COLLATION_NAME");
   IElementType COLUMN_ALIAS_NAME = new RoomAstNodeType("COLUMN_ALIAS_NAME");
   IElementType COLUMN_CONSTRAINT = new RoomAstNodeType("COLUMN_CONSTRAINT");
-  IElementType COLUMN_DEF = new RoomAstNodeType("COLUMN_DEF");
-  IElementType COLUMN_DEF_NAME = new RoomAstNodeType("COLUMN_DEF_NAME");
+  IElementType COLUMN_DEFINITION = new RoomAstNodeType("COLUMN_DEFINITION");
+  IElementType COLUMN_DEFINITION_NAME = new RoomAstNodeType("COLUMN_DEFINITION_NAME");
   IElementType COLUMN_NAME = new RoomAstNodeType("COLUMN_NAME");
   IElementType COLUMN_REF_EXPRESSION = new RoomAstNodeType("COLUMN_REF_EXPRESSION");
   IElementType COMMIT_STATEMENT = new RoomAstNodeType("COMMIT_STATEMENT");
@@ -55,6 +55,7 @@ public interface RoomPsiTypes {
   IElementType CREATE_VIEW_STATEMENT = new RoomAstNodeType("CREATE_VIEW_STATEMENT");
   IElementType CREATE_VIRTUAL_TABLE_STATEMENT = new RoomAstNodeType("CREATE_VIRTUAL_TABLE_STATEMENT");
   IElementType DATABASE_NAME = new RoomAstNodeType("DATABASE_NAME");
+  IElementType DEFINED_TABLE_NAME = new RoomAstNodeType("DEFINED_TABLE_NAME");
   IElementType DELETE_STATEMENT = new RoomAstNodeType("DELETE_STATEMENT");
   IElementType DETACH_STATEMENT = new RoomAstNodeType("DETACH_STATEMENT");
   IElementType DROP_INDEX_STATEMENT = new RoomAstNodeType("DROP_INDEX_STATEMENT");
@@ -101,6 +102,7 @@ public interface RoomPsiTypes {
   IElementType ROLLBACK_STATEMENT = new RoomAstNodeType("ROLLBACK_STATEMENT");
   IElementType SAVEPOINT_NAME = new RoomAstNodeType("SAVEPOINT_NAME");
   IElementType SAVEPOINT_STATEMENT = new RoomAstNodeType("SAVEPOINT_STATEMENT");
+  IElementType SELECTED_TABLE_NAME = new RoomAstNodeType("SELECTED_TABLE_NAME");
   IElementType SELECT_CORE = new RoomAstNodeType("SELECT_CORE");
   IElementType SELECT_CORE_SELECT = new RoomAstNodeType("SELECT_CORE_SELECT");
   IElementType SELECT_CORE_VALUES = new RoomAstNodeType("SELECT_CORE_VALUES");
@@ -111,8 +113,7 @@ public interface RoomPsiTypes {
   IElementType SUBQUERY = new RoomAstNodeType("SUBQUERY");
   IElementType TABLE_ALIAS_NAME = new RoomAstNodeType("TABLE_ALIAS_NAME");
   IElementType TABLE_CONSTRAINT = new RoomAstNodeType("TABLE_CONSTRAINT");
-  IElementType TABLE_DEF_NAME = new RoomAstNodeType("TABLE_DEF_NAME");
-  IElementType TABLE_NAME = new RoomAstNodeType("TABLE_NAME");
+  IElementType TABLE_DEFINITION_NAME = new RoomAstNodeType("TABLE_DEFINITION_NAME");
   IElementType TABLE_OR_INDEX_NAME = new RoomAstNodeType("TABLE_OR_INDEX_NAME");
   IElementType TABLE_OR_SUBQUERY = new RoomAstNodeType("TABLE_OR_SUBQUERY");
   IElementType TRIGGER_NAME = new RoomAstNodeType("TRIGGER_NAME");
@@ -333,11 +334,11 @@ public interface RoomPsiTypes {
       else if (type == COLUMN_CONSTRAINT) {
         return new RoomColumnConstraintImpl(node);
       }
-      else if (type == COLUMN_DEF) {
-        return new RoomColumnDefImpl(node);
+      else if (type == COLUMN_DEFINITION) {
+        return new RoomColumnDefinitionImpl(node);
       }
-      else if (type == COLUMN_DEF_NAME) {
-        return new RoomColumnDefNameImpl(node);
+      else if (type == COLUMN_DEFINITION_NAME) {
+        return new RoomColumnDefinitionNameImpl(node);
       }
       else if (type == COLUMN_NAME) {
         return new RoomColumnNameImpl(node);
@@ -377,6 +378,9 @@ public interface RoomPsiTypes {
       }
       else if (type == DATABASE_NAME) {
         return new RoomDatabaseNameImpl(node);
+      }
+      else if (type == DEFINED_TABLE_NAME) {
+        return new RoomDefinedTableNameImpl(node);
       }
       else if (type == DELETE_STATEMENT) {
         return new RoomDeleteStatementImpl(node);
@@ -513,6 +517,9 @@ public interface RoomPsiTypes {
       else if (type == SAVEPOINT_STATEMENT) {
         return new RoomSavepointStatementImpl(node);
       }
+      else if (type == SELECTED_TABLE_NAME) {
+        return new RoomSelectedTableNameImpl(node);
+      }
       else if (type == SELECT_CORE) {
         return new RoomSelectCoreImpl(node);
       }
@@ -543,11 +550,8 @@ public interface RoomPsiTypes {
       else if (type == TABLE_CONSTRAINT) {
         return new RoomTableConstraintImpl(node);
       }
-      else if (type == TABLE_DEF_NAME) {
-        return new RoomTableDefNameImpl(node);
-      }
-      else if (type == TABLE_NAME) {
-        return new RoomTableNameImpl(node);
+      else if (type == TABLE_DEFINITION_NAME) {
+        return new RoomTableDefinitionNameImpl(node);
       }
       else if (type == TABLE_OR_INDEX_NAME) {
         return new RoomTableOrIndexNameImpl(node);
