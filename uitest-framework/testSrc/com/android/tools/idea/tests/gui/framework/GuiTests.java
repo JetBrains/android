@@ -121,7 +121,6 @@ public final class GuiTests {
   }
 
   static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
 
     // Clear HTTP proxy settings, in case a test changed them.
@@ -133,8 +132,9 @@ public final class GuiTests {
     GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
 
-    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false);
-    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java");
+    // Clear saved Wizard settings to its initial defaults
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java"); // New Activity "Source Language"
 
     FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
 

@@ -17,6 +17,10 @@ package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BACKTICK_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BRACKET_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
+import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
@@ -41,12 +45,25 @@ val KEYWORDS = TokenSet.create(
 val OPERATORS =
     TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
 
-val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+val IDENTIFIERS = TokenSet.create(
+    IDENTIFIER,
+    BRACKET_LITERAL,
+    BACKTICK_LITERAL,
+    UNTERMINATED_BRACKET_LITERAL,
+    UNTERMINATED_BACKTICK_LITERAL
+)
 
-val IDENTIFIERS = TokenSet.create(IDENTIFIER, BRACKET_LITERAL, BACKTICK_LITERAL)
+val STRING_LITERALS = TokenSet.create(
+    SINGLE_QUOTE_STRING_LITERAL,
+    DOUBLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
+)
+
 val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
 val COMMENTS = TokenSet.create(COMMENT, LINE_COMMENT)
-val STRING_LITERALS = TokenSet.create(SINGLE_QUOTE_STRING_LITERAL, DOUBLE_QUOTE_STRING_LITERAL)
+val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+
 
 private enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),

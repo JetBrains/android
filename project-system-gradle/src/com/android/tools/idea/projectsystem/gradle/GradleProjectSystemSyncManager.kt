@@ -71,12 +71,9 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
       }
     }
 
-    val request = GradleSyncInvoker.Request().setTrigger(trigger)
-        .setGenerateSourcesOnSuccess(requireSourceGeneration).setRunInBackground(true)
-
-    if (GradleProjectInfo.getInstance(project).isNewOrImportedProject) {
-      request.setNewOrImportedProject()
-    }
+    val request = GradleSyncInvoker.Request(trigger)
+    request.generateSourcesOnSuccess = requireSourceGeneration
+    request.runInBackground = true
 
     try {
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
@@ -101,7 +98,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     }
     else {
       StartupManager.getInstance(project).runWhenProjectIsInitialized {
-        if (!GradleProjectInfo.getInstance(project).isNewOrImportedProject) {
+        if (!GradleProjectInfo.getInstance(project).isImportedProject) {
           // http://b/62543184
           // If the project was created with the "New Project" wizard, there is no need to sync again.
           syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))

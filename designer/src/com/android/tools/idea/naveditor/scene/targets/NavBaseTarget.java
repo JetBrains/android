@@ -16,10 +16,10 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,49 +30,49 @@ public abstract class NavBaseTarget extends BaseTarget {
     setComponent(component);
   }
 
-  protected void layoutRectangle(@AndroidDpCoordinate int l,
-                                 @AndroidDpCoordinate int t,
-                                 @AndroidDpCoordinate int r,
-                                 @AndroidDpCoordinate int b) {
+  protected void layoutRectangle(@NavCoordinate int l,
+                                 @NavCoordinate int t,
+                                 @NavCoordinate int r,
+                                 @NavCoordinate int b) {
     myLeft = l;
     myTop = t;
     myRight = r;
     myBottom = b;
   }
 
-  protected void layoutCircle(@AndroidDpCoordinate int x,
-                              @AndroidDpCoordinate int y,
-                              @AndroidDpCoordinate int r) {
+  protected void layoutCircle(@NavCoordinate int x,
+                              @NavCoordinate int y,
+                              @NavCoordinate int r) {
     layoutRectangle(x - r, y - r, x + r, y + r);
   }
 
   @SwingCoordinate
   protected int getSwingLeft(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(myLeft);
+    return sceneContext.getSwingX((int)myLeft);
   }
 
   @SwingCoordinate
   protected int getSwingTop(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(myTop);
+    return sceneContext.getSwingY((int)myTop);
   }
 
   @SwingCoordinate
   protected int getSwingRight(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(myRight);
+    return sceneContext.getSwingX((int)myRight);
   }
 
   @SwingCoordinate
   protected int getSwingBottom(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(myBottom);
+    return sceneContext.getSwingY((int)myBottom);
   }
 
   @SwingCoordinate
   protected int getSwingCenterX(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingX(getCenterX());
+    return sceneContext.getSwingX((int)getCenterX());
   }
 
   @SwingCoordinate
   protected int getSwingCenterY(@NotNull SceneContext sceneContext) {
-    return sceneContext.getSwingY(getCenterY());
+    return sceneContext.getSwingY((int)getCenterY());
   }
 }

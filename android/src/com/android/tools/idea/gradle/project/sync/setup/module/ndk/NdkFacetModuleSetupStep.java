@@ -18,25 +18,22 @@ package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull NdkModuleModel ndkModuleModel,
-                               @Nullable GradleModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull NdkModuleModel ndkModuleModel) {
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
+
     NdkFacet facet = findFacet(module, ideModelsProvider, NdkFacet.getFacetTypeId());
     if (facet != null) {
       configureFacet(facet, ndkModuleModel);

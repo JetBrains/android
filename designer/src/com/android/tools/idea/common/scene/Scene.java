@@ -591,7 +591,7 @@ public class Scene implements SelectionListener, Disposable {
 
     if (!selectionModel.isEmpty()) {
       int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(x, y, max);
+      SelectionHandle handle = selectionModel.findHandle(x, y, max, getDesignSurface());
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;
@@ -729,8 +729,8 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   private static boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2, SceneContext transform) {
-    @SwingCoordinate int pos3 = transform.getSwingDimension(pos1);
-    @SwingCoordinate int pos4 = transform.getSwingDimension(pos2);
+    @SwingCoordinate int pos3 = transform.getSwingDimensionDip(pos1);
+    @SwingCoordinate int pos4 = transform.getSwingDimensionDip(pos2);
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
@@ -868,7 +868,9 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
     List<SceneComponent> within = Lists.newArrayList();
-    addWithin(within, getRoot(), x, y, width, height);
+    if (getRoot() != null) {
+      addWithin(within, getRoot(), x, y, width, height);
+    }
     return within;
   }
 
@@ -951,7 +953,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 }

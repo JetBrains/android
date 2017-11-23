@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Librar
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -49,19 +48,16 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 class ExcludedRoots {
-  @NotNull private final Module myModule;
   @NotNull private final ExcludedModules myExcludedModules;
   private final boolean myAndroidTest;
 
   @NotNull private final Set<File> myExcludedRoots = new HashSet<>();
   @NotNull private final Set<String> myIncludedRootNames = new HashSet<>();
 
-  ExcludedRoots(@NotNull Module module,
-                @NotNull ExcludedModules excludedModules,
+  ExcludedRoots(@NotNull ExcludedModules excludedModules,
                 @NotNull DependencySet dependenciesToExclude,
                 @NotNull DependencySet dependenciesToInclude,
                 boolean isAndroidTest) {
-    myModule = module;
     myExcludedModules = excludedModules;
     myAndroidTest = isAndroidTest;
     addFolderPathsFromExcludedModules();
@@ -173,9 +169,8 @@ class ExcludedRoots {
     //// Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
     //// excluded.
     //// https://code.google.com/p/android/issues/detail?id=206481
-    Project project = myModule.getProject();
     for (ModuleDependency dependency : dependencies.onModules()) {
-      Module module = dependency.getModule(project);
+      Module module = dependency.getModule();
       if (module != null) {
         addLibraryPaths(module);
       }

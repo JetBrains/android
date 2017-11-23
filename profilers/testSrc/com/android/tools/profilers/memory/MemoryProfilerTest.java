@@ -31,6 +31,8 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
+
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
   private static final long DEVICE_STARTTIME_NS = 0;
@@ -41,7 +43,7 @@ public class MemoryProfilerTest {
     new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myProfilerService, new FakeEventService(), new FakeCpuService(),
                         FakeNetworkService.newBuilder().build());
 
-  private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
+  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;
   private FakeTimer myTimer;
@@ -89,9 +91,9 @@ public class MemoryProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
-    // AllocationsInfo should be queried for {0ns, 1ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
+    // AllocationsInfo should be queried for {0ns, 0ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
     Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(-1));
-    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(2));
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(1));
   }
 
   @Test
@@ -122,11 +124,9 @@ public class MemoryProfilerTest {
     // Should not stop/start live tracking since an AllocationsInfo already exists.
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    // AllocationsInfo should be queried for {0ns, 1ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
+    // AllocationsInfo should be queried for {0ns, 0ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
     Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(-1));
-    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(2));
-
-
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(1));
   }
 
   @Test
@@ -142,13 +142,14 @@ public class MemoryProfilerTest {
     Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
 
     // Switch to a different process. We should expect a suspend + resume pair.
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(21)
-      .setState(Profiler.Process.State.ALIVE)
+      .setDeviceId(myStudioProfiler.getDevice().getDeviceId())
+      .setState(Common.Process.State.ALIVE)
       .setName("PreferredFakeProcess")
       .build();
     myStudioProfiler.setPreferredProcessName("PreferredFakeProcess");
-    myProfilerService.addProcess(myStudioProfiler.getSession(), process);
+    myProfilerService.addProcess(myStudioProfiler.getDevice(), process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
@@ -175,22 +176,20 @@ public class MemoryProfilerTest {
   }
 
   private void setupODeviceAndProcess() {
-    Profiler.Device device = Profiler.Device.newBuilder()
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(FAKE_DEVICE_ID)
       .setSerial("FakeDevice")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .setFeatureLevel(AndroidVersion.VersionCodes.O)
       .build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();
     myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
   }
 }

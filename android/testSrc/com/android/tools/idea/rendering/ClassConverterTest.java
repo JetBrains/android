@@ -58,7 +58,7 @@ public class ClassConverterTest extends TestCase {
     InconvertibleClassError v1 = new InconvertibleClassError(null, "foo1", 49, 0);
     InconvertibleClassError v2 = new InconvertibleClassError(null, "foo2", 51, 0);
     InconvertibleClassError v3 = new InconvertibleClassError(null, "foo3", 49, 0);
-    assertEquals(51, findHighestMajorVersion(Lists.<Throwable>newArrayList(v1, v2, v3)));
+    assertEquals(51, findHighestMajorVersion(Lists.newArrayList(v1, v2, v3)));
   }
 
   public void testGetCurrentClassVersion() {
@@ -114,7 +114,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(Integer.valueOf(42), result);
     Class<?> oldClz = clz;
 
-    data = rewriteClass(data, 48, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    data = rewriteClass(data, 48, Integer.MIN_VALUE);
     assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
@@ -123,7 +123,7 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(Integer.valueOf(42), result);
 
-    data = rewriteClass(data, Integer.MAX_VALUE, 52, Integer.MAX_VALUE); // latest known
+    data = rewriteClass(data, Integer.MAX_VALUE, 52); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
@@ -136,7 +136,7 @@ public class ClassConverterTest extends TestCase {
       final byte[] finalData = data;
       ClassLoader cl = new ClassLoader() {
         @Override
-        protected Class<?> findClass(String s) throws ClassNotFoundException {
+        protected Class<?> findClass(String s) {
           assertEquals("Test", s);
           return defineClass(null, finalData, 0, finalData.length);
         }
@@ -167,7 +167,7 @@ public class ClassConverterTest extends TestCase {
   //
   // The binary dump was created by using ASMifier running:
   // java -classpath asm-debug-all-5.0.2.jar:. org.objectweb.asm.util.ASMifier TestView.class
-  private static byte[] dumpTestViewClass () throws Exception {
+  private static byte[] dumpTestViewClass () {
     ClassWriter cw = new ClassWriter(0);
     MethodVisitor mv;
 
@@ -199,11 +199,11 @@ public class ClassConverterTest extends TestCase {
     return cw.toByteArray();
   }
 
-  public void testMethodWrapping() throws Exception {
+  public void testMethodWrapping() {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     assertTrue(isValidClassFile(data));
-    byte[] modified = rewriteClass(data, Integer.MAX_VALUE);
+    byte[] modified = rewriteClass(data);
     assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
@@ -253,8 +253,8 @@ public class ClassConverterTest extends TestCase {
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = rewriteClass(firstData, 50, 0, Integer.MAX_VALUE);
-    final byte[] modifiedSecondData = rewriteClass(secondData, 50, 0, Integer.MAX_VALUE);
+    final byte[] modifiedFirstData = rewriteClass(firstData, 50, 0);
+    final byte[] modifiedSecondData = rewriteClass(secondData, 50, 0);
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -382,7 +382,7 @@ public class ClassConverterTest extends TestCase {
 
     @NotNull
     @Override
-    protected Class<?> load(String name) throws ClassNotFoundException {
+    protected Class<?> load(String name) {
       assertEquals("Test", name);
       Class<?> clz = loadClass(name, myData);
       assertNotNull(clz);

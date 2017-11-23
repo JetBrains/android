@@ -78,7 +78,7 @@ public class AnimationToolbar extends Box implements Disposable {
   private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
                            long minTimeMs, long initialMaxTimeMs) {
     super(BoxLayout.PAGE_AXIS);
-    setBorder(IdeBorderFactory.createEmptyBorder(0, 10, 0, 10));
+    setBorder(JBUI.Borders.empty(0, 10));
 
     add(Box.createVerticalGlue());
 
@@ -129,7 +129,7 @@ public class AnimationToolbar extends Box implements Disposable {
           updateLabelUIs();
         }
       };
-      timeSlider.setBorder(IdeBorderFactory.createEmptyBorder(5, 0, 5, 0));
+      timeSlider.setBorder(JBUI.Borders.empty(5, 0));
       timeSlider.setMajorTickSpacing(10);
       timeSlider.setPaintTicks(true);
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
@@ -218,7 +218,7 @@ public class AnimationToolbar extends Box implements Disposable {
     JButton button = new JButton(label);
     button.addActionListener((e) -> callback.run());
 
-    button.setBorder(IdeBorderFactory.createEmptyBorder(15, 10, 15, 10));
+    button.setBorder(JBUI.Borders.empty(15, 10));
     button.setBorderPainted(false);
     button.setFont(BUTTON_FONT);
     button.setEnabled(false);
@@ -236,7 +236,7 @@ public class AnimationToolbar extends Box implements Disposable {
     button.setText(iconText);
     button.addActionListener((e) -> callback.run());
 
-    button.setBorder(IdeBorderFactory.createEmptyBorder(15, 10, 15, 10));
+    button.setBorder(JBUI.Borders.empty(15, 10));
     button.setBorderPainted(false);
     button.setFont(BUTTON_FONT);
     button.setEnabled(false);

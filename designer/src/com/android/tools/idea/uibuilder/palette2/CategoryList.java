@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +108,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
       myTextRenderer.getListCellRendererComponent(list, group, index, selected, hasFocus);
       myPanel.setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       myPanel.setForeground(UIUtil.getTreeForeground(selected, hasFocus));
-      myPanel.setBorder(IdeBorderFactory.createEmptyBorder(2, 3, 2, 3));
+      myPanel.setBorder(JBUI.Borders.empty(2, 3));
 
       CategoryList categoryList = (CategoryList)list;
       myMatchCount.setText(String.valueOf(categoryList.getMatchCountAt(index)));

@@ -37,10 +37,11 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
   }
 
   private static final Map<NetworkProfiler.NetworkProfilerData.DataCase, Integer> DATACASE_REQUEST_TYPE_MAP = new HashMap<>();
-  private static final int BODY_COLUMN = 2;
-  private static final int REQUEST_COLUMN = 3;
-  private static final int RESPONSE_COLUMN = 4;
-  private static final int THREADS_COLUMN = 5;
+  private static final int REQUEST_COLUMN = 2;
+  private static final int RESPONSE_COLUMN = 3;
+  private static final int REQUEST_BODY_COLUMN = 4;
+  private static final int RESPONSE_BODY_COLUMN = 5;
+  private static final int THREADS_COLUMN = 6;
 
   static {
     DATACASE_REQUEST_TYPE_MAP
@@ -55,10 +56,6 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
     return Logger.getInstance(NetworkTable.class);
   }
 
-  public NetworkTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -67,7 +64,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
-                  "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "ThreadsData BLOB",
+                  "ConnectionData BLOB", "RequestData BLOB", "ResponseData BLOB", "RequestBodyData BLOB", "ResponseBodyData BLOB", "ThreadsData BLOB",
                   "PRIMARY KEY(ProcessId, Id)");
       createUniqueIndex("Network_Data", "Id", "Type", "EndTime");
       createUniqueIndex("Network_Connection", "ProcessId", "Session", "Id");
@@ -90,9 +87,9 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       createStatement(NetworkStatements.QUERY_COMMON_CONNECTION_DATA,
                       "SELECT ConnectionData FROM Network_Connection WHERE ProcessId = ? AND Session = ? AND (EndTime > ? OR EndTime = 0) AND StartTime <= ?");
       createStatement(NetworkStatements.FIND_CONNECTION_DATA,
-                      "SELECT ConnectionData, BodyData, RequestData, ResponseData, ThreadsData FROM Network_Connection WHERE Id = ? AND Session = ?");
+                      "SELECT ConnectionData, RequestData, ResponseData, RequestBodyData, ResponseBodyData, ThreadsData FROM Network_Connection WHERE Id = ? AND Session = ?");
       createStatement(NetworkStatements.INSERT_CONNECTION_DATA,
-                      "INSERT OR REPLACE INTO Network_Connection (ProcessId, Session, Id, StartTime, EndTime, ConnectionData, BodyData, RequestData, ResponseData, ThreadsData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Network_Connection (ProcessId, Session, Id, StartTime, EndTime, ConnectionData, RequestData, ResponseData, RequestBodyData, ResponseBodyData, ThreadsData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -177,11 +174,12 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
         return Optional.of(REQUEST_COLUMN);
       case RESPONSE:
         return Optional.of(RESPONSE_COLUMN);
+      case REQUEST_BODY:
+        return Optional.of(REQUEST_BODY_COLUMN);
       case RESPONSE_BODY:
-        return Optional.of(BODY_COLUMN);
+        return Optional.of(RESPONSE_BODY_COLUMN);
       case ACCESSING_THREADS:
         return Optional.of(THREADS_COLUMN);
-      case REQUEST_BODY:
       case UNSPECIFIED:
       case UNRECOGNIZED:
         return Optional.empty();
@@ -193,18 +191,20 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
                               Common.Session session,
                               NetworkProfiler.HttpDetailsResponse request,
                               NetworkProfiler.HttpDetailsResponse response,
-                              NetworkProfiler.HttpDetailsResponse body,
+                              NetworkProfiler.HttpDetailsResponse requestBody,
+                              NetworkProfiler.HttpDetailsResponse responseBody,
                               NetworkProfiler.HttpDetailsResponse threads,
-                              NetworkProfiler.HttpConnectionData data) {
-    long id = data.getConnId();
-    long startTime = data.getStartTimestamp();
-    long endTime = data.getEndTimestamp();
-    byte[] commonData = data.toByteArray();
-    byte[] responseData = response == null ? null : response.toByteArray();
+                              NetworkProfiler.HttpConnectionData connection) {
+    long id = connection.getConnId();
+    long startTime = connection.getStartTimestamp();
+    long endTime = connection.getEndTimestamp();
+    byte[] commonData = connection.toByteArray();
     byte[] requestData = request == null ? null : request.toByteArray();
-    byte[] bodyData = body == null ? null : body.toByteArray();
+    byte[] responseData = response == null ? null : response.toByteArray();
+    byte[] requestBodyData = requestBody == null ? null : requestBody.toByteArray();
+    byte[] responseBodyData = responseBody == null ? null : responseBody.toByteArray();
     byte[] threadsData = threads == null ? null : threads.toByteArray();
-    execute(NetworkStatements.INSERT_CONNECTION_DATA, processId, session, id, startTime, endTime, commonData, bodyData, requestData,
-            responseData, threadsData);
+    execute(NetworkStatements.INSERT_CONNECTION_DATA, processId, session, id, startTime, endTime, commonData, requestData, responseData,
+            requestBodyData, responseBodyData, threadsData);
   }
 }

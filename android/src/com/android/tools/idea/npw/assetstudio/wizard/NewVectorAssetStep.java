@@ -219,7 +219,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     // Cast VectorAsset -> BaseAsset
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
-    myGeneralBindings.bind(myIconGenerator.name(), name);
+    myGeneralBindings.bind(myIconGenerator.outputName(), name);
   }
 
   @NotNull

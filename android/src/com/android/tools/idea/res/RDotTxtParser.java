@@ -16,9 +16,9 @@
 package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
-import com.android.builder.symbols.Symbol;
-import com.android.builder.symbols.SymbolIo;
-import com.android.builder.symbols.SymbolTable;
+import com.android.ide.common.symbols.Symbol;
+import com.android.ide.common.symbols.SymbolIo;
+import com.android.ide.common.symbols.SymbolTable;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.resources.ResourceNameKeyedMap;
 import com.android.resources.ResourceType;

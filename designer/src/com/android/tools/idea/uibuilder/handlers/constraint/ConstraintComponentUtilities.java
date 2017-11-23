@@ -543,13 +543,14 @@ public final class ConstraintComponentUtilities {
    * @param value     the attribute value we want to parse
    * @return the value of the attribute in Dp, or zero if impossible to resolve
    */
+  @AndroidDpCoordinate
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
         Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : (int)(0.5f + px / (configuration.getDensity().getDpiValue() / 160.0f));
+        return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
       }
     }
     return 0;
@@ -667,9 +668,7 @@ public final class ConstraintComponentUtilities {
       NlComponent parent = component.getParent();
       if (parent != null) {
         offsetX = NlComponentHelperKt.getX(component) - NlComponentHelperKt.getX(parent);
-        // convert px to dp
-        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-        offsetX = (int)(0.5f + offsetX / dpiFactor);
+        offsetX = Coordinates.pxToDp(component.getModel(), offsetX);
       }
       setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
     }
@@ -678,9 +677,7 @@ public final class ConstraintComponentUtilities {
       NlComponent parent = component.getParent();
       if (parent != null) {
         offsetY = NlComponentHelperKt.getY(component) - NlComponentHelperKt.getY(parent);
-        // convert px to dp
-        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-        offsetY = (int)(0.5f + offsetY / dpiFactor);
+        offsetY = Coordinates.pxToDp(component.getModel(), offsetY);
       }
       setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
     }
@@ -756,8 +753,7 @@ public final class ConstraintComponentUtilities {
     }
     int dx = getXfromParent(component);
     if (dx > 0) {
-      float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-      String position = String.format(VALUE_N_DP, ((int)(0.5f + dx / dipValue)));
+      String position = String.format(VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dx));
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, position);
     }
   }
@@ -768,8 +764,7 @@ public final class ConstraintComponentUtilities {
     }
     int dy = getYfromParent(component);
     if (dy > 0) {
-      float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-      String position = String.format(VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
+      String position = String.format(VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dy));
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
     }
   }
@@ -851,9 +846,9 @@ public final class ConstraintComponentUtilities {
   // Utility methods for Scout
   /////////////////////////////////////////////////////////////////////////////
 
+  @AndroidDpCoordinate
   public static int getDpX(@NotNull NlComponent component) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + NlComponentHelperKt.getX(component) / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component));
   }
 
   private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
@@ -1149,29 +1144,29 @@ public final class ConstraintComponentUtilities {
     component.getScene().needsRebuildList();
   }
 
+  @AndroidDpCoordinate
   public static int getDpY(@NotNull NlComponent component) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + NlComponentHelperKt.getY(component) / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component));
   }
 
+  @AndroidDpCoordinate
   public static int getDpWidth(@NotNull NlComponent component) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + NlComponentHelperKt.getW(component) / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component));
   }
 
+  @AndroidDpCoordinate
   public static int getDpHeight(@NotNull NlComponent component) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + NlComponentHelperKt.getH(component) / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component));
   }
 
+  @AndroidDpCoordinate
   public static int pixelToDP(@NotNull NlComponent component, int size) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + size / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), size);
   }
 
+  @AndroidDpCoordinate
   public static int getDpBaseline(@NotNull NlComponent component) {
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + NlComponentHelperKt.getBaseline(component) / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getBaseline(component));
   }
 
   public static boolean hasBaseline(@NotNull NlComponent component) {
@@ -1363,6 +1358,7 @@ public final class ConstraintComponentUtilities {
   }
 
   // TODO: add support for RTL in Scout
+  @AndroidDpCoordinate
   public static int getMargin(@NotNull NlComponent component, String margin_attr) {
     int margin = 0;
 
@@ -1380,8 +1376,7 @@ public final class ConstraintComponentUtilities {
         // TODO handle isMarginReference = true;
       }
     }
-    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + margin / dpiFactor);
+    return Coordinates.pxToDp(component.getModel(), margin);
   }
 
   public static void setScoutAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp, boolean apply) {

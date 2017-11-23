@@ -17,10 +17,11 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
@@ -56,7 +57,7 @@ import java.util.Objects;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
-public class NlReferenceEditor extends NlBaseComponentEditor {
+public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
   private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
@@ -133,7 +134,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
 
     myProject = project;
 
-    //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
                                                                                               verticalSpacing,
@@ -363,7 +363,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
     return true;
   }
 
-  private int getValueInDp(int defaultValue) {
+  @AndroidDpCoordinate
+  private int getValueInDp(@AndroidDpCoordinate int defaultValue) {
     String valueAsString = myProperty.getValue();
     if (valueAsString == null) {
       return defaultValue;
@@ -378,7 +379,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
       return defaultValue;
     }
 
-    return value * Density.DEFAULT_DENSITY / configuration.getDensity().getDpiValue();
+    return Coordinates.pxToDp(myProperty.getModel(), value);
   }
 
   private double getValueAsFloat(double defaultValue) {

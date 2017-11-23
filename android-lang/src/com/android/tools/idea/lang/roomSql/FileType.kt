@@ -27,15 +27,13 @@ object ROOM_SQL_FILE_TYPE : LanguageFileType(RoomSqlLanguage.INSTANCE) {
   override fun getName(): String = ROOM_SQL_DESCRIPTION
   override fun getDescription(): String = ROOM_SQL_DESCRIPTION
   override fun getDefaultExtension(): String = ""
-  override fun getIcon(): Icon = ROOM_SQL_ICON
+  override fun getIcon(): Icon = ROOM_ICON
 }
 
 /**
  * Icon used for all things related to Room.
- *
- * TODO: Figure out if we want to re-use the DB icon or create a new one.
  */
-val ROOM_SQL_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
+val ROOM_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
 
 class RoomSqlFileTypeFactory : FileTypeFactory() {
   override fun createFileTypes(consumer: FileTypeConsumer) {

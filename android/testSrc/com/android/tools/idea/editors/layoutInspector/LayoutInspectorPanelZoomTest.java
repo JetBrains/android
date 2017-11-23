@@ -35,7 +35,7 @@ public class LayoutInspectorPanelZoomTest extends AndroidTestCase {
     VirtualFile layoutFile = LocalFileSystem.getInstance().findFileByIoFile(testFile);
     LayoutFileData testData = new LayoutFileData(layoutFile);
 
-    myContext = new LayoutInspectorContext(testData);
+    myContext = new LayoutInspectorContext(testData, getProject());
     myPanel = new LayoutInspectorPanel(myContext);
     myPanel.setSize(800, 800);
   }

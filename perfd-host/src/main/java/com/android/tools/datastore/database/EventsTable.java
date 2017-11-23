@@ -41,10 +41,6 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     return Logger.getInstance(EventsTable.class);
   }
 
-  public EventsTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
-    super(sesstionIdLookup);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);

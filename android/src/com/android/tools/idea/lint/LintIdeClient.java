@@ -305,15 +305,10 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
   }
 
+  @NotNull
   @Override
   public XmlParser getXmlParser() {
     return new DomPsiParser(this);
-  }
-
-  @Nullable
-  @Override
-  public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new LintIdeJavaParser(this, myProject, project);
   }
 
   /**
@@ -325,7 +320,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    */
   private static boolean skipMappingReflection = false;
 
-  @Nullable
+  @NotNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new DefaultUastParser(project, myProject) {

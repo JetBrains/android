@@ -27,13 +27,13 @@ public interface RoomInExpression extends RoomExpression {
   @Nullable
   RoomDatabaseName getDatabaseName();
 
+  @Nullable
+  RoomDefinedTableName getDefinedTableName();
+
   @NotNull
   List<RoomExpression> getExpressionList();
 
   @Nullable
   RoomSelectStatement getSelectStatement();
-
-  @Nullable
-  RoomTableName getTableName();
 
 }

@@ -85,13 +85,6 @@
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
     <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
-    <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
-      <separator/>
-      <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>
-      <action id="IncludeModuleForFile" class="com.android.tools.idea.gradle.project.subset.IncludeModuleForFileAction"/>
-      <separator/>
-      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="AddToFavorites"/>
-    </group>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
@@ -264,13 +257,6 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
-    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
-      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
-    </action>
-    <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
-      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
-    </action>
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>
@@ -957,14 +943,9 @@
                       secondary="false"
                       icon="AndroidIcons.CapturesToolWindow"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings"/>
-    <projectConfigurable provider="com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettingsConfigurableProvider"
-                         nonDefaultProject="true"
-                         id ="android.studio.gradle" displayName="Android Studio" parentId="reference.settingsdialog.project.gradle"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
@@ -1025,6 +1006,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
+    <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel$StateStorage" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -1204,9 +1186,6 @@
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
-    <extensionPoint qualifiedName="com.android.project.buildSystemService"
-                    interface="com.android.tools.idea.project.BuildSystemService"
-                    area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
@@ -1218,6 +1197,8 @@
                     interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
+    <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
+                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

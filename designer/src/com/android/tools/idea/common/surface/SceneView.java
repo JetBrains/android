@@ -47,6 +47,7 @@ import java.util.List;
 public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
+  private ImmutableList<Layer> myLayers;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
   protected boolean myIsSecondary;
@@ -54,6 +55,20 @@ public abstract class SceneView {
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
+  }
+
+  @NotNull
+  protected abstract ImmutableList<Layer> createLayers();
+
+  /**
+   * If Layers are not exist, they will be created by {@link #createLayers()}. This should happen only once.
+   */
+  @NotNull
+  public final ImmutableList<Layer> getLayers() {
+    if (myLayers == null) {
+      myLayers = createLayers();
+    }
+    return myLayers;
   }
 
   @NotNull
@@ -216,10 +231,11 @@ public abstract class SceneView {
     return 0;
   }
 
-  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+  @Nullable
+  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     SceneContext.get(this).setMouseLocation(x, y);
     getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
-    mySurface.setCursor(getScene().getMouseCursor());
+    return getScene().getMouseCursor();
   }
 
   public SceneManager getSceneManager() {
@@ -231,11 +247,6 @@ public abstract class SceneView {
    */
   public void setToolTip(String toolTip) {
     mySurface.setDesignToolTip(toolTip);
-  }
-
-  @NotNull
-  public ImmutableList<Layer> getLayers() {
-    return ImmutableList.of();
   }
 
   public void setSecondary(boolean isSecondary) {

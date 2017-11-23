@@ -172,6 +172,7 @@ public class LayoutEditorTest {
    *   Make sure the “preview” pane displays the layout with the drawable correctly.
    *   </pre>
    */
+  @Ignore("http://b/69420548")
   @RunIn(TestGroup.QA)
   @Test
   public void imageAssetGradleTest() throws Exception {

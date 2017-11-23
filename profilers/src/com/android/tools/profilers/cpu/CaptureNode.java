@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CaptureNode implements HNode<MethodModel> {
 
@@ -60,6 +61,12 @@ public class CaptureNode implements HNode<MethodModel> {
    * The corresponding method of this node.
    */
   private MethodModel myMethodModel;
+
+  /**
+   * see {@link FilterType}.
+   */
+  @NotNull
+  private FilterType myFilterType;
 
   /**
    * The shortest distance from the root.
@@ -193,5 +200,43 @@ public class CaptureNode implements HNode<MethodModel> {
 
   public void setDepth(int depth) {
     myDepth = depth;
+  }
+
+  /**
+   * @return true if this node matches to the {@param filter}.
+   * Note: this node matches to the null {@param filter}.
+   */
+  public boolean matchesToFilter(@Nullable Pattern filter) {
+    assert getMethodModel() != null;
+    return filter == null || filter.matcher(getMethodModel().getFullName()).matches();
+  }
+
+  public FilterType getFilterType() {
+    return myFilterType;
+  }
+
+  public void setFilterType(FilterType type) {
+    myFilterType = type;
+  }
+
+  public boolean isUnmatched() {
+    return getFilterType() == FilterType.UNMATCH;
+  }
+
+  public enum FilterType {
+    /**
+     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(String)} is true.
+     */
+    EXACT_MATCH,
+
+    /**
+     * Either one of its ancestor is a {@link #EXACT_MATCH} or one of its descendant.
+     */
+    MATCH,
+
+    /**
+     * Neither this node matches to the filter nor one of its ancestor nor one of its descendant.
+     */
+    UNMATCH,
   }
 }

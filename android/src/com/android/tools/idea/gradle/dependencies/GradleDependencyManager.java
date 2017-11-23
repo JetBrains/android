@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.dependencies;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -27,25 +27,24 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
+import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 public class GradleDependencyManager {
@@ -95,7 +94,7 @@ public class GradleDependencyManager {
 
     Project project = module.getProject();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    List<GradleCoordinate> missingLibraries = Lists.newArrayList();
+    List<GradleCoordinate> missingLibraries = new ArrayList<>();
     for (GradleCoordinate coordinate : dependencies) {
       String groupId = coordinate.getGroupId();
       String artifactId = coordinate.getArtifactId();
@@ -190,7 +189,7 @@ public class GradleDependencyManager {
   }
 
   public static boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
-    String libraryNames = StringUtil.join(missing, GradleCoordinate::getArtifactId, ", ");
+    String libraryNames = join(missing, GradleCoordinate::getArtifactId, ", ");
     String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
                                    pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
     Project project = module.getProject();
@@ -216,7 +215,7 @@ public class GradleDependencyManager {
   private static void addDependencies(@NotNull GradleBuildModel buildModel,
                                       @NotNull Module module,
                                       @NotNull List<GradleCoordinate> coordinates) {
-    ModuleRootModificationUtil.updateModel(module, model -> {
+    updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate coordinate : coordinates) {
         String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
@@ -248,18 +247,18 @@ public class GradleDependencyManager {
       // This is needed since the designer cannot display correctly with source generation.
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = true;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
                                          @NotNull Module module,
                                          @NotNull List<GradleCoordinate> coordinates) {
-    ModuleRootModificationUtil.updateModel(module, model -> {
+    updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate gc : coordinates) {
-        List<ArtifactDependencyModel> artifacts = Lists.newArrayList(dependenciesModel.artifacts());
+        List<ArtifactDependencyModel> artifacts = new ArrayList<>(dependenciesModel.artifacts());
         for (ArtifactDependencyModel m : artifacts) {
           if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().value())
               && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().value())

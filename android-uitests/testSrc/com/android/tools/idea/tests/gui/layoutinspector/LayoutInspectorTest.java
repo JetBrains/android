@@ -44,6 +44,22 @@ public class LayoutInspectorTest {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
+  /**
+   * Verify layout inspector is a full replacement for the hierarchy viewer
+   *
+   * <p>TT ID: 65743195-bcf9-4127-8f4a-b60fde2b269e
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Create a new project.
+   *   2. Open the layout inspector by following Tools > Layout Inspector from the menu.
+   *   3. Select the process running this project's application.
+   *   4. Retrieve the layout's elements from the process.
+   *   Verify:
+   *   1. Ensure that the layout's elements contain the expected elements, which include
+   *      a RelativeLayout, a TextView, and a FrameLayout.
+   * </pre>
+   */
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {

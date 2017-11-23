@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
@@ -45,7 +45,7 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
  * The {@link NlFlagsEditor} is used to edit a {@link NlFlagPropertyItem} by displaying
  * a popup with a list of choices.
  */
-public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentEditor {
+public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEditor {
   private final JPanel myPanel;
   private final JTextField myValue;
   private NlFlagPropertyItem myProperty;

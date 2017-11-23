@@ -16,70 +16,147 @@
 package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.SdkConstants
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
+import com.android.tools.idea.naveditor.scene.draw.DrawColor
+import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.draw.DrawScreenFrame
+import com.android.tools.idea.naveditor.scene.draw.DrawRectangle
+import com.android.tools.idea.naveditor.scene.frameColor
+import com.android.tools.idea.naveditor.scene.strokeThickness
+import com.android.tools.idea.rendering.ImagePool.Image
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.awt.Rectangle
 import java.io.File
 import java.util.concurrent.ExecutionException
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one screen/fragment/destination in the navigation editor.
  */
+
+@NavCoordinate private val FRAGMENT_BORDER_SPACING = 2
+@NavCoordinate private val FRAGMENT_OUTER_BORDER_THICKNESS = 2
+
+// Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
+@NavCoordinate private val ACTIVITY_ARC_SIZE = 12
+@NavCoordinate private val ACTIVITY_PADDING = 8
+@NavCoordinate private val ACTIVITY_TEXT_HEIGHT = 26
+@NavCoordinate private val ACTIVITY_BORDER_THICKNESS = 2
+
 class NavScreenDecorator : SceneDecorator() {
 
   override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-    val rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null))
-    list.add(DrawScreenFrame(rect, component.isSelected,
-        component.drawState == SceneComponent.DrawState.HOVER || component.isDragging))
+  }
+
+  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
-    val surface = sceneContext.surface ?: return
-    val configuration = surface.configuration
-    val facet = surface.model!!.facet
-
-    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return
-    val fileName = configuration?.resourceResolver?.findResValue(layout, false)?.value ?: return
-    val file = File(fileName)
-    if (!file.exists()) {
-      return
+    if (component.nlComponent.destinationType == NavigationSchema.DestinationType.ACTIVITY) {
+      addActivityContent(list, sceneContext, component)
     }
-    val manager = ThumbnailManager.getInstance(facet)
-    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return
-    val thumbnail = manager.getThumbnail(psiFile, surface, configuration) ?: return
-    val image = try {
-      // TODO: show progress icon during image creation
-      thumbnail.get()
+    else {
+      addFragmentContent(list, sceneContext, component)
     }
-    catch (ignore: InterruptedException) {
-      // Shouldn't happen
-      return
-    }
-    catch (ignore: ExecutionException) {
-      return
-    }
-
-    list.add(DrawNavScreen(sceneContext.getSwingX(component.drawX.toFloat()) + 1,
-        sceneContext.getSwingY(component.drawY.toFloat()) + 1,
-        sceneContext.getSwingDimension(component.drawWidth.toFloat()) - 1,
-        sceneContext.getSwingDimension(component.drawHeight.toFloat()) - 1,
-        image))
   }
 
   override fun buildList(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val displayList = DisplayList()
     super.buildList(displayList, time, sceneContext, component)
     list.add(NavigationDecorator.createDrawCommand(displayList, component))
+  }
+
+  private fun addFragmentContent(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
+    list.add(DrawRectangle(drawRectangle, DrawColor.FRAMES, 1))
+
+    val imageRectangle = Rectangle(drawRectangle)
+    imageRectangle.grow(-1, -1)
+    drawImage(list, sceneContext, component, imageRectangle)
+
+    when (component.drawState) {
+      DrawState.DRAG, DrawState.SELECTED, DrawState.HOVER -> {
+        @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneContext, FRAGMENT_BORDER_SPACING)
+        @SwingCoordinate val outerBorderThickness = Coordinates.getSwingDimension(sceneContext, FRAGMENT_OUTER_BORDER_THICKNESS)
+
+        val outerRectangle = Rectangle(drawRectangle)
+        outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
+
+        list.add(DrawRectangle(outerRectangle, frameColor(component), outerBorderThickness, 2 * borderSpacing))
+      }
+      else -> {
+      }
+    }
+  }
+
+  private fun addActivityContent(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
+    val arcSize = Coordinates.getSwingDimension(sceneContext, ACTIVITY_ARC_SIZE)
+    list.add(DrawFilledRectangle(drawRectangle, DrawColor.COMPONENT_BACKGROUND, arcSize))
+
+    @SwingCoordinate val strokeThickness = strokeThickness(sceneContext, component, ACTIVITY_BORDER_THICKNESS)
+    list.add(DrawRectangle(drawRectangle, frameColor(component), strokeThickness, arcSize))
+
+    val imageRectangle = Rectangle(drawRectangle)
+
+    @SwingCoordinate val activityPadding = Coordinates.getSwingDimension(sceneContext, ACTIVITY_PADDING)
+    imageRectangle.grow(-activityPadding, -activityPadding)
+
+    @SwingCoordinate val activityTextHeight = Coordinates.getSwingDimension(sceneContext, ACTIVITY_TEXT_HEIGHT)
+    imageRectangle.height -= (activityTextHeight - activityPadding)
+
+    drawImage(list, sceneContext, component, imageRectangle)
+    // TODO: Add "Activity" text
+  }
+
+  private fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
+    val image = buildImage(sceneContext, component)
+    if (image == null) {
+      // TODO: Display "Image not available" message
+    }
+    else {
+      list.add(DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image))
+    }
+  }
+
+  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Image? {
+    val surface = sceneContext.surface ?: return null
+    val configuration = surface.configuration
+    val facet = surface.model!!.facet
+
+    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return null
+    val fileName = configuration?.resourceResolver?.findResValue(layout, false)?.value ?: return null
+    val file = File(fileName)
+    if (!file.exists()) {
+      return null
+    }
+    val manager = ThumbnailManager.getInstance(facet)
+    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return null
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return null
+    val thumbnail = manager.getThumbnail(psiFile, surface, configuration) ?: return null
+    return try {
+      // TODO: show progress icon during image creation
+      thumbnail.get()
+    }
+    catch (ignore: InterruptedException) {
+      // Shouldn't happen
+      null
+    }
+    catch (ignore: ExecutionException) {
+      null
+    }
   }
 }

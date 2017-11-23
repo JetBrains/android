@@ -28,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
 
 
 public class IdeaTestSuiteBase {
@@ -71,7 +71,7 @@ public class IdeaTestSuiteBase {
    */
   private static void setRealJdkPathForGradle() {
     try {
-      File jdk = new File(TestUtils.getWorkspaceRoot(), "prebuilts/studio/jdk");
+      File jdk = new File(getWorkspaceRoot(), "prebuilts/studio/jdk");
       if (jdk.exists()) {
         File file = new File(jdk, "BUILD").toPath().toRealPath().toFile();
         System.setProperty("studio.dev.jdk", file.getParentFile().getAbsolutePath());
@@ -89,9 +89,32 @@ public class IdeaTestSuiteBase {
    * directories must first exist as test data for the test.
    */
   protected static void symlinkToIdeaHome(String... targets) {
+    symlinkToIdeaHome(false, targets);
+  }
+
+  /**
+   * An idea test is run in a temp writable directory. Idea home
+   * is set to $TMP/tools/idea. This method creates symlinks from
+   * the readonly runfiles to the home directory tree. If a directory
+   * does not exist it will be ignored.
+   */
+  protected static void optSymlinkToIdeaHome(String... targets) {
+    symlinkToIdeaHome(true, targets);
+  }
+
+  protected static void symlinkToIdeaHome(boolean ignoreMissing, String... targets) {
     try {
       for (String target : targets) {
-        Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
+        File file = new File(TestUtils.getWorkspaceRoot(), target);
+        if (!file.exists()) {
+          if (!ignoreMissing) {
+            throw new IllegalStateException("Cannot symlink to idea home: " + target);
+          }
+          else {
+            System.err.println("Ignoring missing directory to symlink to idea home: " + target);
+          }
+        }
+        Path targetPath = file.toPath();
         Path linkName = Paths.get(TMP_DIR, target);
         Files.createDirectories(linkName.getParent());
         Files.createSymbolicLink(linkName, targetPath);
@@ -103,7 +126,11 @@ public class IdeaTestSuiteBase {
   }
 
   protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
-    File offlineRepoZip = getWorkspaceFile(repoZip);
+    File offlineRepoZip = new File(getWorkspaceRoot(), repoZip);
+    if (!offlineRepoZip.exists()) {
+      System.err.println("Warning: Repo: " + repoZip + " was not found and will not be available");
+      return;
+    }
     try {
       InstallerUtil.unzip(
         offlineRepoZip,

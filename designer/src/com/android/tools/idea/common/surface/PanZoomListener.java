@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import java.awt.event.AdjustmentEvent;

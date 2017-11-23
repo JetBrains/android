@@ -27,8 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.Comparator;
 
-public class ClientCellRenderer extends ColoredListCellRenderer {
-
+final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
   @NotNull
   private final String myEmptyText;
 
@@ -68,16 +67,13 @@ public class ClientCellRenderer extends ColoredListCellRenderer {
   }
 
   @Override
-  protected void customizeCellRenderer(@NotNull JList list,
-                                       Object value,
-                                       int index,
-                                       boolean selected,
-                                       boolean hasFocus) {
-    if (value instanceof Client) {
-      renderClient((Client)value, this);
-    } else if (value == null) {
+  protected void customizeCellRenderer(@NotNull JList<? extends Client> list, Client value, int index, boolean selected, boolean focused) {
+    if (value == null) {
       append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+      return;
     }
+
+    renderClient(value, this);
   }
 
   public static class ClientComparator implements Comparator<Client> {

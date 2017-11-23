@@ -19,10 +19,12 @@ import com.android.annotations.VisibleForTesting;
 import com.android.layoutinspector.model.DisplayInfo;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.editors.theme.MaterialColors;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.images.options.GridOptions;
+import com.intellij.ui.DoubleClickListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +32,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 /**
@@ -50,10 +53,9 @@ public class ViewNodeActiveDisplay extends JComponent {
   private static final Stroke THICK_STROKE = new BasicStroke(2);
 
   @NotNull
-  private final ViewNode mRoot;
-
+  private ViewNode mRoot;
   @Nullable
-  private final Image mPreview;
+  private Image mPreview;
 
   private final List<ViewNodeActiveDisplayListener> mListeners = Lists.newArrayList();
 
@@ -76,6 +78,8 @@ public class ViewNodeActiveDisplay extends JComponent {
   private float mOverlayAlpha = DEFAULT_OVERLAY_ALPHA;
   @Nullable
   private String myOverlayFileName;
+  // flag to tell next render to update bound boxes
+  private boolean updateBounds = false;
 
   public ViewNodeActiveDisplay(@NotNull ViewNode root, @Nullable Image preview) {
     mRoot = root;
@@ -84,6 +88,24 @@ public class ViewNodeActiveDisplay extends JComponent {
     MyMouseAdapter adapter = new MyMouseAdapter();
     addMouseListener(adapter);
     addMouseMotionListener(adapter);
+    if (StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
+      addDoubleClickListener();
+    }
+  }
+
+  private void addDoubleClickListener() {
+    new DoubleClickListener(){
+
+      @Override
+      protected boolean onDoubleClick(MouseEvent event) {
+        ViewNode clicked = getNode(event);
+        if (clicked == null) return false;
+        for (ViewNodeActiveDisplayListener listener : mListeners) {
+          listener.onNodeDoubleClicked(clicked);
+        }
+        return true;
+      }
+    }.installOn(this);
   }
 
   public void addViewNodeActiveDisplayListener(ViewNodeActiveDisplayListener listener) {
@@ -121,7 +143,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     super.paintComponent(g);
 
     // if size has changed, recalculate the the view node display boxes sizes/locations.
-    if (mLastWidth != getWidth() || mLastHeight != getHeight()) {
+    if (mLastWidth != getWidth() || mLastHeight != getHeight() || updateBounds) {
       float rootHeight = mRoot.displayInfo.height;
       float rootWidth = mRoot.displayInfo.width;
 
@@ -137,6 +159,7 @@ public class ViewNodeActiveDisplay extends JComponent {
       mDrawShiftY = (int) (getHeight() - mZoomFactor * rootHeight) / 2;
 
       calculateNodeBounds(mRoot, 0, 0, 1, 1, mZoomFactor);
+      updateBounds = false;
     }
 
     paintPreview((Graphics2D)g);
@@ -385,6 +408,13 @@ public class ViewNodeActiveDisplay extends JComponent {
     repaint();
   }
 
+  public void setPreview(@NotNull BufferedImage preview, ViewNode root) {
+    mPreview = preview;
+    mRoot = root;
+    updateBounds = true;
+    repaint();
+  }
+
   private class MyMouseAdapter extends MouseAdapter {
 
     @Override
@@ -417,5 +447,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     void onViewNodeOver(@Nullable ViewNode node);
 
     void onNodeSelected(@NotNull ViewNode node);
+
+    void onNodeDoubleClicked(@NotNull ViewNode node);
   }
 }

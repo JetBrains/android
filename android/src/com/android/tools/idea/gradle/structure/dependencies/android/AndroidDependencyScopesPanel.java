@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NonNls;
@@ -44,7 +45,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.ui.SideBorder.LEFT;
@@ -72,7 +73,7 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
 
   public AndroidDependencyScopesPanel(@NotNull PsAndroidModule module) {
     myModelVersion = module.getGradleModel().getModelVersion();
-    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
+    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
 

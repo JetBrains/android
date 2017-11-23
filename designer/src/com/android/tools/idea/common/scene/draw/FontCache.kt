@@ -33,11 +33,15 @@ object FontCache {
       .build<String, Font>()
 
   fun getFont(size: Int, scale: Float): Font {
-    val key = FORMATTER.format(scale * size)
+    return getFont(size, scale, DEFAULT_NAME)
+  }
+
+  fun getFont(size: Int, scale: Float, name: String): Font {
+    val key = FORMATTER.format(scale * size) + " " + name
 
     // Convert to swing size font
     return ourFontCache.get(key) {
-      Font(DEFAULT_NAME, DEFAULT_STYLE, size)
+      Font(name, DEFAULT_STYLE, size)
           .deriveFont(AffineTransform.getScaleInstance((scale * SCALE_ADJUST).toDouble(), (scale * SCALE_ADJUST).toDouble()))
     }
   }

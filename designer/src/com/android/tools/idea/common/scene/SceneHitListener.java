@@ -55,7 +55,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     myClosestTargetDistance = Double.MAX_VALUE;
     myPicker.reset();
     root.addHit(transform, myPicker);
-    myPicker.find(transform.getSwingX(x), transform.getSwingY(y));
+    myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y));
   }
 
   @Override

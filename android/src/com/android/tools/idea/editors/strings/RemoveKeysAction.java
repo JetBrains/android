@@ -45,7 +45,7 @@ final class RemoveKeysAction extends AnAction {
   public void actionPerformed(@Nullable AnActionEvent event) {
     StringResourceTable table = myPanel.getTable();
     StringResourceTableModel model = table.getModel();
-    StringResourceRepository repository = myPanel.getRepository();
+    StringResourceRepository repository = model.getRepository();
     Project project = myPanel.getFacet().getModule().getProject();
 
     PsiElement[] elements = Arrays.stream(table.getSelectedRowModelIndices())

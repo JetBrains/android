@@ -56,13 +56,13 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable private XmlModelComponentMixin myMixin;
 
-  @Nullable public List<NlComponent> children;
+  private final List<NlComponent> children = Lists.newArrayList();
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
-  final HashMap<Object, Object> myClientProperties = new HashMap<>();
+  private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
   private DependencyGraph myCachedDependencyGraph;
@@ -120,9 +120,6 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    if (children == null) {
-      children = Lists.newArrayList();
-    }
     int index = before != null ? children.indexOf(before) : -1;
     if (index != -1) {
       children.add(index, component);
@@ -137,36 +134,36 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    if (children != null) {
-      children.remove(component);
-    }
+    children.remove(component);
     component.setParent(null);
   }
 
   public void setChildren(@Nullable List<NlComponent> components) {
-    children = components;
-    if (components != null) {
-      for (NlComponent component : components) {
-        if (component == this) {
-          throw new IllegalArgumentException();
-        }
-        component.setParent(this);
+    children.clear();
+    if (components == null) {
+      return;
+    }
+    children.addAll(components);
+    for (NlComponent component : components) {
+      if (component == this) {
+        throw new IllegalArgumentException();
       }
+      component.setParent(this);
     }
   }
 
   @NotNull
   public List<NlComponent> getChildren() {
-    return children != null ? children : Collections.emptyList();
+    return ImmutableList.copyOf(children);
   }
 
   public int getChildCount() {
-    return children != null ? children.size() : 0;
+    return children.size();
   }
 
   @Nullable
   public NlComponent getChild(int index) {
-    return children != null && index >= 0 && index < children.size() ? children.get(index) : null;
+    return index >= 0 && index < children.size() ? children.get(index) : null;
   }
 
   @NotNull
@@ -219,7 +216,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   private void findViewsByTag(@NotNull XmlTag tag, @NotNull ImmutableList.Builder<NlComponent> builder) {
-    if (children == null && myTag == tag) {
+    if (myTag == tag) {
       builder.add(this);
       return;
     }
@@ -365,7 +362,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @Nullable
-  public String resolveAttribute(@NotNull String namespace, @NotNull String attribute) {
+  public String resolveAttribute(@Nullable String namespace, @NotNull String attribute) {
     String value = getAttribute(namespace, attribute);
     if (value != null) {
       return value;
@@ -609,7 +606,7 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     @Nullable
-    public String getAttribute(@NotNull String namespace, @NotNull String attribute) {
+    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
       return null;
     }
 

@@ -217,15 +217,13 @@ public class MockupTest extends MockupTestCase {
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
 
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getDensity()).thenReturn(Density.DPI_280);
     ScreenView screenView = mock(ScreenView.class);
     when(screenView.getX()).thenReturn(0);
     when(screenView.getY()).thenReturn(0);
     when(screenView.getSize()).thenReturn(new Dimension(1000, 2000));
     when(screenView.getSize(anyObject())).thenReturn(new Dimension(1000, 2000));
     when(screenView.getScale()).thenReturn(2.);
-    when(screenView.getConfiguration()).thenReturn(configuration);
+    when(screenView.getSurface()).thenReturn(mockSurface);
     final Mockup mockup = Mockup.create(model.getComponents().get(0));
     assertNotNull(mockup);
     assertEquals(new Rectangle(10, 10, 120, 50), mockup.getBounds());

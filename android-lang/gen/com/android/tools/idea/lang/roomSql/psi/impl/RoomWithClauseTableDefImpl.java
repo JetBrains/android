@@ -45,14 +45,14 @@ public class RoomWithClauseTableDefImpl extends ASTWrapperPsiElement implements 
 
   @Override
   @NotNull
-  public List<RoomColumnDefName> getColumnDefNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnDefName.class);
+  public List<RoomColumnDefinitionName> getColumnDefinitionNameList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnDefinitionName.class);
   }
 
   @Override
   @NotNull
-  public RoomTableDefName getTableDefName() {
-    return findNotNullChildByClass(RoomTableDefName.class);
+  public RoomTableDefinitionName getTableDefinitionName() {
+    return findNotNullChildByClass(RoomTableDefinitionName.class);
   }
 
 }

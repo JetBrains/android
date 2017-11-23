@@ -17,8 +17,8 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
@@ -43,7 +43,7 @@ public class AllocationInfosDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() throws Exception {
-    MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
+    MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
       .addAllocationsInfo(
         AllocationsInfo.newBuilder()

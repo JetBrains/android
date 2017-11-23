@@ -19,7 +19,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryMonitor;
@@ -138,72 +138,72 @@ public class StudioProfilersViewTest {
   @Test
   public void testDeviceRendering() throws IOException {
     StudioProfilersView.DeviceComboBoxRenderer renderer = new StudioProfilersView.DeviceComboBoxRenderer();
-    JList<Profiler.Device> list = new JList<>();
+    JList<Common.Device> list = new JList<>();
     // Null device
-    Profiler.Device device = null;
+    Common.Device device = null;
     Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Standard case
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // Suffix not serial
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model-9999")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
 
     // Suffix serial
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model-1234")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // With manufacturer
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setManufacturer("Manufacturer")
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.ONLINE)
+      .setState(Common.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Manufacturer Model (1234)");
 
     // Disconnected
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.DISCONNECTED)
+      .setState(Common.Device.State.DISCONNECTED)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234) [DISCONNECTED]");
 
     // Offline
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.OFFLINE)
+      .setState(Common.Device.State.OFFLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234) [OFFLINE]");
 
     // Unspecifed
-    device = Profiler.Device.newBuilder()
+    device = Common.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
-      .setState(Profiler.Device.State.UNSPECIFIED)
+      .setState(Common.Device.State.UNSPECIFIED)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
@@ -212,26 +212,26 @@ public class StudioProfilersViewTest {
   @Test
   public void testProcessRendering() throws IOException {
     StudioProfilersView.ProcessComboBoxRenderer renderer = new StudioProfilersView.ProcessComboBoxRenderer();
-    JList<Profiler.Process> list = new JList<>();
+    JList<Common.Process> list = new JList<>();
     // Null process
-    Profiler.Process process = null;
+    Common.Process process = null;
     Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Process
-    process = Profiler.Process.newBuilder()
+    process = Common.Process.newBuilder()
       .setName("MyProcessName")
       .setPid(1234)
-      .setState(Profiler.Process.State.ALIVE)
+      .setState(Common.Process.State.ALIVE)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
 
     // Dead process
-    process = Profiler.Process.newBuilder()
+    process = Common.Process.newBuilder()
       .setName("MyDeadProcessName")
       .setPid(4444)
-      .setState(Profiler.Process.State.DEAD)
+      .setState(Common.Process.State.DEAD)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");

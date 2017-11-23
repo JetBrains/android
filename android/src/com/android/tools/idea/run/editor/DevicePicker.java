@@ -194,12 +194,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
         }
 
         myAvdInfos = avdInfos;
-        updateModel();
+        updateModelAndSelectAvd(avdToSelect);
         myDevicesList.setPaintBusy(false);
-
-        if (avdToSelect != null) {
-          selectAvd(avdToSelect);
-        }
       });
     });
   }
@@ -283,13 +279,17 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void updateModel() {
+    updateModelAndSelectAvd(null);
+  }
+
+  private void updateModelAndSelectAvd(@Nullable AvdInfo avdToSelect) {
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
     if (bridge == null || !bridge.isConnected()) {
       return;
     }
 
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      invokeLater(this::updateModel);
+      invokeLater(() -> updateModelAndSelectAvd(avdToSelect));
       return;
     }
 
@@ -309,8 +309,12 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
           return;
         }
         setModel(model);
-        int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
-        myDevicesList.setSelectedIndices(selectedIndices);
+        if (avdToSelect != null) {
+          selectAvd(avdToSelect);
+        } else {
+          int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
+          myDevicesList.setSelectedIndices(selectedIndices);
+        }
 
         // The help hyper link is shown only when there is no inline troubleshoot link.
         myHelpHyperlink.setVisible(myModel.getNumberOfConnectedDevices() == 0);

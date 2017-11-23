@@ -58,10 +58,11 @@ public final class TextInstruction extends RenderInstruction {
   @Override
   public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull Rectangle bounds) {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HBGR);
+    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
     assert (mySize.height <= bounds.height);
     g2d.setColor(c.getForeground());
+    g2d.setFont(myFont);
     FontMetrics metrics = SwingUtilities2.getFontMetrics(c, myFont);
     int textY = bounds.y + metrics.getAscent() + ((bounds.height - mySize.height) / 2);
     g2d.drawString(myText, bounds.x, textY);

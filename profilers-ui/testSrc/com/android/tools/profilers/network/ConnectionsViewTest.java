@@ -35,12 +35,12 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
-  public static final ImmutableList<HttpData> FAKE_DATA =
+  private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpData(1, 1, 1, 2))
-      .add(FakeNetworkService.newHttpData(2, 3, 4, 5))
-      .add(FakeNetworkService.newHttpData(3, 8, 10, 13))
-      .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
+      .add(TestHttpData.newBuilder(1, 1, 2).build())
+      .add(TestHttpData.newBuilder(2, 3, 5).build())
+      .add(TestHttpData.newBuilder(3, 8, 13).build())
+      .add(TestHttpData.newBuilder(4, 21, 34).build())
       .build();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
@@ -57,10 +57,14 @@ public class ConnectionsViewTest {
   @Test
   public void logicToExtractColumnValuesFromDataWorks() throws Exception {
     HttpData data = FAKE_DATA.get(2); // Request: id = 3, time = 8->13
-    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is("3"));
-    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(3));
-    assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is("image/jpeg"));
-    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(302));
+    long id = data.getId();
+    assertThat(id, is(3L));
+
+    // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
+    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is(Long.toString(id)));
+    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(TestHttpData.fakeContentLength(id)));
+    assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is(TestHttpData.FAKE_CONTENT_TYPE));
+    assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(TestHttpData.FAKE_RESPONSE_CODE));
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(5)));
     assertThat(ConnectionsView.Column.TIMELINE.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(8)));
   }

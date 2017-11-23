@@ -50,6 +50,43 @@ public class TopDownNodeTest {
   }
 
   @Test
+  public void testTreeMergeWithFilter() {
+    CaptureNode root = createTree();
+    // Once merged for top down view, the tree should become:
+    //  A
+    //   +- B
+    //   |  +-D
+    //   |  +-E
+    //   +- C
+    //   |  +-F
+    //   +- B (unmatch)
+    //      +-E (unmatch)
+    //      +-G (unmatch)
+
+    // set node "A->B" unmatch.
+    root.getChildren().get(2).setFilterType(CaptureNode.FilterType.UNMATCH);
+    // set node "A->B->E" and "A->B->G" unmatch.
+    root.getChildren().get(2).getChildren().forEach(n -> n.setFilterType(CaptureNode.FilterType.UNMATCH));
+
+    TopDownNode topDown = new TopDownNode(root);
+
+    // A
+    assertEquals("A", topDown.getId());
+    checkChildrenIds(topDown, "B", "C", "B");
+    checkChildrenUnmatchStatus(topDown, false, false, true);
+
+    // A -> B
+    checkChildrenIds(topDown.getChildren().get(0), "D", "E");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(0), false, false);
+    // A -> C
+    checkChildrenIds(topDown.getChildren().get(1), "F");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(1), false);
+    // A -> B (unmatch)
+    checkChildrenIds(topDown.getChildren().get(2), "E", "G");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(2), true, true);
+  }
+
+  @Test
   public void testTreeTime() {
     CaptureNode root = newNode("A", 0, 10);
     root.addChild(newNode("D", 3, 5));
@@ -125,5 +162,19 @@ public class TopDownNodeTest {
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     return node;
+  }
+
+  private static void checkChildrenIds(TopDownNode node, String ...ids) {
+    assertEquals(ids.length, node.getChildren().size());
+    for (int i = 0; i < ids.length; ++i) {
+      assertEquals(ids[i], node.getChildren().get(i).getId());
+    }
+  }
+
+  private static void checkChildrenUnmatchStatus(TopDownNode node, boolean ...unmatched) {
+    assertEquals(unmatched.length, node.getChildren().size());
+    for (int i = 0; i < unmatched.length; ++i) {
+      assertEquals(unmatched[i], node.getChildren().get(i).isUnmatched());
+    }
   }
 }

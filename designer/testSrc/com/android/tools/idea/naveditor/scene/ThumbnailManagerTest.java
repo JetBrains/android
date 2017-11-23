@@ -60,7 +60,7 @@ public class ThumbnailManagerTest extends NavigationTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(myRootDisposable, myFacet, psiFile);
+    NlModel model = NlModel.create(myRootDisposable, myFacet, psiFile.getVirtualFile());
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());

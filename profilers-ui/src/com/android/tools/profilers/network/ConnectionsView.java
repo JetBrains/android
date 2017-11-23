@@ -71,21 +71,20 @@ final class ConnectionsView {
     SIZE(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-        return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+        return data.getResponseHeader().getContentLength();
       }
     },
     TYPE(0.25 / 4, String.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        HttpData.ContentType type = data.getContentType();
-        return type == null ? "" : type.getMimeType();
+        HttpData.ContentType type = data.getResponseHeader().getContentType();
+        return type.getMimeType();
       }
     },
     STATUS(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getStatusCode();
+        return data.getResponseHeader().getStatusCode();
       }
     },
     TIME(0.25 / 4, Long.class) {

@@ -56,8 +56,8 @@ public class RoomReindexStatementImpl extends RoomStatementImpl implements RoomR
 
   @Override
   @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
+  public RoomDefinedTableName getDefinedTableName() {
+    return findChildByClass(RoomDefinedTableName.class);
   }
 
   @Override

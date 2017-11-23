@@ -27,7 +27,6 @@ import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.IconProperty;
@@ -54,11 +53,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,10 +135,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
 
     myParameterDescriptionLabel.setScope(myParametersPanel);
-    myParametersScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myParametersScrollPane.setBorder(JBUI.Borders.empty());
 
     // Add an extra blank line under the template description to separate it from the main body
-    myTemplateDescriptionLabel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, myTemplateDescriptionLabel.getFont().getSize(), 0));
+    myTemplateDescriptionLabel.setBorder(JBUI.Borders.emptyBottom(myTemplateDescriptionLabel.getFont().getSize()));
   }
 
   private static Logger getLog() {
@@ -260,7 +259,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
       SelectedItemProperty<Language> language = (SelectedItemProperty<Language>)row.getProperty();
       assert language != null; // LanguageComboProvider always sets this
-      myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<>(language), getModel().getLanguage());
+      myBindings.bindTwoWay(ObjectProperty.wrap(language), getModel().getLanguage());
     }
 
     if (myTemplates.size() > 1) {
@@ -271,7 +270,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       SelectedItemProperty<NamedModuleTemplate> template = (SelectedItemProperty<NamedModuleTemplate>)row.getProperty();
       assert template != null; // ModuleTemplateComboProvider always sets this
-      myBindings.bind(getModel().getTemplate(), new OptionalToValuePropertyAdapter<>(template));
+      myBindings.bind(getModel().getTemplate(), ObjectProperty.wrap(template));
       template.addListener(sender -> enqueueEvaluateParameters());
     }
 

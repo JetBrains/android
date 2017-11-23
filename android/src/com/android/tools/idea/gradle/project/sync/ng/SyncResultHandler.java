@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -41,20 +42,24 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 class SyncResultHandler {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
+  @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final PostSyncProjectSetup myPostSyncProjectSetup;
 
   SyncResultHandler(@NotNull Project project) {
-    this(project, GradleSyncState.getInstance(project), new ProjectSetup.Factory(), PostSyncProjectSetup.getInstance(project));
+    this(project, GradleSyncState.getInstance(project), GradleProjectInfo.getInstance(project), new ProjectSetup.Factory(),
+         PostSyncProjectSetup.getInstance(project));
   }
 
   @VisibleForTesting
   SyncResultHandler(@NotNull Project project,
                     @NotNull GradleSyncState syncState,
+                    @NotNull GradleProjectInfo projectInfo,
                     @NotNull ProjectSetup.Factory projectSetupFactory,
                     @NotNull PostSyncProjectSetup postSyncProjectSetup) {
     myProject = project;
     mySyncState = syncState;
+    myProjectInfo = projectInfo;
     myProjectSetupFactory = projectSetupFactory;
     myPostSyncProjectSetup = postSyncProjectSetup;
   }
@@ -62,21 +67,21 @@ class SyncResultHandler {
   void onSyncFinished(@NotNull SyncExecutionCallback callback,
                       @NotNull PostSyncProjectSetup.Request setupRequest,
                       @NotNull ProgressIndicator indicator,
-                      @Nullable GradleSyncListener syncListener,
-                      boolean isProjectNew) {
+                      @Nullable GradleSyncListener syncListener) {
     SyncProjectModels models = callback.getModels();
     if (models != null) {
       try {
         setUpProject(models, setupRequest, indicator, syncListener);
         Runnable runnable = () -> {
           boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-          if (isProjectNew && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
+          boolean isImportedProject = myProjectInfo.isImportedProject();
+          if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
             open(myProject);
           }
           if (!isTest) {
             myProject.save();
           }
-          if (isProjectNew) {
+          if (isImportedProject) {
             // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
             // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
             // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the

@@ -22,13 +22,17 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.util.Disposer;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,6 +43,23 @@ import static org.mockito.Mockito.*;
  * Tests for {@link NavDesignSurface}
  */
 public class NavDesignSurfaceTest extends NavigationTestCase {
+
+  public void testLayers() {
+    ImmutableList<Layer> droppedLayers;
+
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
+    assertEmpty(surface.myLayers);
+
+    SyncNlModel model = model("nav.xml", rootComponent("root")).build();
+    surface.setModel(model);
+    assertEquals(1, surface.myLayers.size());
+
+    droppedLayers = ImmutableList.copyOf(surface.myLayers);
+    surface.setModel(null);
+    assertEmpty(surface.myLayers);
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
+  }
 
   public void testComponentActivated() {
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
@@ -112,8 +133,8 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
     surface.getScene().layout(0, SceneContext.get(view));
     SceneComponent fragment = surface.getScene().getSceneComponent("fragment1");
-    int x = Coordinates.getSwingXDip(view, fragment.getDrawX()) + 5;
-    int y = Coordinates.getSwingYDip(view, fragment.getDrawY()) + 5;
+    int x = Coordinates.getSwingX(view, fragment.getDrawX()) + 5;
+    int y = Coordinates.getSwingY(view, fragment.getDrawY()) + 5;
     LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0);
 
     verify(surface).notifyComponentActivate(eq(fragment.getNlComponent()), anyInt(), anyInt());

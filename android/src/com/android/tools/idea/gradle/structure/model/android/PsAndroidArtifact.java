@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.intellij.icons.AllIcons.Modules.TestRoot;
 import static com.intellij.icons.AllIcons.Nodes.Artifact;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;

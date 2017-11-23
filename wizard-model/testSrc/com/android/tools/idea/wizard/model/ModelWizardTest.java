@@ -18,7 +18,7 @@ package com.android.tools.idea.wizard.model;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -672,7 +672,7 @@ public class ModelWizardTest {
     @NotNull
     @Override
     protected ObservableBool canGoForward() {
-      return BooleanExpressions.alwaysFalse();
+      return BooleanExpression.ALWAYS_FALSE;
     }
   }
 

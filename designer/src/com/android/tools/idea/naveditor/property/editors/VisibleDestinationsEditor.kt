@@ -30,9 +30,9 @@ class VisibleDestinationsEditor(listener: NlEditingListener, comboBox: CustomCom
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
-  override fun getEnumSupport(property: NlProperty) = VisibleDestinationEnumSupport(property)
+  override fun getEnumSupport(property: NlProperty): EnumSupport = VisibleDestinationEnumSupport(property)
 
-  class VisibleDestinationEnumSupport(property : NlProperty) : EnumSupport(property) {
+  private class VisibleDestinationEnumSupport(property : NlProperty) : EnumSupport(property) {
     override fun getAllValues(): MutableList<ValueWithDisplayString> {
       return myProperty.components[0].visibleDestinations
           .map { ValueWithDisplayString("${it.getUiName(myProperty.resolver)} (${it.resolvedId})",

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.ActionBarOptions;
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.Theme;
+import com.intellij.openapi.util.Disposer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,7 +33,7 @@ public class ActionBarIconGeneratorTest {
 
     ActionBarIconGenerator generator = new ActionBarIconGenerator(15);
     BitmapGeneratorTests.checkGraphic(4, "actions", baseName, generator, options);
-    generator.dispose();
+    Disposer.dispose(generator);
   }
 
   @Test

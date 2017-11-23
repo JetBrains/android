@@ -19,28 +19,28 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.FakeMemoryService;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
+import static com.google.common.truth.Truth.assertThat;
 
 public class NetworkProfilerStageTest {
   private static final float EPSILON = 0.00001f;
@@ -54,14 +54,17 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
       .build();
 
+  private static final String TEST_PAYLOAD_ID = "test";
   private static final ImmutableList<HttpData> FAKE_HTTP_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
+      .add(TestHttpData.newBuilder(1, 1, 14)
+             .setRequestPayloadId(TEST_PAYLOAD_ID)
+             .setResponsePayloadId(TEST_PAYLOAD_ID).build())
       .build();
-
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(true);
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
+                                                                   new FakeEventService(), new FakeCpuService(), new FakeMemoryService(),
                                                                    FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
                                                                      .setHttpDataList(FAKE_HTTP_DATA).build());
 
@@ -80,60 +83,73 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void getConnectionsModel() {
-    List<HttpData> dataList = myStage.getConnectionsModel().getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
-    assertEquals(1, dataList.size());
-    HttpData data= dataList.get(0);
-    assertEquals(FAKE_HTTP_DATA.get(0).getStartTimeUs(), data.getStartTimeUs());
-    assertEquals(FAKE_HTTP_DATA.get(0).getDownloadingTimeUs(), data.getDownloadingTimeUs());
-    assertEquals(FAKE_HTTP_DATA.get(0).getEndTimeUs(), data.getEndTimeUs());
-    assertEquals(FAKE_HTTP_DATA.get(0).getMethod(), data.getMethod());
-    assertEquals(FAKE_HTTP_DATA.get(0).getUrl(), data.getUrl());
-    assertEquals(FAKE_HTTP_DATA.get(0).getStackTrace().getTrace(), data.getStackTrace().getTrace());
-    assertEquals(FAKE_HTTP_DATA.get(0).getResponsePayloadId(), data.getResponsePayloadId());
-    assertEquals(FAKE_HTTP_DATA.get(0).getResponseField("connId"), data.getResponseField("connId"));
+    String dummyPayloadContent = "Dummy Contents";
+    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(dummyPayloadContent));
+
+    NetworkConnectionsModel connectionsModel = myStage.getConnectionsModel();
+    List<HttpData> dataList = connectionsModel.getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
+    assertThat(dataList).hasSize(1);
+
+    HttpData data = dataList.get(0);
+    HttpData expectedData = FAKE_HTTP_DATA.get(0);
+
+    assertThat(data.getStartTimeUs()).isEqualTo(expectedData.getStartTimeUs());
+    assertThat(data.getDownloadingTimeUs()).isEqualTo(expectedData.getDownloadingTimeUs());
+    assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
+    assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
+    assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
+    assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+    assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
+    assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
+    assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
+
+    assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes())
+      .isEqualTo(Payload.newRequestPayload(connectionsModel, data).getBytes());
+    assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes())
+      .isEqualTo(Payload.newResponsePayload(connectionsModel, data).getBytes());
   }
 
   @Test
   public void getRadioState() {
     List<RangedSeries<NetworkRadioDataSeries.RadioState>> series = myStage.getRadioState().getSeries();
-    assertEquals(1, series.size());
+    assertThat(series).hasSize(1);
 
     List<SeriesData<NetworkRadioDataSeries.RadioState>> dataList = series.get(0).getSeries();
-    assertEquals(1, dataList.size());
-    assertEquals(TimeUnit.SECONDS.toMicros(5), dataList.get(0).x);
-    assertEquals(NetworkRadioDataSeries.RadioState.HIGH, dataList.get(0).value);
+    assertThat(dataList).hasSize(1);
+    assertThat(dataList.get(0).x).isEqualTo(TimeUnit.SECONDS.toMicros(5));
+    assertThat(dataList.get(0).value).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
   }
 
   @Test
   public void getName() {
-    assertEquals("NETWORK", myStage.getName());
+    assertThat(myStage.getName()).isEqualTo("NETWORK");
   }
 
   @Test
   public void getTrafficAxis() {
     AxisComponentModel axis = myStage.getTrafficAxis();
-    assertNotNull(axis);
-    assertEquals(myStage.getDetailedNetworkUsage().getTrafficRange(), axis.getRange());
+    assertThat(axis).isNotNull();
+    assertThat(axis.getRange()).isEqualTo(myStage.getDetailedNetworkUsage().getTrafficRange());
   }
 
   @Test
   public void getConnectionsAxis() {
     AxisComponentModel axis = myStage.getConnectionsAxis();
-    assertNotNull(axis);
-    assertEquals(myStage.getDetailedNetworkUsage().getConnectionsRange(), axis.getRange());
+    assertThat(axis).isNotNull();
+    assertThat(axis.getRange()).isEqualTo(myStage.getDetailedNetworkUsage().getConnectionsRange());
   }
 
   @Test
   public void getLegends() {
     NetworkProfilerStage.NetworkStageLegends networkLegends = myStage.getLegends();
-    assertEquals("Receiving", networkLegends.getRxLegend().getName());
-    assertEquals("Sending", networkLegends.getTxLegend().getName());
-    assertEquals("Connections", networkLegends.getConnectionLegend().getName());
-    assertEquals("2 B/S", networkLegends.getRxLegend().getValue());
-    assertEquals("1 B/S", networkLegends.getTxLegend().getValue());
-    assertEquals("4", networkLegends.getConnectionLegend().getValue());
+    assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Receiving");
+    assertThat(networkLegends.getTxLegend().getName()).isEqualTo("Sending");
+    assertThat(networkLegends.getConnectionLegend().getName()).isEqualTo("Connections");
+    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("2 B/S");
+    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("1 B/S");
+    assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("4");
 
-    assertEquals(3, networkLegends.getLegends().size());
+    assertThat(networkLegends.getLegends()).hasSize(3);
   }
 
   @Test
@@ -143,43 +159,43 @@ public class NetworkProfilerStageTest {
     double tooltipTime = TimeUnit.SECONDS.toMicros(10);
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
 
-    assertEquals("Received", networkLegends.getRxLegend().getName());
-    assertEquals("Sent", networkLegends.getTxLegend().getName());
-    assertEquals("Connections", networkLegends.getConnectionLegend().getName());
-    assertEquals("4 B/S", networkLegends.getRxLegend().getValue());
-    assertEquals("3 B/S", networkLegends.getTxLegend().getValue());
-    assertEquals("6", networkLegends.getConnectionLegend().getValue());
+    assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Received");
+    assertThat(networkLegends.getTxLegend().getName()).isEqualTo("Sent");
+    assertThat(networkLegends.getConnectionLegend().getName()).isEqualTo("Connections");
+    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("4 B/S");
+    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("3 B/S");
+    assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("6");
 
-    assertEquals(3, networkLegends.getLegends().size());
+    assertThat(networkLegends.getLegends()).hasSize(3);
   }
 
   @Test
   public void getDetailedNetworkUsage() {
     List<RangedContinuousSeries> series = myStage.getDetailedNetworkUsage().getSeries();
-    assertEquals(3, series.size());
+    assertThat(series).hasSize(3);
     RangedContinuousSeries receiving = series.get(0);
     RangedContinuousSeries sending = series.get(1);
     RangedContinuousSeries connections = series.get(2);
-    assertEquals("Receiving", receiving.getName());
-    assertEquals("Sending", sending.getName());
-    assertEquals("Connections", connections.getName());
+    assertThat(receiving.getName()).isEqualTo("Receiving");
+    assertThat(sending.getName()).isEqualTo("Sending");
+    assertThat(connections.getName()).isEqualTo("Connections");
 
-    assertEquals(1, receiving.getSeries().size());
-    assertEquals(0, receiving.getSeries().get(0).x);
-    assertEquals(2, receiving.getSeries().get(0).value.longValue());
+    assertThat(receiving.getSeries()).hasSize(1);
+    assertThat(receiving.getSeries().get(0).x).isEqualTo(0);
+    assertThat(receiving.getSeries().get(0).value.longValue()).isEqualTo(2);
 
-    assertEquals(1, sending.getSeries().size());
-    assertEquals(0, sending.getSeries().get(0).x);
-    assertEquals(1, sending.getSeries().get(0).value.longValue());
+    assertThat(sending.getSeries()).hasSize(1);
+    assertThat(sending.getSeries().get(0).x).isEqualTo(0);
+    assertThat(sending.getSeries().get(0).value.longValue()).isEqualTo(1);
 
-    assertEquals(1, connections.getSeries().size());
-    assertEquals(0, connections.getSeries().get(0).x);
-    assertEquals(4, connections.getSeries().get(0).value.longValue());
+    assertThat(connections.getSeries()).hasSize(1);
+    assertThat(connections.getSeries().get(0).x).isEqualTo(0);
+    assertThat(connections.getSeries().get(0).value.longValue()).isEqualTo(4);
   }
 
   @Test
   public void getEventMonitor() {
-    assertNotNull(myStage.getEventMonitor());
+    assertThat(myStage.getEventMonitor()).isNotNull();
   }
 
   @Test
@@ -212,12 +228,12 @@ public class NetworkProfilerStageTest {
     );
 
     myTimer.tick(1);
-    assertTrue(radioStateUpdated[0]);
-    assertTrue(networkUsageUpdated[0]);
-    assertTrue(trafficAxisUpdated[0]);
-    assertTrue(connectionAxisUpdated[0]);
-    assertTrue(legendsUpdated[0]);
-    assertTrue(tooltipLegendsUpdated[0]);
+    assertThat(radioStateUpdated[0]).isTrue();
+    assertThat(networkUsageUpdated[0]).isTrue();
+    assertThat(trafficAxisUpdated[0]).isTrue();
+    assertThat(connectionAxisUpdated[0]).isTrue();
+    assertThat(legendsUpdated[0]).isTrue();
+    assertThat(tooltipLegendsUpdated[0]).isTrue();
   }
 
   @Test
@@ -250,17 +266,17 @@ public class NetworkProfilerStageTest {
       LegendComponentModel.Aspect.LEGEND, () -> tooltipLegendsUpdated[0] = true);
 
     myTimer.tick(1);
-    assertFalse(radioStateUpdated[0]);
-    assertFalse(networkUsageUpdated[0]);
-    assertFalse(trafficAxisUpdated[0]);
-    assertFalse(connectionAxisUpdated[0]);
-    assertFalse(legendsUpdated[0]);
-    assertFalse(tooltipLegendsUpdated[0]);
+    assertThat(radioStateUpdated[0]).isFalse();
+    assertThat(networkUsageUpdated[0]).isFalse();
+    assertThat(trafficAxisUpdated[0]).isFalse();
+    assertThat(connectionAxisUpdated[0]).isFalse();
+    assertThat(legendsUpdated[0]).isFalse();
+    assertThat(tooltipLegendsUpdated[0]).isFalse();
   }
 
   @Test
   public void testSelectedConnection() {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
       .setResponsePayloadId("payloadId");
     HttpData data = builder.build();
@@ -272,116 +288,135 @@ public class NetworkProfilerStageTest {
     );
 
     myStage.setSelectedConnection(data);
-    File payloadFile = data.getResponsePayloadFile();
-    assertNotNull(payloadFile);
-    assertFalse(payloadFile.canWrite());
-    assertEquals(data, myStage.getSelectedConnection());
-    assertEquals(true, connectionChanged[0]);
+    File payloadFile = Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile();
+    assertThat(payloadFile).isNotNull();
+    assertThat(payloadFile.canWrite()).isFalse();
+    assertThat(myStage.getSelectedConnection()).isEqualTo(data);
+    assertThat(connectionChanged[0]).isEqualTo(true);
   }
 
   @Test
   public void testSelectedConnectionWhenIdIsEmpty() {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
       .setResponsePayloadId("");
     HttpData data = builder.build();
 
     myStage.setSelectedConnection(data);
-    assertNull(data.getResponsePayloadFile());
+    assertThat(Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes()).isEmpty();
   }
 
   @Test
-  public void getConnectionPayloadRespectsContentEncodingGzip() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
-    builder.setResponsePayloadId("test");
+  public void setSelectionWithGzipEncodingResponsePayload() throws IOException {
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
+    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
 
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
-
     ByteArrayOutputStream zippedBytes = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(zippedBytes)) {
       compressor.write(unzippedBytes);
     }
-    assertTrue(zippedBytes.toByteArray().length > 0);
-    assertNotEquals(unzippedBytes.length, zippedBytes.toByteArray().length);
+    assertThat(zippedBytes.toByteArray().length).isGreaterThan(0);
+    assertThat(zippedBytes.toByteArray().length).isNotEqualTo(unzippedBytes.length);
     ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
+    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
-    File file = myStage.getConnectionPayload(zippedBytesString, data);
-    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
-      String output = reader.readLine();
-      assertEquals(unzippedPayload, output);
-    }
+    assertThat(myStage.setSelectedConnection(data)).isTrue();
+    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   @Test
-  public void getConnectionPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
-    builder.setResponsePayloadId("test");
+  public void responsePayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
+    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
 
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
     ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
+    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
-    File file = myStage.getConnectionPayload(unzippedBytesString, data);
-    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
-      String output = reader.readLine();
-      assertEquals(unzippedPayload, output);
-    }
-  }
-
-  private ByteString gzip(String input) {
-    ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-    try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
-      compressor.write(input.getBytes());
-    } catch (IOException ignored) {}
-    return ByteString.copyFrom(byteOutputStream.toByteArray());
+    assertThat(myStage.setSelectedConnection(data)).isTrue();
+    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
   }
 
   @Test
-  public void testIoExceptionThrownWhenSelectConnection() throws IOException {
-    HttpData.Builder builder = new HttpData.Builder(1, 2, 22, 22);
-    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
-      .setResponsePayloadId("payloadId");
+  public void setSelectionWithGzipEncodingRequestPayload() throws IOException {
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
+    builder.setRequestPayloadId(TEST_PAYLOAD_ID);
+    builder.setRequestFields("content-encoding=gzip \n");
     HttpData data = builder.build();
 
-    NetworkProfilerStage spyStage = spy(myStage);
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+    ByteArrayOutputStream zippedBytes = new ByteArrayOutputStream();
+    try (GZIPOutputStream compressor = new GZIPOutputStream(zippedBytes)) {
+      compressor.write(unzippedBytes);
+    }
+    assertThat(zippedBytes.toByteArray().length).isGreaterThan(0);
+    assertThat(zippedBytes.toByteArray().length).isNotEqualTo(unzippedBytes.length);
+    ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
+    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
-    AspectObserver observer = new AspectObserver();
-    final boolean[] connectionChanged = {false};
-    spyStage.getAspect().addDependency(observer).
-      onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> connectionChanged[0] = true);
+    myStage.setSelectedConnection(data);
+    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
+  }
 
-    doThrow(IOException.class).when(spyStage).getConnectionPayload(any(ByteString.class), any(HttpData.class));
-    spyStage.setSelectedConnection(data);
-    assertNull(data.getResponsePayloadFile());
-    assertNull(spyStage.getSelectedConnection());
-    assertEquals(false, connectionChanged[0]);
+  @Test
+  public void requestPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
+    HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 20);
+    builder.setRequestPayloadId(TEST_PAYLOAD_ID);
+    builder.setRequestFields(" content-encoding=gzip \n");
+    HttpData data = builder.build();
+
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+    ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
+    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
+
+    myStage.setSelectedConnection(data);
+    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    assertThat(output).isEqualTo(unzippedPayload);
+  }
+
+  private static ByteString gzip(String input) {
+    ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+    try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
+      compressor.write(input.getBytes());
+    }
+    catch (IOException ignored) {
+    }
+    return ByteString.copyFrom(byteOutputStream.toByteArray());
   }
 
   @Test
   public void getProfilerMode() {
     myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test
   public void codeNavigationUnexpandsProfiler() {
     HttpData data = FAKE_HTTP_DATA.get(0);
-    assertEquals(2, data.getStackTrace().getCodeLocations().size());
+    // data.getStrackTrace() correlates to FakeNetworkService.FAKE_STACK_TRACE
+    assertThat(data.getStackTrace().getCodeLocations()).hasSize(2);
     myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
 
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
 
     myStage.getStackTraceModel().setSelectedIndex(0);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test
@@ -393,18 +428,28 @@ public class NetworkProfilerStageTest {
     // Need to re-enter the stage again given the device/process can be set and return to the default StudioMonitorStage.
     myStage.getStudioProfilers().setStage(myStage);
 
-    assertTrue(myStage.getStudioProfilers().isAgentAttached());
+    assertThat(myStage.getStudioProfilers().isAgentAttached()).isTrue();
     myStage.getSelectionModel().set(0, 100);
-    assertEquals(0, selection.getMin(), EPSILON);
-    assertEquals(100, selection.getMax(), EPSILON);
+    assertThat(selection.getMin()).isWithin(EPSILON).of(0);
+    assertThat(selection.getMax()).isWithin(EPSILON).of(100);
 
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-    assertFalse(myStage.getStudioProfilers().isAgentAttached());
+    assertThat(myStage.getStudioProfilers().isAgentAttached()).isFalse();
 
     // Attempting to select a range should do nothing.
     myStage.getSelectionModel().set(100, 200);
-    assertEquals(0, selection.getMin(), EPSILON);
-    assertEquals(100, selection.getMax(), EPSILON);
+    assertThat(selection.getMin()).isWithin(EPSILON).of(0);
+    assertThat(selection.getMax()).isWithin(EPSILON).of(100);
+  }
+
+  @Test
+  public void testHasUserUsedSelection() {
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0f).of(0f);
+    assertThat(myStage.hasUserUsedNetworkSelection()).isFalse();
+    myStage.getSelectionModel().setSelectionEnabled(true);
+    myStage.getSelectionModel().set(0, 100);
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0f).of(1f);
+    assertThat(myStage.hasUserUsedNetworkSelection()).isTrue();
   }
 }

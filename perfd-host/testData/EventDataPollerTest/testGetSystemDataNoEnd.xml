@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.EventService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStartRequest">
         <Message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStartRequest</clazz>
         <functionCalled>profiler.proto.EventService/StartMonitoringApp</functionCalled>
         <message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </message>
     </GrpcCall>
@@ -227,15 +225,13 @@ data {
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EventService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStopRequest">
         <Message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStopRequest</clazz>
         <functionCalled>profiler.proto.EventService/StopMonitoringApp</functionCalled>
         <message>session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </message>
     </GrpcCall>

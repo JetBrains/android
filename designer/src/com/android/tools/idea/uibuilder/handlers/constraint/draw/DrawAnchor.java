@@ -205,10 +205,10 @@ public class DrawAnchor extends DrawRegion {
                          int type,
                          boolean isConnected,
                          int mode) {
-    @SwingCoordinate int l = transform.getSwingX(left);
-    @SwingCoordinate int t = transform.getSwingY(top);
-    @SwingCoordinate int w = transform.getSwingDimension(right - left);
-    @SwingCoordinate int h = transform.getSwingDimension(bottom - top);
+    @SwingCoordinate int l = transform.getSwingXDip(left);
+    @SwingCoordinate int t = transform.getSwingYDip(top);
+    @SwingCoordinate int w = transform.getSwingDimensionDip(right - left);
+    @SwingCoordinate int h = transform.getSwingDimensionDip(bottom - top);
     list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }

@@ -50,14 +50,14 @@ public class RoomCreateIndexStatementImpl extends RoomStatementImpl implements R
 
   @Override
   @NotNull
-  public List<RoomIndexedColumn> getIndexedColumnList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomIndexedColumn.class);
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public List<RoomIndexedColumn> getIndexedColumnList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomIndexedColumn.class);
   }
 
   @Override

@@ -17,40 +17,39 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,6 +65,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
 
 /**
@@ -74,42 +74,40 @@ import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE
  * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
  */
-public class ConfigureLauncherIconPanel extends JPanel implements Disposable, ConfigureIconView {
+public class ConfigureLauncherIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
-  @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
+  private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_launcher_foreground.xml");
+  private static final File DEFAULT_BACKGROUND_IMAGE = getTemplateImage("drawable", "ic_launcher_background.xml");
+  private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
+  private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
+  private static final Density DEFAULT_PREVIEW_DENSITY = Density.XHIGH;
+  private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.LAUNCHER.toOutputName("");
+  private static final Shape DEFAULT_ICON_SHAPE = Shape.SQUARE;
 
-  @NotNull private final AndroidVersion myBuildSdkVersion;
-  @NotNull private final BoolProperty myShowGridProperty;
-  @NotNull private final BoolProperty myShowSafeZoneProperty;
-  @NotNull private final AbstractProperty<Density> myPreviewDensityProperty;
-  @NotNull private final LauncherIconGenerator myIconGenerator;
-  @NotNull private final ValidatorPanel myValidatorPanel;
-
-  @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
-  @NotNull private final BindingsManager myForegroundActiveAssetBindings = new BindingsManager();
-  @NotNull private final BindingsManager myBackgroundActiveAssetBindings = new BindingsManager();
-  @NotNull private final ListenerManager myListeners = new ListenerManager();
+  private static final String FOREGROUND_ASSET_TYPE_PROPERTY = "foregroundAssetType";
+  private static final String BACKGROUND_ASSET_TYPE_PROPERTY = "backgroundAssetType";
+  private static final String BACKGROUND_COLOR_PROPERTY = "backgroundColor";
+  private static final String GENERATE_LEGACY_ICON_PROPERTY = "generateLegacyIcon";
+  private static final String GENERATE_ROUND_ICON_PROPERTY = "generateRoundIcon";
+  private static final String GENERATE_WEB_ICON_PROPERTY = "generateWebIcon";
+  private static final String LEGACY_ICON_SHAPE_PROPERTY = "legacyIconShape";
+  private static final String WEB_ICON_SHAPE_PROPERTY = "webIconShape";
+  private static final String SHOW_GRID_PROPERTY = "showGrid";
+  private static final String SHOW_SAFE_ZONE_PROPERTY = "showSafeZone";
+  private static final String PREVIEW_DENSITY_PROPERTY = "previewDensity";
+  private static final String OUTPUT_NAME_PROPERTY = "outputName";
+  private static final String FOREGROUND_LAYER_NAME_PROPERTY = "foregroundLayerName";
+  private static final String BACKGROUND_LAYER_NAME_PROPERTY = "backgroundLayerName";
+  private static final String FOREGROUND_IMAGE_PROPERTY = "foregroundImage";
+  private static final String BACKGROUND_IMAGE_PROPERTY = "backgroundImage";
+  private static final String FOREGROUND_CLIPART_ASSET_PROPERTY = "foregroundClipartAsset";
+  private static final String FOREGROUND_TEXT_ASSET_PROPERTY = "foregroundTextAsset";
 
   /**
    * This panel presents a list of radio buttons (clipart, image, text), and whichever one is
    * selected sets the active asset.
    */
-  private final ObjectProperty<BaseAsset> myForegroundActiveAsset;
-  private final OptionalProperty<ImageAsset> myBackgroundImageAsset;
-  private final StringProperty myOutputName;
-  private final StringProperty myForegroundLayerName;
-  private final StringProperty myBackgroundLayerName;
-
-  private final ImmutableMap<JRadioButton, AssetComponent> myForegroundAssetPanelMap;
-
-  private final Map<IconGenerator.Shape, String> myShapeNames = ImmutableMap.of(
-    IconGenerator.Shape.NONE, "None",
-    IconGenerator.Shape.CIRCLE, "Circle",
-    IconGenerator.Shape.SQUARE, "Square",
-    IconGenerator.Shape.VRECT, "Vertical",
-    IconGenerator.Shape.HRECT, "Horizontal");
-
   private JPanel myRootPanel;
   private JBLabel myOutputNameLabel;
   private JTextField myOutputNameTextField;
@@ -168,7 +166,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JPanel myGenerateRoundIconRadioButtonsPanel;
   private JRadioButton myGenerateRoundIconYesRadioButton;
   private JBScrollPane myBackgroundScrollPane;
-  private JComboBox<IconGenerator.Shape> myLegacyIconShapeComboBox;
+  private JComboBox<Shape> myLegacyIconShapeComboBox;
   private JPanel myBackgroundImageAssetRowPanel;
   private ImageAssetBrowser myBackgroundImageAssetBrowser;
   private JBLabel myBackgroundLayerNameLabel;
@@ -227,90 +225,124 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myGenerateWebIconYesRadioButton;
   private JRadioButton myBackgroundTrimNoRadioButton;
   private JBLabel myWebIconShapeLabel;
-  private JComboBox<IconGenerator.Shape> myWebIconShapeComboBox;
+  private JComboBox<Shape> myWebIconShapeComboBox;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myWebIconShapePanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myWebIconShapePanelRow;
 
+  // @formatter:off
+  private final Map<Shape, String> myShapeNames = ImmutableMap.of(
+      Shape.NONE, "None",
+      Shape.CIRCLE, "Circle",
+      Shape.SQUARE, "Square",
+      Shape.VRECT, "Vertical",
+      Shape.HRECT, "Horizontal");
+  // @formatter:on
+
+  @NotNull private final AndroidVersion myBuildSdkVersion;
+  @NotNull private final LauncherIconGenerator myIconGenerator;
+  @NotNull private final ValidatorPanel myValidatorPanel;
+
+  @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
+  @NotNull private final BindingsManager myForegroundActiveAssetBindings = new BindingsManager();
+  @NotNull private final BindingsManager myBackgroundActiveAssetBindings = new BindingsManager();
+  @NotNull private final ListenerManager myListeners = new ListenerManager();
+  @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
+
+  @NotNull private final ImmutableMap<ForegroundAssetType, AssetComponent> myForegroundAssetPanelMap;
+
+  @NotNull private final ObjectProperty<BaseAsset> myForegroundActiveAsset;
+  @NotNull private final OptionalProperty<ImageAsset> myBackgroundImageAsset;
+  @NotNull private final StringProperty myOutputName;
+  @NotNull private final StringProperty myForegroundLayerName;
+  @NotNull private final StringProperty myBackgroundLayerName;
+  @NotNull private final AbstractProperty<ForegroundAssetType> myForegroundAssetType;
+  @NotNull private final AbstractProperty<BackgroundAssetType> myBackgroundAssetType;
+  @NotNull private final BoolProperty myShowGrid;
+  @NotNull private final BoolProperty myShowSafeZone;
+  @NotNull private final AbstractProperty<Density> myPreviewDensity;
   private BoolProperty myIgnoreForegroundColor;
   private AbstractProperty<Color> myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
+  private BoolProperty myForegroundTrimmed;
+  private BoolProperty myBackgroundTrimmed;
+  private IntProperty myForegroundResizePercent;
+  private IntProperty myBackgroundResizePercent;
   private BoolProperty myGenerateLegacyIcon;
   private BoolProperty myGenerateRoundIcon;
   private BoolProperty myGenerateWebIcon;
-  private AbstractProperty<IconGenerator.Shape> myLegacyIconShape;
-  private AbstractProperty<IconGenerator.Shape> myWebIconShape;
+  private AbstractProperty<Shape> myLegacyIconShape;
+  private AbstractProperty<Shape> myWebIconShape;
 
   /**
-   * Create a panel which can generate Android icons. The supported types passed in will be
-   * presented to the user in a combo box (unless there's only one supported type). If no
+   * Initializes a panel which can generate Android launcher icons. The supported types passed in
+   * will be presented to the user in a combo box (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureLauncherIconPanel(@NotNull AndroidFacet facet,
-                                    @NotNull Disposable disposableParent,
-                                    @NotNull BoolProperty showGridProperty,
-                                    @NotNull BoolProperty showSafeZoneProperty,
-                                    @NotNull AbstractProperty<Density> previewDensityProperty,
+  public ConfigureLauncherIconPanel(@NotNull Disposable disposableParent,
+                                    @NotNull AndroidFacet facet,
+                                    @NotNull BoolProperty showGrid,
+                                    @NotNull BoolProperty showSafeZone,
+                                    @NotNull AbstractProperty<Density> previewDensity,
                                     @NotNull ValidatorPanel validatorPanel) {
     super(new BorderLayout());
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
-    myShowGridProperty = showGridProperty;
-    myShowSafeZoneProperty = showSafeZoneProperty;
-    myPreviewDensityProperty = previewDensityProperty;
+    myShowGrid = showGrid;
+    myShowSafeZone = showSafeZone;
+    myPreviewDensity = previewDensity;
     myIconGenerator = new LauncherIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
     myValidatorPanel = validatorPanel;
 
-    DefaultComboBoxModel<IconGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
-    for (IconGenerator.Shape shape : myShapeNames.keySet()) {
+    DefaultComboBoxModel<Shape> legacyShapesModel = new DefaultComboBoxModel<>();
+    for (Shape shape : myShapeNames.keySet()) {
       legacyShapesModel.addElement(shape);
     }
-    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<IconGenerator.Shape>() {
+    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
       @Override
-      public void customize(JList list, IconGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
         setText(myShapeNames.get(shape));
       }
     });
     myLegacyIconShapeComboBox.setModel(legacyShapesModel);
-    myLegacyIconShapeComboBox.setSelectedItem(IconGenerator.Shape.SQUARE);
+    myLegacyIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 
-    DefaultComboBoxModel<IconGenerator.Shape> webShapesModel = new DefaultComboBoxModel<>();
-    for (IconGenerator.Shape shape : myShapeNames.keySet()) {
+    DefaultComboBoxModel<Shape> webShapesModel = new DefaultComboBoxModel<>();
+    for (Shape shape : myShapeNames.keySet()) {
       webShapesModel.addElement(shape);
     }
-    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<IconGenerator.Shape>() {
+    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
       @Override
-      public void customize(JList list, IconGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
         setText(myShapeNames.get(shape));
       }
     });
     myWebIconShapeComboBox.setModel(webShapesModel);
-    myWebIconShapeComboBox.setSelectedItem(IconGenerator.Shape.SQUARE);
+    myWebIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 
     myForegroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myForegroundScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myForegroundScrollPane.setBorder(JBUI.Borders.empty());
 
     myBackgroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myBackgroundScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myBackgroundScrollPane.setBorder(JBUI.Borders.empty());
 
     myOtherIconsScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myOtherIconsScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myOtherIconsScrollPane.setBorder(JBUI.Borders.empty());
 
     myOutputName = new TextProperty(myOutputNameTextField);
     myForegroundLayerName = new TextProperty(myForegroundLayerNameTextField);
     myBackgroundLayerName = new TextProperty(myBackgroundLayerNameTextField);
 
     myForegroundAssetPanelMap = ImmutableMap.of(
-      myForegroundImageRadioButton, myForegroundImageAssetBrowser,
-      myForegroundClipartRadioButton, myForegroundClipartAssetButton,
-      myForegroundTextRadioButton, myForegroundTextAssetEditor
-    );
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("drawable-v24", "ic_launcher_foreground.xml"));
-    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("drawable", "ic_launcher_background.xml"));
+        ForegroundAssetType.IMAGE, myForegroundImageAssetBrowser,
+        ForegroundAssetType.CLIP_ART, myForegroundClipartAssetButton,
+        ForegroundAssetType.TEXT, myForegroundTextAssetEditor);
 
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_FOREGROUND_IMAGE);
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_BACKGROUND_IMAGE);
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
     // valid targets.
@@ -345,12 +377,14 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     clipartAsset.outputWidth().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
     clipartAsset.outputHeight().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
 
-    myForegroundImageRadioButton.setSelected(true);
+    myForegroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_FOREGROUND_ASSET_TYPE, ForegroundAssetType.values(),
+                                                              myForegroundImageRadioButton, myForegroundClipartRadioButton,
+                                                              myForegroundTextRadioButton);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
     myForegroundColorPanel.setSelectedColor(myIconGenerator.foregroundColor().get());
 
-    // For the background layer, use a simple plain color by default.
-    myBackgroundImageRadioButton.setSelected(true);
+    myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
+                                                              myBackgroundImageRadioButton, myBackgroundColorRadioButton);
     myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
@@ -362,8 +396,67 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       Disposer.register(this, assetComponent);
     }
     Disposer.register(this, myBackgroundImageAssetBrowser);
+    Disposer.register(this, myIconGenerator);
 
     add(myRootPanel);
+  }
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    state.set(FOREGROUND_ASSET_TYPE_PROPERTY, myForegroundAssetType.get(), DEFAULT_FOREGROUND_ASSET_TYPE);
+    state.set(BACKGROUND_ASSET_TYPE_PROPERTY, myBackgroundAssetType.get(), DEFAULT_BACKGROUND_ASSET_TYPE);
+    for (Map.Entry<ForegroundAssetType, AssetComponent> entry : myForegroundAssetPanelMap.entrySet()) {
+      state.setChild("foreground" + toUpperCamelCase(entry.getKey()), entry.getValue().getAsset().getState());
+    }
+    state.setChild("background" + toUpperCamelCase(BackgroundAssetType.IMAGE), myBackgroundImageAssetBrowser.getAsset().getState());
+    // Notice that the foreground colors that are owned by the asset components have already been saved.
+    state.set(BACKGROUND_COLOR_PROPERTY, myBackgroundColor.get(), LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR);
+    state.set(GENERATE_LEGACY_ICON_PROPERTY, myGenerateLegacyIcon.get(), true);
+    state.set(GENERATE_ROUND_ICON_PROPERTY, myGenerateRoundIcon.get(), true);
+    state.set(GENERATE_WEB_ICON_PROPERTY, myGenerateWebIcon.get(), true);
+    state.set(LEGACY_ICON_SHAPE_PROPERTY, myLegacyIconShape.get(), DEFAULT_ICON_SHAPE);
+    state.set(WEB_ICON_SHAPE_PROPERTY, myWebIconShape.get(), DEFAULT_ICON_SHAPE);
+    state.set(SHOW_GRID_PROPERTY, myShowGrid.get(), false);
+    state.set(SHOW_SAFE_ZONE_PROPERTY, myShowSafeZone.get(), true);
+    state.set(PREVIEW_DENSITY_PROPERTY, myPreviewDensity.get(), DEFAULT_PREVIEW_DENSITY);
+    state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), DEFAULT_OUTPUT_NAME);
+    state.set(FOREGROUND_LAYER_NAME_PROPERTY, myForegroundLayerName.get(), defaultForegroundLayerName());
+    state.set(BACKGROUND_LAYER_NAME_PROPERTY, myBackgroundLayerName.get(), defaultBackgroundLayerName());
+    state.set(FOREGROUND_IMAGE_PROPERTY, myForegroundImageAssetBrowser.getAsset().imagePath().getValueOrNull(), DEFAULT_FOREGROUND_IMAGE);
+    state.set(BACKGROUND_IMAGE_PROPERTY, myBackgroundImageAssetBrowser.getAsset().imagePath().getValueOrNull(), DEFAULT_BACKGROUND_IMAGE);
+    state.setChild(FOREGROUND_CLIPART_ASSET_PROPERTY, myForegroundClipartAssetButton.getState());
+    state.setChild(FOREGROUND_TEXT_ASSET_PROPERTY, myForegroundTextAssetEditor.getState());
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    myForegroundAssetType.set(state.get(FOREGROUND_ASSET_TYPE_PROPERTY, DEFAULT_FOREGROUND_ASSET_TYPE));
+    myBackgroundAssetType.set(state.get(BACKGROUND_ASSET_TYPE_PROPERTY, DEFAULT_BACKGROUND_ASSET_TYPE));
+    for (Map.Entry<ForegroundAssetType, AssetComponent> entry : myForegroundAssetPanelMap.entrySet()) {
+      PersistentStateUtil.load(entry.getValue().getAsset(), state.getChild("foreground" + toUpperCamelCase(entry.getKey())));
+    }
+    PersistentStateUtil.load(myBackgroundImageAssetBrowser.getAsset(),
+                             state.getChild("background" + toUpperCamelCase(BackgroundAssetType.IMAGE)));
+    // Notice that the foreground colors that are owned by the asset components have already been loaded.
+    myBackgroundColor.set(state.get(BACKGROUND_COLOR_PROPERTY, LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR));
+    myGenerateLegacyIcon.set(state.get(GENERATE_LEGACY_ICON_PROPERTY, true));
+    myGenerateRoundIcon.set(state.get(GENERATE_ROUND_ICON_PROPERTY, true));
+    myGenerateWebIcon.set(state.get(GENERATE_WEB_ICON_PROPERTY, true));
+    myLegacyIconShape.set(state.get(LEGACY_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
+    myWebIconShape.set(state.get(WEB_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
+    myShowGrid.set(state.get(SHOW_GRID_PROPERTY, false));
+    myShowSafeZone.set(state.get(SHOW_SAFE_ZONE_PROPERTY, true));
+    myPreviewDensity.set(state.get(PREVIEW_DENSITY_PROPERTY, DEFAULT_PREVIEW_DENSITY));
+    myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
+    myForegroundLayerName.set(state.get(FOREGROUND_LAYER_NAME_PROPERTY, defaultForegroundLayerName()));
+    myBackgroundLayerName.set(state.get(BACKGROUND_LAYER_NAME_PROPERTY, defaultBackgroundLayerName()));
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(state.get(FOREGROUND_IMAGE_PROPERTY, DEFAULT_FOREGROUND_IMAGE));
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(state.get(BACKGROUND_IMAGE_PROPERTY, DEFAULT_BACKGROUND_IMAGE));
+    PersistentStateUtil.load(myForegroundClipartAssetButton, state.getChild(FOREGROUND_CLIPART_ASSET_PROPERTY));
+    PersistentStateUtil.load(myForegroundTextAssetEditor, state.getChild(FOREGROUND_TEXT_ASSET_PROPERTY));
   }
 
   /**
@@ -398,42 +491,43 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   }
 
   private void initializeListenersAndBindings() {
-    final BoolProperty foregroundTrimmed = new SelectedProperty(myForegroundTrimYesRadioButton);
-    final BoolProperty backgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
+    myForegroundTrimmed = new SelectedProperty(myForegroundTrimYesRadioButton);
+    myBackgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
 
-    final IntProperty foregroundResizePercent = new SliderValueProperty(myForegroundResizeSlider);
-    final StringProperty foregroundResizeValueString = new TextProperty(myForegroundResizeValueLabel);
-    myGeneralBindings.bind(foregroundResizeValueString, new FormatExpression("%d %%", foregroundResizePercent));
+    myForegroundResizePercent = new SliderValueProperty(myForegroundResizeSlider);
+    StringProperty foregroundResizeValueString = new TextProperty(myForegroundResizeValueLabel);
+    myGeneralBindings.bind(foregroundResizeValueString, new FormatExpression("%d %%", myForegroundResizePercent));
 
-    final IntProperty backgroundResizePercent = new SliderValueProperty(myBackgroundResizeSlider);
-    final StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
-    myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", backgroundResizePercent));
+    myBackgroundResizePercent = new SliderValueProperty(myBackgroundResizeSlider);
+    StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
+    myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myForegroundImageRadioButton);
-    myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
     myGenerateWebIcon = new SelectedProperty(myGenerateWebIconYesRadioButton);
 
-    myLegacyIconShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
-    myWebIconShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myWebIconShapeComboBox));
+    myLegacyIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
+    myWebIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myWebIconShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
     // Update foreground layer asset type depending on asset type radio buttons.
-    ActionListener radioSelectedListener = e -> {
-      JRadioButton source = ((JRadioButton)e.getSource());
-      AssetComponent assetComponent = myForegroundAssetPanelMap.get(source);
+    myForegroundAssetType.addListener(sender -> {
+      AssetComponent assetComponent = myForegroundAssetPanelMap.get(myForegroundAssetType.get());
       myForegroundActiveAsset.set(assetComponent.getAsset());
-    };
-    myForegroundClipartRadioButton.addActionListener(radioSelectedListener);
-    myForegroundImageRadioButton.addActionListener(radioSelectedListener);
-    myForegroundTextRadioButton.addActionListener(radioSelectedListener);
+    });
 
-    // Update background asset depending on asset type radio buttons
-    myBackgroundImageRadioButton.addActionListener(e -> myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset()));
-    myBackgroundColorRadioButton.addActionListener(e -> myBackgroundImageAsset.clear());
+    // Update background asset depending on asset type radio buttons.
+    myBackgroundAssetType.addListener(sender -> {
+      if (myBackgroundAssetType.get() == BackgroundAssetType.IMAGE) {
+        myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset());
+      } else {
+        myBackgroundImageAsset.clear();
+      }
+    });
 
     // If any of our underlying asset panels change, we should pass that on to anyone listening to
     // us as well.
@@ -445,8 +539,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
 
     Runnable onAssetModified = this::fireAssetListeners;
     myListeners
-        .listenAll(foregroundTrimmed, foregroundResizePercent, myForegroundColor,
-                   backgroundTrimmed, backgroundResizePercent, myBackgroundColor,
+        .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
+                   myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
                    myGenerateLegacyIcon, myLegacyIconShape,
                    myGenerateRoundIcon,
                    myGenerateWebIcon, myWebIconShape)
@@ -455,8 +549,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
     myListeners.listenAndFire(myForegroundActiveAsset, sender -> {
       myForegroundActiveAssetBindings.releaseAll();
-      myForegroundActiveAssetBindings.bind(myForegroundActiveAsset.get().trimmed(), foregroundTrimmed);
-      myForegroundActiveAssetBindings.bind(myForegroundActiveAsset.get().scalingPercent(), foregroundResizePercent);
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, myForegroundActiveAsset.get().trimmed());
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundResizePercent, myForegroundActiveAsset.get().scalingPercent());
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, myForegroundActiveAsset.get().color());
       myForegroundActiveAssetBindings.bind(foregroundIsResizable, myForegroundActiveAsset.get().isResizable());
 
@@ -470,10 +564,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       myBackgroundActiveAssetBindings.releaseAll();
       ImageAsset imageAsset = myBackgroundImageAsset.getValueOrNull();
       if (imageAsset != null) {
-        if (imageAsset.isResizable().get()) {
-          myBackgroundActiveAssetBindings.bind(imageAsset.trimmed(), backgroundTrimmed);
-          myBackgroundActiveAssetBindings.bind(imageAsset.scalingPercent(), backgroundResizePercent);
-        }
+        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundTrimmed, imageAsset.trimmed());
+        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundResizePercent, imageAsset.scalingPercent());
         myBackgroundActiveAssetBindings.bind(backgroundIsResizable, imageAsset.isResizable());
       }
       else {
@@ -483,16 +575,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       onAssetModified.run();
     };
     myListeners.listenAndFire(myBackgroundImageAsset, sender -> onBackgroundAssetModified.run());
-
-    BooleanExpression isClipartOrText =
-      new BooleanExpression(myForegroundActiveAsset) {
-        @NotNull
-        @Override
-        public Boolean get() {
-          return myForegroundClipartAssetButton.getAsset() == myForegroundActiveAsset.get() ||
-                 myForegroundTextAssetEditor.getAsset() == myForegroundActiveAsset.get();
-        }
-      };
 
     /*
      * Hook up a bunch of UI <- boolean expressions, so that when certain conditions are met,
@@ -504,12 +586,15 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     layoutPropertiesBuilder
         .put(new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundTextAssetRowPanel), new SelectedProperty(myForegroundTextRadioButton));
-    layoutPropertiesBuilder.put(new VisibleProperty(myForegroundColorRowPanel), isClipartOrText);
+    BooleanExpression isForegroundIsNotImage =
+        BooleanExpression.create(() -> myForegroundAssetType.get() != ForegroundAssetType.IMAGE, myForegroundAssetType);
+    layoutPropertiesBuilder.put(new VisibleProperty(myForegroundColorRowPanel), isForegroundIsNotImage);
 
     if (HIDE_INAPPLICABLE_CONTROLS) {
       layoutPropertiesBuilder.put(new VisibleProperty(myForegroundScalingTitleSeparator), foregroundIsResizable);
       layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageOptionsPanel), foregroundIsResizable);
-    } else {
+    }
+    else {
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimYesRadioButton), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimNoRadioButton), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeSlider), foregroundIsResizable);
@@ -524,7 +609,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     if (HIDE_INAPPLICABLE_CONTROLS) {
       layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundScalingTitleSeparator), backgroundIsResizable);
       layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundImageOptionsPanel), backgroundIsResizable);
-    } else {
+    }
+    else {
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimYesRadioButton), backgroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimNoRadioButton), backgroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeSlider), backgroundIsResizable);
@@ -603,7 +689,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   }
 
   /**
-   * Add a listener which will be triggered whenever the asset represented by this panel is
+   * Adds a listener which will be triggered whenever the asset represented by this panel is
    * modified in any way.
    */
   @Override
@@ -625,12 +711,12 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   }
 
   private void updateBindingsAndUiForActiveIconType() {
-    myOutputName.set(AndroidIconType.LAUNCHER.toOutputName("name"));
-    myForegroundLayerName.set("ic_launcher_foreground");
-    myBackgroundLayerName.set("ic_launcher_background");
+    myOutputName.set(DEFAULT_OUTPUT_NAME);
+    myForegroundLayerName.set(defaultForegroundLayerName());
+    myBackgroundLayerName.set(defaultBackgroundLayerName());
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myForegroundActiveAsset));
-    myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
+    myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundImageAsset(), myBackgroundImageAsset);
 
     myGeneralBindings.bind(myIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
@@ -641,9 +727,9 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bindTwoWay(myGenerateWebIcon, myIconGenerator.generateWebIcon());
     myGeneralBindings.bindTwoWay(myLegacyIconShape, myIconGenerator.legacyIconShape());
     myGeneralBindings.bindTwoWay(myWebIconShape, myIconGenerator.webIconShape());
-    myGeneralBindings.bindTwoWay(myShowGridProperty, myIconGenerator.showGrid());
-    myGeneralBindings.bindTwoWay(myShowSafeZoneProperty, myIconGenerator.showSafeZone());
-    myGeneralBindings.bindTwoWay(myPreviewDensityProperty, myIconGenerator.previewDensity());
+    myGeneralBindings.bindTwoWay(myShowGrid, myIconGenerator.showGrid());
+    myGeneralBindings.bindTwoWay(myShowSafeZone, myIconGenerator.showSafeZone());
+    myGeneralBindings.bindTwoWay(myPreviewDensity, myIconGenerator.previewDensity());
     myGeneralBindings.bindTwoWay(myIconGenerator.foregroundLayerName(), myForegroundLayerName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundLayerName(), myBackgroundLayerName);
   }
@@ -655,6 +741,26 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myBackgroundActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
     myAssetListeners.clear();
-    myIconGenerator.dispose();
+  }
+
+  @NotNull
+  private String defaultForegroundLayerName() {
+    return myOutputName.get() + "_foreground";
+  }
+
+  @NotNull
+  private String defaultBackgroundLayerName() {
+    return myOutputName.get() + "_background";
+  }
+
+  private enum ForegroundAssetType {
+    IMAGE,
+    CLIP_ART,
+    TEXT,
+  }
+
+  private enum BackgroundAssetType {
+    IMAGE,
+    COLOR,
   }
 }

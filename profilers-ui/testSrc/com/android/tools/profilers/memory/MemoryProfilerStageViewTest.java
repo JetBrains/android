@@ -16,7 +16,9 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.collect.ImmutableMap;
@@ -164,8 +166,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(startTime));
     assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());
 
-    myService.setExplicitAllocationsStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
                                          TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
 
     myStage.trackAllocations(true);
@@ -178,15 +180,15 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                  stageView.getCaptureElapsedTimeLabel().getText());
 
     // Triggering a heap dump should not affect the allocation recording duration
-    myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
+    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(TimeUnit.SECONDS.toNanos(invalidTime), TimeUnit.SECONDS.toNanos(Long.MAX_VALUE));
     myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
                  stageView.getCaptureElapsedTimeLabel().getText());
 
-    myService.setExplicitAllocationsStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
                                          TimeUnit.SECONDS.toNanos(endTime), true);
     myStage.trackAllocations(false);
     assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());

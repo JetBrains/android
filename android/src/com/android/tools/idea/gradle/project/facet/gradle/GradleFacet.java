@@ -19,12 +19,14 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +42,11 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   @NotNull private static final FacetTypeId<GradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
 
   @Nullable private GradleModuleModel myGradleModuleModel;
+
+  @Nullable
+  public static GradleFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    return modelsProvider.getModifiableFacetModel(module).getFacetByType(TYPE_ID);
+  }
 
   public static boolean isAppliedTo(@NotNull Module module) {
     return getInstance(module) != null;

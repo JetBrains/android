@@ -36,6 +36,7 @@ public final class CodeLocation {
   @Nullable
   private final String mySignature;
   private final int myLineNumber;
+  private final boolean myNativeCode;
   private final int myHashcode;
 
   private CodeLocation(@NotNull Builder builder) {
@@ -44,6 +45,7 @@ public final class CodeLocation {
     myMethodName = builder.myMethodName;
     mySignature = builder.mySignature;
     myLineNumber = builder.myLineNumber;
+    myNativeCode = builder.myNativeCode;
     myHashcode = Arrays.hashCode(new int[]{myClassName.hashCode(), myFileName == null ? 0 : myFileName.hashCode(),
       myMethodName == null ? 0 : myMethodName.hashCode(), mySignature == null ? 0 : mySignature.hashCode(),
       Integer.hashCode(myLineNumber)});
@@ -99,6 +101,10 @@ public final class CodeLocation {
     return mySignature;
   }
 
+  public boolean isNativeCode() {
+    return myNativeCode;
+  }
+
   @Override
   public int hashCode() {
     return myHashcode;
@@ -124,6 +130,7 @@ public final class CodeLocation {
     @Nullable String myMethodName;
     @Nullable String mySignature;
     int myLineNumber = INVALID_LINE_NUMBER;
+    boolean myNativeCode;
 
     public Builder(@NotNull String className) {
       myClassName = className;
@@ -171,6 +178,11 @@ public final class CodeLocation {
     @NotNull
     public Builder setLineNumber(int lineNumber) {
       myLineNumber = lineNumber;
+      return this;
+    }
+
+    public Builder setNativeCode(boolean nativeCode) {
+      myNativeCode = nativeCode;
       return this;
     }
 

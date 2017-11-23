@@ -22,12 +22,10 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
-import java.util.Map;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 import static java.awt.BasicStroke.*;
@@ -36,12 +34,6 @@ import static java.awt.BasicStroke.*;
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
 public class DrawAction extends NavBaseDrawCommand {
-  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-  );
-
   private static final GeneralPath PATH = new GeneralPath();
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private final Rectangle mySource = new Rectangle();
@@ -67,20 +59,20 @@ public class DrawAction extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_ACTION;
+    return DRAW_ACTION_LEVEL;
   }
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    g.setRenderingHints(HQ_RENDERING_HITS);
+    setRenderingHints(g);
     ColorSet color = sceneContext.getColorSet();
     draw(g, color, myConnectionType, mySource, myDest, myMode, sceneContext);
   }
 
   public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
-                     @SwingCoordinate Rectangle source,
-                     @SwingCoordinate Rectangle dest,
-                     @NotNull DrawMode mode) {
+                    @SwingCoordinate Rectangle source,
+                    @SwingCoordinate Rectangle dest,
+                    @NotNull DrawMode mode) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
     myConnectionType = connectionType;
@@ -106,7 +98,7 @@ public class DrawAction extends NavBaseDrawCommand {
                            @SwingCoordinate Rectangle dest,
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
-    Color actionColor = (mode == SELECTED) ? color.getSelectedFrames() : color.getFrames();
+    Color actionColor = (mode == SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
 
     @SwingCoordinate int endX;
     @SwingCoordinate int endY;

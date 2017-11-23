@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -36,6 +37,7 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
   public void testResourceChangeIsDetected() throws Exception {
     myFixture.copyFileToProject(BASEDIR + "AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(BASEDIR + "res/values/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASEDIR + "res/values/styles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASEDIR + "res/drawable-hdpi/ic_launcher.png", "res/drawable-hdpi/ic_launcher.png");
 
     HashCode hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
@@ -56,6 +58,13 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
     // change the contents of the launcher icon referenced from manifest
     hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
     myFixture.copyFileToProject(BASEDIR + "res/drawable-mdpi/ic_launcher.png", "res/drawable-hdpi/ic_launcher.png");
+    assertNotEquals("Hash should change if a resource referenced from the manifest is changed",
+                    hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));
+
+    // change the contents of the theme referenced from manifest
+    hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
+    resValue = repository.getConfiguredValue(ResourceType.STYLE, "AppTheme", new FolderConfiguration());
+    ((StyleResourceValue)resValue).getItem("colorPrimary", false).setValue("colorPrimaryDark");
     assertNotEquals("Hash should change if a resource referenced from the manifest is changed",
                     hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));
   }

@@ -28,8 +28,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -72,24 +71,36 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new StackTraceViewStub(model);
   }
 
+  @NotNull
   @Override
-  public void installNavigationContextMenu(@NotNull JComponent component,
-                                           @NotNull CodeNavigator navigator,
-                                           @NotNull Supplier<CodeLocation> codeLocationSupplier) {
-    assertFalse(myComponentNavigations.containsKey(component));
-    myComponentNavigations.put(component, codeLocationSupplier);
+  public ContextMenuInstaller createContextMenuInstaller() {
+    return new ContextMenuInstaller() {
+      @Override
+      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+        List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
+        menus.add(contextMenuItem);
+      }
+
+      @Override
+      public void installNavigationContextMenu(@NotNull JComponent component,
+                                               @NotNull CodeNavigator navigator,
+                                               @NotNull Supplier<CodeLocation> codeLocationSupplier) {
+        assertFalse(myComponentNavigations.containsKey(component));
+        myComponentNavigations.put(component, codeLocationSupplier);
+      }
+    };
   }
 
+  @NotNull
   @Override
-  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
-    List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
-    menus.add(contextMenuItem);
-  }
-
-  @Override
-  public void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
-                               @NotNull Supplier<String> extensionSupplier,
-                               @NotNull Consumer<File> saveToFile) {
+  public ExportDialog createExportDialog() {
+    return new ExportDialog() {
+      @Override
+      public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull Supplier<String> extensionSupplier,
+                       @NotNull Consumer<File> saveToFile) {
+      }
+    };
   }
 
   @Nullable
@@ -136,6 +147,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
                                                            @Nullable Collection<String> variants) {
     return new AutoCompleteTextField() {
       final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
+
       @NotNull
       @Override
       public JComponent getComponent() {
@@ -143,7 +155,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       }
 
       @Override
-      public void addOnDocumentChange(@NotNull Runnable callback) {}
+      public void addOnDocumentChange(@NotNull Runnable callback) {
+      }
 
       @NotNull
       @Override
@@ -153,8 +166,28 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  @NotNull
+  @Override
+  public SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs) {
+    return new SearchComponent() {
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return null;
+      }
+
+      @Override
+      public void addOnFilterChange(@NotNull com.intellij.util.Consumer<Pattern> callback) {}
+
+      @Override
+      public void setText(@NotNull String text) {}
+    };
+  }
+
   public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
+
+    private JPanel myComponent = new JPanel();
 
     public StackTraceViewStub(@NotNull StackTraceModel model) {
       myModel = model;
@@ -169,7 +202,11 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @NotNull
     @Override
     public JComponent getComponent() {
-      return new JPanel();
+      return myComponent;
+    }
+
+    @Override
+    public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     }
   }
 }

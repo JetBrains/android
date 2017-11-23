@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.actions;
 
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -25,6 +24,7 @@ import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -158,13 +158,13 @@ public class DragCreateActionTest extends NavigationTestCase {
 
   private static void dragFromActionHandle(InteractionManager interactionManager,
                                            SceneComponent component,
-                                           @AndroidDpCoordinate int x,
-                                           @AndroidDpCoordinate int y,
+                                           @NavCoordinate int x,
+                                           @NavCoordinate int y,
                                            SceneView view) {
-    Rectangle rect = Coordinates.getSwingRectDip(view, component.fillRect(null));
+    Rectangle rect = Coordinates.getSwingRect(view, component.fillRect(null));
     LayoutTestUtilities
-      .pressMouse(interactionManager, BUTTON1, rect.x + rect.width, Coordinates.getSwingYDip(view, component.getCenterY()), 0);
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y), 0);
+      .pressMouse(interactionManager, BUTTON1, rect.x + rect.width, Coordinates.getSwingY(view, component.getCenterY()), 0);
+    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y), 0);
   }
 
   private static void verifyModel(SyncNlModel model, String expected) {

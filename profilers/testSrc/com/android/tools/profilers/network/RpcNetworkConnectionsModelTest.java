@@ -27,29 +27,42 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 public class RpcNetworkConnectionsModelTest {
-  private static final String FAKE_PAYLOAD_ID = "Test Payload";
+  private static final String FAKE_REQUEST_PAYLOAD_ID = "payloadRequest";
+  private static final String FAKE_RESPONSE_PAYLOAD_ID = "payloadResponse";
   private static final String FAKE_REQUEST_HEADERS = "User-Agent = Customized\n Accept = text/plain";
 
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14)
+      // Finished request (1-6)
+      .add(TestHttpData.newBuilder(1, 1, 6, new HttpData.JavaThread(1, "threadA"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(0, "threadA"))
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 1)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 1)
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6)
+      // Finished request (2-5)
+      .add(TestHttpData.newBuilder(2, 2, 5, new HttpData.JavaThread(2, "threadB"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(1, "threadB"))
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 2)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 2)
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0)
+      // Unfinished request (3-?)
+      .add(TestHttpData.newBuilder(3, 3, 0, 0, 0, new HttpData.JavaThread(3, "threadC"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(2, "threadC"))
+             // No request / response payload, hasn't started uploading yet
              .build())
-      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12)
+      // Unfinished request (4-?)
+      .add(TestHttpData.newBuilder(4, 4, 5, 0, 0, new HttpData.JavaThread(4, "threadD"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
-             .addJavaThread(new HttpData.JavaThread(3, "threadD"))
+             // No response payload, hasn't finished downloading yet
+             .build())
+      // Finished request (8-12)
+      .add(TestHttpData.newBuilder(5, 8, 9, 10, 12, new HttpData.JavaThread(5, "threadE"))
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 5)
+             .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 5)
              .build())
       .build();
 
@@ -64,71 +77,83 @@ public class RpcNetworkConnectionsModelTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
                                              ProfilersTestData.SESSION_DATA);
+
+    for (int i = 0; i < FAKE_DATA.size(); i++) {
+      long id = FAKE_DATA.get(i).getId();
+      myProfilerService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
+      myProfilerService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
+    }
   }
 
   @Test
-  public void requestResponsePayload() {
-    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId(FAKE_PAYLOAD_ID).build();
-    assertEquals("Dummy Contents", myModel.requestResponsePayload(data).toStringUtf8());
+  public void nonEmptyPayload() {
+    myProfilerService.addFile("payloadid", ByteString.copyFromUtf8("Dummy Contents"));
+    assertThat(myModel.requestPayload("payloadid").toStringUtf8()).isEqualTo("Dummy Contents");
   }
 
   @Test
-  public void emptyRequestResponsePayload() {
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).build();
-    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
-    data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("").build();
-    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
+  public void notFoundPayload_ReturnsEmptyByteString() {
+    assertThat(myModel.requestPayload("invalid id")).isEqualTo(ByteString.EMPTY);
   }
 
   @Test
   public void rangeCanIncludeAllRequests() {
-    checkGetData(0, 10, 0, 1, 2, 3);
+    checkGetData(0, 10, 1, 2, 3, 4, 5);
   }
 
   @Test
   public void rangeCanExcludeTailRequests() {
-    checkGetData(0, 6, 0, 1, 2);
+    checkGetData(0, 6, 1, 2, 3, 4);
   }
 
   @Test
   public void rangeCanExcludeHeadRequests() {
-    checkGetData(8, 12, 0, 2, 3);
+    checkGetData(8, 12, 3, 4, 5);
   }
 
   @Test
   public void rangeCanIncludeRequestsThatAreStillDownloading() {
-    checkGetData(1000, 1002, 2);
+    checkGetData(1000, 1001, 3, 4);
   }
 
   @Test
   public void testRequestStartAndEndAreInclusive() {
-    checkGetData(6, 8, 0, 1, 2, 3);
+    checkGetData(6, 8, 1, 3, 4, 5);
   }
 
   private void checkGetData(long startTimeS, long endTimeS, long... expectedIds) {
     Range range = new Range(TimeUnit.SECONDS.toMicros(startTimeS), TimeUnit.SECONDS.toMicros(endTimeS));
     List<HttpData> actualData = myModel.getData(range);
-    assertEquals(expectedIds.length, actualData.size());
+    assertThat(actualData).hasSize(expectedIds.length);
 
     for (int i = 0; i < actualData.size(); ++i) {
       HttpData data = actualData.get(i);
       long id = expectedIds[i];
-      assertEquals(id, data.getId());
-      assertEquals(FAKE_DATA.get((int)id).getStartTimeUs(), data.getStartTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getDownloadingTimeUs(), data.getDownloadingTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getEndTimeUs(), data.getEndTimeUs());
-      assertEquals(FAKE_DATA.get((int)id).getMethod(), data.getMethod());
-      assertEquals(FAKE_DATA.get((int)id).getUrl(), data.getUrl());
-      assertEquals(FAKE_DATA.get((int)id).getStackTrace().getTrace(), data.getStackTrace().getTrace());
-      assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
-      assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
-      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getId(), data.getJavaThreads().get(0).getId());
-      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getName(), data.getJavaThreads().get(0).getName());
-      ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
-      assertEquals(2, requestHeaders.size());
-      assertEquals("Customized", requestHeaders.get("user-agent"));
-      assertEquals("text/plain", requestHeaders.get("accept"));
+      assertThat(data.getId()).isEqualTo(id);
+      HttpData expectedData = FAKE_DATA.stream().filter(d -> d.getId() == id).findFirst().get();
+
+      assertThat(data.getStartTimeUs()).isEqualTo(expectedData.getStartTimeUs());
+      assertThat(data.getUploadedTimeUs()).isEqualTo(expectedData.getUploadedTimeUs());
+      assertThat(data.getDownloadingTimeUs()).isEqualTo(expectedData.getDownloadingTimeUs());
+      assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
+      assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
+      assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
+      assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+      assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
+      assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
+      assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
+      assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(expectedData.getJavaThreads().get(0).getId());
+      assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(expectedData.getJavaThreads().get(0).getName());
+
+      ImmutableMap<String, String> requestHeaders = data.getRequestHeader().getFields();
+      assertThat(requestHeaders).hasSize(2);
+      assertThat(requestHeaders.get("user-agent")).isEqualTo("Customized");
+      assertThat(requestHeaders.get("accept")).isEqualTo("text/plain");
+
+      assertThat(Payload.newRequestPayload(myModel, data).getBytes())
+        .isEqualTo(Payload.newRequestPayload(myModel, expectedData).getBytes());
+      assertThat(Payload.newResponsePayload(myModel, data).getBytes())
+        .isEqualTo(Payload.newResponsePayload(myModel, expectedData).getBytes());
     }
   }
 }

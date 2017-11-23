@@ -298,14 +298,12 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    Cursor cursor = null;
     SceneView sceneView = mySurface.getSceneView(x, y);
     if (sceneView != null) {
-      sceneView.updateCursor(x, y);
-      if (mySurface.getCursor() != Cursor.getDefaultCursor()) {
-        return;
-      }
+      cursor = sceneView.getCursor(x, y);
     }
-    mySurface.setCursor(null);
+    mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
   /**
@@ -459,7 +457,7 @@ public class InteractionManager {
         @AndroidDpCoordinate int mx = Coordinates.getAndroidXDip(sceneView, x);
         @AndroidDpCoordinate int my = Coordinates.getAndroidYDip(sceneView, y);
         @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+        SelectionHandle handle = selectionModel.findHandle(mx, my, max, mySurface);
         if (handle != null) {
           component = handle.component;
         }
@@ -510,6 +508,12 @@ public class InteractionManager {
         return;
       }
 
+      if (!SwingUtilities.isLeftMouseButton(event)) {
+        // mouse drag from a popup click (the popup menu was posted on
+        // the mousePressed event
+        return;
+      }
+
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
@@ -543,7 +547,7 @@ public class InteractionManager {
         // Dragging on top of a selection handle: start a resize operation
         @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle =
-          selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max);
+          selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max, mySurface);
         if (handle != null) {
           SceneComponent component = scene.getSceneComponent(handle.component);
           assert component != null;
@@ -685,9 +689,6 @@ public class InteractionManager {
         if (sceneView != null) {
           sceneView.toggleOrientation();
         }
-      }
-      else if (keyChar == 'f') {
-        mySurface.toggleDeviceFrames();
       }
       else if (keyChar == 'e') {
         IssuePanel panel = mySurface.getIssuePanel();

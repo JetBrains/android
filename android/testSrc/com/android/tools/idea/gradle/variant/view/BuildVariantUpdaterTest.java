@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
@@ -48,6 +49,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   @Mock private IdeDependencies myIdeDependencies;
   @Mock private IdeVariant myDebugVariant;
   @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private BuildVariantUpdater myVariantUpdater;
 
@@ -71,7 +74,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
     IdeComponents.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup);
 
-    myVariantUpdater = new BuildVariantUpdater(myModifiableModelsProviderFactory, Arrays.asList(mySetupStepToInvoke, mySetupStepToIgnore));
+    myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
+                                               Arrays.asList(mySetupStepToInvoke, mySetupStepToIgnore));
   }
 
   public void testUpdateSelectedVariant() {
@@ -79,17 +83,19 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
 
     Module module = getModule();
+    when(myModuleSetupContextFactory.create(module, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
     boolean updated = myVariantUpdater.updateSelectedVariant(getProject(), module.getName(), "release");
 
     assertTrue(updated);
 
-    verify(mySetupStepToInvoke).setUpModule(module, myModifiableModelsProvider, myAndroidModel, null, null);
-    verify(mySetupStepToIgnore, never()).setUpModule(module, myModifiableModelsProvider, myAndroidModel, null, null);
+    verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
+    verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
 
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any());
   }
 }

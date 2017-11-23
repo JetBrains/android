@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
 import com.android.tools.idea.testing.IdeComponents;
@@ -31,9 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -43,6 +42,8 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
   @Mock private JavaModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private IdeModifiableModelsProvider myModelsProvider;
   private JavaModuleModelDataService myService;
@@ -54,7 +55,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
 
     IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService = new JavaModuleModelDataService(myModuleSetup, myCleanupStep);
+    myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
@@ -79,10 +80,11 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     DataNode<JavaModuleModel> dataNode = new DataNode<>(JAVA_MODULE_MODEL, model, null);
     Collection<DataNode<JavaModuleModel>> dataNodes = Collections.singleton(dataNode);
 
+    when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
     verify(mySyncState).isSyncSkipped();
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, model, false);
   }
 
   public void testOnModelsNotFound() {

@@ -4,16 +4,14 @@
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest">
         <Message>process_id: 1234
 session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartMonitoringApp</functionCalled>
         <message>process_id: 1234
 session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </message>
     </GrpcCall>
@@ -168,16 +166,14 @@ trace: "Test Data"
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">
         <Message>process_id: 1234
 session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
         <message>process_id: 1234
 session {
-  device_serial: "TEST_DEVICE_SERIAL"
-  boot_id: "TEST_BOOT_ID"
+  device_id: 1234
 }
 </message>
     </GrpcCall>

@@ -17,10 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.InfoMessagePanel;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -65,7 +62,7 @@ final class MemoryClassifierView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+  @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
   @NotNull private final Map<ClassifierAttribute, AttributeColumn<ClassifierSet>> myAttributeColumns = new HashMap<>();
 
@@ -99,8 +96,9 @@ final class MemoryClassifierView extends AspectObserver {
 
   public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myIdeProfilerComponents = ideProfilerComponents;
-    myLoadingPanel = myIdeProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
+    myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+    myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
+    myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
@@ -234,7 +232,6 @@ final class MemoryClassifierView extends AspectObserver {
 
   private void refreshFilter() {
     if (myHeapSet != null) {
-      myHeapSet.selectFilter(myStage.getCaptureFilter());
       refreshTree();
     }
   }
@@ -283,7 +280,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -362,25 +359,20 @@ final class MemoryClassifierView extends AspectObserver {
 
   private void refreshClassifierPanel() {
     assert myTreeRoot != null && myColumnTree != null && myHelpTipInfoMessagePanel != null;
+    myClassifierPanel.removeAll();
     if (myTreeRoot.getAdapter().isEmpty()) {
-      myClassifierPanel.remove(myColumnTree);
       myClassifierPanel.add(myHelpTipInfoMessagePanel, BorderLayout.CENTER);
     }
     else {
-      myClassifierPanel.remove(myHelpTipInfoMessagePanel);
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);
     }
-    myClassifierPanel.invalidate();
+    myClassifierPanel.revalidate();
     myClassifierPanel.repaint();
   }
 
   private void refreshTree() {
     if (myHeapSet == null) {
       return;
-    }
-
-    if (myHeapSet.getFilter() != "") {
-      myHeapSet.applyFilter();
     }
 
     assert myTreeRoot != null && myTreeModel != null && myTree != null;
@@ -408,6 +400,30 @@ final class MemoryClassifierView extends AspectObserver {
         mySelectedClassifierSet = null;
       }
     }
+
+    if (myStage.getCaptureFilter() != null) {
+      MemoryClassifierTreeNode treeNode = myTreeRoot;
+      while (treeNode != null) {
+        if (treeNode.getAdapter().getIsMatched()) {
+          TreePath treePath = new TreePath(treeNode.getPathToRoot().toArray());
+          myTree.expandPath(treePath.getParentPath());
+          break;
+        }
+
+        treeNode.expandNode();
+        myTreeModel.nodeStructureChanged(treeNode);
+        MemoryClassifierTreeNode nextNode = null;
+        for (MemoryObjectTreeNode<ClassifierSet> child : treeNode.getChildren()) {
+          if (child.getAdapter().getIsFiltered()) {
+            break;
+          }
+          assert child instanceof MemoryClassifierTreeNode;
+          nextNode = (MemoryClassifierTreeNode)child;
+          break;
+        }
+        treeNode = nextNode;
+      }
+    }
   }
 
   private void refreshHeapSet() {
@@ -421,8 +437,6 @@ final class MemoryClassifierView extends AspectObserver {
     myHeapSet = heapSet;
 
     if (myHeapSet != null) {
-      myHeapSet.selectFilter(myStage.getCaptureFilter());
-      myHeapSet.applyFilter();
       refreshGrouping();
     }
   }

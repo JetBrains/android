@@ -35,6 +35,8 @@ import javax.swing.border.Border;
 import javax.swing.plaf.ButtonUI;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * A wrapper presentation on {@link ActionButton} that allows for the button to maintain state. In practice this means that either a button
@@ -50,6 +52,7 @@ public class StatefulButton extends JPanel {
   @Nullable private final AssistActionStateManager myStateManager;
   @NotNull private final ActionData myAction;
   @NotNull private final Project myProject;
+  @NotNull private final Collection<MessageBusConnection> myMessageBusConnections = new ArrayList<>();
   @VisibleForTesting
   @Nullable
   StatefulButtonMessage myMessage;
@@ -125,16 +128,37 @@ public class StatefulButton extends JPanel {
         // Initialize to hidden until state management is completed.
         myMessage.setVisible(false);
       }
-
-      // Listen for notifications that the state has been updated.
-      for (Module module : GradleProjectInfo.getInstance(project).getAndroidModules()) {
-        MessageBusConnection connection = module.getMessageBus().connect(module);
-        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);
-      }
     }
 
     // Initialize the button state. This includes making the proper element visible.
     updateButtonState();
+  }
+
+  @Override
+  public void addNotify() {
+    assert SwingUtilities.isEventDispatchThread();
+
+    updateButtonState();
+    if (myStateManager != null) {
+      // Listen for notifications that the state has been updated.
+      for (Module module : GradleProjectInfo.getInstance(myProject).getAndroidModules()) {
+        MessageBusConnection connection = module.getMessageBus().connect(module);
+        myMessageBusConnections.add(connection);
+        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);
+      }
+    }
+
+    super.addNotify();
+  }
+
+  @Override
+  public void removeNotify() {
+    assert SwingUtilities.isEventDispatchThread();
+
+    myMessageBusConnections.forEach(MessageBusConnection::disconnect);
+    myMessageBusConnections.clear();
+
+    super.removeNotify();
   }
 
   @NotNull
@@ -167,7 +191,6 @@ public class StatefulButton extends JPanel {
 
     if (myMessage != null) {
       updateUIForState(state);
-      return;
     }
   }
 

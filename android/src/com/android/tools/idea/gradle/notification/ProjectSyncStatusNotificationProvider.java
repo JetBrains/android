@@ -177,8 +177,20 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   // retrying sync itself)
   @VisibleForTesting
   static class IndexingSensitiveNotificationPanel extends NotificationPanel implements Disposable {
+    private final DumbService myDumbService;
+
     IndexingSensitiveNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      this(project, type, text, DumbService.getInstance(project));
+    }
+
+    @VisibleForTesting
+    IndexingSensitiveNotificationPanel(@NotNull Project project,
+                                       @NotNull Type type,
+                                       @NotNull String text,
+                                       @NotNull DumbService dumbService) {
       super(type, text);
+
+      myDumbService = dumbService;
 
       Disposer.register(project, this);
       MessageBusConnection connection = project.getMessageBus().connect(this);
@@ -195,7 +207,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       });
 
       // First subscribe, then update visibility
-      setVisible(!DumbService.getInstance(project).isDumb());
+      setVisible(!myDumbService.isDumb());
     }
 
     @Override

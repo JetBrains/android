@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.ProductFlavor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

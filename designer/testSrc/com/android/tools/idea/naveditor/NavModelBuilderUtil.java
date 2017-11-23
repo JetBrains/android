@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.naveditor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -31,8 +35,11 @@ import java.awt.*;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
+import static com.android.SdkConstants.ATTR_GRAPH;
+import static com.android.SdkConstants.TAG_ACTION;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,6 +59,17 @@ public class NavModelBuilderUtil {
       when(surface.getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
       when(surface.getExtentSize()).thenReturn(new Dimension(500, 500));
       when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+      SelectionModel selectionModel = mock(SelectionModel.class);
+      when(selectionModel.getSelection()).thenReturn(ImmutableList.of());
+
+      SceneView sceneView = mock(SceneView.class);
+      when(sceneView.getModel()).thenReturn(model);
+      when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+      when(sceneView.getSelectionModel()).thenReturn(selectionModel);
+      when(sceneView.getSurface()).thenReturn(surface);
+
+      when(surface.getCurrentSceneView()).thenReturn(sceneView);
 
       return new NavSceneManager(model, surface);
     };
@@ -113,6 +131,11 @@ public class NavModelBuilderUtil {
     return descriptor;
   }
 
+  @NotNull
+  public static ArgumentComponentDescriptor argumentComponent(@NotNull String name) {
+    return new ArgumentComponentDescriptor(name);
+  }
+
   public static class NavigationComponentDescriptor extends ComponentDescriptor {
     public NavigationComponentDescriptor() {
       super(TAG_NAVIGATION);
@@ -157,13 +180,13 @@ public class NavModelBuilderUtil {
 
   public static class ActivityComponentDescriptor extends ComponentDescriptor {
     public ActivityComponentDescriptor() {
-      super("activity");
+      super(TAG_ACTIVITY);
     }
   }
 
   public static class IncludeComponentDescriptor extends ComponentDescriptor {
     public IncludeComponentDescriptor() {
-      super("include");
+      super(TAG_INCLUDE);
     }
   }
 
@@ -175,6 +198,18 @@ public class NavModelBuilderUtil {
     @NotNull
     public DeepLinkComponentDescriptor withUriAttribute(@NotNull String uri) {
       withAttribute(AUTO_URI, "uri", uri);
+      return this;
+    }
+  }
+
+  public static class ArgumentComponentDescriptor extends ComponentDescriptor {
+    public ArgumentComponentDescriptor(@NotNull String name) {
+      super(TAG_ARGUMENT);
+      withAttribute(SdkConstants.ATTR_NAME, name);
+    }
+
+    public ArgumentComponentDescriptor withDefaultValueAttribute(@NotNull String defaultValue) {
+      withAttribute(NavigationSchema.ATTR_DEFAULT_VALUE, defaultValue);
       return this;
     }
   }

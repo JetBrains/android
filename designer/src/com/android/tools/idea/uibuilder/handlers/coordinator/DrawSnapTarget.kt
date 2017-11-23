@@ -79,10 +79,10 @@ class DrawSnapTarget : DrawRegion {
             @AndroidDpCoordinate right: kotlin.Float,
             @AndroidDpCoordinate bottom: kotlin.Float,
             isOver: Boolean) {
-      @SwingCoordinate val l = transform.getSwingX(left)
-      @SwingCoordinate val t = transform.getSwingY(top)
-      @SwingCoordinate val w = transform.getSwingDimension(right - left)
-      @SwingCoordinate val h = transform.getSwingDimension(bottom - top)
+      @SwingCoordinate val l = transform.getSwingXDip(left)
+      @SwingCoordinate val t = transform.getSwingYDip(top)
+      @SwingCoordinate val w = transform.getSwingDimensionDip(right - left)
+      @SwingCoordinate val h = transform.getSwingDimensionDip(bottom - top)
       list.add(DrawSnapTarget(l, t, w, h, if (isOver) OVER else NORMAL))
     }
   }

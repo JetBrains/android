@@ -18,14 +18,14 @@ package com.android.tools.idea.naveditor.property
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.schema
-import com.android.tools.idea.naveditor.property.inspector.PropertyAdapter
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
-const val TYPE_EDITOR_PROPERTY_LABEL = "Type"
+const val TYPE_EDITOR_PROPERTY_LABEL = "Kind"
 
-class NavComponentTypeProperty(components: List<NlComponent>) : PropertyAdapter(TYPE_EDITOR_PROPERTY_LABEL, components) {
+class NavComponentTypeProperty(components: List<NlComponent>) : SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, components) {
   override fun getValue(): String {
     val schema = components[0].model.schema
     val types = components.map { it.destinationType }.toSet()
-    return if (types.size == 1) { schema.getTagLabel(components[0].tagName) } else { "Multiple Types" }
+    return if (types.size == 1) { schema.getTagLabel(components[0].tagName) } else { "Multiple" }
   }
 }

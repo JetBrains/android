@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
@@ -36,11 +36,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -111,7 +110,8 @@ public class AndroidPluginVersionUpdater {
       }
 
       // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.cleanProject = true;
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }

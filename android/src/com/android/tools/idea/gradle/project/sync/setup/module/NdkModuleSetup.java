@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,17 +35,12 @@ public class NdkModuleSetup {
     mySetupSteps = setupSteps;
   }
 
-  public void setUpModule(@NotNull Module module,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable NdkModuleModel ndkModuleModel,
-                          @Nullable GradleModuleModels models,
-                          @Nullable ProgressIndicator indicator,
-                          boolean syncSkipped) {
+  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable NdkModuleModel ndkModuleModel, boolean syncSkipped) {
     for (NdkModuleSetupStep step : mySetupSteps) {
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }
-      step.setUpModule(module, ideModelsProvider, ndkModuleModel, models, indicator);
+      step.setUpModule(context, ndkModuleModel);
     }
   }
 }

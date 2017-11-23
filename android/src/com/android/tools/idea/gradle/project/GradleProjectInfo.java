@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -57,37 +56,37 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
-  @NotNull private final AndroidStudioGradleProjectSettings myGradleProjectSettings;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
   @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
-  private volatile boolean myIsNewOrImportedProject;
+  private volatile boolean myNewProject;
+  private volatile boolean myImportedProject;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleProjectInfo.class);
   }
 
-  public GradleProjectInfo(@NotNull Project project,
-                           @NotNull AndroidProjectInfo projectInfo,
-                           @NotNull AndroidStudioGradleProjectSettings gradleProjectSettings,
-                           @NotNull ProjectFileIndex projectFileIndex) {
+  public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
     myProject = project;
     myProjectInfo = projectInfo;
-    myGradleProjectSettings = gradleProjectSettings;
     myProjectFileIndex = projectFileIndex;
   }
 
-  public boolean canUseLocalMavenRepo() {
-    return !myGradleProjectSettings.DISABLE_EMBEDDED_MAVEN_REPO;
+  public boolean isNewProject() {
+    return myNewProject;
   }
 
-  public boolean isNewOrImportedProject() {
-    return myIsNewOrImportedProject;
+  public void setNewProject(boolean newProject) {
+    myNewProject = newProject;
   }
 
-  public void setNewOrImportedProject(boolean newOrImportedProject) {
-    myIsNewOrImportedProject = newOrImportedProject;
+  public boolean isImportedProject() {
+    return myImportedProject;
+  }
+
+  public void setImportedProject(boolean importedProject) {
+    myImportedProject = importedProject;
   }
 
   @Nullable

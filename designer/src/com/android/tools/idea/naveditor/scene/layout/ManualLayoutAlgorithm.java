@@ -114,7 +114,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
       String id = NavComponentHelperKt.getResolvedId(current);
       if (id == null) {
         NlModel model = current.getModel();
-        Document doc = FileDocumentManager.getInstance().getDocument(model.getFile().getVirtualFile());
+        Document doc = FileDocumentManager.getInstance().getDocument(model.getVirtualFile());
         int line = -1;
         if (doc != null) {
           line = doc.getLineNumber(current.getTag().getTextRange().getStartOffset()) + 1;

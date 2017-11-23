@@ -25,9 +25,9 @@ import trebuchet.model.fragments.ThreadModelFragment
 import trebuchet.util.StringCache
 
 class FtraceImporterState(feedback: ImportFeedback) {
-    private val modelFragment = ModelFragment()
     private val pidMap = SparseArray<ThreadModelFragment>(50)
     private val handlers = FunctionRegistry.create()
+    val modelFragment = ModelFragment()
     val stringCache = StringCache()
     private val importData = ImportData(this, feedback)
 

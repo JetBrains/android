@@ -43,6 +43,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
   private static final int BORDER_PLUS_PADDING = 2;
+  private static final int INITIAL_Y_POSITION = 0;
 
   private final Orientation myOrientation;
 
@@ -80,6 +81,8 @@ public class HTreeChart<T> extends AnimatedComponent {
   @Nullable
   private Image myCanvas;
 
+  private int myCachedMaxHeight;
+
   @VisibleForTesting
   public HTreeChart(@NotNull Range xRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
     myRectangles = new ArrayList<>();
@@ -89,7 +92,7 @@ public class HTreeChart<T> extends AnimatedComponent {
     myXRange = xRange;
     myRoot = new DefaultHNode<>();
     myReducer = reducer;
-    myYRange = new Range(0, 0);
+    myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myOrientation = orientation;
     myRootVisible = true;
 
@@ -113,6 +116,7 @@ public class HTreeChart<T> extends AnimatedComponent {
 
   private void changed() {
     myRender = true;
+    myCachedMaxHeight = calculateMaximumHeight();
     opaqueRepaint();
   }
 
@@ -334,10 +338,25 @@ public class HTreeChart<T> extends AnimatedComponent {
 
       @Override
       public void mouseDragged(MouseEvent e) {
+        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
+        int contentHeight = getMaximumHeight();
+        // The height of the GUI component to draw the contents.
+        int viewHeight = getHeight();
         double deltaX = e.getPoint().x - myLastPoint.x;
         double deltaY = e.getPoint().y - myLastPoint.y;
+        deltaY = getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY;
 
-        getYRange().shift(getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY);
+        if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
+          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
+          deltaY = INITIAL_Y_POSITION - myYRange.getMin();
+        }
+        else if (myYRange.getMin() + viewHeight + deltaY > contentHeight) {
+          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
+          // Note that the chart may be taller than the stacks, so we need to limit the delta.
+          deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
+        }
+
+        getYRange().shift(deltaY);
         getXRange().shift(myXRange.getLength() / getWidth() * -deltaX);
 
         myLastPoint = e.getPoint();
@@ -364,6 +383,10 @@ public class HTreeChart<T> extends AnimatedComponent {
   }
 
   public int getMaximumHeight() {
+    return myCachedMaxHeight;
+  }
+
+  private int calculateMaximumHeight() {
     if (myRoot == null) {
       return 0;
     }

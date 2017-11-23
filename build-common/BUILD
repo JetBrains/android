@@ -7,6 +7,19 @@ iml_module(
     resources = ["resources"],
     tags = ["managed"],
     test_resources = ["testResources"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea:RegExpSupport",
+        "//tools/idea:xml-analysis-impl",
+        "//tools/idea:testExtensions",
+        "//tools/idea:lvcs-impl",
+        "//tools/idea:xml",
+        "//tools/idea:spellchecker",
+        "//tools/idea:relaxng",
+        "//tools/idea:json",
+        "//tools/idea:images",
+        "//tools/idea:xdebugger-impl",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -21,6 +34,12 @@ iml_module(
         "//tools/base/ninepatch:studio.ninepatch",
         "//tools/base/sdk-common:studio.sdk-common",
         "//tools/base/sdklib:studio.sdklib",
+    ],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:built-in-server",
     ],
     # do not sort: must match IML order
     deps = [

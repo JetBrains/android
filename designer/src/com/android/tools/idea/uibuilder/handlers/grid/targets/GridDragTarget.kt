@@ -112,8 +112,8 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget() {
     if (barrier == null) return
     val b = barrier as GridBarriers
 
-    val xCoord = b.context.getSwingX(x.toFloat())
-    val yCoord = b.context.getSwingY(y.toFloat())
+    val xCoord = b.context.getSwingXDip(x.toFloat())
+    val yCoord = b.context.getSwingYDip(y.toFloat())
 
     selectedColumn = b.columns.slice(0 until b.columns.lastIndex).indexOfLast { xCoord > it }
     selectedRow = b.rows.slice(0 until b.rows.lastIndex).indexOfLast { yCoord > it }

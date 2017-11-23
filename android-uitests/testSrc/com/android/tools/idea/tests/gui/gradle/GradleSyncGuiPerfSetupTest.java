@@ -162,6 +162,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     File buildFile = new File(projectRoot, "build.gradle");
     String contents = Files.toString(buildFile, Charsets.UTF_8);
     contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositories() +
+                                                    "\n" +
                                                     " maven { url \"" + getWorkspaceFile("./prebuilts/maven_repo/android/") + "\" }\n");
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
                                    "classpath 'com.android.tools.build:gradle:" +

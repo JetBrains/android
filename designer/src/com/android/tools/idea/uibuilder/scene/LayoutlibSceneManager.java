@@ -24,18 +24,21 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -68,6 +71,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -77,6 +82,8 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 public class LayoutlibSceneManager extends SceneManager {
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
+
+  @Nullable private SceneView mySecondarySceneView;
 
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
@@ -199,24 +206,90 @@ public class LayoutlibSceneManager extends SceneManager {
     });
   }
 
+
+  @NotNull
+  @Override
+  protected NlDesignSurface getDesignSurface() {
+    return (NlDesignSurface) super.getDesignSurface();
+  }
+
+  @NotNull
+  @Override
+  protected SceneView doCreateSceneView() {
+    NlModel model = getModel();
+
+    NlLayoutType type = model.getType();
+
+    if (type.equals(NlLayoutType.MENU)) {
+      return createSceneViewsForMenu();
+    }
+
+    SceneMode mode = getDesignSurface().getSceneMode();
+
+    SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), model);
+
+    if (!type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
+      mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), model);
+    }
+
+    getDesignSurface().updateErrorDisplay();
+    getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getPreferredSize());
+
+    return primarySceneView;
+  }
+
+  private SceneView createSceneViewsForMenu() {
+    NlModel model = getModel();
+    XmlTag tag = model.getFile().getRootTag();
+    SceneView sceneView;
+
+    // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
+    if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
+      sceneView = new NavigationViewSceneView(getDesignSurface(), model);
+    }
+    else {
+      sceneView = new ScreenView(getDesignSurface(), model);
+    }
+
+    getDesignSurface().updateErrorDisplay();
+    getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getPreferredSize());
+    return sceneView;
+  }
+
+  @NotNull
+  @Override
+  public ImmutableList<Layer> getLayers() {
+    ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
+    builder.addAll(super.getLayers());
+    if (mySecondarySceneView != null) {
+      builder.addAll(mySecondarySceneView.getLayers());
+    }
+    return builder.build();
+  }
+
+  @Nullable
+  public SceneView getSecondarySceneView() {
+    return mySecondarySceneView;
+  }
+
   @Override
   protected void updateFromComponent(SceneComponent sceneComponent) {
     super.updateFromComponent(sceneComponent);
     NlComponent component = sceneComponent.getNlComponent();
     if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
-                                       Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)),
+      sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
+                                       Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
                                        time, true);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
-                                   Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)),
+      sceneComponent.setSizeTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
+                                   Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)),
                                    time, true);
     }
     else {
-      sceneComponent.setPosition(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)), true);
-      sceneComponent.setSize(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)), true);
+      sceneComponent.setPosition(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
+                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)), true);
+      sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
+                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)), true);
     }
   }
 
@@ -250,9 +323,9 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
-      DesignSurface surface = getDesignSurface();
+      NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
         layout(true);
       }
       else {
@@ -303,12 +376,12 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      DesignSurface surface = getDesignSurface();
+      NlDesignSurface surface = getDesignSurface();
 
       /*
       We only need to render if we are not in Blueprint mode. If we are in blueprint mode only, we only need a layout.
        */
-      boolean needsRender = (surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getSceneMode() != SceneMode.BLUEPRINT_ONLY);
+      boolean needsRender = (surface.getSceneMode() != SceneMode.BLUEPRINT_ONLY);
       if (needsRender) {
         requestLayoutAndRender(animate);
       }
@@ -424,7 +497,7 @@ public class LayoutlibSceneManager extends SceneManager {
         Project project = model.getModule().getProject();
         if (project.isOpen()) {
           DumbService.getInstance(project).waitForSmartMode();
-          if (model.getFile().isValid() && !model.getFacet().isDisposed()) {
+          if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             try {
               updateModel();
             }
@@ -826,8 +899,8 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
-    List<NlComponent> children = root.children;
-    if (children != null && !children.isEmpty()) {
+    List<NlComponent> children = root.getChildren();
+    if (!children.isEmpty()) {
       for (NlComponent child : children) {
         fixBounds(child);
       }

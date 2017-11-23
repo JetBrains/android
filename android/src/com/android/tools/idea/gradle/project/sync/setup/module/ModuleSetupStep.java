@@ -15,30 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ModuleSetupStep<T> {
-  public final void setUpModule(@NotNull Module module,
-                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                @Nullable T gradleModel,
-                                @Nullable GradleModuleModels gradleModels,
-                                @Nullable ProgressIndicator indicator) {
+  public final void setUpModule(@NotNull ModuleSetupContext context, @Nullable T gradleModel) {
     if (gradleModel == null) {
       return;
     }
-    doSetUpModule(module, ideModelsProvider, gradleModel, gradleModels, indicator);
+    doSetUpModule(context, gradleModel);
   }
 
-  protected abstract void doSetUpModule(@NotNull Module module,
-                                        @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                        @NotNull T gradleModel,
-                                        @Nullable GradleModuleModels gradleModels,
-                                        @Nullable ProgressIndicator indicator);
+  protected abstract void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull T gradleModel);
 
   public boolean invokeOnBuildVariantChange() {
     return false;

@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.layoutInspector.ui
 import com.android.tools.idea.editors.layoutInspector.LayoutFileData
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext
 import com.intellij.openapi.vfs.LocalFileSystem
-import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
@@ -40,7 +39,7 @@ class PixelPerfectTest : AndroidTestCase() {
     val layoutFile = LocalFileSystem.getInstance().findFileByIoFile(testFile)
     myTestData = LayoutFileData(layoutFile!!)
 
-    myContext = LayoutInspectorContext(myTestData)
+    myContext = LayoutInspectorContext(myTestData, project)
     myPanel = LayoutInspectorPanel(myContext)
     myPanel.setSize(800, 800)
     myPreview = myPanel.preview

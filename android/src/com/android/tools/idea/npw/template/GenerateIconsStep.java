@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.template;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
@@ -42,9 +41,11 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
   public GenerateIconsStep(AndroidFacet facet, @NotNull RenderTemplateModel model) {
     super(model, "Generate Icons");
 
-    AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
+    TemplateHandle templateHandle = getModel().getTemplateHandle();
+    assert templateHandle != null;
+    AndroidIconType iconType = templateHandle.getMetadata().getIconType();
     assert iconType != null; // It's an error to create <icon> tags w/o types.
-    myGenerateIconsPanel = new GenerateImageAssetPanel(facet, this, model.getTemplate().get().getPaths(), iconType);
+    myGenerateIconsPanel = new GenerateImageAssetPanel(this, facet, model.getTemplate().get().getPaths(), iconType);
 
     myListeners.receiveAndFire(model.getTemplate(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 
@@ -60,6 +61,7 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
   @Override
   protected void onEntering() {
     TemplateHandle templateHandle = getModel().getTemplateHandle();
+    assert templateHandle != null;
     String iconNameExpression = templateHandle.getMetadata().getIconName();
     String iconName = null;
     if (iconNameExpression != null && !iconNameExpression.isEmpty()) {

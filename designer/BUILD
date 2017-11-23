@@ -12,18 +12,29 @@ iml_module(
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea/plugins/maven:maven2-server-impl",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/editor-ui-api[module]",
         "//tools/idea/platform/core-api[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/adt/idea/android[module]",
         "//tools/idea/xml/xml-psi-api[module]",
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:lang-impl[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
+        "//tools/idea:images[module]",
         "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/idea/.idea/libraries:jsr305",
+        "//tools/idea:dom-openapi[module]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/idea/.idea/libraries:layoutlib",
+        "//tools/idea:xml-psi-impl[module]",
         "//tools/idea/java/java-psi-impl[module]",
         "//tools/idea/java/java-indexing-api[module]",
         "//tools/adt/idea/adt-ui[module]",
@@ -36,6 +47,7 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
+        "//tools/adt/idea/gradle-dsl-parser[module]",
     ],
 )
 
@@ -66,6 +78,13 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea:json",
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea/plugins/maven:maven2-server-impl",
+    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
@@ -76,21 +95,23 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea:testFramework[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/xml/xml-psi-api[module, test]",
-        "//tools/idea:compiler-impl_and_others[module]",
+        "//tools/idea:compiler-impl_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
+        "//tools/idea:xml-psi-impl[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/base/pixelprobe:studio.pixelprobe[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/protos:analytics-protos[module, test]",
+        "//tools/idea:dom-openapi[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/adt-branding[module, test]",
         "//tools/adt/idea/sdk-updates[module, test]",

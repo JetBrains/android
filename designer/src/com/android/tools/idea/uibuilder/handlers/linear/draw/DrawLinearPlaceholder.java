@@ -75,11 +75,11 @@ public class DrawLinearPlaceholder extends DrawRegion {
                          @AndroidDpCoordinate float bottom) {
 
 
-    int x = context.getSwingX(left);
-    int y = context.getSwingY(top);
-    int width = context.getSwingDimension(right - left);
-    int height = context.getSwingDimension(bottom - top);
-    highLightSize = context.getSwingDimension(highLightSize);
+    int x = context.getSwingXDip(left);
+    int y = context.getSwingYDip(top);
+    int width = context.getSwingDimensionDip(right - left);
+    int height = context.getSwingDimensionDip(bottom - top);
+    highLightSize = context.getSwingDimensionDip(highLightSize);
 
     if (isLayoutVertical) {
       if (!atEnd) {

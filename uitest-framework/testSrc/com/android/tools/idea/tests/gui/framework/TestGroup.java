@@ -26,6 +26,7 @@ public enum TestGroup {
   EDITING,
   QA,
   QA_UNRELIABLE(/* per-test forked execution */ true),
+  SANITY,
   UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT;

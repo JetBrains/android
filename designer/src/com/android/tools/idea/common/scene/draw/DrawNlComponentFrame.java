@@ -124,10 +124,10 @@ public class DrawNlComponentFrame extends DrawRegion {
                          int mode,
                          int layout_width,
                          int layout_height) {
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
     list.add(new DrawNlComponentFrame(l, t, w, h, mode, layout_width, layout_height));
   }
 }

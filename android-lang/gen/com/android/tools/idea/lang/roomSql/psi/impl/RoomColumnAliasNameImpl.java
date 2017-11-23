@@ -43,4 +43,14 @@ public class RoomColumnAliasNameImpl extends AbstractRoomNameElement implements 
     else super.accept(visitor);
   }
 
+  @NotNull
+  public String getName() {
+    return PsiImplUtil.getName(this);
+  }
+
+  @NotNull
+  public RoomColumnAliasName setName(String newName) {
+    return PsiImplUtil.setName(this, newName);
+  }
+
 }

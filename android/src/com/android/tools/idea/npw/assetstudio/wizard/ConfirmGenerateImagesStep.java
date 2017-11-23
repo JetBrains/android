@@ -22,11 +22,10 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
@@ -35,9 +34,10 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
-import com.google.common.primitives.Ints;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -74,7 +74,12 @@ import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateImageIconsModel>
+    implements PersistentStateComponent<PersistentState> {
+  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
+  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
+
+  private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
   private final JBLabel myPreviewIcon;
@@ -117,11 +122,13 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private EditorFactory myEditorFactory;
   private Document myXmlPreviewDocument;
 
-  private ObservableValue<NamedModuleTemplate> mySelectedTemplate;
+  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
+  public ConfirmGenerateImagesStep(@NotNull GenerateImageIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
+    Preconditions.checkArgument(!templates.isEmpty());
+    myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
@@ -149,10 +156,9 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     });
 
     String alreadyExistsError = WizardUtils.toHtmlString(
-      "Some existing files will be overwritten by this operation.<br>" +
-      "Files which replace existing files are marked red in the preview above.");
+        "Some existing files will be overwritten by this operation.<br>" +
+        "Files which replace existing files are marked red in the preview above.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
-
 
     myPreviewIcon = new JBLabel();
     myPreviewIcon.setVisible(false);
@@ -220,7 +226,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
               myXmlPreviewDocument = myEditorFactory.createDocument("");
             }
             myXmlPreviewDocument.setReadOnly(false);
-            myXmlPreviewDocument.setText(xmlText);
+            myXmlPreviewDocument.setText(StringUtil.convertLineSeparators(xmlText));
             myXmlPreviewDocument.setReadOnly(true);
 
             if (myFilePreviewEditor == null) {
@@ -262,7 +268,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       }
     }
 
-    // Reset properties of both preview panels
+    // Reset properties of both preview panels.
     myPreviewIcon.setVisible(false);
     myPreviewIcon.setIcon(null);
     myFileTypeTextField.setText("");
@@ -325,19 +331,48 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     return null;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected JComponent getComponent() {
     return myValidatorPanel;
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedTemplate = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+
+    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
   }
 
-  @NotNull
   @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
+  }
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
+    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
+    if (templateName != null) {
+      for (NamedModuleTemplate template : myTemplates) {
+        if (template.getName().equals(templateName)) {
+          mySelectedTemplate.set(template);
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  @NotNull
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
   }
@@ -349,7 +384,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
+    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
     myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
       File resDir = template.getPaths().getResDirectory();
@@ -393,7 +428,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         .distinct()
         .collect(Collectors.toSet());
 
-      // Sort the FileTreeModel so that the preview tree entries are sorted
+      // Sort the FileTreeModel so that the preview tree entries are sorted.
       treeModel.sort(getFileComparator(outputDirectories));
 
       myOutputPreviewTree.setModel(treeModel);
@@ -406,7 +441,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myOutputPreviewTree.expandRow(i);
       }
 
-      // Select first file entry by default so that the preview panel shows something
+      // Select first file entry by default so that the preview panel shows something.
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
         TreePath rowPath = myOutputPreviewTree.getPathForRow(i);
         if (rowPath != null) {
@@ -422,7 +457,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @NotNull
   private static Comparator<File> getFileComparator(Set<File> outputDirectories) {
     return (file1, file2) -> {
-      // Sort by "directory vs file" first, then by density, then by name
+      // Sort by "directory vs file" first, then by density, then by name.
       boolean isDirectory1 = outputDirectories.contains(file1);
       boolean isDirectory2 = outputDirectories.contains(file2);
       if (isDirectory1 == isDirectory2) {
@@ -432,8 +467,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         Density density2 = pathToDensity(path2 + File.separator);
 
         if (density1 != null && density2 != null && density1 != density2) {
-          // Sort least dense to most dense
-          return Ints.compare(density2.ordinal(), density1.ordinal());
+          // Sort least dense to most dense.
+          return Integer.compare(density2.ordinal(), density1.ordinal());
         }
         else {
           return path1.compareTo(path2);

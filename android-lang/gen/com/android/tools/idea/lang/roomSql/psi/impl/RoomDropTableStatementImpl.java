@@ -50,8 +50,8 @@ public class RoomDropTableStatementImpl extends RoomStatementImpl implements Roo
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public RoomDefinedTableName getDefinedTableName() {
+    return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
 }

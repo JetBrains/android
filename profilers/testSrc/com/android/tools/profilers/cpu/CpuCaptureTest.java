@@ -17,15 +17,18 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
@@ -33,30 +36,30 @@ public class CpuCaptureTest {
   @Test
   public void validCapture() throws IOException, ExecutionException, InterruptedException {
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
-    assertNotNull(capture);
+    assertThat(capture).isNotNull();
 
     Range captureRange = capture.getRange();
-    assertNotNull(captureRange);
-    assertFalse(captureRange.isEmpty());
-    assertEquals((long)captureRange.getLength(), capture.getDuration());
+    assertThat(captureRange).isNotNull();
+    assertThat(captureRange.isEmpty()).isFalse();
+    assertThat(capture.getDuration()).isEqualTo((long)captureRange.getLength());
 
     int main = capture.getMainThreadId();
-    assertTrue(capture.containsThread(main));
+    assertThat(capture.containsThread(main)).isTrue();
     CaptureNode mainNode = capture.getCaptureNode(main);
-    assertNotNull(mainNode);
-    assertNotNull(mainNode.getData());
-    assertEquals("main", mainNode.getData().getName());
+    assertThat(mainNode).isNotNull();
+    assertThat(mainNode.getData()).isNotNull();
+    assertThat(mainNode.getData().getName()).isEqualTo("main");
 
     Set<CpuThreadInfo> threads = capture.getThreads();
-    assertFalse(threads.isEmpty());
+    assertThat(threads).isNotEmpty();
     for (CpuThreadInfo thread : threads) {
-      assertNotNull(capture.getCaptureNode(thread.getId()));
-      assertTrue(capture.containsThread(thread.getId()));
+      assertThat(capture.getCaptureNode(thread.getId())).isNotNull();
+      assertThat(capture.containsThread(thread.getId())).isTrue();
     }
 
     int inexistentThreadId = -1;
-    assertFalse(capture.containsThread(inexistentThreadId));
-    assertNull(capture.getCaptureNode(inexistentThreadId));
+    assertThat(capture.containsThread(inexistentThreadId)).isFalse();
+    assertThat(capture.getCaptureNode(inexistentThreadId)).isNull();
   }
 
   @Test
@@ -70,13 +73,13 @@ public class CpuCaptureTest {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertTrue(executionExceptionCause instanceof IllegalStateException);
+      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
 
       // Expected BufferUnderflowException to be thrown in VmTraceParser.
-      assertTrue(executionExceptionCause.getCause() instanceof BufferUnderflowException);
+      assertThat(executionExceptionCause.getCause()).isInstanceOf(BufferUnderflowException.class);
       // CpuCaptureParser#traceBytesToCapture catches the BufferUnderflowException and throw an IllegalStateException instead.
     }
-    assertNull(capture);
+    assertThat(capture).isNull();
   }
 
   @Test
@@ -90,13 +93,13 @@ public class CpuCaptureTest {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertTrue(executionExceptionCause instanceof IllegalStateException);
+      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
 
       // Expected IOException to be thrown in VmTraceParser.
-      assertTrue(executionExceptionCause.getCause() instanceof IOException);
+      assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
       // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
     }
-    assertNull(capture);
+    assertThat(capture).isNull();
   }
 
   @Test
@@ -109,10 +112,10 @@ public class CpuCaptureTest {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertTrue(executionExceptionCause instanceof IllegalStateException);
+      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
 
       // Exception expected to be thrown because a valid profiler type was not set.
-      assertTrue(executionExceptionCause.getMessage().contains("Trace file cannot be parsed"));
+      assertThat(executionExceptionCause.getMessage()).contains("Trace file cannot be parsed");
     }
   }
 
@@ -126,11 +129,24 @@ public class CpuCaptureTest {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertTrue(executionExceptionCause instanceof IllegalStateException);
+      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
 
       // Expected BufferUnderflowException to be thrown in SimpleperfTraceParser.
-      assertTrue(executionExceptionCause.getCause() instanceof BufferUnderflowException);
+      assertThat(executionExceptionCause.getCause()).isInstanceOf(BufferUnderflowException.class);
       // CpuCaptureParser#traceBytesToCapture  catches the BufferUnderflowException and throw an IllegalStateException instead.
     }
+  }
+
+  @Test
+  public void dualClockPassedInConstructor() {
+    CpuThreadInfo info = new CpuThreadInfo(10, "main");
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode()).build();
+    CpuCapture capture = new CpuCapture(range, captureTrees, true);
+    assertThat(capture.isDualClock()).isTrue();
+
+    capture = new CpuCapture(range, captureTrees, false);
+    assertThat(capture.isDualClock()).isFalse();
   }
 }

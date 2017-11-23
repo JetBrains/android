@@ -28,4 +28,5 @@ public interface FeatureConfig {
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
   boolean isAtraceEnabled();
+  boolean isNetworkRequestPayloadEnabled();
 }

@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.SimpleEventType;
-import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.profiler.proto.EventProfiler.SystemData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Before;
@@ -58,7 +58,6 @@ public class SimpleEventDataSeriesTest {
       assertEquals(data.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
       assertEquals(data.value.getType(), SimpleEventType.ROTATION);
     }
-
   }
 
   @Test
@@ -109,33 +108,33 @@ public class SimpleEventDataSeriesTest {
     assertEquals(event.value.getType(), SimpleEventType.ROTATION);
   }
 
-  private EventProfiler.SystemData buildTouchEvent(int eventId) {
-   return EventProfiler.SystemData.newBuilder()
-     .setEventId(eventId)
-     .setProcessId(FakeEventService.FAKE_APP_ID)
-     .setStartTimestamp(TEST_START_TIME_NS)
-     .setEndTimestamp(TEST_END_TIME_NS)
-     .setType(EventProfiler.SystemData.SystemEventType.TOUCH)
-     .build();
-  }
-
-  private EventProfiler.SystemData buildRotationEvent(int eventId) {
-    return EventProfiler.SystemData.newBuilder()
+  private SystemData buildTouchEvent(int eventId) {
+    return SystemData.newBuilder()
       .setEventId(eventId)
       .setProcessId(FakeEventService.FAKE_APP_ID)
       .setStartTimestamp(TEST_START_TIME_NS)
-      .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(EventProfiler.SystemData.SystemEventType.ROTATION)
+      .setEndTimestamp(TEST_END_TIME_NS)
+      .setType(SystemData.SystemEventType.TOUCH)
       .build();
   }
 
-  private EventProfiler.SystemData buildKeyEvent(int eventId) {
-    return EventProfiler.SystemData.newBuilder()
+  private SystemData buildRotationEvent(int eventId) {
+    return SystemData.newBuilder()
       .setEventId(eventId)
       .setProcessId(FakeEventService.FAKE_APP_ID)
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(EventProfiler.SystemData.SystemEventType.KEY)
+      .setType(SystemData.SystemEventType.ROTATION)
+      .build();
+  }
+
+  private SystemData buildKeyEvent(int eventId) {
+    return SystemData.newBuilder()
+      .setEventId(eventId)
+      .setProcessId(FakeEventService.FAKE_APP_ID)
+      .setStartTimestamp(TEST_START_TIME_NS)
+      .setEndTimestamp(TEST_START_TIME_NS)
+      .setType(SystemData.SystemEventType.KEY)
       .setEventData("Hello")
       .build();
   }

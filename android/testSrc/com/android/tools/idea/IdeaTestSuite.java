@@ -34,9 +34,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
-  org.jetbrains.android.databinding.DataBindingScopeTest.class,
-  org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
-
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
@@ -71,6 +68,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/data-binding/data_binding_runtime_repo.zip", "prebuilts/tools/common/m2/repository");
 
     // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
     System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());

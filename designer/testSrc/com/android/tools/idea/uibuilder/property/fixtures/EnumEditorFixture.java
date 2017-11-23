@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.EnumEditor;
+import com.android.tools.idea.common.property.fixtures.EditorFixtureBase;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.base.Objects;
@@ -42,7 +43,7 @@ import static java.awt.event.KeyEvent.VK_UP;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static org.mockito.Mockito.*;
 
-public class EnumEditorFixture extends NlEditorFixtureBase {
+public class EnumEditorFixture extends EditorFixtureBase {
   protected static final String COMBO_BOX_UI = "ComboBoxUI";
 
   private final EnumEditor myComponentEditor;

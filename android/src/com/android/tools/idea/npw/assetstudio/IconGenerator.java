@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -53,8 +54,6 @@ import java.util.regex.Pattern;
  * Common base class for icon generators.
  */
 public abstract class IconGenerator implements Disposable {
-  public static final BufferedImage PLACEHOLDER_IMAGE = AssetStudioUtils.createDummyImage();
-
   private static final Map<Density, Pattern> DENSITY_PATTERNS;
 
   static {
@@ -69,8 +68,10 @@ public abstract class IconGenerator implements Disposable {
     DENSITY_PATTERNS = builder.build();
   }
 
+  protected static final BufferedImage PLACEHOLDER_IMAGE = AssetStudioUtils.createDummyImage();
+
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
-  private final StringProperty myName = new StringValueProperty();
+  private final StringProperty myOutputName = new StringValueProperty();
 
   protected final int myMinSdkVersion;
 
@@ -94,12 +95,11 @@ public abstract class IconGenerator implements Disposable {
   public IconGenerator(int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
+    Disposer.register(this, context);
   }
-
 
   @Override
   public void dispose() {
-    myContext.dispose();
   }
 
   @NotNull
@@ -108,23 +108,18 @@ public abstract class IconGenerator implements Disposable {
   }
 
   @NotNull
-  private static Map<String, Map<String, BufferedImage>> newAssetMap() {
-    return new HashMap<>();
-  }
-
-  @NotNull
   public final OptionalProperty<BaseAsset> sourceAsset() {
     return mySourceAsset;
   }
 
   @NotNull
-  public final StringProperty name() {
-    return myName;
+  public final StringProperty outputName() {
+    return myOutputName;
   }
 
   @NotNull
   public IconGeneratorResult generateIcons(Options options) {
-    return new IconGeneratorResult(generateIcons(myContext, options, myName.get()), options);
+    return new IconGeneratorResult(generateIcons(myContext, options, myOutputName.get()), options);
   }
 
   /**
@@ -145,8 +140,8 @@ public abstract class IconGenerator implements Disposable {
 
   @NotNull
   private CategoryIconMap generateIntoMemory(Options options) {
-    Map<String, Map<String, BufferedImage>> categoryMap = newAssetMap();
-    generate(null, categoryMap, myContext, options, myName.get());
+    Map<String, Map<String, BufferedImage>> categoryMap = new HashMap<>();
+    generate(null, categoryMap, myContext, options, myOutputName.get());
     return new CategoryIconMap(categoryMap);
   }
 
@@ -154,12 +149,12 @@ public abstract class IconGenerator implements Disposable {
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
    * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
    *
-   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
   public final Map<File, BufferedImage> generateIntoFileMap(@NotNull AndroidModuleTemplate paths) {
-    if (myName.get().isEmpty()) {
+    if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
@@ -176,7 +171,7 @@ public abstract class IconGenerator implements Disposable {
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
    * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
    *
-   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
@@ -189,7 +184,7 @@ public abstract class IconGenerator implements Disposable {
    * Similar to {@link ##generateIntoIconMap(AndroidModuleTemplate)} but instead of generating real icons
    * uses placeholders that are much faster to produce.
    *
-   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
@@ -203,12 +198,12 @@ public abstract class IconGenerator implements Disposable {
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
    * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
    *
-   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
   private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths, Options options) {
-    if (myName.get().isEmpty()) {
+    if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
 
@@ -231,7 +226,7 @@ public abstract class IconGenerator implements Disposable {
   /**
    * Generates png icons into the target path.
    *
-   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    *
    * This method must be called from within a WriteAction.
@@ -479,7 +474,7 @@ public abstract class IconGenerator implements Disposable {
     if (density == Density.NODPI) {
       density = Density.MEDIUM;
     }
-    return density.getDpiValue() / (float) Density.MEDIUM.getDpiValue();
+    return density.getDpiValue() / (float)Density.MEDIUM.getDpiValue();
   }
 
   /**
@@ -548,7 +543,7 @@ public abstract class IconGenerator implements Disposable {
     /** Controls the directory where to store the icon/resource. */
     @NotNull public IconFolderKind iconFolderKind = IconFolderKind.DRAWABLE;
 
-    /** The density to generate the icon with. */
+    /** The density to generate the icon with. Web icons use {@link Density#NODPI}. */
     @NotNull public Density density = Density.XHIGH;
 
     /**
@@ -560,8 +555,8 @@ public abstract class IconGenerator implements Disposable {
 
   public enum IconFolderKind {
     DRAWABLE,
-    MIPMAP,
     DRAWABLE_NO_DPI,
+    MIPMAP,
     VALUES,
   }
 

@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -30,6 +29,7 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -84,11 +84,11 @@ public class LevelTest extends NavigationTestCase {
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
 
-    @AndroidDpCoordinate int x1 = component1.getCenterX();
-    @AndroidDpCoordinate int y1 = component1.getCenterY();
+    @NavCoordinate int x1 = component1.getCenterX();
+    @NavCoordinate int y1 = component1.getCenterY();
 
-    @AndroidDpCoordinate int x2 = component2.getCenterX();
-    @AndroidDpCoordinate int y2 = component2.getCenterY();
+    @NavCoordinate int x2 = component2.getCenterX();
+    @NavCoordinate int y2 = component2.getCenterY();
 
     checkSelections(x1, y1, x2, y2, component1, component2);
 
@@ -98,10 +98,10 @@ public class LevelTest extends NavigationTestCase {
     checkSelections(x1, y1, x2, y2, component1, component2);
   }
 
-  private void checkSelections(@AndroidDpCoordinate int x1,
-                               @AndroidDpCoordinate int y1,
-                               @AndroidDpCoordinate int x2,
-                               @AndroidDpCoordinate int y2,
+  private void checkSelections(@NavCoordinate int x1,
+                               @NavCoordinate int y1,
+                               @NavCoordinate int x2,
+                               @NavCoordinate int y2,
                                SceneComponent component1,
                                SceneComponent component2) {
     mouseDown(x1, y1);
@@ -115,9 +115,9 @@ public class LevelTest extends NavigationTestCase {
     checkLevel(component1, component2);
   }
 
-  private void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    @SwingCoordinate int swingX = Coordinates.getSwingXDip(mySceneView, x);
-    @SwingCoordinate int swingY = Coordinates.getSwingYDip(mySceneView, y);
+  private void mouseDown(@NavCoordinate int x, @NavCoordinate int y) {
+    @SwingCoordinate int swingX = Coordinates.getSwingX(mySceneView, x);
+    @SwingCoordinate int swingY = Coordinates.getSwingY(mySceneView, y);
     @SwingCoordinate int swingDrag = Coordinates.getSwingDimension(mySceneView, 30);
 
     LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, swingX, swingY, 0);
@@ -128,9 +128,9 @@ public class LevelTest extends NavigationTestCase {
     mySceneView.getScene().layout(0, SceneContext.get());
   }
 
-  private void mouseUp(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    LayoutTestUtilities.releaseMouse(myInteractionManager, BUTTON1, Coordinates.getSwingXDip(mySceneView, x),
-                                     Coordinates.getSwingYDip(mySceneView, y), 0);
+  private void mouseUp(@NavCoordinate int x, @NavCoordinate int y) {
+    LayoutTestUtilities.releaseMouse(myInteractionManager, BUTTON1, Coordinates.getSwingX(mySceneView, x),
+                                     Coordinates.getSwingY(mySceneView, y), 0);
   }
 
   private static void checkLevel(SceneComponent lower, SceneComponent higher) {

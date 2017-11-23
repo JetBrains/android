@@ -44,8 +44,8 @@ public class RoomCreateTableStatementImpl extends RoomStatementImpl implements R
 
   @Override
   @NotNull
-  public List<RoomColumnDef> getColumnDefList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnDef.class);
+  public List<RoomColumnDefinition> getColumnDefinitionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnDefinition.class);
   }
 
   @Override
@@ -68,8 +68,8 @@ public class RoomCreateTableStatementImpl extends RoomStatementImpl implements R
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public RoomTableDefinitionName getTableDefinitionName() {
+    return findNotNullChildByClass(RoomTableDefinitionName.class);
   }
 
 }

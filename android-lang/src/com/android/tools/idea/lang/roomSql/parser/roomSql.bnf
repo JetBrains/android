@@ -134,13 +134,23 @@ statement ::=
   | vacuum_statement
   )
 
-alter_table_statement ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO table_name | ADD ( COLUMN )? column_def )
+alter_table_statement ::= ALTER TABLE ( database_name '.' )? defined_table_name ( RENAME TO table_definition_name | ADD ( COLUMN )? column_definition )
 
-table_name ::= name {
+// Name of a table that is already in scope for the current query.
+selected_table_name ::= name {
   methods=[getReference]
 }
 
-table_def_name ::= name
+// Name of a table defined in the schema or using a WITH clause.
+defined_table_name ::= name {
+  methods=[getReference]
+}
+
+// Name of a table being defined.
+table_definition_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 database_name ::= name
 
@@ -164,7 +174,7 @@ release_statement ::= RELEASE ( SAVEPOINT )? savepoint_name
 
 create_index_statement ::=
   CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )?
-  ( database_name '.' )? index_name ON table_name '(' indexed_column ( ',' indexed_column )* ')'
+  ( database_name '.' )? index_name ON defined_table_name '(' indexed_column ( ',' indexed_column )* ')'
   where_clause?
 
 private index_name ::= name
@@ -175,16 +185,19 @@ column_name ::= name {
   methods=[getReference]
 }
 
-column_def_name ::= name
+column_definition_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 collation_name ::= name
 
 create_table_statement ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
-  ( database_name '.' )? table_name
-  ( '(' column_def ( ',' column_def )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS select_statement )
+  ( database_name '.' )? table_definition_name
+  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS select_statement )
 
-column_def ::= column_name ( type_name )? ( column_constraint )*
+column_definition ::= column_definition_name ( type_name )? ( column_constraint )*
 
 type_name ::= name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
 
@@ -217,7 +230,7 @@ conflict_clause ::= ( ON CONFLICT ( ROLLBACK | ABORT | FAIL | IGNORE | REPLACE )
 create_trigger_statement ::=
   CREATE ( TEMP | TEMPORARY )? TRIGGER ( IF NOT EXISTS )?
   ( database_name '.' )? trigger_name ( BEFORE | AFTER | INSTEAD OF )?
-  ( DELETE | INSERT | UPDATE ( OF column_name ( ',' column_name )* )? ) ON table_name
+  ( DELETE | INSERT | UPDATE ( OF column_name ( ',' column_name )* )? ) ON defined_table_name
   ( FOR EACH ROW )? ( WHEN expression )?
   BEGIN ( update_statement | insert_statement | delete_statement | select_statement ) ';' END
 
@@ -231,7 +244,7 @@ view_name ::= name
 
 create_virtual_table_statement ::=
   CREATE VIRTUAL TABLE ( IF NOT EXISTS )?
-  ( database_name '.' )? table_name
+  ( database_name '.' )? table_definition_name
   USING module_name ( '(' module_argument ( ',' module_argument )* ')' )?
 
 module_name ::= name
@@ -240,23 +253,24 @@ module_argument ::= name
 with_clause ::= WITH ( RECURSIVE )? with_clause_table ( ',' with_clause_table )*
 
 with_clause_table ::= with_clause_table_def AS '(' select_statement ')'  {
-  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
-  methods=[getSqlTable]
+  methods=[getTableDefinition]
 }
 
-with_clause_table_def ::= table_def_name ( '(' column_def_name ( ',' column_def_name )* ')' )?
+with_clause_table_def ::= table_definition_name ( '(' column_definition_name ( ',' column_definition_name )* ')' )?
 
 delete_statement ::=
   ( with_clause )?
   DELETE FROM single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   where_clause?
-  ( order_clause? LIMIT expression ( ( OFFSET | ',' ) expression )? )?
+  ( order_clause? LIMIT expression ( ( OFFSET | ',' ) expression )? )? {
+    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+  }
 
 detach_statement ::= DETACH ( DATABASE )? database_name
 
 drop_index_statement ::= DROP INDEX ( IF EXISTS )? ( database_name '.' )? index_name
 
-drop_table_statement ::= DROP TABLE ( IF EXISTS )? ( database_name '.' )? table_name
+drop_table_statement ::= DROP TABLE ( IF EXISTS )? ( database_name '.' )? defined_table_name
 
 drop_trigger_statement ::= DROP TRIGGER ( IF EXISTS )? ( database_name '.' )? trigger_name
 
@@ -267,7 +281,7 @@ drop_view_statement ::= DROP VIEW ( IF EXISTS )? ( database_name '.' )? view_nam
 // It needed to be changed to a form that Grammar-Kit accepts (due to left recursion), see this link for details:
 // https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
 //
-// Operator precedence taken from http://www.sqlite.org/lang_expression.html
+// Operator precedence taken from http://www.sqlite.org/lang_expr.html
 //
 //expr ::=
 //  literal_value
@@ -331,13 +345,13 @@ cast_expression ::= CAST '(' expression AS type_name ')'
 case_expression ::= CASE expression? ( WHEN expression THEN expression )+ ( ELSE expression )? END
 like_expression ::= expression NOT? ( LIKE | GLOB | REGEXP | MATCH ) expression ( ESCAPE expression )?
 isnull_expression ::= expression ( ISNULL | NOTNULL | NOT NULL )
-in_expression ::=  expression ( NOT )? IN ( '(' ( select_statement | expression ( ',' expression )* )? ')' | ( database_name '.' )? table_name )
+in_expression ::=  expression ( NOT )? IN ( '(' ( select_statement | expression ( ',' expression )* )? ')' | ( database_name '.' )? defined_table_name )
 exists_expression ::= ( ( NOT )? EXISTS )? '(' select_statement ')'
 function_call_expression ::= function_name '(' ( ( DISTINCT )? expression ( ',' expression )* | '*' )? ')'
 
 column_ref_expression ::=
-  database_name '.' table_name '.' column_name
-  | table_name '.' column_name
+  database_name '.' selected_table_name '.' column_name
+  | selected_table_name '.' column_name
   | column_name
 
 function_name ::= name
@@ -365,7 +379,9 @@ insert_statement ::=
   ( with_clause )?
   ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
   single_table_statement_table insert_columns?
-  ( select_core_values | select_statement | DEFAULT VALUES )
+  ( select_core_values | select_statement | DEFAULT VALUES ) {
+    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+}
 
 insert_columns ::= '(' column_name ( ',' column_name )* ')'
 
@@ -377,9 +393,11 @@ pragma_name ::= name // TODO: check
 // See https://sqlite.org/pragma.html
 pragma_value ::= signed_number | name | string_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
 
-reindex_statement ::= REINDEX ( collation_name | ( database_name '.' )? ( table_name | index_name ) )?
+reindex_statement ::= REINDEX ( collation_name | ( database_name '.' )? ( defined_table_name | index_name ) )?
 
-select_statement ::= with_clause? select_core (compound_operator select_core)* order_clause? limit_clause?
+select_statement ::= with_clause? select_core (compound_operator select_core)* order_clause? limit_clause? {
+    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+}
 
 limit_clause ::= LIMIT expression ( ( OFFSET | ',' ) expression )?
 
@@ -405,24 +423,30 @@ join_clause ::= table_or_subquery ( join_operator table_or_subquery join_constra
 
 table_or_subquery ::= from_table | subquery
 
-from_table ::= ( database_name '.' )? table_name ( ( AS )? table_alias_name )? ( INDEXED BY index_name | NOT INDEXED )? {
-  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+from_table ::= ( database_name '.' )? defined_table_name ( ( AS )? table_alias_name )? ( INDEXED BY index_name | NOT INDEXED )? {
+  implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
   methods=[getSqlTable]
 }
 
 subquery ::= '(' select_statement ')' ( ( AS )? table_alias_name )? {
-  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+  implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
   methods=[getSqlTable]
 }
 
-table_alias_name ::= name
+table_alias_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 result_column ::=
   '*'
-  | table_name '.' '*'
+  | selected_table_name '.' '*'
   | expression ( ( AS )? column_alias_name )?
 
-column_alias_name ::= name
+column_alias_name ::= name {
+  implements="com.intellij.psi.PsiNamedElement"
+  methods=[getName setName]
+}
 
 join_operator ::= ',' | ( NATURAL )? ( LEFT ( OUTER )? | INNER | CROSS )? JOIN
 
@@ -436,10 +460,12 @@ update_statement ::=
   ( with_clause )?
   UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   SET column_name '=' expression ( ',' column_name '=' expression )*
-  where_clause?
+  where_clause? {
+    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+}
 
-single_table_statement_table ::= ( database_name '.' )? table_name {
-  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+single_table_statement_table ::= ( database_name '.' )? defined_table_name {
+  implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
   methods=[getSqlTable]
 }
 

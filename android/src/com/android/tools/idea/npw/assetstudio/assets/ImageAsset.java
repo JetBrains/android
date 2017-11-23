@@ -42,8 +42,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * An asset that represents an image on disk. The image can be either raster, e.g. PNG, JPG, etc,
- * or vector, e.g. XML drawable, SVG or PSD. All methods of class with an exception of
- * {#link {@link #getXmlDrawable()} have to be called on the event dispatch thread.
+ * or vector, e.g. XML drawable, SVG or PSD. All methods of the class with an exception of
+ * {@link #getXmlDrawable()} have to be called on the event dispatch thread.
  */
 public final class ImageAsset extends BaseAsset {
   @NotNull private final OptionalValueProperty<File> myImagePath;

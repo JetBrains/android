@@ -23,6 +23,9 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.instructions.IconInstruction;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
@@ -35,7 +38,10 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -77,7 +83,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Nullable private CpuCaptureView myCaptureView;
 
-  @NotNull  private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
+  @NotNull private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
 
   @Nullable
   private ProfilerTooltipView myTooltipView;
@@ -219,6 +225,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlay.addDurationDataRenderer(inProgressTraceRenderer);
     lineChart.addCustomRenderer(inProgressTraceRenderer);
 
+    if (!getStage().hasUserUsedCpuCapture()) {
+      installProfilingInstructions(monitorPanel);
+    }
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
@@ -295,7 +304,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
-    myHelpTipInfoMessagePanel = new InfoMessagePanel("Details unavailable", "Click the record button to start CPU profiling or select a capture in the timeline.", null);
+    myHelpTipInfoMessagePanel =
+      new InfoMessagePanel("Details unavailable", "Click the record button to start CPU profiling or select a capture in the timeline.",
+                           null);
 
     mySplitter = new JBSplitter(true);
     mySplitter.setFirstComponent(details);
@@ -353,6 +364,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
   }
 
+  private void installProfilingInstructions(@NotNull JPanel parent) {
+    assert parent.getLayout().getClass() == TabularLayout.class;
+    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click  "),
+                                                            new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD,
+                                                                                PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+                                                            new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  to start method profiling"))
+      .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+      .build();
+    parent.add(panel, new TabularLayout.Constraint(0, 0));
+  }
+
   private static class ProfilingConfigurationRenderer extends ColoredListCellRenderer<ProfilingConfiguration> {
     ProfilingConfigurationRenderer() {
       super();
@@ -382,7 +405,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
         setIcon(AllIcons.Actions.EditSource);
         append("Edit configurations...");
-      } else {
+      }
+      else {
         append(value.getName());
       }
     }

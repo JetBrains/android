@@ -41,9 +41,9 @@ public class ActionHandleTargetTest extends TestCase {
 
   private void setup() {
     mySceneContext = mock(SceneContext.class);
-    when(mySceneContext.getSwingX(anyFloat())).thenReturn(X);
-    when(mySceneContext.getSwingY(anyFloat())).thenReturn(Y);
-    when(mySceneContext.getSwingDimension(anyFloat())).thenAnswer(i -> (int)(float)i.getArguments()[0]);
+    when(mySceneContext.getSwingX(anyInt())).thenReturn(X);
+    when(mySceneContext.getSwingY(anyInt())).thenReturn(Y);
+    when(mySceneContext.getSwingDimension(anyInt())).thenAnswer(i -> i.getArguments()[0]);
 
     mySceneComponent = mock(SceneComponent.class);
     when(mySceneComponent.getScene()).thenReturn(mock(Scene.class));

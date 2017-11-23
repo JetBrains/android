@@ -103,11 +103,11 @@ public class SwitchDecorator extends SceneDecorator {
     super.addContent(list, time, sceneContext, component);
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
-    int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
+    int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     if (text == null) {
       text = "";

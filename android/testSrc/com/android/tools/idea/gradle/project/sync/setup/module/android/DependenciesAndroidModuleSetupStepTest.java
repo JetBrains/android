@@ -165,7 +165,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
 
     // Create module dependency on lib module.
-    ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE);
+    ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE, libModule);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
     mySetupStep.updateModuleDependency(myModule, modelsProvider, dependency, moduleModel);
@@ -202,17 +202,15 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     facet.getConfiguration().GRADLE_PROJECT_PATH = libModulePath;
 
     // Create module dependency on lib module.
-    ModuleDependency selfCompileDependency = new ModuleDependency(libModulePath, COMPILE);
-    ModuleDependency selfTestDependency = new ModuleDependency(libModulePath, TEST);
+    ModuleDependency selfCompileDependency = new ModuleDependency(libModulePath, COMPILE, libModule);
+    ModuleDependency selfTestDependency = new ModuleDependency(libModulePath, TEST, libModule);
     // Create module dependency on some other module.
-    ModuleDependency otherDependency = new ModuleDependency("other", TEST);
-
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    ModuleDependency otherDependency = new ModuleDependency("other", TEST, createModule("other"));
 
     // Verify that isSelfDependencyByTest is false for compile scope, and true for test scope.
-    assertFalse(isSelfDependencyByTest(libModule, modelsProvider, selfCompileDependency));
-    assertTrue(isSelfDependencyByTest(libModule, modelsProvider, selfTestDependency));
+    assertFalse(isSelfDependencyByTest(libModule, selfCompileDependency));
+    assertTrue(isSelfDependencyByTest(libModule, selfTestDependency));
     // Verify that isSelfDependencyByTest is false non-self dependency.
-    assertFalse(isSelfDependencyByTest(libModule, modelsProvider, otherDependency));
+    assertFalse(isSelfDependencyByTest(libModule, otherDependency));
   }
 }

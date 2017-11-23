@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -30,6 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel.RepositoryType;
+import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel.RepositoryType.GOOGLE_DEFAULT;
+import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel.RepositoryType.MAVEN;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -60,12 +62,12 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
 
   public void testExecuteWithGradle3dot5() throws Exception {
     // Check that quickfix adds google maven repository using url when gradle version is lower than 4.0
-    verifyExecute("3.5", MavenRepositoryModel.class);
+    verifyExecute("3.5", MAVEN);
   }
 
   public void testExecuteWithGradle4dot0() throws Exception {
     // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
-    verifyExecute("4.0", GoogleDefaultRepositoryModel.class);
+    verifyExecute("4.0", GOOGLE_DEFAULT);
   }
 
   public void testExecuteWithModule() throws Exception {
@@ -91,7 +93,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     // Verify it added the repository to app
     buildModel = GradleBuildModel.get(appModule);
     assertThat(buildModel).isNotNull();
-    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
 
@@ -108,7 +110,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
   }
 
-  private void verifyExecute(@NotNull String version, @NotNull Class<? extends RepositoryModel> clazz) throws IOException {
+  private void verifyExecute(@NotNull String version, @NotNull RepositoryType type) throws IOException {
     // Prepare project and mock version
     prepareProjectForImport(SIMPLE_APPLICATION);
     Project project = getProject();
@@ -128,14 +130,14 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     // Verify it added the repository
     buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(clazz);
+    assertEquals(type ,repositories.get(0).getType());
 
     // Verify it was added in buildscript
     repositories = buildModel.buildscript().repositories().repositories();
     assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(clazz);
+    assertEquals(type, repositories.get(0).getType());
   }
 
   private void removeRepositories(@NotNull Project project) {

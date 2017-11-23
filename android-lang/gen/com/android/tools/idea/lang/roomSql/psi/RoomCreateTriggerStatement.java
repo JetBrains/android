@@ -30,11 +30,11 @@ public interface RoomCreateTriggerStatement extends RoomStatement {
   @Nullable
   RoomDatabaseName getDatabaseName();
 
+  @NotNull
+  RoomDefinedTableName getDefinedTableName();
+
   @Nullable
   RoomExpression getExpression();
-
-  @NotNull
-  RoomTableName getTableName();
 
   @NotNull
   RoomTriggerName getTriggerName();

@@ -22,7 +22,7 @@ import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.ObservableOptional;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
@@ -248,12 +248,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @NotNull
     public ObservableBool shouldBeVisible() {
-      return BooleanExpressions.alwaysTrue();
+      return BooleanExpression.ALWAYS_TRUE;
     }
 
     @NotNull
     public ObservableBool shouldBeDefault() {
-      return BooleanExpressions.alwaysFalse();
+      return BooleanExpression.ALWAYS_FALSE;
     }
   }
 
@@ -341,7 +341,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
           return not(myWizard.onLastStep().and(myWizard.canGoForward()));
         case ALWAYS_CAN_CANCEL:
         default:
-          return BooleanExpressions.alwaysTrue();
+          return BooleanExpression.ALWAYS_TRUE;
       }
     }
   }

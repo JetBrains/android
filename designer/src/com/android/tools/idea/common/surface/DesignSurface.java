@@ -33,8 +33,10 @@ import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
@@ -89,8 +91,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
-  protected boolean myDeviceFrames = false;
-  private ImmutableList<Layer> myLayers = ImmutableList.of();
+  @VisibleForTesting
+  @NotNull public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -98,10 +100,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   @Nullable protected NlModel myModel;
-  protected Scene myScene;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
+  private final RenderListener myRenderListener = this::modelRendered;
+  private final ModelListener myModelListener = (model, animate) -> repaint();
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
@@ -117,7 +120,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     return true;
   };
-
 
   public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -194,9 +196,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     });
 
     myInteractionManager.registerListeners();
+    //noinspection AbstractMethodCallInConstructor
     myActionManager = createActionManager();
     myActionManager.registerActionsShortcuts(myLayeredPane);
   }
+
+  /**
+   * @return The scaling factor between Scene coordinates and un-zoomed, un-offset Swing coordinates.
+   *
+   * TODO: reconsider where this value is stored/who's responsible for providing it. It might make more sense for it to be stored in
+   * the Scene or provided by the SceneManager.
+   */
+  public abstract float getSceneScalingFactor();
 
   // TODO: add self-type parameter DesignSurface?
   @NotNull
@@ -214,10 +225,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public NlLayoutType getLayoutType() {
-    if (getCurrentSceneView() == null) {
+    if (myModel == null) {
       return NlLayoutType.UNKNOWN;
     }
-    return NlLayoutType.typeOf(getCurrentSceneView().getModel().getFile());
+    return myModel.getType();
   }
 
   @NotNull
@@ -234,13 +245,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getSelectionModel().getTransferable(myModel != null ? myModel.getId() : 0);
   }
 
-  protected final void createSceneViews() {
-    doCreateSceneViews();
-    notifySceneViewChanged();
-  }
-
-  protected abstract void doCreateSceneViews();
-
   @Nullable
   public NlModel getModel() {
     return myModel;
@@ -253,65 +257,49 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
+      myModel.removeListener(myModelListener);
+      // If myModel is not null, then mySceneManager must be not null as well.
+      mySceneManager.removeRenderListener(myRenderListener);
+
+      // Removed the added layers.
+      removeLayers(mySceneManager.getLayers());
+
+      Disposer.dispose(mySceneManager);
     }
+
     myModel = model;
-    SceneView sceneView = getCurrentSceneView();
-    if (model == null && sceneView == null) {
+    if (model == null) {
+      mySceneManager = null;
       return;
     }
 
-    List<NlComponent> selectionBefore = Collections.emptyList();
-    List<NlComponent> selectionAfter = Collections.emptyList();
+    model.addListener(myModelListener);
+    model.getConfiguration().addListener(myConfigurationListener);
+    mySceneManager = createSceneManager(model);
+    mySceneManager.addRenderListener(myRenderListener);
 
-    if (mySceneManager != null) {
-      mySceneManager.removeRenderListener(this::modelRendered);
+    if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.unregisterListeners();
+    }
+    else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.registerListeners();
     }
 
-    if (sceneView != null) {
-      sceneView.getModel().removeListener(myModelListener);
-    }
-
-    if (model != null) {
-      model.addListener(myModelListener);
-      model.getConfiguration().addListener(myConfigurationListener);
-      mySceneManager = createSceneManager(model);
-      mySceneManager.addRenderListener(this::modelRendered);
-      myScene = mySceneManager.getScene();
-    }
-    else {
-      myScene = null;
-      mySceneManager = null;
-    }
-
-    createSceneViews();
-
-    if (model != null) {
-      if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
-        myInteractionManager.unregisterListeners();
-      }
-      else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
-        myInteractionManager.registerListeners();
-      }
-    }
     repaint();
 
-    if (!selectionBefore.equals(selectionAfter)) {
-      notifySelectionListeners(selectionAfter);
-    }
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
       listener.modelChanged(this, model);
     }
-    notifySceneViewChanged();
     zoomToFit();
   }
 
   @Override
   public void dispose() {
-    // This takes care of disposing any existing layers
-    setLayers(ImmutableList.of());
     myInteractionManager.unregisterListeners();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
+      myModel.removeListener(myModelListener);
+      mySceneManager.removeRenderListener(myRenderListener);
     }
   }
 
@@ -341,13 +329,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The x (swing) coordinate of the origin of this DesignSurface's content.
    */
   @SwingCoordinate
-  protected abstract int getContentOriginX();
+  public abstract int getContentOriginX();
 
   /**
    * The y (swing) coordinate of the origin of this DesignSurface's content.
    */
   @SwingCoordinate
-  protected abstract int getContentOriginY();
+  public abstract int getContentOriginY();
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
@@ -364,7 +352,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Nullable
-  public abstract SceneView getCurrentSceneView();
+  public SceneView getCurrentSceneView() {
+    SceneManager sceneManager = getSceneManager();
+    return sceneManager != null ? sceneManager.getSceneView() : null;
+  }
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
@@ -690,7 +681,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private void notifySceneViewChanged() {
+  public void notifySceneViewChanged() {
+    layoutContent();
     SceneView screenView = getCurrentSceneView();
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
@@ -743,8 +735,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private final ModelListener myModelListener = (model, animate) -> repaint();
-
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
       myZoomListeners = Lists.newArrayList();
@@ -765,15 +755,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
-    if (!myIsActive && getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().activate(this);
+    if (!myIsActive && myModel != null) {
+      myModel.activate(this);
     }
     myIsActive = true;
   }
 
   public void deactivate() {
-    if (myIsActive && getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().deactivate(this);
+    if (myIsActive && myModel != null) {
+      myModel.deactivate(this);
     }
     myIsActive = false;
 
@@ -790,6 +780,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
+  @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     return getCurrentSceneView();
   }
@@ -804,15 +795,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getCurrentSceneView();
   }
 
-  public void toggleDeviceFrames() {
-    myDeviceFrames = !myDeviceFrames;
-    layoutContent();
-    repaint();
-  }
-
   @Nullable
   public Scene getScene() {
-    return myScene;
+    return getSceneManager() != null ? mySceneManager.getScene() : null;
   }
 
   @Nullable
@@ -1152,9 +1137,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void forceUserRequestedRefresh() {
-    SceneView sceneView = getCurrentSceneView();
-    SceneManager sceneManager = sceneView != null ? sceneView.getSceneManager() : null;
-
+    SceneManager sceneManager = getSceneManager();
     if (sceneManager instanceof LayoutlibSceneManager) {
       ((LayoutlibSceneManager)sceneManager).requestUserInitatedRender();
     }
@@ -1164,9 +1147,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
   public void requestRender() {
-    SceneView sceneView = getCurrentSceneView();
-    if (sceneView != null) {
-      sceneView.getSceneManager().requestRender();
+    SceneManager sceneManager = getSceneManager();
+    if (sceneManager != null) {
+      sceneManager.requestRender();
     }
   }
 
@@ -1223,7 +1206,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   @Override
   public Configuration getConfiguration() {
-    return getCurrentSceneView() != null ? getCurrentSceneView().getConfiguration() : null;
+    return getModel() != null ? getModel().getConfiguration() : null;
   }
 
   @NotNull
@@ -1279,18 +1262,24 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Attaches the given {@link Layer}s to the current design surface
+   * Attaches the given {@link Layer}s to the current design surface.
    */
-  protected void setLayers(@NotNull ImmutableList<Layer> layers) {
-    myLayers.forEach(Disposer::dispose);
-    myLayers = ImmutableList.copyOf(layers);
+  public void addLayers(@NotNull ImmutableList<Layer> layers) {
+    myLayers = ImmutableList.copyOf(Iterables.concat(myLayers, layers));
+  }
+
+  /**
+   * Deattaches the given {@link Layer}s to the current design surface
+   */
+  public void removeLayers(@NotNull ImmutableList<Layer> layers) {
+   myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
   }
 
   /**
    * Returns the list of {@link Layer}s attached to this {@link DesignSurface}
    */
   @NotNull
-  protected ImmutableList<Layer> getLayers() {
+  protected List<Layer> getLayers() {
     return myLayers;
   }
 

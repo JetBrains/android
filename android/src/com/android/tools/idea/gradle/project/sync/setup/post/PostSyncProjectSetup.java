@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -61,12 +62,12 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 
@@ -146,10 +147,15 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
-    myGradleProjectInfo.setNewOrImportedProject(false);
+    if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
+      removeSyncContextDataFrom(myProject);
+    }
+
+    myGradleProjectInfo.setNewProject(false);
+    myGradleProjectInfo.setImportedProject(false);
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
-    if (syncFailed && request.isUsingCachedGradleModels()) {
+    if (syncFailed && request.usingCachedGradleModels) {
       onCachedModelsSetupFailure(request);
       return;
     }
@@ -176,7 +182,7 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    if (!request.isSkipAndroidPluginUpgrade() && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+    if (!request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
       return;
     }
@@ -208,7 +214,7 @@ public class PostSyncProjectSetup {
   public void onCachedModelsSetupFailure(@NotNull Request request) {
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
-    long syncTimestamp = request.getLastSyncTimestamp();
+    long syncTimestamp = request.lastSyncTimestamp;
     if (syncTimestamp < 0) {
       syncTimestamp = System.currentTimeMillis();
     }
@@ -240,7 +246,7 @@ public class PostSyncProjectSetup {
   private void notifySyncFinished(@NotNull Request request) {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
-    if (request.isUsingCachedGradleModels()) {
+    if (request.usingCachedGradleModels) {
       long timestamp = System.currentTimeMillis();
       mySyncState.syncSkipped(timestamp);
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
@@ -316,7 +322,7 @@ public class PostSyncProjectSetup {
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
-    if (!request.isGenerateSourcesAfterSync()) {
+    if (!request.generateSourcesAfterSync) {
       return;
     }
     if (cleanProjectAfterSync) {
@@ -327,86 +333,11 @@ public class PostSyncProjectSetup {
   }
 
   public static class Request {
-    @NotNull public static final Request DEFAULT_REQUEST = new Request() {
-      @Override
-      @NotNull
-      public Request setCleanProjectAfterSync(boolean cleanProjectAfterSync) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      @NotNull
-      public Request setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      @NotNull
-      public Request setLastSyncTimestamp(long lastSyncTimestamp) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      @NotNull
-      public Request setUsingCachedGradleModels(boolean usingCachedGradleModels) {
-        throw new UnsupportedOperationException();
-      }
-    };
-
-    private boolean myUsingCachedGradleModels;
-    private boolean myCleanProjectAfterSync;
-    private boolean myGenerateSourcesAfterSync = true;
-    private boolean mySkipAndroidPluginUpgrade;
-    private long myLastSyncTimestamp = -1L;
-
-    public boolean isUsingCachedGradleModels() {
-      return myUsingCachedGradleModels;
-    }
-
-    @NotNull
-    public Request setUsingCachedGradleModels(boolean usingCachedGradleModels) {
-      myUsingCachedGradleModels = usingCachedGradleModels;
-      return this;
-    }
-
-    public boolean isCleanProjectAfterSync() {
-      return myCleanProjectAfterSync;
-    }
-
-    @NotNull
-    public Request setCleanProjectAfterSync(boolean cleanProjectAfterSync) {
-      myCleanProjectAfterSync = cleanProjectAfterSync;
-      return this;
-    }
-
-    public boolean isGenerateSourcesAfterSync() {
-      return myGenerateSourcesAfterSync;
-    }
-
-    @NotNull
-    public Request setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
-      myGenerateSourcesAfterSync = generateSourcesAfterSync;
-      return this;
-    }
-
-    public long getLastSyncTimestamp() {
-      return myLastSyncTimestamp;
-    }
-
-    public boolean isSkipAndroidPluginUpgrade() {
-      return mySkipAndroidPluginUpgrade;
-    }
-
-    @TestOnly
-    public void setSkipAndroidPluginUpgrade() {
-      mySkipAndroidPluginUpgrade = true;
-    }
-
-    @NotNull
-    public Request setLastSyncTimestamp(long lastSyncTimestamp) {
-      myLastSyncTimestamp = lastSyncTimestamp;
-      return this;
-    }
+    public boolean usingCachedGradleModels;
+    public boolean cleanProjectAfterSync;
+    public boolean generateSourcesAfterSync = true;
+    public boolean skipAndroidPluginUpgrade;
+    public long lastSyncTimestamp = -1L;
 
     @Override
     public boolean equals(Object o) {
@@ -417,15 +348,15 @@ public class PostSyncProjectSetup {
         return false;
       }
       Request request = (Request)o;
-      return myUsingCachedGradleModels == request.myUsingCachedGradleModels &&
-             myCleanProjectAfterSync == request.myCleanProjectAfterSync &&
-             myGenerateSourcesAfterSync == request.myGenerateSourcesAfterSync &&
-             myLastSyncTimestamp == request.myLastSyncTimestamp;
+      return usingCachedGradleModels == request.usingCachedGradleModels &&
+             cleanProjectAfterSync == request.cleanProjectAfterSync &&
+             generateSourcesAfterSync == request.generateSourcesAfterSync &&
+             lastSyncTimestamp == request.lastSyncTimestamp;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(myUsingCachedGradleModels, myCleanProjectAfterSync, myGenerateSourcesAfterSync, myLastSyncTimestamp);
+      return Objects.hash(usingCachedGradleModels, cleanProjectAfterSync, generateSourcesAfterSync, lastSyncTimestamp);
     }
   }
 }

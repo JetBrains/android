@@ -99,7 +99,7 @@ public class NewProjectTest {
    *   2. Check that MainActivity is in AndroidManifest.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testCreateNewMobileProject() {
     IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);

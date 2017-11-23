@@ -223,7 +223,6 @@
                           <model>
                             <item value="None"/>
                           </model>
-                          <toolTipText value="&lt;html&gt;None - no camera installed for AVD&lt;br&gt;Emulated - use a simulated camera&lt;br&gt;Device - use host computer webcam or built-in camera&lt;/html&gt;"/>
                         </properties>
                       </component>
                       <component id="8ab45" class="javax.swing.JComboBox" binding="myFrontCameraCombo">
@@ -234,7 +233,6 @@
                           <model>
                             <item value="None"/>
                           </model>
-                          <toolTipText value="&lt;html&gt;None - no camera installed for AVD&lt;br&gt;Emulated - use a simulated camera&lt;br&gt;Device - use host computer webcam or built-in camera&lt;/html&gt;"/>
                         </properties>
                       </component>
                     </children>

@@ -18,9 +18,10 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.adtui.ImageUtils;
+import com.google.common.base.CaseFormat;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,6 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
  * Utility methods helpful for working with and generating Android assets.
  */
 public final class AssetStudioUtils {
-
   /**
    * Create a tiny dummy image, so that we can always return a {@link NotNull} result if an image
    * we were looking for isn't found.
@@ -144,6 +144,21 @@ public final class AssetStudioUtils {
     return repository.hasResourceItem(resourceType, name);
   }
 
+  /**
+   * Returns the name of an enum value as a lower camel case string.
+   */
+  public static String toLowerCamelCase(Enum<?> enumValue) {
+    return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name());
+  }
+
+  /**
+   * Returns the name of an enum value as an upper camel case string.
+   */
+  public static String toUpperCamelCase(Enum<?> enumValue) {
+    return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name());
+  }
+
+  /** Do not instantiate. All methods are static. */
   private AssetStudioUtils() {
   }
 }

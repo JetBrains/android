@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -41,9 +40,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleProjectInfo}.
@@ -55,16 +52,6 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
-  }
-
-  public void testCanUseLocalMavenRepoWithEnabledRepo() {
-    AndroidStudioGradleProjectSettings.getInstance(getProject()).DISABLE_EMBEDDED_MAVEN_REPO = false;
-    assertTrue(myProjectInfo.canUseLocalMavenRepo());
-  }
-
-  public void testCanUseLocalMavenRepoWithDisabledRepo() {
-    AndroidStudioGradleProjectSettings.getInstance(getProject()).DISABLE_EMBEDDED_MAVEN_REPO = true;
-    assertFalse(myProjectInfo.canUseLocalMavenRepo());
   }
 
   public void testHasTopLevelGradleBuildFileUsingGradleProject() {
@@ -176,8 +163,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
 
     ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
     Project project = getProject();
-    myProjectInfo = new GradleProjectInfo(project, mock(AndroidProjectInfo.class), mock(AndroidStudioGradleProjectSettings.class),
-                                          projectFileIndex);
+    myProjectInfo = new GradleProjectInfo(project, mock(AndroidProjectInfo.class), projectFileIndex);
 
     VirtualFile excludedFile = createFileInProjectRoot(project, "something.txt");
 

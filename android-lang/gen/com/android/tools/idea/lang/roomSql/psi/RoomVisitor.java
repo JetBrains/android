@@ -21,7 +21,7 @@ package com.android.tools.idea.lang.roomSql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.SqlTableElement;
+import com.intellij.psi.PsiNamedElement;
 
 public class RoomVisitor extends PsiElementVisitor {
 
@@ -78,19 +78,21 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitColumnAliasName(@NotNull RoomColumnAliasName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitColumnConstraint(@NotNull RoomColumnConstraint o) {
     visitPsiElement(o);
   }
 
-  public void visitColumnDef(@NotNull RoomColumnDef o) {
+  public void visitColumnDefinition(@NotNull RoomColumnDefinition o) {
     visitPsiElement(o);
   }
 
-  public void visitColumnDefName(@NotNull RoomColumnDefName o) {
-    visitNameElement(o);
+  public void visitColumnDefinitionName(@NotNull RoomColumnDefinitionName o) {
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitColumnName(@NotNull RoomColumnName o) {
@@ -145,8 +147,13 @@ public class RoomVisitor extends PsiElementVisitor {
     visitNameElement(o);
   }
 
+  public void visitDefinedTableName(@NotNull RoomDefinedTableName o) {
+    visitNameElement(o);
+  }
+
   public void visitDeleteStatement(@NotNull RoomDeleteStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitDetachStatement(@NotNull RoomDetachStatement o) {
@@ -227,6 +234,7 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitInsertStatement(@NotNull RoomInsertStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitIsnullExpression(@NotNull RoomIsnullExpression o) {
@@ -343,6 +351,11 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitSelectStatement(@NotNull RoomSelectStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
+  }
+
+  public void visitSelectedTableName(@NotNull RoomSelectedTableName o) {
+    visitNameElement(o);
   }
 
   public void visitSignedNumber(@NotNull RoomSignedNumber o) {
@@ -362,19 +375,17 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitTableAliasName(@NotNull RoomTableAliasName o) {
-    visitNameElement(o);
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitTableConstraint(@NotNull RoomTableConstraint o) {
     visitPsiElement(o);
   }
 
-  public void visitTableDefName(@NotNull RoomTableDefName o) {
-    visitNameElement(o);
-  }
-
-  public void visitTableName(@NotNull RoomTableName o) {
-    visitNameElement(o);
+  public void visitTableDefinitionName(@NotNull RoomTableDefinitionName o) {
+    visitPsiNamedElement(o);
+    // visitNameElement(o);
   }
 
   public void visitTableOrIndexName(@NotNull RoomTableOrIndexName o) {
@@ -399,6 +410,7 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitUpdateStatement(@NotNull RoomUpdateStatement o) {
     visitStatement(o);
+    // visitHasWithClause(o);
   }
 
   public void visitVacuumStatement(@NotNull RoomVacuumStatement o) {
@@ -418,11 +430,15 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitWithClauseTable(@NotNull RoomWithClauseTable o) {
-    visitSqlTableElement(o);
+    visitPsiElement(o);
   }
 
   public void visitWithClauseTableDef(@NotNull RoomWithClauseTableDef o) {
     visitPsiElement(o);
+  }
+
+  public void visitPsiNamedElement(@NotNull PsiNamedElement o) {
+    visitElement(o);
   }
 
   public void visitNameElement(@NotNull RoomNameElement o) {

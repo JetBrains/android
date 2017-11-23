@@ -22,7 +22,9 @@ import com.android.tools.tests.XDisplayRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
+import java.io.File;
+
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
 
 @RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
@@ -32,7 +34,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static XDisplayRule display = new XDisplayRule();
 
   static {
-    symlinkToIdeaHome(
+    optSymlinkToIdeaHome(
       "prebuilts/tools/common/offline-m2",
       "tools/adt/idea/adt-ui/lib/libwebp",
       "tools/adt/idea/android/annotations",
@@ -49,9 +51,13 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/data-binding/data_binding_runtime_repo.zip", "prebuilts/tools/common/m2/repository");
 
-    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
+    // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");
+    if (kotlin.exists()) {
+      System.setProperty("plugin.path", kotlin.getAbsolutePath());
+    }
 
     // Make sure we run with UI
     System.setProperty("java.awt.headless", "false");

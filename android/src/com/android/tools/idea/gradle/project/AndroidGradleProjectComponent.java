@@ -33,6 +33,7 @@ import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +105,11 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         // http://b/62761000
         // The new exception must be an instance of ExternalSystemException, otherwise "quick fixes" will not show up.
         // GradleNotificationExtension only recognizes a few exception types when decided whether a "quick fix" should be displayed.
-        notificationManager.processExternalProjectRefreshError(new ExternalSystemException(error), myProject.getName(), GradleConstants.SYSTEM_ID);
+        Runnable processError = () -> notificationManager.processExternalProjectRefreshError(new ExternalSystemException(error),
+                                                                                           myProject.getName(), GradleConstants.SYSTEM_ID);
+        // http://b/66911744: Some quickfixes may need to access PSI (e.g., build files parsing), and that might not work
+        // if the project is not yet initialised. So ensure the project is initialised before sync error handling mechanism launches.
+        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(processError);
         gradleProjectInfo.setProjectCreationError(null);
       }
     }

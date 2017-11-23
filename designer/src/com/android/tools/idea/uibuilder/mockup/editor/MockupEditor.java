@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -495,7 +496,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
       myErrorLabel = new JLabel();
       myErrorLabel.setForeground(JBColor.RED);
       actionBar.add(myErrorLabel, BorderLayout.WEST);
-      actionBar.setBorder(IdeBorderFactory.createEmptyBorder(0, 10, 0, 5));
+      actionBar.setBorder(JBUI.Borders.empty(0, 10, 0, 5));
       return actionBar;
     }
 
@@ -504,7 +505,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
       JPanel titleBar = new JPanel(new BorderLayout());
       titleBar.add(new JBLabel(TITLE), BorderLayout.WEST);
       titleBar.add(cropTool, BorderLayout.EAST);
-      titleBar.setBorder(IdeBorderFactory.createEmptyBorder(0, 5, 0, 10));
+      titleBar.setBorder(JBUI.Borders.empty(0, 5, 0, 10));
       return titleBar;
     }
 

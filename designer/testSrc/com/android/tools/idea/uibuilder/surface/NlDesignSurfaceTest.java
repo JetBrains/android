@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -38,6 +39,7 @@ import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -61,6 +63,39 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     finally {
       super.tearDown();
     }
+  }
+
+  public void testLayers() {
+    ImmutableList<Layer> droppedLayers;
+
+    assertEmpty(mySurface.myLayers);
+    ModelBuilder modelBuilder = model("absolute.xml",
+                                      component(ABSOLUTE_LAYOUT)
+                                        .withBounds(0, 0, 1000, 1000)
+                                        .matchParentWidth()
+                                        .matchParentHeight());
+    NlModel model = modelBuilder.build();
+    mySurface.setModel(model);
+    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    assertEquals(6, mySurface.myLayers.size());
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
+    assertEquals(5, mySurface.myLayers.size());
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setScreenMode(SceneMode.BOTH, false);
+    assertEquals(10, mySurface.myLayers.size());
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
+
+    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
+    mySurface.setModel(null);
+    assertEmpty(mySurface.myLayers);
+    // Make sure all dropped layers are disposed.
+    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
   }
 
   public void testScreenMode() {
@@ -167,14 +202,14 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getCurrentSceneView());
-    assertNull(mySurface.getSecondarySceneView());
+    assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
     mySurface.setScreenMode(SceneMode.BOTH, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
     SceneView screenView = mySurface.getCurrentSceneView();
-    SceneView blueprintView = mySurface.getSecondarySceneView();
+    SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
 

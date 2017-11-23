@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -39,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
@@ -71,66 +68,20 @@ public class IdeaSyncPopulateProjectTask {
   }
 
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    populateProject(projectInfo, null, null, false);
+    populateProject(projectInfo, null, null);
   }
 
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @Nullable PostSyncProjectSetup.Request setupRequest,
-                              @Nullable Runnable syncFinishedCallback,
-                              boolean allowModuleSelection) {
-    Collection<DataNode<ModuleData>> activeModules = getActiveModules(projectInfo, allowModuleSelection);
-    populateProject(projectInfo, activeModules, setupRequest, syncFinishedCallback);
-  }
-
-  @NotNull
-  private Collection<DataNode<ModuleData>> getActiveModules(@NotNull DataNode<ProjectData> projectInfo, boolean allowModuleSelection) {
-    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
-    ProjectSubset subview = ProjectSubset.getInstance(myProject);
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&
-        ProjectSubset.getInstance(myProject).isFeatureEnabled() &&
-        modules.size() > 1) {
-      if (allowModuleSelection) {
-        // Importing a project. Allow user to select which modules to include in the project.
-        Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
-        if (selection != null) {
-          return selection;
-        }
-      }
-      else {
-        // We got here because a project was synced with Gradle. Make sure that we don't add any modules that were not selected during
-        // project import (if applicable.)
-        String[] persistedModuleNames = subview.getSelection();
-        if (persistedModuleNames != null) {
-          int moduleCount = persistedModuleNames.length;
-          if (moduleCount > 0) {
-            List<String> moduleNames = Lists.newArrayList(persistedModuleNames);
-            List<DataNode<ModuleData>> selectedModules = Lists.newArrayListWithExpectedSize(moduleCount);
-            for (DataNode<ModuleData> module : modules) {
-              String name = module.getData().getExternalName();
-              if (moduleNames.contains(name)) {
-                selectedModules.add(module);
-              }
-            }
-            return selectedModules;
-          }
-        }
-      }
-    }
-    // Delete any stored module selection.
-    subview.clearSelection();
-    return modules; // Import all modules, not just subset.
-  }
-
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @NotNull Collection<DataNode<ModuleData>> activeModules,
-                              @Nullable PostSyncProjectSetup.Request setupRequest) {
-    populateProject(projectInfo, activeModules, setupRequest, null);
-  }
-
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @NotNull Collection<DataNode<ModuleData>> activeModules,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable Runnable syncFinishedCallback) {
+    Collection<DataNode<ModuleData>> activeModules = findAll(projectInfo, ProjectKeys.MODULE);
+    doPopulateProject(projectInfo, activeModules, setupRequest, syncFinishedCallback);
+  }
+
+  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
+                                 @NotNull Collection<DataNode<ModuleData>> activeModules,
+                                 @Nullable PostSyncProjectSetup.Request setupRequest,
+                                 @Nullable Runnable syncFinishedCallback) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -214,7 +165,7 @@ public class IdeaSyncPopulateProjectTask {
       Logger.getInstance(getClass()).warn("Sync failed: " + message, unexpected);
 
       // See https://code.google.com/p/android/issues/detail?id=268806
-      if (setupRequest != null && setupRequest.isUsingCachedGradleModels()) {
+      if (setupRequest != null && setupRequest.usingCachedGradleModels) {
         // This happened when a newer version of IDEA cannot read the cache of a Gradle project created with an older IDE version.
         // Request a full sync.
         myProjectSetup.onCachedModelsSetupFailure(setupRequest);

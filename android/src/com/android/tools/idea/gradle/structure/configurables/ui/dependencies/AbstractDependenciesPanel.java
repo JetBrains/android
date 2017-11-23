@@ -42,6 +42,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +57,6 @@ import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.icons.AllIcons.Nodes.Module;
-import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
@@ -91,7 +91,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoPanel = new DependencyInfoPanel();
 
     myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myInfoScrollPane.setBorder(createEmptyBorder());
+    myInfoScrollPane.setBorder(JBUI.Borders.empty());
 
     myHeader = new Header(title);
     add(myHeader, BorderLayout.NORTH);

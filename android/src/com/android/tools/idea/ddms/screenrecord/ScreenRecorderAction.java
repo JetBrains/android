@@ -16,7 +16,15 @@
 
 package com.android.tools.idea.ddms.screenrecord;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.utils.FileUtils;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,15 +57,20 @@ public class ScreenRecorderAction {
   private static final String TITLE = "Screen Recorder";
   private static final String MEDIA_UNSUPPORTED_ERROR = "-1010";
   @NonNls private static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
+  private static final String EMU_TMP_FILENAME = "tmp.webm";
 
   private static VirtualFile ourLastSavedFolder;
 
   private final Project myProject;
   private final IDevice myDevice;
 
-  public ScreenRecorderAction(@NotNull Project p, @NotNull IDevice device) {
+  private boolean mUseEmuRecording = false;
+  private String mHostRecordingFileName = null;
+
+  public ScreenRecorderAction(@NotNull Project p, @NotNull IDevice device, boolean useEmuRecording) {
     myProject = p;
     myDevice = device;
+    mUseEmuRecording = useEmuRecording;
   }
 
   public void performAction() {
@@ -71,13 +84,37 @@ public class ScreenRecorderAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
+    if (mUseEmuRecording) {
+      // TODO (joshuaduong): Needs to handle two cases:
+      // 1) When emulator shuts down, need to stop recording dialog
+      // 2) When recording hits time limit of 3 min
+      try {
+        // Store the temp media file in the respective avd folder
+        AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+        AvdManager avdManager = AvdManager.getInstance(handler, new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
+        AvdInfo avdInfo = avdManager.getAvd(myDevice.getAvdName(), true);
+        mHostRecordingFileName = avdInfo.getDataFolderPath() + File.separator + EMU_TMP_FILENAME;
+      }
+      catch (Exception e) {
+        showError(myProject, "Unexpected error while launching screen recorder", e);
+      }
+    }
+
     boolean showTouchEnabled = isShowTouchEnabled(myDevice);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       if (options.showTouches != showTouchEnabled) {
         setShowTouch(myDevice, options.showTouches);
       }
       try {
-        myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
+        if (mHostRecordingFileName != null) { // Use emulator screen recording
+          EmulatorConsole console = EmulatorConsole.getConsole(myDevice);
+          if (console != null) {
+            console.startEmulatorScreenRecording(getEmulatorScreenRecorderOptions(mHostRecordingFileName, options));
+          }
+        } else {
+          // Store the temp media file in the respective avd folder
+          myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
+        }
       }
       catch (Exception e) {
         showError(myProject, "Unexpected error while launching screen recorder", e);
@@ -90,7 +127,7 @@ public class ScreenRecorderAction {
       }
     });
 
-    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, myDevice, latch, receiver);
+    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, myDevice, latch, receiver, mHostRecordingFileName);
     screenRecorderShellTask.setCancelText("Stop Recording");
     screenRecorderShellTask.queue();
   }
@@ -118,20 +155,58 @@ public class ScreenRecorderAction {
     return false;
   }
 
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  static String getEmulatorScreenRecorderOptions(
+    @NotNull String filePath,
+    @NotNull ScreenRecorderOptions options) {
+    StringBuilder sb = new StringBuilder();
+
+    if (options.width > 0 && options.height > 0) {
+      sb.append("--size ");
+      sb.append(options.width);
+      sb.append('x');
+      sb.append(options.height);
+      sb.append(' ');
+    }
+
+    if (options.bitrateMbps > 0) {
+      sb.append("--bit-rate ");
+      sb.append(options.bitrateMbps * 1000000);
+      sb.append(' ');
+    }
+
+    if (options.timeLimit > 0) {
+      sb.append("--time-limit ");
+      long seconds = TimeUnit.SECONDS.convert(options.timeLimit, options.timeLimitUnits);
+      if (seconds > 180) {
+        seconds = 180;
+      }
+      sb.append(seconds);
+      sb.append(' ');
+    }
+
+    sb.append(filePath);
+
+    return sb.toString();
+  }
+
   private static class ScreenRecorderTask extends Task.Modal {
     private final IDevice myDevice;
     private final CountDownLatch myCompletionLatch;
     private final CollectingOutputReceiver myReceiver;
+    private String mHostTmpFileName = null;
 
     public ScreenRecorderTask(@NotNull Project project,
                               @NotNull IDevice device,
                               @NotNull CountDownLatch completionLatch,
-                              @NotNull CollectingOutputReceiver receiver) {
+                              @NotNull CollectingOutputReceiver receiver,
+                              @Nullable String hostTmpFileName) {
       super(project, TITLE, true);
 
       myDevice = device;
       myCompletionLatch = completionLatch;
       myReceiver = receiver;
+      mHostTmpFileName = hostTmpFileName;
     }
 
     @Override
@@ -150,7 +225,14 @@ public class ScreenRecorderAction {
 
           if (indicator.isCanceled()) {
             // explicitly cancel the running task
-            myReceiver.cancel();
+            if (mHostTmpFileName != null) { // Using emulator screen recording
+              EmulatorConsole console = EmulatorConsole.getConsole(myDevice);
+              if (console != null) {
+                console.stopScreenRecording();
+              }
+            } else {
+              myReceiver.cancel();
+            }
 
             indicator.setText("Stopping...");
 
@@ -167,7 +249,31 @@ public class ScreenRecorderAction {
 
     @Override
     public void onFinished() {
-      pullRecording();
+      if (mHostTmpFileName != null) {
+        pullEmulatorRecording();
+      } else {
+        pullRecording();
+      }
+    }
+
+    private void pullEmulatorRecording() {
+      FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", "webm");
+      FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
+      VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : VfsUtil.getUserHomeDir();
+      VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(".webm"));
+      if (fileWrapper == null) {
+        return;
+      }
+
+      File f = fileWrapper.getFile();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastSavedFolder = VfsUtil.findFileByIoFile(f.getParentFile(), false);
+
+      try {
+        FileUtils.copyFile(new File(mHostTmpFileName), f);
+      } catch (IOException e) {
+        showError(myProject, "Unable to copy file to destination", e);
+      }
     }
 
     private void pullRecording() {
@@ -179,7 +285,7 @@ public class ScreenRecorderAction {
       FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", "mp4");
       FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
       VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : VfsUtil.getUserHomeDir();
-      VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
+      VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(".mp4"));
       if (fileWrapper == null) {
         return;
       }
@@ -191,11 +297,11 @@ public class ScreenRecorderAction {
       new PullRecordingTask(myProject, myDevice, f.getAbsolutePath()).queue();
     }
 
-    private static String getDefaultFileName() {
+    private static String getDefaultFileName(String extension) {
       Calendar now = Calendar.getInstance();
       String fileName = "device-%tF-%tH%tM%tS";
       // add extension to filename on Mac only see: b/38447816
-      return String.format(SystemInfo.isMac ? fileName + ".mp4" : fileName, now, now, now, now);
+      return String.format(SystemInfo.isMac ? fileName + extension : fileName, now, now, now, now);
     }
   }
 

@@ -202,12 +202,6 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
-  public List<File> getJarJarRuleFiles() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     return Collections.emptyMap();
   }

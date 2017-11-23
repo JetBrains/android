@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Rule;
@@ -36,16 +36,15 @@ public class GcStatsDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() throws Exception {
-    MemoryProfiler.MemoryData memoryData =
-      MemoryProfiler.MemoryData.newBuilder()
-        .setEndTimestamp(1)
-        .addGcStatsSamples(
-          MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
-            .setEndTime(TimeUnit.MICROSECONDS.toNanos(7)))
-        .addGcStatsSamples(
-          MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(14))
-            .setEndTime(TimeUnit.MICROSECONDS.toNanos(17)))
-            .build();
+    MemoryData memoryData = MemoryData.newBuilder()
+      .setEndTimestamp(1)
+      .addGcStatsSamples(
+        MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
+          .setEndTime(TimeUnit.MICROSECONDS.toNanos(7)))
+      .addGcStatsSamples(
+        MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(14))
+          .setEndTime(TimeUnit.MICROSECONDS.toNanos(17)))
+      .build();
     myService.setMemoryData(memoryData);
 
     GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA);

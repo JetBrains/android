@@ -21,11 +21,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.components.JBLabel
-import icons.StudioIcons
-import javax.swing.BoxLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JSlider
+import javax.swing.*
+import javax.swing.border.EmptyBorder
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 
@@ -34,7 +31,7 @@ import javax.swing.event.ChangeListener
  * Only visible if there is an overlay selected.
  */
 class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
-    AnAction("Overlay Alpha", "Set Overlay Alpha", StudioIcons.Common.INFO), CustomComponentAction, ChangeListener {
+    AnAction("Overlay Alpha", "Set Overlay Alpha", null), CustomComponentAction, ChangeListener {
   private var myPanel: JPanel? = null
   private var alpahSlider: JSlider? = null
 
@@ -47,13 +44,22 @@ class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
   override fun createCustomComponent(presentation: Presentation?): JComponent? {
     myPanel = JPanel()
     myPanel?.layout = BoxLayout(myPanel, BoxLayout.LINE_AXIS)
+
     alpahSlider = JSlider(JSlider.HORIZONTAL,
         0, 100, (myPreview.overlayAlpha * 100).toInt())
-    alpahSlider!!.addChangeListener(this)
+    alpahSlider?.addChangeListener(this)
+
     val alphaLabel = JBLabel("Alpha:")
-    alphaLabel.labelFor = alpahSlider
-    myPanel?.add(alphaLabel)
-    myPanel?.add(alpahSlider)
+    alphaLabel.let {
+      it.border = EmptyBorder(0, 5, 0, 0)
+      it.labelFor = alpahSlider
+    }
+
+    myPanel?.let {
+      it.add(JSeparator(SwingConstants.VERTICAL))
+      it.add(alphaLabel)
+      it.add(this.alpahSlider)
+    }
     return myPanel
   }
 

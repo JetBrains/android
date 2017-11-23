@@ -32,6 +32,10 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  /**
+   * TT ID: TODO need to add a test tracker ID
+   *
+   */
   @RunIn(TestGroup.QA_UNRELIABLE) // b/64486607
   @Test
   public void testCreateAvd() throws Exception {
@@ -63,6 +67,10 @@ public class AvdListDialogTest {
     avdManagerDialog.close();
   }
 
+  /**
+   * TT ID: TODO need to add a test tracker ID
+   *
+   */
   @RunIn(TestGroup.QA)
   @Test
   public void testEditAvd() throws Exception {

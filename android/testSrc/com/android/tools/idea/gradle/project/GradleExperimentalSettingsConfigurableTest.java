@@ -44,24 +44,10 @@ public class GradleExperimentalSettingsConfigurableTest extends IdeaTestCase {
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setModuleSelectionOnImportEnabled(true);
-    mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = false;
-    assertTrue(myConfigurable.isModified());
-    mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    assertFalse(myConfigurable.isModified());
-
     myConfigurable.setSkipSourceGenOnSync(true);
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     assertTrue(myConfigurable.isModified());
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    assertFalse(myConfigurable.isModified());
-
-    myConfigurable.setUseNewProjectStructure(true);
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = false;
-    assertTrue(myConfigurable.isModified());
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = true;
-    assertFalse(myConfigurable.isModified());
-
     assertFalse(myConfigurable.isModified());
 
     myConfigurable.setUseL2DependenciesInSync(true);
@@ -73,61 +59,45 @@ public class GradleExperimentalSettingsConfigurableTest extends IdeaTestCase {
 
   public void testApply() throws ConfigurationException {
     myConfigurable.setMaxModuleCountForSourceGen(6);
-    myConfigurable.setModuleSelectionOnImportEnabled(true);
     myConfigurable.setSkipSourceGenOnSync(true);
-    myConfigurable.setUseNewProjectStructure(true);
     myConfigurable.setUseL2DependenciesInSync(true);
 
     myConfigurable.apply();
 
     assertEquals(6, mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    assertTrue(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     assertTrue(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
-    assertTrue(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
 
     myConfigurable.setMaxModuleCountForSourceGen(8);
-    myConfigurable.setModuleSelectionOnImportEnabled(false);
     myConfigurable.setSkipSourceGenOnSync(false);
-    myConfigurable.setUseNewProjectStructure(false);
     myConfigurable.setUseL2DependenciesInSync(false);
 
     myConfigurable.apply();
 
     assertEquals(8, mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    assertFalse(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     assertFalse(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
-    assertFalse(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
   }
 
   public void testReset() {
-    mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = true;
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = true;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
 
     myConfigurable.reset();
 
-    assertTrue(myConfigurable.isModuleSelectionOnImportEnabled());
     assertTrue(myConfigurable.isSkipSourceGenOnSync());
     assertEquals(6, myConfigurable.getMaxModuleCountForSourceGen().intValue());
-    assertTrue(myConfigurable.isUseNewProjectStructureDialog());
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
 
-    mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = false;
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = false;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
 
     myConfigurable.reset();
 
-    assertFalse(myConfigurable.isModuleSelectionOnImportEnabled());
     assertFalse(myConfigurable.isSkipSourceGenOnSync());
     assertEquals(8, myConfigurable.getMaxModuleCountForSourceGen().intValue());
-    assertFalse(myConfigurable.isUseNewProjectStructureDialog());
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
   }
 }

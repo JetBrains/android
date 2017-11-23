@@ -127,7 +127,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
 
-    verify(myGradleProjectInfo, times(2)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(2)).setNewProject(false);
+    verify(myGradleProjectInfo, times(2)).setImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -136,10 +137,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     long lastSyncTimestamp = 2L;
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    // @formatter:off
-    request.setUsingCachedGradleModels(true)
-           .setLastSyncTimestamp(lastSyncTimestamp);
-    // @formatter:on
+    request.usingCachedGradleModels = true;
+    request.lastSyncTimestamp = lastSyncTimestamp;
 
     mySetup.setUpProject(request, myProgressIndicator);
 
@@ -147,7 +146,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED, null);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
-    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(1)).setNewProject(false);
+    verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -155,11 +155,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-
-    // @formatter:off
-    request.setGenerateSourcesAfterSync(true)
-           .setCleanProjectAfterSync(true);
-    // @formatter:on
+    request.generateSourcesAfterSync = true;
+    request.cleanProjectAfterSync = true;
 
     mySetup.setUpProject(request, myProgressIndicator);
 
@@ -179,14 +176,15 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
 
-    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
+    verify(myGradleProjectInfo, times(1)).setNewProject(false);
+    verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
   public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.setGenerateSourcesAfterSync(true);
+    request.generateSourcesAfterSync = true;
 
     myProjectStructure.currentAgpVersions = new AndroidPluginVersionsInProject() {
       @Override

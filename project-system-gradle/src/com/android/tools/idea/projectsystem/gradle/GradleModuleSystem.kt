@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BuildType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

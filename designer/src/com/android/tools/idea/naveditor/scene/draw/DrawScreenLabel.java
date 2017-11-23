@@ -26,8 +26,8 @@ import java.awt.*;
  * {@linkplain DrawScreenLabel} draws the name of the screen above the frame.
  */
 public class DrawScreenLabel extends NavBaseDrawCommand {
-  private static final int FONT_SIZE = 24;
-
+  private static final String FONT_NAME = "Default";
+  @SwingCoordinate private static final int FONT_SIZE = 12;
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   private final String myText;
@@ -50,7 +50,7 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
 
   @Override
   public int getLevel() {
-    return DRAW_SCREEN_LABEL;
+    return DRAW_SCREEN_LABEL_LEVEL;
   }
 
   @Override
@@ -59,11 +59,17 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
     return new Object[]{myX, myY, myText};
   }
 
-
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-      g.setColor(sceneContext.getColorSet().getSubduedText());
-      g.setFont(FontCache.INSTANCE.getFont(FONT_SIZE, (float)sceneContext.getScale()));
-      g.drawString(myText, myX, myY);
+    g.setColor(sceneContext.getColorSet().getSubduedText());
+
+    Font font = FontCache.INSTANCE.getFont(FONT_SIZE, scalingFactor(sceneContext.getScale()), FONT_NAME);
+    g.setFont(font);
+
+    g.drawString(myText, myX, myY);
+  }
+
+  private static float scalingFactor(double scale) {
+    return (float)(scale * (2.0 - scale)); // keep font size slightly larger at smaller scales
   }
 }

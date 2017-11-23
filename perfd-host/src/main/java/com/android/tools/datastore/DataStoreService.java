@@ -41,7 +41,6 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
-
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -79,17 +78,19 @@ public class DataStoreService {
     }
   }
 
-  private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private static final Logger getLogger() {
+    return Logger.getInstance(DataStoreService.class.getCanonicalName());
+  }
+
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
-  private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
   private final ServerBuilder myServerBuilder;
   private final Server myServer;
   private final List<ServicePassThrough> myServices = new ArrayList<>();
   private final Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
   private final ServerInterceptor myInterceptor;
-  private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
+  private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
 
   private final Timer myReportTimer;
 
@@ -116,7 +117,7 @@ public class DataStoreService {
       myServer.start();
     }
     catch (IOException ex) {
-      LOG.error(ex.getMessage());
+      getLogger().error(ex.getMessage());
     }
 
     myReportTimer = new Timer("DataStoreReportTimer");
@@ -128,12 +129,12 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor, mySessionIdLookup);
+    myProfilerService = new ProfilerService(this, myFetchExecutor);
     registerService(myProfilerService);
-    registerService(new EventService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new CpuService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new MemoryService(this, myFetchExecutor, mySessionIdLookup));
-    registerService(new NetworkService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new EventService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor));
+    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new NetworkService(this, myFetchExecutor));
   }
 
   @VisibleForTesting
@@ -179,9 +180,9 @@ public class DataStoreService {
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull Common.Session session) {
-    if (myConnectedClients.containsKey(session)) {
-      DataStoreClient client = myConnectedClients.remove(session);
+  public void disconnect(@NotNull DeviceId deviceId) {
+    if (myConnectedClients.containsKey(deviceId)) {
+      DataStoreClient client = myConnectedClients.remove(deviceId);
       client.shutdownNow();
       myProfilerService.stopMonitoring(client.getChannel());
     }
@@ -202,30 +203,30 @@ public class DataStoreService {
     return myServices;
   }
 
-  public void setConnectedClients(Common.Session session, Channel channel) {
-    if (!myConnectedClients.containsKey(session)) {
-      myConnectedClients.put(session, new DataStoreClient(channel));
+  public void setConnectedClients(@NotNull DeviceId deviceId, @NotNull Channel channel) {
+    if (!myConnectedClients.containsKey(deviceId)) {
+      myConnectedClients.put(deviceId, new DataStoreClient(channel));
     }
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getCpuClient() : null;
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getEventClient() : null;
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEventClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getNetworkClient() : null;
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getNetworkClient() : null;
   }
 
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getMemoryClient() : null;
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getMemoryClient() : null;
   }
 
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
-    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
   }
 
   /**

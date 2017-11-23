@@ -77,7 +77,7 @@ public class IndexingSuspender {
     switch (event) {
       case SYNC_STARTED:
         if (myProject.isInitialized()) {
-          activate("Gradle Sync", DeactivationEvent.SYNC_FINISHED);
+          activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
         else {
           myActivationEvent = ActivationEvent.SETUP_STARTED;
@@ -90,7 +90,7 @@ public class IndexingSuspender {
             reportStateError("Project is expected to be initialised before project setup starts.");
             break;
           }
-          activate("Project Setup", DeactivationEvent.SYNC_FINISHED);
+          activate(ActivationEvent.SETUP_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
         break;
       case BUILD_EXECUTOR_CREATED:
@@ -99,8 +99,9 @@ public class IndexingSuspender {
         }
         break;
       case BUILD_STARTED:
+        ensureNoSentinelDumbMode();
         if (!myActivated) {
-          activate("Gradle Build", DeactivationEvent.BUILD_FINISHED);
+          activate(ActivationEvent.BUILD_STARTED, DeactivationEvent.BUILD_FINISHED);
         }
         break;
     }
@@ -173,7 +174,7 @@ public class IndexingSuspender {
     });
   }
 
-  private void activate(@NotNull String contextDescription, @NotNull DeactivationEvent deactivationEvent) {
+  private void activate(@NotNull ActivationEvent activationEvent, @NotNull DeactivationEvent deactivationEvent) {
     if (myActivated) {
       reportStateError("Must not attempt to activate IndexingSuspender when it is already activated. Ignored.");
       return;
@@ -188,7 +189,7 @@ public class IndexingSuspender {
       // as in production. This also means that the only way to reproduce the real production
       // behaviour on CI is a UI test.
       LOG.info(String.format("Indexing suspension omitted in unittest/headless mode (context: " +
-                             "'%1$s')", contextDescription));
+                             "'%1$s')", activationEvent.name()));
       return;
     }
 
@@ -200,10 +201,9 @@ public class IndexingSuspender {
     myActivated = true;
     myDeactivationEvent = deactivationEvent;
     startBatchUpdate();
-    synchronized (myIndexingLock) {
-      myShouldWait = true;
+    if (activationEvent == ActivationEvent.SYNC_STARTED || activationEvent == ActivationEvent.SETUP_STARTED) {
+      startSentinelDumbMode("Gradle Sync");
     }
-    DumbService.getInstance(myProject).queueTask(new IndexingSuspenderTask(contextDescription));
   }
 
   private void deactivate() {
@@ -218,10 +218,7 @@ public class IndexingSuspender {
     }
 
     finishBatchUpdate();
-    synchronized (myIndexingLock) {
-      myShouldWait = false;
-      myIndexingLock.notifyAll();
-    }
+    ensureNoSentinelDumbMode();
     myActivated = false;
     clearStateConditions();
   }
@@ -231,6 +228,11 @@ public class IndexingSuspender {
     myDeactivationEvent = null;
   }
 
+  /**
+   * Start batch update, thus ensuring that any VFS/root model changes do not immediately cause associated indexing. This
+   * helps avoid redundant indexing operations and contention during a massive model update (for example,
+   * the one happenning during the project setup phase of gradle sync).
+   */
   private void startBatchUpdate() {
     LOG.info("Starting batch update for project: " + myProject.toString());
     executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
@@ -241,6 +243,9 @@ public class IndexingSuspender {
     });
   }
 
+  /**
+   * Finish batch update, thus allowing any model changes which happened along the way to trigger indexing.
+   */
   private void finishBatchUpdate() {
     LOG.info("Finishing batch update for project: " + myProject.toString());
     executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
@@ -249,6 +254,32 @@ public class IndexingSuspender {
         myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateFinished();
       }
     });
+  }
+
+  /**
+   * Queue IndexingSuspenderTask, thus ensuring that sentinel dumb mode is entered.
+   *
+   * @param contextDescription Human-readable description of the context where the sentinel dumb mode was requested.
+   */
+  @SuppressWarnings("SameParameterValue")
+  private void startSentinelDumbMode(@NotNull String contextDescription) {
+    synchronized (myIndexingLock) {
+      myShouldWait = true;
+    }
+    DumbService.getInstance(myProject).queueTask(new IndexingSuspenderTask(contextDescription));
+  }
+
+  /**
+   * If there is a sentinel dumb mode in progress (the one caused by IndexingSuspenderTask), this call will unblock
+   * IndexingSuspenderTask and hence release the sentinel dumb mode.
+   *
+   * If there is no sentinel dumb mode in progress, this call will be a no-op.
+   */
+  private void ensureNoSentinelDumbMode() {
+    synchronized (myIndexingLock) {
+      myShouldWait = false;
+      myIndexingLock.notifyAll();
+    }
   }
 
   /**

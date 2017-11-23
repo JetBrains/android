@@ -22,11 +22,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileTypeDescriptor
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import icons.AndroidIcons
+import icons.StudioIcons
 import java.awt.Image
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -36,10 +38,13 @@ import javax.swing.JComponent
  * Lets the user choose an image to overlay on top of the captured view to compare the app's visual against design mocks.
  */
 class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
-    AnAction(ACTION_ID, "Overlay Image", AndroidIcons.Views.FrameLayout), CustomComponentAction {
+    AnAction(ACTION_ID, "Overlay Image", StudioIcons.LayoutInspector.LOAD_OVERLAY), CustomComponentAction {
   companion object {
     @JvmField
     val ACTION_ID = "Load Overlay"
+
+    @JvmField
+    val LOG = Logger.getInstance(LoadOverlayAction.javaClass)
   }
 
   override fun createCustomComponent(presentation: Presentation?): JComponent {
@@ -50,14 +55,25 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
     super.update(e)
     if (e == null) return
     if (myPreview.hasOverlay()) {
-      e.presentation.text = myPreview.overlayFileName
+      e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
+      e.presentation.text = "Clear Overlay"
     }
     else {
+      e.presentation.icon = StudioIcons.LayoutInspector.LOAD_OVERLAY
       e.presentation.text = ACTION_ID
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    if (myPreview.hasOverlay()) {
+      myPreview.setOverLay(null, null)
+    }
+    else {
+      loadOverlay(e)
+    }
+  }
+
+  private fun loadOverlay(e: AnActionEvent) {
     // choose image
     val descriptor = FileTypeDescriptor("Choose Overlay", "svg", "png", "jpg")
     val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
@@ -68,16 +84,17 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
     }
     assert(files.size == 1)
 
-    myPreview.setOverLay(getImage(files[0]), files[0].name)
+    myPreview.setOverLay(loadImageFile(files[0]), files[0].name)
   }
 
-  private fun getImage(file: VirtualFile): Image? {
+  private fun loadImageFile(file: VirtualFile): Image? {
     return try {
       ImageIO.read(file.inputStream)
     }
     catch (e: IOException) {
+      Messages.showErrorDialog("Failed to read image from \"" + file.name + "\" Error: " + e.message, "Error")
+      LOG.warn(e)
       return null
     }
-
   }
 }

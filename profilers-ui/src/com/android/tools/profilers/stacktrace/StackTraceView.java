@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.IdeProfilerComponents;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,4 +27,6 @@ public interface StackTraceView {
 
   @NotNull
   JComponent getComponent();
+
+  void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller);
 }

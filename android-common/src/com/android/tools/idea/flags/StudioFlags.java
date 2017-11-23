@@ -56,6 +56,11 @@ public final class StudioFlags {
     "Dump the variables used in creating a template to a scrach file that is opened after creating the project.",
     false);
 
+  public static final Flag<Boolean> NPW_FIRST_RUN_WIZARD = Flag.create(
+    NPW, "first.run.wizard", "Show new Welcome Wizard",
+    "Show new version of the Welcome Wizard when Studio starts",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
   public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
     PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
@@ -83,12 +88,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
     PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
     "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_MEMORY_CAPTURE_FILTER = Flag.create(
     PROFILER, "memory.capture.filter", "Enable Memory Capture Filter",
     "Show a text input field in the Memory profiler that is used to filter class names.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
@@ -103,7 +108,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
     PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
     "Add a new tab in the network profiler that shows the connection request payload",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
     PROFILER, "atrace", "Show the atrace option in CPU profiler",
@@ -173,9 +178,11 @@ public final class StudioFlags {
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
     true);
   public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
-    GRADLE_IDE, "new.sync.enabled", "Enable \"New Sync\" infrastructure",
-    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.",
-    false);
+    GRADLE_IDE, "new.sync", "Enable \"New Sync\" infrastructure",
+    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.", false);
+  public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
+    GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
+    "Turns on the new \"Project Structure\" dialog.", false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
@@ -191,8 +198,11 @@ public final class StudioFlags {
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
+    LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
     "If enabled, Show actions to let user choose overlay image on preview.", true);
+  public static final Flag<Boolean> LAYOUT_INSPECTOR_SUB_VIEW_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "sub.view", "Enable the sub view feature",
+    "If enabled, changes the preview to focus on a component.", true);
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
