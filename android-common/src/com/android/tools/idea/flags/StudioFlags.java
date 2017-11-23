@@ -138,7 +138,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
     NELE, "live.render", "Enable the Live Render",
     "Enable the continuous rendering of the surface when moving/resizing components.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_WIDGET_ASSISTANT = Flag.create(
     NELE, "widget.assistant", "Enable the properties panel Widget Assistant",
