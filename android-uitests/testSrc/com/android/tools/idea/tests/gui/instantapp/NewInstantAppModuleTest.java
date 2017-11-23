@@ -30,10 +30,7 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -141,6 +138,7 @@ public class NewInstantAppModuleTest {
   }
 
   @Test
+  @Ignore("http://b/69534580")
   public void testAddNewInstantAppModule() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
