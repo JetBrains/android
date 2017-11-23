@@ -375,7 +375,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private boolean isParameterVisible(Parameter parameter) {
     return !isNewModule() ||
            (!ATTR_PACKAGE_NAME.equals(parameter.id) &&
-            !ATTR_IS_LAUNCHER.equals(parameter.id));
+            !ATTR_IS_LAUNCHER.equals(parameter.id) &&
+            !ATTR_PARENT_ACTIVITY_CLASS.equals(parameter.id));
   }
 
   /**
