@@ -40,6 +40,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -47,7 +49,7 @@ import java.util.regex.Pattern;
 /**
  * Panel that displays a list of {@link NlIssue}.
  */
-public class IssuePanel extends JPanel implements Disposable {
+public class IssuePanel extends JPanel implements Disposable, PropertyChangeListener {
   private static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
@@ -102,6 +104,7 @@ public class IssuePanel extends JPanel implements Disposable {
     registerKeyboardActions();
     addFocusListener(createFocusListener());
     setMinimized(true);
+    UIManager.addPropertyChangeListener(this);
   }
 
   @NotNull
@@ -383,6 +386,7 @@ public class IssuePanel extends JPanel implements Disposable {
   public void dispose() {
     myMinimizeListener = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
+    UIManager.removePropertyChangeListener(this);
   }
 
   public boolean isMinimized() {
@@ -484,6 +488,15 @@ public class IssuePanel extends JPanel implements Disposable {
       }
     }
     return builder.build();
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    if ("lookAndFeel".equals(evt.getPropertyName())) {
+      myErrorListPanel.removeAll();
+      myDisplayedError.clear();
+      updateErrorList();
+    }
   }
 
   public interface MinimizeListener {
