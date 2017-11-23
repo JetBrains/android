@@ -19,6 +19,7 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;

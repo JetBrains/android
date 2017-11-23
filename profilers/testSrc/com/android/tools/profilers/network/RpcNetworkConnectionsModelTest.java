@@ -17,6 +17,8 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;

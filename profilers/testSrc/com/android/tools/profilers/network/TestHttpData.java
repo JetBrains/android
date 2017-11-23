@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profilers.network.httpdata.HttpData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
