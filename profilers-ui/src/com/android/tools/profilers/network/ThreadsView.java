@@ -27,6 +27,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;

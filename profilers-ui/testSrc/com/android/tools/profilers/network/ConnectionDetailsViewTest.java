@@ -21,6 +21,8 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;

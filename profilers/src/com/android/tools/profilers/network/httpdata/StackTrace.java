@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers.network.httpdata;
 
+import com.android.tools.profilers.network.NetworkConnectionsModel;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,7 +31,7 @@ public final class StackTrace {
   private final ImmutableList<CodeLocation> myLocations;
   private final String myTrace;
 
-  StackTrace(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
+  public StackTrace(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
     myTrace = model.requestBytes(httpData.getTraceId()).toStringUtf8();
     ImmutableList.Builder<CodeLocation> builder = new ImmutableList.Builder<>();
     for (String line: myTrace.split("\\n")) {
@@ -47,7 +49,7 @@ public final class StackTrace {
   }
 
   @VisibleForTesting
-  String getTrace() {
+  public String getTrace() {
     return myTrace;
   }
 }

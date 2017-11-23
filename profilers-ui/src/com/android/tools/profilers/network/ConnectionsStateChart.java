@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
