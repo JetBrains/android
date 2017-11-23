@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
+import com.android.tools.idea.gradle.structure.model.repositories.search.LocalMavenRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -27,10 +29,13 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.EventDispatcher;
+import com.intellij.util.Url;
+import com.intellij.util.Urls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.EventListener;
 import java.util.List;
 
@@ -142,12 +147,19 @@ public abstract class PsModule extends PsChildModel {
     GradleBuildModel parsedModel = getParsedModel();
     if (parsedModel != null) {
       for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-        if (repositoryModel.getType() == RepositoryModel.RepositoryType.JCENTER_DEFAULT) {
-          repositories.add(new JCenterRepository());
-          continue;
-        }
-        if (repositoryModel.getType() == RepositoryModel.RepositoryType.MAVEN_CENTRAL) {
-          repositories.add(new MavenCentralRepository());
+        switch (repositoryModel.getType()) {
+          case JCENTER_DEFAULT:
+            repositories.add(new JCenterRepository());
+            break;
+          case MAVEN_CENTRAL:
+            repositories.add(new MavenCentralRepository());
+            break;
+          case MAVEN:
+            LocalMavenRepository localMavenRepository = maybeCreateLocalMavenRepository((MavenRepositoryModel)repositoryModel);
+            if (localMavenRepository != null) {
+              repositories.add(localMavenRepository);
+            }
+            break;
         }
       }
     }
@@ -171,6 +183,20 @@ public abstract class PsModule extends PsChildModel {
         }.execute();
       }
     }
+  }
+
+  @Nullable
+  private static LocalMavenRepository maybeCreateLocalMavenRepository(MavenRepositoryModel mavenRepositoryModel) {
+    String repositoryUrl = mavenRepositoryModel.url().value();
+    Url parsedRepositoryUrl = Urls.parse(repositoryUrl, false);
+    if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem()) {
+      String repositoryPath = parsedRepositoryUrl.getPath();
+      File repositoryRootFile = new File(repositoryPath);
+      if (repositoryRootFile.isAbsolute()) {
+        return new LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().value());
+      }
+    }
+    return null;
   }
 
   public interface DependenciesChangeListener extends EventListener {
