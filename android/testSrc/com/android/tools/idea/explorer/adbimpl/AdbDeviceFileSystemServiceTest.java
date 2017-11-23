@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.util.FutureUtils;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -26,7 +25,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -50,7 +48,8 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     try {
       // We need this call so that we don't leak a thread (the ADB Monitor thread)
       AdbService.getInstance().terminateDdmlib();
-    } finally {
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -64,12 +63,11 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
     // Act
     pumpEventsAndWaitForFuture(service.start());
-    List<DeviceFileSystem> devices = pumpEventsAndWaitForFuture(service.getDevices());
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(devices);
+    assertNotNull(pumpEventsAndWaitForFuture(service.getDevices()));
   }
 
   public void testRestartService() throws InterruptedException, ExecutionException, TimeoutException {
@@ -82,15 +80,15 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
     // Act
     pumpEventsAndWaitForFuture(service.restart());
-    List<DeviceFileSystem> devices = pumpEventsAndWaitForFuture(service.getDevices());
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(devices);
+    assertNotNull(pumpEventsAndWaitForFuture(service.getDevices()));
   }
 
-  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) throws InterruptedException, ExecutionException, TimeoutException {
+  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future)
+    throws InterruptedException, ExecutionException, TimeoutException {
     return FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
   }
 }

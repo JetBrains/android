@@ -65,7 +65,7 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
       IDevice device = value.getDevice();
 
       List<IDevice> devices = myService.getDeviceList().stream()
-        .map(system -> ((AdbDeviceFileSystem)system).getDevice())
+        .map(AdbDeviceFileSystem::getDevice)
         .collect(Collectors.toList());
 
       boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(devices);
