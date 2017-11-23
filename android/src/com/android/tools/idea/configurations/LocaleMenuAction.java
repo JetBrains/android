@@ -285,7 +285,7 @@ public class LocaleMenuAction extends DropDownAction {
   private class EditTranslationAction extends AnAction {
 
     public EditTranslationAction() {
-      super("Edit Translations", null, AndroidIcons.Globe);
+      super("Edit Translations...", null, null);
     }
 
     @Override
