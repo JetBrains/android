@@ -84,28 +84,28 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     slider.setMinorTickSpacing(maxMemory / ticks);
     slider.setMajorTickSpacing(maxMemory / MAJOR_TICKS);
 
+    Storage.Unit displayUnit =  getMemoryDisplayUnit(maxMemory * UI_UNITS.getNumberOfBytes());
     Hashtable labels = new Hashtable();
-    int totalMemory = (int)(memorySize / UI_UNITS.getNumberOfBytes());
-    int labelSpacing = totalMemory / MAJOR_TICKS;
+    int labelSpacing = Math.max((maxMemory - MIN_EMULATOR_MEMORY) / MAJOR_TICKS, 1);
     // Avoid overlapping
-    int minDistanceBetweenLabels = labelSpacing / 4;
+    int minDistanceBetweenLabels = labelSpacing / 3;
     for (int i = maxMemory; i >= labelSpacing; i -= labelSpacing) {
-      if (Math.abs(i - recommendedMemorySize) > minDistanceBetweenLabels) {
-        labels.put(i, new JLabel(getMemoryLabel(i)));
+      if (Math.abs(i - recommendedMemorySize) > minDistanceBetweenLabels && i - MIN_EMULATOR_MEMORY > minDistanceBetweenLabels) {
+        labels.put(i, new JLabel(getMemoryLabel(i, displayUnit)));
       }
     }
-    if (recommendedMemorySize > minDistanceBetweenLabels) {
-      labels.put(MIN_EMULATOR_MEMORY, new JLabel(getMemoryLabel(MIN_EMULATOR_MEMORY)));
+    if (recommendedMemorySize - MIN_EMULATOR_MEMORY > minDistanceBetweenLabels) {
+      labels.put(MIN_EMULATOR_MEMORY, new JLabel(getMemoryLabel(MIN_EMULATOR_MEMORY, UI_UNITS)));
     }
-    labels.put(recommendedMemorySize, createRecommendedSizeLabel(recommendedMemorySize));
+    labels.put(recommendedMemorySize, createRecommendedSizeLabel(recommendedMemorySize, displayUnit));
     slider.setLabelTable(labels);
 
     spinner.setModel(new SpinnerNumberModel(MIN_EMULATOR_MEMORY, MIN_EMULATOR_MEMORY, maxMemory, maxMemory / ticks));
     return recommendedMemorySize;
   }
 
-  private static JComponent createRecommendedSizeLabel(int memorySize) {
-    String labelText = String.format("<html><center>%s<br>(Recommended)<center></html>", getMemoryLabel(memorySize));
+  private static JComponent createRecommendedSizeLabel(int memorySize, Storage.Unit displayUnit) {
+    String labelText = String.format("<html><center>%s<br>(Recommended)<center></html>", getMemoryLabel(memorySize, displayUnit));
     final Font boldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
     // This is the only way as JSlider resets label font.
     return new JLabel(labelText) {
@@ -128,8 +128,19 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     return (int)(maxMemory / UI_UNITS.getNumberOfBytes());
   }
 
-  private static String getMemoryLabel(int memorySize) {
-    return new Storage(memorySize * UI_UNITS.getNumberOfBytes()).toString();
+  private static Storage.Unit getMemoryDisplayUnit(long memorySizeBytes) {
+    Storage.Unit memUnits = Storage.Unit.B;
+    for (Storage.Unit unit : Storage.Unit.values()) {
+      if (unit.getNumberOfBytes() > memUnits.getNumberOfBytes() && memorySizeBytes / unit.getNumberOfBytes() >= 1) {
+        memUnits = unit;
+      }
+    }
+    return memUnits;
+  }
+
+  private static String getMemoryLabel(int memorySize, Storage.Unit displayUnit) {
+    long totalMemBytes = memorySize * UI_UNITS.getNumberOfBytes();
+    return String.format("%.1f %s", ((float) totalMemBytes) / displayUnit.getNumberOfBytes(), displayUnit.getDisplayValue());
   }
 
   @Override
