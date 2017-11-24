@@ -29,7 +29,7 @@ import org.junit.Test
 class DefaultProjectSystemTest {
   private lateinit var myProject: Project
   @get:Rule
-  var projectRule = AndroidProjectRule()
+  var projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setUp() {
