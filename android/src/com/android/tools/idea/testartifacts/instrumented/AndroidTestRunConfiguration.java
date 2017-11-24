@@ -548,7 +548,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // run in a separate thread as this will block until the tests complete
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         try {
-          runner.run(new AndroidTestListener(launchStatus, printer));
+          runner.run(new AndroidTestListener(launchStatus, printer), new UsageTrackerTestRunListener(myArtifact, device));
         }
         catch (Exception e) {
           LOG.info(e);
