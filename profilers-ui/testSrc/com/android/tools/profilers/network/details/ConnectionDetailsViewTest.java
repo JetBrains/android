@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers.network.details;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.TreeWalker;
@@ -21,10 +21,16 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.network.FakeNetworkService;
+import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.network.NetworkProfilerStageView;
+import com.android.tools.profilers.network.TestHttpData;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.protobuf3jarjar.ByteString;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -100,13 +106,13 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void requestTabIsOnlyPresentWhenEnabled() {
-    assertThat(hasDescendantWithName(myView, "Headers")).isTrue();
-    assertThat(hasDescendantWithName(myView, "Request")).isFalse();
+    assertThat(hasDescendantWithName(myView, "TAB_HEADERS")).isTrue();
+    assertThat(hasDescendantWithName(myView, "TAB_REQUEST")).isFalse();
 
     myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
-    assertThat(hasDescendantWithName(myView, "Headers")).isFalse();
-    assertThat(hasDescendantWithName(myView, "Request")).isTrue();
+    assertThat(hasDescendantWithName(myView, "TAB_HEADERS")).isFalse();
+    assertThat(hasDescendantWithName(myView, "TAB_REQUEST")).isTrue();
   }
 
   @Test
@@ -117,11 +123,11 @@ public class ConnectionDetailsViewTest {
     myView = new ConnectionDetailsView(myStageView);
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
-    assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
+    assertThat(hasDescendantWithName(myView, "FILE_VIEWER")).isFalse();
 
     myView.setHttpData(data);
     Component requestBody = firstDescendantWithName(myView, "REQUEST_BODY");
-    assertThat(hasDescendantWithName(requestBody, "FileViewer")).isTrue();
+    assertThat(hasDescendantWithName(requestBody, "FILE_VIEWER")).isTrue();
   }
 
   @Test
@@ -132,7 +138,7 @@ public class ConnectionDetailsViewTest {
 
     myView.setHttpData(data);
     Component requestBody = firstDescendantWithName(myView, "REQUEST_BODY");
-    assertThat(hasDescendantWithName(requestBody, "FileViewer")).isFalse();
+    assertThat(hasDescendantWithName(requestBody, "FILE_VIEWER")).isFalse();
   }
 
   @Test
@@ -150,33 +156,6 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void contentsAreEmptyWhenSelectedHttpDataIsCleared() {
-    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
-
-    AspectObserver observer = new AspectObserver();
-    final int[] stackFramesChangedCount = {0};
-    myView.getStackTraceView().getModel().addDependency(observer)
-      .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
-
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
-
-    assertThat(stackFramesChangedCount[0]).isEqualTo(0);
-    myView.setHttpData(data);
-    assertThat(stackFramesChangedCount[0]).isEqualTo(1);
-
-    JComponent response = (JComponent)firstDescendantWithName(myView, "Response");
-    assertThat(response.getComponentCount()).isNotEqualTo(0);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isNotEmpty();
-
-    myView.setHttpData(null);
-    assertThat(stackFramesChangedCount[0]).isEqualTo(2);
-
-    response = (JComponent)firstDescendantWithName(myView, "Response");
-    assertThat(response.getComponentCount()).isEqualTo(0);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEmpty();
-  }
-
-  @Test
   public void fileViewerExistsWhenPayloadIsPresent() {
     myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
 
@@ -184,46 +163,45 @@ public class ConnectionDetailsViewTest {
       .setResponseFields(RESPONSE_HEADERS)
       .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID)
       .build();
-    assertThat(hasDescendantWithName(myView, "FileViewer")).isFalse();
+    assertThat(hasDescendantWithName(myView, "FILE_VIEWER")).isFalse();
 
     myView.setHttpData(data);
-    assertThat(hasDescendantWithName(myView, "FileViewer")).isTrue();
+    assertThat(hasDescendantWithName(myView, "FILE_VIEWER")).isTrue();
   }
 
   @Test
   public void contentTypeHasProperValueFromData() {
-    String valueName = "Content type";
-    assertThat(hasDescendantWithName(myView, valueName)).isFalse();
+    assertThat(hasDescendantWithName(myView, "CONTENT_TYPE")).isFalse();
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
-    JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
+    JLabel value = (JLabel)firstDescendantWithName(myView, "CONTENT_TYPE");
     assertThat(value.getText()).isEqualTo("111");
   }
 
   @Test
   public void contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(hasDescendantWithName(myView, "Content type")).isFalse();
+    assertThat(hasDescendantWithName(myView, "CONTENT_TYPE")).isFalse();
   }
 
   @Test
   public void initiatingThreadFieldIsPresent() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(hasDescendantWithName(myView, "Initiating thread")).isTrue();
+    assertThat(hasDescendantWithName(myView, "INITIATING_THREAD")).isTrue();
   }
 
   @Test
   public void otherThreadsFieldIsPresent() {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).addJavaThread(new HttpData.JavaThread(1, "thread2")).build();
     myView.setHttpData(data);
-    assertThat(hasDescendantWithName(myView, "Other threads")).isTrue();
+    assertThat(hasDescendantWithName(myView, "OTHER_THREADS")).isTrue();
   }
 
   @Test
   public void otherThreadsFieldIsAbsentWhenOnlyOneThread() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(hasDescendantWithName(myView, "Other threads")).isFalse();
+    assertThat(hasDescendantWithName(myView, "OTHER_THREADS")).isFalse();
   }
 
   @Test
@@ -237,42 +215,42 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void sizeHasProperValueFromData() {
-    String valueName = "Size";
-    assertThat(hasDescendantWithName(myView, valueName)).isFalse();
+    assertThat(hasDescendantWithName(myView, "SIZE")).isFalse();
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
-    JLabel value = (JLabel)firstDescendantWithName(myView, valueName);
+    JLabel value = (JLabel)firstDescendantWithName(myView, "SIZE");
     assertThat(value.getText()).isEqualTo("222B");
   }
 
   @Test
   public void contentLengthIsAbsentWhenDataHasNoContentLengthValue() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(hasDescendantWithName(myView, "Content Length")).isFalse();
+    assertThat(hasDescendantWithName(myView, "CONTENT_LENGTH")).isFalse();
   }
 
   @Test
   public void timingFieldIsPresent() {
     myView.setHttpData(DEFAULT_DATA);
-    assertThat(hasDescendantWithName(myView, "Timing")).isTrue();
+    assertThat(hasDescendantWithName(myView, "TIMING")).isTrue();
   }
 
   @Test
   public void headersIsUpdated() {
-    JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
-    assertThat(headers.getComponentCount()).isEqualTo(0);
+    JBScrollPane headersTab = (JBScrollPane)firstDescendantWithName(myView, "TAB_HEADERS");
+    assertThat(hasDescendantWithName(headersTab, "REQUEST_HEADERS")).isFalse();
+
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
     myView.setHttpData(data);
-    assertThat(headers.getComponentCount()).isNotEqualTo(0);
+    assertThat(hasDescendantWithName(headersTab, "REQUEST_HEADERS")).isTrue();
   }
 
   @Test
   public void headerSectionIsSortedAndFormatted() {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
-    JPanel headers = (JPanel)firstDescendantWithName(myView, "Headers");
-    JPanel responseHeaders = (JPanel)firstDescendantWithName(headers, "Request Headers");
+    JBScrollPane headers = (JBScrollPane)firstDescendantWithName(myView, "TAB_HEADERS");
+    JPanel responseHeaders = (JPanel)firstDescendantWithName(headers, "REQUEST_HEADERS");
 
     String text = ((JTextPane)responseHeaders.getComponent(1)).getText();
     String idealBody = "<body>" +
@@ -298,17 +276,17 @@ public class ConnectionDetailsViewTest {
   public void callStackViewHasProperValueFromData() {
     AspectObserver observer = new AspectObserver();
     final int[] stackFramesChangedCount = {0};
-    myView.getStackTraceView().getModel().addDependency(observer)
+    getStackTraceView(myView).getModel().addDependency(observer)
       .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
     assertThat(stackFramesChangedCount[0]).isEqualTo(0);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).hasSize(0);
+    assertThat(getStackTraceView(myView).getModel().getCodeLocations()).hasSize(0);
 
     myView.setHttpData(DEFAULT_DATA);
     assertThat(stackFramesChangedCount[0]).isEqualTo(1);
 
     StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), DEFAULT_DATA);
-    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEqualTo(stackTrace.getCodeLocations());
+    assertThat(getStackTraceView(myView).getModel().getCodeLocations()).isEqualTo(stackTrace.getCodeLocations());
   }
 
   @Test
@@ -329,7 +307,7 @@ public class ConnectionDetailsViewTest {
 
     assertThat(modeChanged[0]).isFalse();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
-    myView.getStackTraceView().getModel().setSelectedIndex(0);
+    getStackTraceView(myView).getModel().setSelectedIndex(0);
     assertThat(modeChanged[0]).isTrue();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
@@ -348,6 +326,13 @@ public class ConnectionDetailsViewTest {
 
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0ms", "0ms");
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1s", "0ms");
+  }
+
+  private static StackTraceView getStackTraceView(@NotNull ConnectionDetailsView view) {
+    CallStackTabContent callStackContent =
+      (CallStackTabContent)view.getTabs().stream().filter(tab -> tab instanceof CallStackTabContent).findFirst().get();
+
+    return callStackContent.getStackTraceView();
   }
 
   private void assertExpectedTimingLegends(long startTimeUs,

@@ -38,7 +38,7 @@ import static com.android.tools.profilers.ProfilerColors.TRANSPARENT_COLOR;
  * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
  * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
  */
-class ConnectionsStateChart {
+public final class ConnectionsStateChart {
   @NotNull private final EnumColors<NetworkState> myColors = new EnumColors.Builder<NetworkState>(2)
     .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
     .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
@@ -48,11 +48,11 @@ class ConnectionsStateChart {
 
   @NotNull private final StateChart<NetworkState> myChart;
 
-  ConnectionsStateChart(@NotNull List<HttpData> dataList, @NotNull Range range) {
+  public ConnectionsStateChart(@NotNull List<HttpData> dataList, @NotNull Range range) {
     myChart = createChart(dataList, range);
   }
 
-  ConnectionsStateChart(@NotNull HttpData data, @NotNull Range range) {
+  public ConnectionsStateChart(@NotNull HttpData data, @NotNull Range range) {
     this(Collections.singletonList(data), range);
   }
 
