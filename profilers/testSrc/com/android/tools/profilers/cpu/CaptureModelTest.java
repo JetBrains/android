@@ -22,6 +22,7 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -136,33 +137,6 @@ public class CaptureModelTest {
     checkChildrenFilterType(node.getChildAt(2), CaptureNode.FilterType.UNMATCH, CaptureNode.FilterType.UNMATCH);
   }
 
-  @Test
-  public void testGetPossibleFilters() {
-    CaptureNode root = createFilterTestTree();
-    CpuThreadInfo info = new CpuThreadInfo(101, "main");
-    CpuCapture capture = new CpuCapture(new Range(0, 30),
-                                        new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
-                                          .put(info, root)
-                                          .build(),
-                                        true);
-    myModel.setCapture(capture);
-    myModel.setThread(101);
-    myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
-
-    assertThat(myModel.getPossibleFilters()).containsExactly("mainPackage", "mainPackage.main",
-                                                             "myPackage", "myPackage.method1",
-                                                             "myPackage.method2", "myPackage.method3",
-                                                             "otherPackage",
-                                                             "otherPackage.method1", "otherPackage.method2",
-                                                             "otherPackage.method3", "otherPackage.method4");
-  }
-
-  @Test
-  public void getPossibleFiltersEmptyCapture() {
-    myModel.setCapture(null);
-    assertThat(myModel.getPossibleFilters()).isEmpty();
-  }
-
   private static void checkChildren(CaptureNode node, String... childrenId) {
     assertThat(node.getChildCount()).isEqualTo(childrenId.length);
     for (int i = 0; i < node.getChildCount(); ++i) {
@@ -184,7 +158,7 @@ public class CaptureModelTest {
     String methodName = fullMethodName.substring(index + 1);
 
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel.Builder(methodName).setJavaClassName(className).build());
+    node.setMethodModel(new JavaMethodModel(methodName, className));
     node.setClockType(ClockType.GLOBAL);
     node.setStartGlobal(start);
     node.setEndGlobal(end);

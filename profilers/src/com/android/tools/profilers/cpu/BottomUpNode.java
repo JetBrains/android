@@ -17,6 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.DummyModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -166,7 +168,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   public MethodModel getMethodModel() {
     if (myIsRoot) {
       // Return a dummy entry for the root.
-      return new MethodModel.Builder("").build();
+      return new DummyModel();
     }
     MethodModel model = myPathNodes.get(0).getData();
     assert model != null;

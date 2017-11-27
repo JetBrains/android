@@ -18,7 +18,10 @@ package com.android.tools.profilers.cpu.art;
 import com.android.tools.perflib.vmtrace.*;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
-import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.DummyModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +58,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
   @Override
   public void addMethod(long id, MethodInfo info) {
-    myMethods.put(id, new MethodModel.Builder(info.methodName).setJavaClassName(info.className).setSignature(info.signature).build());
+    myMethods.put(id, new JavaMethodModel(info.methodName, info.className, info.signature));
   }
 
   @Override
@@ -68,7 +71,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
     // create method info if it doesn't exist
     if (!myMethods.containsKey(methodId)) {
-      myMethods.put(methodId, new MethodModel.Builder("unknown").build());
+      myMethods.put(methodId, new DummyModel());
     }
 
     CaptureNodeConstructor constructor = myNodeConstructors.get(threadId);
@@ -84,7 +87,7 @@ public class ArtTraceHandler implements VmTraceHandler {
     long id = Long.MAX_VALUE - threadId;
     assert myMethods.get(id) == null :
       "Unexpected error while attempting to create a unique key - key already exists";
-    MethodModel model = new MethodModel.Builder(myThreads.get(threadId)).build();
+    MethodModel model = new SingleNameModel(myThreads.get(threadId));
     myMethods.put(id, model);
     return model;
   }

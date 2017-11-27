@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -178,7 +180,7 @@ public class FlameChartTest {
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel.Builder(method).build());
+    node.setMethodModel(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(end);
 

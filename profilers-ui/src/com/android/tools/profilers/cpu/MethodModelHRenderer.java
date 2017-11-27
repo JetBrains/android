@@ -19,6 +19,9 @@ import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +55,7 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   }
 
   private static boolean isMethodPlatformJava(MethodModel method) {
-    return method.getClassOrNamespace().startsWith("android.") || method.getClassOrNamespace().startsWith("com.android.");
+    return method.getFullName().startsWith("android.") || method.getFullName().startsWith("com.android.");
   }
 
   private static boolean isMethodPlatformCpp(MethodModel method) {
@@ -68,11 +71,11 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   }
 
   private static boolean isMethodVendorJava(MethodModel method) {
-    return method.getClassOrNamespace().startsWith("java.") ||
-           method.getClassOrNamespace().startsWith("sun.") ||
-           method.getClassOrNamespace().startsWith("javax.") ||
-           method.getClassOrNamespace().startsWith("apple.") ||
-           method.getClassOrNamespace().startsWith("com.apple.");
+    return method.getFullName().startsWith("java.") ||
+           method.getFullName().startsWith("sun.") ||
+           method.getFullName().startsWith("javax.") ||
+           method.getFullName().startsWith("apple.") ||
+           method.getFullName().startsWith("com.apple.");
   }
 
   private static boolean isMethodVendorCpp(MethodModel method) {
@@ -176,34 +179,37 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
-    String methodSeparator = node.getSeparator();
-
+  private static String generateFittingText(MethodModel model, Rectangle2D rect, FontMetrics fontMetrics) {
     double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
-    // Try: java.lang.String.toString. Add a "." separator between class name and method name.
-    // Native methods (e.g. clock_gettime) don't have a class name and, therefore, we don't add a "." before them.
-    String separator = StringUtil.isEmpty(node.getClassOrNamespace()) ? "" : methodSeparator;
-    String fullyQualified = node.getClassOrNamespace() + separator + node.getName();
-    if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
-      return fullyQualified;
+
+    String classOrNamespace = "";
+    String separator = "";
+    if (model instanceof NativeFunctionModel) {
+      classOrNamespace = ((NativeFunctionModel)model).getClassOrNamespace();
+      separator = "::";
+    }
+    else if (model instanceof JavaMethodModel) {
+      classOrNamespace = ((JavaMethodModel)model).getClassName();
+      separator = ".";
     }
 
-    // Try: j.l.s.toString
-    String shortPackage = getShortPackageName(node.getClassOrNamespace(), methodSeparator);
-    separator = StringUtil.isEmpty(shortPackage) ? "" : methodSeparator;
-    String abbrevPackage = shortPackage + separator + node.getName();
-    if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
-      return abbrevPackage;
+    if (!separator.isEmpty() && !classOrNamespace.isEmpty()) {
+      // Try: java.lang.String.toString. Add the separator between class name (or namespace) and method/function name.
+      String fullyQualified = classOrNamespace + separator + model.getName();
+      if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
+        return fullyQualified;
+      }
+
+      // Try: j.l.s.toString
+      String shortPackage = getShortPackageName(classOrNamespace, separator);
+      String abbrevPackage = shortPackage + separator + model.getName();
+      if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
+        return abbrevPackage;
+      }
     }
 
-    String name = node.getName();
-    // Try: toString
-    if (fontMetrics.stringWidth(name) < maxWidth) {
-      return name;
-    }
-
-    // Try: t...
-    return AdtUiUtils.getFittedString(fontMetrics, name, (float)maxWidth, 1);
+    // Try: toString or t...
+    return AdtUiUtils.getFittedString(fontMetrics, model.getName(), (float)maxWidth, 1);
   }
 
   /**

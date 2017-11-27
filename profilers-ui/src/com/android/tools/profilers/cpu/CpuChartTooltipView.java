@@ -24,11 +24,11 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 

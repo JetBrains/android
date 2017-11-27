@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
-import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.junit.Before;
