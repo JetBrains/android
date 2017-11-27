@@ -15,21 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.LightIdeaTestCase;
-import com.intellij.testFramework.UsefulTestCase;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
@@ -45,9 +35,9 @@ public class SceneModeTest extends AndroidTestCase {
 
   public void testCreateSceneView() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
-    NlModel model = mock(NlModel.class);
-    SceneView primary = SceneMode.BOTH.createPrimarySceneView(surface, model);
-    SceneView secondary = SceneMode.BOTH.createSecondarySceneView(surface, model);
+    LayoutlibSceneManager manager = mock(LayoutlibSceneManager.class);
+    SceneView primary = SceneMode.BOTH.createPrimarySceneView(surface, manager);
+    SceneView secondary = SceneMode.BOTH.createSecondarySceneView(surface, manager);
     assertThat(primary, instanceOf(ScreenView.class));
     assertThat(secondary, instanceOf(BlueprintView.class));
   }

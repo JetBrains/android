@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +29,8 @@ import java.awt.*;
  */
 public class ScreenView extends ScreenViewBase {
 
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    super(surface, model);
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    super(surface, manager);
   }
 
   @NotNull
@@ -42,15 +42,15 @@ public class ScreenView extends ScreenViewBase {
     builder.add(new ScreenViewLayer(this));
     builder.add(new SelectionLayer(this));
 
-    if (myModel.getType().isLayout()) {
-      builder.add(new ConstraintsLayer((NlDesignSurface) mySurface, this, true));
+    if (getSceneManager().getModel().getType().isLayout()) {
+      builder.add(new ConstraintsLayer(getSurface(), this, true));
     }
 
-    SceneLayer sceneLayer = new SceneLayer(mySurface, this, false);
+    SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
-    if (mySurface.getLayoutType().isSupportedByDesigner()) {
-      builder.add(new CanvasResizeLayer((NlDesignSurface) mySurface, this));
+    if (getSurface().getLayoutType().isSupportedByDesigner()) {
+      builder.add(new CanvasResizeLayer(getSurface(), this));
     }
     return builder.build();
   }
@@ -74,4 +74,3 @@ public class ScreenView extends ScreenViewBase {
     }
   }
 }
-

@@ -71,7 +71,7 @@ public class LevelTest extends NavTestCase {
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    mySceneView = new NavView(surface, model);
+    mySceneView = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(mySceneView);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(mySceneView);
 

@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
@@ -40,8 +40,8 @@ public final class NavigationViewSceneView extends ScreenView {
   public static final String SHOW_IN_ATTRIBUTE_VALUE = "navigation_view";
   private NavColorSet myColorSet = new NavColorSet();
 
-  public NavigationViewSceneView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    super(surface, model);
+  public NavigationViewSceneView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    super(surface, manager);
   }
 
   @NotNull

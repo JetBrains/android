@@ -62,7 +62,7 @@ public class DestinationListTest extends NavTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     myList = (DestinationList)def.getFactory().create();
     DesignSurface surface = myModel.getSurface();
-    SceneView sceneView = new NavView((NavDesignSurface)surface, myModel);
+    SceneView sceneView = new NavView((NavDesignSurface)surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
     myList.setToolContext(surface);
   }
@@ -137,7 +137,7 @@ public class DestinationListTest extends NavTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
 
-    SceneView sceneView = new NavView((NavDesignSurface)model.getSurface(), myModel);
+    SceneView sceneView = new NavView((NavDesignSurface)model.getSurface(), model.getSurface().getSceneManager());
     when(model.getSurface().getCurrentSceneView()).thenReturn(sceneView);
     list.setToolContext(model.getSurface());
 
@@ -181,7 +181,7 @@ public class DestinationListTest extends NavTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView sceneView = new NavView(surface, myModel);
+    SceneView sceneView = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
     list.setToolContext(surface);
 
@@ -226,7 +226,7 @@ public class DestinationListTest extends NavTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     DesignSurface surface = model.getSurface();
-    SceneView sceneView = new NavView((NavDesignSurface)surface, myModel);
+    SceneView sceneView = new NavView((NavDesignSurface)surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
     list.setToolContext(surface);
 

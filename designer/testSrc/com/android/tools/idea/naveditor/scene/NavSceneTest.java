@@ -81,7 +81,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,1050,928\n" +
                  "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,491,401,74,126\n" +
@@ -124,7 +124,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,960,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
@@ -169,7 +169,7 @@ public class NavSceneTest extends NavTestCase {
     DisplayList list = new DisplayList();
     model.getSurface().getSceneManager().update();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,1126,1128\n" +
                  "DrawRectangle,500x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,501,401,74,126\n" +
@@ -220,7 +220,7 @@ public class NavSceneTest extends NavTestCase {
     DisplayList list = new DisplayList();
     model.getSurface().getSceneManager().update();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,1126,1128\n" +
                  "DrawRectangle,500x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,501,401,74,126\n" +
@@ -267,7 +267,7 @@ public class NavSceneTest extends NavTestCase {
     modelBuilder.updateModel(model);
     model.notifyModified(NlModel.ChangeType.EDIT);
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,1056,928\n" +
                  "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,491,401,74,126\n" +
@@ -314,7 +314,7 @@ public class NavSceneTest extends NavTestCase {
 
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     list.clear();
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,876,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,401,401,74,126\n" +
@@ -331,7 +331,7 @@ public class NavSceneTest extends NavTestCase {
     model.getSurface().getSceneManager().update();
     list.clear();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,966,928\n" +
                  "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawNavScreen,491,401,74,126\n" +
@@ -404,7 +404,7 @@ public class NavSceneTest extends NavTestCase {
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
 
-    NavView view = new NavView(surface, model);
+    NavView view = new NavView(surface, surface.getSceneManager());
     scene.buildDisplayList(list, 0, view);
     assertEquals("Clip,0,0,56,-72\n" +
                  "DrawRectangle,-10x-100x76x128,ffa7a7a7,1,0\n" +
@@ -467,7 +467,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
 
     assertEquals("Clip,0,0,876,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
@@ -526,7 +526,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
 
     assertEquals("Clip,0,0,876,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
@@ -555,7 +555,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
 
     assertEquals("Clip,0,0,876,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
@@ -587,7 +587,7 @@ public class NavSceneTest extends NavTestCase {
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
 
     assertEquals("Clip,0,0,960,928\n" +
                  "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
@@ -618,7 +618,7 @@ public class NavSceneTest extends NavTestCase {
     DesignSurface surface = model.getSurface();
     Scene scene = surface.getScene();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,977,1028\n" +
                  "DrawRectangle,450x450x77x128,FRAMES,1,0\n" +
                  "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
@@ -631,7 +631,7 @@ public class NavSceneTest extends NavTestCase {
       .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false);
     surface.getSceneManager().update();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,914,914\n" +
                  "DrawRectangle,425x425x64x64,FRAMES,1,0\n" +
                  "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
@@ -643,7 +643,7 @@ public class NavSceneTest extends NavTestCase {
     model.getConfiguration().setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false);
     surface.getSceneManager().update();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
     assertEquals("Clip,0,0,1028,972\n" +
                  "DrawRectangle,450x450x128x72,FRAMES,1,0\n" +
                  "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
