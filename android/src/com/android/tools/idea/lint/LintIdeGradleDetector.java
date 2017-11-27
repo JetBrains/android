@@ -33,6 +33,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
@@ -54,7 +55,7 @@ public class LintIdeGradleDetector extends GradleDetector {
     Scope.GRADLE_SCOPE);
 
   @Nullable
-  protected String getClosureName(@NonNull GrClosableBlock closure) {
+  private static String getClosureName(@NonNull GrClosableBlock closure) {
     if (closure.getParent() instanceof GrMethodCall) {
       GrMethodCall parent = (GrMethodCall)closure.getParent();
       if (parent.getInvokedExpression() instanceof GrReferenceExpression) {
@@ -93,6 +94,11 @@ public class LintIdeGradleDetector extends GradleDetector {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
+        if (context instanceof JavaContext) {
+          handleGradleKotlinScript((JavaContext)context);
+          return;
+        }
+
         final PsiFile psiFile = LintIdeUtils.getPsiFile(context);
         if (!(psiFile instanceof GroovyFile)) {
           return;
@@ -100,7 +106,7 @@ public class LintIdeGradleDetector extends GradleDetector {
         GroovyFile groovyFile = (GroovyFile)psiFile;
         groovyFile.accept(new GroovyRecursiveElementVisitor() {
           @Override
-          public void visitClosure(GrClosableBlock closure) {
+          public void visitClosure(@NotNull GrClosableBlock closure) {
             String parentName = getClosureName(closure);
             String parentParentName = null;
             if (parentName != null) {
@@ -163,7 +169,7 @@ public class LintIdeGradleDetector extends GradleDetector {
           }
 
           @Override
-          public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+          public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
             String parentName = block != null ? getClosureName(block) : null;
             String statementName = applicationStatement.getInvokedExpression().getText();
@@ -198,6 +204,11 @@ public class LintIdeGradleDetector extends GradleDetector {
 
   @Override
   protected int getStartOffset(@NonNull Context context, @NonNull Object cookie) {
+    int startOffset = super.getStartOffset(context, cookie);
+    if (startOffset != -1) {
+      return startOffset;
+    }
+
     PsiElement element = (PsiElement)cookie;
     TextRange textRange = element.getTextRange();
     return textRange.getStartOffset();
@@ -228,6 +239,11 @@ public class LintIdeGradleDetector extends GradleDetector {
 
   @Override
   protected Location createLocation(@NonNull Context context, @NonNull Object cookie) {
+    Location location = super.createLocation(context, cookie);
+    if (location != null) {
+      return location;
+    }
+
     PsiElement element = (PsiElement)cookie;
     TextRange textRange = element.getTextRange();
     int start = textRange.getStartOffset();
