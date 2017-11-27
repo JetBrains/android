@@ -52,6 +52,7 @@ iml_module(
         "//tools/adt/idea/adt-ui/lib:libwebp",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/artwork[module]",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],
 )
 

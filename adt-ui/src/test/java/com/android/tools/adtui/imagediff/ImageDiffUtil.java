@@ -97,6 +97,32 @@ public final class ImageDiffUtil {
     }
   }
 
+  public static void assertImagesSimilar(String baselineImageFilename, Component component, double scaleFactor, float similarityThreshold) {
+    int scaledWidth = (int)Math.round(component.getWidth() * scaleFactor);
+    int scaledHeight = (int)Math.round(component.getHeight() * scaleFactor);
+    //noinspection UndesirableClassUsage
+    BufferedImage buffer = new BufferedImage(scaledWidth, scaledHeight, TYPE_INT_ARGB);
+    Graphics2D g = buffer.createGraphics();
+    try {
+      g.scale(scaleFactor, scaleFactor);
+      component.paint(g);
+    }
+    finally {
+      g.dispose();
+    }
+    File dir = TestResources.getDirectory(ImageDiffUtil.class, TEST_DATA_DIR);
+    File goldenFile = new File(dir, baselineImageFilename);
+    if (goldenFile.exists()) {
+      assertImagesSimilar(baselineImageFilename, buffer, similarityThreshold);
+    }
+    else {
+      //noinspection ResultOfMethodCallIgnored
+      goldenFile.getParentFile().mkdirs();
+      exportBaselineImage(goldenFile, buffer);
+      fail("File did not exist, created here:" + goldenFile);
+    }
+  }
+
   /**
    * Exports an image as a baseline.
    *
