@@ -174,8 +174,8 @@ public class AppCompatPublicDotTxtLookup {
   }
 
   @NotNull
-  protected synchronized BufferedReader findAppCompatPublicTxt(@NotNull String appCompatVersion) throws IOException {
-    if (false && getCacheDir() != null) {
+  private synchronized BufferedReader findAppCompatPublicTxt(@NotNull String appCompatVersion) throws IOException {
+    if (getCacheDir() != null) {
       File file = new File(getCacheDir(), String.format(RELATIVE_FILE_PATH, appCompatVersion));
       if (file.exists()) {
         return new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
