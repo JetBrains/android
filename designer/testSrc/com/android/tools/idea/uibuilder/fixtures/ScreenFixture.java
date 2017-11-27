@@ -44,7 +44,7 @@ public class ScreenFixture {
   private int myTranslateX = 0;
   private int myTranslateY = 0;
 
-  ScreenFixture(@NotNull SyncNlModel model) {
+  public ScreenFixture(@NotNull SyncNlModel model) {
     mySurface = (NlDesignSurface)model.getSurface();
     myModel = model;
   }
