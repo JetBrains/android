@@ -24,6 +24,7 @@ import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import org.jetbrains.annotations.NotNull;
 

@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.perflib.vmtrace.TraceAction;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

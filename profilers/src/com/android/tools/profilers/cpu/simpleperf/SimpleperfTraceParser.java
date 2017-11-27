@@ -18,10 +18,9 @@ package com.android.tools.profilers.cpu.simpleperf;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
-import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuThreadInfo;
-import com.android.tools.profilers.cpu.MethodModel;
-import com.android.tools.profilers.cpu.TraceParser;
+import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -278,7 +277,7 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    CaptureNode root = createCaptureNode(new MethodModel.Builder(myThreads.get(threadId)).build(), firstTimestamp);
+    CaptureNode root = createCaptureNode(new SingleNameModel(myThreads.get(threadId)), firstTimestamp);
     root.setDepth(0);
     myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
 
@@ -393,9 +392,9 @@ public class SimpleperfTraceParser implements TraceParser {
       // if symbol_id is -1, we report the method as fileName+vAddress (e.g. program.so+0x3039)
       String hexAddress = "0x" + Long.toHexString(callChainEntry.getVaddrInFile());
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
-      return new MethodModel.Builder(methodName).build();
+      return new SingleNameModel(methodName);
     }
     // Otherwise, read the method from the symbol table and parse it into a MethodModel
-    return MethodNameParser.parseMethodName(symbolFile.getSymbol(symbolId));
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId));
   }
 }

@@ -17,9 +17,8 @@ package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import org.junit.Test
-
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
 class AtraceParserTest {
 
@@ -55,7 +54,7 @@ class AtraceParserTest {
     assertThat(captureNode?.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
     assertThat(captureNode?.getChildAt(0)?.start).isEqualTo(SINGLE_CHILD_EXPECTED_START)
     assertThat(captureNode?.getChildAt(0)?.end).isEqualTo(SINGLE_CHILD_EXPECTED_END)
-    assertThat(captureNode?.getChildAt(0)?.methodModel?.classOrNamespace).isEqualTo(EXPECTED_METHOD_NAME)
+    assertThat(captureNode?.getChildAt(0)?.methodModel?.name).isEqualTo(EXPECTED_METHOD_NAME)
     assertThat(captureNode?.getChildAt(0)?.start).isGreaterThan(parser.range.min.toLong())
     assertThat(captureNode?.getChildAt(0)?.start).isLessThan(parser.range.max.toLong())
     assertThat(captureNode?.getChildAt(0)?.end).isGreaterThan(parser.range.min.toLong())

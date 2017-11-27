@@ -28,6 +28,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
@@ -308,17 +311,7 @@ class CpuCaptureView {
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
-    MethodModel method = ((CpuTreeNode)node.getUserObject()).getMethodModel();
-    CodeLocation.Builder codeLocation = new CodeLocation.Builder(method.getClassOrNamespace())
-      .setMethodName(method.getName())
-      .setNativeCode(method.isNative());
-    if (method.isNative()) {
-      codeLocation.setMethodParameters(method.getParameters());
-    }
-    else {
-      codeLocation.setMethodSignature(method.getSignature());
-    }
-    return codeLocation.build();
+    return modelToCodeLocation(((CpuTreeNode)node.getUserObject()).getMethodModel());
   }
 
   /**
@@ -651,18 +644,33 @@ class CpuCaptureView {
       if (n == null || n.getData() == null) {
         return null;
       }
-      MethodModel method = n.getData();
-      CodeLocation.Builder codeLocation = new CodeLocation.Builder(method.getClassOrNamespace())
-        .setMethodName(method.getName())
-        .setNativeCode(method.isNative());
-      if (method.isNative()) {
-        codeLocation.setMethodParameters(method.getParameters());
-      }
-      else {
-        codeLocation.setMethodSignature(method.getSignature());
-      }
-      return codeLocation.build();
+      return modelToCodeLocation(n.getData());
     }
+  }
+
+  /**
+   * Produces a {@link CodeLocation} corresponding to a {@link MethodModel}. Returns null if the model is not navigatable.
+   */
+  @Nullable
+  private static CodeLocation modelToCodeLocation(MethodModel model) {
+    if (model instanceof NativeFunctionModel) {
+      NativeFunctionModel nativeFunction = (NativeFunctionModel)model;
+      return new CodeLocation.Builder(nativeFunction.getClassOrNamespace())
+        .setMethodName(nativeFunction.getName())
+        .setMethodParameters(nativeFunction.getParameters())
+        .setNativeCode(true)
+        .build();
+    }
+    else if (model instanceof JavaMethodModel) {
+      JavaMethodModel javaMethod = (JavaMethodModel)model;
+      return new CodeLocation.Builder(javaMethod.getClassName())
+        .setMethodName(javaMethod.getName())
+        .setMethodSignature(javaMethod.getSignature())
+        .setNativeCode(false)
+        .build();
+    }
+    // Code is not navigatable.
+    return null;
   }
 
   /**
@@ -837,14 +845,22 @@ class CpuCaptureView {
         CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
         SimpleTextAttributes attributes = getTextAttributes(node);
         MethodModel model = node.getMethodModel();
+        String classOrNamespace = "";
+        if (model instanceof NativeFunctionModel) {
+          classOrNamespace = ((NativeFunctionModel)model).getClassOrNamespace();
+        }
+        else if (model instanceof JavaMethodModel) {
+          classOrNamespace = ((JavaMethodModel)model).getClassName();
+        }
+
         if (model.getName().isEmpty()) {
           setIcon(AllIcons.Debugger.ThreadSuspended);
-          append(model.getClassOrNamespace(), attributes);
+          append(classOrNamespace, attributes);
         }
         else {
           setIcon(PlatformIcons.METHOD_ICON);
           append(model.getName() + "()", attributes);
-          append(" (" + model.getClassOrNamespace() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+          append(" (" + classOrNamespace + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
       }
       else {

@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,30 +134,6 @@ class CaptureModel {
     }
     myFilter = filter;
     rebuildDetails();
-  }
-
-  /**
-   * @return collection of all class names and class name combined with method name
-   * (in the format: |classname.methodname|) of all nodes of the current tree {@link #getNode()}.
-   */
-  @NotNull
-  Collection<String> getPossibleFilters() {
-    CaptureNode node = getNode();
-    if (node == null) {
-      return Collections.emptySet();
-    }
-    Set<String> filters = new HashSet<>();
-    Queue<CaptureNode> queue = new LinkedList<>();
-    queue.add(node);
-    while (!queue.isEmpty()) {
-      CaptureNode curNode = queue.poll();
-      assert curNode.getData() != null;
-      filters.add(curNode.getData().getClassOrNamespace());
-      filters.add(curNode.getData().getFullName());
-
-      queue.addAll(curNode.getChildren());
-    }
-    return filters;
   }
 
   void setDetails(@Nullable Details.Type type) {

@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

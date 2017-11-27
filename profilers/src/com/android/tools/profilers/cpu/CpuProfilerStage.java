@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -672,11 +671,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setCaptureFilter(@Nullable Pattern filter) {
     myCaptureModel.setFilter(filter);
-  }
-
-  @NotNull
-  public Collection<String> getPossibleCaptureFilters() {
-    return myCaptureModel.getPossibleFilters();
   }
 
   public void openProfilingConfigurationsDialog() {
