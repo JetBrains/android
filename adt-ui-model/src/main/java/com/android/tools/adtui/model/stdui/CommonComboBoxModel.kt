@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.stdui
+package com.android.tools.adtui.model.stdui
 
-import com.intellij.util.ui.JBUI
+import javax.swing.ComboBoxModel
 
-/**
- * Standard UI Component Dimensions.
- */
-object StandardDimensions {
-  val VERTICAL_PADDING = 1
-  val HORIZONTAL_PADDING = 6
-  val INNER_BORDER_WIDTH = JBUI.scale(1f)
-  val OUTER_BORDER_WIDTH = JBUI.scale(2f)
-  val TEXT_FIELD_CORNER_RADIUS = JBUI.scale(1f)
-  val DROPDOWN_CORNER_RADIUS = JBUI.scale(4f)
-  val DROPDOWN_BUTTON_WIDTH = JBUI.scale(18f)
-  val DROPDOWN_ARROW_WIDTH = JBUI.scale(8f)
-  val DROPDOWN_ARROW_HEIGHT = JBUI.scale(5f)
+interface CommonComboBoxModel<E> : ComboBoxModel<E> {
+  val enabled: Boolean
+    get() = true
+
+  val editable: Boolean
+    get() = true
+
+  val placeHolderValue: String
+    get() = ""
+
+  fun validationError(editedValue: String): String = ""
+
+  fun addListener(listener: ValueChangedListener)
+
+  fun removeListener(listener: ValueChangedListener)
 }

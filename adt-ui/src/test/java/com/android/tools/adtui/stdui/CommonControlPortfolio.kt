@@ -17,20 +17,21 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-
-import javax.swing.*
 import java.awt.*
+import javax.swing.*
 
 /**
- * Tester for [CommonTextField] controls.
+ * Tester for misc common controls.
  */
-object Tester {
+object CommonControlPortfolio {
   private val ourFont = UIUtil.getFontWithFallback("Ariel", 0, 12)
 
   @JvmStatic fun main(args: Array<String>) {
@@ -56,7 +57,7 @@ object Tester {
 
   private fun addComponentsToPane(contentPane: Container) {
     val grid = JPanel()
-    grid.layout = GridLayout(6, 1, 5, 5)
+    grid.layout = GridLayout(8, 1, 5, 5)
     grid.border = JBUI.Borders.empty(20, 20, 20, 20)
     grid.isOpaque = false
 
@@ -64,7 +65,8 @@ object Tester {
     grid.add(makeTextField("Disabled", false))
     grid.add(makeTextField("Error", true))
     grid.add(makeTextField("", true))
-    grid.add(makeJBTextField("JBTextField"))
+    grid.add(makeComboBox(true, true))
+    grid.add(makeComboBox(true, false))
     grid.add(makeLAFControl())
 
     val topPanel = JPanel(BorderLayout())
@@ -111,10 +113,6 @@ object Tester {
     }
   }
 
-  private fun makeJBTextField(text: String): JComponent {
-    return JBTextField(text)
-  }
-
   private fun makeTextField(text: String, enabled: Boolean): JComponent {
     val model = object : CommonTextFieldModel {
       override val value = text
@@ -138,9 +136,34 @@ object Tester {
       }
     }
     val field = CommonTextField(model)
+    field.isOpaque = false
     if (text == "Disabled") {
       field.isEnabled = false
     }
     return field
+  }
+
+  private fun makeComboBox(enabled: Boolean, editable: Boolean): JComponent {
+    val model = DefaultCommonComboBoxModel(listOf("one", "two", "three", "four", "five", "six"))
+    val combo = CommonComboBox(model)
+    val inset = combo.insets.left
+    model.enabled = enabled
+    model.editable = editable
+    model.placeHolderValue = "@+id/name"
+    combo.isOpaque = false
+    combo.renderer = SimpleListRenderer(0, inset)
+    return combo
+  }
+}
+
+class SimpleListRenderer(private val valueInset: Int, private val listInset: Int) :
+    ColoredListCellRenderer<String>() {
+
+  override fun customizeCellRenderer(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
+    ipad.left = if (index < 0) valueInset else listInset
+    ipad.right = 0
+    if (value != null) {
+      append(value)
+    }
   }
 }
