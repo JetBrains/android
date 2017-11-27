@@ -156,6 +156,10 @@ public class EmbeddedDistributionPaths {
     else if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, "mac");
     }
+    if (!jdkRootPath.exists()) {
+      // fallback to JAVA_HOME
+      jdkRootPath = new File(System.getenv("JAVA_HOME"));
+    }
     return getSystemSpecificJdkPath(jdkRootPath);
   }
 
