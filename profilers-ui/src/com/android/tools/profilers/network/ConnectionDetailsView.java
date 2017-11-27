@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -272,7 +273,9 @@ public class ConnectionDetailsView extends JPanel {
 
       final JLabel toggleLabel = new JLabel(cardViewSource);
       northEastComponent = toggleLabel;
-      toggleLabel.setForeground(ProfilerColors.MESSAGE_COLOR);
+      Color toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleLabel.getForeground().getRGB(), 0.9f);
+      Color toggleDefaultColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleHoverColor.getRGB(), 0.6f);
+      toggleLabel.setForeground(toggleDefaultColor);
       toggleLabel.setFont(UIManager.getFont("Label.font").deriveFont(FIELD_FONT_SIZE));
       toggleLabel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
       toggleLabel.addMouseListener(new MouseAdapter() {
@@ -280,6 +283,16 @@ public class ConnectionDetailsView extends JPanel {
         public void mouseClicked(MouseEvent e) {
           toggleLabel.setText(cardViewSource.equals(toggleLabel.getText())? cardViewParsed : cardViewSource);
           cardLayout.next(payloadPanel);
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          toggleLabel.setForeground(toggleHoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          toggleLabel.setForeground(toggleDefaultColor);
         }
       });
     }
