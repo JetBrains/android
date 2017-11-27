@@ -177,8 +177,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
       myAdditionalModules = null;
-      myFixture.tearDown();
-      myFixture = null;
       myFacet = null;
       mySettings = null;
 
@@ -188,6 +186,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       }
     }
     finally {
+      myFixture.tearDown();
       super.tearDown();
     }
   }
