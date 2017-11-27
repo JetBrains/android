@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +32,8 @@ import java.awt.*;
 public class BlueprintView extends ScreenView {
   private final ColorSet myColorSet = new BlueprintColorSet();
 
-  public BlueprintView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    super(surface, model);
+  public BlueprintView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    super(surface, manager);
   }
 
   @NotNull
@@ -45,9 +45,9 @@ public class BlueprintView extends ScreenView {
       new SelectionLayer(this),
       new MockupLayer(this));
     if (!myIsSecondary) {
-      builder.add(new CanvasResizeLayer((NlDesignSurface) mySurface, this));
+      builder.add(new CanvasResizeLayer(getSurface(), this));
     }
-    builder.add(new SceneLayer(mySurface, this, true));
+    builder.add(new SceneLayer(getSurface(), this, true));
     return builder.build();
   }
 

@@ -250,7 +250,7 @@ abstract public class SceneManager implements Disposable {
   }
 
   @NotNull
-  protected NlModel getModel() {
+  public NlModel getModel() {
     return myModel;
   }
 

@@ -247,7 +247,7 @@ fun NlModel.createComponents(sceneView: SceneView,
                              insertType: InsertType): List<NlComponent> {
   val components = ArrayList<NlComponent>(item.components.size)
   for (dndComponent in item.components) {
-    val tag = createTag(sceneView.model.project, dndComponent.representation)
+    val tag = createTag(project, dndComponent.representation)
     val component = createComponent(ViewEditorImpl.getOrCreate(sceneView), tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
     component.w = dndComponent.width
     component.h = dndComponent.height

@@ -138,7 +138,7 @@ public class DragCreateActionTest extends NavTestCase {
 
   private static NavDesignSurface initializeNavDesignSurface(SyncNlModel model) {
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView view = new NavView(surface, model);
+    SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(view);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
     return surface;

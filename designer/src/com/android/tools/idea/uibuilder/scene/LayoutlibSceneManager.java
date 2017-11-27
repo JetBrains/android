@@ -235,10 +235,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     SceneMode mode = getDesignSurface().getSceneMode();
 
-    SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), model);
+    SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
 
     if (!type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
-      mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), model);
+      mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
     }
 
     getDesignSurface().updateErrorDisplay();
@@ -254,10 +254,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
-      sceneView = new NavigationViewSceneView(getDesignSurface(), model);
+      sceneView = new NavigationViewSceneView(getDesignSurface(), this);
     }
     else {
-      sceneView = new ScreenView(getDesignSurface(), model);
+      sceneView = new ScreenView(getDesignSurface(), this);
     }
 
     getDesignSurface().updateErrorDisplay();

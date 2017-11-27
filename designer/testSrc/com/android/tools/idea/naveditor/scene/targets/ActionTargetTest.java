@@ -49,7 +49,7 @@ public class ActionTargetTest extends NavTestCase {
         fragmentComponent("fragment2"));
     SyncNlModel model = model("nav.xml", root).build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView view = new NavView(surface, model);
+    SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(view);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
 

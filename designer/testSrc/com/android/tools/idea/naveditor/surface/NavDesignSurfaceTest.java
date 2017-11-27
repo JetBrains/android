@@ -128,7 +128,7 @@ public class NavDesignSurfaceTest extends NavTestCase {
     InteractionManager interactionManager = new InteractionManager(surface);
     interactionManager.registerListeners();
 
-    SceneView view = new NavView(surface, model);
+    SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
 
     surface.getScene().layout(0, SceneContext.get(view));

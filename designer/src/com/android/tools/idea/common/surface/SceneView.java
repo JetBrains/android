@@ -45,16 +45,15 @@ import java.util.List;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView {
-  protected final DesignSurface mySurface;
-  protected final NlModel myModel;
+  private final DesignSurface mySurface;
+  private final SceneManager myManager;
   private ImmutableList<Layer> myLayers;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
-  protected boolean myIsSecondary;
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
+  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager) {
     mySurface = surface;
-    myModel = model;
+    myManager = manager;
   }
 
   @NotNull
@@ -73,7 +72,7 @@ public abstract class SceneView {
 
   @NotNull
   public Scene getScene() {
-    return mySurface.getScene();
+    return myManager.getScene();
   }
 
   /**
@@ -90,7 +89,7 @@ public abstract class SceneView {
     }
 
     Dimension preferred = getPreferredSize(dimension);
-    double scale = mySurface.getScale();
+    double scale = getScale();
 
     dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
     return dimension;
@@ -114,7 +113,7 @@ public abstract class SceneView {
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
 
   public void switchDevice() {
-    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getFacet()).getDevices();
+    List<Device> devices = ConfigurationManager.getOrCreateInstance(getSceneManager().getModel().getFacet()).getDevices();
     List<Device> applicable = Lists.newArrayList();
     for (Device device : devices) {
       if (HardwareConfigHelper.isNexus(device)) {
@@ -145,12 +144,16 @@ public abstract class SceneView {
 
   @NotNull
   public Configuration getConfiguration() {
-    return myModel.getConfiguration();
+    return getSceneManager().getModel().getConfiguration();
   }
 
+  /**
+   * @deprecated This method will be removed in the future. The Model should be obtained by {@link SceneManager#getModel()} instead.
+   */
+  @Deprecated
   @NotNull
   public NlModel getModel() {
-    return myModel;
+    return myManager.getModel();
   }
 
   @NotNull
@@ -197,7 +200,7 @@ public abstract class SceneView {
   }
 
   public double getScale() {
-    return mySurface.getScale();
+    return getSurface().getScale();
   }
 
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
@@ -239,18 +242,14 @@ public abstract class SceneView {
   }
 
   public SceneManager getSceneManager() {
-    return mySurface.getSceneManager();
+    return myManager;
   }
 
   /**
    * Sets the tool tip to be shown
    */
   public void setToolTip(String toolTip) {
-    mySurface.setDesignToolTip(toolTip);
-  }
-
-  public void setSecondary(boolean isSecondary) {
-    myIsSecondary = isSecondary;
+    getSurface().setDesignToolTip(toolTip);
   }
 
   @NotNull

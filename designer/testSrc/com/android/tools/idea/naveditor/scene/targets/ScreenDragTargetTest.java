@@ -54,7 +54,7 @@ public class ScreenDragTargetTest extends NavTestCase {
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView view = new NavView(surface, model);
+    SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(view);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
 

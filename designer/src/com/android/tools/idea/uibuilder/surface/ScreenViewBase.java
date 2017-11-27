@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
@@ -44,9 +44,10 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOV
  */
 abstract class ScreenViewBase extends SceneView {
   private final ColorSet myColorSet = new AndroidColorSet();
+  protected boolean myIsSecondary;
 
-  public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    super(surface, model);
+  public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    super(surface, manager);
   }
 
   /**
@@ -185,5 +186,20 @@ abstract class ScreenViewBase extends SceneView {
       g2d.setRenderingHints(hints);
       g2d.setPaint(paint);
     }
+  }
+
+  /**
+   * Set if this is the second SceneView in the associcated Scene/SceneManager.
+   * @param isSecondary the new value to indicated if this is the second SceneView in associated Scene/SceneManager.
+   */
+  final void setSecondary(boolean isSecondary) {
+    myIsSecondary = isSecondary;
+  }
+
+  /**
+   * @return true if this is second SceneView in the associated Scene/SceneManager, false otherwise. The default value is false.
+   */
+  protected final boolean isSecondary() {
+    return myIsSecondary;
   }
 }
