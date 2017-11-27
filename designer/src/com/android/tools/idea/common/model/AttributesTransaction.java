@@ -205,9 +205,9 @@ public class AttributesTransaction implements NlAttributesHolder {
       View currentView = (View)viewInfo.getViewObject();
       if (currentView != myCachedView.get()) {
         // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(NlComponentHelperKt.getViewInfo(myComponent));
+        applyAllPendingAttributesToView(viewInfo);
       }
-      triggerViewRelayout((View)NlComponentHelperKt.getViewInfo(myComponent).getViewObject());
+      triggerViewRelayout((View)viewInfo.getViewObject());
     }
   }
 
@@ -223,9 +223,9 @@ public class AttributesTransaction implements NlAttributesHolder {
       View currentView = (View)viewInfo.getViewObject();
       if (currentView != myCachedView.get()) {
         // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(NlComponentHelperKt.getViewInfo(myComponent));
+        applyAllPendingAttributesToView(viewInfo);
       }
-      triggerViewRelayout((View)NlComponentHelperKt.getViewInfo(myComponent).getViewObject());
+      triggerViewRelayout((View)viewInfo.getViewObject());
     }
 
     myLock.writeLock().lock();
