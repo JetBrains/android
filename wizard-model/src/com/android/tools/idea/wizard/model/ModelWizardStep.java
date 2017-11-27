@@ -139,6 +139,10 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   /**
    * Returns a boolean, which when set to {@code true} means the current step can
    * go back to previous step.
+   * <p/>
+   * The return type is a primitive and NOT an observable (unlike {@link #canGoForward()}, because
+   * it is only called once, shortly after {@link #onEntering()} is called. This method is meant
+   * to be overridden by steps that serve as "no turning back" points in their wizard's flow.
    */
   protected boolean canGoBack() {
     return true;
