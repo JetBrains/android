@@ -22,6 +22,8 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -142,13 +145,11 @@ public class HTreeChart<T> extends AnimatedComponent {
       return;
     }
 
-    if (myCanvas == null || myCanvas.getHeight(null) != dim.getHeight()
-        || myCanvas.getWidth(null) != dim.getWidth()) {
+    if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height
+        || ImageUtil.getUserWidth(myCanvas) != dim.width) {
       redrawToCanvas(dim);
     }
-
-    g.drawImage(myCanvas, 0, 0, null);
-
+    UIUtil.drawImage(g, myCanvas, 0, 0, null);
     addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
     addDebugInfo("# of nodes %d", myNodes.size());
     addDebugInfo("# of reduced nodes %d", myDrawnNodes.size());
@@ -156,11 +157,12 @@ public class HTreeChart<T> extends AnimatedComponent {
 
   private void redrawToCanvas(@NotNull Dimension dim) {
     final Graphics2D g;
-    if (myCanvas != null && myCanvas.getWidth(null) >= dim.width && myCanvas.getHeight(null) >= dim.height) {
+    if (myCanvas != null && ImageUtil.getUserWidth(myCanvas) >= dim.width && ImageUtil.getUserHeight(myCanvas) >= dim.height) {
       g = (Graphics2D)myCanvas.getGraphics();
-      g.clearRect(0, 0, dim.width, dim.height);
+      g.setColor(getBackground());
+      g.fillRect(0, 0, dim.width, dim.height);
     } else {
-      myCanvas = createImage(dim.width, dim.height);
+      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
       g = (Graphics2D)myCanvas.getGraphics();
     }
     g.setFont(getFont());
