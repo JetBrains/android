@@ -72,7 +72,7 @@ public final class PreviewIconsPanel extends JPanel {
   }
 
   private static void updateImage(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
-    JBImageIcon icon = IconUtil.createImageIcon(sourceImage);
+    JBImageIcon icon = IconUtil.createImageIcon((Image)sourceImage);
     Dimension d = new Dimension(icon.getIconWidth(), icon.getIconHeight());
     imageComponent.setPreferredSize(d);
     imageComponent.setMinimumSize(d);
