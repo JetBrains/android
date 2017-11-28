@@ -39,6 +39,7 @@ public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl im
     myDefaultRepoUrl = defaultRepoUrl;
   }
 
+  @Override
   @NotNull
   public GradleDefaultValue<String> url() {
     if (myDslElement == null) {
