@@ -71,7 +71,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   protected BasePerspectiveConfigurable(@NotNull PsContext context) {
     context.add(new GradleSyncListener.Adapter() {
       @Override
-      public void syncStarted(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project, boolean skipped) {
         if (myLoadingPanel != null) {
           myLoadingPanel.startLoading();
         }
