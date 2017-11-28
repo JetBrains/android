@@ -287,7 +287,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     Dimension d = new Dimension(finalWidth, ASSET_PREVIEW_HEIGHT);
 
     mySourceAssetPanel.setPreferredSize(d);
-    mySourceAssetImage.setIcon(IconUtil.createImageIcon(assetImage));
+    mySourceAssetImage.setIcon(IconUtil.createImageIcon((Image)assetImage));
   }
 
   /**
