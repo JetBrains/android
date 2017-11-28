@@ -202,14 +202,19 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       myCenterComponent = splitter;
 
       JComponent first = splitter.getFirstComponent();
-      if (first instanceof JPanel && myHeader == null) {
+      if (first instanceof JPanel) {
         JPanel panel = (JPanel)first;
-        myHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, panel, ToolWindowAnchor.LEFT);
-        myHeader.setPreferredFocusedComponent(myTree);
-        myHeader.addMinimizeListener(() -> {
-          modulesTreeMinimized();
-          reInitWholePanelIfNeeded();
-        });
+        if (myHeader == null) {
+          myHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, panel, ToolWindowAnchor.LEFT);
+          myHeader.setPreferredFocusedComponent(myTree);
+          myHeader.addMinimizeListener(() -> {
+            modulesTreeMinimized();
+            reInitWholePanelIfNeeded();
+          });
+        }
+        else if (myHeader.getParent() != panel) {
+          panel.add(myHeader, BorderLayout.NORTH);
+        }
       }
     }
   }
