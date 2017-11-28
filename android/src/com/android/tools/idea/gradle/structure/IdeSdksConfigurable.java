@@ -95,6 +95,7 @@ import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
  */
 public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navigator {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
+  @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
@@ -133,6 +134,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
+    myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);
 
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);
