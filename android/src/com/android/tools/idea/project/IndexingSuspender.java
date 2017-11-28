@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
@@ -45,10 +48,14 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.exe
 public class IndexingSuspender {
   private static final Logger LOG = Logger.getInstance(IndexingSuspender.class);
 
-  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
+  @VisibleForTesting
+  static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
+
+  private boolean myTestingIndexingSuspender;
 
   @NotNull private final Project myProject;
   @NotNull private final Object myIndexingLock = new Object();
+  @GuardedBy("myIndexingLock")
   private boolean myShouldWait;
 
   @Nullable private ActivationEvent myActivationEvent;
@@ -62,6 +69,12 @@ public class IndexingSuspender {
   private IndexingSuspender(@NotNull Project project) {
     myProject = project;
 
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      // IntelliJ won't necessarily have the same events workflow related to Gradle build & sync, so render IndexingSuspender
+      // a no-op in that case.
+      return;
+    }
+
     if (!StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
       // Do not perform any subscriptions.
       // Since the service is designed to be event-driven only, it will just do nothing without
@@ -70,6 +83,12 @@ public class IndexingSuspender {
     }
 
     subscribeToSyncAndBuildEvents();
+  }
+
+  @VisibleForTesting
+  IndexingSuspender(@NotNull Project project, boolean testing) {
+    this(project);
+    myTestingIndexingSuspender = testing;
   }
 
   private void consumeActivationEvent(@NotNull ActivationEvent event) {
@@ -180,14 +199,10 @@ public class IndexingSuspender {
       return;
     }
 
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+    if (!canActivate()) {
       // IDEA DumbService executes dumb mode tasks on the same thread when in unittest/headless
       // mode. This will lead to a deadlock during tests execution, so indexing suspender should
-      // be a no-op in this case. Also indexing implementation in unit test mode uses quite a few
-      // stubs, so we wouldn't get a real indexing behaviour if even threading model was the same
-      // as in production. This also means that the only way to reproduce the real production
-      // behaviour on CI is a UI test.
+      // be a no-op in this case unless DumbService is mocked in a special way to be threading-aware.
       LOG.info(String.format("Indexing suspension omitted in unittest/headless mode (context: " +
                              "'%1$s')", activationEvent.name()));
       return;
@@ -212,8 +227,7 @@ public class IndexingSuspender {
       return;
     }
 
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+    if (!canActivate()) {
       return;
     }
 
@@ -221,6 +235,19 @@ public class IndexingSuspender {
     ensureNoSentinelDumbMode();
     myActivated = false;
     clearStateConditions();
+  }
+
+  private boolean canActivate() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      return false;
+    }
+
+    if (myTestingIndexingSuspender) {
+      return true;
+    }
+
+    Application application = ApplicationManager.getApplication();
+    return !application.isUnitTestMode() && !application.isHeadlessEnvironment();
   }
 
   private void clearStateConditions() {
@@ -259,7 +286,14 @@ public class IndexingSuspender {
   /**
    * Queue IndexingSuspenderTask, thus ensuring that sentinel dumb mode is entered.
    *
+   * Note: In unit test mode and when {@link #myTestingIndexingSuspender} is true, the project's DumbService must be prepared
+   * accordingly before the control flow reaches this method. Namely, it should not execute the queued task straight away on the event
+   * dispatch thread like the default DumbServiceImpl does in unit test mode, because otherwise the test will deadlock.
+   * A sensible way to achieve that would be to mock DumbService in advance somewhere in the test setUp() method, using the corresponding
+   * facilities in com.android.tools.idea.testing.IdeComponents.
+   *
    * @param contextDescription Human-readable description of the context where the sentinel dumb mode was requested.
+   * @see #canActivate()
    */
   @SuppressWarnings("SameParameterValue")
   private void startSentinelDumbMode(@NotNull String contextDescription) {
@@ -296,7 +330,8 @@ public class IndexingSuspender {
    * has to take care about it depending on the context it is executing in, for example
    * by calling DumbService.waitForSmartMode() or DumbService.runWhenSmart().
    */
-  private class IndexingSuspenderTask extends DumbModeTask {
+  @VisibleForTesting
+  class IndexingSuspenderTask extends DumbModeTask {
     @NotNull private final String myContextDescription;
 
     IndexingSuspenderTask(@NotNull String contextDescription) {
