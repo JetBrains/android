@@ -282,7 +282,7 @@
         icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
         text="Connection Assistant"
         description="Help debug device connection">
-      <add-to-group group-id="AndroidToolsGroupExtension" anchor="last"/>
+      <add-to-group group-id="AndroidToolsGroupExtension"/>
     </action>
     <action
       id="LayoutEditor.AddSampleData"
