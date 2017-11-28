@@ -91,7 +91,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   @Override
-  public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope) {
+  public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope, boolean exported) {
     Project project = from.getProject();
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
     String gradlePath = getGradlePath(to);
@@ -131,7 +131,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   @Override
-  public Promise<Void> addLibraryDependency(@NotNull Module from, @NotNull Library library, @NotNull DependencyScope scope) {
+  public Promise<Void> addLibraryDependency(@NotNull Module from, @NotNull Library library, @NotNull DependencyScope scope, boolean exported) {
     if (!GradleFacet.isAppliedTo(from)) {
       return null;
     }

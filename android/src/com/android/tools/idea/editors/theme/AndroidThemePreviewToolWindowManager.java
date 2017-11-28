@@ -33,7 +33,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.event.*;
+import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -327,14 +330,6 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     return ThemeEditorProvider.isAndroidTheme(psiFile);
   }
 
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
   private void updatePreview() {
     myToolWindowUpdateQueue.queue(myPreviewUpdate);
   }
@@ -408,7 +403,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   /**
    * CaretListener that detects when we move to a different theme.
    */
-  private class MyCaretListener extends CaretAdapter {
+  private class MyCaretListener implements CaretListener {
     @Override
     public void caretPositionChanged(CaretEvent e) {
       if (e == null || e.getCaret() == null) {
@@ -436,7 +431,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   /**
    * The document listener detects when there's been a change in the XML content and issues a refresh of the preview panel
    */
-  private class MyDocumentListener extends DocumentAdapter {
+  private class MyDocumentListener implements DocumentListener {
     @Override
     public void documentChanged(DocumentEvent event) {
       updatePreview();

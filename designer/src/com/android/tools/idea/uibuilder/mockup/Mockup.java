@@ -30,7 +30,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
@@ -120,7 +121,7 @@ public class Mockup implements ModelListener {
   private final static int C_W = 2;
   private final static int C_H = 3;
 
-  private static final WeakHashMap<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
+  private static final Map<NlComponent, Mockup> MOCKUP_CACHE = ContainerUtil.createWeakMap();
 
   private final ListenerCollection<MockupModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final Rectangle myBounds;

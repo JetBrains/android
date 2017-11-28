@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -171,17 +172,13 @@ public class ChooseResourceDialog extends DialogWrapper {
   private RenderTask myRenderTask;
   private final MultiMap<ResourceType, String> myThemAttributes;
 
-  /**
-   * Creates a builder for a new resource chooser dialog
-   */
+  /** Creates a builder for a new resource chooser dialog */
   @NotNull
   public static Builder builder() {
     return new Builder();
   }
 
-  /**
-   * Builder class for constructing a resource chooser
-   */
+  /** Builder class for constructing a resource chooser */
   public static class Builder {
     private Module myModule;
     private Configuration myConfiguration;
@@ -339,8 +336,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myAltPane = new JPanel(new BorderLayout());
       myAltPane.setPreferredSize(PANEL_PREFERRED_SIZE);
       myAltPane.setBorder(JBUI.Borders.emptyLeft(12));
-    }
-    else {
+    } else {
       myAltPane = null;
     }
 
@@ -521,8 +517,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       JPanel selectedComponent = (JPanel)myTabbedPane.getSelectedComponent();
       ResourceType type = (ResourceType)selectedComponent.getClientProperty(ResourceType.class);
       return getPanel(myTabbedPane, type);
-    }
-    else {
+    } else {
       // Just one type
       return getPanel(null, myTypes.iterator().next());
     }
@@ -564,31 +559,31 @@ public class ChooseResourceDialog extends DialogWrapper {
   @NotNull
   private ToggleAction createGridViewAction() {
     return new ToggleAction(null, "grid", StudioIcons.LayoutEditor.Palette.GRID_VIEW) {
-      @Override
-      public boolean isSelected(AnActionEvent e) {
-        return myGridMode;
-      }
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return myGridMode;
+        }
 
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        setGridMode(state);
-      }
-    };
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          setGridMode(state);
+        }
+      };
   }
 
   @NotNull
   private ToggleAction createListViewAction() {
     return new ToggleAction(null, "list", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
-      @Override
-      public boolean isSelected(AnActionEvent e) {
-        return !myGridMode;
-      }
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return !myGridMode;
+        }
 
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        setGridMode(!state);
-      }
-    };
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          setGridMode(!state);
+        }
+      };
   }
 
   @NotNull
@@ -1155,8 +1150,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           if (image != null) {
             return Futures.immediateFuture(new ResourceChooserImageIcon(size, image, checkerboardSize, interpolate));
           }
-        }
-        catch (IOException ignore) {
+        } catch (IOException ignore) {
         }
       }
 
@@ -1242,8 +1236,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     final VirtualFile resDir = locationSettings.getResourceDirectory();
     if (resDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myModule.getName()));
-    }
-    else {
+    } else {
       if (!AndroidResourceUtil.changeValueResource(project, resDir, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
         // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
         // Trying to create the resource instead.
@@ -1255,7 +1248,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private static EnumSet<ResourceType> getAllowedTypes(@NotNull ResourceType type) {
-    switch (type) {
+    switch(type) {
       case COLOR:
         return GraphicalResourceRendererEditor.COLORS_ONLY;
       case DRAWABLE:
@@ -1313,12 +1306,12 @@ public class ChooseResourceDialog extends DialogWrapper {
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
 
       JComponent firstComponent = createListPanel();
-      firstComponent.setPreferredSize(JBUI.size(200, 600));
+      firstComponent.setPreferredSize(JBUI.size(200,600));
 
       myComponent.setFirstComponent(firstComponent);
 
       myPreviewPanel = new JPanel(new CardLayout());
-      myPreviewPanel.setPreferredSize(JBUI.size(400, 600));
+      myPreviewPanel.setPreferredSize(JBUI.size(400,600));
       myComponent.setSecondComponent(myPreviewPanel);
 
       showPreview(null);
@@ -1343,8 +1336,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         component = myList = list;
         // setup default list look and feel
         configureList(myGridMode);
-      }
-      else {
+      } else {
         // Table view (strings, dimensions, etc
         final AbstractTableModel model = new ResourceTableContentProvider(myGroups);
 
@@ -1393,16 +1385,13 @@ public class ChooseResourceDialog extends DialogWrapper {
                   append(string.substring(0, match));
                   append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
                   append(string.substring(match + filter.length()));
-                }
-                else {
+                } else {
                   append(string);
                 }
-              }
-              else {
+              } else {
                 append(string);
               }
-            }
-            else {
+            } else {
               isHeader = true;
               append(value.toString());
             }
@@ -1433,8 +1422,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (value instanceof ResourceChooserItem) {
               value = ((ResourceChooserItem)value).getDefaultValue();
               setBackground(table.getBackground());
-            }
-            else {
+            } else {
               // Header node
               setBackground(UIUtil.getLabelBackground());
               value = "";
@@ -1480,12 +1468,10 @@ public class ChooseResourceDialog extends DialogWrapper {
     boolean isFiltered() {
       if (myList != null) {
         return myList.isFiltered();
-      }
-      else if (myTable != null) {
+      } else if (myTable != null) {
         // Not tracking this yet; err on the side of caution
         return true;
-      }
-      else {
+      } else {
         return false;
       }
     }
@@ -1497,8 +1483,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           // Select the only single item after filtering, if any
           myList.selectIfUnique();
         }
-      }
-      else if (myTable != null) {
+      } else if (myTable != null) {
         //noinspection unchecked
         ((FilteringTableModel<ResourceChooserItem>)myTable.getModel()).setFilter(condition);
         if (condition != null) {
@@ -1509,8 +1494,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (value instanceof ResourceChooserItem) {
               if (single == null) {
                 single = (ResourceChooserItem)value;
-              }
-              else {
+              } else {
                 single = null;
                 break;
               }
@@ -1526,8 +1510,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     void selectFirst() {
       if (myList != null) {
         myList.selectFirst();
-      }
-      else if (myTable != null) {
+      } else if (myTable != null) {
         List<ResourceChooserItem> first = myGroups[0].getItems();
         if (!first.isEmpty()) {
           setSelectedItem(first.get(0));
@@ -1599,7 +1582,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             notifyResourcePickerListeners(myReferenceComponent.getValueText());
           }
         });
-        myReferenceComponent.addTextDocumentListener(new com.intellij.openapi.editor.event.DocumentAdapter() {
+        myReferenceComponent.addTextDocumentListener(new DocumentListener() {
           @Override
           public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent e) {
             // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
@@ -1712,9 +1695,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       return myType;
     }
 
-    /**
-     * Determines if the given item is something we can edit (vs just select)
-     */
+    /** Determines if the given item is something we can edit (vs just select) */
     private boolean allowEditing(@Nullable ResourceChooserItem item) {
       if (item == null) {
         return false;
@@ -1753,8 +1734,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           return true;
-        }
-        else {
+        } else {
           return false;
         }
       }
@@ -2210,8 +2190,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     public ResourceChooserItem getSelectedItem() {
       if (myList != null) {
         return myList.getSelectedElement();
-      }
-      else if (myTable != null) {
+      } else if (myTable != null) {
         int index = myTable.getSelectionModel().getLeadSelectionIndex();
         if (index != -1) {
           Object selected = myTable.getValueAt(index, 0);
@@ -2226,8 +2205,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     public void setSelectedItem(@Nullable ResourceChooserItem item) {
       if (myList != null) {
         myList.setSelectedElement(item);
-      }
-      else if (myTable != null) {
+      } else if (myTable != null) {
         TableModel model = myTable.getModel();
         for (int row = 0, rowCount = model.getRowCount(); row < rowCount; row++) {
           Object object = model.getValueAt(row, 0);
@@ -2287,8 +2265,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             AnActionEvent.createFromInputEvent(e, ChooseResourceDialog.class.getSimpleName(), new Presentation(), context);
           anAction.actionPerformed(actionEvent);
           return;
-        }
-        else {
+        } else {
           group.add(anAction);
         }
       }

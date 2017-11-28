@@ -41,7 +41,7 @@ public class AndroidOSProcessHandler extends BaseOSProcessHandler {
   }
 
   @Override
-  public void notifyTextAvailable(String text, Key outputType) {
+  public void notifyTextAvailable(@NotNull String text, @NotNull Key outputType) {
     super.notifyTextAvailable(text, outputType);
     
     if (StringUtil.isEmptyOrSpaces(text)) {

@@ -33,6 +33,8 @@ import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -115,7 +117,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     List<File> projectsToRemove = ManageLruProjectFilesTask.updateLRUList(getProject(), projectCacheList, lruLimit);
     assertEmpty(projectsToRemove);
     assertSize(1, projectCacheList);
-    curProjectFiles.add(Pair.create(getProject(), cache.getProjectDir(getProject())));
+    curProjectFiles.add(Pair.create(getProject(), cache.getProjectDir(getProject()).toFile()));
 
     // Try serializing just the one.
     ManageLruProjectFilesTask.writeListOfProjectCaches(rootDir, projectCacheList);
@@ -125,10 +127,10 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     // Try adding some over the limit.
     int numOverLimit = 0;
     for (int i = 0; i < lruLimit + 1; ++i) {
-      Project mockProject = new MockProjectWithName(getTestRootDisposable(), "p" + i);
-      File mockProjectCacheDir = cache.getProjectDir(mockProject);
+      Project mockProject = new MockProjectWithName(getProject(), "p" + i);
+      Path mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
-      curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir));
+      curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir.toFile()));
       projectsToRemove = ManageLruProjectFilesTask.updateLRUList(mockProject, projectCacheList, lruLimit);
       if (curProjectFiles.size() > lruLimit) {
         assertSize(1, projectsToRemove);
@@ -160,9 +162,9 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
 
     // Now add current project to front, sweep, and check.
     ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
-    File curProjectCacheDir = cache.getProjectDir(getProject());
+    Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
-    FileUtil.ensureExists(curProjectCacheDir);
+    FileUtil.ensureExists(curProjectCacheDir.toFile());
     List<File> removed = ManageLruProjectFilesTask.updateLRUList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
@@ -189,9 +191,9 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     assertTrue(cache.isValid());
     ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
     task.maintainLRUCache(lruLimit);
-    File curProjectCacheDir = cache.getProjectDir(getProject());
+    Path curProjectCacheDir = cache.getProjectDir(getProject());
     assertNotNull(curProjectCacheDir);
-    FileUtil.ensureExists(curProjectCacheDir);
+    FileUtil.ensureExists(curProjectCacheDir.toFile());
     List<File> removed = ManageLruProjectFilesTask.updateLRUList(getProject(), projectDirList, lruLimit * 2);
     assertEmpty(removed);
     ++overLimit;
@@ -220,11 +222,11 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     List<File> projectDirList = Lists.newArrayList();
     // Fill the cache directory with a bunch of mock project directories.
     for (int i = 0; i < lruLimit + overLimit; ++i) {
-      Project mockProject = new MockProjectWithName(getTestRootDisposable(), "p" + i);
-      File mockProjectCacheDir = cache.getProjectDir(mockProject);
+      Project mockProject = new MockProjectWithName(getProject(), "p" + i);
+      Path mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
-      FileUtil.ensureExists(mockProjectCacheDir);
-      assertTrue(mockProjectCacheDir.exists());
+      FileUtil.ensureExists(mockProjectCacheDir.toFile());
+      assertTrue(Files.exists(mockProjectCacheDir));
       List<File> removed = ManageLruProjectFilesTask.updateLRUList(mockProject, projectDirList, lruLimit * 2);
       assertEmpty(removed);
     }

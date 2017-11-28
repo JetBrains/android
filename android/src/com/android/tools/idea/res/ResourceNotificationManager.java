@@ -74,7 +74,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
  * </ul>
  */
 @SuppressWarnings({"SynchronizeOnThis", "UseOfSystemOutOrSystemErr"})
-public class ResourceNotificationManager implements ProjectComponent {
+public class ResourceNotificationManager {
   private final Project myProject;
 
   /**
@@ -300,30 +300,6 @@ public class ResourceNotificationManager implements ProjectComponent {
       // Not every module may have pending changes; each one will check
       moduleEventObserver.notifyListeners(reason);
     }
-  }
-
-  // ---- Implements Project Component ----
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "ResourceNotificationManager";
   }
 
   /**
@@ -675,7 +651,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
   }
 
-  private class FileEventObserver extends BulkFileListener.Adapter {
+  private class FileEventObserver implements BulkFileListener {
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;

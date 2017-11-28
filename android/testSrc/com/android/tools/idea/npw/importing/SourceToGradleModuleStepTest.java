@@ -33,6 +33,12 @@ public class SourceToGradleModuleStepTest extends AndroidGradleTestCase {
     myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject()));
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    myPage = null;
+    super.tearDown();
+  }
+
   public void testCheckPathValidInput() throws Exception {
     String path = new File(getTestDataPath(), IMPORTING).getPath();
     SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;

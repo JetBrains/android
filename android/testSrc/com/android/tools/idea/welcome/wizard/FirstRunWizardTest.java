@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
@@ -77,6 +78,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override

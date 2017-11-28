@@ -97,7 +97,7 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
       return;
     }
     PsiElement[] elements = {anchorStatement};
-    PsiElement prev = PsiTreeUtil.skipSiblingsBackward(anchorStatement, PsiWhiteSpace.class);
+    PsiElement prev = PsiTreeUtil.skipWhitespacesBackward(anchorStatement);
     if (prev instanceof PsiComment && JavaSuppressionUtil.getSuppressedInspectionIdsIn(prev) != null) {
       elements = new PsiElement[]{prev, anchorStatement};
     }

@@ -243,7 +243,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     JPanel panel = new JPanel(new BorderLayout());
 
     JPanel topPanel = new JPanel(new BorderLayout());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getMainActions(), true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidAllocationsView", getMainActions(), true);
     topPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
     myPackageFilter.setVisible(false);
     topPanel.add(myPackageFilter, BorderLayout.EAST);
@@ -263,7 +263,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     myLayout.setBackground(UIUtil.getTreeBackground());
     Choreographer.animate(myLayout);
 
-    toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getChartActions(), true);
+    toolbar = ActionManager.getInstance().createActionToolbar("AndroidAllocationsViewSunburst", getChartActions(), true);
     myChartOrientation = "Sunburst";
     myChartUnit = "Size";
 

@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<File, DeviceManagerConnection> ourCache = new WeakHashMap<File, DeviceManagerConnection>();
+  private static Map<File, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private DeviceManager ourDeviceManager;
   @Nullable private File mySdkPath;
 

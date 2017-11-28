@@ -51,12 +51,6 @@ public class DeployTargetConfigurableWrapper implements Configurable, Configurab
 
   @Nullable
   @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public JComponent createComponent() {
     return getConfigurable().createComponent();
   }
@@ -85,13 +79,5 @@ public class DeployTargetConfigurableWrapper implements Configurable, Configurab
 
   @Override
   public void apply() throws ConfigurationException {
-  }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public void disposeUIResources() {
   }
 }

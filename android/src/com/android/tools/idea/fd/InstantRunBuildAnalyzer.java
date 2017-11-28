@@ -25,7 +25,7 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.internal.statistic.StatisticsUploadAssistant;
+import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;

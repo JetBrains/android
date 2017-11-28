@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -117,11 +118,8 @@ public class GradleProjectInfo {
    */
   public boolean isBuildWithGradle() {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-      for (Module module : moduleManager.getModules()) {
-        if (GradleFacet.isAppliedTo(module)) {
-          return true;
-        }
+      if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
+        return true;
       }
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.

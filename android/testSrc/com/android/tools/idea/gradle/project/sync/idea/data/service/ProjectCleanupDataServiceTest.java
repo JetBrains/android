@@ -69,6 +69,6 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
 
     myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
 
-    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null);
+    verify(myProjectCleanup, times(1)).cleanUpProject(getProject(), myModelsProvider, null);
   }
 }

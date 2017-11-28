@@ -197,7 +197,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(ScreenSize.XLARGE, configuration4.getDevice().getDefaultHardware().getScreen().getSize());
   }
 
-  public void testCreateSimilar() throws Exception {
+  public void _testCreateSimilar() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject(TEST_FILE, "res/layout-no-rNO/layout1.xml");
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout1.xml");

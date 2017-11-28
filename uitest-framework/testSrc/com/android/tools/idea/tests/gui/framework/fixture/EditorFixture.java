@@ -107,9 +107,7 @@ public class EditorFixture {
     myFrame = frame;
   }
 
-  /**
-   * Returns the selected file with most recent focused editor, or {@code null} if there are no selected files.
-   */
+  /** Returns the selected file with most recent focused editor, or {@code null} if there are no selected files. */
   @Nullable
   public VirtualFile getCurrentFile() {
     VirtualFile[] selectedFiles = FileEditorManager.getInstance(myFrame.getProject()).getSelectedFiles();
@@ -215,7 +213,7 @@ public class EditorFixture {
   /**
    * Given a {@code regex} with one capturing group, selects the subsequence captured in the first match found in the selected text editor.
    *
-   * @throws IllegalStateException    if there is no currently selected text editor or no match is found
+   * @throws IllegalStateException if there is no currently selected text editor or no match is found
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
   @NotNull
@@ -341,7 +339,7 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param file the file to open
-   * @param tab  which tab to open initially, if there are multiple editors
+   * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
     GuiTask.execute(
@@ -365,8 +363,6 @@ public class EditorFixture {
       }
 
       FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
-      assert fileEditor != null;
-
       JComponent editorComponent = fileEditor.getComponent();
       if (editorComponent instanceof JBLoadingPanel) {
         return !((JBLoadingPanel)editorComponent).isLoading();
@@ -395,7 +391,7 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
-   * @param tab          which tab to open initially, if there are multiple editors
+   * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
@@ -418,9 +414,7 @@ public class EditorFixture {
     return open(relativePath, Tab.DEFAULT);
   }
 
-  /**
-   * Invokes {@code editorAction} via its (first) keyboard shortcut in the active keymap.
-   */
+  /** Invokes {@code editorAction} via its (first) keyboard shortcut in the active keymap. */
   public EditorFixture invokeAction(@NotNull EditorAction editorAction) {
     AnAction anAction = ActionManager.getInstance().getAction(editorAction.id);
     assertTrue(editorAction.id + " is not enabled", anAction.getTemplatePresentation().isEnabled());
@@ -754,11 +748,10 @@ public class EditorFixture {
     SPLIT_HORIZONTALLY("SplitHorizontally"),
     SPLIT_VERTICALLY("SplitVertically"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
-    UNDO("$Undo"),;
+    UNDO("$Undo"),
+    ;
 
-    /**
-     * The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}.
-     */
+    /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
     @NotNull private final String id;
 
     EditorAction(@NotNull String actionId) {
@@ -774,11 +767,10 @@ public class EditorFixture {
     EDITOR("Text"),
     DESIGN("Design"),
     DEFAULT(null),
-    MERGED_MANIFEST("Merged Manifest"),;
+    MERGED_MANIFEST("Merged Manifest"),
+    ;
 
-    /**
-     * The label in the editor, or {@code null} for the default (first) tab.
-     */
+    /** The label in the editor, or {@code null} for the default (first) tab. */
     private final String myTabName;
 
     Tab(String tabName) {

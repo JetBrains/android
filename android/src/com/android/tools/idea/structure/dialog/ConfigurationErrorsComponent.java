@@ -54,9 +54,6 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * User: spLeaner
- */
 public class ConfigurationErrorsComponent extends JPanel implements Disposable, ListDataListener {
   private static final int MAX_ERRORS_TO_SHOW = SystemProperties.getIntProperty("idea.project.structure.max.errors.to.show", 100);
   private static final boolean ONE_LINE = true;

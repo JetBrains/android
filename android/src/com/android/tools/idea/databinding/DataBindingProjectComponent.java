@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,7 +36,7 @@ import java.util.stream.Stream;
 /**
  * Keeps data binding information related to a project
  */
-public class DataBindingProjectComponent implements ProjectComponent, ModificationTracker {
+public class DataBindingProjectComponent implements ModificationTracker {
   final CachedValue<AndroidFacet[]> myDataBindingEnabledModules;
   final ParameterizedCachedValue<Collection<? extends PsiModifierListOwner>, Module> myBindingAdapterAnnotations;
   final Project myProject;
@@ -95,32 +94,6 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
 
   public AndroidFacet[] getDataBindingEnabledFacets() {
     return myDataBindingEnabledModules.getValue();
-  }
-
-  @Override
-  public void projectOpened() {
-
-  }
-
-  @Override
-  public void projectClosed() {
-
-  }
-
-  @Override
-  public void initComponent() {
-
-  }
-
-  @Override
-  public void disposeComponent() {
-
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "data binding project component";
   }
 
   @Override
