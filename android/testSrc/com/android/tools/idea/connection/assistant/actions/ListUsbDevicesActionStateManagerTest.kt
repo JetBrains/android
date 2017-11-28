@@ -48,7 +48,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
 
   @Test
   fun testDefaultState() {
-    `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()))
+    `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
     myStateManager.refresh()
     TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.INCOMPLETE)
   }

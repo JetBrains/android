@@ -17,6 +17,7 @@ package com.android.tools.idea.connection.assistant.actions
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
@@ -28,6 +29,8 @@ import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -50,6 +53,8 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     AndroidDebugBridge.addDeviceChangeListener(this)
 
     Disposer.register(project, this)
+
+    refreshDependencyState(project)
   }
 
   override fun getId(): String {
@@ -75,12 +80,20 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
       DefaultActionState.IN_PROGRESS -> returnMessage = AndroidBundle.message("connection.assistant.loading")
       DefaultActionState.PARTIALLY_COMPLETE, DefaultActionState.ERROR_RETRY -> {
         val adb = AndroidDebugBridge.getBridge()
+
         returnMessage = if (adb != null) {
           generateMessage(adb.devices)
         }
         else {
           AndroidBundle.message("connection.assistant.adb.failure")
         }
+
+        val deviceCount = adb?.devices?.size ?: -1
+        UsageTracker.getInstance()
+            .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+                .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+                    .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
+                    .setAdbDevicesDetected(deviceCount)))
       }
     }
 

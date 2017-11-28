@@ -16,8 +16,11 @@
 package com.android.tools.idea.connection.assistant.actions
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.assistant.AssistActionHandler
 import com.android.tools.idea.assistant.datamodel.ActionData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
@@ -34,5 +37,10 @@ class RestartAdbAction : AssistActionHandler {
   override fun handleAction(actionData: ActionData, project: Project) {
     val adb = AndroidDebugBridge.getBridge() ?: return
     ApplicationManager.getApplication().executeOnPooledThread { adb.restart() }
+
+    UsageTracker.getInstance()
+        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+            .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+                .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.RESTART_ADB_CLICKED)))
   }
 }

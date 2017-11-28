@@ -16,6 +16,7 @@
 package com.android.tools.idea.connection.assistant.actions
 
 import com.android.annotations.VisibleForTesting
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.datamodel.ActionData
@@ -26,14 +27,18 @@ import com.android.tools.usb.UsbDevice
 import com.android.tools.usb.UsbDeviceCollector
 import com.android.tools.usb.UsbDeviceCollectorImpl
 import com.android.utils.HtmlBuilder
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CompletableFuture
 
 /**
  * StateManager for {@link ListUsbDevicesAction}, displays if there are any connected USB devices to the user
  * through state message.
  */
-class ListUsbDevicesActionStateManager : AssistActionStateManager() {
+class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable {
   @VisibleForTesting
   lateinit var usbDeviceCollector: UsbDeviceCollector
   private lateinit var myProject: Project
@@ -50,12 +55,26 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager() {
     usbDeviceCollector = UsbDeviceCollectorImpl()
     myInstance = this
     refresh()
+
+    Disposer.register(project, this)
   }
 
   fun refresh() {
     myDevicesFuture = usbDeviceCollector.listUsbDevices()
-    myDevicesFuture.thenAccept({ refreshDependencyState(myProject) })
+    myDevicesFuture.thenAccept({
+      UsageTracker.getInstance()
+          .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+              .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+                  .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
+                  .setUsbDevicesDetected(myDevicesFuture.get().size)))
+
+      refreshDependencyState(myProject)
+    })
     refreshDependencyState(myProject)
+  }
+
+  override fun dispose() {
+    myDevicesFuture.cancel(true)
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
