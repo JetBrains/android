@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
@@ -30,7 +31,8 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 /**
  * Property representing all the arguments (possibly zero) for a destinations.
  */
-class NavArgumentsProperty(components: List<NlComponent>, val propertiesManager: NavPropertiesManager) : SimpleProperty("Arguments", components) {
+class NavArgumentsProperty(components: List<NlComponent>, val propertiesManager: NavPropertiesManager) :
+    SimpleProperty("Arguments", components) {
 
   private val resourceManager: LocalResourceManager? = if (myComponents.isEmpty()) {
     null
@@ -60,9 +62,10 @@ class NavArgumentsProperty(components: List<NlComponent>, val propertiesManager:
 }
 
 private class NewNavElementProperty(parent: NlComponent, attrDefs: AttributeDefinitions, propertiesManager: NavPropertiesManager)
-  : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, null, attrDefs, propertiesManager), NavArgumentProperty {
+  : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, AUTO_URI, attrDefs, propertiesManager), NavArgumentProperty {
 
-  override val defaultValueProperty = NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, null, attrDefs, propertiesManager)
+  override val defaultValueProperty =
+      NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, AUTO_URI, attrDefs, propertiesManager)
 }
 
 interface NavArgumentProperty : NlProperty {
@@ -72,10 +75,10 @@ interface NavArgumentProperty : NlProperty {
 private class NavArgumentPropertyImpl(components: List<NlComponent>,
                           attrDefs: AttributeDefinitions,
                           private val navArgumentsProperty: NavArgumentsProperty) :
-    NlPropertyItem(XmlName(ATTR_NAME), attrDefs.getAttrDefByName(ATTR_NAME), components, navArgumentsProperty.propertiesManager),
+    NlPropertyItem(XmlName(ATTR_NAME, AUTO_URI), attrDefs.getAttrDefByName(ATTR_NAME), components, navArgumentsProperty.propertiesManager),
     NavArgumentProperty {
 
-  override val defaultValueProperty: NlPropertyItem = object : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE),
+  override val defaultValueProperty: NlPropertyItem = object : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, AUTO_URI),
       attrDefs.getAttrDefByName(ATTR_DEFAULT_VALUE), components, navArgumentsProperty.propertiesManager) {
     override fun setValue(value: Any?) {
       super.setValue(value)

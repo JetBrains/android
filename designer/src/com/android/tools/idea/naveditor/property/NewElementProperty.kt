@@ -39,9 +39,9 @@ open class NewElementProperty(private val myParent: NlComponent, private val myT
       return
     }
     val newComponent = WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
-      val tag = myParent.tag.createChildTag(myTagName, myNamespace, null, false)
+      val tag = myParent.tag.createChildTag(myTagName, null, null, false)
       val result = myParent.model.createComponent(tag, myParent, null)
-      result.setAttribute(null, myAttrName, value as String)
+      result.setAttribute(myNamespace, myAttrName, value as String)
       result
     })
     delegate = NlPropertyItem.create(XmlName(myAttrName, myNamespace), definition, listOf(newComponent), myPropertiesManager)
