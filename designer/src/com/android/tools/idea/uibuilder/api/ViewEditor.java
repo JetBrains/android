@@ -26,8 +26,6 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,12 +138,6 @@ public abstract class ViewEditor {
   @NotNull
   public abstract Collection<ViewInfo> getRootViews();
 
-  public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
-
-  public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
-
-  public abstract void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml);
-
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
    *
@@ -181,16 +173,6 @@ public abstract class ViewEditor {
 
   @NotNull
   public abstract Scene getScene();
-
-  /**
-   * Opens the resource using the resource resolver in the configuration.
-   *
-   * @param reference   the resource reference
-   * @param currentFile the currently open file. It's pushed onto the file navigation stack under the resource to open.
-   * @return true if the resource was opened
-   * @see RenderResources#findResValue(String, boolean)
-   */
-  public abstract boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @NotNull VirtualFile currentFile);
 
   /**
    * If the children have dependencies that are not met by the project, this method will add them after asking the developer.

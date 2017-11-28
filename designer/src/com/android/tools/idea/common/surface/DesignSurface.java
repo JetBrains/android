@@ -26,11 +26,9 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -44,7 +42,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -101,7 +98,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable protected NlModel myModel;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
-  private ViewEditorImpl myViewEditor;
   private final RenderListener myRenderListener = this::modelRendered;
   private final ModelListener myModelListener = (model, animate) -> repaint();
 
@@ -1173,25 +1169,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
    */
   public abstract boolean isLayoutDisabled();
-
-  @Nullable
-  public ViewEditor getViewEditor() {
-    NlModel model = getModel();
-    Scene scene = getScene();
-    if (model == null || scene == null) {
-      String message = "Trying to get a view editor but the model (" + model + ") or scene (" + scene + ")are null: ";
-      Logger.getInstance(DesignSurface.class)
-        .warn(message);
-      assert false : message;
-      return null;
-    }
-    if (myViewEditor == null
-        || myViewEditor.getModel() != model
-        || myViewEditor.getScene() != scene) {
-      myViewEditor = new ViewEditorImpl(model, scene);
-    }
-    return myViewEditor;
-  }
 
   @Nullable
   @Override

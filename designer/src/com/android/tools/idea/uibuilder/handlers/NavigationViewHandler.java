@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.ImmutableList;
@@ -34,8 +34,7 @@ import static com.android.SdkConstants.*;
 
 final class NavigationViewHandler extends FrameLayoutHandler {
   @Override
-  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
-                                        @NotNull NlComponent component,
+  public void onActivateInDesignSurface(@NotNull NlComponent component,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
@@ -61,7 +60,7 @@ final class NavigationViewHandler extends FrameLayoutHandler {
     }
 
     NlModel model = component.getModel();
-    editor.openResource(model.getConfiguration(), resource, model.getVirtualFile());
+    DesignSurfaceHelper.openResource(model.getProject(), model.getConfiguration(), resource, model.getVirtualFile());
   }
 
   private static boolean contains(@NotNull View view, @AndroidCoordinate int x, @AndroidCoordinate int y) {
