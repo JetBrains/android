@@ -41,7 +41,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
@@ -132,7 +131,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: library-debug-unspecified");
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(".*library\\-debug$", COMPILE);
   }
 
   public void testWithLocalJarsArModules() throws Exception {
@@ -144,7 +143,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).contains("Gradle: localJarAsModule.local");
+    assertAbout(libraryDependencies()).that(localJarModule).contains("Gradle: localJarAsModule.local", COMPILE);
   }
 
   public void testWithInterModuleDependencies() throws Exception {
@@ -161,7 +160,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: guava-17.0");
+    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: guava-17.0", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
