@@ -597,7 +597,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType, myDesignSurface.getViewEditor());
+        model.addComponents(toAdd, root, null, insertType, sceneView.getSceneManager().getViewEditor());
       }
       return true;
     }

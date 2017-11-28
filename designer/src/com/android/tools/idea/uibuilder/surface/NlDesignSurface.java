@@ -28,7 +28,6 @@ import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
@@ -418,10 +417,9 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
-    ViewEditor editor = getViewEditor();
 
-    if (handler != null && editor != null) {
-      handler.onActivateInComponentTree(editor, component);
+    if (handler != null) {
+      handler.onActivateInComponentTree(component);
     }
 
     super.notifyComponentActivate(component);
@@ -430,10 +428,9 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
-    ViewEditor editor = getViewEditor();
 
-    if (handler != null && editor != null) {
-      handler.onActivateInDesignSurface(editor, component, x, y);
+    if (handler != null) {
+      handler.onActivateInDesignSurface(component, x, y);
     }
     super.notifyComponentActivate(component, x, y);
   }

@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.model.NlComponent;
@@ -28,35 +26,19 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
-import com.google.common.io.CharStreams;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
@@ -64,23 +46,16 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 /**
@@ -169,75 +144,6 @@ public class ViewEditorImpl extends ViewEditor {
   @VisibleForTesting
   public void setRootViews(@NotNull Collection<ViewInfo> rootViews) {
     myRootViews = rootViews;
-  }
-
-  @Override
-  public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
-    AndroidFacet facet = myModel.getFacet();
-    return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name);
-  }
-
-  @Override
-  public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
-    String path = MaterialDesignIcons.getPathForBasename(asset);
-
-    try (Reader reader = new InputStreamReader(IconGenerator.class.getClassLoader().getResourceAsStream(path), StandardCharsets.UTF_8)) {
-      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader));
-    }
-    catch (IOException exception) {
-      Logger.getInstance(ViewEditorImpl.class).warn(exception);
-    }
-  }
-
-  @Override
-  public void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml) {
-    String message = "Do you want to copy layout " + layout + " to your main module source set?";
-
-    if (Messages.showYesNoDialog(myModel.getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
-      return;
-    }
-
-    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml);
-  }
-
-  private void createResourceFile(@NotNull String resourceDirectory,
-                                  @NotNull String resourceFileName,
-                                  @NotNull CharSequence resourceFileContent) {
-    WriteCommandAction.runWriteCommandAction(myModel.getProject(), () -> {
-      try {
-        VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
-
-        if (directory == null) {
-          return;
-        }
-
-        Document document = FileDocumentManager.getInstance().getDocument(directory.createChildData(this, resourceFileName));
-        assert document != null;
-
-        document.setText(resourceFileContent);
-      }
-      catch (IOException exception) {
-        Logger.getInstance(ViewEditorImpl.class).warn(exception);
-      }
-    });
-  }
-
-  @Nullable
-  private VirtualFile getResourceDirectoryChild(@NotNull String child) throws IOException {
-    VirtualFile resourceDirectory = myModel.getFacet().getPrimaryResourceDir();
-
-    if (resourceDirectory == null) {
-      Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
-      return null;
-    }
-
-    VirtualFile resourceDirectoryChild = resourceDirectory.findChild(child);
-
-    if (resourceDirectoryChild == null) {
-      return resourceDirectory.createChildDirectory(this, child);
-    }
-
-    return resourceDirectoryChild;
   }
 
   @Nullable
@@ -353,32 +259,6 @@ public class ViewEditorImpl extends ViewEditor {
   }
 
   @Override
-  public boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @Nullable VirtualFile currentFile) {
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
-    if (resourceResolver == null) {
-      return false;
-    }
-    ResourceValue resValue = resourceResolver.findResValue(reference, false);
-    File path = ResourceHelper.resolveLayout(resourceResolver, resValue);
-    if (path != null) {
-      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(path);
-      if (file != null) {
-        Project project = myModel.getProject();
-        if (currentFile != null) {
-          return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file);
-        }
-        else {
-          FileEditor[] editors = FileEditorManager.getInstance(project).openFile(file, true, true);
-          if (editors.length > 0) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
   public boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index) {
     return getModel().canAddComponents(children, parent, getChild(parent, index));
   }
@@ -400,12 +280,11 @@ public class ViewEditorImpl extends ViewEditor {
   }
 
   /**
-   * Try to get an existing View editor from the {@link ScreenView}'s {@link com.android.tools.idea.common.surface.DesignSurface}
+   * Try to get an existing View editor from the {@link SceneView}'s {@link com.android.tools.idea.common.surface.DesignSurface}
    * or create a new one using the provided {@link ScreenView} if it's null
    */
   @NotNull
-  public static ViewEditor getOrCreate(@NotNull SceneView screenView) {
-    ViewEditor editor = screenView.getSurface().getViewEditor();
-    return editor != null ? editor : new ViewEditorImpl(screenView);
+  public static ViewEditor getOrCreate(@NotNull SceneView sceneView) {
+    return sceneView.getSceneManager().getViewEditor();
   }
 }
