@@ -40,13 +40,13 @@ class NavArgumentsPropertyTest : NavigationTestCase() {
 
   fun testMultipleArguments() {
     val property = NavArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
-    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2"),
+    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null),
         property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testNoArguments() {
-    val property = NavDeeplinkProperty(listOf(model.find("f3")!!))
-    assertTrue(property.properties.isEmpty())
+    val property = NavArgumentsProperty(listOf(model.find("f3")!!), mock(NavPropertiesManager::class.java))
+    assertEquals(mapOf(null to null), property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testModify() {
@@ -58,6 +58,6 @@ class NavArgumentsPropertyTest : NavigationTestCase() {
     assertEquals(argument, property.properties[0].components[0])
     fragment.removeChild(argument)
     property.refreshList()
-    assertTrue(property.properties.isEmpty())
+    assertEquals(mapOf(null to null), property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 }

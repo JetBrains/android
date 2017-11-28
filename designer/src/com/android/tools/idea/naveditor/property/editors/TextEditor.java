@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
@@ -93,6 +94,11 @@ public class TextEditor extends BaseComponentEditor {
   @NotNull
   private String getText() {
     return myTextEditor.getDocument().getText();
+  }
+
+  @VisibleForTesting
+  public void setText(@NotNull String value) {
+    myTextEditor.getDocument().setText(value);
   }
 
   @Override
