@@ -15,12 +15,25 @@
  */
 package com.android.tools.idea.connection.assistant;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 
 public class OpenConnectionAssistantSidePanelAction extends OpenAssistSidePanelAction {
   @Override
   public void update(AnActionEvent e) {
     e.getPresentation().setVisible(ConnectionAssistantBundleCreator.isAssistantEnabled());
+  }
+
+  @Override
+  public void actionPerformed(AnActionEvent event) {
+    super.actionPerformed(event);
+
+    UsageTracker.getInstance()
+      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+             .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+                                            .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.OPEN)));
   }
 }
