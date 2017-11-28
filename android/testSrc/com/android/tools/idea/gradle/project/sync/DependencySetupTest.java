@@ -160,7 +160,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: guava-17.0", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*guava.*$", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
