@@ -184,12 +184,16 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsLandscape() {
-    selectDropDownActionButtonItem("Orientation in Editor", item -> item.equals("Landscape"));
+    // If there is any Landscape variation, the text of Action Button will become "Landscape -> [variation_folder]/[layout_name].xml"
+    // Use String.startsWith() to cover that case.
+    selectDropDownActionButtonItem("Orientation in Editor", item -> item.startsWith("Landscape"));
     return this;
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsPortrait() {
-    selectDropDownActionButtonItem("Orientation in Editor", item -> item.equals("Portrait"));
+    // If there is any Portrait variation, the text of Action Button will become "Portrait -> [variation_folder]/[layout_name].xml"
+    // Use String.startsWith() to cover that case.
+    selectDropDownActionButtonItem("Orientation in Editor", item -> item.startsWith("Portrait"));
     return this;
   }
 
