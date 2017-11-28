@@ -50,6 +50,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
+@Ignore("IJ2017.3: Mock applications cannot be used as they will break the application framework")
 public class WorkBenchTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
