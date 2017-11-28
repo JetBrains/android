@@ -28,8 +28,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.SoftHashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
@@ -48,7 +48,7 @@ import javax.swing.*;
 import java.util.Map;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
-  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<>();
+  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
 
   @Nullable
   private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {

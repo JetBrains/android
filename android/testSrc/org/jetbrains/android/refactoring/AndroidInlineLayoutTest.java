@@ -14,6 +14,12 @@ import org.jetbrains.android.AndroidTestCase;
 public class AndroidInlineLayoutTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/inlineLayout/";
 
+  @Override
+  protected void tearDown() throws Exception {
+    AndroidInlineLayoutHandler.setTestConfig(null);
+    super.tearDown();
+  }
+
   public void test1() throws Exception {
     doTestCommonInlineThisOnly();
   }

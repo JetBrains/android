@@ -60,6 +60,12 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   @Override
+  protected void tearDown() throws Exception {
+    myGradleFiles = null;
+    super.tearDown();
+  }
+
+  @Override
   protected void loadSimpleApplication() throws Exception {
     super.loadSimpleApplication();
     // Make sure the file hashes are updated before the test is run

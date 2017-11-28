@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PropertyUtil;
+import com.intellij.psi.util.PropertyUtilBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.inspections.ResourceTypeCompletionContributor;
 import org.jetbrains.annotations.NotNull;
@@ -201,7 +201,7 @@ public class AndroidResolveHelper {
       // Fields are usually not annotated (because they are private, not part of the API).
       // However, if a field has a getter, there is a good chance that the getter has been
       // annotated!
-      PsiMethod getter = PropertyUtil.findGetterForField(field);
+      PsiMethod getter = PropertyUtilBase.findGetterForField(field);
       if (getter != null) {
         return getAnnotation(getter);
       }

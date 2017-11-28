@@ -182,14 +182,6 @@ public class NlPreviewManager implements ProjectComponent {
     return myUpdateCount;
   }
 
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
   /**
    * Whether we've seen an open file editor yet
    */

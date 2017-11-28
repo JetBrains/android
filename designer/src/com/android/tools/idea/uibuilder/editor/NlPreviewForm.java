@@ -485,16 +485,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  @Override
-  public void caretAdded(CaretEvent e) {
-
-  }
-
-  @Override
-  public void caretRemoved(CaretEvent e) {
-
-  }
-
   /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */

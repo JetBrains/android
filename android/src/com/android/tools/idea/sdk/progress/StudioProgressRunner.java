@@ -34,18 +34,15 @@ import java.util.concurrent.ExecutionException;
  */
 public class StudioProgressRunner implements ProgressRunner {
   private boolean myModal;
-  private final boolean myBackgroundable;
   private final boolean myCancellable;
   private final Project myProject;
   private final String myProgressTitle;
 
   public StudioProgressRunner(boolean modal,
-                              boolean backgroundable,
                               boolean cancellable,
                               String progressTitle,
                               @Nullable Project project) {
     myModal = modal;
-    myBackgroundable = backgroundable;
     myCancellable = cancellable;
     myProject = project;
     myProgressTitle = progressTitle;
@@ -65,11 +62,6 @@ public class StudioProgressRunner implements ProgressRunner {
           @Override
           public boolean shouldStartInBackground() {
             return !myModal;
-          }
-
-          @Override
-          public void processSentToBackground() {
-            // no special processing needed
           }
         }) {
           @Override

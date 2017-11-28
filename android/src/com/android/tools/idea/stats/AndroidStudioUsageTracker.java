@@ -141,7 +141,7 @@ public class AndroidStudioUsageTracker {
   /**
    * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
    */
-  private static class ProjectLifecycleTracker extends ProjectLifecycleListener.Adapter {
+  private static class ProjectLifecycleTracker implements ProjectLifecycleListener {
     @Override
     public void beforeProjectLoaded(@NotNull Project project) {
       int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;

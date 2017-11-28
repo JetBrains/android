@@ -35,6 +35,12 @@ class AndroidSdkPreSyncCheck extends AndroidStudioSyncCheck {
     mySdkSync = sdkSync;
   }
 
+  @NotNull
+  @Override
+  PreSyncCheckResult canSync(@NotNull Project project) {
+    return doCheckCanSync(project);
+  }
+
   @Override
   @NotNull
   PreSyncCheckResult doCheckCanSync(@NotNull Project project) {

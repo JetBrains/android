@@ -32,11 +32,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
@@ -49,6 +51,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,8 +64,8 @@ import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 
@@ -518,8 +521,10 @@ public class IdeSdks {
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
     if (myIdeInfo.isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
-      assert isJdkCompatible(jdk, preferredVersion);
-      return jdk;
+      if (jdk != null) {
+        assert isJdkCompatible(jdk, preferredVersion);
+        return jdk;
+      }
     }
 
     List<File> jdkPaths = getPotentialJdkPaths();
@@ -632,5 +637,14 @@ public class IdeSdks {
 
   public interface IdeSdkChangeListener {
     void sdkPathChanged(@NotNull File newSdkPath);
+  }
+
+  @TestOnly
+  public static void removeJdksOn(@NotNull Disposable disposable) {
+    Disposer.register(disposable, () -> WriteAction.run(() -> {
+      for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+        ProjectJdkTable.getInstance().removeJdk(sdk);
+      }
+    }));
   }
 }

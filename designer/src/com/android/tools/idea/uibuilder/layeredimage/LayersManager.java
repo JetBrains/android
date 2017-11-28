@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +61,7 @@ public class LayersManager extends NlAbstractWindowManager {
     } else {
       if (myLayersPanel == null) {
         myLayersPanel = new LayersPanel();
+        Disposer.register(this, () -> myLayersPanel.dispose());
         createWindowContent(myLayersPanel, myLayersPanel, null);
       }
       myLayersPanel.setImage(getImage(designer));
@@ -114,13 +116,6 @@ public class LayersManager extends NlAbstractWindowManager {
     return new LightToolWindow(layersPanel, "Image Layers", AllIcons.Toolwindows.ToolWindowPalette,
                                layersPanel, layersPanel, contentSplitter, anchor, this,
                                myProject, propertiesComponent, getVisibilityKeyName(designer), 200, null);
-  }
-
-  @Override
-  public void disposeComponent() {
-    if (myLayersPanel != null) {
-      myLayersPanel.dispose();
-    }
   }
 
   @NotNull

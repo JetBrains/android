@@ -135,7 +135,7 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
       final StringBuilder builder = new StringBuilder();
       handler.addProcessListener(new ProcessAdapter() {
         @Override
-        public void onTextAvailable(ProcessEvent event, Key outputType) {
+        public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
           builder.append(event.getText());
         }
       });

@@ -36,8 +36,8 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -200,7 +200,7 @@ public class StateListPicker extends JPanel {
     return myStateList;
   }
 
-  class ValueActionListener extends DocumentAdapter implements ActionListener {
+  class ValueActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
@@ -276,7 +276,7 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private class AlphaActionListener extends DocumentAdapter implements ActionListener {
+  private class AlphaActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 

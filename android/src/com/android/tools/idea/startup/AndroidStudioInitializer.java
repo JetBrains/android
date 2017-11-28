@@ -18,10 +18,19 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+<<<<<<< HEAD
+=======
+import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
+import com.android.tools.idea.run.editor.ProfilerState;
+>>>>>>> goog/upstream-ij17
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
+<<<<<<< HEAD
+=======
+import com.google.common.collect.Lists;
+>>>>>>> goog/upstream-ij17
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -34,6 +43,10 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationInfo;
+<<<<<<< HEAD
+=======
+import com.intellij.openapi.application.ApplicationManager;
+>>>>>>> goog/upstream-ij17
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,14 +59,22 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+<<<<<<< HEAD
 import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
+=======
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupManager;
+>>>>>>> goog/upstream-ij17
 import com.intellij.openapi.ui.Messages;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
+<<<<<<< HEAD
+=======
+import java.util.List;
+>>>>>>> goog/upstream-ij17
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -81,10 +102,14 @@ public class AndroidStudioInitializer implements Runnable {
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setupAnalytics();
+<<<<<<< HEAD
     disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
+=======
+    disableIdeaJUnitConfigurations();
+>>>>>>> goog/upstream-ij17
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -111,6 +136,29 @@ public class AndroidStudioInitializer implements Runnable {
     UsageTracker.getInstance().setVersion(application.getStrictVersion());
   }
 
+<<<<<<< HEAD
+=======
+  private static void setUpExperimentalFeatures() {
+    if (System.getProperty(ProfilerState.ENABLE_EXPERIMENTAL_PROFILING) != null) {
+      ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(final Project project) {
+          StartupManager.getInstance(project).runWhenProjectIsInitialized(
+            () -> {
+              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+              ToolWindow toolWindow =
+                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
+              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
+              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
+              toolWindow.show(null);
+            }
+          );
+        }
+      });
+    }
+  }
+
+>>>>>>> goog/upstream-ij17
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
@@ -167,6 +215,18 @@ public class AndroidStudioInitializer implements Runnable {
     return false;
   }
 
+<<<<<<< HEAD
+=======
+  private static void removeIdeSettings() {
+    try {
+      cleanUpPreferences(Extensions.getRootArea().getExtensionPoint(APPLICATION_CONFIGURABLE), IDE_SETTINGS_TO_REMOVE);
+    }
+    catch (Throwable e) {
+      LOG.info("Failed to clean up IDE preferences", e);
+    }
+  }
+
+>>>>>>> goog/upstream-ij17
   // Remove popup actions that we don't use
   private static void setUpNewFilePopupActions() {
     hideAction("NewHtmlFile");
@@ -200,7 +260,7 @@ public class AndroidStudioInitializer implements Runnable {
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624
   private static void disableGroovyLanguageInjection() {
-    ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
       @Override
       public void projectOpened(@NotNull Project project) {
         ExtensionPoint<MultiHostInjector> extensionPoint =
@@ -215,7 +275,10 @@ public class AndroidStudioInitializer implements Runnable {
 
         getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
+<<<<<<< HEAD
 
+=======
+>>>>>>> goog/upstream-ij17
     });
   }
 
@@ -228,18 +291,6 @@ public class AndroidStudioInitializer implements Runnable {
     for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
-    }
-  }
-
-  // GradleOrderEnumeratorHandler turns off the "exported" dependency mechanism in IDE for Gradle projects.
-  private static void disableGradleOrderEnumeratorHandler() {
-    ExtensionPoint<OrderEnumerationHandler.Factory> extensionPoint =
-      Extensions.getRootArea().getExtensionPoint(OrderEnumerationHandler.EP_NAME);
-    for (OrderEnumerationHandler.Factory factory : extensionPoint.getExtensions()) {
-      if (factory instanceof GradleOrderEnumeratorHandler.FactoryImpl) {
-        extensionPoint.unregisterExtension(factory);
-        return;
-      }
     }
   }
 

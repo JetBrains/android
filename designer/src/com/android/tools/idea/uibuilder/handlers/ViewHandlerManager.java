@@ -529,16 +529,8 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Override
-  public void projectOpened() {
-  }
-
-  @Override
   public void projectClosed() {
     myHandlers.clear();
-  }
-
-  @Override
-  public void initComponent() {
   }
 
   @Override

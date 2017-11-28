@@ -293,7 +293,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
     populateGlobalLibraryMap(gradleProject);
-    projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+    if (isAndroidGradleProject()) {
+      projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+    }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
   }
 

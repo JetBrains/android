@@ -15,26 +15,65 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.projectImport.ProjectOpenProcessor;
+import com.intellij.util.containers.ContainerUtilRt;
+import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectOpenProcessor;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
+
+import java.util.Collection;
+import java.util.Optional;
+
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 
 class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
   @Override
   void cleanUp(@NotNull Project project) {
-    GradleProjectSettings projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
-    if (projectSettings == null) {
-      projectSettings = new GradleProjectSettings();
+    // auto-discovery of the gradle project located in the IDE Project.basePath can not be applied to IntelliJ IDEA
+    // because IDEA still supports working with gradle projects w/o built-in gradle integration (e.g. using generated project by 'idea' gradle plugin)
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      @SystemIndependent String projectBasePath = project.getBasePath();
+      if (projectBasePath == null) {
+        return;
+      }
+
+      String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
+      GradleSettings gradleSettings = (GradleSettings)getSettings(project, GradleConstants.SYSTEM_ID);
+      Collection<GradleProjectSettings> projectsSettings = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
+      GradleProjectSettings rootProjectCandidate = null;
+      if (!projectsSettings.isEmpty()) {
+        Optional<GradleProjectSettings> existingRootProjectSettings = StreamEx.of(projectsSettings)
+          .findFirst(projectSettings -> FileUtil.pathsEqual(externalProjectPath, projectSettings.getExternalProjectPath()));
+        if (existingRootProjectSettings.isPresent()) {
+          rootProjectCandidate = existingRootProjectSettings.get();
+        }
+      }
+      if (rootProjectCandidate == null) {
+        GradleProjectOpenProcessor gradleProjectOpenProcessor =
+          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
+        if (gradleProjectOpenProcessor.canOpenProject(project.getBaseDir())) {
+          rootProjectCandidate = new GradleProjectSettings();
+          rootProjectCandidate.setExternalProjectPath(externalProjectPath);
+          projectsSettings.add(rootProjectCandidate);
+          gradleSettings.setLinkedProjectsSettings(projectsSettings);
+        }
+      }
+      if (rootProjectCandidate != null) {
+        setUpGradleProjectSettings(project, rootProjectCandidate);
+      }
     }
-    setUpGradleProjectSettings(project, projectSettings);
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
@@ -48,9 +87,10 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
       }
     }
 
-    String basePath = project.getBasePath();
-    if (basePath != null) {
-      settings.setExternalProjectPath(basePath);
-    }
+    // should be set when linking
+    //String basePath = project.getBasePath();
+    //if (basePath != null) {
+    //  settings.setExternalProjectPath(basePath);
+    //}
   }
 }

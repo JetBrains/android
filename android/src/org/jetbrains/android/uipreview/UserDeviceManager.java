@@ -9,8 +9,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -28,14 +28,14 @@ import java.util.Set;
  */
 // TODO: Replace with dvlib usage?
 public class UserDeviceManager implements Disposable {
-  private final VirtualFileAdapter myListener;
+  private final VirtualFileListener myListener;
   private boolean myUserDevicesParsed;
   private File myUserDevicesFile;
 
-  private static Set<String> ourWatchedRoots = new HashSet<String>();
+  private static Set<String> ourWatchedRoots = new HashSet<>();
 
   public UserDeviceManager() {
-    myListener = new VirtualFileAdapter() {
+    myListener = new VirtualFileListener() {
       @Override
       public void contentsChanged(@NotNull VirtualFileEvent event) {
         final VirtualFile file = event.getFile();
@@ -66,7 +66,7 @@ public class UserDeviceManager implements Disposable {
     if (vUserDeviceFile == null) {
       return Collections.emptyList();
     }
-    final ArrayList<Device> userDevices = new ArrayList<Device>();
+    final ArrayList<Device> userDevices = new ArrayList<>();
 
     try {
       if (userDevicesFile.exists()) {

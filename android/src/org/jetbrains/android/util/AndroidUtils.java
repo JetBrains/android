@@ -44,6 +44,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -90,6 +91,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -286,7 +288,7 @@ public class AndroidUtils {
 
     final ProcessAdapter listener = new ProcessAdapter() {
       @Override
-      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+      public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
         if (processor != null) {
           final String message = event.getText();
           processor.onTextAvailable(message);
@@ -751,6 +753,11 @@ public class AndroidUtils {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
+  }
+
+  @NotNull
+  public static String getAndroidSystemDirectoryOsPath() {
+    return PathManager.getSystemPath() + File.separator + "android";
   }
 
   public static boolean isAndroidComponent(@NotNull PsiClass c) {

@@ -63,7 +63,6 @@ import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.n
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.ROOT_PROJECT_PATH_KEY;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 abstract class ModuleSetup {
@@ -257,6 +256,9 @@ abstract class ModuleSetup {
     private static void notifyModuleConfigurationStarted(@NotNull ProgressIndicator indicator) {
       notifyProgress(indicator, "Configuring modules");
     }
+
+    // TODO(alruiz): reconcile with https://github.com/JetBrains/intellij-community/commit/6d425f7
+    private static final String ROOT_PROJECT_PATH_KEY = "external.root.project.path";
 
     private void createAndSetUpModules(@NotNull SyncProjectModels projectModels, @NotNull CachedProjectModels cache) {
       populateModuleBuildFolders(projectModels);

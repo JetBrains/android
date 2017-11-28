@@ -64,6 +64,7 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
@@ -403,9 +404,10 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
   @NotNull
   private static Factory<UsageSearcher> rerunFactory(@NotNull Project project, @NotNull AnalysisScope scope) {
     return () -> new UsageInfoSearcherAdapter() {
+      @NotNull
       @Override
       protected UsageInfo[] findUsages() {
-        return InferSupportAnnotationsAction.findUsages(project, scope, scope.getFileCount());
+        return ObjectUtils.notNull(InferSupportAnnotationsAction.findUsages(project, scope, scope.getFileCount()),UsageInfo.EMPTY_ARRAY);
       }
 
       @Override

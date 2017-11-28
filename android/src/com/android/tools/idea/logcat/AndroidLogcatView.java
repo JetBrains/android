@@ -228,7 +228,7 @@ public class AndroidLogcatView implements Disposable {
 
     final ConsoleView console = myLogConsole.getConsole();
     if (console != null) {
-      final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("LogcatToolbar",
+      final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidLogcatView",
                                                                                     myLogConsole.getOrCreateActions(), false);
       toolbar.setTargetComponent(console.getComponent());
       final JComponent tbComp1 = toolbar.getComponent();

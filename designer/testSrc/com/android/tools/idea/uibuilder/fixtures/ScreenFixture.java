@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -43,6 +44,12 @@ public class ScreenFixture {
 
   public ScreenFixture(@NotNull SyncNlModel model) {
     myModel = model;
+  }
+
+  public void tearDown() {
+    ScreenView[] mocks = myScreen == null ? new ScreenView[0] : new ScreenView[]{myScreen};
+    Mockito.reset(mocks);
+    // It's not obvious, but myScreen is indeed a Mockito mock, from LayoutTestUtilities.createScreen.
   }
 
   /**
