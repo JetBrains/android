@@ -16,8 +16,9 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants
+import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import org.mockito.Mockito.mock
 
@@ -27,14 +28,14 @@ class NavArgumentsPropertyTest : NavigationTestCase() {
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.fragmentComponent("f1")
+        rootComponent("root").unboundedChildren(
+            fragmentComponent("f1")
                 .unboundedChildren(
-                    NavModelBuilderUtil.argumentComponent("arg1").withDefaultValueAttribute("val1"),
-                    NavModelBuilderUtil.argumentComponent("arg2").withDefaultValueAttribute("val2")),
-            NavModelBuilderUtil.fragmentComponent("f2")
-                .unboundedChildren(NavModelBuilderUtil.argumentComponent("arg3")),
-            NavModelBuilderUtil.fragmentComponent("f3")))
+                    argumentComponent("arg1").withDefaultValueAttribute("val1"),
+                    argumentComponent("arg2").withDefaultValueAttribute("val2")),
+            fragmentComponent("f2")
+                .unboundedChildren(argumentComponent("arg3")),
+            fragmentComponent("f3")))
         .build()
   }
 
@@ -52,7 +53,7 @@ class NavArgumentsPropertyTest : NavigationTestCase() {
   fun testModify() {
     val fragment = model.find("f3")!!
     val property = NavArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
-    val argument = model.find { it.getAttribute(null, SdkConstants.ATTR_NAME) == "arg1" }!!
+    val argument = model.find { it.getAttribute(AUTO_URI, SdkConstants.ATTR_NAME) == "arg1" }!!
     fragment.addChild(argument)
     property.refreshList()
     assertEquals(argument, property.properties[0].components[0])
