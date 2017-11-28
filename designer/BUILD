@@ -45,7 +45,6 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
-        "//tools/adt/idea/gradle-dsl-parser[module]",
     ],
 )
 
