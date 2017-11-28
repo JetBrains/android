@@ -5,14 +5,16 @@ iml_module(
     srcs = ["src"],
     iml_files = ["uitest-framework.iml"],
     tags = ["managed"],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:doxygen"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:json",
         "//tools/idea:relaxng",
-        "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     # do not sort: must match IML order
