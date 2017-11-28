@@ -33,6 +33,7 @@ import com.android.tools.profilers.network.NetworkState;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.stacktrace.DataViewer;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -66,9 +67,18 @@ final class OverviewTabContent extends TabContent {
   private static final LongFunction<String> TIME_FORMATTER =
     time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
+  private static final String ID_CONTENT_TYPE = "CONTENT_TYPE";
+  private static final String ID_SIZE = "SIZE";
+  private static final String ID_URL = "URL";
+  private static final String ID_TIMING = "TIMING";
+  private static final String ID_INITIATING_THREAD = "INITIATING_THREAD";
+  private static final String ID_OTHER_THREADS = "OTHER_THREADS";
+  private static final String ID_RESPONSE_PAYLOAD_VIEWER = "RESPONSE_PAYLOAD_VIEWER";
+
   private final FeatureConfig myFeatures;
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
+
   private JPanel myPanel;
 
   public OverviewTabContent(@NotNull FeatureConfig features,
@@ -108,7 +118,7 @@ final class OverviewTabContent extends TabContent {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
       JLabel contentTypeLabel = new JLabel(responseHeader.getContentType().getMimeType());
-      contentTypeLabel.setName("CONTENT_TYPE");
+      contentTypeLabel.setName(ID_CONTENT_TYPE);
       myFieldsPanel.add(contentTypeLabel, new TabularLayout.Constraint(row, 2));
     }
 
@@ -118,7 +128,7 @@ final class OverviewTabContent extends TabContent {
         row++;
         myFieldsPanel.add(new NoWrapBoldLabel("Size"), new TabularLayout.Constraint(row, 0));
         JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(contentLength));
-        contentLengthLabel.setName("SIZE");
+        contentLengthLabel.setName(ID_SIZE);
         myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
       }
       catch (NumberFormatException ignored) {
@@ -130,7 +140,7 @@ final class OverviewTabContent extends TabContent {
     urlLabel.setVerticalAlignment(SwingConstants.TOP);
     myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 0));
     WrappedHyperlink hyperlink = new WrappedHyperlink(httpData.getUrl());
-    hyperlink.setName("URL");
+    hyperlink.setName(ID_URL);
     myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
     row++;
@@ -146,13 +156,13 @@ final class OverviewTabContent extends TabContent {
     timingLabel.setVerticalAlignment(SwingConstants.TOP);
     myFieldsPanel.add(timingLabel, new TabularLayout.Constraint(row, 0));
     JComponent timingBar = createTimingBar(httpData);
-    timingBar.setName("TIMING");
+    timingBar.setName(ID_TIMING);
     myFieldsPanel.add(timingBar, new TabularLayout.Constraint(row, 2));
 
     row++;
     myFieldsPanel.add(new NoWrapBoldLabel("Initiating thread"), new TabularLayout.Constraint(row, 0));
     JLabel initiatingThreadLabel = new JLabel(httpData.getJavaThreads().get(0).getName());
-    initiatingThreadLabel.setName("INITIATING_THREAD");
+    initiatingThreadLabel.setName(ID_INITIATING_THREAD);
     myFieldsPanel.add(initiatingThreadLabel, new TabularLayout.Constraint(row, 2));
 
     if (httpData.getJavaThreads().size() > 1) {
@@ -167,7 +177,7 @@ final class OverviewTabContent extends TabContent {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Other threads"), new TabularLayout.Constraint(row, 0));
       JLabel otherThreadsLabel = new JLabel(otherThreadsBuilder.toString());
-      otherThreadsLabel.setName("OTHER_THREADS");
+      otherThreadsLabel.setName(ID_OTHER_THREADS);
       myFieldsPanel.add(otherThreadsLabel, new TabularLayout.Constraint(row, 2));
     }
     new TreeWalker(myFieldsPanel).descendantStream().forEach(TabUiUtils::adjustFont);
@@ -252,7 +262,7 @@ final class OverviewTabContent extends TabContent {
     File payloadFile = Payload.newResponsePayload(myModel, data).toFile();
     DataViewer fileViewer = myComponents.createFileViewer(payloadFile);
     JComponent responsePayloadComponent = fileViewer.getComponent();
-    responsePayloadComponent.setName("FILE_VIEWER");
+    responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
     myPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
     myPanel.add(createFields(data, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
@@ -266,6 +276,48 @@ final class OverviewTabContent extends TabContent {
     else {
       featureTracker.trackSelectNetworkDetailsResponse();
     }
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JComponent findResponsePayloadViewer() {
+    return TabUiUtils.findComponentWithUniqueName(myPanel, ID_RESPONSE_PAYLOAD_VIEWER);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JLabel findContentTypeValue() {
+    return (JLabel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_CONTENT_TYPE);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JLabel findSizeValue() {
+    return (JLabel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_SIZE);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JTextArea findUrlValue() {
+    return (JTextArea)TabUiUtils.findComponentWithUniqueName(myPanel, ID_URL);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JComponent findTimingBar() {
+    return TabUiUtils.findComponentWithUniqueName(myPanel, ID_TIMING);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JLabel findInitiatingThreadValue() {
+    return (JLabel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_INITIATING_THREAD);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JLabel findOtherThreadsValue() {
+    return (JLabel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_OTHER_THREADS);
   }
 
   /**

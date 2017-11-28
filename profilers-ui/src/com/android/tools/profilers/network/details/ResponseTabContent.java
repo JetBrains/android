@@ -21,6 +21,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,8 @@ import static com.android.tools.profilers.network.details.TabUiUtils.SECTION_TIT
  * Tab which shows a response's headers and payload.
  */
 final class ResponseTabContent extends TabContent {
+
+  private static final String ID_BODY_COMPONENT = "BODY_COMPONENT";
 
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
@@ -65,17 +68,24 @@ final class ResponseTabContent extends TabContent {
 
     HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
     JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.RESPONSE);
-    headersComponent.setName("RESPONSE_HEADERS");
     myPanel.add(TabUiUtils.createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null));
+
     String bodyTitle = httpDataViewModel.getBodyTitle(ConnectionType.RESPONSE);
-    JComponent payloadComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.RESPONSE);
-    HideablePanel bodyPanel = TabUiUtils.createHideablePanel(bodyTitle, payloadComponent, null);
-    bodyPanel.setName("RESPONSE_BODY");
+    JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.RESPONSE);
+    bodyComponent.setName(ID_BODY_COMPONENT);
+    HideablePanel bodyPanel = TabUiUtils.createHideablePanel(bodyTitle, bodyComponent, null);
     myPanel.add(bodyPanel);
   }
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
     // TODO(b/69739486): Add missing tracking for NEW "Response" tab.
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JComponent findPayloadViewer() {
+    JComponent bodyComponent = TabUiUtils.findComponentWithUniqueName(myPanel, ID_BODY_COMPONENT);
+    return HttpDataViewModel.findPayloadViewer(bodyComponent);
   }
 }

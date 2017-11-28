@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,9 @@ import java.util.TreeMap;
  */
 @Deprecated
 final class HeadersTabContent extends TabContent {
+
+  private static final String ID_REQUEST_HEADERS_SECTION = "REQUEST_HEADERS_SECTION";
+  private static final String ID_RESPONSE_HEADERS_SECTION = "RESPONSE_HEADERS_SECTION";
 
   private JPanel myPanel;
 
@@ -53,7 +57,6 @@ final class HeadersTabContent extends TabContent {
       }
     });
 
-    panel.setName(TabUiUtils.toTestName(title));
     return panel;
   }
 
@@ -77,13 +80,29 @@ final class HeadersTabContent extends TabContent {
       return;
     }
 
-    myPanel.add(createHeaderSection("Response Headers", data.getResponseHeader()));
+    JPanel responseHeaders = createHeaderSection("Response Headers", data.getResponseHeader());
+    responseHeaders.setName(ID_RESPONSE_HEADERS_SECTION);
+    JPanel requestHeaders = createHeaderSection("Request Headers", data.getRequestHeader());
+    requestHeaders.setName(ID_REQUEST_HEADERS_SECTION);
+    myPanel.add(responseHeaders);
     myPanel.add(TabUiUtils.createSeparator());
-    myPanel.add(createHeaderSection("Request Headers", data.getRequestHeader()));
+    myPanel.add(requestHeaders);
   }
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
     featureTracker.trackSelectNetworkDetailsHeaders();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JPanel findResponseHeadersSection() {
+    return (JPanel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_RESPONSE_HEADERS_SECTION);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JPanel findRequestHeadersSection() {
+    return (JPanel)TabUiUtils.findComponentWithUniqueName(myPanel, ID_REQUEST_HEADERS_SECTION);
   }
 }

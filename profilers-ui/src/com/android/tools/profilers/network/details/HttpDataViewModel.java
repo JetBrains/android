@@ -21,8 +21,10 @@ import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.stacktrace.DataViewer;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,12 +36,29 @@ import java.io.File;
  * and display values from it.
  */
 final class HttpDataViewModel {
+  private static final String ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER";
+
   private final NetworkConnectionsModel myModel;
   private final HttpData myHttpData;
 
   public HttpDataViewModel(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
     myModel = model;
     myHttpData = httpData;
+  }
+
+  /**
+   * Search for the payload {@link DataViewer} inside a component returned by
+   * {@link #createBodyComponent(IdeProfilerComponents, ConnectionType)}. If this returns
+   * {@code null}, that means no payload viewer was created for it, e.g. the http data
+   * instance didn't have a payload and a "No data found" label was returned instead.
+   */
+  @VisibleForTesting
+  @Nullable
+  static JComponent findPayloadViewer(@Nullable JComponent body) {
+    if (body == null) {
+      return null;
+    }
+    return TabUiUtils.findComponentWithUniqueName(body, ID_PAYLOAD_VIEWER);
   }
 
   /**
@@ -92,16 +111,16 @@ final class HttpDataViewModel {
     File payloadFile = payload.toFile();
     if (payloadFile.length() > 0) {
       DataViewer viewer = components.createFileViewer(payloadFile);
-      JComponent fileComponent = viewer.getComponent();
+      JComponent viewerComponent = viewer.getComponent();
+      viewerComponent.setName(ID_PAYLOAD_VIEWER);
       // We force a minimum height to make sure that the component always looks reasonable -
       // useful, for example, when we are displaying a bunch of text.
       int minimumHeight = 300;
       int originalHeight = viewer.getDimension() != null ? (int)viewer.getDimension().getHeight() : minimumHeight;
-      fileComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
-      fileComponent.setBorder(new JBEmptyBorder(6, 0, 0, 0));
-      fileComponent.setName("FILE_VIEWER");
+      viewerComponent.setMinimumSize(new Dimension(1, Math.min(minimumHeight, originalHeight)));
+      viewerComponent.setBorder(new JBEmptyBorder(6, 0, 0, 0));
       payloadComponent = new JPanel(new TabularLayout("*"));
-      payloadComponent.add(fileComponent, new TabularLayout.Constraint(0, 0));
+      payloadComponent.add(viewerComponent, new TabularLayout.Constraint(0, 0));
     }
     else {
       payloadComponent = new JLabel("No body available");
