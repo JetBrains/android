@@ -53,7 +53,6 @@ abstract class TabContent {
     if (myComponent == null) {
       myComponent = createComponent();
       myComponent.setBorder(DEFAULT_TOP_BORDER);
-      myComponent.setName(String.format("TAB_%s", TabUiUtils.toTestName(getTitle())));
     }
     return myComponent;
   }

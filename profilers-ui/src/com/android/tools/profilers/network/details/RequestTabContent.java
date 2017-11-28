@@ -23,6 +23,7 @@ import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +41,8 @@ import java.util.stream.Stream;
  * Tab which shows a request's headers and payload.
  */
 final class RequestTabContent extends TabContent {
+
+  private static final String ID_BODY_COMPONENT = "REQUEST_PAYLOAD_COMPONENT";
 
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
@@ -74,11 +77,11 @@ final class RequestTabContent extends TabContent {
     HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
 
     JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.REQUEST);
-    headersComponent.setName("REQUEST_HEADERS");
     myPanel.add(TabUiUtils.createHideablePanel(TabUiUtils.SECTION_TITLE_HEADERS, headersComponent, null));
 
     Payload requestPayload = Payload.newRequestPayload(myModel, data);
-    JComponent payloadComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST);
+    JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST);
+    bodyComponent.setName(ID_BODY_COMPONENT);
     JComponent northEastComponent = null;
     HttpData.ContentType contentType = data.getRequestHeader().getContentType();
     String contentToParse = "";
@@ -96,8 +99,8 @@ final class RequestTabContent extends TabContent {
       Stream<String[]> parsedContentStream = Arrays.stream(contentToParse.trim().split("&")).map(s -> s.split("=", 2));
       parsedContentStream.forEach(a -> parsedContent.put(a[0], a.length > 1 ? a[1] : ""));
       payloadPanel.add(TabUiUtils.createStyledMapComponent(parsedContent), cardViewParsed);
-      payloadPanel.add(payloadComponent, cardViewSource);
-      payloadComponent = payloadPanel;
+      payloadPanel.add(bodyComponent, cardViewSource);
+      bodyComponent = payloadPanel;
 
       final JLabel toggleLabel = new JLabel(cardViewSource);
       northEastComponent = toggleLabel;
@@ -126,13 +129,19 @@ final class RequestTabContent extends TabContent {
     }
 
     HideablePanel bodyPanel =
-      TabUiUtils.createHideablePanel(httpDataViewModel.getBodyTitle(ConnectionType.REQUEST), payloadComponent, northEastComponent);
-    bodyPanel.setName("REQUEST_BODY");
+      TabUiUtils.createHideablePanel(httpDataViewModel.getBodyTitle(ConnectionType.REQUEST), bodyComponent, northEastComponent);
     myPanel.add(bodyPanel);
   }
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
     // TODO(b/69739486): Add missing tracking for "Request" tab
+  }
+
+  @Nullable
+  @VisibleForTesting
+  JComponent findPayloadViewer() {
+    JComponent bodyComponent = TabUiUtils.findComponentWithUniqueName(myPanel, ID_BODY_COMPONENT);
+    return HttpDataViewModel.findPayloadViewer(bodyComponent);
   }
 }

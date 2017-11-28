@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network.details;
 
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
@@ -25,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A collection of common UI constants, components, and utility methods shared throughout the
@@ -161,15 +164,21 @@ final class TabUiUtils {
   }
 
   /**
-   * Many tests use component names to pinpoint and assert the status of various components. This
-   * helper method helps ensure a consistent syntax, e.g. ALL_CAPS_WITH_UNDERSCORES
+   * Find a component by its name. If duplicate names are found, this will throw an exception.
    *
-   * TODO: It can be hard to jump from a name in a test, e.g. TAB_CALL_STACK, to the code that
-   * creates the name. Probably we should kill test names and replace them with getters or
-   * some other way to identify them.
+   * This utility method is meant to be used indirectly only for test purposes - names can be a
+   * convenient way to expose child elements to tests to assert their state.
+   *
+   * Non-unique names throw an exception to help catch accidental copy/paste errors when
+   * initializing names.
    */
-  @NotNull
-  public static String toTestName(@NotNull String string) {
-    return string.replace(' ', '_').toUpperCase();
+  @Nullable
+  public static JComponent findComponentWithUniqueName(@NotNull JComponent root, @NotNull String name) {
+    List<Component> matches = new TreeWalker(root).descendantStream().filter(c -> name.equals(c.getName())).collect(Collectors.toList());
+    if (matches.size() > 1) {
+      throw new IllegalStateException("More than one component found with the name: " + name);
+    }
+
+    return (matches.size() == 1) ? (JComponent)matches.get(0) : null;
   }
 }
