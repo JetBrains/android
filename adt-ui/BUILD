@@ -10,24 +10,25 @@ iml_module(
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:RegExpSupport",
-        "//tools/idea:xml-analysis-impl",
-        "//tools/idea:testExtensions",
-        "//tools/idea:lvcs-impl",
-        "//tools/idea:xml",
+        "//tools/idea:xml-structure-view-impl",
         "//tools/idea:spellchecker",
-        "//tools/idea:relaxng",
-        "//tools/idea:json",
         "//tools/idea:images",
-        "//tools/idea:xdebugger-impl",
     ],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea:RegExpSupport",
+        "//tools/idea:xml-analysis-impl",
+        "//tools/idea:xdebugger-impl",
+        "//tools/idea:lvcs-impl",
         "//tools/idea:credential-store",
         "//tools/idea:configuration-store-impl",
         "//tools/idea:built-in-server",
+        "//tools/idea:tasks-platform-impl",
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea:dom-impl",
     ],
     # do not sort: must match IML order
     deps = [
@@ -39,7 +40,7 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/idea/.idea/libraries:mockito",
+        "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/idea:testFramework[module, test]",
         "//tools/idea/.idea/libraries:jcip",

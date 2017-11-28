@@ -8,7 +8,6 @@ iml_module(
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:testExtensions",
         "//tools/idea:external-system-impl",
         "//tools/idea:execution-impl",
     ],
@@ -18,16 +17,18 @@ iml_module(
         "//tools/idea:credential-store",
         "//tools/idea:configuration-store-impl",
         "//tools/idea:xdebugger-impl",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:json",
         "//tools/idea:relaxng",
         "//tools/idea:lvcs-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
     ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/util[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/idea:lang-impl[module]",
-        "//tools/idea:compiler-impl_and_others[module]",
+        "//tools/idea:jps-builders_and_others[module]",
         "//tools/idea:xml[module]",
     ],
 )

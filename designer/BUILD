@@ -4,19 +4,17 @@ iml_module(
     name = "designer",
     srcs = ["src"],
     iml_files = ["designer.iml"],
-    javacopts = [
-        "-Xep:MissingCasesInEnumSwitch:WARN",
-        "-Xep:IdentityBinaryExpression:WARN",
-    ],
+    javacopts = ["-XepAllErrorsAsWarnings"],
     resources = ["resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:json",
         "//tools/idea:relaxng",
-        "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     # do not sort: must match IML order
@@ -81,8 +79,9 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea:json",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     test_srcs = ["testSrc"],
@@ -100,7 +99,7 @@ iml_module(
         "//tools/adt/idea/designer[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/xml/xml-psi-api[module, test]",
-        "//tools/idea:compiler-impl_and_others[module, test]",
+        "//tools/idea:jps-builders_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
