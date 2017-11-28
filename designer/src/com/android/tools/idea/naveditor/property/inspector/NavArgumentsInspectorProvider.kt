@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -26,14 +25,10 @@ import com.android.tools.idea.naveditor.property.NavArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.uibuilder.property.EmptyProperty
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
@@ -141,16 +136,11 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 }
 
 private class ArgumentsTableModel(val argumentsProperty: NavArgumentsProperty) : AbstractTableModel() {
-  val newProperties = arrayOf<NlProperty>(NewElementProperty(false, argumentsProperty), NewElementProperty(true, argumentsProperty))
-
-  override fun getRowCount() = argumentsProperty.properties.size + 1
+  override fun getRowCount() = argumentsProperty.properties.size
 
   override fun getColumnCount() = 2
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): NlProperty {
-    if (rowIndex == argumentsProperty.properties.size) {
-      return newProperties[columnIndex]
-    }
     val nameProperty = argumentsProperty.properties[rowIndex]
     return if (columnIndex == 0) nameProperty else nameProperty.defaultValueProperty
   }
@@ -161,20 +151,4 @@ private class ArgumentsTableModel(val argumentsProperty: NavArgumentsProperty) :
   }
 
   override fun isCellEditable(rowIndex: Int, columnIndex: Int) = true
-}
-
-private class NewElementProperty(private val isDefaultValue: Boolean, private val argumentsProperty: NavArgumentsProperty) : NlProperty by EmptyProperty.INSTANCE {
-  override fun setValue(value: Any?) {
-    if ((value as? String?).isNullOrEmpty()) {
-      return
-    }
-    argumentsProperty.components.forEach {
-      WriteCommandAction.runWriteCommandAction(null) {
-        val tag = it.tag.createChildTag(NavigationSchema.TAG_ARGUMENT, null, null, false)
-        val newComponent = it.model.createComponent(tag, it, null)
-        newComponent.setAttribute(null, if (isDefaultValue) ATTR_DEFAULT_VALUE else ATTR_NAME, value as String)
-      }
-    }
-    argumentsProperty.refreshList()
-  }
 }
