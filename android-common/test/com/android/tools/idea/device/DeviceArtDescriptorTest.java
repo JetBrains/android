@@ -39,7 +39,7 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    assertEquals(24, specs.size());
+    assertEquals(26, specs.size());
 
     DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
     assertNotNull(nexus4);
