@@ -131,7 +131,7 @@ public class IndexingSuspender {
     LOG.info("Subscribing project to IndexingSuspender events: " + myProject.toString());
     GradleSyncState.subscribe(myProject, new GradleSyncListener() {
       @Override
-      public void syncStarted(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project, boolean skipped) {
         consumeActivationEvent(ActivationEvent.SYNC_STARTED);
       }
 

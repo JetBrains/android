@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -59,6 +60,11 @@ public class GradleSyncStateTest extends IdeaTestCase {
     when(messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)).thenReturn(mySyncResultListener);
   }
 
+  public void testSyncStartedWithSyncSkipped() {
+    mySyncState.skippedSyncStarted(false /* no user notification */, TRIGGER_PROJECT_LOADED);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true);
+  }
+
   public void testSyncStartedWithoutUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
@@ -72,7 +78,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false);
   }
 
   public void testSyncStartedWithUserNotification() {
@@ -85,7 +91,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false);
   }
 
   public void testSyncSkipped() {
@@ -103,7 +109,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     long timestamp = -1231231231299L; // Some random number
 
     // TODO Add trigger for testing?
-    boolean b = mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncSkipped(timestamp);
     assertFalse(mySyncState.isSyncInProgress());
   }
