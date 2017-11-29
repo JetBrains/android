@@ -77,12 +77,6 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
     return myDisplayName;
   }
 
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
   @Override
   public boolean isModified() {
     return myModuleEditor.isModified();

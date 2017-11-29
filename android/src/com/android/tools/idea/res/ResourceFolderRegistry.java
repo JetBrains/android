@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -155,12 +155,12 @@ public class ResourceFolderRegistry {
         return;
       }
       // Make sure the cache root is created before parallel execution to avoid racing to create the root.
-      File projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
+      Path projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
       if (projectCacheRoot == null) {
         return;
       }
       try {
-        FileUtil.ensureExists(projectCacheRoot);
+        FileUtil.ensureExists(projectCacheRoot.toFile());
       }
       catch (IOException e) {
         return;

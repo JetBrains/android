@@ -40,6 +40,7 @@ class AndroidDataSource extends LocalDataSource implements DatabaseSystem, Modif
   @NotNull
   public State buildFullState() {
     myState.name = getName();
+    myState.comment = getComment();
     //myState.uuid = getUniqueId();
     myState.classpathElements = serializeClasspathElements();
     return myState;
@@ -48,6 +49,7 @@ class AndroidDataSource extends LocalDataSource implements DatabaseSystem, Modif
   public void loadState(@NotNull State state) {
     myState = state;
     setName(state.name);
+    setComment(state.comment);
     // todo persist uuid must be preserved between sessions
     //setUniqueId(state.uuid);
     setClasspathElements(deserializeClasspathElements());
@@ -149,12 +151,12 @@ class AndroidDataSource extends LocalDataSource implements DatabaseSystem, Modif
   @Override
   public boolean equalConfiguration(@NotNull LocalDataSource o) {
     if (!(o instanceof AndroidDataSource)) return super.equalConfiguration(o);
+    if (!Comparing.equal(getComment(), o.getComment())) return false;
 
     State s = ((AndroidDataSource)o).getState();
     if (!Comparing.equal(myState.deviceId, s.deviceId)) return false;
     if (!Comparing.equal(myState.packageName, s.packageName)) return false;
     if (!Comparing.equal(myState.databaseName, s.databaseName)) return false;
-    if (!Comparing.equal(myState.external, s.external)) return false;
     if (!Comparing.equal(myState.external, s.external)) return false;
 
     return true;
@@ -166,6 +168,7 @@ class AndroidDataSource extends LocalDataSource implements DatabaseSystem, Modif
     //public String uuid = "";
     public String deviceId = "";
     public String name = "";
+    public String comment = "";
     public String packageName = "";
     public String databaseName = "";
     public boolean external = false;

@@ -131,7 +131,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       () -> completedDownload("Error loading remote images"),
       ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Images", myProject);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Images", myProject);
     mySdkHandler.getSdkManager(LOGGER)
       .load(forceRefresh ? 0 : RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
             ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);

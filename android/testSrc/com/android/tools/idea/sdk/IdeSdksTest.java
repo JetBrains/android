@@ -73,6 +73,17 @@ public class IdeSdksTest extends IdeaTestCase {
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
     myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo,
                             ApplicationManager.getApplication().getMessageBus());
+    IdeSdks.removeJdksOn(getTestRootDisposable());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      AndroidTestCaseHelper.removeExistingAndroidSdks();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {

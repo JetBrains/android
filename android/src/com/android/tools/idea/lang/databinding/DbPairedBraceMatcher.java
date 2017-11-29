@@ -33,6 +33,7 @@ public class DbPairedBraceMatcher extends PairedBraceMatcherAdapter {
 
   public DbPairedBraceMatcher() {
     super(new PairedBraceMatcher() {
+      @NotNull
       @Override
       public BracePair[] getPairs() {
         return BRACE_PAIRS;

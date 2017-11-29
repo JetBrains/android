@@ -103,12 +103,6 @@ public class InstantRunConfigurable
 
   @Nullable
   @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public JComponent createComponent() {
     return myContentPanel;
   }

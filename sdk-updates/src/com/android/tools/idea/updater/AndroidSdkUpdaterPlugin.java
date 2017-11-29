@@ -80,11 +80,6 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
     CommonProxy.getInstance().setCustomAuth(getClass().getName(), new AndroidAuthenticator());
   }
 
-  @Override
-  public void disposeComponent() {
-    // nothing
-  }
-
   @NotNull
   @Override
   public String getComponentName() {

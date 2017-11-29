@@ -17,11 +17,9 @@ package org.jetbrains.android.actions;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -43,10 +41,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
-    e.getPresentation().setEnabled(
-      project != null &&
-      !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty() &&
-      AndroidSdkUtils.isAndroidSdkAvailable());
+    e.getPresentation().setEnabled(project != null && AndroidSdkUtils.isAndroidSdkAvailable());
   }
 
   @Override

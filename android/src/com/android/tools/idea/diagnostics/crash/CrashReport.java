@@ -18,7 +18,6 @@ package com.android.tools.idea.diagnostics.crash;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.containers.HashMap;
 import org.apache.http.entity.ContentType;
@@ -123,10 +122,10 @@ public abstract class CrashReport {
 
     @Override
     protected void serializeTo(@NotNull MultipartEntityBuilder builder) {
-      String edtStack = ThreadDumper.getEdtStackForCrash(myThreadDump);
-      if (edtStack != null) {
-        builder.addTextBody(KEY_EXCEPTION_INFO, edtStack);
-      }
+      //String edtStack = ThreadDumper.getEdtStackForCrash(myThreadDump);
+      //if (edtStack != null) {
+      //  builder.addTextBody(KEY_EXCEPTION_INFO, edtStack);
+      //}
 
       builder.addTextBody(myFileName,
                           myThreadDump,

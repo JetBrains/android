@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
+<<<<<<< HEAD
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+=======
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.Projects;
+>>>>>>> goog/upstream-ij17
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
@@ -43,7 +50,14 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
 
   @Override
   void validate(@NotNull Module module) {
+<<<<<<< HEAD
     File moduleFolderPath = findModuleRootFolderPath(module);
+=======
+    if(!Projects.isIdeaAndroidModule(module)) {
+      return;
+    }
+    File moduleFolderPath = getModuleFilePath(module).getParentFile();
+>>>>>>> goog/upstream-ij17
     if (moduleFolderPath != null) {
       myModulesByPath.put(moduleFolderPath.getPath(), module);
     }

@@ -29,7 +29,9 @@ import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -42,10 +44,9 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -143,7 +144,12 @@ public class InstantRunBuilderTest {
 
     myTasksProvider = mock(InstantRunTasksProvider.class);
 
-    when(myTasksProvider.getFullBuildTasks()).thenReturn(ASSEMBLE_TASKS);
+    ListMultimap<Path, String> assembleTasks = ArrayListMultimap.create();
+    assembleTasks.putAll(Paths.get("project_path"), ASSEMBLE_TASKS);
+    when(myTasksProvider.getFullBuildTasks()).thenReturn(assembleTasks);
+    ListMultimap<Path, String> cleanTasks = ArrayListMultimap.create();
+    cleanTasks.putAll(Paths.get("project_path"), CLEAN_TASKS);
+    when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(cleanTasks);
 
     myInstalledApkCache = new InstalledApkCache() {
       @Override
@@ -453,16 +459,26 @@ public class InstantRunBuilderTest {
     private StringBuilder sb = new StringBuilder(100);
 
     @Override
-    public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-      throws InvocationTargetException, InterruptedException {
+    public boolean run(@NotNull ListMultimap<Path, String> tasks,
+                       @Nullable BuildMode buildMode,
+                       @NotNull List<String> commandLineArguments) {
       if (sb.length() > 0) {
         sb.append("\n");
       }
 
-      sb.append("gradlew ");
-      sb.append(Joiner.on(' ').join(commandLineArguments));
-      sb.append(" ");
-      sb.append(Joiner.on(' ').join(tasks));
+      Set<Path> rootPaths = tasks.keys().elementSet();
+      for (Iterator<Path> iterator = rootPaths.iterator(); iterator.hasNext(); ) {
+        Path rootPath = iterator.next();
+        List<String> projectTasks = tasks.get(rootPath);
+        sb.append("gradlew ");
+        sb.append(Joiner.on(' ').join(commandLineArguments));
+        sb.append(" ");
+        sb.append(Joiner.on(' ').join(projectTasks));
+
+        if(iterator.hasNext()) {
+          sb.append("\n");
+        }
+      }
       return true;
     }
 

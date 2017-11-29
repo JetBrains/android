@@ -134,6 +134,13 @@ public class EmbeddedDistributionPaths {
       return getSystemSpecificJdkPath(jdkRootPath);
     }
 
+    // If AndroidStudio runs from IntelliJ IDEA sources
+    if (System.getProperty("android.test.embedded.jdk") != null) {
+      File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
+      assert jdkDir.exists();
+      return jdkDir;
+    }
+
     // Development build.
     String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
     String relativePath = toSystemDependentName(jdkDevPath);

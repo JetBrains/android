@@ -22,7 +22,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,12 +53,6 @@ public abstract class AbstractCounterDisplayConfigurable extends JPanel implemen
   @Override
   public void dispose() {
     Disposer.dispose(this);
-  }
-
-  @Override
-  @Nullable
-  public String getHelpTopic() {
-    return null;
   }
 
   @Override

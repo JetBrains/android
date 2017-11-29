@@ -60,7 +60,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   // This set of breakpoints is by no means is fully complete because
   // it stands for validation purposes which improves user's experience.
   public static final Set<Class<? extends XBreakpointType<?, ?>>> JAVA_BREAKPOINT_TYPES =
-    ImmutableSet.<Class<? extends XBreakpointType<?, ?>>>of(
+    ImmutableSet.of(
       JavaLineBreakpointType.class,
       JavaMethodBreakpointType.class,
       JavaFieldBreakpointType.class
@@ -139,7 +139,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     configuration.USE_SOCKET_TRANSPORT = true;
     configuration.SERVER_MODE = false;
 
-    ProgramRunnerUtil.executeConfiguration(project, runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
+    ProgramRunnerUtil.executeConfiguration(runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
   }
 
   public DebuggerSession getDebuggerSession(@NotNull Client client) {
@@ -159,7 +159,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                  @NotNull final String runConfigName) {
     Collection<RunContentDescriptor> descriptors = null;
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    Project targetProject = null;
+    Project targetProject;
 
     // Scan through open project to find if this port has been opened in any session.
     for (Project openProject : openProjects) {
