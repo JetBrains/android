@@ -255,7 +255,6 @@ iml_module(
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/gradle-dsl-parser[module, test]",
-        "//tools/idea/jps/jps-builders[module, test]",
         "//tools/base/usb-devices:studio.usb-devices[module, test]",
     ],
 )
