@@ -22,14 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
 import javax.swing.*;
@@ -49,18 +44,18 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(JUnit4.class)
-@Ignore("IJ2017.3: Mock applications cannot be used as they will break the application framework")
-public class WorkBenchTest {
-  @Rule
-  public FrameworkRule myFrameworkRule = new FrameworkRule();
+public class WorkBenchTest extends WorkBenchTestCase {
+  @Mock
+  private WorkBenchManager myWorkBenchManager;
+  @Mock
+  private FileEditorManager myFileEditorManager;
+  @Mock
+  private DetachedToolWindowManager myFloatingToolWindowManager;
   @Mock
   private FileEditor myFileEditor;
   @Mock
   private FileEditor myFileEditor2;
 
-  private WorkBenchManager myWorkBenchManager;
-  private DetachedToolWindowManager myFloatingToolWindowManager;
   private JComponent myContent;
   private ThreeComponentsSplitter mySplitter;
   private PropertiesComponent myPropertiesComponent;
@@ -72,25 +67,25 @@ public class WorkBenchTest {
   private AttachedToolWindow<String> myToolWindow2;
   private AttachedToolWindow<String> myToolWindow3;
 
-  @Before
-  public void before() {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     initMocks(this);
+    registerApplicationComponent(WorkBenchManager.class, myWorkBenchManager);
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    registerProjectComponentImplementation(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
     mySplitter = new ThreeComponentsSplitter();
-    Project project = ProjectManager.getInstance().getDefaultProject();
     myPropertiesComponent = PropertiesComponent.getInstance();
-    myWorkBenchManager = WorkBenchManager.getInstance();
-    myFloatingToolWindowManager = DetachedToolWindowManager.getInstance(project);
-    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-    myModel = new SideModel<>(project);
+    myModel = new SideModel<>(myProject);
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
     myLeftMinimizePanel.setLayout(new BoxLayout(myLeftMinimizePanel, BoxLayout.Y_AXIS));
     myRightMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
     myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
     WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
     mySplitter.setSize(1000, 600);
-    myWorkBench = new WorkBench<>(project, "BENCH", myFileEditor, initParams);
+    myWorkBench = new WorkBench<>(myProject, "BENCH", myFileEditor, initParams, myFloatingToolWindowManager);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
@@ -100,18 +95,22 @@ public class WorkBenchTest {
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);
-    when(fileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
+    when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
     verify(myWorkBenchManager).register(eq(myWorkBench));
     verify(myFloatingToolWindowManager).register(eq(myFileEditor), eq(myWorkBench));
     reset(myWorkBenchManager, myFloatingToolWindowManager);
   }
 
-  @After
-  public void after() {
-    Disposer.dispose(myWorkBench);
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      Disposer.dispose(myWorkBench);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
-  @Test
   public void testUpdateEditor() {
     myWorkBench.setFileEditor(myFileEditor2);
     verify(myFloatingToolWindowManager).unregister(eq(myFileEditor));
@@ -119,14 +118,12 @@ public class WorkBenchTest {
     verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(myWorkBench);
   }
 
-  @Test
   public void testSetContext() {
     assertThat(myModel.getContext()).isEqualTo("CONTEXT");
     myWorkBench.setToolContext("Google");
     assertThat(myModel.getContext()).isEqualTo("Google");
   }
 
-  @Test
   public void testAutoHide() {
     myToolWindow1.setAutoHide(true);
     myToolWindow1.setMinimized(false);
@@ -142,7 +139,6 @@ public class WorkBenchTest {
     }
   }
 
-  @Test
   public void testComponentResize() {
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
       .isEqualTo(-1);
@@ -156,7 +152,6 @@ public class WorkBenchTest {
       .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
   }
 
-  @Test
   public void testComponentDownSizeWithToolAdjustments() {
     mySplitter.setSize(1000, 600);
     mySplitter.setFirstSize(1000);
@@ -170,7 +165,6 @@ public class WorkBenchTest {
       .isEqualTo(AdtUiUtils.unscale(474));
   }
 
-  @Test
   public void testComponentDownSizeToSmallerThanMinimum() {
     mySplitter.setSize(500, 600);
     mySplitter.setFirstSize(1000);
@@ -191,7 +185,6 @@ public class WorkBenchTest {
     }
   }
 
-  @Test
   public void testRestoreDefaultLayout() {
     myToolWindow1.setAutoHide(true);
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
@@ -211,7 +204,6 @@ public class WorkBenchTest {
     assertThat(myToolWindow2.isMinimized()).isFalse();
   }
 
-  @Test
   public void testStoreAndRestoreDefaultLayout() {
     myToolWindow1.setAutoHide(true);
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
@@ -242,7 +234,6 @@ public class WorkBenchTest {
     assertThat(myToolWindow2.isSplit()).isFalse();
   }
 
-  @Test
   public void testModelSwap() {
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
@@ -259,7 +250,6 @@ public class WorkBenchTest {
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
 
-  @Test
   public void testModelUpdateFloatingStatus() {
     myToolWindow1.setFloating(true);
     myToolWindow1.setDetached(true);
@@ -269,7 +259,6 @@ public class WorkBenchTest {
     verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(eq(myWorkBench));
   }
 
-  @Test
   public void testModelLocalUpdate() {
     myModel.updateLocally();
 
@@ -277,7 +266,6 @@ public class WorkBenchTest {
     verifyZeroInteractions(myFloatingToolWindowManager);
   }
 
-  @Test
   public void testModelToolOrderChange() {
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
 
@@ -285,7 +273,6 @@ public class WorkBenchTest {
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
 
-  @Test
   public void testModelNormalChange() {
     myToolWindow1.setSplit(true);
     myModel.update(myToolWindow1, PropertyType.SPLIT);
@@ -293,7 +280,6 @@ public class WorkBenchTest {
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
 
-  @Test
   public void testUpdateModel() {
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
     myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER", "OTHER,THIRD,PALETTE");
@@ -302,7 +288,6 @@ public class WorkBenchTest {
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow3, myToolWindow1).inOrder();
   }
 
-  @Test
   public void testButtonDraggedFromLeftSideToRightSideAndBack() {
     myWorkBench.setSize(1055, 400);
     JComponent dragImage = new JLabel();
@@ -341,7 +326,6 @@ public class WorkBenchTest {
     myToolWindow1.fireButtonDragged(event);
   }
 
-  @Test
   public void testButtonDraggedFromLeftSideAndDroppedOnRightSide() {
     myWorkBench.setSize(1055, 400);
     JComponent dragImage = new JLabel();

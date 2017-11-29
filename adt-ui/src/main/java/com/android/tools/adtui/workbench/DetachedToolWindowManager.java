@@ -74,6 +74,11 @@ public class DetachedToolWindowManager implements ProjectComponent {
     myDetachedToolWindowFactory = factory;
   }
 
+  @VisibleForTesting
+  FileEditorManagerListener getFileEditorManagerListener() {
+    return myEditorManagerListener;
+  }
+
   public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
     if (fileEditor != null) {
       myWorkBenchMap.put(fileEditor, workBench);
@@ -148,6 +153,9 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   public void updateToolWindowsForWorkBench(@Nullable WorkBench workBench) {
+    if (myProject.isDisposed()) {
+      return;
+    }
     Set<String> ids = new HashSet<>(myToolWindowMap.keySet());
     if (workBench != null) {
       //noinspection unchecked
