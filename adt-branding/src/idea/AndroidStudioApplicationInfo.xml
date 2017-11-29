@@ -18,7 +18,7 @@
            xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
   <version major="3" minor="1" micro="0" patch="4" full="{0}.{1} Canary 5" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-171.4250"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-173.3727.127"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="cccccc" progressY="268" progressTailIcon="/artwork/studio_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
