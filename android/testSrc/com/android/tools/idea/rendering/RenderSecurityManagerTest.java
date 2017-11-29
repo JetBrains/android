@@ -30,7 +30,9 @@ import java.io.FilePermission;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.Permission;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -384,6 +386,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testThread2() throws Exception {
+    final List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
     // Check that when a new thread is created simultaneously from an unrelated
     // thread during rendering, that new thread does not pick up the security manager.
     //
@@ -445,6 +448,7 @@ public class RenderSecurityManagerTest {
             }
           };
           thread4.start();
+          threads.add(thread4);
 
           try {
             System.getProperties();
@@ -521,6 +525,7 @@ public class RenderSecurityManagerTest {
             }
           };
           thread3.start();
+          threads.add(thread3);
 
           barrier3.await();
           barrier4.await();
@@ -544,6 +549,9 @@ public class RenderSecurityManagerTest {
     thread2.start();
     thread1.join();
     thread2.join();
+    for (Thread thread : threads) {
+      thread.join();
+    }
   }
 
   @Test
@@ -645,6 +653,7 @@ public class RenderSecurityManagerTest {
       assertEquals("MyTestSecurityManager", System.getSecurityManager().toString());
       System.setSecurityManager(null);
     }
+    thread.join();
   }
 
   @Test
