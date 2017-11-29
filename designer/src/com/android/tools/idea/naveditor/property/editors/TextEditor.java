@@ -142,7 +142,11 @@ public class TextEditor extends BaseComponentEditor {
 
   @Override
   public void requestFocus() {
-    myTextEditor.requestFocus();
+    if (myTextEditor.getEditor() != null) {
+      // When running in unit test, the Editor is not created and requesting the focus will result in an
+      // endless loop
+      myTextEditor.requestFocus();
+    }
     myTextEditor.selectAll();
     myTextEditor.scrollRectToVisible(myTextEditor.getBounds());
   }
