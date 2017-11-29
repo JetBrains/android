@@ -278,7 +278,7 @@ public class EditorFixture {
    * Closes the current editor
    */
   public EditorFixture close() {
-    GuiTask.execute(
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         VirtualFile currentFile = getCurrentFile();
         if (currentFile != null) {
@@ -293,7 +293,7 @@ public class EditorFixture {
    * Closes the specified file.
    */
   public EditorFixture closeFile(@NotNull String relativePath) {
-    GuiTask.execute(
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
         if (file != null) {
