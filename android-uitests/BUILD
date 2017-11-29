@@ -108,5 +108,6 @@ java_test(
         "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    test_tags = ["manual"],  # Breaks after IJ2017.3 merge
     runtime_deps = [":android-uitests_testlib"],
 )
