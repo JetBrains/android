@@ -401,7 +401,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     mySurface.getSelectionModel().toggle(myTextView);
     action.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   private void copy(@NotNull NlComponent... components) {
