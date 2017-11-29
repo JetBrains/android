@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
-import com.android.tools.idea.naveditor.property.NavArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -33,9 +33,9 @@ import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Container
 
-class NavArgumentsInspectorProviderTest: NavigationTestCase() {
+class NavDestinationArgumentsInspectorProviderTest : NavigationTestCase() {
   fun testIsApplicable() {
-    val provider = NavArgumentsInspectorProvider()
+    val provider = NavDestinationArgumentsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)
     val manager = NavPropertiesManager(myFacet, surface)
     val component1 = mock(NlComponent::class.java)
@@ -47,15 +47,15 @@ class NavArgumentsInspectorProviderTest: NavigationTestCase() {
 
     // Simple case: one component, arguments property
     assertTrue(provider.isApplicable(listOf(component1),
-        mapOf("Arguments" to NavArgumentsProperty(listOf(component1), manager)), manager))
+        mapOf("Arguments" to NavDestinationArgumentsProperty(listOf(component1), manager)), manager))
     // One component, arguments + other property
     assertTrue(provider.isApplicable(listOf(component1),
-        mapOf("Arguments" to NavArgumentsProperty(listOf(component1), manager), "foo" to mock(NlProperty::class.java)), manager))
+        mapOf("Arguments" to NavDestinationArgumentsProperty(listOf(component1), manager), "foo" to mock(NlProperty::class.java)), manager))
     // Two components
     assertFalse(provider.isApplicable(listOf(component1, component2),
-        mapOf("Arguments" to NavArgumentsProperty(listOf(component1, component2), manager)), manager))
+        mapOf("Arguments" to NavDestinationArgumentsProperty(listOf(component1, component2), manager)), manager))
     // zero components
-    assertFalse(provider.isApplicable(listOf(), mapOf("Arguments" to NavArgumentsProperty(listOf(), manager)), manager))
+    assertFalse(provider.isApplicable(listOf(), mapOf("Arguments" to NavDestinationArgumentsProperty(listOf(), manager)), manager))
     // Non-arguments property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
     Disposer.dispose(surface)
@@ -74,7 +74,7 @@ class NavArgumentsInspectorProviderTest: NavigationTestCase() {
 
     val manager = NavPropertiesManager(myFacet, model.surface)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
-    `when`(navInspectorProviders.providers).thenReturn(listOf(NavArgumentsInspectorProvider()))
+    `when`(navInspectorProviders.providers).thenReturn(listOf(NavDestinationArgumentsInspectorProvider()))
 
     val panel = NavInspectorPanel(myRootDisposable)
     panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)

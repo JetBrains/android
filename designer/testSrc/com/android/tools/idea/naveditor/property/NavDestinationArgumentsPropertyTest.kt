@@ -22,7 +22,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import org.mockito.Mockito.mock
 
-class NavArgumentsPropertyTest : NavigationTestCase() {
+class NavDestinationArgumentsPropertyTest : NavigationTestCase() {
   private lateinit var model: SyncNlModel
 
   override fun setUp() {
@@ -40,19 +40,19 @@ class NavArgumentsPropertyTest : NavigationTestCase() {
   }
 
   fun testMultipleArguments() {
-    val property = NavArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
+    val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
     assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null),
         property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testNoArguments() {
-    val property = NavArgumentsProperty(listOf(model.find("f3")!!), mock(NavPropertiesManager::class.java))
+    val property = NavDestinationArgumentsProperty(listOf(model.find("f3")!!), mock(NavPropertiesManager::class.java))
     assertEquals(mapOf(null to null), property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testModify() {
     val fragment = model.find("f3")!!
-    val property = NavArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
+    val property = NavDestinationArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
     val argument = model.find { it.getAttribute(AUTO_URI, SdkConstants.ATTR_NAME) == "arg1" }!!
     fragment.addChild(argument)
     property.refreshList()
