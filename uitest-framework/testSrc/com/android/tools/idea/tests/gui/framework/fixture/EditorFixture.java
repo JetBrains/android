@@ -49,6 +49,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
@@ -342,7 +343,7 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    GuiTask.execute(
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         // TODO: Use UI to navigate to the file instead
         Project project = myFrame.getProject();
