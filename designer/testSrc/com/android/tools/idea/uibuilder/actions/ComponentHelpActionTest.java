@@ -77,36 +77,36 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testButton() {
     myTagName = "Button";
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull(), isNull());
   }
 
   public void testTextureView() {
     myTagName = "TextureView";
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/TextureView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/TextureView.html"), isNull(), isNull());
   }
 
   public void testWebView() {
     myTagName = "WebView";
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/webkit/WebView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/webkit/WebView.html"), isNull(), isNull());
   }
 
   public void testFullyQualifiedButton() {
     myTagName = "android.widget.Button";
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull(), isNull());
   }
 
   public void testSupportLibraryTag() {
     myTagName = SdkConstants.CONSTRAINT_LAYOUT;
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/support/constraint/ConstraintLayout.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/support/constraint/ConstraintLayout.html"), isNull(), isNull());
   }
 
   public void testGoogleLibraryTag() {
     myTagName = SdkConstants.AD_VIEW;
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/com/google/android/gms/ads/AdView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/com/google/android/gms/ads/AdView.html"), isNull(), isNull());
   }
 }
