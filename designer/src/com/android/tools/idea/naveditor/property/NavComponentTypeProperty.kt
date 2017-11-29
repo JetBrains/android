@@ -19,13 +19,20 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
+import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION
 
 const val TYPE_EDITOR_PROPERTY_LABEL = "Kind"
 
 class NavComponentTypeProperty(components: List<NlComponent>) : SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, components) {
   override fun getValue(): String {
-    val schema = components[0].model.schema
+    val first = components[0]
+    val schema = first.model.schema
     val types = components.map { it.destinationType }.toSet()
-    return if (types.size == 1) { schema.getTagLabel(components[0].tagName) } else { "Multiple" }
+    return if (types.size == 1) {
+      schema.getTagLabel(first.tagName, first.isRoot)
+    }
+    else {
+      "Multiple"
+    }
   }
 }

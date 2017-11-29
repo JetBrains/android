@@ -302,6 +302,11 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public String getTagLabel(@NotNull String tag) {
+    return getTagLabel(tag, false);
+  }
+
+  @NotNull
+  public String getTagLabel(@NotNull String tag, boolean isRoot) {
     String text = null;
     if (TAG_INCLUDE.equals(tag)) {
       text = INCLUDE_GRAPH_LABEL;
@@ -312,7 +317,7 @@ public class NavigationSchema implements Disposable {
     else {
       NavigationSchema.DestinationType type = getDestinationType(tag);
       if (type == NAVIGATION) {
-        text = "Nested Graph";
+        text = isRoot ? "Root Graph" : "Nested Graph";
       }
       else if (type == FRAGMENT) {
         text = "Fragment";

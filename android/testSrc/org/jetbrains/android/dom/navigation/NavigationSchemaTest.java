@@ -162,6 +162,8 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertEquals("Fragment (fragment_sub)", schema.getTagLabel("fragment_sub"));
     assertEquals("Fragment (fragment_sub_sub)", schema.getTagLabel("fragment_sub_sub"));
     assertEquals("Nested Graph", schema.getTagLabel("navigation"));
+    assertEquals("Nested Graph", schema.getTagLabel("navigation", false));
+    assertEquals("Root Graph", schema.getTagLabel("navigation", true));
     assertEquals("Nested Graph (navigation_sub)", schema.getTagLabel("navigation_sub"));
     assertEquals("other_1", schema.getTagLabel("other_1"));
     assertEquals("other_2", schema.getTagLabel("other_2"));

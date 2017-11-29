@@ -26,7 +26,8 @@ class NavComponentTypePropertyTest : NavigationTestCase() {
             fragmentComponent("f1")
                 .unboundedChildren(actionComponent("a1").withDestinationAttribute("f1")),
             fragmentComponent("f2"),
-            activityComponent("activity")))
+            navigationComponent("nested").unboundedChildren(
+                activityComponent("activity"))))
         .build()
 
     assertEquals("Fragment", NavComponentTypeProperty(listOf(model.find("f1")!!)).value)
@@ -34,5 +35,7 @@ class NavComponentTypePropertyTest : NavigationTestCase() {
     assertEquals("Fragment", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("f2")!!)).value)
     assertEquals("Multiple", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("activity")!!)).value)
     assertEquals("Multiple", NavComponentTypeProperty(listOf(model.find("f1")!!, model.find("a1")!!)).value)
+    assertEquals("Root Graph", NavComponentTypeProperty(listOf(model.find("root")!!)).value)
+    assertEquals("Nested Graph", NavComponentTypeProperty(listOf(model.find("nested")!!)).value)
   }
 }
