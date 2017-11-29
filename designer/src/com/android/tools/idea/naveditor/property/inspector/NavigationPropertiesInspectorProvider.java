@@ -49,7 +49,9 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     NavigationSchema.ATTR_DESTINATION,
     NavigationSchema.ATTR_SINGLE_TOP,
     NavigationSchema.ATTR_DOCUMENT,
-    NavigationSchema.ATTR_CLEAR_TASK
+    NavigationSchema.ATTR_CLEAR_TASK,
+    NavigationSchema.ATTR_POP_UP_TO,
+    NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
   };
 
   private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = new ContainerUtil.ImmutableMapBuilder()
@@ -60,7 +62,9 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     .put(NavigationSchema.ATTR_DESTINATION, "Destination")
     .put(NavigationSchema.ATTR_SINGLE_TOP, "Single Top")
     .put(NavigationSchema.ATTR_DOCUMENT, "Document")
-    .put(NavigationSchema.ATTR_CLEAR_TASK, "Clear Task").build();
+    .put(NavigationSchema.ATTR_CLEAR_TASK, "Clear Task")
+    .put(NavigationSchema.ATTR_POP_UP_TO, "Pop To")
+    .put(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "Inclusive").build();
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 
