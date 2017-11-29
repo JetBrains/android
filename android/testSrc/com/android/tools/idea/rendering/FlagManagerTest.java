@@ -45,6 +45,13 @@ public class FlagManagerTest extends TestCase {
     assertSame(us, manager.getFlag("en", "US"));
     assertSame(gb, manager.getFlag("en", "GB"));
     assertSame(ca, manager.getFlag("en", "CA"));
+
+    assertSame(us, manager.getFlagForFolderName("values-en-rUS"));
+    assertSame(gb, manager.getFlagForFolderName("values-en-rGB"));
+
+    if (!FlagManager.showFlagsForLanguages()) {
+      return;
+    }
     Locale.setDefault(Locale.US);
     assertSame(us, manager.getFlag("en", null));
     Locale.setDefault(Locale.UK);
@@ -75,8 +82,6 @@ public class FlagManagerTest extends TestCase {
     assertSame(LocaleManager.getLanguageName("in"), LocaleManager.getLanguageName("id"));
     assertSame(LocaleManager.getLanguageName("yi"), LocaleManager.getLanguageName("ji"));
 
-    assertSame(us, manager.getFlagForFolderName("values-en-rUS"));
-    assertSame(gb, manager.getFlagForFolderName("values-en-rGB"));
     Locale.setDefault(Locale.CANADA);
     assertSame(ca, manager.getFlagForFolderName("values-en"));
   }

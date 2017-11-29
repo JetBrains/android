@@ -64,7 +64,7 @@ public class AndroidIconProvider extends IconProvider {
         }
       }
     }
-    // Use Andorid Studio icons for module's root
+    // Use Android Studio icons for module's root
     if (element instanceof PsiDirectory) {
       PsiDirectory psiDirectory = (PsiDirectory)element;
       VirtualFile virtualDirectory = psiDirectory.getVirtualFile();
