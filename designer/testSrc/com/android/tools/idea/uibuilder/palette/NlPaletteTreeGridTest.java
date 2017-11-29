@@ -277,7 +277,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     when(event.getDataContext()).thenReturn(context);
 
     action.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   public void testDefaultInitialCategoryWidth() {
