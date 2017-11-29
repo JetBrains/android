@@ -28,8 +28,8 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -334,10 +334,10 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
-  private static HTreeChart<MethodModel> setUpChart(@NotNull CaptureModel.Details.Type type,
-                                                    @NotNull Range range,
-                                                    @Nullable HNode<MethodModel> node,
-                                                    @NotNull CpuProfilerStageView stageView) {
+  private static HTreeChart<CaptureNodeModel> setUpChart(@NotNull CaptureModel.Details.Type type,
+                                                         @NotNull Range range,
+                                                         @Nullable HNode<CaptureNodeModel> node,
+                                                         @NotNull CpuProfilerStageView stageView) {
     HTreeChart.Orientation orientation;
     if (type == CaptureModel.Details.Type.CALL_CHART) {
       orientation = HTreeChart.Orientation.TOP_DOWN;
@@ -345,7 +345,7 @@ class CpuCaptureView {
     else {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
-    HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
+    HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new MethodModelHRenderer(type));
     chart.setRootVisible(false);
 
@@ -502,7 +502,7 @@ class CpuCaptureView {
   static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @NotNull private final CaptureModel.CallChart myCallChart;
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
 
     private AspectObserver myObserver;
 
@@ -540,7 +540,7 @@ class CpuCaptureView {
     }
 
     private void callChartRangeChanged() {
-      HNode<MethodModel> node = myCallChart.getNode();
+      HNode<CaptureNodeModel> node = myCallChart.getNode();
       assert node != null;
       Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
@@ -555,7 +555,7 @@ class CpuCaptureView {
 
   static class FlameChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
     @NotNull private final AspectObserver myObserver;
     @NotNull private final CaptureModel.FlameChart myFlameChart;
 
@@ -600,10 +600,10 @@ class CpuCaptureView {
   }
 
   private static class TreeChartNavigationHandler extends MouseAdapter {
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart, @NotNull CodeNavigator navigator) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CodeNavigator navigator) {
       myChart = chart;
       new DoubleClickListener() {
         @Override
@@ -640,7 +640,7 @@ class CpuCaptureView {
 
     @Nullable
     private CodeLocation getCodeLocation() {
-      HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
+      HNode<CaptureNodeModel> n = myChart.getNodeAt(myLastPopupPoint);
       if (n == null || n.getData() == null) {
         return null;
       }
@@ -649,10 +649,10 @@ class CpuCaptureView {
   }
 
   /**
-   * Produces a {@link CodeLocation} corresponding to a {@link MethodModel}. Returns null if the model is not navigatable.
+   * Produces a {@link CodeLocation} corresponding to a {@link CaptureNodeModel}. Returns null if the model is not navigatable.
    */
   @Nullable
-  private static CodeLocation modelToCodeLocation(MethodModel model) {
+  private static CodeLocation modelToCodeLocation(CaptureNodeModel model) {
     if (model instanceof NativeFunctionModel) {
       NativeFunctionModel nativeFunction = (NativeFunctionModel)model;
       return new CodeLocation.Builder(nativeFunction.getClassOrNamespace())
@@ -844,7 +844,7 @@ class CpuCaptureView {
           ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
         CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
         SimpleTextAttributes attributes = getTextAttributes(node);
-        MethodModel model = node.getMethodModel();
+        CaptureNodeModel model = node.getMethodModel();
         String classOrNamespace = "";
         if (model instanceof NativeFunctionModel) {
           classOrNamespace = ((NativeFunctionModel)model).getClassOrNamespace();

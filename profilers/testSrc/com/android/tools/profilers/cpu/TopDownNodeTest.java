@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -111,10 +111,10 @@ public class TopDownNodeTest {
 
   @Test
   public void testTreeData() {
-    MethodModel rootModel = new JavaMethodModel("A", "com.package.Class");
+    CaptureNodeModel rootModel = new JavaMethodModel("A", "com.package.Class");
     TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
 
-    MethodModel model = topDown.getMethodModel();
+    CaptureNodeModel model = topDown.getMethodModel();
     assertEquals(rootModel, topDown.getMethodModel());
     assertEquals("com.package.Class.A", rootModel.getFullName());
     assertTrue(model instanceof JavaMethodModel);
@@ -159,9 +159,9 @@ public class TopDownNodeTest {
     return newNode(new SingleNameModel(method), start, end);
   }
 
-  static CaptureNode newNode(MethodModel method, long start, long end) {
+  static CaptureNode newNode(CaptureNodeModel method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(method);
+    node.setCaptureNodeModel(method);
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     return node;

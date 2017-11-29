@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * Model to represent nodes that contain a single attribute (name).
  * For example, syscalls and special nodes representing threads.
  */
-public class SingleNameModel implements MethodModel {
+public class SingleNameModel implements CaptureNodeModel {
 
   @NotNull private final String myName;
 

@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.MethodModelHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.art.ArtTraceHandler;
@@ -40,8 +40,8 @@ import java.util.Map;
 public class CpuHTreeChartReducerVisualTest extends VisualTest {
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
 
-  private HTreeChart<MethodModel> myChart;
-  private HTreeChart<MethodModel> myNotOptimizedChart;
+  private HTreeChart<CaptureNodeModel> myChart;
+  private HTreeChart<CaptureNodeModel> myNotOptimizedChart;
   private Range myRange = new Range();
 
   @Override

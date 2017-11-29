@@ -19,8 +19,8 @@ import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
@@ -31,9 +31,9 @@ import java.awt.geom.Rectangle2D;
 
 /**
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
- * instances of {@link MethodModel}.
+ * instances of {@link CaptureNodeModel}.
  */
-public class MethodModelHRenderer implements HRenderer<MethodModel> {
+public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
 
   private static final int LEFT_MARGIN_PX = 3;
 
@@ -50,15 +50,15 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
     this(CaptureModel.Details.Type.CALL_CHART);
   }
 
-  private static boolean isMethodPlatform(MethodModel method) {
+  private static boolean isMethodPlatform(CaptureNodeModel method) {
     return isMethodPlatformJava(method) || isMethodPlatformCpp(method);
   }
 
-  private static boolean isMethodPlatformJava(MethodModel method) {
+  private static boolean isMethodPlatformJava(CaptureNodeModel method) {
     return method.getFullName().startsWith("android.") || method.getFullName().startsWith("com.android.");
   }
 
-  private static boolean isMethodPlatformCpp(MethodModel method) {
+  private static boolean isMethodPlatformCpp(CaptureNodeModel method) {
     // TODO: include all the art-related methods (e.g. artQuickToInterpreterBridge and artMterpAsmInstructionStart)
     return method.getFullName().startsWith("art::") ||
            method.getFullName().startsWith("android::") ||
@@ -66,11 +66,11 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
            method.getFullName().startsWith("dalvik-jit-code-cache");
   }
 
-  private static boolean isMethodVendor(MethodModel method) {
+  private static boolean isMethodVendor(CaptureNodeModel method) {
     return isMethodVendorJava(method) || isMethodVendorCpp(method);
   }
 
-  private static boolean isMethodVendorJava(MethodModel method) {
+  private static boolean isMethodVendorJava(CaptureNodeModel method) {
     return method.getFullName().startsWith("java.") ||
            method.getFullName().startsWith("sun.") ||
            method.getFullName().startsWith("javax.") ||
@@ -78,17 +78,17 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
            method.getFullName().startsWith("com.apple.");
   }
 
-  private static boolean isMethodVendorCpp(MethodModel method) {
+  private static boolean isMethodVendorCpp(CaptureNodeModel method) {
     return method.getFullName().startsWith("openjdkjvmti::");
   }
 
   private Color getFillColor(CaptureNode node) {
     Color color;
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(node.getMethodModel())) {
+      if (isMethodVendor(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_CALLCHART_VENDOR;
       }
-      else if (isMethodPlatform(node.getMethodModel())) {
+      else if (isMethodPlatform(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_CALLCHART_PLATFORM;
       }
       else {
@@ -96,10 +96,10 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
       }
     }
     else {
-      if (isMethodVendor(node.getMethodModel())) {
+      if (isMethodVendor(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_FLAMECHART_VENDOR;
       }
-      else if (isMethodPlatform(node.getMethodModel())) {
+      else if (isMethodPlatform(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_FLAMECHART_PLATFORM;
       }
       else {
@@ -113,10 +113,10 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   private Color getBordColor(CaptureNode node) {
     Color color;
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(node.getMethodModel())) {
+      if (isMethodVendor(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
       }
-      else if (isMethodPlatform(node.getMethodModel())) {
+      else if (isMethodPlatform(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
       }
       else {
@@ -124,10 +124,10 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
       }
     }
     else {
-      if (isMethodVendor(node.getMethodModel())) {
+      if (isMethodVendor(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
       }
-      else if (isMethodPlatform(node.getMethodModel())) {
+      else if (isMethodPlatform(node.getCaptureNodeModel())) {
         color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
       }
       else {
@@ -147,7 +147,7 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull HNode<MethodModel> node, @NotNull Rectangle2D drawingArea) {
+  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel> node, @NotNull Rectangle2D drawingArea) {
     // Draw rectangle background
     CaptureNode captureNode = (CaptureNode)node;
     g.setPaint(getFillColor(captureNode));
@@ -179,7 +179,7 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private static String generateFittingText(MethodModel model, Rectangle2D rect, FontMetrics fontMetrics) {
+  private static String generateFittingText(CaptureNodeModel model, Rectangle2D rect, FontMetrics fontMetrics) {
     double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
 
     String classOrNamespace = "";

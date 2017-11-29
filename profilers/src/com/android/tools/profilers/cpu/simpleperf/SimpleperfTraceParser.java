@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.*;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -147,9 +147,9 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @NotNull
-  private static CaptureNode createCaptureNode(MethodModel model, long timestamp) {
+  private static CaptureNode createCaptureNode(CaptureNodeModel model, long timestamp) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(model);
+    node.setCaptureNodeModel(model);
     setNodeStartTime(node, timestamp);
     node.setDepth(0);
     return node;
@@ -382,7 +382,7 @@ public class SimpleperfTraceParser implements TraceParser {
     return node;
   }
 
-  private MethodModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
+  private CaptureNodeModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
     int symbolId = callChainEntry.getSymbolId();
     SimpleperfReport.File symbolFile = myFiles.get(callChainEntry.getFileId());
     if (symbolFile == null) {
@@ -394,7 +394,7 @@ public class SimpleperfTraceParser implements TraceParser {
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
       return new SingleNameModel(methodName);
     }
-    // Otherwise, read the method from the symbol table and parse it into a MethodModel
+    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel
     return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId));
   }
 }

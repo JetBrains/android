@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * Model to represent nodes on a {@link CaptureNode} tree that don't need to store any relevant information.
  * For example, fake nodes created to represent the root of bottom-up trees.
  */
-public class DummyModel implements MethodModel {
+public class DummyModel implements CaptureNodeModel {
   @VisibleForTesting
   static final String DUMMY_NODE = "Dummy Node";
 

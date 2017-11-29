@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu.art;
 import com.android.tools.perflib.vmtrace.*;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.DummyModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
@@ -41,7 +41,7 @@ public class ArtTraceHandler implements VmTraceHandler {
   /**
    * Map from method id to method model.
    */
-  private final Map<Long, MethodModel> myMethods = new HashMap<>();
+  private final Map<Long, CaptureNodeModel> myMethods = new HashMap<>();
 
   /**
    * Map from thread id to per thread stack call constructor.
@@ -76,18 +76,18 @@ public class ArtTraceHandler implements VmTraceHandler {
 
     CaptureNodeConstructor constructor = myNodeConstructors.get(threadId);
     if (constructor == null) {
-      MethodModel topLevelModel = createUniqueMethodForThread(threadId);
+      CaptureNodeModel topLevelModel = createUniqueMethodForThread(threadId);
       constructor = new CaptureNodeConstructor(topLevelModel);
       myNodeConstructors.put(threadId, constructor);
     }
     constructor.addTraceAction(myMethods.get(methodId), methodAction, threadTime, globalTime);
   }
 
-  private MethodModel createUniqueMethodForThread(int threadId) {
+  private CaptureNodeModel createUniqueMethodForThread(int threadId) {
     long id = Long.MAX_VALUE - threadId;
     assert myMethods.get(id) == null :
       "Unexpected error while attempting to create a unique key - key already exists";
-    MethodModel model = new SingleNameModel(myThreads.get(threadId));
+    CaptureNodeModel model = new SingleNameModel(myThreads.get(threadId));
     myMethods.put(id, model);
     return model;
   }

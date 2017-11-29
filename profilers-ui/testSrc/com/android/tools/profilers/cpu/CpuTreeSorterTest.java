@@ -154,7 +154,7 @@ public class CpuTreeSorterTest {
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new SingleNameModel(method));
+    node.setCaptureNodeModel(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(start);
 

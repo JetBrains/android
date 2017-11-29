@@ -19,10 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides accessors to the basic attributes of data represented by {@link CaptureNode} (e.g. Java methods, native functions, etc.).
- *
- * TODO(b/69904551): MethodModel sound too specific for Java methods. Rename this interface to something like CaptureNodeModel
  */
-public interface MethodModel {
+public interface CaptureNodeModel {
 
   @NotNull
   String getName();

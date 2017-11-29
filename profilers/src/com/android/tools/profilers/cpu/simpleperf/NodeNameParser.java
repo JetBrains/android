@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 /**
  * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf.
- * The names are parsed into {@link MethodModel} instances containing the class name, method name and signature.
+ * The names are parsed into {@link CaptureNodeModel} instances containing the class name, method name and signature.
  */
 class NodeNameParser {
 
@@ -33,12 +33,12 @@ class NodeNameParser {
 
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
 
-  static MethodModel parseNodeName(String fullName) {
+  static CaptureNodeModel parseNodeName(String fullName) {
     if (fullName.contains("::")) {
       return parseCppFunctionName(fullName);
     }
     else if (fullName.contains(".")) {
-      // Method is in the format java.package.Class.method. Parse it into a MethodModel.
+      // Method is in the format java.package.Class.method. Parse it into a CaptureNodeModel.
       ModelInfo modelInfo = createModelInfo(fullName, ".", JAVA_SEPARATOR_PATTERN);
       return new JavaMethodModel(modelInfo.getName(), modelInfo.getClassOrNamespace());
     }
@@ -51,10 +51,10 @@ class NodeNameParser {
   /**
    * C++ function names are usually in the format namespace::Class::Fun(params). Sometimes, they also include
    * return type and template information, e.g. void namespace::Class::Fun<int>(params). We need to handle all the cases and parse
-   * the function name into a {@link MethodModel}.
+   * the function name into a {@link CaptureNodeModel}.
    */
   @NotNull
-  private static MethodModel parseCppFunctionName(String functionFullName) {
+  private static CaptureNodeModel parseCppFunctionName(String functionFullName) {
     // First, remove template information.
     functionFullName = removeTemplateInformation(functionFullName);
 

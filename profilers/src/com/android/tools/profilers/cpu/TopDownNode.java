@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -97,8 +97,8 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
 
   @NotNull
   @Override
-  public MethodModel getMethodModel() {
-    MethodModel model = getNodes().get(0).getData();
+  public CaptureNodeModel getMethodModel() {
+    CaptureNodeModel model = getNodes().get(0).getData();
     assert model != null;
     return model;
   }
