@@ -37,7 +37,8 @@ public class NavInspectorProviders extends InspectorProviders<NavPropertiesManag
     myNullProvider = provider;
     myProviders = ImmutableList.of(provider,
                                    new NavSetStartProvider(),
-                                   new NavArgumentsInspectorProvider(),
+                                   new NavDestinationArgumentsInspectorProvider(),
+                                   new NavActionArgumentsInspectorProvider(),
                                    new NavigationActionsInspectorProvider(),
                                    new NavigationDeeplinkInspectorProvider());
   }

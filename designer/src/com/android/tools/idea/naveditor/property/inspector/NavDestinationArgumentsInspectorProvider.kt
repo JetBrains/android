@@ -21,7 +21,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
-import com.android.tools.idea.naveditor.property.NavArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -32,12 +32,11 @@ import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
-import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ARGUMENTS_COMPONENT_NAME = "NavArgumentsPropertyInspector"
 
-class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
+class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
   private var myInspector: NavArgumentsInspectorComponent? = null
 
@@ -47,7 +46,7 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
     if (components.size != 1) {
       return false
     }
-    if (properties.values.none { it is NavArgumentsProperty }) {
+    if (properties.values.none { it is NavDestinationArgumentsProperty }) {
       return false
     }
 
@@ -71,7 +70,7 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
   private class NavArgumentsInspectorComponent :
       InspectorComponent<NavPropertiesManager> {
 
-    private lateinit var myArgumentProperty: NavArgumentsProperty
+    private lateinit var myArgumentProperty: NavDestinationArgumentsProperty
     private val myComponents = mutableListOf<NlComponent>()
     private var mySurface: NavDesignSurface? = null
 
@@ -83,7 +82,7 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
       mySurface = propertiesManager.designSurface as? NavDesignSurface
 
-      myArgumentProperty = properties.values.filterIsInstance(NavArgumentsProperty::class.java).first()
+      myArgumentProperty = properties.values.filterIsInstance(NavDestinationArgumentsProperty::class.java).first()
       refresh()
     }
 
@@ -93,7 +92,7 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      val table = JBTable(ArgumentsTableModel(myArgumentProperty))
+      val table = JBTable(NavArgumentsTableModel(myArgumentProperty))
       table.name = NAV_ARGUMENTS_COMPONENT_NAME
 
       val nameCellRenderer = JBTextField()
@@ -133,22 +132,4 @@ class NavArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
       myArgumentProperty.refreshList()
     }
   }
-}
-
-private class ArgumentsTableModel(val argumentsProperty: NavArgumentsProperty) : AbstractTableModel() {
-  override fun getRowCount() = argumentsProperty.properties.size
-
-  override fun getColumnCount() = 2
-
-  override fun getValueAt(rowIndex: Int, columnIndex: Int): NlProperty {
-    val nameProperty = argumentsProperty.properties[rowIndex]
-    return if (columnIndex == 0) nameProperty else nameProperty.defaultValueProperty
-  }
-
-  override fun setValueAt(value: Any?, rowIndex: Int, columnIndex: Int) {
-    getValueAt(rowIndex, columnIndex).setValue(value)
-    argumentsProperty.refreshList()
-  }
-
-  override fun isCellEditable(rowIndex: Int, columnIndex: Int) = true
 }
