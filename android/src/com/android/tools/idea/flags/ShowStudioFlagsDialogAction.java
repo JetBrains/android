@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.flags;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
 
 /**
  * A "Tools/Internal Actions/Android" action to show a dialog that allows the modifications of
  * flag values that influence many Studio features.
  */
-public final class ShowStudioFlagsDialogAction extends AnAction {
+public final class ShowStudioFlagsDialogAction extends DumbAwareAction {
   public ShowStudioFlagsDialogAction() {
     super(StudioFlagsDialog.TITLE);
   }
