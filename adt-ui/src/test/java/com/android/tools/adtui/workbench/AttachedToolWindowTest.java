@@ -32,6 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -50,6 +51,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunsInEdt
 @RunWith(JUnit4.class)
+@Ignore("IJ2017.3: Mock applications cannot be used as they will break the application framework")
 public class AttachedToolWindowTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
