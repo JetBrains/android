@@ -48,6 +48,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks ideSdks = IdeSdks.getInstance();
       ideSdks.setAndroidSdkPath(sdkDir, null);
+      IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
       ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
   }

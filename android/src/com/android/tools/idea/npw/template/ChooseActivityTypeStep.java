@@ -40,7 +40,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,7 +165,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     };
 
     gallery.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    AccessibleContextUtil.setDescription(gallery, title);
+    gallery.getAccessibleContext().setAccessibleDescription(title);
 
     return gallery;
   }

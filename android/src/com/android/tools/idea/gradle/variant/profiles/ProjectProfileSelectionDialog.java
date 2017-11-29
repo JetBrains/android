@@ -364,7 +364,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     CommonActionsManager actions = CommonActionsManager.getInstance();
     group.addAll(actions.createExpandAllAction(tree, treePanel), actions.createCollapseAllAction(tree, treePanel));
 
-    ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("", group, true);
+    ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("AndroidProjectProfileSelection", group, true);
     JPanel buttonsPanel = new JPanel(new BorderLayout());
     buttonsPanel.add(actionToolBar.getComponent(), BorderLayout.CENTER);
     buttonsPanel.setBorder(new SideBorder(JBColor.border(), SideBorder.TOP | SideBorder.LEFT | SideBorder.RIGHT, 1));

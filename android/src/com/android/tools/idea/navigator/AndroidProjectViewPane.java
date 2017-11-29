@@ -348,13 +348,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
-    public MyProjectViewTree(DefaultTreeModel treeModel) {
+    MyProjectViewTree(DefaultTreeModel treeModel) {
       super(AndroidProjectViewPane.this.myProject, treeModel);
-    }
-
-    @Override
-    public DefaultMutableTreeNode getSelectedNode() {
-      return AndroidProjectViewPane.this.getSelectedNode();
     }
 
     @Nullable

@@ -34,7 +34,7 @@ public class AndroidProcessText {
   private AndroidProcessText(@NotNull ProcessHandler processHandler) {
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         synchronized (myFragments) {
           myFragments.add(new MyFragment(event.getText(), outputType));
         }

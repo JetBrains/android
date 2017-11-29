@@ -176,7 +176,11 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
+<<<<<<< HEAD
     String libraryNameRegex = ".*guava.*";
+=======
+    String libraryNameRegex = "Gradle: guava-.*";
+>>>>>>> goog/upstream-ij17
     Library library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 
@@ -245,6 +249,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     verify(listener, times(1)).setupStarted(project);
+    reset(listener);
 
     // Verify ProjectSetUpTask
     listener = mock(GradleSyncListener.class);
@@ -252,6 +257,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
+    reset(listener);
   }
 
   // https://code.google.com/p/android/issues/detail?id=227931

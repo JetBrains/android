@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (jdk != null) {
         String jdkHomePath = jdk.getHomePath();
         if (jdkHomePath != null) {
-          jdkVersion = JavaSdk.getJdkVersion(jdkHomePath);
+          jdkVersion = SdkVersionUtil.detectJdkVersion(jdkHomePath);
         }
         JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
         isJdk7 = version == JDK_1_7;

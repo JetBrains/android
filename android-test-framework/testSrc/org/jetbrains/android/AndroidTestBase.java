@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -100,12 +101,13 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
   }
 
-  protected static void addLatestAndroidSdk(Module module) {
+  protected static Sdk addLatestAndroidSdk(Module module) {
     Sdk androidSdk = createLatestAndroidSdk();
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    return androidSdk;
   }
 
   public static Sdk createLatestAndroidSdk() {
@@ -113,6 +115,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     String platformDir = TestUtils.getLatestAndroidPlatform();
 
     Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 

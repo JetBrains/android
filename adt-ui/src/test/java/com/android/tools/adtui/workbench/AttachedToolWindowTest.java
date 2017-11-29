@@ -24,6 +24,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.SearchTextField;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -46,10 +48,13 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@RunsInEdt
 @RunWith(JUnit4.class)
 public class AttachedToolWindowTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
+  @Rule
+  public EdtRule edtRule = new EdtRule();
   @Mock
   private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock

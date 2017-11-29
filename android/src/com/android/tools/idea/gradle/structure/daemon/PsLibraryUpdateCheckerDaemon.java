@@ -135,7 +135,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
 
       for (Future<SearchResult> job : jobs) {
         try {
-          SearchResult result = Futures.get(job, Exception.class);
+          SearchResult result = Futures.getChecked(job, Exception.class);
           List<FoundArtifact> artifacts = result.getArtifacts();
           if (artifacts.size() == 1) {
             FoundArtifact artifact = artifacts.get(0);

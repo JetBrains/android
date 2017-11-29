@@ -25,6 +25,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -45,7 +46,7 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   }
 
   @Override
-  protected boolean isTestMethod(boolean checkAbstract, PsiElement psiElement) {
+  protected boolean isTestMethod(boolean checkAbstract, PsiMethod psiElement) {
     return JUnitUtil.getTestMethod(psiElement, checkAbstract) != null;
   }
 

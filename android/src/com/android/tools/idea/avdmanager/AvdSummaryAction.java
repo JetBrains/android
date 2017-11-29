@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 

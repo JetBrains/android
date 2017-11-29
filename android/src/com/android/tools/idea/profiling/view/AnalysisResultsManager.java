@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager {
-  @NotNull private AnalysisResultsContent myContent;
+  private final AnalysisResultsContent myContent;
 
   @NotNull
   public static AnalysisResultsManager getInstance(@NotNull Project project) {
@@ -44,6 +45,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   protected AnalysisResultsManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
     myContent = new AnalysisResultsContent();
+    Disposer.register(this, () -> myContent.dispose());
   }
 
   @Override
@@ -145,11 +147,6 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @Override
   public String getComponentName() {
     return "CaptureAnalysis";
-  }
-
-  @Override
-  public void disposeComponent() {
-    myContent.dispose();
   }
 
   @Override

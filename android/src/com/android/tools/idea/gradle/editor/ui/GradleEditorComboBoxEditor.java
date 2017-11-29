@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.editor.ui;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedComboBoxEditor;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.MacUIUtil;
 import com.intellij.util.ui.UIUtil;
@@ -68,17 +69,6 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
     return myField;
   }
 
-  @Override
-  public void setItem(Object anObject) {
-    if (anObject != null) {
-      myField.setText(anObject.toString());
-      oldValue = anObject;
-    }
-    else {
-      myField.setText("");
-    }
-  }
-
   @SuppressWarnings("RedundantArrayCreation")
   @Override
   public Object getItem() {
@@ -105,9 +95,22 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
   }
 
   @Override
+  public void setItem(Object anObject) {
+    if (anObject != null) {
+      myField.setText(anObject.toString());
+      oldValue = anObject;
+    }
+    else {
+      myField.setText("");
+    }
+  }
+
+  @Override
   public void selectAll() {
     myField.selectAll();
-    myField.requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myField, true);
+    });
   }
 
   @Override
@@ -137,6 +140,67 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
     }
 
     return popup;
+  }
+
+  public static class MacComboBoxEditorBorder implements Border {
+
+    private boolean myDisabled;
+
+    public MacComboBoxEditorBorder(final boolean disabled) {
+      myDisabled = disabled;
+    }
+
+    @Override
+    public void paintBorder(final Component c, final Graphics g, final int x, final int y, final int width, final int height) {
+      Color topColor;
+      Color secondTopColor;
+      Color leftRightColor;
+      Color bottomColor;
+
+      if (myDisabled) {
+        topColor = Gray._200;
+        secondTopColor = Gray._250;
+        leftRightColor = Gray._205;
+        bottomColor = Gray._220;
+      }
+      else {
+        topColor = Gray._150;
+        secondTopColor = Gray._230;
+        leftRightColor = Gray._175;
+        bottomColor = Gray._200;
+      }
+
+      int _y = y + MacUIUtil.MAC_COMBO_BORDER_V_OFFSET;
+
+      g.setColor(topColor);
+      g.drawLine(x + 3, _y + 3, x + width - 1, _y + 3);
+
+      g.setColor(secondTopColor);
+      g.drawLine(x + 3, _y + 4, x + width - 1, _y + 4);
+
+      g.setColor(leftRightColor);
+      g.drawLine(x + 3, _y + 4, x + 3, _y + height - 4);
+      g.drawLine(x + width - 1, _y + 4, x + width - 1, _y + height - 4);
+
+      g.setColor(bottomColor);
+      g.drawLine(x + 4, _y + height - 4, x + width - 2, _y + height - 4);
+
+      g.setColor(GradleEditorUiConstants.BACKGROUND_COLOR);
+
+      g.fillRect(x, y, width, 3 + (SystemInfo.isMacOSLion ? 1 : 0));
+      g.fillRect(x, _y, 3, height);
+      g.fillRect(x, _y + height - 3, width, 3);
+    }
+
+    @Override
+    public Insets getBorderInsets(final Component c) {
+      return new Insets(6, 6, 4, 3);
+    }
+
+    @Override
+    public boolean isBorderOpaque() {
+      return true;
+    }
   }
 
   private class MacComboBoxTextField extends JTextField implements DocumentListener, FocusListener {
@@ -271,67 +335,6 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
       }
 
       popup.getList().clearSelection();
-    }
-  }
-
-  public static class MacComboBoxEditorBorder implements Border {
-
-    private boolean myDisabled;
-
-    public MacComboBoxEditorBorder(final boolean disabled) {
-      myDisabled = disabled;
-    }
-
-    @Override
-    public void paintBorder(final Component c, final Graphics g, final int x, final int y, final int width, final int height) {
-      Color topColor;
-      Color secondTopColor;
-      Color leftRightColor;
-      Color bottomColor;
-
-      if (myDisabled) {
-        topColor = Gray._200;
-        secondTopColor = Gray._250;
-        leftRightColor = Gray._205;
-        bottomColor = Gray._220;
-      }
-      else {
-        topColor = Gray._150;
-        secondTopColor = Gray._230;
-        leftRightColor = Gray._175;
-        bottomColor = Gray._200;
-      }
-
-      int _y = y + MacUIUtil.MAC_COMBO_BORDER_V_OFFSET;
-
-      g.setColor(topColor);
-      g.drawLine(x + 3, _y + 3, x + width - 1, _y + 3);
-
-      g.setColor(secondTopColor);
-      g.drawLine(x + 3, _y + 4, x + width - 1, _y + 4);
-
-      g.setColor(leftRightColor);
-      g.drawLine(x + 3, _y + 4, x + 3, _y + height - 4);
-      g.drawLine(x + width - 1, _y + 4, x + width - 1, _y + height - 4);
-
-      g.setColor(bottomColor);
-      g.drawLine(x + 4, _y + height - 4, x + width - 2, _y + height - 4);
-
-      g.setColor(GradleEditorUiConstants.BACKGROUND_COLOR);
-
-      g.fillRect(x,  y, width, 3 + (SystemInfo.isMacOSLion ? 1 : 0));
-      g.fillRect(x, _y, 3, height);
-      g.fillRect(x, _y + height - 3, width, 3);
-    }
-
-    @Override
-    public Insets getBorderInsets(final Component c) {
-      return new Insets(6, 6, 4, 3);
-    }
-
-    @Override
-    public boolean isBorderOpaque() {
-      return true;
     }
   }
 }

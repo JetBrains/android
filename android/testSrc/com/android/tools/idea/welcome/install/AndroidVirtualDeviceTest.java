@@ -26,6 +26,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.device.DeviceArtDescriptor;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -85,6 +86,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override

@@ -244,7 +244,7 @@ public class AndroidVersionsInfo {
       runCallbacks.run();
     }, ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Refreshing Targets", null);
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),

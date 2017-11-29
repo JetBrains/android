@@ -37,21 +37,21 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
     checkTitle("res/layout/file.xml", null);
 
     UISettings uiSettings = UISettings.getInstance();
-    boolean prev = uiSettings.getHdeKnownExtensionInTabs();
+    boolean prev = uiSettings.getHideKnownExtensionInTabs();
     try {
-      uiSettings.setHdeKnownExtensionInTabs(false);
+      uiSettings.setHideKnownExtensionInTabs(false);
       checkTitle("res/layout-land/file.xml", "land/file.xml");
       checkTitle("res/layout-xlarge/file.xml", "xlarge/file.xml");
       checkTitle("res/values-large-hdpi/strings.xml", "large-hdpi/strings.xml");
 
-      uiSettings.setHdeKnownExtensionInTabs(true);
+      uiSettings.setHideKnownExtensionInTabs(true);
       checkTitle("res/layout-land/file.xml", "land/file");
       checkTitle("res/layout-xlarge/file.xml", "xlarge/file");
       checkTitle("res/values-large-hdpi/strings.xml", "large-hdpi/strings");
     }
     finally {
       // For later chained tests
-      uiSettings.setHdeKnownExtensionInTabs(prev);
+      uiSettings.setHideKnownExtensionInTabs(prev);
     }
   }
 

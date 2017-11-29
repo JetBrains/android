@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
@@ -202,6 +203,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     myFixture.setTestDataPath(getTestDataPath());
 
     dir = new File(createTempDir(), "project");
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   /**

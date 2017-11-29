@@ -161,6 +161,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
 
       ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
 
@@ -176,6 +178,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    myModules = null;
+    myAndroidFacet = null;
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
@@ -333,7 +337,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
-    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(Lists.newArrayList(tasks)));
+    File projectDir = getBaseDirPath(project);
+    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks)));
   }
 
   @NotNull

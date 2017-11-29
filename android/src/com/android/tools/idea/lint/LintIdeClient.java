@@ -739,10 +739,6 @@ public class LintIdeClient extends LintClient implements Disposable {
         if (document != null) {
           final DocumentListener listener = new DocumentListener() {
             @Override
-            public void beforeDocumentChange(DocumentEvent event) {
-            }
-
-            @Override
             public void documentChanged(DocumentEvent event) {
               myState.markDirty();
             }

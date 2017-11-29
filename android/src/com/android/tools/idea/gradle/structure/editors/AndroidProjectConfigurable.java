@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -95,12 +94,6 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
   @Override
   public String getDisplayName() {
     return DISPLAY_NAME;
-  }
-
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
   }
 
   @Override
@@ -181,10 +174,6 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
     }
     myKeyValuePane.setCurrentBuildFileObject(myProjectProperties);
     myKeyValuePane.updateUiFromCurrentObject();
-  }
-
-  @Override
-  public void disposeUIResources() {
   }
 
   @Nullable

@@ -16,18 +16,20 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.List;
 
 public class DefaultGradleBuilder implements BeforeRunBuilder {
-  private final List<String> myTasks;
+  private final ListMultimap<Path, String> myTasks;
   private final BuildMode myBuildMode;
 
-  public DefaultGradleBuilder(@NotNull List<String> tasks, @Nullable BuildMode buildMode) {
+  public DefaultGradleBuilder(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode) {
     myTasks = tasks;
     myBuildMode = buildMode;
   }

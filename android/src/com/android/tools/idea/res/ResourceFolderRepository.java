@@ -987,9 +987,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myPendingScans.add(psiFile);
     }
     ApplicationManager.getApplication().invokeLater(() -> {
-      if (!psiFile.isValid()) {
-        return;
-      }
 
       ApplicationManager.getApplication().runWriteAction(() -> {
         boolean rescan;
@@ -1046,6 +1043,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ApplicationManager.getApplication().runReadAction(() -> rescanImmediately(psiFile, folderType));
       return;
     }
+
+    if (psiFile.getProject().isDisposed()) return;
 
     PsiFile file = psiFile;
     if (folderType == VALUES) {

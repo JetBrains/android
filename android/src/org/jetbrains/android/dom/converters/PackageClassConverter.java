@@ -21,6 +21,7 @@ import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
+import com.intellij.ide.hierarchy.JavaHierarchyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -240,8 +241,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   @Nullable
   public static String getPackageName(@NotNull PsiClass psiClass) {
-    final PsiFile file = psiClass.getContainingFile();
-    return file instanceof PsiClassOwner ? ((PsiClassOwner)file).getPackageName() : null;
+    return JavaHierarchyUtil.getPackageName(psiClass);
   }
 
   @Nullable

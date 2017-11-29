@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-;
-
 /**
  * A parser for errors that occur during XML validation of various resource source files. They are of the form:
  * <p/>
