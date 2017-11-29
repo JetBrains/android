@@ -43,6 +43,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -305,6 +306,7 @@ public class NavSceneTest extends NavigationTestCase {
 
     UndoManager undoManager = UndoManager.getInstance(getProject());
     undoManager.undo(editor);
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
     model.notifyModified(NlModel.ChangeType.EDIT);
     model.getSurface().getSceneManager().update();
     list.clear();
