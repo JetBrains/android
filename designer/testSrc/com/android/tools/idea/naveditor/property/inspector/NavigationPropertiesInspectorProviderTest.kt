@@ -30,8 +30,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
 class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
 
-  private lateinit var model : SyncNlModel
-  private lateinit var propertiesManager : NavPropertiesManager
+  private lateinit var model: SyncNlModel
+  private lateinit var propertiesManager: NavPropertiesManager
 
   override fun setUp() {
     super.setUp()
@@ -66,7 +66,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     val inspector = inspectorProvider.createCustomInspector(f1Only, properties, propertiesManager)
 
     assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, nameProperty, labelProperty))
-    assertInstanceOf(inspector.editors.first {it.property == typeProperty}, NonEditableEditor::class.java)
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
   }
 
   fun testActionInspector() {
@@ -81,19 +81,23 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     val documentProperty = SimpleProperty(ATTR_DOCUMENT, a1Only)
     val clearTaskProperty = SimpleProperty(ATTR_CLEAR_TASK, a1Only)
     val destinationProperty = SimpleProperty(NavigationSchema.ATTR_DESTINATION, a1Only)
+    val popToProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO, a1Only)
+    val popToInclusiveProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, a1Only)
     // TODO: add more properties once they're fully supported
 
     val properties =
-        listOf(typeProperty, idProperty, destinationProperty, clearTaskProperty, singleTopProperty, documentProperty, dummyProperty)
+        listOf(typeProperty, idProperty, destinationProperty, clearTaskProperty, singleTopProperty, documentProperty, popToProperty,
+            popToInclusiveProperty, dummyProperty)
             .associateBy { it.name }
 
     assertTrue(inspectorProvider.isApplicable(a1Only, properties, propertiesManager))
     val inspector = inspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
 
     assertSameElements(inspector.editors.map { it.property },
-        listOf(idProperty, typeProperty, documentProperty, singleTopProperty, clearTaskProperty, destinationProperty))
-    assertInstanceOf(inspector.editors.first {it.property == typeProperty}, NonEditableEditor::class.java)
-    assertInstanceOf(inspector.editors.first {it.property == destinationProperty}, VisibleDestinationsEditor::class.java)
+        listOf(idProperty, typeProperty, documentProperty, singleTopProperty, clearTaskProperty, destinationProperty,
+            popToInclusiveProperty, popToProperty))
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
+    assertInstanceOf(inspector.editors.first { it.property == destinationProperty }, VisibleDestinationsEditor::class.java)
   }
 
   fun testNavigationInspector() {
@@ -116,8 +120,8 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
 
     assertSameElements(inspector.editors.map { it.property },
         listOf(idProperty, typeProperty, nameProperty, labelProperty, startDestinationProperty))
-    assertInstanceOf(inspector.editors.first {it.property == typeProperty}, NonEditableEditor::class.java)
-    assertInstanceOf(inspector.editors.first {it.property == startDestinationProperty}, ChildDestinationsEditor::class.java)
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
+    assertInstanceOf(inspector.editors.first { it.property == startDestinationProperty }, ChildDestinationsEditor::class.java)
   }
 
 }
