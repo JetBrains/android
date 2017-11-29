@@ -241,7 +241,7 @@ public class PalettePanelTest extends LayoutTestCase {
     ActionEvent event = mock(ActionEvent.class);
 
     listener.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   public void testDragAndDropAreLoggedForAnalytics() throws Exception {
@@ -356,7 +356,7 @@ public class PalettePanelTest extends LayoutTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAndroidDocAction().actionPerformed(event);
 
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull(), isNull());
   }
 
   public void testOpenMaterialDesignDocumentation() throws Exception {
@@ -367,7 +367,7 @@ public class PalettePanelTest extends LayoutTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getMaterialDocAction().actionPerformed(event);
 
-    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull(), isNull());
   }
 
   @NotNull
