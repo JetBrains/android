@@ -19,22 +19,13 @@ import com.android.annotations.Nullable;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
-import com.intellij.testFramework.EdtRule;
-import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.SearchTextField;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -49,49 +40,53 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunsInEdt
-@RunWith(JUnit4.class)
-@Ignore("IJ2017.3: Mock applications cannot be used as they will break the application framework")
-public class AttachedToolWindowTest {
-  @Rule
-  public FrameworkRule myFrameworkRule = new FrameworkRule();
-  @Rule
-  public EdtRule edtRule = new EdtRule();
-  @Mock
-  private AttachedToolWindow.ButtonDragListener<String> myDragListener;
-  @Mock
-  private SideModel<String> myModel;
+public class AttachedToolWindowTest extends WorkBenchTestCase {
+  @Mock private AttachedToolWindow.ButtonDragListener<String> myDragListener;
+  @Mock private SideModel<String> myModel;
+  @Mock private ActionManagerEx myActionManager;
+  @Mock private ActionPopupMenu myActionPopupMenu;
+  @Mock private JPopupMenu myPopupMenu;
 
-  private ActionManager myActionManager;
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
   private AttachedToolWindow<String> myToolWindow;
 
-  @Before
-  public void before() {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     initMocks(this);
-    Project project = ProjectManager.getInstance().getDefaultProject();
-    when(myModel.getProject()).thenReturn(project);
+    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
+    when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
+    when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
+    when(myActionManager.getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(new SomeAction("ClearText"));
+    when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
+    when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
+
+    when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
-    myActionManager = ActionManager.getInstance();
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, "DESIGNER", myModel);
   }
 
-  @After
-  public void after() {
-    if (myToolWindow != null) {
-      Disposer.dispose(myToolWindow);
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      if (myToolWindow != null) {
+        Disposer.dispose(myToolWindow);
+      }
+    }
+    finally {
+      super.tearDown();
     }
   }
 
-  @Test
   public void testDefault() {
     assertThat(myToolWindow.getToolName()).isEqualTo("PALETTE");
     assertThat(myToolWindow.getDefinition()).isSameAs(myDefinition);
   }
 
-  @Test
   public void testToolOrder() {
     myToolWindow.setToolOrder(77);
     assertThat(myToolWindow.getToolOrder()).isEqualTo(77);
@@ -99,13 +94,11 @@ public class AttachedToolWindowTest {
     assertThat(myToolWindow.getToolOrder()).isEqualTo(3);
   }
 
-  @Test
   public void testContext() {
     when(myModel.getContext()).thenReturn("Studio");
     assertThat(myToolWindow.getContext()).isEqualTo("Studio");
   }
 
-  @Test
   public void testContentContext() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assertThat(panel).isNotNull();
@@ -115,7 +108,6 @@ public class AttachedToolWindowTest {
     assertThat(panel.getToolContext()).isEqualTo("Google");
   }
 
-  @Test
   public void testDefaultPropertyValues() {
     assertThat(myToolWindow.isLeft()).isTrue();
     assertThat(myToolWindow.isMinimized()).isFalse();
@@ -130,7 +122,6 @@ public class AttachedToolWindowTest {
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isFalse();
   }
 
-  @Test
   public void testGettersAndSetters() {
     myToolWindow.setLeft(false);
     assertThat(myToolWindow.isLeft()).isFalse();
@@ -153,7 +144,6 @@ public class AttachedToolWindowTest {
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue();
   }
 
-  @Test
   public void testSetPropertyAndUpdateWillNotifyModelAndChangeContent() {
     myToolWindow.setPropertyAndUpdate(PropertyType.LEFT, false);
     assertThat(myToolWindow.isLeft()).isFalse();
@@ -186,7 +176,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
-  @Test
   public void testMinimizeAutoHideIsNotGlobal() {
     myToolWindow.setAutoHide(true);
     myToolWindow.setMinimized(true);
@@ -197,7 +186,6 @@ public class AttachedToolWindowTest {
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isFalse();
   }
 
-  @Test
   public void testAutoClose() {
     myToolWindow.setAutoHide(true);
     myToolWindow.setMinimized(false);
@@ -208,7 +196,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
 
-  @Test
   public void testRestore() {
     myToolWindow.setMinimized(true);
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
@@ -218,7 +205,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
 
-  @Test
   public void testRestoreDefaultLayout() {
     myToolWindow.setMinimized(true);
     myToolWindow.setLeft(false);
@@ -233,7 +219,6 @@ public class AttachedToolWindowTest {
     assertThat(myToolWindow.isAutoHide()).isFalse();
   }
 
-  @Test
   public void testStoreAndRestoreDefaultLayout() {
     myToolWindow.setMinimized(true);
     myToolWindow.setLeft(false);
@@ -255,7 +240,6 @@ public class AttachedToolWindowTest {
     assertThat(myToolWindow.isAutoHide()).isTrue();
   }
 
-  @Test
   public void testDraggedEvent() {
     AbstractButton button = myToolWindow.getMinimizedButton();
     button.setSize(20, 50);
@@ -272,7 +256,6 @@ public class AttachedToolWindowTest {
     assertThat(((JLabel)dragEvent.getDragImage()).getIcon()).isNotNull();
   }
 
-  @Test
   public void testDropEvent() {
     AbstractButton button = myToolWindow.getMinimizedButton();
     button.setSize(20, 50);
@@ -291,7 +274,6 @@ public class AttachedToolWindowTest {
     assertThat(((JLabel)dragEvent.getDragImage()).getIcon()).isNotNull();
   }
 
-  @Test
   public void testButtonClickTogglesMinimizedState() {
     myToolWindow.setMinimized(false);
     AbstractButton button = myToolWindow.getMinimizedButton();
@@ -307,7 +289,6 @@ public class AttachedToolWindowTest {
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
 
-  @Test
   public void testAddedGearActionFromButtonRightClick() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
@@ -319,7 +300,6 @@ public class AttachedToolWindowTest {
     assertThat(panel.isGearActionPerformed()).isTrue();
   }
 
-  @Test
   public void testSelectLeftFromButtonRightClick() {
     myToolWindow.setLeft(false);
 
@@ -331,7 +311,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.LEFT));
   }
 
-  @Test
   public void testSelectRightFromButtonRightClick() {
     myToolWindow.setLeft(true);
 
@@ -343,7 +322,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.LEFT));
   }
 
-  @Test
   public void testSelectSwapFromButtonRightClick() {
     myToolWindow.setLeft(true);
 
@@ -354,7 +332,6 @@ public class AttachedToolWindowTest {
     verify(myModel).swap();
   }
 
-  @Test
   public void testToggleDockModeFromButtonRightClick() {
     myToolWindow.setAutoHide(false);
 
@@ -371,7 +348,6 @@ public class AttachedToolWindowTest {
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.AUTO_HIDE));
   }
 
-  @Test
   public void testToggleFloatingModeFromButtonRightClick() {
     myToolWindow.setFloating(false);
 
@@ -390,7 +366,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
-  @Test
   public void testToggleAttachedModeFromButtonRightClick() {
     AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "None");
     assertThat(action).isNotNull();
@@ -401,7 +376,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
-  @Test
   public void testToggleSplitModeFromButtonRightClick() {
     myToolWindow.setSplit(false);
 
@@ -418,7 +392,6 @@ public class AttachedToolWindowTest {
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.SPLIT));
   }
 
-  @Test
   public void testHideFromButtonInHeader() {
     myToolWindow.setFloating(false);
 
@@ -430,7 +403,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
 
-  @Test
   public void testAdditionalActionFromButtonInHeader() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
@@ -442,7 +414,6 @@ public class AttachedToolWindowTest {
     assertThat(panel.isAdditionalActionPerformed()).isTrue();
   }
 
-  @Test
   public void testSelectLeftFromGearButtonInHeader() {
     myToolWindow.setLeft(false);
 
@@ -454,7 +425,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.LEFT));
   }
 
-  @Test
   public void testSelectRightFromGearButtonInHeader() {
     myToolWindow.setLeft(true);
 
@@ -466,7 +436,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.LEFT));
   }
 
-  @Test
   public void testSelectSwapFromGearButtonInHeader() {
     myToolWindow.setLeft(true);
 
@@ -477,7 +446,6 @@ public class AttachedToolWindowTest {
     verify(myModel).swap();
   }
 
-  @Test
   public void testToggleDockModeFromGearButtonInHeader() {
     myToolWindow.setAutoHide(false);
 
@@ -494,7 +462,6 @@ public class AttachedToolWindowTest {
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.AUTO_HIDE));
   }
 
-  @Test
   public void testToggleFloatingModeFromGearButtonInHeader() {
     myToolWindow.setFloating(false);
 
@@ -513,7 +480,6 @@ public class AttachedToolWindowTest {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
   }
 
-  @Test
   public void testToggleSplitModeFromGearButtonInHeader() {
     myToolWindow.setSplit(false);
 
@@ -530,7 +496,6 @@ public class AttachedToolWindowTest {
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.SPLIT));
   }
 
-  @Test
   public void testSearchButtonInHeader() {
     JLabel header = findHeaderLabel(myToolWindow.getComponent());
     assertThat(header.isVisible()).isTrue();
@@ -549,7 +514,6 @@ public class AttachedToolWindowTest {
     assertThat(searchField.isVisible()).isFalse();
   }
 
-  @Test
   public void testSearchTextChangesAreSentToContent() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assertThat(panel).isNotNull();
@@ -561,7 +525,6 @@ public class AttachedToolWindowTest {
     assertThat(panel.getFilter()).isEqualTo("el");
   }
 
-  @Test
   public void testAcceptedSearchesAreStoredInHistory() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assertThat(panel).isNotNull();
@@ -584,8 +547,7 @@ public class AttachedToolWindowTest {
       .isEqualTo("contex\nvisible\neleva");
   }
 
-  @Test
-  public void startSearching() {
+  public void testStartSearching() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
     panel.startFiltering('b');
@@ -595,7 +557,6 @@ public class AttachedToolWindowTest {
     assertThat(searchField.getText()).isEqualTo("b");
   }
 
-  @Test
   public void testEscapeClosesSearchFieldIfTextIsEmpty() {
     findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
@@ -604,7 +565,6 @@ public class AttachedToolWindowTest {
     assertThat(searchField.isVisible()).isFalse();
   }
 
-  @Test
   public void testContentIsDisposed() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
@@ -613,7 +573,6 @@ public class AttachedToolWindowTest {
     assertThat(panel.isDisposed()).isTrue();
   }
 
-  @Test
   public void testDefaultValueDoesNotOverrideActualValue() {
     myToolWindow.setDefaultProperty(PropertyType.SPLIT, false);
     myToolWindow.setProperty(PropertyType.SPLIT, true);
@@ -758,6 +717,16 @@ public class AttachedToolWindowTest {
     FocusEvent event = mock(FocusEvent.class);
     for (FocusListener listener : component.getFocusListeners()) {
       listener.focusLost(event);
+    }
+  }
+
+  private static class SomeAction extends AnAction {
+    private SomeAction(@NotNull String title) {
+      super(title);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
     }
   }
 }
