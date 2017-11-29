@@ -178,8 +178,6 @@ iml_module(
         "block-network",
         "no_test_mac",
         "no_test_windows",
-        "manual",
-        "ij2017.3",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
