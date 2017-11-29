@@ -23,6 +23,10 @@ iml_module(
         "//tools/vendor/intellij/cidr:doxygen",
     ],
     test_srcs = ["testSrc"],
+    test_tags = [
+        "manual",
+        "ij2017.3",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
