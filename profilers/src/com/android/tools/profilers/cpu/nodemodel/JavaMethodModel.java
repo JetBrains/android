@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents characteristics of Java methods.
  */
-public class JavaMethodModel implements MethodModel {
+public class JavaMethodModel implements CaptureNodeModel {
   @NotNull private final String myName;
 
   /**

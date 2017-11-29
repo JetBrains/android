@@ -365,7 +365,7 @@ public class BottomUpNodeTest {
 
   private static CaptureNode newNode(String method, long start, long end, boolean unmatched) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new SingleNameModel(method));
+    node.setCaptureNodeModel(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     node.setStartThread(start);

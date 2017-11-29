@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.DummyModel;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -137,7 +137,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     // then the second method can't be outerSoFar.
     // It's used to exclude nodes which aren't at the top of the
     // call stack from the total time calculation.
-    HNode<MethodModel> outerSoFar = null;
+    HNode<CaptureNodeModel> outerSoFar = null;
 
     // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first
@@ -165,12 +165,12 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
 
   @NotNull
   @Override
-  public MethodModel getMethodModel() {
+  public CaptureNodeModel getMethodModel() {
     if (myIsRoot) {
       // Return a dummy entry for the root.
       return new DummyModel();
     }
-    MethodModel model = myPathNodes.get(0).getData();
+    CaptureNodeModel model = myPathNodes.get(0).getData();
     assert model != null;
     return model;
   }

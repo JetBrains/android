@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 /**
  * Represents characteristics of Native functions.
  */
-public class NativeFunctionModel implements MethodModel {
+public class NativeFunctionModel implements CaptureNodeModel {
 
   /**
    * Pattern used to separate method parameters.

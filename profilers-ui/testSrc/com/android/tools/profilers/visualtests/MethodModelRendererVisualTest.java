@@ -24,7 +24,7 @@ import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.nodemodel.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +44,8 @@ public class MethodModelRendererVisualTest extends VisualTest {
 
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
 
-  private HTreeChart<MethodModel> myArtChart;
-  private HTreeChart<MethodModel> mySimpleperfChart;
+  private HTreeChart<CaptureNodeModel> myArtChart;
+  private HTreeChart<CaptureNodeModel> mySimpleperfChart;
   private Range myArtRange = new Range();
   private Range mySimpleperfRange = new Range();
 

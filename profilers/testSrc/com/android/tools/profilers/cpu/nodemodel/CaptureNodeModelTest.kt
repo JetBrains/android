@@ -16,7 +16,7 @@ package com.android.tools.profilers.cpu.nodemodel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class MethodModelTest {
+class CaptureNodeModelTest {
 
   @Test
   fun testDummyAndSingleNameModels() {
