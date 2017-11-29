@@ -64,6 +64,7 @@
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </group>
 
+    <!--
     <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
             class="com.android.tools.idea.apk.ImportApkAction">
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
@@ -73,6 +74,7 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
+    -->
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
