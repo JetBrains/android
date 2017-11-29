@@ -21,9 +21,9 @@ import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiLanguageInjectionHost.Shred
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil.enumerate
+import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.junit.Assert.*
 
 private fun JavaCodeInsightTestFixture.checkNoInjection(text: String) {
@@ -134,13 +134,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
 class OtherApisInjectionTest : RoomLightTestCase() {
 
-  override fun setUp() {
-    super.setUp()
-
-    if (AndroidFacet.getInstance(myModule) == null) {
-      AndroidTestCase.addAndroidFacet(myModule)
-    }
-  }
+  override fun getProjectDescriptor(): LightProjectDescriptor = AndroidFacetProjectDescriptor
 
   fun testSqliteDatabase() {
     myFixture.addClass(

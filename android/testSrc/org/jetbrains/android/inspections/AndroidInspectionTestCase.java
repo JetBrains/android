@@ -20,26 +20,20 @@ import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.siyeh.ig.LightInspectionTestCase;
+import org.jetbrains.android.AndroidFacetProjectDescriptor;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("StatementWithEmptyBody")
 public abstract class AndroidInspectionTestCase extends LightInspectionTestCase {
 
+  @NotNull
   @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
-    // Add Android facet such that API lookup becomes relevant
-    if (AndroidFacet.getInstance(myModule) == null) {
-      AndroidTestCase.addAndroidFacet(myModule);
-      Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-      assertNotNull(sdk);
-      @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
-      ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-      sdkModificator.commitChanges();
-    }
+  protected LightProjectDescriptor getProjectDescriptor() {
+    return AndroidFacetProjectDescriptor.INSTANCE;
   }
 
   protected void addManifest(int minApi) {
