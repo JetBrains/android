@@ -104,10 +104,10 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
     tags = [
         "block-network",
+        "manual",  # Breaks after IJ2017.3 merge
         "no_mac",
         "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    test_tags = ["manual"],  # Breaks after IJ2017.3 merge
     runtime_deps = [":android-uitests_testlib"],
 )
