@@ -58,10 +58,6 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/idea/plugins/maven:maven2-server-impl"],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "manual",
-        "ij2017.3",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

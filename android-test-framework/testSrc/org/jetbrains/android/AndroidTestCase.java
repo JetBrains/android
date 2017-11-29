@@ -72,7 +72,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -295,7 +294,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return addAndroidFacet(module, true);
   }
 
-  private static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+  public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
     Sdk sdk;
     if (attachSdk) {
       sdk = addLatestAndroidSdk(module);
