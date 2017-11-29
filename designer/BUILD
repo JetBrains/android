@@ -89,6 +89,8 @@ iml_module(
         "slow",
         "cpu:3",
         "block-network",
+        "manual",
+        "ij2017.3",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
