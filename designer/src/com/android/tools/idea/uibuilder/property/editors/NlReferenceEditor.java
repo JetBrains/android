@@ -426,7 +426,11 @@ public class NlReferenceEditor extends BaseComponentEditor {
 
   @Override
   public void requestFocus() {
-    myTextEditorWithAutoCompletion.requestFocus();
+    if (myTextEditorWithAutoCompletion.getEditor() != null) {
+      // When running in unit test, the Editor is not created and requesting the focus will result in an
+      // endless loop
+      myTextEditorWithAutoCompletion.requestFocus();
+    }
     myTextEditorWithAutoCompletion.selectAll();
     myTextEditorWithAutoCompletion.scrollRectToVisible(myTextEditorWithAutoCompletion.getBounds());
   }
