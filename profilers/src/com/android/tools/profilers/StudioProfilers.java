@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -116,11 +117,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.enter();
 
     myUpdater = new Updater(timer);
-    myProfilers = ImmutableList.of(
-      new EventProfiler(this),
-      new CpuProfiler(this),
-      new MemoryProfiler(this),
-      new NetworkProfiler(this));
+    ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
+    profilersBuilder.add(new EventProfiler(this));
+    profilersBuilder.add(new CpuProfiler(this));
+    profilersBuilder.add(new MemoryProfiler(this));
+    profilersBuilder.add(new NetworkProfiler(this));
+    if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
+      profilersBuilder.add(new EnergyProfiler(this));
+    }
+    myProfilers = profilersBuilder.build();
 
     myRelativeTimeConverter = new RelativeTimeConverter(0);
     myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
