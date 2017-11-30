@@ -21,16 +21,17 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
-public interface RoomJoinClause extends PsiElement {
+public interface RoomSelectSubquery extends SqlTableElement {
 
-  @NotNull
-  List<RoomJoinConstraint> getJoinConstraintList();
+  @Nullable
+  RoomTableAliasName getTableAliasName();
 
-  @NotNull
-  List<RoomJoinOperator> getJoinOperatorList();
+  @Nullable
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
-  @NotNull
-  List<RoomTableOrSubquery> getTableOrSubqueryList();
+  @Nullable
+  SqlTable getSqlTable();
 
 }

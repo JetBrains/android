@@ -28,6 +28,9 @@ public interface RoomTableOrSubquery extends PsiElement {
   RoomFromTable getFromTable();
 
   @Nullable
-  RoomSubquery getSubquery();
+  RoomSelectSubquery getSelectSubquery();
+
+  @Nullable
+  RoomTableOrSubquery getTableOrSubquery();
 
 }

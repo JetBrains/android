@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomReindexStatement extends RoomStatement {
+public interface RoomReindexStatement extends PsiElement {
 
   @Nullable
   RoomCollationName getCollationName();

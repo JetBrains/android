@@ -27,16 +27,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
-public class RoomSubqueryImpl extends ASTWrapperPsiElement implements RoomSubquery {
+public class RoomWithClauseStatementImpl extends ASTWrapperPsiElement implements RoomWithClauseStatement {
 
-  public RoomSubqueryImpl(ASTNode node) {
+  public RoomWithClauseStatementImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitSubquery(this);
+    visitor.visitWithClauseStatement(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,20 +44,33 @@ public class RoomSubqueryImpl extends ASTWrapperPsiElement implements RoomSubque
   }
 
   @Override
-  @NotNull
-  public RoomSelectStatement getSelectStatement() {
-    return findNotNullChildByClass(RoomSelectStatement.class);
+  @Nullable
+  public RoomDeleteStatement getDeleteStatement() {
+    return findChildByClass(RoomDeleteStatement.class);
   }
 
   @Override
   @Nullable
-  public RoomTableAliasName getTableAliasName() {
-    return findChildByClass(RoomTableAliasName.class);
+  public RoomInsertStatement getInsertStatement() {
+    return findChildByClass(RoomInsertStatement.class);
   }
 
+  @Override
   @Nullable
-  public SqlTable getSqlTable() {
-    return PsiImplUtil.getSqlTable(this);
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomUpdateStatement getUpdateStatement() {
+    return findChildByClass(RoomUpdateStatement.class);
+  }
+
+  @Override
+  @NotNull
+  public RoomWithClause getWithClause() {
+    return findNotNullChildByClass(RoomWithClause.class);
   }
 
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomRollbackStatement extends RoomStatement {
+public interface RoomRollbackStatement extends PsiElement {
 
   @Nullable
   RoomSavepointName getSavepointName();

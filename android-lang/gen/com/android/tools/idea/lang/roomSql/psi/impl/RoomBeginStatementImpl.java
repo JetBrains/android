@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomBeginStatementImpl extends RoomStatementImpl implements RoomBeginStatement {
+public class RoomBeginStatementImpl extends ASTWrapperPsiElement implements RoomBeginStatement {
 
   public RoomBeginStatementImpl(ASTNode node) {
     super(node);

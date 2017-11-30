@@ -24,7 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomExistsExpression extends RoomExpression {
 
-  @NotNull
-  RoomSelectStatement getSelectStatement();
+  @Nullable
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

@@ -43,9 +43,9 @@ public class RoomExistsExpressionImpl extends RoomExpressionImpl implements Room
   }
 
   @Override
-  @NotNull
-  public RoomSelectStatement getSelectStatement() {
-    return findNotNullChildByClass(RoomSelectStatement.class);
+  @Nullable
+  public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
+    return findChildByClass(RoomWithClauseSelectStatement.class);
   }
 
 }

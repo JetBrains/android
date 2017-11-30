@@ -78,7 +78,6 @@ public interface RoomPsiTypes {
   IElementType INSERT_STATEMENT = new RoomAstNodeType("INSERT_STATEMENT");
   IElementType IN_EXPRESSION = new RoomAstNodeType("IN_EXPRESSION");
   IElementType ISNULL_EXPRESSION = new RoomAstNodeType("ISNULL_EXPRESSION");
-  IElementType JOIN_CLAUSE = new RoomAstNodeType("JOIN_CLAUSE");
   IElementType JOIN_CONSTRAINT = new RoomAstNodeType("JOIN_CONSTRAINT");
   IElementType JOIN_OPERATOR = new RoomAstNodeType("JOIN_OPERATOR");
   IElementType LIKE_EXPRESSION = new RoomAstNodeType("LIKE_EXPRESSION");
@@ -107,10 +106,9 @@ public interface RoomPsiTypes {
   IElementType SELECT_CORE_SELECT = new RoomAstNodeType("SELECT_CORE_SELECT");
   IElementType SELECT_CORE_VALUES = new RoomAstNodeType("SELECT_CORE_VALUES");
   IElementType SELECT_STATEMENT = new RoomAstNodeType("SELECT_STATEMENT");
+  IElementType SELECT_SUBQUERY = new RoomAstNodeType("SELECT_SUBQUERY");
   IElementType SIGNED_NUMBER = new RoomAstNodeType("SIGNED_NUMBER");
   IElementType SINGLE_TABLE_STATEMENT_TABLE = new RoomAstNodeType("SINGLE_TABLE_STATEMENT_TABLE");
-  IElementType STATEMENT = new RoomAstNodeType("STATEMENT");
-  IElementType SUBQUERY = new RoomAstNodeType("SUBQUERY");
   IElementType TABLE_ALIAS_NAME = new RoomAstNodeType("TABLE_ALIAS_NAME");
   IElementType TABLE_CONSTRAINT = new RoomAstNodeType("TABLE_CONSTRAINT");
   IElementType TABLE_DEFINITION_NAME = new RoomAstNodeType("TABLE_DEFINITION_NAME");
@@ -124,6 +122,8 @@ public interface RoomPsiTypes {
   IElementType VIEW_NAME = new RoomAstNodeType("VIEW_NAME");
   IElementType WHERE_CLAUSE = new RoomAstNodeType("WHERE_CLAUSE");
   IElementType WITH_CLAUSE = new RoomAstNodeType("WITH_CLAUSE");
+  IElementType WITH_CLAUSE_SELECT_STATEMENT = new RoomAstNodeType("WITH_CLAUSE_SELECT_STATEMENT");
+  IElementType WITH_CLAUSE_STATEMENT = new RoomAstNodeType("WITH_CLAUSE_STATEMENT");
   IElementType WITH_CLAUSE_TABLE = new RoomAstNodeType("WITH_CLAUSE_TABLE");
   IElementType WITH_CLAUSE_TABLE_DEF = new RoomAstNodeType("WITH_CLAUSE_TABLE_DEF");
 
@@ -446,9 +446,6 @@ public interface RoomPsiTypes {
       else if (type == ISNULL_EXPRESSION) {
         return new RoomIsnullExpressionImpl(node);
       }
-      else if (type == JOIN_CLAUSE) {
-        return new RoomJoinClauseImpl(node);
-      }
       else if (type == JOIN_CONSTRAINT) {
         return new RoomJoinConstraintImpl(node);
       }
@@ -533,17 +530,14 @@ public interface RoomPsiTypes {
       else if (type == SELECT_STATEMENT) {
         return new RoomSelectStatementImpl(node);
       }
+      else if (type == SELECT_SUBQUERY) {
+        return new RoomSelectSubqueryImpl(node);
+      }
       else if (type == SIGNED_NUMBER) {
         return new RoomSignedNumberImpl(node);
       }
       else if (type == SINGLE_TABLE_STATEMENT_TABLE) {
         return new RoomSingleTableStatementTableImpl(node);
-      }
-      else if (type == STATEMENT) {
-        return new RoomStatementImpl(node);
-      }
-      else if (type == SUBQUERY) {
-        return new RoomSubqueryImpl(node);
       }
       else if (type == TABLE_ALIAS_NAME) {
         return new RoomTableAliasNameImpl(node);
@@ -583,6 +577,12 @@ public interface RoomPsiTypes {
       }
       else if (type == WITH_CLAUSE) {
         return new RoomWithClauseImpl(node);
+      }
+      else if (type == WITH_CLAUSE_SELECT_STATEMENT) {
+        return new RoomWithClauseSelectStatementImpl(node);
+      }
+      else if (type == WITH_CLAUSE_STATEMENT) {
+        return new RoomWithClauseStatementImpl(node);
       }
       else if (type == WITH_CLAUSE_TABLE) {
         return new RoomWithClauseTableImpl(node);

@@ -22,6 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomVacuumStatement extends RoomStatement {
+public interface RoomVacuumStatement extends PsiElement {
 
 }
