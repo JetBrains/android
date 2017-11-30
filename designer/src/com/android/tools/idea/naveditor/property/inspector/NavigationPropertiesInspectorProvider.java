@@ -48,6 +48,7 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     SdkConstants.ATTR_NAME,
     NavigationSchema.ATTR_START_DESTINATION,
     NavigationSchema.ATTR_DESTINATION,
+    NavigationSchema.ATTR_GRAPH,
     NavigationSchema.ATTR_SINGLE_TOP,
     NavigationSchema.ATTR_DOCUMENT,
     NavigationSchema.ATTR_CLEAR_TASK,
@@ -65,7 +66,8 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     .put(NavigationSchema.ATTR_DOCUMENT, "Document")
     .put(NavigationSchema.ATTR_CLEAR_TASK, "Clear Task")
     .put(NavigationSchema.ATTR_POP_UP_TO, "Pop To")
-    .put(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "Inclusive").build();
+    .put(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "Inclusive")
+    .put(NavigationSchema.ATTR_GRAPH, "Source").build();
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 
