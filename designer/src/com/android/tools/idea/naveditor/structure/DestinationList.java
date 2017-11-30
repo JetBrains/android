@@ -23,13 +23,16 @@ import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
@@ -86,26 +89,28 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     setLayout(new BorderLayout());
     myList = new JBList<>(myListModel);
     myList.setName("DestinationList");
-    myList.setCellRenderer(new DefaultListCellRenderer() {
+    myList.setCellRenderer(new ColoredListCellRenderer<NlComponent>() {
       @Override
-      public Component getListCellRendererComponent(final JList list,
-                                                    final Object value,
-                                                    final int index,
-                                                    final boolean isSelected,
-                                                    final boolean cellHasFocus) {
-        final Component result = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        NlComponent component = (NlComponent)value;
-        String label = NavComponentHelperKt.getUiName(component, myResourceResolver);
-        setText(label);
-        Icon icon = AndroidIcons.NavEditorIcons.Destination;
+      protected void customizeCellRenderer(@NotNull JList<? extends NlComponent> list,
+                                           NlComponent component,
+                                           int index,
+                                           boolean isSelected,
+                                           boolean cellHasFocus) {
+        append(NavComponentHelperKt.getUiName(component, myResourceResolver));
+        if (NavComponentHelperKt.isStartDestination(component)) {
+          append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        }
+        Icon icon = StudioIcons.NavEditor.Tree.FRAGMENT;
         if (component.getTagName().equals(NavigationSchema.TAG_INCLUDE)) {
-          icon = AndroidIcons.NavEditorIcons.DestinationInclude;
+          icon = StudioIcons.NavEditor.Tree.INCLUDE_GRAPH;
+        }
+        else if (NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.ACTIVITY) {
+          icon = StudioIcons.NavEditor.Tree.ACTIVITY;
         }
         else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
-          icon = AndroidIcons.NavEditorIcons.DestinationGroup;
+          icon = StudioIcons.NavEditor.Tree.NESTED_GRAPH;
         }
         setIcon(icon);
-        return result;
       }
     });
     InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
