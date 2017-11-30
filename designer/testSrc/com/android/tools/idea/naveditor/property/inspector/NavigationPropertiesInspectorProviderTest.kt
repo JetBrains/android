@@ -41,8 +41,9 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
                 .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
                     NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),
             NavModelBuilderUtil.fragmentComponent("f2"),
-            NavModelBuilderUtil.fragmentComponent("f3"),
-            NavModelBuilderUtil.activityComponent("activity")))
+            NavModelBuilderUtil.navigationComponent("subnav").unboundedChildren(
+                NavModelBuilderUtil.fragmentComponent("f3"),
+                NavModelBuilderUtil.activityComponent("activity"))))
         .build()
 
     propertiesManager = NavPropertiesManager(myFacet, model.surface)
@@ -100,7 +101,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     assertInstanceOf(inspector.editors.first { it.property == destinationProperty }, VisibleDestinationsEditor::class.java)
   }
 
-  fun testNavigationInspector() {
+  fun testRootNavigationInspector() {
     val inspectorProvider = NavigationPropertiesInspectorProvider()
 
     val root = listOf(model.find("root")!!)
@@ -122,6 +123,29 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
         listOf(idProperty, typeProperty, nameProperty, labelProperty, startDestinationProperty))
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
     assertInstanceOf(inspector.editors.first { it.property == startDestinationProperty }, ChildDestinationsEditor::class.java)
+  }
+
+  fun testSubnavNavigationInspector() {
+    val inspectorProvider = NavigationPropertiesInspectorProvider()
+
+    val root = listOf(model.find("subnav")!!)
+
+    val dummyProperty = SimpleProperty("foo", root)
+    val typeProperty = NavComponentTypeProperty(root)
+    val idProperty = SimpleProperty(ATTR_ID, root)
+    val nameProperty = SimpleProperty(ATTR_NAME, root)
+    val labelProperty = SimpleProperty(ATTR_LABEL, root)
+    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+
+    val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, startDestinationProperty, dummyProperty)
+        .associateBy { it.name }
+
+    assertTrue(inspectorProvider.isApplicable(root, properties, propertiesManager))
+    val inspector = inspectorProvider.createCustomInspector(root, properties, propertiesManager)
+
+    assertSameElements(inspector.editors.map { it.property },
+        listOf(idProperty, typeProperty, nameProperty, labelProperty))
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
   }
 
 }
