@@ -48,10 +48,10 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
       "prebuilts/studio/layoutlib",
       "prebuilts/studio/sdk");
 
-    setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
-    setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/data-binding/data_binding_runtime_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+    setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
 
     // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
     File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");

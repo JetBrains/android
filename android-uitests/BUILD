@@ -52,8 +52,8 @@ iml_module(
 java_test(
     name = "GuiTestRuleTest",
     data = [
-        "//tools/adt/idea/android:test_deps_repo.zip",
-        "//tools/adt/idea/android:android-gradle-1.5.0_repo_repo.zip",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:android-gradle-1.5.0_repo.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:constraint-layout_latest",
@@ -64,7 +64,7 @@ java_test(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/adt-ui/lib/libwebp",
-        "//tools/base/bazel:offline_repo_repo.zip",
+        "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
@@ -85,7 +85,7 @@ java_test(
 java_test(
     name = "DataBindingTest",
     data = [
-        "//tools/adt/idea/android:test_deps_repo.zip",
+        "//tools/adt/idea/android:test_deps.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:constraint-layout_latest",
@@ -94,8 +94,8 @@ java_test(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/adt-ui/lib/libwebp",
-        "//tools/base/bazel:offline_repo_repo.zip",
-        "//tools/data-binding:data_binding_runtime_repo.zip",
+        "//tools/base/build-system/gradle:offline_plugin.zip",
+        "//tools/data-binding:data_binding_runtime.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
