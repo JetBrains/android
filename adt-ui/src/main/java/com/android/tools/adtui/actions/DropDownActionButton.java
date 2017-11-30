@@ -16,17 +16,17 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.TextAccessor;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import java.awt.*;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
@@ -55,6 +55,7 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
                               @NotNull Presentation presentation,
                               @NotNull String place) {
     super(action, presentation, place, DEFAULT_MINIMUM_BUTTON_SIZE);
+    setForeground(JBColor.foreground());
   }
 
   @Override
@@ -66,14 +67,21 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
     Insets insets = getInsets();
-    DROP_DOWN_ICON.paintIcon(this, g, getWidth() - DROP_DOWN_ICON.getIconWidth() - insets.right,
-                             (getHeight() - DROP_DOWN_ICON.getIconHeight() - insets.bottom - insets.top) / 2);
+    if (shouldPaintArrow()) {
+      DROP_DOWN_ICON.paintIcon(this, g, getWidth() - DROP_DOWN_ICON.getIconWidth() - insets.right,
+                               (getHeight() - DROP_DOWN_ICON.getIconHeight() - insets.bottom - insets.top) / 2);
+    }
   }
 
   @Override
   public Dimension getPreferredSize() {
     Dimension size = super.getPreferredSize();
-    return new Dimension(size.width + DROP_DOWN_ICON.getIconWidth() + DROP_DOWN_ICON_SIZE_OFFSET, size.height);
+    if (shouldPaintArrow()) {
+      return new Dimension(size.width + DROP_DOWN_ICON.getIconWidth() + DROP_DOWN_ICON_SIZE_OFFSET, size.height);
+    }
+    else {
+      return size;
+    }
   }
 
   @Override
@@ -107,5 +115,9 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   @Override
   public String getText() {
     return myPresentation.getText();
+  }
+
+  private boolean shouldPaintArrow() {
+    return myAction instanceof ActionGroup && ((ActionGroup)myAction).getChildren(null).length > 1;
   }
 }
