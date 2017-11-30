@@ -13,12 +13,18 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.navigation;
 
+import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.model.TestPath;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 public class PsLibraryDependencyNavigationPathTest {
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(PsLibraryDependencyNavigationPath.class).verify();
+    EqualsVerifier
+      .forClass(PsLibraryDependencyNavigationPath.class)
+      .withPrefabValues(PsPath.class, new TestPath("a"), new TestPath("b"))
+      .withRedefinedSuperclass()
+      .verify();
   }
 }

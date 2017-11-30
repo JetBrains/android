@@ -123,7 +123,6 @@ public class PsAnalyzerDaemon extends PsDaemon {
 
         PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(dependency);
         PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
-        issue.setExtraPath(new PsModulePath(dependency.getParent()));
 
         PsLibraryDependencyVersionQuickFixPath quickFix =
           new PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]");

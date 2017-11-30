@@ -24,6 +24,7 @@ public final class PsModulePath extends PsPath {
   @NotNull private final String myModuleName;
 
   public PsModulePath(@NotNull PsModule module) {
+    super(null);
     myModuleName = module.getName();
   }
 
@@ -58,18 +59,15 @@ public final class PsModulePath extends PsPath {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PsModulePath that = (PsModulePath)o;
-    return Objects.equal(myModuleName, that.myModuleName);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    PsModulePath path = (PsModulePath)o;
+    return Objects.equal(myModuleName, path.myModuleName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName);
+    return Objects.hashCode(super.hashCode(), myModuleName);
   }
 }

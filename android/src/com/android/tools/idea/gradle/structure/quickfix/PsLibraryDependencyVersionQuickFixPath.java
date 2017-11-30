@@ -36,6 +36,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @NotNull private final String myQuickFixText;
 
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String quickFixText) {
+    super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     String version = dependency.getResolvedSpec().getVersion();
@@ -47,6 +48,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency,
                                                 @NotNull String version,
                                                 @NotNull String quickFixText) {
+    super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     myVersion = version;
@@ -85,6 +87,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
     PsLibraryDependencyVersionQuickFixPath path = (PsLibraryDependencyVersionQuickFixPath)o;
     return Objects.equal(myModuleName, path.myModuleName) &&
            Objects.equal(myDependency, path.myDependency) &&
@@ -94,6 +97,6 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName, myDependency, myVersion, myQuickFixText);
+    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myVersion, myQuickFixText);
   }
 }
