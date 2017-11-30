@@ -998,14 +998,14 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
 
-    if (!allowFixedPosition(component)) {
+    if (isGuideLine(component)) {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
   }
 
-  private static boolean allowFixedPosition(@NotNull NlComponent component) {
-    return !component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
+  public static boolean isGuideLine(@NotNull NlComponent component) {
+    return component.getTagName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE);
   }
 
   public static @Nullable

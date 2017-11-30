@@ -264,10 +264,37 @@
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
-    <item tag="android.support.constraint.Guideline" suggested="true"/>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (vertical)"
+          suggested="true"
+          id="VerticalGuideline"
+          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+    <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
           suggested="true"
+          id="HorizontalGuideline"
           icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ">
       <xml>
         <![CDATA[
