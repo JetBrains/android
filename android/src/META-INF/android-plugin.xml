@@ -64,7 +64,7 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.startup.DelayedInitialization</implementation-class>
+      <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
