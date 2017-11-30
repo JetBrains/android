@@ -22,7 +22,7 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
 
-class TableReferencesTest : LightRoomTestCase() {
+class TableReferencesTest : RoomLightTestCase() {
 
   fun testDefaultTableName() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")

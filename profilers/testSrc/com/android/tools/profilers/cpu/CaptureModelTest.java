@@ -178,13 +178,13 @@ public class CaptureModelTest {
   }
 
   private CaptureNode createNode(String fullMethodName, long start, long end) {
-    int index = fullMethodName.lastIndexOf(".");
+    int index = fullMethodName.lastIndexOf('.');
     assert index != -1;
     String className = fullMethodName.substring(0, index);
     String methodName = fullMethodName.substring(index + 1);
 
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(methodName, className, "", "."));
+    node.setMethodModel(new MethodModel.Builder(methodName).setJavaClassName(className).build());
     node.setClockType(ClockType.GLOBAL);
     node.setStartGlobal(start);
     node.setEndGlobal(end);

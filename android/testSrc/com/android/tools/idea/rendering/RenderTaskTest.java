@@ -30,7 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -273,6 +272,73 @@ public class RenderTaskTest extends AndroidTestCase {
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
     ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 0.1);
 
+    task.dispose().get(5, TimeUnit.SECONDS);
+  }
+
+  public void testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    @Language("XML")
+    final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                          "    android:layout_height=\"match_parent\"\n" +
+                          "    android:layout_width=\"match_parent\"\n" +
+                          "    android:orientation=\"vertical\"\n" +
+                          "    android:background=\"#FFF\">\n" +
+                          "\n" +
+                          // CJK Unified Ideographs
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"门蠁\"/>\n" +
+                          // Chinese only
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"λ点  e书本s ，。？！\"/>\n" +
+                          // Korean only
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"곶㭐㸴\"/>\n" +
+                          // Japanese only
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"蘰躵鯏\"/>\n" +
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"さしすせそ\"/>\n" +
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"ラリルレロ\"/>\n" +
+                          // Combined only
+                          "    <TextView\n" +
+                          "        android:layout_width=\"wrap_content\"\n" +
+                          "        android:layout_height=\"wrap_content\"\n" +
+                          "        android:textSize=\"50sp\"\n" +
+                          "        android:text=\"蘰门Hello鯏\"/>\n" +
+                          "    \n" +
+                          "\n" +
+                          "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    configuration.setTheme("android:Theme.NoTitleBar.Fullscree");
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file, configuration, logger);
+    BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
+    // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increate the diff tolerance to
+    // 0.5 to account for that. We mostly care about characters not being displayed at all.
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 0.5);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 }

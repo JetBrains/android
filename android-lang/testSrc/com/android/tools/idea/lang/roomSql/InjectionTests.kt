@@ -20,25 +20,31 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiLanguageInjectionHost.Shred
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
+import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil.enumerate
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert.*
 
-class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
-  private fun checkNoInjection(text: String) {
-    assertFalse(InjectedLanguageUtil.hasInjections(myFixture.findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
+private fun JavaCodeInsightTestFixture.checkNoInjection(text: String) {
+  assertFalse(InjectedLanguageUtil.hasInjections(findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
+}
+
+private fun JavaCodeInsightTestFixture.checkInjection(text: String, block: (PsiFile, List<Shred>) -> Unit) {
+  val host = findElementByText(text, PsiLanguageInjectionHost::class.java)!!
+  var injectionsCount = 0
+
+  assertTrue(InjectedLanguageUtil.hasInjections(host))
+
+  enumerate(host) { injectedPsi, places ->
+    assertEquals("More than one injection", 0, injectionsCount++)
+    block.invoke(injectedPsi, places)
   }
 
-  private fun checkInjection(text: String, block: (PsiFile, List<Shred>) -> Unit) {
-    val host = myFixture.findElementByText(text, PsiLanguageInjectionHost::class.java)!!
-    var injectionsCount = 0
+  assertTrue(injectionsCount > 0)
+}
 
-    assertTrue(InjectedLanguageUtil.hasInjections(host))
-
-    InjectedLanguageUtil.enumerate(host) { injectedPsi, places ->
-      assertEquals("More than one injection", 0, injectionsCount++)
-      block.invoke(injectedPsi, places)
-    }
-
-    assertTrue(injectionsCount > 0)
-  }
+class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testSanityCheck() {
     myFixture.configureByText(
@@ -54,7 +60,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
         }""".trimIndent()
     )
 
-    checkNoInjection("* from User")
+    myFixture.checkNoInjection("* from User")
   }
 
   fun testSimpleQuery() {
@@ -71,7 +77,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
       }""".trimIndent()
     )
 
-    checkInjection("* from") { psi, _ ->
+    myFixture.checkInjection("* from") { psi, _ ->
       assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from User", psi.text)
     }
@@ -94,7 +100,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
         """.trimIndent()
     )
 
-    checkInjection("* from") { psi, places ->
+    myFixture.checkInjection("* from") { psi, places ->
       assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from User where id = :id", psi.text)
       assertEquals(2, places.size)
@@ -119,16 +125,25 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
         """.trimIndent()
     )
 
-    checkInjection("* from") { psi, _ ->
+    myFixture.checkInjection("* from") { psi, _ ->
       assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from UserTable", psi.text)
     }
   }
+}
 
-  // b/66994763
-  fun ignore_testSqliteDatabase() {
-    myFixture.configureByText(
-        JavaFileType.INSTANCE,
+class OtherApisInjectionTest : RoomLightTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+
+    if (AndroidFacet.getInstance(myModule) == null) {
+      AndroidTestCase.addAndroidFacet(myModule)
+    }
+  }
+
+  fun testSqliteDatabase() {
+    myFixture.addClass(
         """
         package com.example;
 
@@ -140,40 +155,19 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
           }
         }
         """.trimIndent()
-    )
-
-    checkInjection("delete from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("delete from User", psi.text)
+    ).also {
+      myFixture.openFileInEditor(it.containingFile.virtualFile)
     }
-  }
 
-  // b/66994763
-  fun ignore_testSupportSqliteDatabase() {
-    myFixture.configureByText(
-        JavaFileType.INSTANCE,
-        """
-        package com.example;
 
-        import android.arch.persistence.db.SupportSQLiteDatabase;
-
-        class Util {
-          void f(SupportSQLiteDatabase db) {
-            db.execSQL("delete from User");
-          }
-        }
-        """.trimIndent()
-    )
-
-    checkInjection("delete from") { psi, _ ->
+    myFixture.checkInjection("delete from") { psi, _ ->
       assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("delete from User", psi.text)
     }
   }
 
   fun testSqliteDatabase_nested() {
-    myFixture.configureByText(
-        JavaFileType.INSTANCE,
+    myFixture.addClass(
         """
         package com.example;
 
@@ -185,15 +179,15 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
           }
         }
         """.trimIndent()
-    )
+    ).also {
+      myFixture.openFileInEditor(it.containingFile.virtualFile)
+    }
 
-    checkNoInjection("foo")
+    myFixture.checkNoInjection("foo")
   }
 
-  // b/66994763
-  fun ignore_testSqliteDatabase_wrongArgument() {
-    myFixture.configureByText(
-        JavaFileType.INSTANCE,
+  fun testSqliteDatabase_wrongArgument() {
+    myFixture.addClass(
         """
         package com.example;
 
@@ -205,13 +199,14 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
           }
         }
         """.trimIndent()
-    )
+    ).also {
+      myFixture.openFileInEditor(it.containingFile.virtualFile)
+    }
 
-    checkInjection("* from") { psi, _ ->
+    myFixture.checkInjection("* from") { psi, _ ->
       assertSame(RoomSqlLanguage.INSTANCE, psi.language)
     }
 
-    checkNoInjection("tableName")
+    myFixture.checkNoInjection("tableName")
   }
-
 }

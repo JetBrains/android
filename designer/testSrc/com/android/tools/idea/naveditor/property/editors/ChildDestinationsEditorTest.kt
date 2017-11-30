@@ -29,12 +29,12 @@ class ChildDestinationsEditorTest : NavigationTestCase() {
         NavModelBuilderUtil.rootComponent("root")
             .unboundedChildren(
                 NavModelBuilderUtil.fragmentComponent("f1")
-                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "fragment1"),
+                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment1"),
                 NavModelBuilderUtil.activityComponent("activity1"),
                 NavModelBuilderUtil.navigationComponent("subnav1")
                     .unboundedChildren(
                         NavModelBuilderUtil.fragmentComponent("f2")
-                            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "fragment2"),
+                            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment2"),
                         NavModelBuilderUtil.fragmentComponent("f3")),
                 NavModelBuilderUtil.navigationComponent("subnav2")
                     .unboundedChildren(
@@ -46,21 +46,17 @@ class ChildDestinationsEditorTest : NavigationTestCase() {
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("root")))
 
-    val editor = VisibleDestinationsEditor()
-    editor.property = property
-
     EnumEditorFixture
         .create(::ChildDestinationsEditor)
         .setProperty(property)
         .showPopup()
         .expectChoices("none", null,
             "fragment1 (f1)", "@+id/f1",
-            "activity1 (activity1)", "@+id/activity1",
-            "subnav1 (subnav1)", "@+id/subnav1",
-            "subnav2 (subnav2)", "@+id/subnav2")
+            "activity1", "@+id/activity1",
+            "subnav1", "@+id/subnav1",
+            "subnav2", "@+id/subnav2")
 
     `when`(property.components).thenReturn(listOf(model.find("subnav1")))
-    editor.property = property
 
     EnumEditorFixture
         .create(::ChildDestinationsEditor)
@@ -68,6 +64,6 @@ class ChildDestinationsEditorTest : NavigationTestCase() {
         .showPopup()
         .expectChoices("none", null,
             "fragment2 (f2)", "@+id/f2",
-            "f3 (f3)", "@+id/f3")
+            "f3", "@+id/f3")
   }
 }

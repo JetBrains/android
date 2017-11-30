@@ -138,7 +138,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
     NELE, "live.render", "Enable the Live Render",
     "Enable the continuous rendering of the surface when moving/resizing components.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_WIDGET_ASSISTANT = Flag.create(
     NELE, "widget.assistant", "Enable the properties panel Widget Assistant",
@@ -154,7 +154,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",

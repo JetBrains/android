@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -53,7 +52,7 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   }
 
   private static boolean isMethodPlatformJava(MethodModel method) {
-    return method.getClassName().startsWith("android.") || method.getClassName().startsWith("com.android.");
+    return method.getClassOrNamespace().startsWith("android.") || method.getClassOrNamespace().startsWith("com.android.");
   }
 
   private static boolean isMethodPlatformCpp(MethodModel method) {
@@ -69,11 +68,11 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
   }
 
   private static boolean isMethodVendorJava(MethodModel method) {
-    return method.getClassName().startsWith("java.") ||
-           method.getClassName().startsWith("sun.") ||
-           method.getClassName().startsWith("javax.") ||
-           method.getClassName().startsWith("apple.") ||
-           method.getClassName().startsWith("com.apple.");
+    return method.getClassOrNamespace().startsWith("java.") ||
+           method.getClassOrNamespace().startsWith("sun.") ||
+           method.getClassOrNamespace().startsWith("javax.") ||
+           method.getClassOrNamespace().startsWith("apple.") ||
+           method.getClassOrNamespace().startsWith("com.apple.");
   }
 
   private static boolean isMethodVendorCpp(MethodModel method) {
@@ -183,14 +182,14 @@ public class MethodModelHRenderer implements HRenderer<MethodModel> {
     double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
     // Try: java.lang.String.toString. Add a "." separator between class name and method name.
     // Native methods (e.g. clock_gettime) don't have a class name and, therefore, we don't add a "." before them.
-    String separator = StringUtil.isEmpty(node.getClassName()) ? "" : methodSeparator;
-    String fullyQualified = node.getClassName() + separator + node.getName();
+    String separator = StringUtil.isEmpty(node.getClassOrNamespace()) ? "" : methodSeparator;
+    String fullyQualified = node.getClassOrNamespace() + separator + node.getName();
     if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
-    String shortPackage = getShortPackageName(node.getClassName(), methodSeparator);
+    String shortPackage = getShortPackageName(node.getClassOrNamespace(), methodSeparator);
     separator = StringUtil.isEmpty(shortPackage) ? "" : methodSeparator;
     String abbrevPackage = shortPackage + separator + node.getName();
     if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {

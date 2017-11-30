@@ -31,10 +31,16 @@ public final class CodeLocation {
   @Nullable
   private final String myMethodName;
   /**
-   * See {@link Builder#setMethodSignature(String, String)} for details about this field.
+   * See {@link Builder#setMethodSignature(String)} for details about this field.
    */
   @Nullable
   private final String mySignature;
+  /**
+   * See {@link Builder#setMethodParameters(String)} for details about this field.
+   */
+  @Nullable
+  private final String myMethodParameters;
+
   private final int myLineNumber;
   private final boolean myNativeCode;
   private final int myHashcode;
@@ -44,6 +50,7 @@ public final class CodeLocation {
     myFileName = builder.myFileName;
     myMethodName = builder.myMethodName;
     mySignature = builder.mySignature;
+    myMethodParameters = builder.myMethodParameters;
     myLineNumber = builder.myLineNumber;
     myNativeCode = builder.myNativeCode;
     myHashcode = Arrays.hashCode(new int[]{myClassName.hashCode(), myFileName == null ? 0 : myFileName.hashCode(),
@@ -94,11 +101,16 @@ public final class CodeLocation {
   }
 
   /**
-   * See {@link Builder#setMethodSignature(String, String)} for details about this value.
+   * See {@link Builder#setMethodSignature(String)} for details about this value.
    */
   @Nullable
   public String getSignature() {
     return mySignature;
+  }
+
+  @Nullable
+  public String getMethodParameters() {
+    return myMethodParameters;
   }
 
   public boolean isNativeCode() {
@@ -129,6 +141,7 @@ public final class CodeLocation {
     @Nullable String myFileName;
     @Nullable String myMethodName;
     @Nullable String mySignature;
+    @Nullable String myMethodParameters;
     int myLineNumber = INVALID_LINE_NUMBER;
     boolean myNativeCode;
 
@@ -141,6 +154,7 @@ public final class CodeLocation {
       myFileName = rhs.getFileName();
       myMethodName = rhs.getMethodName();
       mySignature = rhs.getSignature();
+      myMethodParameters = rhs.getMethodParameters();
       myLineNumber = rhs.getLineNumber();
     }
 
@@ -166,9 +180,19 @@ public final class CodeLocation {
      * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
      */
     @NotNull
-    public Builder setMethodSignature(@NotNull String methodName, @NotNull String signature) {
-      myMethodName = methodName;
+    public Builder setMethodSignature(@NotNull String signature) {
       mySignature = signature;
+      return this;
+    }
+
+    /**
+     * Parameters of a method, comma separated.
+     *
+     * For example, {@code int aMethod(int a, float b} generates "int, float" as the parameters string..
+     */
+    @NotNull
+    public Builder setMethodParameters(@NotNull String methodParameters) {
+      myMethodParameters = methodParameters;
       return this;
     }
 

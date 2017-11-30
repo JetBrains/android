@@ -16,12 +16,11 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
 import com.android.tools.profiler.proto.Profiler.BytesResponse;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +97,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
-    httpBuilder.setTrace(result.getTrace());
+    httpBuilder.setTraceId(result.getTraceId());
     httpBuilder.setRequestFields(result.getFields());
   }
 
@@ -115,13 +114,13 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
 
   @NotNull
   @Override
-  public ByteString requestPayload(@NotNull String payloadId) {
-    if (StringUtil.isEmpty(payloadId)) {
+  public ByteString requestBytes(@NotNull String id) {
+    if (StringUtil.isEmpty(id)) {
       return ByteString.EMPTY;
     }
 
     BytesRequest request = BytesRequest.newBuilder()
-      .setId(payloadId)
+      .setId(id)
       .setSession(mySession)
       .build();
 

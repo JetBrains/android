@@ -15,30 +15,18 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.destinationType
-import com.android.tools.idea.naveditor.model.getUiName
-import com.android.tools.idea.naveditor.model.resolvedId
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
-import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
-class ChildDestinationsEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true) {
+class ChildDestinationsEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, false) {
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
-  override fun getEnumSupport(property: NlProperty): EnumSupport = ChildDestinationEnumSupport(property)
-
-  private class ChildDestinationEnumSupport(property : NlProperty) : EnumSupport(property) {
-    override fun getAllValues(): MutableList<ValueWithDisplayString> {
-      return myProperty.components[0].children
-          .filter { it.destinationType != null }
-          .map { ValueWithDisplayString("${it.getUiName(myProperty.resolver)} (${it.resolvedId})",
-                                        it.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) }
-          .toMutableList()
-    }
+  override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) {
+    it.children.filter { component -> component.destinationType != null }
   }
 }

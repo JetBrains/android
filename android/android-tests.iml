@@ -104,6 +104,8 @@
     <orderEntry type="module" module-name="project-system-gradle" scope="TEST" />
     <orderEntry type="module" module-name="project-system-tests" scope="TEST" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="gradle-dsl-parser" scope="TEST" />
     <orderEntry type="module" module-name="jps-builders" scope="TEST" />
+    <orderEntry type="module" module-name="usb-devices" scope="TEST" />
   </component>
 </module>

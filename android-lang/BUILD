@@ -50,7 +50,12 @@ iml_module(
     iml_files = ["android-lang-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
-    test_data = glob(["testData/**"]) + ["//tools/idea/java/mockJDK-1.7"],
+    test_data = glob(["testData/**"]) + [
+        "//tools/adt/idea/android/annotations",
+        "//tools/base/templates",
+        "//tools/idea/java/mockJDK-1.7",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea:testExtensions",
@@ -79,5 +84,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/adt/idea/android[module, test]",
     ],
 )

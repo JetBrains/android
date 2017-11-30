@@ -107,16 +107,13 @@ public class TopDownNodeTest {
 
   @Test
   public void testTreeData() {
-    MethodModel rootModel = new MethodModel("A", "com.package", "", ".");
+    MethodModel rootModel = new MethodModel.Builder("A").setJavaClassName("com.package.Class").build();
     TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
 
-    assertEquals("com.package", topDown.getClassName());
-    assertEquals("A", topDown.getMethodName());
-
-    // Cover the case of null data
-    topDown = new TopDownNode(new CaptureNode());
-    assertEquals("", topDown.getClassName());
-    assertEquals("", topDown.getMethodName());
+    MethodModel model = topDown.getMethodModel();
+    assertEquals(rootModel, topDown.getMethodModel());
+    assertEquals("com.package.Class", model.getClassOrNamespace());
+    assertEquals("A", model.getName());
   }
 
   /**
@@ -153,7 +150,7 @@ public class TopDownNodeTest {
   }
 
   static CaptureNode newNode(String method, long start, long end) {
-    return newNode(new MethodModel(method), start, end);
+    return newNode(new MethodModel.Builder(method).build(), start, end);
   }
 
   static CaptureNode newNode(MethodModel method, long start, long end) {

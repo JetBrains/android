@@ -70,25 +70,25 @@ public class NewCppProjectTest {
    *   in any order."
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp1() throws Exception {
     createNewProjectWithCpp(false, false);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp2() throws Exception {
     createNewProjectWithCpp(true, false);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp3() throws Exception {
     createNewProjectWithCpp(false, true);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createNewProjectWithCpp4() throws Exception {
     createNewProjectWithCpp(true, true);

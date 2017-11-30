@@ -284,7 +284,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
     actions.add(new ViewActionMenu("Organize", StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new ViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
-    actions.add(new ViewActionMenu("Chain", StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
+    actions.add(new ViewActionMenu("Chains", StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new ViewActionMenu("Center", StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new ViewActionMenu("Helpers", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
   }
@@ -1222,33 +1222,33 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                       StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT,
-                      "Align Left Edges"),
+                      "Left Edges"),
       new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
                       StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_CENTER_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_CENTER_ALIGNED_CONSTRAINT,
-                      "Align Horizontal Centers"),
+                      "Horizontal Centers"),
       new AlignAction(Scout.Arrange.AlignHorizontallyRight,
                       StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED_CONSTRAINT,
-                      "Align Right Edges"));
+                      "Right Edges"));
 
     private static final ImmutableList<ViewAction> ALIGN_VERTICALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignVerticallyTop,
                       StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED_CONSTRAINT,
-                      "Align Top Edges"),
+                      "Top Edges"),
       new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
                       StudioIcons.LayoutEditor.Toolbar.VERTICAL_CENTER_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.VERTICAL_CENTER_ALIGNED_CONSTRAINT,
-                      "Align Vertical Centers"),
+                      "Vertical Centers"),
       new AlignAction(Scout.Arrange.AlignVerticallyBottom,
                       StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED_CONSTRAINT,
-                      "Align Bottom Edges"),
+                      "Bottom Edges"),
       new AlignAction(Scout.Arrange.AlignBaseline,
                       StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT,
-                      "Align Baselines"));
+                      "Baselines"));
 
 
     private static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
@@ -1304,19 +1304,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new AlignAction(Scout.Arrange.CenterHorizontally,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_CONSTRAINT,
-                      "Center Horizontally"),
+                      "Horizontally"),
       new AlignAction(Scout.Arrange.CenterVertically,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_CONSTRAINT,
-                      "Center Vertically"),
+                      "Vertically"),
       new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_PARENT,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_PARENT_CONSTRAINT,
-                      "Center Horizontally in Parent"),
+                      "Horizontally in Parent"),
       new AlignAction(Scout.Arrange.CenterVerticallyInParent,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_PARENT,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_PARENT_CONSTRAINT,
-                      "Center Vertically in Parent"));
+                      "Vertically in Parent"));
 
     private static final ImmutableList<ViewAction> ORGANIZE_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.HorizontalPack,

@@ -71,7 +71,8 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     return myRow;
   }
 
-  protected final NlComponentEditor getEditor() {
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  public final NlComponentEditor getEditor() {
     return myEditor;
   }
 

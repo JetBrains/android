@@ -16,15 +16,18 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.CloseButton;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.android.tools.profilers.network.httpdata.Payload;
+import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -131,10 +134,10 @@ public class ConnectionDetailsView extends JPanel {
     myTabsPanel.addTab(myOverviewPanel.getName(), overviewScroll);
 
     if (myRequestPayloadEnabled) {
-      setupTab(TAB_TITLE_RESPONSE, myResponsePanel);
-      setupTab(TAB_TITLE_REQUEST, myRequestPanel);
+      setupTab(TAB_TITLE_RESPONSE, myResponsePanel, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      setupTab(TAB_TITLE_REQUEST, myRequestPanel, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     } else {
-      setupTab(TAB_TITLE_HEADERS, myHeadersPanel);
+      setupTab(TAB_TITLE_HEADERS, myHeadersPanel, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
       myHeadersPanel.setLayout(new VerticalFlowLayout(0, PAGE_VGAP));
     }
 
@@ -157,10 +160,11 @@ public class ConnectionDetailsView extends JPanel {
     add(rootPanel);
   }
 
-  private void setupTab(String title, JComponent tabComponent) {
+  private void setupTab(String title, JComponent tabComponent, int hsbPolicy) {
     tabComponent.setName(title);
-    tabComponent.setLayout(new VerticalFlowLayout(0, JBUI.scale(12)));
+    tabComponent.setLayout(new VerticalFlowLayout(0, JBUI.scale(5)));
     JBScrollPane scrollPane = new JBScrollPane(tabComponent);
+    scrollPane.setHorizontalScrollBarPolicy(hsbPolicy);
     scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
     scrollPane.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
     scrollPane.setBorder(DEFAULT_TOP_BORDER);
@@ -217,7 +221,8 @@ public class ConnectionDetailsView extends JPanel {
         myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeader()));
       }
 
-      myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
+      StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), httpData);
+      myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, stackTrace.getCodeLocations());
     }
     else {
       myStackTraceView.getModel().clearStackFrames();
@@ -228,7 +233,7 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   private void setHttpResponseData(HttpData httpData) {
-    JComponent headersComponent = createStyledMapComponent(httpData.getResponseHeader().getFields());
+    JComponent headersComponent = new JBScrollPane(createStyledMapComponent(httpData.getResponseHeader().getFields()));
     headersComponent.setName("RESPONSE_HEADERS");
     myResponsePanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
     String bodyTitle = getBodyTitle(httpData.getResponseHeader().getContentType());
@@ -240,7 +245,7 @@ public class ConnectionDetailsView extends JPanel {
 
   private void setHttpRequestData(HttpData httpData) {
     HttpData.RequestHeader header = httpData.getRequestHeader();
-    JComponent headersComponent = createStyledMapComponent(header.getFields());
+    JComponent headersComponent = new JBScrollPane(createStyledMapComponent(header.getFields()));
     headersComponent.setName("REQUEST_HEADERS");
     myRequestPanel.add(createHideablePanel(TAB_TITLE_HEADERS, headersComponent, null));
 
@@ -268,7 +273,9 @@ public class ConnectionDetailsView extends JPanel {
 
       final JLabel toggleLabel = new JLabel(cardViewSource);
       northEastComponent = toggleLabel;
-      toggleLabel.setForeground(ProfilerColors.MESSAGE_COLOR);
+      Color toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleLabel.getForeground().getRGB(), 0.9f);
+      Color toggleDefaultColor = AdtUiUtils.overlayColor(toggleLabel.getBackground().getRGB(), toggleHoverColor.getRGB(), 0.6f);
+      toggleLabel.setForeground(toggleDefaultColor);
       toggleLabel.setFont(UIManager.getFont("Label.font").deriveFont(FIELD_FONT_SIZE));
       toggleLabel.setBorder(new JBEmptyBorder(0, 10, 0, 5));
       toggleLabel.addMouseListener(new MouseAdapter() {
@@ -276,6 +283,16 @@ public class ConnectionDetailsView extends JPanel {
         public void mouseClicked(MouseEvent e) {
           toggleLabel.setText(cardViewSource.equals(toggleLabel.getText())? cardViewParsed : cardViewSource);
           cardLayout.next(payloadPanel);
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          toggleLabel.setForeground(toggleHoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          toggleLabel.setForeground(toggleDefaultColor);
         }
       });
     }
@@ -295,6 +312,12 @@ public class ConnectionDetailsView extends JPanel {
     JComponent component = createMapComponent(map);
     if (component instanceof JTextPane) {
       ((HTMLDocument) ((JTextPane) component).getDocument()).getStyleSheet().addRule("p { margin: 5 0 5 0; }");
+      // Add padding to have some space to bottom horizontal scroll bar.
+      component.setBorder(new JBEmptyBorder(0, 0, 4, 0));
+      // Make JTextPane no line wrapping by wrapped in JPanel.
+      JPanel noWrapPanel = new JPanel(new BorderLayout());
+      noWrapPanel.add(component);
+      return noWrapPanel;
     }
     return component;
   }

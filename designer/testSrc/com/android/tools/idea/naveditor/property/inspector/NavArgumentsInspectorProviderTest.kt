@@ -22,8 +22,11 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.NavArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.google.common.collect.HashBasedTable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.table.JBTable
 import org.mockito.Mockito.*
@@ -89,7 +92,8 @@ class NavArgumentsInspectorProviderTest: NavigationTestCase() {
     assertEquals(null, (argumentsTable.getValueAt(2, 1) as NlProperty).value)
 
     // edit the new item row
-    (argumentsTable.getValueAt(2, 0) as NlProperty).setValue("foo")
+    setValue("foo", 2, 0, argumentsTable)
+
     assertEquals(4, argumentsTable.rowCount)
     assertEquals("foo", (argumentsTable.getValueAt(2, 0) as NlProperty).value)
     (argumentsTable.getValueAt(2, 1) as NlProperty).setValue("bar")
@@ -97,13 +101,14 @@ class NavArgumentsInspectorProviderTest: NavigationTestCase() {
     assertEquals("bar", (argumentsTable.getValueAt(2, 1) as NlProperty).value)
 
     // another one
-    (argumentsTable.getValueAt(3, 0) as NlProperty).setValue("foo2")
+    setValue("foo2", 3, 0, argumentsTable)
     assertEquals(5, argumentsTable.rowCount)
     assertEquals("foo2", (argumentsTable.getValueAt(3, 0) as NlProperty).value)
 
     // Now delete one
-    (argumentsTable.getValueAt(1, 0) as NlProperty).setValue("")
-    (argumentsTable.getValueAt(1, 1) as NlProperty).setValue("")
+    setValue("", 1, 0, argumentsTable)
+    setValue("", 1, 1, argumentsTable)
+
     assertEquals(4, argumentsTable.rowCount)
     assertEquals("arg1", (argumentsTable.getValueAt(0, 0) as NlProperty).value)
     assertEquals("value1", (argumentsTable.getValueAt(0, 1) as NlProperty).value)
@@ -112,6 +117,13 @@ class NavArgumentsInspectorProviderTest: NavigationTestCase() {
     assertEquals("foo2", (argumentsTable.getValueAt(2, 0) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(3, 0) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(3, 1) as NlProperty).value)
+  }
+
+  private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {
+    val editor = argumentsTable.getCellEditor(row, column) as NlTableCellEditor
+    argumentsTable.editCellAt(row, column)
+    ApplicationManager.getApplication().runWriteAction { (editor.editor as TextEditor).setText(value) }
+    editor.stopCellEditing()
   }
 }
 

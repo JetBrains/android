@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_ID
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
@@ -36,13 +34,10 @@ import java.io.File
 
 fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
   val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
-      resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?:
-      NlComponent.stripId(resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) ?:
+      id ?:
+      resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?:
       tagName
-  return when {
-    resourceResolver != null -> ResourceHelper.resolveStringValue(resourceResolver, name)
-    else -> name
-  }
+  return resourceResolver?.let { ResourceHelper.resolveStringValue(it, name) } ?: name
 }
 
 val NlComponent.visibleDestinations: List<NlComponent>
@@ -69,9 +64,6 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
   // The above won't pick up the root
   return model.components.firstOrNull { c -> c.id == id }
 }
-
-val NlComponent.resolvedId
-  get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
 
 val NlComponent.destinationType
   get() = model.schema.getDestinationType(tagName)

@@ -28,6 +28,7 @@ import javax.annotation.RegEx;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,6 +113,13 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String getLocalRepositories() {
+    Collection<File> repositories = getLocalRepositoryDirectories();
+    return StringUtil.join(repositories,
+                           file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
+  }
+
+  @NotNull
+  public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
     String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
     String publishLocalRepo = "out/repo";
@@ -125,8 +133,7 @@ public class AndroidGradleTests {
       repositories.add(getWorkspaceFile(prebuiltsRepo));
       repositories.add(getWorkspaceFile(publishLocalRepo));
     }
-    return StringUtil.join(repositories,
-                           file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
+    return repositories;
   }
 
 

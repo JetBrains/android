@@ -538,7 +538,15 @@ public class IssuePanel extends JPanel implements Disposable {
       super.doLayout();
       if (myColumnsX != null && myColumnsX.length == COLUMN_COUNT) {
         myMessageLabel.setLocation(myColumnsX[0], 0);
-        mySourceLabel.setLocation(myColumnsX[1] - mySourceLabel.getInsets().left, 0);
+
+        // Ensure that the source column always occupied at least 10% of the width if
+        // no row has a source label
+        int sourceLabelX = (int)Math.min(getWidth() * 0.9, myColumnsX[1] - mySourceLabel.getInsets().left);
+        mySourceLabel.setLocation(sourceLabelX, 0);
+      }
+      else {
+        myMessageLabel.setLocation(5, 0);
+        mySourceLabel.setLocation((int)(getWidth() * 0.8), 0);
       }
     }
 

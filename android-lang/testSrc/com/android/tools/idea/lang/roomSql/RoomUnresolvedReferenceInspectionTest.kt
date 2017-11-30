@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-class RoomUnresolvedReferenceInspectionTest : LightRoomTestCase() {
+class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(RoomUnresolvedReferenceInspection::class.java)
@@ -407,6 +407,40 @@ class RoomUnresolvedReferenceInspectionTest : LightRoomTestCase() {
         public interface UserDao {
           @Query("WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT <error>foo</error> FROM minmax)")
           List<Aaa> get();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testParameters() {
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT :<error>typo</error>")
+          String echo(String text);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT :text")
+          String echo(String text);
         }
     """.trimIndent())
 

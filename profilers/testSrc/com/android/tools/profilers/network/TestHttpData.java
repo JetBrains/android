@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profilers.network.httpdata.HttpData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -36,9 +37,6 @@ public final class TestHttpData {
 
   public static final HttpData.JavaThread FAKE_THREAD = new HttpData.JavaThread(0, "Main Thread");
   public static final List<HttpData.JavaThread> FAKE_THREAD_LIST = Collections.singletonList(FAKE_THREAD);
-  public static final String FAKE_STACK_TRACE =
-    "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
-    "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)";
   public static final int FAKE_RESPONSE_CODE = 302;
   public static final String FAKE_RESPONSE_DESCRIPTION = "Found";
   public static final String FAKE_CONTENT_TYPE = "image/jpeg";
@@ -53,6 +51,17 @@ public final class TestHttpData {
 
   public static int fakeContentLength(long id) {
     return (int)(id * 100);
+  }
+
+  public static String fakeStackTraceId(long id) {
+    return "stackTraceId" + id;
+  }
+
+  public static String fakeStackTrace(long id) {
+      return String.format(
+        "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
+        "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)", id);
+
   }
 
   @NotNull
@@ -111,7 +120,7 @@ public final class TestHttpData {
     HttpData temp = builder.build();
     long id = temp.getId();
 
-    builder.setTrace(String.format(FAKE_STACK_TRACE, id));
+    builder.setTraceId(fakeStackTraceId(id));
     builder.setUrl(fakeUrl(id));
     if (temp.getUploadedTimeUs() != 0) {
       builder.setRequestPayloadId(fakeRequestPayloadId(id));

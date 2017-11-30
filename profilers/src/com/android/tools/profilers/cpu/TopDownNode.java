@@ -17,7 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A top-down CPU usage tree. This is a node on that tree and represents all the calls that share the same callstack upto a point.
@@ -93,22 +94,12 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
     }
   }
 
+  @NotNull
   @Override
-  public String getMethodName() {
-    MethodModel data = getNodes().get(0).getData();
-    return data == null ? "" : data.getName();
-  }
-
-  @Override
-  public String getClassName() {
-    MethodModel data = getNodes().get(0).getData();
-    return data == null ? "" : data.getClassName();
-  }
-
-  @Override
-  public String getSignature() {
-    MethodModel data = getNodes().get(0).getData();
-    return data == null ? "" : data.getSignature();
+  public MethodModel getMethodModel() {
+    MethodModel model = getNodes().get(0).getData();
+    assert model != null;
+    return model;
   }
 
   @Override

@@ -55,7 +55,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
   @Override
   public void addMethod(long id, MethodInfo info) {
-    myMethods.put(id, new MethodModel(info.methodName, info.className, info.signature, "."));
+    myMethods.put(id, new MethodModel.Builder(info.methodName).setJavaClassName(info.className).setSignature(info.signature).build());
   }
 
   @Override
@@ -68,7 +68,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
     // create method info if it doesn't exist
     if (!myMethods.containsKey(methodId)) {
-      myMethods.put(methodId, new MethodModel("unknown", "unknown", "unknown", ""));
+      myMethods.put(methodId, new MethodModel.Builder("unknown").build());
     }
 
     CaptureNodeConstructor constructor = myNodeConstructors.get(threadId);
@@ -84,7 +84,7 @@ public class ArtTraceHandler implements VmTraceHandler {
     long id = Long.MAX_VALUE - threadId;
     assert myMethods.get(id) == null :
       "Unexpected error while attempting to create a unique key - key already exists";
-    MethodModel model = new MethodModel(myThreads.get(threadId));
+    MethodModel model = new MethodModel.Builder(myThreads.get(threadId)).build();
     myMethods.put(id, model);
     return model;
   }
