@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
@@ -24,6 +25,7 @@ import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.editors.ChildDestinationsEditor
+import com.android.tools.idea.naveditor.property.editors.SourceGraphEditor
 import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEditor
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
@@ -37,6 +39,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     super.setUp()
     model = model("nav.xml",
         NavModelBuilderUtil.rootComponent("root").unboundedChildren(
+            NavModelBuilderUtil.includeComponent("navigation"),
             NavModelBuilderUtil.fragmentComponent("f1")
                 .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
                     NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),
@@ -148,4 +151,24 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
   }
 
+  fun testIncludeNavigationInspector() {
+    val inspectorProvider = NavigationPropertiesInspectorProvider()
+
+    val root = listOf(model.find("nav")!!)
+
+    val dummyProperty = SimpleProperty("foo", root)
+    val typeProperty = NavComponentTypeProperty(root)
+    val graphProperty = SimpleProperty(SdkConstants.ATTR_GRAPH, root)
+
+    val properties = listOf(graphProperty, typeProperty, dummyProperty)
+        .associateBy { it.name }
+
+    assertTrue(inspectorProvider.isApplicable(root, properties, propertiesManager))
+    val inspector = inspectorProvider.createCustomInspector(root, properties, propertiesManager)
+
+    assertSameElements(inspector.editors.map { it.property },
+        listOf(typeProperty, graphProperty))
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
+    assertInstanceOf(inspector.editors.first { it.property == graphProperty }, SourceGraphEditor::class.java)
+  }
 }
