@@ -84,6 +84,12 @@ val NlComponent.includeFile: XmlFile?
 val NlComponent.includeFileName: String?
   get() = includeFile?.name
 
+val NlComponent.isStartDestination: Boolean
+  get() {
+    val actualStart = NlComponent.stripId(parent?.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    return actualStart != null && actualStart == id
+  }
+
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {

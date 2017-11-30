@@ -27,7 +27,8 @@ import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
+import com.intellij.ui.ColoredListCellRenderer;
+import icons.StudioIcons;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -213,12 +214,14 @@ public class DestinationListTest extends NavigationTestCase {
 
   public void testRendering() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent("root").unboundedChildren(
-                                fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
-                                fragmentComponent("fragment2"),
-                                navigationComponent(null).withAttribute(ANDROID_URI, ATTR_NAME, "navName"),
-                                navigationComponent(null),
-                                includeComponent("navigation")))
+                              rootComponent("root").withStartDestinationAttribute("fragment2")
+                                .unboundedChildren(
+                                  fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
+                                  fragmentComponent("fragment2"),
+                                  activityComponent("activity"),
+                                  navigationComponent("nav1").withAttribute(ANDROID_URI, ATTR_LABEL, "navName"),
+                                  navigationComponent("nav2"),
+                                  includeComponent("navigation")))
       .build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
@@ -227,21 +230,22 @@ public class DestinationListTest extends NavigationTestCase {
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
     list.setToolContext(surface);
 
-    assertEquals(5, list.myList.getItemsCount());
+    assertEquals(6, list.myList.getItemsCount());
 
     @SuppressWarnings("unchecked")
     ListCellRenderer<NlComponent> renderer = (ListCellRenderer<NlComponent>)list.myList.getCellRenderer();
     Map<String, Icon> result = new HashMap<>();
     for (int i = 0; i < list.myList.getItemsCount(); i++) {
-      DefaultListCellRenderer component = (DefaultListCellRenderer)renderer
+      ColoredListCellRenderer<NlComponent> component = (ColoredListCellRenderer<NlComponent>)renderer
         .getListCellRendererComponent(list.myList, list.myList.getModel().getElementAt(i), i, false, false);
-      result.put(component.getText(), component.getIcon());
+      result.put(component.toString(), component.getIcon());
     }
 
-    assertEquals(result.get("fragmentLabel"), AndroidIcons.NavEditorIcons.Destination);
-    assertEquals(result.get("fragment2"), AndroidIcons.NavEditorIcons.Destination);
-    assertEquals(result.get("navName"), AndroidIcons.NavEditorIcons.DestinationGroup);
-    assertEquals(result.get("navigation"), AndroidIcons.NavEditorIcons.DestinationGroup);
-    assertEquals(result.get("myCoolLabel"), AndroidIcons.NavEditorIcons.DestinationInclude);
+    assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result.get("fragmentLabel"));
+    assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result.get("fragment2 - Start"));
+    assertEquals(StudioIcons.NavEditor.Tree.ACTIVITY, result.get("activity"));
+    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result.get("navName"));
+    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result.get("navName"));
+    assertEquals(StudioIcons.NavEditor.Tree.INCLUDE_GRAPH, result.get("myCoolLabel"));
   }
 }
