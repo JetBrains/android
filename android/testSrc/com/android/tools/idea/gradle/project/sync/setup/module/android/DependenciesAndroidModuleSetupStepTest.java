@@ -100,7 +100,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
+    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, dependency.getName(), COMPILE, dependency.getArtifactPath(),
                                                        dependency.getBinaryPaths(), exported);
   }
 
