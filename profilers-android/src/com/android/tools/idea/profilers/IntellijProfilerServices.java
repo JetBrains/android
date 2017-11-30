@@ -201,6 +201,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isJniReferenceTrackingEnabled() {
         return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
       }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
+      }
     };
   }
 

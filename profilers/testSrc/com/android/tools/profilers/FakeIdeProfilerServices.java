@@ -198,6 +198,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return false;
+      }
     };
   }
 

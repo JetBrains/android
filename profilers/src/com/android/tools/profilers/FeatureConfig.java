@@ -30,4 +30,5 @@ public interface FeatureConfig {
   boolean isAtraceEnabled();
   boolean isNetworkRequestPayloadEnabled();
   boolean isJniReferenceTrackingEnabled();
+  boolean isEnergyProfilerEnabled();
 }

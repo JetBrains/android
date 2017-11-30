@@ -74,6 +74,10 @@ public final class StudioFlags {
     "This unlocks even more profiling features for these devices.",
     true);
 
+  public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
+    PROFILER, "energy", "Enable Energy profiling",
+    "Enable the new energy profiler. It monitors battery usage of the selected app.", false);
+
   public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
     "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
