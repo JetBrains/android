@@ -111,11 +111,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   public static Sdk createLatestAndroidSdk() {
+    return createLatestAndroidSdk(AndroidTestBase.class.getName(), true);
+  }
+
+  public static Sdk createLatestAndroidSdk(String name, boolean addToSdkTable) {
     String sdkPath = TestUtils.getSdk().toString();
     String platformDir = TestUtils.getLatestAndroidPlatform();
 
-    Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
+    Sdk sdk = ProjectJdkTable.getInstance().createSdk(name, AndroidSdkType.getInstance());
+    if (addToSdkTable) {
+      ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
+    }
+
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 

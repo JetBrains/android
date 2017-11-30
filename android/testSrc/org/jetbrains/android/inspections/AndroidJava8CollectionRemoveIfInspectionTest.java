@@ -22,9 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspectionTestCase {
 
-  // b/69983608
-  public void testNothing() {}
-  public void /*test*/NoWarningsPre24() {
+  public void testNoWarningsPre24() {
     addManifest(19);
     //noinspection all // Sample code
     doTest("" +
@@ -51,8 +49,7 @@ public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspect
            "}\n");
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/WarningsPost24() {
+  public void testWarningsPost24() {
     addManifest(25);
     //noinspection all // Sample code
     doTest("" +

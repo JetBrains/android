@@ -44,8 +44,7 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
            "}\n");
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/IdenticalBranchWarningPost19() {
+  public void testIdenticalBranchWarningPost19() {
     addManifest(20);
     //noinspection all // Sample code
     doTest("" +

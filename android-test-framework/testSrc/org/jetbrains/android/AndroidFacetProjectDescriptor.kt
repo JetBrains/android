@@ -20,9 +20,14 @@ import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor
 
 object AndroidFacetProjectDescriptor : DefaultLightProjectDescriptor() {
-  override fun getSdk(): Sdk = AndroidTestBase.createLatestAndroidSdk()
+  override fun getSdk(): Sdk {
+    // SDKs used by light fixtures are not in the global table. This way heavy fixtures that clean the global table in tearDown() don't
+    // affect the shared light modules.
+    return AndroidTestBase.createLatestAndroidSdk(AndroidFacetProjectDescriptor::class.qualifiedName, false)
+  }
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
+    super.configureModule(module, model, contentEntry)
     AndroidTestCase.addAndroidFacet(module, false)
   }
 }
