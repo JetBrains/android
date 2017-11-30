@@ -25,38 +25,42 @@ class MethodNameParserTest {
   fun testCppMethodsParsing() {
     var model = MethodNameParser.parseMethodName("art::ArtMethod::Invoke()")
     assertThat(model.name).isEqualTo("Invoke")
-    assertThat(model.className).isEqualTo("art::ArtMethod")
-    assertThat(model.signature).isEmpty()
+    assertThat(model.classOrNamespace).isEqualTo("art::ArtMethod")
+    assertThat(model.parameters).isEmpty()
     assertThat(model.separator).isEqualTo("::")
 
     model = MethodNameParser.parseMethodName("art::interpreter::DoCall(bool, art::Thread*)")
     assertThat(model.name).isEqualTo("DoCall")
-    assertThat(model.className).isEqualTo("art::interpreter")
-    assertThat(model.signature).isEqualTo("bool, art::Thread*")
+    assertThat(model.classOrNamespace).isEqualTo("art::interpreter")
+    assertThat(model.signature).isEmpty()
+    assertThat(model.parameters).isEqualTo("bool, art::Thread*")
     assertThat(model.separator).isEqualTo("::")
 
     model = MethodNameParser.parseMethodName("art::SomeClass::add<int>()")
     assertThat(model.name).isEqualTo("add")
-    assertThat(model.className).isEqualTo("art::SomeClass")
-    assertThat(model.signature).isEmpty()
+    assertThat(model.classOrNamespace).isEqualTo("art::SomeClass")
+    assertThat(model.parameters).isEmpty()
     assertThat(model.separator).isEqualTo("::")
 
     model = MethodNameParser.parseMethodName("Shader::Render(glm::detail::tmat4x4<float, (glm::precision)0>*)")
     assertThat(model.name).isEqualTo("Render")
-    assertThat(model.className).isEqualTo("Shader")
-    assertThat(model.signature).isEqualTo("glm::detail::tmat4x4*")
+    assertThat(model.classOrNamespace).isEqualTo("Shader")
+    assertThat(model.signature).isEmpty()
+    assertThat(model.parameters).isEqualTo("glm::detail::tmat4x4*")
     assertThat(model.separator).isEqualTo("::")
 
     model = MethodNameParser.parseMethodName("art::StackVisitor::GetDexPc(bool) const")
     assertThat(model.name).isEqualTo("GetDexPc")
-    assertThat(model.className).isEqualTo("art::StackVisitor")
-    assertThat(model.signature).isEqualTo("bool")
+    assertThat(model.classOrNamespace).isEqualTo("art::StackVisitor")
+    assertThat(model.signature).isEmpty()
+    assertThat(model.parameters).isEqualTo("bool")
     assertThat(model.separator).isEqualTo("::")
 
     model = MethodNameParser.parseMethodName("Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)")
     assertThat(model.name).isEqualTo("FuncTemplate")
-    assertThat(model.className).isEqualTo("Type2")
-    assertThat(model.signature).isEqualTo("Type4")
+    assertThat(model.classOrNamespace).isEqualTo("Type2")
+    assertThat(model.signature).isEmpty()
+    assertThat(model.parameters).isEqualTo("Type4")
     assertThat(model.separator).isEqualTo("::")
 
     try {
@@ -71,13 +75,14 @@ class MethodNameParserTest {
   fun testJavaMethodsParsing() {
     var model = MethodNameParser.parseMethodName("java.util.String.toString")
     assertThat(model.name).isEqualTo("toString")
-    assertThat(model.className).isEqualTo("java.util.String")
+    assertThat(model.classOrNamespace).isEqualTo("java.util.String")
+    assertThat(model.parameters).isEmpty()
     assertThat(model.signature).isEmpty()
     assertThat(model.separator).isEqualTo(".")
 
     model = MethodNameParser.parseMethodName("java.lang.Object.internalClone [DEDUPED]")
     assertThat(model.name).isEqualTo("internalClone [DEDUPED]")
-    assertThat(model.className).isEqualTo("java.lang.Object")
+    assertThat(model.classOrNamespace).isEqualTo("java.lang.Object")
     assertThat(model.signature).isEmpty()
     assertThat(model.separator).isEqualTo(".")
   }
@@ -86,7 +91,8 @@ class MethodNameParserTest {
   fun testSyscallParsing() {
     val model = MethodNameParser.parseMethodName("write")
     assertThat(model.name).isEqualTo("write")
-    assertThat(model.className).isEmpty()
+    assertThat(model.classOrNamespace).isEmpty()
+    assertThat(model.parameters).isEmpty()
     assertThat(model.signature).isEmpty()
     assertThat(model.separator).isEmpty()
   }

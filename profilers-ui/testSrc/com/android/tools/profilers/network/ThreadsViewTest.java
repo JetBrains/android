@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;

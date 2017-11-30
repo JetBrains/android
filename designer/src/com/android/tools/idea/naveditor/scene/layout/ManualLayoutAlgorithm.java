@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.diagnostic.Logger;
@@ -111,7 +110,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     Deque<String> stack = new LinkedList<>();
     NlComponent current = component.getNlComponent();
     while (current != null) {
-      String id = NavComponentHelperKt.getResolvedId(current);
+      String id = current.getId();
       if (id == null) {
         NlModel model = current.getModel();
         Document doc = FileDocumentManager.getInstance().getDocument(model.getVirtualFile());

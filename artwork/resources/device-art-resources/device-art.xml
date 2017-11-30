@@ -30,7 +30,17 @@
     <orientation name="land" size="2596,1258" screenPos="338,78" screenSize="1920,1080" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
+  <device id="pixel_silver" name="Pixel Silver">
+    <orientation name="port" size="1370,2534" screenPos="139,285" screenSize="1080,1920" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2596,1258" screenPos="338,78" screenSize="1920,1080" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
+  </device>
+
   <device id="pixel_xl" name="Pixel XL">
+    <orientation name="port" size="1840,3297" screenPos="200,325" screenSize="1440,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3427,1654" screenPos="393,92" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
+  </device>
+
+  <device id="pixel_xl_silver" name="Pixel XL Silver">
     <orientation name="port" size="1840,3297" screenPos="200,325" screenSize="1440,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
     <orientation name="land" size="3427,1654" screenPos="393,92" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>

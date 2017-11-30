@@ -20,7 +20,7 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
 
-class ColumnReferencesTest : LightRoomTestCase() {
+class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testDefaultColumnName() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")

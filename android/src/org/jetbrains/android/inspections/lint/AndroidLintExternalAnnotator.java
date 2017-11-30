@@ -155,6 +155,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         }
       } else if (fileType == StdFileTypes.JAVA || isKotlin(fileType)) {
         scope = Scope.JAVA_FILE_SCOPE;
+        if (name.endsWith(DOT_KTS)) {
+          scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);
+        }
       } else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
         scope = EnumSet.of(Scope.PROGUARD_FILE);
       } else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {

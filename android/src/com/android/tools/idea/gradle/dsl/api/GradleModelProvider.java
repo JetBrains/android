@@ -26,10 +26,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class GradleModelProvider {
+  private static final ExtensionPointName<GradleModelProvider> EP_NAME =
+    ExtensionPointName.create("com.android.tools.gradleModelProvider");
 
   @NotNull
   public static GradleModelProvider get() {
-    return new GradleModelSource();
+    if (EP_NAME.getExtensions().length == 0) {
+      throw new RuntimeException("Unable to find gradleModelProvider!");
+    }
+    return EP_NAME.getExtensions()[0];
   }
 
   @Nullable

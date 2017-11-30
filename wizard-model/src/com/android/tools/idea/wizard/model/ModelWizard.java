@@ -249,15 +249,17 @@ public final class ModelWizard implements Disposable {
    * finishes the wizard.
    * <p/>
    * It is an error to call this on a wizard that has already finished.
+   *
+   * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
    */
-  public void goForward() {
+  public boolean goForward() {
     ensureWizardIsRunning();
 
     ModelWizardStep prevStep = null;
     if (myCurrIndex >= 0) {
       ModelWizardStep currStep = mySteps.get(myCurrIndex);
-      if (!currStep.canGoForward().get()) {
-        throw new IllegalStateException("Can't call goForward on wizard when the step prevents it");
+      if (!myCanGoForward.get()) {
+        return false;
       }
       prevStep = currStep;
 
@@ -316,6 +318,8 @@ public final class ModelWizard implements Disposable {
     else {
       handleFinished(WizardResult.FINISHED);
     }
+
+    return true;
   }
 
   /**
@@ -323,22 +327,25 @@ public final class ModelWizard implements Disposable {
    * <p/>
    * It is an error to call this if there are no previous pages to return to or on a wizard that's
    * already finished.
+   *
+   * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
    */
-  public void goBack() {
+  public boolean goBack() {
     ensureWizardIsRunning();
 
     if (myPrevSteps.empty()) {
       throw new IllegalStateException("Calling back on wizard without any previous pages");
     }
 
-    ModelWizardStep currStep = mySteps.get(myCurrIndex);
-    if (!currStep.canGoBack()) {
-      throw new IllegalStateException("Can't call goBack on wizard when the step prevents it");
+    if (!myCanGoBack.get()) {
+      return false;
     }
 
     myCurrIndex = mySteps.indexOf(myPrevSteps.pop());
     updateNavigationProperties();
     showCurrentStep();
+
+    return true;
   }
 
   /**
@@ -434,8 +441,9 @@ public final class ModelWizard implements Disposable {
   private void updateNavigationProperties() {
     myOnLastStep.set(isOnLastVisibleStep());
     ModelWizardStep step = mySteps.get(myCurrIndex);
-    myBindings.bind(myCanGoForward, step.canGoForward());
     myCanGoBack.set(!myPrevSteps.empty() && step.canGoBack());
+    myCanGoForward.set(false); // Prevent going forward until the next step finishes binding
+    myBindings.bind(myCanGoForward, step.canGoForward());
   }
 
   private boolean shouldShowStep(ModelWizardStep step) {
@@ -592,13 +600,7 @@ public final class ModelWizard implements Disposable {
         throw new IllegalStateException("Attempting to goForward before the wizard has even started");
       }
 
-      if (canGoForward().get()) {
-        ModelWizard.this.goForward();
-        return true;
-      }
-      else {
-        return false;
-      }
+      return ModelWizard.this.goForward();
     }
 
     /**

@@ -25,7 +25,9 @@ import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 
-
+/**
+ * [PairedBraceMatcher] for RoomSql. Makes the IDE insert the matching parenthesis when typing and highlight corresponding pairs of them.
+ */
 class RoomPairedBraceMatcher : PairedBraceMatcher {
   private val _pairs = arrayOf(BracePair(RoomPsiTypes.LPAREN, RoomPsiTypes.RPAREN, true))
 
@@ -34,6 +36,9 @@ class RoomPairedBraceMatcher : PairedBraceMatcher {
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
+/**
+ * [com.intellij.codeInsight.editorActions.QuoteHandler] for RoomSql. Makes the IDE insert the matching quote when typing.
+ */
 class RoomQuoteHandler : SimpleTokenSetQuoteHandler(
     RoomPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
     RoomPsiTypes.DOUBLE_QUOTE_STRING_LITERAL,

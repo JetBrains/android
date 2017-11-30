@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers.network.httpdata;
 
+import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -87,7 +88,7 @@ public abstract class Payload {
       return myCachedBytes;
     }
 
-    myCachedBytes = myModel.requestPayload(getId());
+    myCachedBytes = myModel.requestBytes(getId());
     String contentEncoding = getHeader().getContentEncoding();
     if (contentEncoding.toLowerCase().contains("gzip")) {
       try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(myCachedBytes.toByteArray()))) {

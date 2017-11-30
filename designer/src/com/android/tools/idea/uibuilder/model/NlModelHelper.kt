@@ -231,9 +231,7 @@ fun NlModel.createComponent(editor: ViewEditor,
   }
   if (parent != null) {
     val parentHandler = viewHandlerManager.getHandler(parent)
-    if (parentHandler is ViewGroupHandler) {
-      parentHandler.onChildInserted(editor, parent, child, insertType)
-    }
+    (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, parent, child, insertType)
   }
 
   return child

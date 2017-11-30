@@ -45,6 +45,14 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
   private static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
+  private static class KeyStorePasswordRequestor {
+    // dummy: used as a requestor class id to access the key store password
+  }
+
+  private static class KeyPasswordRequestor {
+    // dummy: used as a requestor class id to access the key password
+  }
+
   private JPanel myContentPanel;
   private JPasswordField myKeyStorePasswordField;
   private JPasswordField myKeyPasswordField;
@@ -68,19 +76,39 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
 
     if (settings.REMEMBER_PASSWORDS) {
-      final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-      String password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
-        KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null));
+      final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
+      String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
       if (password != null) {
         myKeyStorePasswordField.setText(password);
       }
-      password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
-        KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS));
+
+      final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
+      password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
       if (password != null) {
         myKeyPasswordField.setText(password);
       }
     }
     AndroidUiUtil.initSigningSettingsForm(project, this);
+  }
+
+  private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
+    final PasswordSafe passwordSafe = PasswordSafe.getInstance();
+    String password = passwordSafe.getPassword(primaryRequestor, key);
+    if (password == null) {
+      // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
+      // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
+      // passwords at once.
+      password = passwordSafe.getPassword(KeyStore.class, key);
+    }
+
+    return password;
+  }
+
+  private static void updateSavedPassword(@NotNull Class<?> primaryRequestor, @NotNull String key, @Nullable String value) {
+    final PasswordSafe passwordSafe = PasswordSafe.getInstance();
+    passwordSafe.setPassword(primaryRequestor, key, value);
+    // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
+    passwordSafe.setPassword(KeyStore.class, key, null);
   }
 
   private static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
@@ -154,13 +182,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     final boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
     settings.REMEMBER_PASSWORDS = rememberPasswords;
-    final PasswordSafe passwordSafe = PasswordSafe.getInstance();
 
     final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
-    passwordSafe.setPassword(KeystoreStep.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
-    passwordSafe.setPassword(KeystoreStep.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
+    updateSavedPassword(KeyStorePasswordRequestor.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
+    updateSavedPassword(KeyPasswordRequestor.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {

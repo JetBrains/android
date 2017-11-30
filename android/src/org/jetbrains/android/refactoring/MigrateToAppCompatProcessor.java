@@ -30,6 +30,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -377,16 +378,23 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       }
     }
     finally {
-      myPsiMigration.finish();
-      myPsiMigration = null;
+      ApplicationManager.getApplication().invokeLater(() -> WriteAction.run(this::finishMigration), myProject.getDisposed());
     }
 
     MigrateToAppCompatUtil.removeUnneededUsages(infos);
     return infos.toArray(new UsageInfo[infos.size()]);
   }
 
+  private void finishMigration() {
+    if (myPsiMigration != null) {
+      myPsiMigration.finish();
+      myPsiMigration = null;
+    }
+  }
+
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
+    finishMigration();
     PsiMigration psiMigration = PsiMigrationManager.getInstance(myProject).startMigration();
     List<MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo> classMigrations = Lists.newArrayList();
 
@@ -452,6 +460,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void refreshElements(@NotNull PsiElement[] elements) {
+    finishMigration();
     myPsiMigration = startMigration(myProject);
   }
 

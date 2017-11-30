@@ -141,7 +141,7 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromPngToWebp() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
@@ -186,7 +186,7 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromWebPToPng() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")

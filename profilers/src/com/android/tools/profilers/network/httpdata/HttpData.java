@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers.network.httpdata;
 
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +50,7 @@ public class HttpData {
   private final long myEndTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
-  @NotNull private final StackTrace myTrace;
+  @NotNull private final String myTraceId;
   @NotNull private final List<JavaThread> myThreads;
 
   @NotNull private final RequestHeader myRequestHeader;
@@ -70,7 +67,7 @@ public class HttpData {
     myEndTimeUs = builder.myEndTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
-    myTrace = new StackTrace(builder.myTrace);
+    myTraceId = builder.myTraceId;
     myThreads = builder.myThreads;
 
     myRequestPayloadId = builder.myRequestPayloadId;
@@ -111,7 +108,7 @@ public class HttpData {
   }
 
   @NotNull
-  public StackTrace getStackTrace() { return myTrace; }
+  public String getTraceId() { return myTraceId; }
 
   /**
    * Threads that access a connection. The first thread is the thread that creates the connection.
@@ -189,34 +186,6 @@ public class HttpData {
   @Override
   public int hashCode() {
     return Objects.hash(myId);
-  }
-
-  public static final class StackTrace {
-    private final ImmutableList<CodeLocation> myLocations;
-    private final String myTrace;
-
-    private StackTrace(@NotNull String trace) {
-      myTrace = trace;
-      ImmutableList.Builder<CodeLocation> builder = new ImmutableList.Builder<>();
-      for (String line: trace.split("\\n")) {
-        if (line.trim().isEmpty()) {
-          continue;
-        }
-        builder.add(new StackFrameParser(line).toCodeLocation());
-      }
-      myLocations = builder.build();
-    }
-
-    @NotNull
-    public ImmutableList<CodeLocation> getCodeLocations() {
-      return myLocations;
-    }
-
-    @VisibleForTesting
-    @NotNull
-    public String getTrace() {
-      return myTrace;
-    }
   }
 
   public static final class ContentType {
@@ -440,7 +409,7 @@ public class HttpData {
     private String myRequestFields = "";
     private String myResponsePayloadId = "";
     private String myRequestPayloadId = "";
-    private String myTrace = "";
+    private String myTraceId = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
     public Builder(long id, long startTimeUs, long uploadedTimeUs, long downloadingTimeUs, long endTimeUs, List<JavaThread> threads) {
@@ -455,7 +424,7 @@ public class HttpData {
     }
 
     @VisibleForTesting
-    Builder(@NotNull HttpData template) {
+    public Builder(@NotNull HttpData template) {
       this(template.getId(),
            template.getStartTimeUs(),
            template.getUploadedTimeUs(),
@@ -464,7 +433,7 @@ public class HttpData {
            template.getJavaThreads());
       setUrl(template.getUrl());
       setMethod(template.getMethod());
-      setTrace(template.getStackTrace().getTrace());
+      setTraceId(template.getTraceId());
     }
 
     @NotNull
@@ -480,8 +449,8 @@ public class HttpData {
     }
 
     @NotNull
-    public Builder setTrace(@NotNull String trace) {
-      myTrace = trace;
+    public Builder setTraceId(@NotNull String traceId) {
+      myTraceId = traceId;
       return this;
     }
 

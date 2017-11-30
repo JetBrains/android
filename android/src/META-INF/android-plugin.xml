@@ -282,7 +282,7 @@
         icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
         text="Connection Assistant"
         description="Help debug device connection">
-      <add-to-group group-id="ToolsMenu" relative-to-action="AndroidToolsGroup" anchor="before"/>
+      <add-to-group group-id="AndroidToolsGroupExtension" anchor="last"/>
     </action>
     <action
       id="LayoutEditor.AddSampleData"
@@ -1324,6 +1324,8 @@
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
+    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
+    <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
   </extensions>
 
 </idea-plugin>

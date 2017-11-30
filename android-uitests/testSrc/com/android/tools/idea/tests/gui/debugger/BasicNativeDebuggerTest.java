@@ -19,7 +19,12 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,11 +115,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     openAndToggleBreakPoints(projectFrame,
                              "app/src/main/jni/native-lib.c",
-                             "return sum;",
-                             "return product;",
-                             "return quotient;",
-                             "return (*env)->NewStringUTF(env, message);"
-    );
+                             "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -123,48 +124,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     waitForSessionStart(debugToolWindowFixture);
 
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("x3", "int", "3"),
-      variableToSearchPattern("x4", "int", "4"),
-      variableToSearchPattern("x5", "int", "5"),
-      variableToSearchPattern("x6", "int", "6"),
-      variableToSearchPattern("x7", "int", "7"),
-      variableToSearchPattern("x8", "int", "8"),
-      variableToSearchPattern("x9", "int", "9"),
-      variableToSearchPattern("x10", "int", "10"),
-      variableToSearchPattern("sum", "int", "55"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("x3", "int", "3"),
-      variableToSearchPattern("x4", "int", "4"),
-      variableToSearchPattern("x5", "int", "5"),
-      variableToSearchPattern("x6", "int", "6"),
-      variableToSearchPattern("x7", "int", "7"),
-      variableToSearchPattern("x8", "int", "8"),
-      variableToSearchPattern("x9", "int", "9"),
-      variableToSearchPattern("x10", "int", "10"),
-      variableToSearchPattern("product", "int", "3628800"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1024"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("quotient", "int", "512"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
       variableToSearchPattern("sum_of_10_ints", "int", "55"),
       variableToSearchPattern("product_of_10_ints", "int", "3628800"),
       variableToSearchPattern("quotient", "int", "512")

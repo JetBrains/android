@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +126,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         HttpDetailsResponse.Request.Builder requestBuilder = HttpDetailsResponse.Request.newBuilder();
         String requestHeaders = data.getRequestHeader().getFields().entrySet().stream().map(x -> x.getKey() + " = " + x.getValue())
           .collect(Collectors.joining("\n"));
-        requestBuilder.setTrace(data.getStackTrace().getTrace())
+        requestBuilder.setTraceId(data.getTraceId())
           .setMethod(data.getMethod())
           .setUrl(data.getUrl())
           .setFields(requestHeaders);

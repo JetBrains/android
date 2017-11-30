@@ -27,7 +27,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
-class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true) {
+class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, true) {
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 

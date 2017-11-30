@@ -22,6 +22,9 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.android.tools.profilers.network.httpdata.Payload;
+import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -98,7 +101,7 @@ public class NetworkProfilerStageTest {
     assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
     assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
     assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
-    assertThat(data.getStackTrace().getTrace()).isEqualTo(expectedData.getStackTrace().getTrace());
+    assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());
     assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
     assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
     assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
@@ -407,9 +410,14 @@ public class NetworkProfilerStageTest {
   @Test
   public void codeNavigationUnexpandsProfiler() {
     HttpData data = FAKE_HTTP_DATA.get(0);
-    // data.getStrackTrace() correlates to FakeNetworkService.FAKE_STACK_TRACE
-    assertThat(data.getStackTrace().getCodeLocations()).hasSize(2);
-    myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
+
+    myProfilerService
+      .addFile(TestHttpData.fakeStackTraceId(data.getId()), ByteString.copyFromUtf8(TestHttpData.fakeStackTrace(data.getId())));
+
+    StackTrace stackTrace = new StackTrace(myStage.getConnectionsModel(), data);
+    assertThat(stackTrace.getTrace()).isEqualTo(TestHttpData.fakeStackTrace(data.getId()));
+    assertThat(stackTrace.getCodeLocations()).hasSize(2);
+    myStage.getStackTraceModel().setStackFrames(stackTrace.getTrace());
 
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);

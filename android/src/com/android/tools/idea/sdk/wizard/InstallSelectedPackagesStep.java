@@ -152,8 +152,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   }
 
   @Override
-  public boolean canGoBack() {
-    return myInstallationFinished.get();
+  protected boolean canGoBack() {
+    // No turning back! Once we've started installing, it's too late to stop and change options.
+    return false;
   }
 
   @NotNull

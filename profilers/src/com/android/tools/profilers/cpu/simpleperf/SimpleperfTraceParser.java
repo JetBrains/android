@@ -278,7 +278,7 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    CaptureNode root = createCaptureNode(new MethodModel(myThreads.get(threadId)), firstTimestamp);
+    CaptureNode root = createCaptureNode(new MethodModel.Builder(myThreads.get(threadId)).build(), firstTimestamp);
     root.setDepth(0);
     myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
 
@@ -393,7 +393,7 @@ public class SimpleperfTraceParser implements TraceParser {
       // if symbol_id is -1, we report the method as fileName+vAddress (e.g. program.so+0x3039)
       String hexAddress = "0x" + Long.toHexString(callChainEntry.getVaddrInFile());
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
-      return new MethodModel(methodName);
+      return new MethodModel.Builder(methodName).build();
     }
     // Otherwise, read the method from the symbol table and parse it into a MethodModel
     return MethodNameParser.parseMethodName(symbolFile.getSymbol(symbolId));

@@ -229,7 +229,7 @@ public class TutorialCard extends CardViewPanel {
 
     StepByStepFooter() {
       super(new BorderLayout());
-      myPrevButton = new StepButton("Prev Step", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
+      myPrevButton = new StepButton("Previous Step", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
       add(myPrevButton, BorderLayout.LINE_START);
       myNextButton = new StepButton("Next Step", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
       add(myNextButton, BorderLayout.LINE_END);
@@ -238,8 +238,8 @@ public class TutorialCard extends CardViewPanel {
       setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
     }
 
-    private void handleStepButtonClick(ActionEvent e) {
-      Object source = e.getSource();
+    private void handleStepButtonClick(@NotNull ActionEvent event) {
+      Object source = event.getSource();
       StepButton stepButton = (StepButton)source;
       if (stepButton.myDirection == StepButton.Direction.NEXT && myStepIndex < myTutorial.getSteps().size() - 1) {
         myStepIndex++;

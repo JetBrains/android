@@ -161,31 +161,16 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myChildrenTotal = myTotal - self;
   }
 
+  @NotNull
   @Override
-  public String getMethodName() {
+  public MethodModel getMethodModel() {
     if (myIsRoot) {
-      return "";
+      // Return a dummy entry for the root.
+      return new MethodModel.Builder("").build();
     }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getName());
-  }
-
-  @Override
-  public String getClassName() {
-    if (myIsRoot) {
-      return "";
-    }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getClassName());
-  }
-
-  @Override
-  public String getSignature() {
-    if (myIsRoot) {
-      return "";
-    }
-    MethodModel method = myPathNodes.get(0).getData();
-    return (method == null ? "" : method.getSignature());
+    MethodModel model = myPathNodes.get(0).getData();
+    assert model != null;
+    return model;
   }
 
   @Override

@@ -89,7 +89,7 @@ public class MemoryNavigationTest {
     // TODO renable this once field selection is implemented
     /*
     // Expands the instance in the classSetTree to select the field
-    TreeNode instanceNode = ((MemoryObjectTreeNode)classSetTree.getModel().getRoot()).getChildAt(0);
+    TreeNode instanceNode = ((MemoryObjectTreeNode)classSetTree.getMethodModel().getRoot()).getChildAt(0);
     classSetTree.expandPath(new TreePath(instanceNode));
     TreeNode fieldNode = instanceNode.getChildAt(0);
     classSetTree.setSelectionPath(new TreePath(fieldNode));

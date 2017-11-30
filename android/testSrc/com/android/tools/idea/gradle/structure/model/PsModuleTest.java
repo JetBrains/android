@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.hamcrest.Matcher;
 
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
@@ -48,6 +55,25 @@ public class PsModuleTest extends AndroidGradleTestCase {
 
     assertThat(psAppModule.isModified(), is(false));
     assertThat(buildFileDocument.getText(), containsString(UPDATED_GUAVA_COORDINATES));
+  }
+
+  public void testLocalRepositories() throws Exception {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION);
+    PsProject psProject = new PsProject(getProject());
+    PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
+    assertThat(psAppModule.getParsedModel().repositories().repositories(), hasItem(instanceOf(MavenRepositoryModel.class)));
+    List<String> mavenRepositories =
+      psAppModule.getParsedModel().repositories().repositories().stream()
+        .filter(it -> it.getType() == RepositoryModel.RepositoryType.MAVEN)
+        .map(it -> ((MavenRepositoryModel)(it)).url().value())
+        .collect(toList());
+    Iterable<Matcher<? super String>> localRepositoryMatchers =
+      AndroidGradleTests
+        .getLocalRepositoryDirectories()
+        .stream()
+        .map(v -> is(v.toURI().toString()))
+        .collect(toList());
+    assertThat(mavenRepositories, hasItem(anyOf(localRepositoryMatchers)));
   }
 
   private Document getDocument() {

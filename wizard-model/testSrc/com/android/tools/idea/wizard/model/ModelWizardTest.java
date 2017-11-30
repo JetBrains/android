@@ -75,14 +75,14 @@ public class ModelWizardTest {
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
 
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
     ourInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
 
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(TitleStep.class);
     ourInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
@@ -90,7 +90,7 @@ public class ModelWizardTest {
     assertThat(wizard.onLastStep().get()).isTrue();
 
     assertThat(wizardResult[0]).isNull();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     ourInvokeStrategy.updateAllSteps();
 
     assertThat(wizard.isFinished()).isTrue();
@@ -124,13 +124,13 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
-    wizard.goForward(); // Skips skippable step
+    runInvokerAndGoForward(wizard); // Skips skippable step
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(TitleStep.class);
-    wizard.goBack(); // Skips skippable step
+    runInvokerAndGoBack(wizard); // Skips skippable step
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
-    wizard.goBack();
+    runInvokerAndGoBack(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
 
     Disposer.dispose(wizard);
@@ -178,12 +178,12 @@ public class ModelWizardTest {
     wizardBuilder.addStep(extraStep3);
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward(); // Step1
-    wizard.goForward(); // Step2
-    wizard.goForward(); // Step3
-    wizard.goForward(); // Step4
-    wizard.goForward(); // ExtraStep1
-    wizard.goForward(); // ExtraStep3
+    runInvokerAndGoForward(wizard); // Step1
+    runInvokerAndGoForward(wizard); // Step2
+    runInvokerAndGoForward(wizard); // Step3
+    runInvokerAndGoForward(wizard); // Step4
+    runInvokerAndGoForward(wizard); // ExtraStep1
+    runInvokerAndGoForward(wizard); // ExtraStep3
 
     assertThat(finishList).containsExactly(step1.getModel(), step2.getModel(), step3.getModel(), step4.getModel());
 
@@ -211,11 +211,11 @@ public class ModelWizardTest {
 
     ModelWizard wizard = new ModelWizard.Builder(step1, step2, step3, step4, step5, step6, step7).build();
 
-    wizard.goForward(); // Step1
+    runInvokerAndGoForward(wizard); // Step1
     // Step 2 skipped
-    wizard.goForward(); // Step3
+    runInvokerAndGoForward(wizard); // Step3
     // Step 4 - 6 skipped
-    wizard.goForward(); // Step6
+    runInvokerAndGoForward(wizard); // Step7
 
     assertThat(wizard.isFinished()).isTrue();
     assertThat(modelFinished1.myIsFinished).isTrue();
@@ -254,9 +254,9 @@ public class ModelWizardTest {
   public void wizardCantGoForwardAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
     }
     finally {
       Disposer.dispose(wizard);
@@ -267,9 +267,9 @@ public class ModelWizardTest {
   public void wizardCantGoBackAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
-      wizard.goBack();
+      runInvokerAndGoBack(wizard);
     }
     finally {
       Disposer.dispose(wizard);
@@ -280,7 +280,7 @@ public class ModelWizardTest {
   public void wizardCantCancelAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
       wizard.cancel();
     }
@@ -294,9 +294,9 @@ public class ModelWizardTest {
     DummyModel model = new DummyModel();
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
     try {
-      wizard.goForward();
-      wizard.goBack();
-      wizard.goBack();
+      runInvokerAndGoForward(wizard);
+      runInvokerAndGoBack(wizard);
+      runInvokerAndGoBack(wizard);
     }
     finally {
       Disposer.dispose(wizard);
@@ -314,8 +314,8 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
+    runInvokerAndGoForward(wizard);
 
     assertThat(wizard.isFinished()).isTrue();
     assertThat(shouldSkipStep.isEntered()).isFalse();
@@ -323,7 +323,7 @@ public class ModelWizardTest {
     Disposer.dispose(wizard);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantContinueIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -332,15 +332,12 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-    try {
-      wizard.goForward();
-    }
-    finally {
-      Disposer.dispose(wizard);
-    }
+    assertThat(runInvokerAndGoForward(wizard)).isFalse();
+
+    Disposer.dispose(wizard);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantGoBackIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -349,13 +346,10 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new PreventNavigatingBackwardStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-    try {
-      wizard.goForward();
-      wizard.goBack();
-    }
-    finally {
-      Disposer.dispose(wizard);
-    }
+    assertThat(runInvokerAndGoForward(wizard)).isTrue();
+    assertThat(runInvokerAndGoBack(wizard)).isFalse();
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -367,9 +361,9 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(GrandparentStep.class);
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ParentStep.class);
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ChildStep.class);
 
     Disposer.dispose(wizard);
@@ -404,7 +398,7 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(new DummyModel())); // Ensure we have at least one shown step
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
 
     assertThat(wizard.isFinished()).isTrue();
 
@@ -420,7 +414,7 @@ public class ModelWizardTest {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(disposedStep);
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
 
     assertThat(wizard.isFinished()).isTrue();
 
@@ -443,9 +437,9 @@ public class ModelWizardTest {
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1A, step2A, step3B, step4C, step5C);
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
-    wizard.goForward();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
+    runInvokerAndGoForward(wizard);
+    runInvokerAndGoForward(wizard);
 
     assertThat(wizard.isFinished()).isTrue();
 
@@ -479,10 +473,10 @@ public class ModelWizardTest {
       }
     });
 
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(badStep[0]).isNull();
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       fail(); // Guarantees that a exception is thrown, as expected.
     }
     catch (FakeStepException ignored) {
@@ -492,7 +486,7 @@ public class ModelWizardTest {
     assertThat(wizard.getCurrentStep()).isEqualTo(step2);
 
     step2.throwOnProceeding(false);
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep()).isEqualTo(step3);
 
     Disposer.dispose(wizard);
@@ -520,7 +514,7 @@ public class ModelWizardTest {
     });
 
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       fail(); // Guarantees that a exception is thrown, as expected.
     }
     catch (FakeStepException ignored) {
@@ -530,7 +524,7 @@ public class ModelWizardTest {
     assertThat(wizard.getCurrentStep()).isEqualTo(step1);
 
     step2.throwOnEntering(false);
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep()).isEqualTo(step2);
 
     Disposer.dispose(wizard);
@@ -556,11 +550,11 @@ public class ModelWizardTest {
       }
     });
 
-    wizard.goForward();
-    wizard.goForward();
+    runInvokerAndGoForward(wizard);
+    runInvokerAndGoForward(wizard);
 
     try {
-      wizard.goForward();
+      runInvokerAndGoForward(wizard);
       fail();
     }
     catch (FakeModelException e) {
@@ -570,6 +564,24 @@ public class ModelWizardTest {
     assertThat(onFinished[0]).isTrue();
 
     Disposer.dispose(wizard);
+  }
+
+  /**
+   * Note: The wizard waits for internal bindings to settle before being able to go forward. Tests
+   * should therefore call this method instead of {@link ModelWizard#goForward()} directly.
+   */
+  private static boolean runInvokerAndGoForward(ModelWizard wizard) {
+    ourInvokeStrategy.updateAllSteps();
+    return wizard.goForward();
+  }
+
+  /**
+   * Note: The wizard waits for internal bindings to settle before being able to go back. Tests
+   * should therefore call this method instead of {@link ModelWizard#goBack()} directly.
+   */
+  private static boolean runInvokerAndGoBack(ModelWizard wizard) {
+    ourInvokeStrategy.updateAllSteps();
+    return wizard.goBack();
   }
 
   private static class DummyModel extends WizardModel {

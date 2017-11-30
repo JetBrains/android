@@ -36,11 +36,11 @@ public class MethodNameParser {
     }
     else if (methodFullName.contains(".")) {
       // Method is in the format java.package.Class.method. Parse it into a MethodModel.
-      return createMethodModel(methodFullName, ".", JAVA_SEPARATOR_PATTERN, "");
+      return createMethodModel(methodFullName, ".", JAVA_SEPARATOR_PATTERN, false).setSignature("").build();
     }
     else {
       // Method is a syscall. Create a simple method model passing the full name as method name
-      return new MethodModel(methodFullName);
+      return new MethodModel.Builder(methodFullName).build();
     }
   }
 
@@ -54,22 +54,20 @@ public class MethodNameParser {
     // First, remove template information.
     methodFullName = removeTemplateInformation(methodFullName);
 
-    // Then, extract the method's signature, which should be between parentheses
-    int signatureStartIndex = methodFullName.lastIndexOf('(');
-    int signatureEndIndex = findMatchingClosingCharacterIndex(methodFullName, '(', ')', signatureStartIndex);
-    // Make sure not to include the indexes of "(" and ")" when creating the signature substring.
-    String signature = methodFullName.substring(signatureStartIndex + 1, signatureEndIndex);
-    // Remove the signature and everything that comes after it, such as const/volatile modifiers.
-    methodFullName = methodFullName.substring(0, signatureStartIndex);
+    // Then, extract the method's parameters, which should be between parentheses
+    int paramsStartIndex = methodFullName.lastIndexOf('(');
+    int paramsEndIndex = findMatchingClosingCharacterIndex(methodFullName, '(', ')', paramsStartIndex);
+    // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
+    String parameters = methodFullName.substring(paramsStartIndex + 1, paramsEndIndex);
+    // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
+    methodFullName = methodFullName.substring(0, paramsStartIndex);
 
     // If the string still contains a whitespace, it's the separator between the return type and the method name.
     int returnTypeSeparatorIndex = methodFullName.indexOf(' ');
     if (returnTypeSeparatorIndex >= 0) {
       methodFullName = methodFullName.substring(returnTypeSeparatorIndex + 1);
     }
-    MethodModel methodModel = createMethodModel(methodFullName, "::", NATIVE_SEPARATOR_PATTERN, signature);
-    methodModel.setNative(true);
-    return methodModel;
+    return createMethodModel(methodFullName, "::", NATIVE_SEPARATOR_PATTERN, true).setParameters(parameters).build();
   }
 
   /**
@@ -132,21 +130,31 @@ public class MethodNameParser {
    * @param methodFullName The method's full qualified name (e.g. java.lang.Object.equals)
    * @param separator The namespace separator (e.g. ".")
    * @param separatorPattern The regex pattern used to split the method full name (e.g. "\\.")
-   * @param signature The method's signature.
+   * @param isNative Wether the method is native.
    */
-  private static MethodModel createMethodModel(String methodFullName, String separator, Pattern separatorPattern, String signature) {
+  private static MethodModel.Builder createMethodModel(String methodFullName,
+                                                       String separator,
+                                                       Pattern separatorPattern,
+                                                       boolean isNative) {
     // First, we should extract the method name, which is the name after the last "." character.
     String[] splittedMethod = separatorPattern.split(methodFullName);
     int methodNameIndex = splittedMethod.length - 1;
     String methodName = splittedMethod[methodNameIndex];
 
-    // Everything else composes the class name.
-    StringBuilder className = new StringBuilder(splittedMethod[0]);
+    // Everything else composes the namespace and/or class name.
+    StringBuilder classOrNamespace = new StringBuilder(splittedMethod[0]);
     for (int i = 1; i < methodNameIndex; i++) {
-      className.append(separator);
-      className.append(splittedMethod[i]);
+      classOrNamespace.append(separator);
+      classOrNamespace.append(splittedMethod[i]);
     }
-    return new MethodModel(methodName, className.toString(), signature, separator);
+    MethodModel.Builder builder = new MethodModel.Builder(methodName);
+    if (isNative) {
+      builder.setNativeNamespaceAndClass(classOrNamespace.toString());
+    }
+    else {
+      builder.setJavaClassName(classOrNamespace.toString());
+    }
+    return builder;
   }
 
 }

@@ -66,6 +66,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -90,14 +92,20 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private boolean myAreListenersRegistered = false;
-  private static final Object PROGRESS_LOCK = new Object();
+  private final Object myProgressLock = new Object();
+  @GuardedBy("myProgressLock")
   private AndroidPreviewProgressIndicator myCurrentIndicator;
+  // Protects all accesses to the rendering queue reference
   private final Object myRenderingQueueLock = new Object();
+  @GuardedBy("myRenderingQueueLock")
   private MergingUpdateQueue myRenderingQueue;
   private static final int RENDER_DELAY_MS = 10;
   private RenderTask myRenderTask;
-  public static final Object RENDERING_LOCK = new Object();
+  // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
+  // since RenderTask is able to handle those safely.
+  private final Object myRenderingTaskLock = new Object();
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
+  // Protects all read/write accesses to the myRenderResult reference
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
@@ -109,6 +117,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
   private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
+  private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
 
   /**
    * Logs a render action.
@@ -189,8 +198,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-    ApplicationManager.getApplication().invokeLater(() -> {
-      synchronized (RENDERING_LOCK) {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      synchronized (myRenderingTaskLock) {
         if (myRenderTask != null) {
           myRenderTask.dispose();
           myRenderTask = null;
@@ -369,8 +378,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelDeactivated(@NotNull NlModel model) {
-      if (myRenderingQueue != null) {
-        myRenderingQueue.cancelAllUpdates();
+      synchronized (myRenderingQueueLock) {
+        if (myRenderingQueue != null) {
+          myRenderingQueue.cancelAllUpdates();
+        }
       }
     }
 
@@ -483,7 +494,7 @@ public class LayoutlibSceneManager extends SceneManager {
   protected void requestModelUpdate() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    synchronized (PROGRESS_LOCK) {
+    synchronized (myProgressLock) {
       if (myCurrentIndicator == null) {
         myCurrentIndicator = new AndroidPreviewProgressIndicator();
         myCurrentIndicator.start();
@@ -507,7 +518,7 @@ public class LayoutlibSceneManager extends SceneManager {
           }
         }
 
-        synchronized (PROGRESS_LOCK) {
+        synchronized (myProgressLock) {
           if (myCurrentIndicator != null) {
             myCurrentIndicator.stop();
             myCurrentIndicator = null;
@@ -554,20 +565,24 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @Override
   public void layout(boolean animate) {
-    if (myRenderTask != null) {
-      synchronized (RENDERING_LOCK) {
-        RenderResult result = null;
-        try {
-          result = myRenderTask.layout().get();
-        }
-        catch (InterruptedException | ExecutionException e) {
-          Logger.getInstance(NlModel.class).warn("Unable to run layout()", e);
-        }
-        if (result != null) {
-          updateHierarchy(result);
-          getModel().notifyListenersModelLayoutComplete(animate);
-        }
+    Future<RenderResult> futureResult;
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return;
       }
+      futureResult = myRenderTask.layout();
+    }
+
+    try {
+      RenderResult result = futureResult.get();
+
+      if (result != null) {
+        updateHierarchy(result);
+        getModel().notifyListenersModelLayoutComplete(animate);
+      }
+    }
+    catch (InterruptedException | ExecutionException e) {
+      Logger.getInstance(NlModel.class).warn("Unable to run layout()", e);
     }
   }
 
@@ -598,13 +613,22 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private void updateHierarchy(@Nullable RenderResult result) {
-    if (result == null || !result.getRenderResult().isSuccess()) {
-      updateHierarchy(Collections.emptyList(), getModel());
+    try {
+      myUpdateHierarchyLock.acquire();
+      try {
+        if (result == null || !result.getRenderResult().isSuccess()) {
+          updateHierarchy(Collections.emptyList(), getModel());
+        }
+        else {
+          updateHierarchy(getRootViews(result), getModel());
+        }
+      } finally {
+        myUpdateHierarchyLock.release();
+      }
+      getModel().checkStructure();
     }
-    else {
-      updateHierarchy(getRootViews(result), getModel());
+    catch (InterruptedException e) {
     }
-    getModel().checkStructure();
   }
 
   @NotNull
@@ -645,7 +669,8 @@ public class LayoutlibSceneManager extends SceneManager {
     LayoutPullParsers.saveFileIfNecessary(getModel().getFile());
 
     RenderResult result = null;
-    synchronized (RENDERING_LOCK) {
+    RenderTask resultTask = null;
+    synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
         return false;
@@ -663,7 +688,8 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderTask = renderService.createTask(getModel().getFile(), configuration, logger, getDesignSurface());
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
-        myRenderTask.getLayoutlibCallback().setAdaptiveIconMaskPath(((NlDesignSurface)getDesignSurface()).getAdaptiveIconShape().getPathDescription());
+        myRenderTask.getLayoutlibCallback()
+          .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
         result = myRenderTask.inflate();
         if (result == null || !result.getRenderResult().isSuccess()) {
           myRenderTask.dispose();
@@ -675,17 +701,19 @@ public class LayoutlibSceneManager extends SceneManager {
         }
       }
 
-      updateHierarchy(result);
-      myRenderResultLock.writeLock().lock();
-      try {
-        myRenderResult = result;
-      }
-      finally {
-        myRenderResultLock.writeLock().unlock();
-      }
-
-      return myRenderTask != null;
+      resultTask = myRenderTask;
     }
+
+    updateHierarchy(result);
+    myRenderResultLock.writeLock().lock();
+    try {
+      myRenderResult = result;
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
+
+    return resultTask != null;
   }
 
   @VisibleForTesting
@@ -755,35 +783,40 @@ public class LayoutlibSceneManager extends SceneManager {
     getModel().resetLastChange();
     long renderStartTimeMs = System.currentTimeMillis();
     boolean inflated = inflate(false);
+    long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
-    synchronized (RENDERING_LOCK) {
-      if (myRenderTask != null) {
-        if (myElapsedFrameTimeMs != -1) {
-          myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(myElapsedFrameTimeMs));
-        }
-        RenderResult result = Futures.getUnchecked(myRenderTask.render());
-        // When the layout was inflated in this same call, we do not have to update the hierarchy again
-        if (result != null && !inflated) {
-          updateHierarchy(result);
-        }
-        myRenderResultLock.writeLock().lock();
-        try {
-          myRenderResult = result;
-          // Downgrade the write lock to read lock
-          myRenderResultLock.readLock().lock();
-        }
-        finally {
-          myRenderResultLock.writeLock().unlock();
-        }
-        try {
-          NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
-                                                                     myRenderResult,
-                                                                     System.currentTimeMillis() - renderStartTimeMs);
-        }
-        finally {
-          myRenderResultLock.readLock().unlock();
-        }
+    Future<RenderResult> futureResult;
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return;
       }
+      if (elapsedFrameTimeMs != -1) {
+        myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
+      }
+      futureResult = myRenderTask.render();
+    }
+
+    RenderResult result = Futures.getUnchecked(futureResult);
+    // When the layout was inflated in this same call, we do not have to update the hierarchy again
+    if (result != null && !inflated) {
+      updateHierarchy(result);
+    }
+    myRenderResultLock.writeLock().lock();
+    try {
+      myRenderResult = result;
+      // Downgrade the write lock to read lock
+      myRenderResultLock.readLock().lock();
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
+    try {
+      NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
+                                                                 myRenderResult,
+                                                                 System.currentTimeMillis() - renderStartTimeMs);
+    }
+    finally {
+      myRenderResultLock.readLock().unlock();
     }
 
     UIUtil.invokeLaterIfNeeded(() -> {
