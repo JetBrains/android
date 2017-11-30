@@ -27,10 +27,11 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -39,6 +40,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -299,12 +301,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private void initPreviewForm() {
     if (myContentPanel == null) {
       // First time: Make sure we have compiled the project at least once...
-      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
-        DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewFormAfterBuild, this::buildError);
-      }
-      else {
-        initPreviewFormAfterBuild();
-      }
+      ClearResourceCacheAfterFirstBuild.getInstance(myProject)
+        .runWhenResourceCacheClean(this::initPreviewFormAfterInitialBuild, this::buildError);
     }
     else {
       // Subsequent times: Setup a Nele model in preparation for creating a preview image
@@ -312,8 +310,29 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  private void initPreviewFormAfterBuild() {
-    UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
+  private void initPreviewFormAfterInitialBuild() {
+    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+
+    if (!syncManager.isSyncInProgress()) {
+      if (syncManager.getLastSyncResult().isSuccessful()) {
+        UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
+        return;
+      }
+      else {
+        buildError();
+      }
+    }
+
+    // Wait for a successful sync in case the module containing myFile was
+    // just added and the Android facet isn't available yet.
+    SyncUtil.listenUntilNextSuccessfulSync(myProject, this, result -> {
+      if (result.isSuccessful()) {
+        UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
+      }
+      else {
+        buildError();
+      }
+    });
   }
 
   // Build was either cancelled or there was an error

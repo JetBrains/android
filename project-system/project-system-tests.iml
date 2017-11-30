@@ -14,5 +14,8 @@
     <orderEntry type="module" module-name="project-system" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="module" module-name="sdk-common" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>
 </module>

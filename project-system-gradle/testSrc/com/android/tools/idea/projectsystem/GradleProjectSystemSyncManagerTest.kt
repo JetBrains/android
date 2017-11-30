@@ -77,7 +77,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
   }
 
   private fun emulateSync(requireSourceGeneration: Boolean, syncSuccessful: Boolean):
-    ListenableFuture<SyncResult> {
+      ListenableFuture<SyncResult> {
 
     doAnswer({ invocation ->
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
@@ -122,7 +122,6 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
   }
 
   fun testSyncProject_noSourceGeneration() {
-
     val result = emulateSync(false, true)
 
     assertThat(result.isDone).isTrue()
