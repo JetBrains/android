@@ -22,12 +22,11 @@ import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
@@ -83,12 +82,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
-    if (GradleProjects.isBuildWithGradle(project)) {
-      DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
-    }
-    else {
-      initNeleModel();
-    }
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
