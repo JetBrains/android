@@ -43,5 +43,6 @@ iml_module(
         "//tools/studio/google/cloud/testing/test-recorder[module, test]",
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/adt/idea/android-common[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
