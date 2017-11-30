@@ -27,6 +27,7 @@
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 

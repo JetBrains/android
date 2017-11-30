@@ -23,13 +23,13 @@ import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.vfs.VirtualFile
 
-val SUPPORTED_TYPES = setOf("png", "jpg")
-
 /**
  * Find all the [DesignAssetSet] in the given directory
+ *
+ * @param supportedTypes The file types supported for importation
  */
-fun getAssetSets(directory: VirtualFile): List<DesignAssetSet> {
-  return getDesignAssets(directory)
+fun getAssetSets(directory: VirtualFile, supportedTypes: Set<String>): List<DesignAssetSet> {
+  return getDesignAssets(directory, supportedTypes)
       .groupBy(
           { (drawableName, _) -> drawableName },
           { (_, designAsset) -> designAsset }
@@ -39,11 +39,11 @@ fun getAssetSets(directory: VirtualFile): List<DesignAssetSet> {
 }
 
 private fun getDesignAssets(
-    child: VirtualFile): List<Pair<String, DesignAsset>> {
+    child: VirtualFile, supportedTypes: Set<String>): List<Pair<String, DesignAsset>> {
   return child.children
-      .filter { it.isDirectory || SUPPORTED_TYPES.contains(it.extension) }
+      .filter { it.isDirectory || supportedTypes.contains(it.extension) }
       .flatMap {
-        if (it.isDirectory) getDesignAssets(it) else listOf(createAsset(it))
+        if (it.isDirectory) getDesignAssets(it, supportedTypes) else listOf(createAsset(it))
       }
 }
 
@@ -55,7 +55,7 @@ private fun createAsset(child: VirtualFile): Pair<String, DesignAsset> {
 
 /**
  * For now, we simply parse the name looking for the icon@2x.png format
- * and return "icon". Later we'll implment a lexer to parse to full path
+ * and return "icon". Later we'll implement a lexer to parse the full path
  * and looking for more format like icon_16x16@2x.png
  *
  * from [the developer documentation](https://developer.android.com/guide/practices/screens_support.html#alternative_drawables)
