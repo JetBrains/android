@@ -42,6 +42,7 @@ iml_module(
     name = "project-system-tests",
     iml_files = ["project-system-tests.iml"],
     tags = ["managed"],
+    test_class = "com.android.tools.idea.projectsystem.ProjectSystemTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/lvcs-impl",
@@ -64,5 +65,8 @@ iml_module(
         "//tools/adt/idea/project-system[module, test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/base/sdk-common:studio.sdk-common[module, test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
