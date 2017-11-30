@@ -206,9 +206,13 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     // this tests the correct event handling when build is triggered during sync (e.g., source generation)
     setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
+    val dumbService = DumbService.getInstance(project)
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncStarted(true, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST)
+    assertFalse(dumbService.isDumb)
+    // Sentinel dumb mode is expected only during project setup
     syncState.setupStarted()
+    assertTrue(dumbService.isDumb)
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
     val buildState = GradleBuildState.getInstance(project)
@@ -225,7 +229,6 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     // Verify that dumb mode ends once build starts. Builds are expected to be still under a batch update, but outside of
     // the sentinel dumb mode (see b/69455108).
-    val dumbService = DumbService.getInstance(project) as ThreadingAwareDumbService
     dumbService.waitForSmartMode()
     assertFalse("Build is expected to be executed outside of dumb mode", dumbService.isDumb)
     // must be still within a batch update session - suspender is still active, just the means of indexing suspension changed
@@ -238,11 +241,14 @@ class IndexingSuspenderTest : IdeaTestCase() {
   private fun doTestGradleSyncWhen(failed: Boolean) {
     setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
 
+    val dumbService = DumbService.getInstance(project)
     val syncState = GradleSyncState.getInstance(project)
     syncState.syncStarted(true, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST)
+    // Sentinel dumb mode is expected only during project setup
+    assertFalse(dumbService.isDumb)
     syncState.setupStarted()
 
-    assertTrue(DumbService.getInstance(project).isDumb)
+    assertTrue(dumbService.isDumb)
     assertEquals(1, actualBatchUpdateCount)
 
     if (failed) {
@@ -256,11 +262,12 @@ class IndexingSuspenderTest : IdeaTestCase() {
   private fun doTestGradleBuildWhen(buildStatus: BuildStatus) {
     setUpIndexingSpecificExpectations(dumbModeCount = 0, batchUpdateCount = 1)
 
+    val dumbService = DumbService.getInstance(project)
     val buildContext = mock(BuildContext::class.java)
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildStarted(buildContext)
 
-    assertFalse(DumbService.getInstance(project).isDumb)
+    assertFalse(dumbService.isDumb)
     assertEquals(1, actualBatchUpdateCount)
 
     buildState.buildFinished(buildStatus)
