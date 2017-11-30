@@ -73,6 +73,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private JBList<DevicePickerEntry> myDevicesList;
   private final AndroidDeviceRenderer myDeviceRenderer;
   private int myErrorGen;
+  @NotNull
+  private HelpHandler myHelpHandler;
 
   @NotNull private final AndroidFacet myFacet;
   private final int myRunContextId;
@@ -86,12 +88,14 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
                       int runContextId,
                       @NotNull final AndroidFacet facet,
                       @NotNull DeviceCount deviceCount,
-                      @NotNull LaunchCompatibilityChecker compatibilityChecker) {
+                      @NotNull LaunchCompatibilityChecker compatibilityChecker,
+                      @NotNull HelpHandler helpHandler) {
     myRunContextId = runContextId;
     myFacet = facet;
 
-    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
+    myHelpHyperlink.addHyperlinkListener(e -> helpHandler.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
     myCompatibilityChecker = compatibilityChecker;
+    myHelpHandler = helpHandler;
 
     ListSpeedSearch speedSearch = new DeviceListSpeedSearch(myDevicesList);
     myDeviceRenderer = new AndroidDeviceRenderer(myCompatibilityChecker, speedSearch);
@@ -206,7 +210,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     if (myModel.getNumberOfConnectedDevices() == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("No USB devices or running emulators detected");
-      panel.createActionLabel("Troubleshoot", () -> launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
+      panel.createActionLabel("Troubleshoot", () -> myHelpHandler.launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
 
       myNotificationPanel.add(panel);
     }
@@ -438,20 +442,6 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
 
     return devices;
-  }
-
-  public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    UsageTracker.getInstance().log(
-        AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
-            .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
-    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
-      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
-    }
-    else {
-      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
-    }
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
