@@ -442,7 +442,6 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
       if (myBorderPanel != null) {
         myBorderPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
       }
-      setBorder(myUseDarculaUI && myBorderPanel != null ? null : JBUI.Borders.empty(1, 4));
     }
 
     @Override
