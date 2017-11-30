@@ -22,8 +22,9 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
-import com.google.common.collect.ImmutableMap;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -113,6 +114,13 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
       for (String propertyName : NAVIGATION_PROPERTIES) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
+          if (propertyName.equals(NavigationSchema.ATTR_START_DESTINATION)
+              && property.getComponents().stream().anyMatch(
+                component -> NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.NAVIGATION
+                  && ((NavDesignSurface)propertiesManager.getDesignSurface()).getCurrentNavigation() != component)) {
+            continue;
+          }
+
           NlComponentEditor editor = propertiesManager.getPropertyEditors().create(property);
           editor.setProperty(property);
           myEditors.add(editor);
