@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -496,7 +497,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     SyncListener syncListener = new SyncListener();
     refreshProjectFiles();
 
-    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, syncListener);
+    Project project = getProject();
+    GradleProjectInfo.getInstance(project).setImportedProject(true);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
 
     syncListener.await();
     return syncListener;
