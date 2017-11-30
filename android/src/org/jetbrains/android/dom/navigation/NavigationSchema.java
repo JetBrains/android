@@ -77,6 +77,9 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_CLEAR_TASK = "clearTask";
   public static final String ATTR_ENTER_ANIM = "enterAnim";
   public static final String ATTR_EXIT_ANIM = "exitAnim";
+  public static final String ATTR_ACTION = "action";
+  public static final String ATTR_DATA = "data";
+  public static final String ATTR_DATA_PATTERN = "dataPattern";
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(

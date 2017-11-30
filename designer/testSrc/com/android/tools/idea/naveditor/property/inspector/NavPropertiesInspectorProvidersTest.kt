@@ -30,7 +30,7 @@ import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEdit
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
-class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
+class NavPropertiesInspectorProvidersTest : NavigationTestCase() {
 
   private lateinit var model: SyncNlModel
   private lateinit var propertiesManager: NavPropertiesManager
@@ -53,7 +53,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
   }
 
   fun testFragmentInspector() {
-    val inspectorProvider = NavigationPropertiesInspectorProvider()
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
 
     val f1Only = listOf(model.find("f1")!!)
 
@@ -73,8 +73,36 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
   }
 
+  fun testActivityInspector() {
+    val activity = listOf(model.find("activity")!!)
+
+    val dummyProperty = SimpleProperty("foo", activity)
+    val typeProperty = NavComponentTypeProperty(activity)
+    val idProperty = SimpleProperty(ATTR_ID, activity)
+    val nameProperty = SimpleProperty(ATTR_NAME, activity)
+    val labelProperty = SimpleProperty(ATTR_LABEL, activity)
+    val actionProperty = SimpleProperty(ATTR_ACTION, activity)
+    val dataProperty = SimpleProperty(ATTR_DATA, activity)
+    val dataPatternProperty = SimpleProperty(ATTR_DATA_PATTERN, activity)
+    // TODO: add more properties once they're fully supported
+
+    val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, dummyProperty, actionProperty, dataProperty,
+        dataPatternProperty).associateBy { it.name }
+
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
+    assertTrue(inspectorProvider.isApplicable(activity, properties, propertiesManager))
+    val inspector = inspectorProvider.createCustomInspector(activity, properties, propertiesManager)
+
+    assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, nameProperty, labelProperty))
+    assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
+
+    val activityInspectorProvider = NavActivityPropertiesInspectorProvider()
+    assertTrue(activityInspectorProvider.isApplicable(activity, properties, propertiesManager))
+    val activityInspector = activityInspectorProvider.createCustomInspector(activity, properties, propertiesManager)
+    assertSameElements(activityInspector.editors.map { it.property }, listOf(actionProperty, dataProperty, dataPatternProperty))
+  }
+
   fun testActionInspector() {
-    val inspectorProvider = NavigationPropertiesInspectorProvider()
 
     val a1Only = listOf(model.find("a1")!!)
 
@@ -94,18 +122,27 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
             popToInclusiveProperty, dummyProperty)
             .associateBy { it.name }
 
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
     assertTrue(inspectorProvider.isApplicable(a1Only, properties, propertiesManager))
     val inspector = inspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
 
-    assertSameElements(inspector.editors.map { it.property },
-        listOf(idProperty, typeProperty, documentProperty, singleTopProperty, clearTaskProperty, destinationProperty,
-            popToInclusiveProperty, popToProperty))
+    assertSameElements(inspector.editors.map { it.property }, listOf(idProperty, typeProperty, destinationProperty))
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
     assertInstanceOf(inspector.editors.first { it.property == destinationProperty }, VisibleDestinationsEditor::class.java)
+
+    val popInspectorProvider = NavActionPopInspectorProvider()
+    assertTrue(popInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
+    val popInspector = popInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
+    assertSameElements(popInspector.editors.map { it.property }, listOf(popToInclusiveProperty, popToProperty))
+
+    val launchOptionsInspectorProvider = NavActionLaunchOptionsInspectorProvider()
+    assertTrue(launchOptionsInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
+    val launchOptionsInspector = launchOptionsInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
+    assertSameElements(launchOptionsInspector.editors.map { it.property }, listOf(documentProperty, singleTopProperty, clearTaskProperty))
   }
 
   fun testRootNavigationInspector() {
-    val inspectorProvider = NavigationPropertiesInspectorProvider()
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
 
     val root = listOf(model.find("root")!!)
 
@@ -129,7 +166,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
   }
 
   fun testSubnavNavigationInspector() {
-    val inspectorProvider = NavigationPropertiesInspectorProvider()
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
 
     val root = listOf(model.find("subnav")!!)
 
@@ -152,7 +189,7 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
   }
 
   fun testIncludeNavigationInspector() {
-    val inspectorProvider = NavigationPropertiesInspectorProvider()
+    val inspectorProvider = NavMainPropertiesInspectorProvider()
 
     val root = listOf(model.find("nav")!!)
 

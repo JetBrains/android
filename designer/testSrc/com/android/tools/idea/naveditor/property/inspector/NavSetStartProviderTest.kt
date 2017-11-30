@@ -54,7 +54,7 @@ class NavSetStartProviderTest : NavigationTestCase() {
     assertTrue(isApplicable(provider, myModel, "f1"))
     assertTrue(isApplicable(provider, myModel, "subnav"))
     assertTrue(isApplicable(provider, myModel, "f2"))
-    assertTrue(isApplicable(provider, myModel, "activity"))
+    assertFalse(isApplicable(provider, myModel, "activity"))
     assertFalse(isApplicable(provider, myModel, "f1", "f2"))
     assertFalse(isApplicable(provider, myModel))
   }
@@ -81,9 +81,6 @@ class NavSetStartProviderTest : NavigationTestCase() {
 
     panel.setComponent(listOf(myModel.find("subnav")!!), table, manager)
     assertTrue(button.isEnabled)
-
-    panel.setComponent(listOf(myModel.find("activity")!!), table, manager)
-    assertFalse(button.isEnabled)
 
     panel.setComponent(listOf(myModel.find("f2")!!), table, manager)
     assertTrue(button.isEnabled)
