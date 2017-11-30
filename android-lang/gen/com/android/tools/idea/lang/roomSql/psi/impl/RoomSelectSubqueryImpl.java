@@ -27,15 +27,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
-public class RoomJoinClauseImpl extends ASTWrapperPsiElement implements RoomJoinClause {
+public class RoomSelectSubqueryImpl extends ASTWrapperPsiElement implements RoomSelectSubquery {
 
-  public RoomJoinClauseImpl(ASTNode node) {
+  public RoomSelectSubqueryImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitJoinClause(this);
+    visitor.visitSelectSubquery(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,21 +45,20 @@ public class RoomJoinClauseImpl extends ASTWrapperPsiElement implements RoomJoin
   }
 
   @Override
-  @NotNull
-  public List<RoomJoinConstraint> getJoinConstraintList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomJoinConstraint.class);
+  @Nullable
+  public RoomTableAliasName getTableAliasName() {
+    return findChildByClass(RoomTableAliasName.class);
   }
 
   @Override
-  @NotNull
-  public List<RoomJoinOperator> getJoinOperatorList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomJoinOperator.class);
+  @Nullable
+  public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
+    return findChildByClass(RoomWithClauseSelectStatement.class);
   }
 
-  @Override
-  @NotNull
-  public List<RoomTableOrSubquery> getTableOrSubqueryList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableOrSubquery.class);
+  @Nullable
+  public SqlTable getSqlTable() {
+    return PsiImplUtil.getSqlTable(this);
   }
 
 }

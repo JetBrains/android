@@ -22,15 +22,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateViewStatement extends RoomStatement {
+public interface RoomCreateViewStatement extends PsiElement {
 
   @Nullable
   RoomDatabaseName getDatabaseName();
 
   @NotNull
-  RoomSelectStatement getSelectStatement();
+  RoomViewName getViewName();
 
   @NotNull
-  RoomViewName getViewName();
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomInsertStatement extends RoomStatement, HasWithClause {
+public interface RoomInsertStatement extends PsiElement {
 
   @Nullable
   RoomInsertColumns getInsertColumns();
@@ -30,13 +30,10 @@ public interface RoomInsertStatement extends RoomStatement, HasWithClause {
   @Nullable
   RoomSelectCoreValues getSelectCoreValues();
 
-  @Nullable
-  RoomSelectStatement getSelectStatement();
-
   @NotNull
   RoomSingleTableStatementTable getSingleTableStatementTable();
 
   @Nullable
-  RoomWithClause getWithClause();
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

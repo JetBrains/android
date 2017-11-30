@@ -22,6 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCommitStatement extends RoomStatement {
+public interface RoomCommitStatement extends PsiElement {
 
 }

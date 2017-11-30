@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomReleaseStatement extends RoomStatement {
+public interface RoomReleaseStatement extends PsiElement {
 
   @NotNull
   RoomSavepointName getSavepointName();

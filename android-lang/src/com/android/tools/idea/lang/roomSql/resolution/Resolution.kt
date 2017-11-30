@@ -108,14 +108,14 @@ private fun pushNextElements(
   if (walkingDown) {
     when (element) {
       is SqlTableElement -> {
-        // There are no table definitions inside table defintions. Also, this stops us from walking down subqueries.
+        // There are no table definitions inside table definitions. Also, this stops us from walking down subqueries.
         return
       }
       is RoomExpression -> {
         // Expressions don't define tables, but can contain deep subtrees for subqueries.
         return
       }
-      is RoomJoinClause -> element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
+      is RoomFromClause -> element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
       else -> element.children.forEach { stack.push(nextStep(it)) }
     }
   } else {
@@ -136,7 +136,7 @@ private fun pushNextElements(
       is RoomUpdateStatement -> {
         pushIfNotNull(element.singleTableStatementTable)
       }
-      is RoomJoinClause -> {
+      is RoomFromClause -> {
         if (previous is RoomJoinConstraint) element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
       }
     }

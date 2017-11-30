@@ -22,38 +22,38 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 
-class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
-
+abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
   /**
    * Checks that the given text parses correctly.
    *
    * For now the PSI hierarchy is not finalized, so there's no point checking the tree shape.
    */
-  private fun check(input: String) {
+  protected fun check(input: String) {
     assert(getErrorMessage(input) == null, lazyMessage = { toParseTreeText(input) })
 
     val lexer = RoomSqlLexer()
     lexer.start(input)
     while (lexer.tokenType != null) {
-      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}"})
+      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}" })
       lexer.advance()
     }
   }
 
-  private fun toParseTreeText(input: String): String {
+  protected fun toParseTreeText(input: String): String {
     val psiFile = createPsiFile("in-memory", input)
-    ensureParsed(psiFile)
     return toParseTreeText(psiFile, true, false).trim()
   }
 
   private fun getErrorMessage(input: String): String? {
     val psiFile = createPsiFile("in-memory", input)
-    ensureParsed(psiFile)
     return getErrorMessage(psiFile)
   }
 
   private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 
+}
+
+class MiscParserTest : RoomSqlParserTest() {
   fun testSanity() {
     try {
       check("foo")
@@ -154,10 +154,6 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select foo, t, t2, T3, :mójArgument from MyTable join ę2")
     check("select [table].[column] from [database].[column]")
     check("""CREATE TABLE "TABLE"("#!@""'☺\", "");""")
-  }
-
-  fun testErrorMessages() {
-    assertEquals("<statement> expected, got 'foo'", getErrorMessage("foo"))
   }
 
   fun testParameters() {
@@ -634,5 +630,779 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
                           PsiElement(NAMED_PARAMETER)(':age')
           """.trimIndent(),
         toParseTreeText("select :age"))
+  }
+
+  fun testJoins() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      PsiElement(*)('*')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('FROM')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                          PsiElement(IDENTIFIER)('user')
+                    RoomJoinOperatorImpl(JOIN_OPERATOR)
+                      PsiElement(comma)(',')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                          PsiElement(IDENTIFIER)('book')
+          """.trimIndent(),
+        toParseTreeText("SELECT * FROM user, book"))
+  }
+
+  fun testSubqueries() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      PsiElement(*)('*')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('FROM')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomSelectSubqueryImpl(SELECT_SUBQUERY)
+                        PsiElement(()('(')
+                        RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                          RoomSelectStatementImpl(SELECT_STATEMENT)
+                            RoomSelectCoreImpl(SELECT_CORE)
+                              RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                PsiElement(SELECT)('SELECT')
+                                RoomResultColumnsImpl(RESULT_COLUMNS)
+                                  RoomResultColumnImpl(RESULT_COLUMN)
+                                    PsiElement(*)('*')
+                                RoomFromClauseImpl(FROM_CLAUSE)
+                                  PsiElement(FROM)('FROM')
+                                  RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                                    RoomFromTableImpl(FROM_TABLE)
+                                      RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                                        PsiElement(IDENTIFIER)('user')
+                                  RoomJoinOperatorImpl(JOIN_OPERATOR)
+                                    PsiElement(comma)(',')
+                                  RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                                    RoomFromTableImpl(FROM_TABLE)
+                                      RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                                        PsiElement(IDENTIFIER)('book')
+                        PsiElement())(')')
+                  RoomWhereClauseImpl(WHERE_CLAUSE)
+                    PsiElement(WHERE)('WHERE')
+                    RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('id')
+                      PsiElement(=)('=')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        RoomBindParameterImpl(BIND_PARAMETER)
+                          PsiElement(NAMED_PARAMETER)(':id')
+          """.trimIndent(),
+        toParseTreeText("SELECT * FROM (SELECT * FROM user, book) WHERE id = :id"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                  RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                    RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                      PsiElement(IDENTIFIER)('minmax')
+                  PsiElement(AS)('AS')
+                  PsiElement(()('(')
+                  RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                    RoomSelectStatementImpl(SELECT_STATEMENT)
+                      RoomSelectCoreImpl(SELECT_CORE)
+                        RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                          PsiElement(SELECT)('SELECT')
+                          RoomResultColumnsImpl(RESULT_COLUMNS)
+                            RoomResultColumnImpl(RESULT_COLUMN)
+                              RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                        PsiElement(SELECT)('SELECT')
+                                        RoomResultColumnsImpl(RESULT_COLUMNS)
+                                          RoomResultColumnImpl(RESULT_COLUMN)
+                                            RoomFunctionCallExpressionImpl(FUNCTION_CALL_EXPRESSION)
+                                              RoomFunctionNameImpl(FUNCTION_NAME)
+                                                PsiElement(IDENTIFIER)('min')
+                                              PsiElement(()('(')
+                                              RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                                RoomColumnNameImpl(COLUMN_NAME)
+                                                  PsiElement(IDENTIFIER)('a')
+                                              PsiElement())(')')
+                                            PsiElement(AS)('as')
+                                            RoomColumnAliasNameImpl(COLUMN_ALIAS_NAME)
+                                              PsiElement(IDENTIFIER)('min_a')
+                                        RoomFromClauseImpl(FROM_CLAUSE)
+                                          PsiElement(FROM)('FROM')
+                                          RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                                            RoomFromTableImpl(FROM_TABLE)
+                                              RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                                                PsiElement(IDENTIFIER)('Aaa')
+                                PsiElement())(')')
+                            PsiElement(comma)(',')
+                            RoomResultColumnImpl(RESULT_COLUMN)
+                              RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                        PsiElement(SELECT)('SELECT')
+                                        RoomResultColumnsImpl(RESULT_COLUMNS)
+                                          RoomResultColumnImpl(RESULT_COLUMN)
+                                            RoomFunctionCallExpressionImpl(FUNCTION_CALL_EXPRESSION)
+                                              RoomFunctionNameImpl(FUNCTION_NAME)
+                                                PsiElement(IDENTIFIER)('max')
+                                              PsiElement(()('(')
+                                              RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                                RoomColumnNameImpl(COLUMN_NAME)
+                                                  PsiElement(IDENTIFIER)('a')
+                                              PsiElement())(')')
+                                        RoomFromClauseImpl(FROM_CLAUSE)
+                                          PsiElement(FROM)('FROM')
+                                          RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                                            RoomFromTableImpl(FROM_TABLE)
+                                              RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                                                PsiElement(IDENTIFIER)('Aaa')
+                                PsiElement())(')')
+                              PsiElement(AS)('as')
+                              RoomColumnAliasNameImpl(COLUMN_ALIAS_NAME)
+                                PsiElement(IDENTIFIER)('max_a')
+                  PsiElement())(')')
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        PsiElement(*)('*')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('Aaa')
+                    RoomWhereClauseImpl(WHERE_CLAUSE)
+                      PsiElement(WHERE)('WHERE')
+                      RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('a')
+                        PsiElement(=)('=')
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('foo')
+                                  RoomFromClauseImpl(FROM_CLAUSE)
+                                    PsiElement(FROM)('FROM')
+                                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                                      RoomFromTableImpl(FROM_TABLE)
+                                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                                          PsiElement(IDENTIFIER)('minmax')
+                          PsiElement())(')')
+          """.trimIndent(),
+        toParseTreeText("WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT foo FROM minmax)"))
+  }
+}
+
+class ErrorMessagesTest : RoomSqlParserTest() {
+  fun testNonsense() {
+    assertEquals("""
+          FILE
+            PsiErrorElement:<statement> expected, got 'foo'
+              PsiElement(IDENTIFIER)('foo')
+          """.trimIndent(),
+        toParseTreeText("foo"))
+  }
+
+  fun testQuestionMarkWildcard() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      PsiElement(*)('*')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('FROM')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                          PsiElement(IDENTIFIER)('user')
+                  RoomWhereClauseImpl(WHERE_CLAUSE)
+                    PsiElement(WHERE)('WHERE')
+                    RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('id')
+                      PsiElement(=)('=')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        RoomBindParameterImpl(BIND_PARAMETER)
+                          PsiElement(NUMBERED_PARAMETER)('?')
+          """.trimIndent(),
+        toParseTreeText("SELECT * FROM user WHERE id = ?"))
+  }
+
+  fun testJustSelect() {
+    assertEquals("""
+          FILE
+            PsiElement(SELECT)('SELECT')
+            PsiErrorElement:<result column>, ALL or DISTINCT expected, unexpected end of file
+              <empty list>
+          """.trimIndent(),
+        toParseTreeText("SELECT "))
+  }
+
+  fun testMissingFrom() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('foo')
+            PsiElement(FROM)('FROM')
+            PsiErrorElement:<table or subquery> expected, unexpected end of file
+              <empty list>
+          """.trimIndent(),
+        toParseTreeText("SELECT foo FROM "))
+  }
+
+  fun testInvalidWith() {
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                PsiErrorElement:<table definition name> or RECURSIVE expected, got 'SELECT'
+                  <empty list>
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH SELECT foo FROM bar"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                PsiElement(IDENTIFIER)('ids')
+                PsiErrorElement:'(' or AS expected, got 'SELECT'
+                  <empty list>
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH ids SELECT foo FROM bar"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                PsiElement(IDENTIFIER)('ids')
+                PsiElement(AS)('AS')
+                PsiErrorElement:'(' expected, got 'SELECT'
+                  <empty list>
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH ids AS SELECT foo FROM bar"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                PsiElement(IDENTIFIER)('ids')
+                PsiElement(AS)('AS')
+                PsiErrorElement:'(' expected, got 'foo'
+                  PsiElement(IDENTIFIER)('foo')
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH ids AS foo SELECT foo FROM bar"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                PsiElement(IDENTIFIER)('ids')
+                PsiElement(AS)('AS')
+                PsiErrorElement:'(' expected, got 'foo'
+                  PsiElement(IDENTIFIER)('foo')
+                PsiElement(WHERE)('WHERE')
+                PsiElement(IDENTIFIER)('makes')
+                PsiElement(NO)('no')
+                PsiElement(IDENTIFIER)('sense')
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH ids AS foo WHERE makes no sense SELECT foo FROM bar"))
+
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                  RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                    RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                      PsiElement(IDENTIFIER)('ids')
+                  PsiElement(AS)('AS')
+                  PsiElement(()('(')
+                  RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                    RoomSelectStatementImpl(SELECT_STATEMENT)
+                      RoomSelectCoreImpl(SELECT_CORE)
+                        RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                          PsiElement(SELECT)('SELECT')
+                          RoomResultColumnsImpl(RESULT_COLUMNS)
+                            RoomResultColumnImpl(RESULT_COLUMN)
+                              RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                RoomColumnNameImpl(COLUMN_NAME)
+                                  PsiElement(IDENTIFIER)('something')
+                              RoomColumnAliasNameImpl(COLUMN_ALIAS_NAME)
+                                PsiElement(IDENTIFIER)('stupid')
+                          RoomWhereClauseImpl(WHERE_CLAUSE)
+                            PsiElement(WHERE)('WHERE')
+                            RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                              RoomColumnNameImpl(COLUMN_NAME)
+                                PsiElement(IDENTIFIER)('doesnt')
+                  PsiErrorElement:'(', '.', <compound operator>, BETWEEN, GROUP, IN, LIMIT or ORDER expected, got 'parse'
+                    PsiElement(IDENTIFIER)('parse')
+                  PsiElement())(')')
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                          RoomColumnNameImpl(COLUMN_NAME)
+                            PsiElement(IDENTIFIER)('foo')
+                    RoomFromClauseImpl(FROM_CLAUSE)
+                      PsiElement(FROM)('FROM')
+                      RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                        RoomFromTableImpl(FROM_TABLE)
+                          RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                            PsiElement(IDENTIFIER)('bar')
+          """.trimIndent(),
+        toParseTreeText("WITH ids AS (SELECT something stupid WHERE doesnt parse) SELECT foo FROM bar"))
+  }
+
+  fun testSubqueries() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      PsiElement(*)('*')
+                  RoomFromClauseImpl(FROM_CLAUSE)
+                    PsiElement(FROM)('FROM')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomFromTableImpl(FROM_TABLE)
+                        RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                          PsiElement(IDENTIFIER)('user')
+                        RoomTableAliasNameImpl(TABLE_ALIAS_NAME)
+                          PsiElement(IDENTIFIER)('u')
+                    RoomJoinOperatorImpl(JOIN_OPERATOR)
+                      PsiElement(JOIN)('JOIN')
+                    RoomTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                      RoomSelectSubqueryImpl(SELECT_SUBQUERY)
+                        PsiElement(()('(')
+                        RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                          RoomSelectStatementImpl(SELECT_STATEMENT)
+                            RoomSelectCoreImpl(SELECT_CORE)
+                              RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                PsiElement(SELECT)('SELECT')
+                                RoomResultColumnsImpl(RESULT_COLUMNS)
+                                  RoomResultColumnImpl(RESULT_COLUMN)
+                                    RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                      RoomColumnNameImpl(COLUMN_NAME)
+                                        PsiElement(IDENTIFIER)('something')
+                                    RoomColumnAliasNameImpl(COLUMN_ALIAS_NAME)
+                                      PsiElement(IDENTIFIER)('stupid')
+                                RoomWhereClauseImpl(WHERE_CLAUSE)
+                                  PsiElement(WHERE)('WHERE')
+                                  RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                    RoomColumnNameImpl(COLUMN_NAME)
+                                      PsiElement(IDENTIFIER)('doesnt')
+                        PsiErrorElement:'(', '.', <compound operator>, BETWEEN, GROUP, IN, LIMIT or ORDER expected, got 'parse'
+                          PsiElement(IDENTIFIER)('parse')
+                        PsiElement())(')')
+                        RoomTableAliasNameImpl(TABLE_ALIAS_NAME)
+                          PsiElement(IDENTIFIER)('x')
+                  RoomWhereClauseImpl(WHERE_CLAUSE)
+                    PsiElement(WHERE)('WHERE')
+                    RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomSelectedTableNameImpl(SELECTED_TABLE_NAME)
+                          PsiElement(IDENTIFIER)('u')
+                        PsiElement(.)('.')
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('name')
+                      PsiElement(IS)('IS')
+                      PsiElement(NOT)('NOT')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NULL)('NULL')
+          """.trimIndent(),
+        toParseTreeText("SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.name IS NOT NULL"))
+  }
+
+  fun testNestedWith() {
+    assertEquals("""
+          FILE
+            RoomWithClauseStatementImpl(WITH_CLAUSE_STATEMENT)
+              RoomWithClauseImpl(WITH_CLAUSE)
+                PsiElement(WITH)('WITH')
+                RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                  RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                    RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                      PsiElement(IDENTIFIER)('x')
+                  PsiElement(AS)('AS')
+                  PsiElement(()('(')
+                  PsiElement(WITH)('WITH')
+                  PsiElement(IDENTIFIER)('y')
+                  PsiElement(IDENTIFIER)('doesn')
+                  PsiElement(IDENTIFIER)('parse')
+                  PsiErrorElement:<select statement> expected, got ')'
+                    <empty list>
+                  PsiElement())(')')
+              RoomSelectStatementImpl(SELECT_STATEMENT)
+                RoomSelectCoreImpl(SELECT_CORE)
+                  RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                    PsiElement(SELECT)('SELECT')
+                    RoomResultColumnsImpl(RESULT_COLUMNS)
+                      RoomResultColumnImpl(RESULT_COLUMN)
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(NUMERIC_LITERAL)('32')
+          """.trimIndent(),
+        toParseTreeText("WITH x AS (WITH y doesn parse) SELECT 32"))
+  }
+
+  fun testSubqueriesInExpressions() {
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomConcatExpressionImpl(CONCAT_EXPRESSION)
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomWithClauseImpl(WITH_CLAUSE)
+                              PsiElement(WITH)('WITH')
+                              RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                                RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                                  RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                                    PsiElement(IDENTIFIER)('x')
+                                PsiElement(AS)('AS')
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreValuesImpl(SELECT_CORE_VALUES)
+                                        PsiElement(VALUES)('VALUES')
+                                        PsiElement(()('(')
+                                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                                          PsiElement(NUMERIC_LITERAL)('17')
+                                        PsiElement())(')')
+                                PsiElement())(')')
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('x')
+                          PsiElement())(')')
+                        PsiElement(||)('||')
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomWithClauseImpl(WITH_CLAUSE)
+                              PsiElement(WITH)('WITH')
+                              RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                                RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                                  RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                                    PsiElement(IDENTIFIER)('y')
+                                PsiElement(AS)('AS')
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreValuesImpl(SELECT_CORE_VALUES)
+                                        PsiElement(VALUES)('VALUES')
+                                        PsiElement(()('(')
+                                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                                          PsiElement(NUMERIC_LITERAL)('42')
+                                        PsiElement())(')')
+                                PsiElement())(')')
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('y')
+                          PsiElement())(')')
+          """.trimIndent(),
+        toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) || (WITH y AS (VALUES(42)) SELECT y)"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomConcatExpressionImpl(CONCAT_EXPRESSION)
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          PsiElement(WITH)('WITH')
+                          PsiElement(IDENTIFIER)('x')
+                          PsiElement(AS)('AS')
+                          PsiErrorElement:<select statement> expected, got ')'
+                            <empty list>
+                          PsiElement())(')')
+                        PsiElement(||)('||')
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomWithClauseImpl(WITH_CLAUSE)
+                              PsiElement(WITH)('WITH')
+                              RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                                RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                                  RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                                    PsiElement(IDENTIFIER)('y')
+                                PsiElement(AS)('AS')
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                        PsiElement(SELECT)('SELECT')
+                                        RoomResultColumnsImpl(RESULT_COLUMNS)
+                                          RoomResultColumnImpl(RESULT_COLUMN)
+                                            RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                              RoomColumnNameImpl(COLUMN_NAME)
+                                                PsiElement(IDENTIFIER)('does')
+                                            RoomColumnAliasNameImpl(COLUMN_ALIAS_NAME)
+                                              PsiElement(IDENTIFIER)('parse')
+                                PsiErrorElement:<compound operator>, FROM, GROUP, LIMIT, ORDER, WHERE or comma expected, got 'at'
+                                  PsiElement(IDENTIFIER)('at')
+                                PsiElement(ALL)('all')
+                                PsiElement())(')')
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('y')
+                          PsiElement())(')')
+          """.trimIndent(),
+        toParseTreeText("SELECT (WITH x AS ) || (WITH y AS (SELECT does parse at all) SELECT y)"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomAddExpressionImpl(ADD_EXPRESSION)
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomWithClauseImpl(WITH_CLAUSE)
+                              PsiElement(WITH)('WITH')
+                              RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                                RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                                  RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                                    PsiElement(IDENTIFIER)('x')
+                                PsiElement(AS)('AS')
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreValuesImpl(SELECT_CORE_VALUES)
+                                        PsiElement(VALUES)('VALUES')
+                                        PsiElement(()('(')
+                                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                                          PsiElement(NUMERIC_LITERAL)('17')
+                                        PsiElement())(')')
+                                PsiElement())(')')
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('x')
+                          PsiElement())(')')
+                        PsiElement(+)('+')
+                        RoomExistsExpressionImpl(EXISTS_EXPRESSION)
+                          PsiElement(()('(')
+                          RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                            RoomWithClauseImpl(WITH_CLAUSE)
+                              PsiElement(WITH)('WITH')
+                              RoomWithClauseTableImpl(WITH_CLAUSE_TABLE)
+                                RoomWithClauseTableDefImpl(WITH_CLAUSE_TABLE_DEF)
+                                  RoomTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+                                    PsiElement(IDENTIFIER)('y')
+                                PsiElement(AS)('AS')
+                                PsiElement(()('(')
+                                RoomWithClauseSelectStatementImpl(WITH_CLAUSE_SELECT_STATEMENT)
+                                  RoomSelectStatementImpl(SELECT_STATEMENT)
+                                    RoomSelectCoreImpl(SELECT_CORE)
+                                      RoomSelectCoreValuesImpl(SELECT_CORE_VALUES)
+                                        PsiElement(VALUES)('VALUES')
+                                        PsiElement(()('(')
+                                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                                          PsiElement(NUMERIC_LITERAL)('42')
+                                        PsiElement())(')')
+                                PsiElement())(')')
+                            RoomSelectStatementImpl(SELECT_STATEMENT)
+                              RoomSelectCoreImpl(SELECT_CORE)
+                                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                                  PsiElement(SELECT)('SELECT')
+                                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                                    RoomResultColumnImpl(RESULT_COLUMN)
+                                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                                        RoomColumnNameImpl(COLUMN_NAME)
+                                          PsiElement(IDENTIFIER)('y')
+                          PsiElement())(')')
+          """.trimIndent(),
+        toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)"))
+  }
+
+  fun testJustDelete() {
+    assertEquals("""
+          FILE
+            PsiElement(DELETE)('DELETE')
+            PsiErrorElement:FROM expected, unexpected end of file
+              <empty list>
+          """.trimIndent(),
+        toParseTreeText("DELETE "))
+  }
+
+  fun testInvalidDelete() {
+    assertEquals("""
+          FILE
+            PsiElement(DELETE)('DELETE')
+            PsiElement(FROM)('FROM')
+            PsiErrorElement:<single table statement table> expected, unexpected end of file
+              <empty list>
+          """.trimIndent(),
+        toParseTreeText("DELETE FROM"))
   }
 }

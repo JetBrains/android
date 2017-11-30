@@ -22,9 +22,21 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomStatement extends PsiElement {
+public interface RoomWithClauseStatement extends HasWithClause {
+
+  @Nullable
+  RoomDeleteStatement getDeleteStatement();
+
+  @Nullable
+  RoomInsertStatement getInsertStatement();
+
+  @Nullable
+  RoomSelectStatement getSelectStatement();
+
+  @Nullable
+  RoomUpdateStatement getUpdateStatement();
 
   @NotNull
-  RoomStatement getStatement();
+  RoomWithClause getWithClause();
 
 }

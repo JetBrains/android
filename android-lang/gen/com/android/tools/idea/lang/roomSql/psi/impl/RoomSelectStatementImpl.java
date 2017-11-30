@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomSelectStatementImpl extends RoomStatementImpl implements RoomSelectStatement {
+public class RoomSelectStatementImpl extends ASTWrapperPsiElement implements RoomSelectStatement {
 
   public RoomSelectStatementImpl(ASTNode node) {
     super(node);
@@ -64,12 +65,6 @@ public class RoomSelectStatementImpl extends RoomStatementImpl implements RoomSe
   @NotNull
   public List<RoomSelectCore> getSelectCoreList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomSelectCore.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomWithClause getWithClause() {
-    return findChildByClass(RoomWithClause.class);
   }
 
 }
