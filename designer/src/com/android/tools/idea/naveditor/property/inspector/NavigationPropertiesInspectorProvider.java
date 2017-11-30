@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -25,9 +24,9 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -35,41 +34,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.naveditor.property.NavComponentTypePropertyKt.TYPE_EDITOR_PROPERTY_LABEL;
-
 /**
  * Creates the properties inspector for navigation Destinations.
  */
-public class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
-  private static final String[] NAVIGATION_PROPERTIES = {
-    TYPE_EDITOR_PROPERTY_LABEL,
-    SdkConstants.ATTR_ID,
-    SdkConstants.ATTR_LABEL,
-    SdkConstants.ATTR_NAME,
-    NavigationSchema.ATTR_START_DESTINATION,
-    NavigationSchema.ATTR_DESTINATION,
-    NavigationSchema.ATTR_GRAPH,
-    NavigationSchema.ATTR_SINGLE_TOP,
-    NavigationSchema.ATTR_DOCUMENT,
-    NavigationSchema.ATTR_CLEAR_TASK,
-    NavigationSchema.ATTR_POP_UP_TO,
-    NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
-  };
-
-  private static final Map<String, String> PROPERTY_NAME_UI_NAME_MAP = new ContainerUtil.ImmutableMapBuilder()
-    .put(SdkConstants.ATTR_LABEL, "Title")
-    .put(SdkConstants.ATTR_ID, "ID")
-    .put(SdkConstants.ATTR_NAME, "Class")
-    .put(NavigationSchema.ATTR_START_DESTINATION, "Start Destination")
-    .put(NavigationSchema.ATTR_DESTINATION, "Destination")
-    .put(NavigationSchema.ATTR_SINGLE_TOP, "Single Top")
-    .put(NavigationSchema.ATTR_DOCUMENT, "Document")
-    .put(NavigationSchema.ATTR_CLEAR_TASK, "Clear Task")
-    .put(NavigationSchema.ATTR_POP_UP_TO, "Pop To")
-    .put(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "Inclusive")
-    .put(NavigationSchema.ATTR_GRAPH, "Source").build();
+public abstract class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
+
+  private final Map<String, String> myPropertyNameUiNameMap;
+  private final String myTitle;
+
+  protected NavigationPropertiesInspectorProvider(@NotNull Map<String, String> uiNamePropertyNameMap, @Nullable String title) {
+    myPropertyNameUiNameMap = uiNamePropertyNameMap;
+    myTitle = title;
+  }
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
@@ -79,10 +57,13 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
       return false;
     }
     String tagName = components.get(0).getTag().getName();
+    if (properties.keySet().stream().noneMatch(name -> myPropertyNameUiNameMap.containsKey(name))) {
+      return false;
+    }
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
-    myInspectors.put(tagName, new NavigationInspectorComponent(properties, propertiesManager));
+    myInspectors.put(tagName, new NavigationInspectorComponent(properties, propertiesManager, myPropertyNameUiNameMap, myTitle));
     return true;
   }
 
@@ -105,15 +86,20 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
 
   private static class NavigationInspectorComponent implements InspectorComponent<NavPropertiesManager> {
     private final List<NlComponentEditor> myEditors;
+    private final Map<String, String> myPropertyNameUiNameMap;
+    private final String myTitle;
 
     public NavigationInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                                        @NotNull NavPropertiesManager propertiesManager) {
-      myEditors = new ArrayList<>(NAVIGATION_PROPERTIES.length);
+                                        @NotNull NavPropertiesManager propertiesManager,
+                                        Map<String, String> propertyNameUiNameMap, String title) {
+      myEditors = new ArrayList<>(propertyNameUiNameMap.size());
+      myPropertyNameUiNameMap = propertyNameUiNameMap;
+      myTitle = title;
       createEditors(properties, propertiesManager);
     }
 
     private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NavPropertiesManager propertiesManager) {
-      for (String propertyName : NAVIGATION_PROPERTIES) {
+      for (String propertyName : myPropertyNameUiNameMap.keySet()) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
           if (propertyName.equals(NavigationSchema.ATTR_START_DESTINATION)
@@ -152,10 +138,13 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       refresh();
+      if (myTitle != null) {
+        inspector.addTitle(myTitle);
+      }
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
         JLabel existing = editor.getLabel();
-        String propertyName = existing != null ? existing.getText() : PROPERTY_NAME_UI_NAME_MAP.get(property.getName());
+        String propertyName = existing != null ? existing.getText() : myPropertyNameUiNameMap.get(property.getName());
         if (propertyName == null) {
           propertyName = property.getName();
         }
