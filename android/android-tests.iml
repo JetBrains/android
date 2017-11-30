@@ -86,5 +86,6 @@
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
   </component>
 </module>
