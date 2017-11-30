@@ -33,17 +33,18 @@ import javax.swing.*
  */
 class ExternalResourceBrowser(facet: AndroidFacet) : JPanel(BorderLayout()) {
 
-  private val resourceBrowserViewModel = ResourceBrowserViewModel(facet)
+  private val resourceBrowserViewModel : ResourceBrowserViewModel
 
-  private val designAssetsList = DesignAssetsList(resourceBrowserViewModel.designAssetListModel)
+  private val designAssetsList : DesignAssetsList
 
   init {
     customizeUI()
     val preview = createPreviewPane()
+    resourceBrowserViewModel = ResourceBrowserViewModel(facet)
+    designAssetsList = DesignAssetsList(resourceBrowserViewModel)
     designAssetsList.addListSelectionListener {
       updatePreview(preview)
     }
-
     add(createFileChooserPanel(facet), BorderLayout.NORTH)
     add(preview)
     add(createImportButton(), BorderLayout.SOUTH)

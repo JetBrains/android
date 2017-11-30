@@ -15,21 +15,27 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.getAssetSets
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Image
+import java.awt.image.BufferedImage
 
 val LOGGER = Logger.getInstance(ResourceBrowserViewModel::class.java)
+val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
 
 /**
  * ViewModel to manage external resources
  */
 class ResourceBrowserViewModel(
     val facet: AndroidFacet,
-    private val fileHelper: ResourceFileHelper = ResourceFileHelper.ResourceFileHelperImpl()
+    private val fileHelper: ResourceFileHelper = ResourceFileHelper.ResourceFileHelperImpl(),
+    private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
   val designAssetListModel = DesignAssetListModel()
@@ -39,7 +45,9 @@ class ResourceBrowserViewModel(
    */
   fun setDirectory(directory: VirtualFile) {
     if (directory.isValid && directory.isDirectory) {
-      designAssetListModel.setAssets(getAssetSets(directory).sortedBy { (name, _) -> name })
+      designAssetListModel.setAssets(
+          getAssetSets(directory, importersProvider.supportedFileTypes)
+              .sortedBy { (name, _) -> name })
     }
     else {
       LOGGER.error("${directory.path} is not a valid directory")
@@ -53,6 +61,17 @@ class ResourceBrowserViewModel(
     selectedValue.designAssets.forEach { asset ->
       // TODO use plugin to convert the asset
       fileHelper.copyInProjectResources(asset, selectedValue.name, facet)
+    }
+  }
+
+  fun getSourcePreview(asset: DesignAsset): Image {
+    val extension = asset.file.extension
+    return if (!extension.isNullOrEmpty()) {
+      importersProvider.getImportersForExtension(extension!!).firstOrNull()?.getSourcePreview(asset)
+          ?: EMPTY_IMAGE
+    }
+    else {
+      EMPTY_IMAGE
     }
   }
 }
