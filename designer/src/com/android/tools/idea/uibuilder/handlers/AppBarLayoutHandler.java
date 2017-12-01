@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.common.model.NlComponent;
-import com.intellij.psi.xml.XmlFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,9 +53,8 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      XmlFile file = editor.getModel().getFile();
       AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor);
-      ApplicationManager.getApplication().invokeLater(() -> dialog.open(file));
+      ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }
     return true;
