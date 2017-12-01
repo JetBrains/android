@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +46,14 @@ public final class PsModulePath extends PsPath {
 
   @Nullable
   @Override
-  public String getHyperlinkDestination() {
+  public String getHyperlinkDestination(@NotNull PsContext context) {
     return null;
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return "";
   }
 
   @Override

@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 public class SingleModuleIssuesRenderer extends DependencyViewIssuesRenderer {
-  private final IssueRenderer myIssueRenderer = new DependencyViewIssueRenderer(false, true);
+  @NotNull private final IssueRenderer myIssueRenderer;
+
+  public SingleModuleIssuesRenderer(@NotNull PsContext context) {
+    super(context);
+    myIssueRenderer = new DependencyViewIssueRenderer(context, false, true);
+  }
 
   @Override
   @NotNull

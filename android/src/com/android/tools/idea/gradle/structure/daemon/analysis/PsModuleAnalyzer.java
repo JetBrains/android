@@ -40,7 +40,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
                                            @NotNull PsModulePath modulePath,
                                            @NotNull PsIssueCollection issueCollection) {
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
-    PsPath path = new PsLibraryDependencyNavigationPath(myContext, dependency);
+    PsPath path = new PsLibraryDependencyNavigationPath(dependency);
 
     PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
     assert declaredSpec != null;
@@ -50,7 +50,8 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
       PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
       issue.setExtraPath(modulePath);
 
-      PsPath quickFix = new PsLibraryDependencyVersionQuickFixPath(dependency);
+      PsPath quickFix =
+        new PsLibraryDependencyVersionQuickFixPath(dependency, PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT);
       issue.setQuickFixPath(quickFix);
 
       issueCollection.add(issue);

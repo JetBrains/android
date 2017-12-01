@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +33,14 @@ public abstract class PsPath implements Comparable<PsPath> {
 
     @Nullable
     @Override
-    public String getHyperlinkDestination() {
+    public String getHyperlinkDestination(@NotNull PsContext context) {
       return null;
+    }
+
+    @NotNull
+    @Override
+    public String getHtml(@NotNull PsContext context) {
+      return "";
     }
 
     @Override
@@ -61,7 +68,10 @@ public abstract class PsPath implements Comparable<PsPath> {
   public abstract String toText(@NotNull TexType type);
 
   @Nullable
-  public abstract String getHyperlinkDestination();
+  public abstract String getHyperlinkDestination(@NotNull PsContext context);
+
+  @NotNull
+  public abstract String getHtml(@NotNull PsContext context);
 
   @Override
   public String toString() {
@@ -69,6 +79,6 @@ public abstract class PsPath implements Comparable<PsPath> {
   }
 
   public enum TexType {
-    PLAIN_TEXT, HTML, FOR_COMPARE_TO
+    PLAIN_TEXT, FOR_COMPARE_TO
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueType;
 import com.android.tools.idea.gradle.structure.model.PsPath;
@@ -23,16 +24,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.junit.Assert.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DependencyViewIssueRendererTest {
+  @Mock private PsContext myContext;
   private PsPath myTestIssuePath;
   private PsIssue myTestIssue;
   private PsPath myQuickFixPath;
 
   @Before
   public void setUp() {
+    initMocks(this);
     myTestIssuePath = createPath("/PATH");
     myQuickFixPath = createPath("/QUICK_FIX");
     myTestIssue = new PsIssue("TEXT", "DESCRIPTION", myTestIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR);
@@ -47,8 +52,6 @@ public class DependencyViewIssueRendererTest {
         switch (type) {
           case FOR_COMPARE_TO:
             return "FOR_COMPARE_" + text;
-          case HTML:
-            return "<" + text + ">";
           case PLAIN_TEXT:
             return "PLAIN_TEXT_" + text;
           default:
@@ -58,35 +61,41 @@ public class DependencyViewIssueRendererTest {
 
       @Nullable
       @Override
-      public String getHyperlinkDestination() {
+      public String getHyperlinkDestination(@NotNull PsContext context) {
         throw new UnsupportedOperationException();
+      }
+
+      @NotNull
+      @Override
+      public String getHtml(@NotNull PsContext context) {
+        return "<" + text + ">";
       }
     };
   }
 
   @Test
   public void testRenderIssue() {
-    IssueRenderer renderer = new DependencyViewIssueRenderer(false, false);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, false, false);
     assertThat(renderIssue(renderer), CoreMatchers.is("TEXT"));
   }
 
   @Test
   public void testRenderIssue_quickFix() {
     myTestIssue.setQuickFixPath(myQuickFixPath);
-    IssueRenderer renderer = new DependencyViewIssueRenderer(false, false);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, false, false);
     assertThat(renderIssue(renderer), CoreMatchers.is("TEXT </QUICK_FIX>"));
   }
 
   @Test
   public void testRenderIssue_renderPath() {
-    IssueRenderer renderer = new DependencyViewIssueRenderer(true, false);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, true, false);
     assertThat(renderIssue(renderer), CoreMatchers.is("</PATH>: TEXT"));
   }
 
   @Test
   public void testRenderIssue_renderPathAndQuickFix() {
     myTestIssue.setQuickFixPath(myQuickFixPath);
-    IssueRenderer renderer = new DependencyViewIssueRenderer(true, false);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, true, false);
     assertThat(renderIssue(renderer), CoreMatchers.is("</PATH>: TEXT </QUICK_FIX>"));
   }
 
@@ -99,14 +108,14 @@ public class DependencyViewIssueRendererTest {
 
   @Test
   public void testRenderIssue_renderDescription() {
-    IssueRenderer renderer = new DependencyViewIssueRenderer(false, true);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, false, true);
     assertThat(renderIssue(renderer), CoreMatchers.is("TEXT<br/><br/>DESCRIPTION"));
   }
 
   @Test
   public void testRenderIssue_renderDescriptionAndQuickFix() {
     myTestIssue.setQuickFixPath(myQuickFixPath);
-    IssueRenderer renderer = new DependencyViewIssueRenderer(false, true);
+    IssueRenderer renderer = new DependencyViewIssueRenderer(myContext, false, true);
     assertThat(renderIssue(renderer), CoreMatchers.is("TEXT </QUICK_FIX><br/><br/>DESCRIPTION"));
   }
 

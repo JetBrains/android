@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.intellij.openapi.util.text.StringUtil;
-
-import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
+import org.jetbrains.annotations.NotNull;
 
 public class DependencyViewIssueRenderer implements IssueRenderer {
   private final boolean myRenderPath;
   private final boolean myRenderDescription;
+  @NotNull private PsContext myContext;
 
-  public DependencyViewIssueRenderer(boolean renderPath, boolean renderDescription) {
+  public DependencyViewIssueRenderer(@NotNull PsContext context,
+                                     boolean renderPath,
+                                     boolean renderDescription) {
+    myContext = context;
     myRenderPath = renderPath;
     myRenderDescription = renderDescription;
   }
@@ -33,12 +37,13 @@ public class DependencyViewIssueRenderer implements IssueRenderer {
   @Override
   public void renderIssue(StringBuilder buffer, PsIssue issue) {
     if (myRenderPath) {
-      buffer.append(issue.getPath().toText(HTML)).append(": ");
+      buffer.append(issue.getPath().getHtml(myContext));
+      buffer.append(": ");
     }
     buffer.append(issue.getText());
     PsPath quickFixPath = issue.getQuickFixPath();
     if (quickFixPath != null) {
-      buffer.append(" ").append(quickFixPath.toText(HTML));
+      buffer.append(" ").append(quickFixPath.getHtml(myContext));
     }
     if (myRenderDescription) {
       String description = issue.getDescription();
