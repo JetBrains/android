@@ -86,7 +86,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     initializeDependencyDetails();
 
-    setIssuesViewer(new IssuesViewer(myContext, new DependencyViewIssuesRenderer()));
+    setIssuesViewer(new IssuesViewer(myContext, new DependencyViewIssuesRenderer(myContext)));
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {

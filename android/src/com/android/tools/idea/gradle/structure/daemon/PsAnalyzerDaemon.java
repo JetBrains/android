@@ -121,13 +121,12 @@ public class PsAnalyzerDaemon extends PsDaemon {
       if (update != null) {
         String text = String.format("Newer version available: <b>%1$s</b> (%2$s)", update.version, update.repository);
 
-        PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(context, dependency);
+        PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(dependency);
         PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
         issue.setExtraPath(new PsModulePath(dependency.getParent()));
 
         PsLibraryDependencyVersionQuickFixPath quickFix =
-          new PsLibraryDependencyVersionQuickFixPath(dependency, update.version);
-        quickFix.setHrefText("[Update]");
+          new PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]");
         issue.setQuickFixPath(quickFix);
 
         myIssues.add(issue);

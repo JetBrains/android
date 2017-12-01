@@ -31,14 +31,12 @@ import static com.android.tools.idea.gradle.structure.model.PsDependency.TextTyp
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
 
-public class PsLibraryDependencyNavigationPath extends PsPath {
-  @NotNull private final PsContext myContext;
+public final class PsLibraryDependencyNavigationPath extends PsPath {
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
   @NotNull private final String myNavigationText;
 
-  public PsLibraryDependencyNavigationPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
-    myContext = context;
+  public PsLibraryDependencyNavigationPath(@NotNull PsLibraryDependency dependency) {
     myModuleName = dependency.getParent().getName();
     PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
     if (spec == null) {
@@ -54,26 +52,18 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     switch (type) {
       case PLAIN_TEXT:
         return myDependency;
-      case HTML:
-        return getHtmlText();
       case FOR_COMPARE_TO:
         return myDependency + " / " + myModuleName;
     }
     return "";
   }
 
-  @NotNull
-  private String getHtmlText() {
-    String href = getHyperlinkDestination();
-    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
-  }
-
   @Override
   @NotNull
-  public String getHyperlinkDestination() {
+  public String getHyperlinkDestination(@NotNull PsContext context) {
     Place place = new Place();
 
-    ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
+    ProjectStructureConfigurable mainConfigurable = context.getMainConfigurable();
     DependenciesPerspectiveConfigurable target = mainConfigurable.findConfigurable(DependenciesPerspectiveConfigurable.class);
     assert target != null;
 
@@ -81,6 +71,12 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     target.putNavigationPath(place, myModuleName, myNavigationText);
 
     return GO_TO_PATH_TYPE + serialize(place);
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", getHyperlinkDestination(context), myDependency, myModuleName);
   }
 
   @Override
