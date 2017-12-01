@@ -37,14 +37,14 @@ import java.util.Map;
 /**
  * Creates the properties inspector for navigation Destinations.
  */
-public abstract class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
+public abstract class NavPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 
   private final Map<String, String> myPropertyNameUiNameMap;
   private final String myTitle;
 
-  protected NavigationPropertiesInspectorProvider(@NotNull Map<String, String> uiNamePropertyNameMap, @Nullable String title) {
+  protected NavPropertiesInspectorProvider(@NotNull Map<String, String> uiNamePropertyNameMap, @Nullable String title) {
     myPropertyNameUiNameMap = uiNamePropertyNameMap;
     myTitle = title;
   }

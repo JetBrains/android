@@ -19,10 +19,10 @@ import com.android.SdkConstants
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import org.mockito.Mockito.mock
 
-class NavDestinationArgumentsPropertyTest : NavigationTestCase() {
+class NavDestinationArgumentsPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
 
   override fun setUp() {

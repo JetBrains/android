@@ -20,7 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
@@ -55,7 +55,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 
 // TODO: testing with custom navigators
-public class AddMenuWrapperTest extends NavigationTestCase {
+public class AddMenuWrapperTest extends NavTestCase {
 
   private SyncNlModel myModel;
   private NavDesignSurface mySurface;

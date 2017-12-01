@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.google.common.collect.ImmutableList;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link DestinationList}
  */
-public class DestinationListTest extends NavigationTestCase {
+public class DestinationListTest extends NavTestCase {
 
   private SyncNlModel myModel;
   private DestinationList myList;

@@ -20,7 +20,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -28,7 +28,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link NlModel} as used in the navigation editor
  */
-public class NavNlModelTest extends NavigationTestCase {
+public class NavNlModelTest extends NavTestCase {
 
   public void testAddChild() {
     NlTreeDumper treeDumper = new NlTreeDumper();

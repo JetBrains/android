@@ -34,7 +34,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_
  * In most cases this shouldn't be necessary, and extending NavigationTestCase will result in tests that run much faster.
  * Only extend this one if you're testing something more deeply involved with the building of a complete project.
  */
-public abstract class NavigationGradleTestCase extends AndroidGradleTestCase {
+public abstract class NavGradleTestCase extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {

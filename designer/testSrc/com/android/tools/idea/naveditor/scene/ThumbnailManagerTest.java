@@ -19,7 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link ThumbnailManager}
  */
-public class ThumbnailManagerTest extends NavigationTestCase {
+public class ThumbnailManagerTest extends NavTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();

@@ -20,7 +20,7 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
@@ -30,7 +30,7 @@ import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEdit
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
-class NavPropertiesInspectorProvidersTest : NavigationTestCase() {
+class NavPropertiesInspectorProvidersTest : NavTestCase() {
 
   private lateinit var model: SyncNlModel
   private lateinit var propertiesManager: NavPropertiesManager

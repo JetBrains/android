@@ -23,7 +23,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 
-class NavigationDeeplinkInspectorProvider : NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK) {
+class NavDeeplinkInspectorProvider : NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK) {
 
   override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
     assert(parents.size == 1)

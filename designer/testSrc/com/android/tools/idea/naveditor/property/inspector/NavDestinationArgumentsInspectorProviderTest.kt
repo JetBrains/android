@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
@@ -33,7 +33,7 @@ import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Container
 
-class NavDestinationArgumentsInspectorProviderTest : NavigationTestCase() {
+class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
     val provider = NavDestinationArgumentsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)

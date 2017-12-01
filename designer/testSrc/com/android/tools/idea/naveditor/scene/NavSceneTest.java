@@ -28,7 +28,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
@@ -55,7 +55,7 @@ import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 /**
  * Tests for the nav editor Scene.
  */
-public class NavSceneTest extends NavigationTestCase {
+public class NavSceneTest extends NavTestCase {
 
   public void testDisplayList() {
     ComponentDescriptor root = rootComponent("root")

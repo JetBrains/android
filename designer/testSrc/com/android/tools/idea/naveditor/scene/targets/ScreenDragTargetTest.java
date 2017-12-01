@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ScreenDragTarget}
  */
-public class ScreenDragTargetTest extends NavigationTestCase {
+public class ScreenDragTargetTest extends NavTestCase {
 
   public void testMove() {
     ComponentDescriptor root = rootComponent("root")

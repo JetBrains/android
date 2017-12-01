@@ -24,7 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
-class NavigationActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(NavActionsProperty::class.java,
+class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(NavActionsProperty::class.java,
     StudioIcons.NavEditor.Properties.ACTION) {
 
   override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
