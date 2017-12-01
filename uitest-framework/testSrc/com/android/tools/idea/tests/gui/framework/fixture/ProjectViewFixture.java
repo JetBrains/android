@@ -113,7 +113,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
     myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
 
-    GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
+    GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
   }
 
   private static void waitForTreeToFinishLoading(@NotNull Robot robot,
