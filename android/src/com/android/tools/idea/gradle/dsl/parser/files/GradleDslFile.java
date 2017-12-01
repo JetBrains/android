@@ -144,4 +144,9 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   public GradleDslWriter getWriter() {
     return myGradleDslWriter;
   }
+
+  @NotNull
+  public GradleDslParser getParser() {
+    return myGradleDslParser;
+  }
 }

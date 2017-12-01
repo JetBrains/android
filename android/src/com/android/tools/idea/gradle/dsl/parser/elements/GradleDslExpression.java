@@ -18,17 +18,18 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
@@ -40,8 +41,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * Represents an expression element.
  */
 public abstract class GradleDslExpression extends GradleDslElement {
-  @NotNull private List<GradleResolvedVariable> myResolvedVariables = ImmutableList.of();
-
   @Nullable protected PsiElement myExpression;
 
   protected GradleDslExpression(@Nullable GradleDslElement parent,
@@ -71,20 +70,15 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
   @Override
   @NotNull
-  public List<GradleResolvedVariable> getResolvedVariables() {
-    return myResolvedVariables;
+  public Collection<GradleStringInjection> getResolvedVariables() {
+    if (myExpression == null) {
+      return Collections.emptyList();
+    }
+    return getDslFile().getParser().getInjections(this, myExpression);
   }
 
-  public void setResolvedVariables(@NotNull List<GradleResolvedVariable> resolvedVariables) {
-    myResolvedVariables = ImmutableList.copyOf(resolvedVariables);
-  }
-
-  /**
-   * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
-   * an element with the value of that type, or {@code null} otherwise.
-   */
   @Nullable
-  protected <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
+  public GradleDslElement resolveReference(@NotNull String referenceText) {
     GradleDslElement searchStartElement = this;
     String searchReferenceText = referenceText;
 
@@ -147,6 +141,24 @@ public abstract class GradleDslExpression extends GradleDslElement {
       resolvedElement = resolveReferenceInParentModules(dslFile, searchReferenceText);
     }
 
+    if ("rootDir".equals(searchReferenceText)) { // resolve the rootDir reference to project root directory.
+      return new GradleDslGlobalValue(dslFile, Projects.getBaseDirPath(dslFile.getProject()).getPath());
+    }
+    if ("projectDir".equals(searchReferenceText)) { // resolve the projectDir reference to module directory.
+      return new GradleDslGlobalValue(dslFile, dslFile.getDirectoryPath().getPath());
+    }
+
+    return resolvedElement;
+  }
+
+  /**
+   * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
+   * an element with the value of that type, or {@code null} otherwise.
+   */
+  @Nullable
+  public <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
+    GradleDslElement resolvedElement = resolveReference(referenceText);
+
     if (resolvedElement != null) {
       T result = null;
       if (clazz.isInstance(resolvedElement)) {
@@ -156,18 +168,11 @@ public abstract class GradleDslExpression extends GradleDslElement {
         result = ((GradleDslExpression)resolvedElement).getValue(clazz);
       }
       if (result != null) {
-        setResolvedVariables(ImmutableList.of(new GradleResolvedVariable(referenceText, result, resolvedElement)));
         return result;
       }
     }
 
     if (clazz.isAssignableFrom(String.class)) {
-      if ("rootDir".equals(searchReferenceText)) { // resolve the rootDir reference to project root directory.
-        return clazz.cast(Projects.getBaseDirPath(dslFile.getProject()).getPath());
-      }
-      if ("projectDir".equals(searchReferenceText)) { // resolve the projectDir reference to module directory.
-        return clazz.cast(dslFile.getDirectoryPath().getPath());
-      }
       return clazz.cast(referenceText);
     }
 

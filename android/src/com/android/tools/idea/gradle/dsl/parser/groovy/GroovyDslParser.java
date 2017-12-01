@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
+import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
@@ -63,12 +64,12 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArg
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
@@ -97,6 +98,8 @@ import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslEleme
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getInjectionName;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
@@ -153,6 +156,62 @@ public class GroovyDslParser implements GradleDslParser {
       }
     }));
   }
+
+  @Override
+  @Nullable
+  public PsiElement convertToPsiElement(@NotNull Object literal) {
+    return GroovyDslUtil.createLiteral(myDslFile, literal);
+  }
+
+  @Override
+  @Nullable
+  public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
+    if (!(literal instanceof GrLiteral)) {
+      return null;
+    }
+
+    // If this literal has a value then return is, this will be the case for none-string values.
+    Object value = ((GrLiteral)literal).getValue();
+    if (value != null) {
+      return value;
+    }
+
+    // Everything left should be a string
+    if (!(literal instanceof GrString)) {
+      return null;
+    }
+
+    // If we shouldn't resolve the value then just return the text.
+    if (!resolve) {
+      return ensureUnquotedText(literal.getText());
+    }
+
+    // Otherwise resolve the value and then return the resolved text.
+    Collection<GradleStringInjection> injections = getInjections(context, literal);
+    return ensureUnquotedText(GradleStringInjection.injectAll(literal, injections));
+  }
+
+  @Override
+  @NotNull
+  public Collection<GradleStringInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    if (!(psiElement instanceof GrString)) {
+      return Collections.emptyList();
+    }
+
+    List<GradleStringInjection> injections = Lists.newArrayList();
+    GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
+    for (GrStringInjection injection : grStringInjections) {
+      if (injection != null) {
+        String name = getInjectionName(injection);
+        if (name != null) {
+          GradleDslElement referenceElement = context.resolveReference(name);
+          if (referenceElement instanceof GradleDslExpression) {
+            injections.add(new GradleStringInjection((GradleDslExpression)referenceElement, injection, name));
+          }
+        }
+      }
+    }
+    return injections;  }
 
   private static boolean parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     if (psiElement instanceof GrMethodCallExpression) {

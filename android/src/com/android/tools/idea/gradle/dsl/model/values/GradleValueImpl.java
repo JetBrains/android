@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
-import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -84,10 +85,15 @@ public abstract class GradleValueImpl<T> implements GradleValue<T> {
     }
 
     ImmutableMap.Builder<String, GradleNotNullValue<Object>> builder = ImmutableMap.builder();
-    for (GradleResolvedVariable variable : myDslElement.getResolvedVariables()) {
-      String variableName = variable.getVariableName();
-      Object resolvedValue = variable.getValue();
-      GradleDslElement element = variable.getElement();
+    for (GradleStringInjection injection : myDslElement.getResolvedVariables()) {
+      String variableName = injection.getName();
+      Object resolvedValue = injection.getToBeInjected().getValue();
+      // No values here should be null
+      if (resolvedValue == null) {
+        Logger.getInstance(GradleValueImpl.class).warn("Reference to a null value was found, variable: " + variableName);
+        continue;
+      }
+      GradleDslElement element = injection.getToBeInjected();
       builder.put(variableName, new GradleNotNullValueImpl<>(element, resolvedValue));
     }
     return builder.build();

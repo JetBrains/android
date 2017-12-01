@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}.
@@ -127,8 +126,8 @@ public abstract class GradleDslElement {
   }
 
   @NotNull
-  public List<GradleResolvedVariable> getResolvedVariables() {
-    ImmutableList.Builder<GradleResolvedVariable> resultBuilder = ImmutableList.builder();
+  public Collection<GradleStringInjection> getResolvedVariables() {
+    ImmutableList.Builder<GradleStringInjection> resultBuilder = ImmutableList.builder();
     for (GradleDslElement child : getChildren()) {
       resultBuilder.addAll(child.getResolvedVariables());
     }

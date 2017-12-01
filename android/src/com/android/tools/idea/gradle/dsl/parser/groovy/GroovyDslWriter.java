@@ -126,7 +126,7 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
 
     literal.setPsiElement(parentPsiElement);
-    GrLiteral newLiteral = createLiteral(literal);
+    GrLiteral newLiteral = extractUnsavedLiteral(literal);
     if (newLiteral == null) {
       return null;
     }
@@ -146,6 +146,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       if (grLiteral != null) {
         literal.setExpression(grLiteral);
         literal.setModified(false);
+        literal.reset();
         return literal.getPsiElement();
       }
     }
@@ -159,11 +160,10 @@ public class GroovyDslWriter implements GradleDslWriter {
       return;
     }
 
-    GrLiteral newLiteral = createLiteral(literal);
+    GrLiteral newLiteral = extractUnsavedLiteral(literal);
     if (newLiteral == null) {
       return;
     }
-
     PsiElement expression = ensureGroovyPsi(literal.getExpression());
     if (expression != null) {
       PsiElement replace = expression.replace(newLiteral);
@@ -188,6 +188,9 @@ public class GroovyDslWriter implements GradleDslWriter {
         addConfigBlock(literal);
       }
     }
+
+    literal.reset();
+    literal.setModified(false);
   }
 
   @Override
