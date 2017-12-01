@@ -193,7 +193,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
     // TODO: support nav editor
     List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, transferItem, insertType);
-    if (!model.canAddComponents(pasted, receiver, before)) {
+    if (!model.canAddComponents(pasted, receiver, before, checkOnly)) {
       return false;
     }
     if (checkOnly) {

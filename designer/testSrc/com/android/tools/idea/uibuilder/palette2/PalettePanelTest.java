@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.SyncNlModel;
@@ -23,6 +24,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -35,6 +37,7 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
@@ -51,6 +54,7 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.lang.reflect.Method;
+import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
@@ -62,6 +66,7 @@ import static org.mockito.Mockito.*;
 public class PalettePanelTest extends LayoutTestCase {
   private NlTreeDumper myTreeDumper;
   private CopyPasteManager myCopyPasteManager;
+  private GradleDependencyManager myGradleDependencyManager;
   private DependencyManager myDependencyManager;
   private BrowserLauncher myBrowserLauncher;
   private ActionManager myActionManager;
@@ -80,10 +85,12 @@ public class PalettePanelTest extends LayoutTestCase {
     myPopupMenu = mock(ActionPopupMenu.class);
     myPopupMenuComponent = mock(JPopupMenu.class);
     myActionManager = mock(ActionManager.class);
+    myGradleDependencyManager = mock(GradleDependencyManager.class);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     registerApplicationComponentImplementation(ActionManager.class, myActionManager);
+    registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager);
@@ -321,6 +328,22 @@ public class PalettePanelTest extends LayoutTestCase {
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
       "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+  }
+
+  public void testAddToDesignUpdateDoesNotCauseDependencyDialog() throws Exception {
+    setUpLayoutDesignSurface();
+    myPanel.getCategoryList().setSelectedIndex(6); // Google
+    myPanel.getItemList().setSelectedIndex(0);     // AdView
+    assertThat(myPanel.getItemList().getSelectedValue().getTagName()).isEqualTo(AD_VIEW);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    Presentation presentation = myPanel.getAddToDesignAction().getTemplatePresentation().clone();
+    when(event.getPresentation()).thenReturn(presentation);
+    when(myGradleDependencyManager.findMissingDependencies(any(Module.class), anyCollection())).thenReturn(Collections.singletonList(
+      GradleCoordinate.parseCoordinateString(ADS_ARTIFACT)));
+
+    // This statement would fail if the user is asked if they want to add a dependency on play-services-ads:
+    myPanel.getAddToDesignAction().update(event);
   }
 
   public void testOpenAndroidDocumentation() throws Exception {
