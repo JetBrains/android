@@ -121,6 +121,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
     myIconGenerator = new VectorIconGenerator(minSdkVersion);
+    Disposer.register(this, myIconGenerator);
 
     // Start with the icon radio button selected, because icons are easy to browse and play around
     // with right away.
@@ -244,7 +245,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myGeneralBindings.releaseAll();
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
-    myIconGenerator.dispose();
   }
 
   private void saveAssetPath() {
