@@ -33,11 +33,15 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssign
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
+
+import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
+import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 
 public final class GroovyDslUtil {
 
@@ -199,12 +203,18 @@ public final class GroovyDslUtil {
     }
   }
 
-  static GrLiteral createLiteral(@NotNull GradleDslLiteral literal) {
-    Object unsavedValue = literal.getUnsavedValue();
-    if (unsavedValue == null) {
+  @Nullable
+  static GrLiteral extractUnsavedLiteral(@NotNull GradleDslLiteral literal) {
+    GroovyPsiElement newElement = ensureGroovyPsi(literal.getUnsavedValue());
+    if (!(newElement instanceof  GrLiteral)) {
       return null;
     }
 
+    return (GrLiteral)newElement;
+  }
+
+  @Nullable
+  static GrLiteral createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       unsavedValueText = GrStringUtil.getLiteralTextByValue((String)unsavedValue);
@@ -212,13 +222,12 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
       unsavedValueText = unsavedValue.toString();
     }
-    literal.reset();
 
     if (unsavedValueText == null) {
       return null;
     }
 
-    GroovyPsiElementFactory factory = getPsiElementFactory(literal);
+    GroovyPsiElementFactory factory = getPsiElementFactory(context);
     if (factory == null) {
       return null;
     }
@@ -277,5 +286,32 @@ public final class GroovyDslUtil {
       psiElement = psiElement.getParent();
     }
     return psiElement;
+  }
+
+  @Nullable
+  static String getInjectionName(@NotNull GrStringInjection injection) {
+    String variableName = null;
+
+    GrClosableBlock closableBlock = injection.getClosableBlock();
+    if (closableBlock != null) {
+      String blockText = closableBlock.getText();
+      variableName = blockText.substring(1, blockText.length() - 1);
+    }
+    else {
+      GrExpression expression = injection.getExpression();
+      if (expression != null) {
+        variableName = expression.getText();
+      }
+    }
+
+    return variableName;
+  }
+
+  @NotNull
+  static String ensureUnquotedText(@NotNull String str) {
+    if (isQuotedString(str)) {
+      str = unquoteString(str);
+    }
+    return str;
   }
 }

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Represents a reference expression.
@@ -44,19 +46,36 @@ public final class GradleDslReference extends GradleDslExpression {
     return myExpression != null ? myExpression.getText() : null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getValue() {
     GradleDslLiteral valueLiteral = getValue(GradleDslLiteral.class);
     return valueLiteral != null ? valueLiteral.getValue() : getValue(String.class);
+  }
+
+  @Override
+  @NotNull
+  public Collection<GradleStringInjection> getResolvedVariables() {
+    String text = getReferenceText();
+    if (text == null || myExpression == null) {
+      return Collections.emptyList();
+    }
+
+    // Resolve our reference
+    GradleDslElement element = resolveReference(text);
+    if (element == null || !(element instanceof GradleDslExpression)) {
+      return Collections.emptyList();
+    }
+
+    return ImmutableList.of(new GradleStringInjection((GradleDslExpression)element, myExpression, text));
   }
 
   /**
    * Returns the value of type {@code clazz} when the reference expression is referring to an element with the value
    * of that type, or {@code null} otherwise.
    */
-  @Nullable
   @Override
+  @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     String referenceText = getReferenceText();
     if (referenceText == null) {

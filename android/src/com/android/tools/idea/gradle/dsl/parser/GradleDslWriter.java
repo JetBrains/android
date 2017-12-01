@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.psi.PsiElement;
-import org.gradle.api.JavaVersion;
 import org.jetbrains.annotations.NotNull;
 
 /**

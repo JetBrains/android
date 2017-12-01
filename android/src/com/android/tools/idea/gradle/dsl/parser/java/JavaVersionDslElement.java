@@ -23,7 +23,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -116,10 +115,7 @@ public class JavaVersionDslElement extends GradleDslElement {
     }
 
     if (valueLiteral != null) {
-      GrLiteral literal = valueLiteral.getLiteral();
-      if (literal != null) {
-        return literal.getText();
-      }
+      return valueLiteral.getRawText();
     }
 
     return null;
