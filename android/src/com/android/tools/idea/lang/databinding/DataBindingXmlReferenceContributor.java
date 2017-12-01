@@ -26,13 +26,13 @@ import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.Lists;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -63,7 +63,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.isDataBindingEnabled()) {
         LocalResourceRepository moduleResources = facet.getModuleResources(true);
-        PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
+        PsiFile topLevelFile = InjectedLanguageManager.getInstance(element.getProject()).getTopLevelFile(element);
         if (topLevelFile != null) {
           String name = topLevelFile.getName();
           name = name.substring(0, name.lastIndexOf('.'));
@@ -93,7 +93,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null && facet.isDataBindingEnabled()) {
             LocalResourceRepository moduleResources = facet.getModuleResources(true);
-            PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
+            PsiFile topLevelFile = InjectedLanguageManager.getInstance(element.getProject()).getTopLevelFile(element);
             if (topLevelFile != null) {
               if (topLevelFile.getFileType() == DbFileType.INSTANCE) {
                 PsiElement fileContext = topLevelFile.getContext();
