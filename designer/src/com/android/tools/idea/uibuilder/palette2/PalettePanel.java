@@ -543,7 +543,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       List<NlComponent> toAdd = NlModelHelperKt.createComponents(model, sceneView, dndItem, insertType);
 
       NlComponent root = roots.get(0);
-      if (!model.canAddComponents(toAdd, root, null)) {
+      if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
         return false;
       }
       if (!checkOnly) {

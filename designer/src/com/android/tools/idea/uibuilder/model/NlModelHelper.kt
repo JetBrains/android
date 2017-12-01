@@ -168,6 +168,11 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
       return false
     }
   }
+  return true
+}
+
+fun NlModel.checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>): Boolean {
+  // May bring up a dialog such that the user can confirm the addition of the new dependencies:
   return NlDependencyManager.get().checkIfUserWantsToAddDependencies(toAdd, facet)
 }
 
