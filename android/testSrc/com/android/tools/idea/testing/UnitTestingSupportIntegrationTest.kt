@@ -113,7 +113,8 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     // TODO(b/64667992): check AppKotlinUnitTest once the Kotlin setup works.
   }
 
-  fun testLibModule() {
+  // b/69983608
+  fun /*test*/LibModule() {
     checkTestClass(
         "com.example.lib.LibJavaUnitTest",
         expectedTests = setOf(
