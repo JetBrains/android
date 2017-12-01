@@ -24,7 +24,9 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.CountDownLatch
@@ -58,15 +60,13 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
   override fun shouldRunTest(): Boolean {
     // This fails on macOS buildbot for some reason. See b/67325961.
-    // return !SystemInfo.isMac
-
-    // b/69984322
-    return false
+     return !SystemInfo.isMac
   }
 
   override fun setUp() {
-    super.setUp()
+    TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait {
+      super.setUp()
       loadProject(TestProjectPaths.UNIT_TESTING)
 
       // Without this, the execution manager will not invoke gradle to compile the project, so no tests will be found.
@@ -87,10 +87,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     }
   }
 
-  // b/69984322
-  fun testNothing() {}
-
-  fun /*test*/AppModule() {
+  fun testAppModule() {
     checkTestClass(
         "com.example.app.AppJavaUnitTest",
         expectedTests = setOf(
@@ -120,8 +117,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     // TODO(b/64667992): check AppKotlinUnitTest once the Kotlin setup works.
   }
 
-  // b/69983608
-  fun /*test*/LibModule() {
+  fun testLibModule() {
     checkTestClass(
         "com.example.lib.LibJavaUnitTest",
         expectedTests = setOf(
@@ -151,8 +147,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     // TODO(b/64667992): check LibKotlinUnitTest once the Kotlin setup works.
   }
 
-  // b/69984322
-  fun /*test*/JavaLibModule() {
+  fun testJavaLibModule() {
     checkTestClass(
         "com.example.javalib.JavaLibJavaTest",
         expectedTests = setOf(
