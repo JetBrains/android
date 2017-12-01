@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
-import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.android.tools.profilers.cpu.nodemodel.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
@@ -34,7 +31,8 @@ class NodeNameParser {
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
 
   static CaptureNodeModel parseNodeName(String fullName) {
-    if (fullName.contains("::")) {
+    // C/C++ methods are represented as Namespace::Class::MethodName() in simpleperf. Check for the presence of "(".
+    if (fullName.contains("(")) {
       return parseCppFunctionName(fullName);
     }
     else if (fullName.contains(".")) {
@@ -43,8 +41,8 @@ class NodeNameParser {
       return new JavaMethodModel(modelInfo.getName(), modelInfo.getClassOrNamespace());
     }
     else {
-      // Node represents a syscall. Create a single name model to represent it.
-      return new SingleNameModel(fullName);
+      // Node represents a syscall.
+      return new SyscallModel(fullName);
     }
   }
 
@@ -71,8 +69,16 @@ class NodeNameParser {
     if (returnTypeSeparatorIndex >= 0) {
       functionFullName = functionFullName.substring(returnTypeSeparatorIndex + 1);
     }
-    ModelInfo modelInfo = createModelInfo(functionFullName, "::", NATIVE_SEPARATOR_PATTERN);
-    return new NativeFunctionModel.Builder(modelInfo.getName())
+    ModelInfo modelInfo;
+    // If there is not a "::" separator in the function name, it's part of the global namespace
+    boolean isGlobalNamespace = !functionFullName.contains("::");
+    if (isGlobalNamespace) {
+      modelInfo = new ModelInfo(functionFullName,  "");
+    }
+    else {
+      modelInfo = createModelInfo(functionFullName, "::", NATIVE_SEPARATOR_PATTERN);
+    }
+    return new CppFunctionModel.Builder(modelInfo.getName())
       .setClassOrNamespace(modelInfo.getClassOrNamespace())
       .setParameters(parameters)
       .build();

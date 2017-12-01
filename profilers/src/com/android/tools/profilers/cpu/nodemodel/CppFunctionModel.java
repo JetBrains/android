@@ -24,16 +24,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Represents characteristics of Native functions.
+ * Represents characteristics of C/C++ functions.
  */
-public class NativeFunctionModel implements CaptureNodeModel {
+public class CppFunctionModel extends NativeNodeModel {
 
   /**
    * Pattern used to separate method parameters.
    */
   private static final Pattern PARAMETERS_SEPARATOR = Pattern.compile(", ");
-
-  @NotNull private final String myName;
 
   /**
    * Function's full class name (e.g. art::interpreter::SomeClass). For functions that don't belong to a particular class (e.g.
@@ -50,16 +48,10 @@ public class NativeFunctionModel implements CaptureNodeModel {
 
   private String myId;
 
-  private NativeFunctionModel(Builder builder) {
+  private CppFunctionModel(Builder builder) {
     myName = builder.myName;
     myClassOrNamespace = builder.myClassOrNamespace;
     myParameters = buildParameters(builder.myParameters);
-  }
-
-  @Override
-  @NotNull
-  public String getName() {
-    return myName;
   }
 
   @NotNull
@@ -126,8 +118,8 @@ public class NativeFunctionModel implements CaptureNodeModel {
       return this;
     }
 
-    public NativeFunctionModel build() {
-      return new NativeFunctionModel(this);
+    public CppFunctionModel build() {
+      return new CppFunctionModel(this);
     }
   }
 }

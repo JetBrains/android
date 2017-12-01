@@ -19,7 +19,6 @@ import com.android.tools.perflib.vmtrace.*;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.android.tools.profilers.cpu.nodemodel.DummyModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +70,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
     // create method info if it doesn't exist
     if (!myMethods.containsKey(methodId)) {
-      myMethods.put(methodId, new DummyModel());
+      myMethods.put(methodId, new SingleNameModel("unknown"));
     }
 
     CaptureNodeConstructor constructor = myNodeConstructors.get(threadId);
