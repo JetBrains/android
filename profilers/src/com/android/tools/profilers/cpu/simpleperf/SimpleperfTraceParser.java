@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -392,7 +393,7 @@ public class SimpleperfTraceParser implements TraceParser {
       // if symbol_id is -1, we report the method as fileName+vAddress (e.g. program.so+0x3039)
       String hexAddress = "0x" + Long.toHexString(callChainEntry.getVaddrInFile());
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
-      return new SingleNameModel(methodName);
+      return new NoSymbolModel(methodName);
     }
     // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel
     return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId));

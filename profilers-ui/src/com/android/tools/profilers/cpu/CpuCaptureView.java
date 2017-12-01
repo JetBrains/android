@@ -30,7 +30,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
@@ -663,8 +663,8 @@ class CpuCaptureView {
    */
   @Nullable
   private static CodeLocation modelToCodeLocation(CaptureNodeModel model) {
-    if (model instanceof NativeFunctionModel) {
-      NativeFunctionModel nativeFunction = (NativeFunctionModel)model;
+    if (model instanceof CppFunctionModel) {
+      CppFunctionModel nativeFunction = (CppFunctionModel)model;
       return new CodeLocation.Builder(nativeFunction.getClassOrNamespace())
         .setMethodName(nativeFunction.getName())
         .setMethodParameters(nativeFunction.getParameters())
@@ -856,8 +856,8 @@ class CpuCaptureView {
         SimpleTextAttributes attributes = getTextAttributes(node);
         CaptureNodeModel model = node.getMethodModel();
         String classOrNamespace = "";
-        if (model instanceof NativeFunctionModel) {
-          classOrNamespace = ((NativeFunctionModel)model).getClassOrNamespace();
+        if (model instanceof CppFunctionModel) {
+          classOrNamespace = ((CppFunctionModel)model).getClassOrNamespace();
         }
         else if (model instanceof JavaMethodModel) {
           classOrNamespace = ((JavaMethodModel)model).getClassName();

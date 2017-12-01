@@ -19,12 +19,7 @@ import org.junit.Test
 class CaptureNodeModelTest {
 
   @Test
-  fun testDummyAndSingleNameModels() {
-    val dummyModel = DummyModel()
-    assertThat(dummyModel.name).isEqualTo(DummyModel.DUMMY_NODE)
-    assertThat(dummyModel.id).isEqualTo(DummyModel.DUMMY_NODE)
-    assertThat(dummyModel.fullName).isEqualTo(DummyModel.DUMMY_NODE)
-
+  fun testSingleNameModel() {
     val name = "Some weird name"
     val singleNameModel = SingleNameModel(name)
     assertThat(singleNameModel.name).isEqualTo(name)
@@ -44,13 +39,33 @@ class CaptureNodeModelTest {
 
   @Test
   fun testNativeFunctionModel() {
-    val model = NativeFunctionModel.Builder("someName").setParameters("int, float").setClassOrNamespace("MyNativeClass").build()
-    assertThat(model.name).isEqualTo("someName")
-    assertThat(model.parameters).hasSize(2)
-    assertThat(model.parameters[0]).isEqualTo("int")
-    assertThat(model.parameters[1]).isEqualTo("float")
-    assertThat(model.fullName).isEqualTo("MyNativeClass::someName")
-    assertThat(model.classOrNamespace).isEqualTo("MyNativeClass")
-    assertThat(model.id).isEqualTo("MyNativeClass::someName[int, float]")
+    val functionModel = CppFunctionModel.Builder("someName").setParameters("int, float").setClassOrNamespace("MyNativeClass").build()
+    assertThat(functionModel.name).isEqualTo("someName")
+    assertThat(functionModel.parameters).hasSize(2)
+    assertThat(functionModel.parameters[0]).isEqualTo("int")
+    assertThat(functionModel.parameters[1]).isEqualTo("float")
+    assertThat(functionModel.fullName).isEqualTo("MyNativeClass::someName")
+    assertThat(functionModel.classOrNamespace).isEqualTo("MyNativeClass")
+    assertThat(functionModel.id).isEqualTo("MyNativeClass::someName[int, float]")
+    assertThat(functionModel).isInstanceOf(NativeNodeModel::class.java)
+
+    val syscallModel = SyscallModel("write")
+    assertThat(syscallModel.name).isEqualTo("write")
+    assertThat(syscallModel.fullName).isEqualTo("write")
+    assertThat(syscallModel.id).isEqualTo("write")
+    assertThat(syscallModel).isInstanceOf(NativeNodeModel::class.java)
+
+    var noSymbolModel = NoSymbolModel("[kernel.kallsyms]+0xff00ff")
+    assertThat(noSymbolModel.name).isEqualTo("[kernel.kallsyms]+0xff00ff")
+    assertThat(noSymbolModel.fullName).isEqualTo("[kernel.kallsyms]+0xff00ff")
+    assertThat(noSymbolModel.id).isEqualTo("[kernel.kallsyms]+0xff00ff")
+    assertThat(noSymbolModel.isKernel).isTrue()
+    assertThat(noSymbolModel).isInstanceOf(NativeNodeModel::class.java)
+
+    noSymbolModel = NoSymbolModel("non-kernel.so+0xff00ff")
+    assertThat(noSymbolModel.name).isEqualTo("non-kernel.so+0xff00ff")
+    assertThat(noSymbolModel.fullName).isEqualTo("non-kernel.so+0xff00ff")
+    assertThat(noSymbolModel.id).isEqualTo("non-kernel.so+0xff00ff")
+    assertThat(noSymbolModel.isKernel).isFalse()
   }
 }

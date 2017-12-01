@@ -18,10 +18,10 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.cpu.nodemodel.NativeFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +42,9 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
 
   public MethodModelHRenderer(@NotNull CaptureModel.Details.Type type) {
     super();
+    if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
+      throw new IllegalStateException("Chart type not supported and can't be rendered.");
+    }
     myType = type;
   }
 
@@ -50,98 +53,35 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
     this(CaptureModel.Details.Type.CALL_CHART);
   }
 
-  private static boolean isMethodPlatform(CaptureNodeModel method) {
-    return isMethodPlatformJava(method) || isMethodPlatformCpp(method);
-  }
-
-  private static boolean isMethodPlatformJava(CaptureNodeModel method) {
-    return method.getFullName().startsWith("android.") || method.getFullName().startsWith("com.android.");
-  }
-
-  private static boolean isMethodPlatformCpp(CaptureNodeModel method) {
-    // TODO: include all the art-related methods (e.g. artQuickToInterpreterBridge and artMterpAsmInstructionStart)
-    return method.getFullName().startsWith("art::") ||
-           method.getFullName().startsWith("android::") ||
-           method.getFullName().startsWith("art_") ||
-           method.getFullName().startsWith("dalvik-jit-code-cache");
-  }
-
-  private static boolean isMethodVendor(CaptureNodeModel method) {
-    return isMethodVendorJava(method) || isMethodVendorCpp(method);
-  }
-
-  private static boolean isMethodVendorJava(CaptureNodeModel method) {
-    return method.getFullName().startsWith("java.") ||
-           method.getFullName().startsWith("sun.") ||
-           method.getFullName().startsWith("javax.") ||
-           method.getFullName().startsWith("apple.") ||
-           method.getFullName().startsWith("com.apple.");
-  }
-
-  private static boolean isMethodVendorCpp(CaptureNodeModel method) {
-    return method.getFullName().startsWith("openjdkjvmti::");
-  }
-
   private Color getFillColor(CaptureNode node) {
-    Color color;
-    if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR;
-      }
-      else if (isMethodPlatform(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_CALLCHART_PLATFORM;
-      }
-      else {
-        color = ProfilerColors.CPU_CALLCHART_APP;
-      }
+    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
+    assert nodeModel != null;
+    if (nodeModel instanceof JavaMethodModel) {
+      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
-    else {
-      if (isMethodVendor(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR;
-      }
-      else if (isMethodPlatform(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_FLAMECHART_PLATFORM;
-      }
-      else {
-        color = ProfilerColors.CPU_FLAMECHART_APP;
-      }
+    else if (nodeModel instanceof NativeNodeModel) {
+      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
-
-    return node.isUnmatched() ? toUnmatchColor(color) : color;
+    throw new IllegalStateException("Node type not supported.");
   }
 
-  private Color getBordColor(CaptureNode node) {
-    Color color;
-    if (myType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
-      }
-      else if (isMethodPlatform(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
-      }
+  private Color getBorderColor(CaptureNode node) {
+    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
+    assert nodeModel != null;
+    if (nodeModel instanceof JavaMethodModel) {
+      return JavaMethodHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
-    else {
-      if (isMethodVendor(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
-      }
-      else if (isMethodPlatform(node.getCaptureNodeModel())) {
-        color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
-      }
+    else if (nodeModel instanceof NativeNodeModel) {
+      return NativeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
-    return node.isUnmatched() ? toUnmatchColor(color) : color;
+    throw new IllegalStateException("Node type not supported.");
   }
 
   /**
    * @return the same color but with 20% opacity that is used to represent an unmatching node.
    */
   @NotNull
-  private static Color toUnmatchColor(@NotNull Color color) {
+  static Color toUnmatchColor(@NotNull Color color) {
     // TODO: maybe cache for performance?
     return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255 * 0.2));
   }
@@ -154,7 +94,7 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
     g.fill(drawingArea);
 
     // Draw rectangle outline.
-    g.setPaint(getBordColor(captureNode));
+    g.setPaint(getBorderColor(captureNode));
     g.draw(drawingArea);
 
     // Draw text
@@ -186,8 +126,8 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
 
     String classOrNamespace = "";
     String separator = "";
-    if (model instanceof NativeFunctionModel) {
-      classOrNamespace = ((NativeFunctionModel)model).getClassOrNamespace();
+    if (model instanceof CppFunctionModel) {
+      classOrNamespace = ((CppFunctionModel)model).getClassOrNamespace();
       separator = "::";
     }
     else if (model instanceof JavaMethodModel) {
@@ -217,7 +157,7 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
   /**
    * Reduces the size of a namespace by using only the first character of each name separated by the namespace separator.
    * e.g. "art::interpreter -> a::i" and "java.util.List" -> j.u.L"
-   * TODO (b/67640322): try a less agressive string first (e.g. j.u.List or a::interpreter)
+   * TODO (b/67640322): try a less aggressive string first (e.g. j.u.List or a::interpreter)
    */
   private static String getShortPackageName(String namespace, String separator) {
     if (StringUtil.isEmpty(namespace)) {
