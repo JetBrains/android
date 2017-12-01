@@ -24,7 +24,6 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentSkipListSet
@@ -57,8 +56,13 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   override fun runInDispatchThread(): Boolean = false
   override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
 
-  /** This fails on macOS buildbot for some reason. See b/67325961. */
-  override fun shouldRunTest() = !SystemInfo.isMac
+  override fun shouldRunTest(): Boolean {
+    // This fails on macOS buildbot for some reason. See b/67325961.
+    // return !SystemInfo.isMac
+
+    // b/69984322
+    return false
+  }
 
   override fun setUp() {
     super.setUp()
@@ -85,6 +89,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
   // b/69984322
   fun testNothing() {}
+
   fun /*test*/AppModule() {
     checkTestClass(
         "com.example.app.AppJavaUnitTest",
