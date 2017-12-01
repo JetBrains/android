@@ -51,7 +51,6 @@ import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -88,7 +87,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   @VisibleForTesting
-  @NotNull public ImmutableList<Layer> myLayers = ImmutableList.of();
+  @NotNull
+  public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -103,7 +103,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
-  private final JBSplitter myErrorPanelSplitter;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
@@ -149,19 +148,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myIssuePanel = new IssuePanel(this, myIssueModel);
     Disposer.register(this, myIssuePanel);
-    myIssuePanel.setMinimizeListener((isMinimized) -> {
-      NlUsageTrackerManager.getInstance(this).logAction(
-        isMinimized ? LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL
-                    : LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-      updateErrorPanelSplitterUi(isMinimized);
-    });
 
-    // The error panel can only take up to 50% of the surface and it will take a 25% by default
-    myErrorPanelSplitter = new OnePixelSplitter(true, 0.75f, 0.5f, 1f);
-    myErrorPanelSplitter.setHonorComponentsMinimumSize(true);
-    myErrorPanelSplitter.setFirstComponent(myScrollPane);
-    myErrorPanelSplitter.setSecondComponent(myIssuePanel);
-    add(myErrorPanelSplitter);
+    add(myScrollPane);
 
     // TODO: Do this as part of the layout/validate operation instead
     addComponentListener(new ComponentListener() {
@@ -1186,16 +1174,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myIssuePanel;
   }
 
-  @NotNull
-  @TestOnly
-  public JBSplitter getErrorPanelSplitter() {
-    return myErrorPanelSplitter;
-  }
-
   public void setShowIssuePanel(boolean show) {
     UIUtil.invokeLaterIfNeeded(() -> {
       myIssuePanel.setMinimized(!show);
-      updateErrorPanelSplitterUi(myIssuePanel.isMinimized());
       revalidate();
       repaint();
     });
@@ -1212,21 +1193,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private void updateErrorPanelSplitterUi(boolean isMinimized) {
-    boolean showDivider = !isMinimized;
-    myErrorPanelSplitter.setShowDividerIcon(showDivider);
-    myErrorPanelSplitter.setShowDividerControls(showDivider);
-    myErrorPanelSplitter.setResizeEnabled(showDivider);
-
-    if (isMinimized) {
-      myErrorPanelSplitter.setProportion(1f);
-    }
-    else {
-      int height = myIssuePanel.getSuggestedHeight();
-      float proportion = 1 - (height / (float)getHeight());
-      myErrorPanelSplitter.setProportion(Math.max(0.5f, proportion));
-    }
-  }
 
   /**
    * Attaches the given {@link Layer}s to the current design surface.
@@ -1239,7 +1205,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Deattaches the given {@link Layer}s to the current design surface
    */
   public void removeLayers(@NotNull ImmutableList<Layer> layers) {
-   myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
+    myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
   }
 
   /**

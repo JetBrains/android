@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
-import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.intellij.ui.JBSplitter;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -61,13 +60,6 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
 
   public IssuePanelFixture getIssuePanelFixture() {
     return myIssuePanelFixture;
-  }
-
-  @NotNull
-  public DesignSurfaceFixture enlargeIssuePanel() {
-    JBSplitter splitter = target().getErrorPanelSplitter();
-    splitter.setProportion(0.2f);
-    return this;
   }
 
   @NotNull
