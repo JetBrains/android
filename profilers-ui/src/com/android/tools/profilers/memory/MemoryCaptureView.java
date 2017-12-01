@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
@@ -29,8 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_LAYOUT;
 
 public final class MemoryCaptureView extends AspectObserver {
   private static Logger getLogger() {
@@ -53,7 +52,7 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
-    myPanel = new JPanel(TOOLBAR_LAYOUT);
+    myPanel = new JPanel(new TabularLayout("Fit,Fit,Fit,Fit", "*"));
 
     myLabel = new JLabel();
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
@@ -92,12 +91,12 @@ public final class MemoryCaptureView extends AspectObserver {
     if (validCapture) {
       if (captureObject.isExportable()) {
         myExportButton.setEnabled(captureObject.isExportable());
-        myPanel.add(myExportButton);
-        myPanel.add(new FlatSeparator());
+        myPanel.add(myExportButton, new TabularLayout.Constraint(0, 0));
+        myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
       }
       myLabel.setText(myCaptureObject.getName());
-      myPanel.add(myLabel);
-      myPanel.add(new FlatSeparator());
+      myPanel.add(myLabel, new TabularLayout.Constraint(0, 2));
+      myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 3));
     }
   }
 

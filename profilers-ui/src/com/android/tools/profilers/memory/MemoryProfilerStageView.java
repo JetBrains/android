@@ -480,10 +480,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
       FlatToggleButton button = new FlatToggleButton("", StudioIcons.Common.FILTER);
-      headingPanel.add(button, BorderLayout.EAST);
+
+      JPanel buttonToolbar = new JPanel(TOOLBAR_LAYOUT);
+      buttonToolbar.add(button);
+      headingPanel.add(buttonToolbar, BorderLayout.EAST);
       SearchComponent searchTextArea = getIdeComponents()
-        .createProfilerSearchTextArea(getClass().getName(), ProfilerLayout.FILTER_TEXT_FIELD_WIDTH,
-                                      ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+        .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
       searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
       headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
       searchTextArea.getComponent().setVisible(false);
