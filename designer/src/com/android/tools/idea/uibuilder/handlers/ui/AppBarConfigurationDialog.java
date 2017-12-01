@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.*;
@@ -291,10 +292,11 @@ public class AppBarConfigurationDialog extends JDialog {
     });
   }
 
-  public boolean open(@NotNull final XmlFile file) {
-    Project project = file.getProject();
+  public boolean open() {
+    NlModel model = myEditor.getModel();
+    Project project = model.getProject();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN);
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN);
     if (!hasDesignLib && !addDesignLibrary(manager)) {
       return false;
     }
@@ -315,6 +317,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
     setVisible(true);
     if (myWasAccepted) {
+      XmlFile file = model.getFile();
       WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
