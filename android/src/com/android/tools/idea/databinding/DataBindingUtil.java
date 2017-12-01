@@ -29,6 +29,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -39,7 +40,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -359,7 +359,7 @@ public class DataBindingUtil {
     XmlAttributeValue attrValue = psiAttribute.getValueElement();
     if (attrValue instanceof PsiLanguageInjectionHost) {
       final Ref<PsiElement> injections = Ref.create();
-      InjectedLanguageUtil.enumerate(attrValue, (injectedPsi, places) -> {
+      InjectedLanguageManager.getInstance(psiAttribute.getProject()).enumerate(attrValue, (injectedPsi, places) -> {
         if (injectedPsi instanceof DbFile) {
           injections.set(injectedPsi);
         }
