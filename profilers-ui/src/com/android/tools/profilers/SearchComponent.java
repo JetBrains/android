@@ -29,4 +29,6 @@ public interface SearchComponent {
   void addOnFilterChange(@NotNull Consumer<Pattern> callback);
 
   void setText(@NotNull String text);
+
+  default void requestFocusInWindow() {}
 }

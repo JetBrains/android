@@ -48,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
@@ -492,6 +491,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         searchTextArea.getComponent().setVisible(button.isSelected());
         if (button.isSelected()) {
           searchTextArea.setText("");
+          searchTextArea.requestFocusInWindow();
         }
         else {
           getStage().selectCaptureFilter(null);
@@ -500,9 +500,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       });
 
       headingPanel.registerKeyboardAction(event -> {
-                                            button.setSelected(!button.isSelected());
-                                            for (ActionListener listener : button.getActionListeners()) {
-                                              listener.actionPerformed(event);
+                                            if (!button.isSelected()) {
+                                              // Let the button's ActionListener handle the event.
+                                              button.doClick(0);
+                                            }
+                                            else {
+                                              // Otherwise, just reset the focus.
+                                              searchTextArea.requestFocusInWindow();
                                             }
                                           },
                                           KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK),
