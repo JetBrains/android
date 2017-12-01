@@ -18,11 +18,11 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 // TODO
 // class NavActionTransitionInspectorProvider : NavigationPropertiesInspectorProvider(mapOf())
 
-class NavActionPopInspectorProvider : NavigationPropertiesInspectorProvider(mapOf(
+class NavActionPopInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_POP_UP_TO to "Pop To",
     NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE to "Inclusive"), "Pop Behavior")
 
-class NavActionLaunchOptionsInspectorProvider : NavigationPropertiesInspectorProvider(mapOf(
+class NavActionLaunchOptionsInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_SINGLE_TOP to "Single Top",
     NavigationSchema.ATTR_DOCUMENT to "Document",
     NavigationSchema.ATTR_CLEAR_TASK to "Clear Task"), "Launch Options")

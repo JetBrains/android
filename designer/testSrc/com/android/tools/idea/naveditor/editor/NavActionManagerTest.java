@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.editor;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.JavaPsiFacade;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link NavActionManager}
  */
-public class NavActionManagerTest extends NavigationTestCase {
+public class NavActionManagerTest extends NavTestCase {
   public void testAddElement() {
     SyncNlModel model = model("nav.xml",
                               rootComponent("root").unboundedChildren(

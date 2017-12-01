@@ -39,8 +39,8 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
         NavActionArgumentsInspectorProvider(),
         NavActionPopInspectorProvider(),
         NavActionLaunchOptionsInspectorProvider(),
-        NavigationActionsInspectorProvider(),
-        NavigationDeeplinkInspectorProvider())
+        NavActionsInspectorProvider(),
+        NavDeeplinkInspectorProvider())
   }
 
   @VisibleForTesting

@@ -37,7 +37,7 @@ import java.io.File;
 
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
 
-public abstract class NavigationTestCase extends AndroidTestCase {
+public abstract class NavTestCase extends AndroidTestCase {
 
   protected static final String TAG_NAVIGATION = "navigation";
   private static final String PREBUILT_AAR_PATH =

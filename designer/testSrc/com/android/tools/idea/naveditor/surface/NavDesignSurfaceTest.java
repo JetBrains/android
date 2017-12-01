@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link NavDesignSurface}
  */
-public class NavDesignSurfaceTest extends NavigationTestCase {
+public class NavDesignSurfaceTest extends NavTestCase {
 
   public void testLayers() {
     ImmutableList<Layer> droppedLayers;

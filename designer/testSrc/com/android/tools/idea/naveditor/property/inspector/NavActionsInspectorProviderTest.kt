@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -29,9 +29,9 @@ import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Container
 
-class NavigationActionsInspectorProviderTest: NavigationTestCase() {
+class NavActionsInspectorProviderTest : NavTestCase() {
   fun testIsApplicable() {
-    val provider = NavigationActionsInspectorProvider()
+    val provider = NavActionsInspectorProvider()
     val surface = mock(NavDesignSurface::class.java)
     val manager = NavPropertiesManager(myFacet, surface)
     val component1 = mock(NlComponent::class.java)
@@ -64,7 +64,7 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
 
     val manager = mock(NavPropertiesManager::class.java)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
-    `when`(navInspectorProviders.providers).thenReturn(listOf(NavigationActionsInspectorProvider()))
+    `when`(navInspectorProviders.providers).thenReturn(listOf(NavActionsInspectorProvider()))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     `when`(manager.facet).thenReturn(myFacet)
 

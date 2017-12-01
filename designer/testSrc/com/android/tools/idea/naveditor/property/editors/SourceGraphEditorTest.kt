@@ -16,12 +16,12 @@ package com.android.tools.idea.naveditor.property.editors
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.includeComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class SourceGraphEditorTest : NavigationTestCase() {
+class SourceGraphEditorTest : NavTestCase() {
   fun testSources() {
     val model = model("nav.xml",
         rootComponent("root")

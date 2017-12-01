@@ -16,9 +16,9 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 
-class NavComponentTypePropertyTest : NavigationTestCase() {
+class NavComponentTypePropertyTest : NavTestCase() {
 
   fun testValue() {
     val model = model("nav.xml",

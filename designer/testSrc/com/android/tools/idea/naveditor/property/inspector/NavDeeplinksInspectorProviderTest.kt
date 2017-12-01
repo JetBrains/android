@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -30,12 +30,12 @@ import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
 
-class NavigationDeeplinksInspectorProviderTest : NavigationTestCase() {
+class NavDeeplinksInspectorProviderTest : NavTestCase() {
   private val uri1 = "http://www.example.com"
   private val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
 
   fun testIsApplicable() {
-    val provider = NavigationDeeplinkInspectorProvider()
+    val provider = NavDeeplinkInspectorProvider()
     val surface = Mockito.mock(NavDesignSurface::class.java)
     val manager = NavPropertiesManager(myFacet, surface)
     val component1 = Mockito.mock(NlComponent::class.java)
@@ -68,7 +68,7 @@ class NavigationDeeplinksInspectorProviderTest : NavigationTestCase() {
 
     val manager = Mockito.mock(NavPropertiesManager::class.java)
     val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
-    Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavigationDeeplinkInspectorProvider()))
+    Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))
     Mockito.`when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     Mockito.`when`(manager.facet).thenReturn(myFacet)
 

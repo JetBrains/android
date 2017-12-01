@@ -20,4 +20,4 @@ private val PROPERTY_NAME_UI_NAME_MAP = mapOf(
     NavigationSchema.ATTR_DATA to "Data",
     NavigationSchema.ATTR_DATA_PATTERN to "Pattern")
 
-class NavActivityPropertiesInspectorProvider : NavigationPropertiesInspectorProvider(PROPERTY_NAME_UI_NAME_MAP, null)
+class NavActivityPropertiesInspectorProvider : NavPropertiesInspectorProvider(PROPERTY_NAME_UI_NAME_MAP, null)

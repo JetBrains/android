@@ -18,12 +18,12 @@ package com.android.tools.idea.naveditor.property.editors
 import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class AllDestinationsEditorTest : NavigationTestCase() {
+class AllDestinationsEditorTest : NavTestCase() {
   fun testDestinations() {
     val model = model("nav.xml",
         rootComponent("root")

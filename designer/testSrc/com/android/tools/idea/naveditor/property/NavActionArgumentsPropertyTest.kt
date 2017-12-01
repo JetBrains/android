@@ -17,11 +17,11 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.testFramework.UsefulTestCase
 import org.mockito.Mockito
 
-class NavActionArgumentsPropertyTest : NavigationTestCase() {
+class NavActionArgumentsPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
 
   override fun setUp() {

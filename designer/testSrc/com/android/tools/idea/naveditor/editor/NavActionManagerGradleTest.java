@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.editor;
 
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.naveditor.NavigationGradleTestCase;
+import com.android.tools.idea.naveditor.NavGradleTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link NavActionManager} that require a complete gradle project to run.
  */
-public class NavActionManagerGradleTest extends NavigationGradleTestCase {
+public class NavActionManagerGradleTest extends NavGradleTestCase {
 
   public void testGetDestinations() throws Exception {
     SyncNlModel model = model("nav.xml",

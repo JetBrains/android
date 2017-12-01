@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.common.collect.HashMultimap
@@ -28,7 +28,7 @@ import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
-class NavInspectorPanelTest : NavigationTestCase() {
+class NavInspectorPanelTest : NavTestCase() {
   private lateinit var model: SyncNlModel
   private lateinit var panel: NavInspectorPanel
   private lateinit var manager: NavPropertiesManager
