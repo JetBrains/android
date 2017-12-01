@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
+import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -69,6 +70,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
+  private final JPanel myRoot = new JPanel(new BorderLayout());
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
@@ -109,6 +111,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
     myWorkBench.setLoadingText("Waiting for build to finish...");
+    myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
 
     Disposer.register(this, myWorkBench);
   }
@@ -195,7 +198,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   @NotNull
   public JComponent getComponent() {
-    return myWorkBench;
+    return myRoot;
   }
 
   @Override
