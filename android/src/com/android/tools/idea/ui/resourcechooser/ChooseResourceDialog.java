@@ -50,6 +50,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -64,6 +65,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -73,6 +75,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.MultiMap;
@@ -1280,35 +1283,43 @@ public class ChooseResourceDialog extends DialogWrapper {
     private ResourceComponent myReferenceComponent;
     private ResourceEditorTab myReferencePanel;
 
-    @NotNull private final ResourceChooserGroup[] myGroups;
+    @NotNull private ResourceChooserGroup[] myGroups = new ResourceChooserGroup[0];
     @NotNull private final ResourceType myType;
 
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs) {
       myType = type;
 
-      List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(3);
-      ResourceChooserGroup projectItems = new ResourceChooserGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
-      if (!projectItems.isEmpty()) {
-        groups.add(projectItems);
-      }
-      ResourceChooserGroup frameworkItems = new ResourceChooserGroup(ANDROID_NS_NAME, type, myFacet, true, includeFileResources);
-      if (!frameworkItems.isEmpty()) {
-        groups.add(frameworkItems);
-      }
-      ResourceChooserGroup themeItems = new ResourceChooserGroup("Theme attributes", myType, myFacet, attrs);
-      if (!themeItems.isEmpty()) {
-        groups.add(themeItems);
-      }
-      myGroups = groups.toArray(EMPTY_RESOURCE_CHOOSER_GROUPS);
-
       myComponent = new JBSplitter(false, 0.5f);
+      // The JBLoadingPanel requires a disposable to be passed so it knows when to stop the animation thread.
+      // We create a Disposable here that we dispose when we've finished loading everything.
+      Disposable animationDisposable = Disposer.newDisposable();
+      JBLoadingPanel loadingPanel = new JBLoadingPanel(new FlowLayout(), animationDisposable);
+      myComponent.setFirstComponent(loadingPanel);
+      loadingPanel.startLoading();
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(3);
+        ResourceChooserGroup projectItems = new ResourceChooserGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
+        if (!projectItems.isEmpty()) {
+          groups.add(projectItems);
+        }
+        ResourceChooserGroup frameworkItems = new ResourceChooserGroup(ANDROID_NS_NAME, type, myFacet, true, includeFileResources);
+        if (!frameworkItems.isEmpty()) {
+          groups.add(frameworkItems);
+        }
+        ResourceChooserGroup themeItems = new ResourceChooserGroup("Theme attributes", myType, myFacet, attrs);
+        if (!themeItems.isEmpty()) {
+          groups.add(themeItems);
+        }
+        myGroups = groups.toArray(EMPTY_RESOURCE_CHOOSER_GROUPS);
 
-      JComponent firstComponent = createListPanel();
-      firstComponent.setPreferredSize(JBUI.size(200,600));
+        JComponent firstComponent = createListPanel(myGroups);
+        firstComponent.setPreferredSize(JBUI.size(200,600));
 
-      myComponent.setFirstComponent(firstComponent);
+        myComponent.setFirstComponent(firstComponent);
+        Disposer.dispose(animationDisposable);
+      });
 
       myPreviewPanel = new JPanel(new CardLayout());
       myPreviewPanel.setPreferredSize(JBUI.size(400,600));
@@ -1318,7 +1329,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     @NotNull
-    private JComponent createListPanel() {
+    private JComponent createListPanel(@NotNull ResourceChooserGroup[] groups) {
       JComponent component;
       if (myType == ResourceType.DRAWABLE
           || myType == ResourceType.COLOR
@@ -1326,7 +1337,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           // Styles and IDs: no "values" to show
           || myType == ResourceType.STYLE
           || myType == ResourceType.ID) {
-        AbstractTreeStructure treeContentProvider = new ResourceTreeContentProvider(myGroups);
+        AbstractTreeStructure treeContentProvider = new ResourceTreeContentProvider(groups);
         TreeGrid<ResourceChooserItem> list = new TreeGrid<>(treeContentProvider);
         new TreeGridSpeedSearch<>(list);
         list.addListSelectionListener(e -> {
@@ -1338,7 +1349,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         configureList(myGridMode);
       } else {
         // Table view (strings, dimensions, etc
-        final AbstractTableModel model = new ResourceTableContentProvider(myGroups);
+        final AbstractTableModel model = new ResourceTableContentProvider(groups);
 
         FilteringTableModel<ResourceChooserItem> tableModel = new FilteringTableModel<>(new AbstractTableModel() {
           @Override
@@ -1511,7 +1522,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (myList != null) {
         myList.selectFirst();
       } else if (myTable != null) {
-        List<ResourceChooserItem> first = myGroups[0].getItems();
+        List<ResourceChooserItem> first = myGroups.length > 0 ? myGroups[0].getItems() : Collections.emptyList();
         if (!first.isEmpty()) {
           setSelectedItem(first.get(0));
           myTable.requestFocus();
