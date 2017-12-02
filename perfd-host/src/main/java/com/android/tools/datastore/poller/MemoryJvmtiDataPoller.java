@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
@@ -59,6 +60,9 @@ public class MemoryJvmtiDataPoller extends PollRunner {
       myLiveAllocationTable.insertStackInfo(myProcessId, mySession, sample.getStacksList());
       myLiveAllocationTable.insertThreadInfo(myProcessId, mySession, sample.getThreadInfosList());
       myLiveAllocationTable.insertAllocationData(myProcessId, mySession, sample);
+    }
+    for (MemoryProfiler.BatchJNIGlobalRefEvent batchJniEvent : response.getJniReferenceEventBatchesList()) {
+      myLiveAllocationTable.insertJniReferenceData(myProcessId, mySession, batchJniEvent);
     }
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();
