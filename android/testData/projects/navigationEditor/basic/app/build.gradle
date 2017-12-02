@@ -37,5 +37,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.0.2'
     compile 'com.android.support:design:26.0.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'android.arch.navigation:runtime:0.5.0-alpha1'
+    compile 'android.arch.navigation:runtime:+'
 }
