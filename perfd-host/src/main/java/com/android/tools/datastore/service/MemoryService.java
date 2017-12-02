@@ -25,6 +25,7 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -298,6 +299,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
         myAllocationsTable.getAllocations(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
     }
     responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
+                                     StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
+    BatchJNIGlobalRefEvent result = myAllocationsTable.getJniReferencesAliveInRange(request.getProcessId(), request.getSession(),
+                                                                                      request.getStartTime(), request.getEndTime());
+    responseObserver.onNext(result);
     responseObserver.onCompleted();
   }
 
