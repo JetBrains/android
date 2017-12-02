@@ -21,11 +21,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle;
 import com.android.tools.idea.naveditor.scene.draw.DrawRectangle;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -95,18 +93,5 @@ public class NavigationDecorator extends SceneDecorator {
   private static boolean isDisplayRoot(@NotNull SceneContext sceneContext, @NotNull SceneComponent sceneComponent) {
     NavDesignSurface navSurface = (NavDesignSurface)sceneContext.getSurface();
     return navSurface != null && sceneComponent.getNlComponent() == navSurface.getCurrentNavigation();
-  }
-
-  public static DrawCommand createDrawCommand(DisplayList list, SceneComponent component) {
-    int level = DrawCommand.COMPONENT_LEVEL;
-
-    if (component.isDragging()) {
-      level = DrawCommand.TOP_LEVEL;
-    }
-    else if (component.isSelected()) {
-      level = DrawCommand.COMPONENT_SELECTED_LEVEL;
-    }
-
-    return list.getCommand(level);
   }
 }

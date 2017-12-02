@@ -20,6 +20,8 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawCommand
 import java.awt.Color
 import java.awt.Font
 
@@ -72,4 +74,17 @@ fun scaledFont(context: SceneContext, style: Int): Font {
   val size = (scale * (2.0 - scale)) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
 
   return Font(DEFAULT_FONT_NAME, style, size.toInt())
+}
+
+fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand {
+  var level = DrawCommand.COMPONENT_LEVEL
+
+  if (component.isDragging) {
+    level = DrawCommand.TOP_LEVEL
+  }
+  else if (component.isSelected) {
+    level = DrawCommand.COMPONENT_SELECTED_LEVEL
+  }
+
+  return list.getCommand(level)
 }
