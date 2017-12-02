@@ -18,7 +18,6 @@ package com.android.tools.idea.common.scene.draw
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.LerpValue
 import com.android.tools.idea.common.scene.SceneContext
-import com.google.common.base.Joiner
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
@@ -40,7 +39,7 @@ class DrawCircle(private val myLevel: Int,
   }
 
   override fun serialize(): String {
-    return Joiner.on(',').join(javaClass.simpleName,
+    return buildString(javaClass.simpleName,
         myLevel,
         pointToString(myCenter),
         colorToString(myColor),

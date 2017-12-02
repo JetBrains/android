@@ -33,6 +33,14 @@ fun parse(s: String, expected: Int): Array<String> {
   }
 }
 
+fun buildString(simpleName: String, vararg properties: Any): String {
+  return simpleName + if (properties.isNotEmpty()) {
+    ',' + Joiner.on(',').join(properties)
+  }
+  else {
+  }
+}
+
 fun stringToRect(s: String): Rectangle {
   val sp = splitString(s, 'x')
   val r = Rectangle()
@@ -91,7 +99,7 @@ fun stringToLerp(s: String): LerpValue {
   return LerpValue(start, end, duration)
 }
 
-private fun splitString(s : String, delimiter : Char) : List<String> {
+private fun splitString(s: String, delimiter: Char): List<String> {
   return s.split(delimiter).dropLastWhile { it.isEmpty() }
 }
 

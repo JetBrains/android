@@ -40,8 +40,8 @@ class DrawRectangle(@SwingCoordinate private val myRectangle: Rectangle,
     return DRAW_FRAME_LEVEL
   }
 
-  override fun getProperties(): Array<Any> {
-    return arrayOf(rectToString(myRectangle), colorToString(myColor), myBrushThickness, myArcSize)
+  override fun serialize(): String {
+    return buildString(javaClass.simpleName, rectToString(myRectangle), colorToString(myColor), myBrushThickness, myArcSize)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

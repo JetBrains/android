@@ -17,7 +17,6 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import com.google.common.base.Joiner
 import java.awt.*
 
 /**
@@ -46,7 +45,7 @@ class DrawTruncatedText(private var myLevel: Int,
   }
 
   override fun serialize(): String {
-    return Joiner.on(',').join(javaClass.simpleName,
+    return buildString(javaClass.simpleName,
         myLevel,
         myText,
         rectToString(myRectangle),

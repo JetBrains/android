@@ -18,12 +18,14 @@ package com.android.tools.idea.naveditor.scene.draw;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.rendering.ImagePool;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_NAV_SCREEN_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
@@ -50,16 +52,15 @@ public class DrawNavScreen extends NavBaseDrawCommand {
   }
 
   @Override
+  public String serialize() {
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myWidth, myHeight);
+  }
+
+  @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     setRenderingHints(g);
     g.clipRect(myX, myY, myWidth, myHeight);
     // TODO: better scaling (similar to ScreenViewLayer)
     myImage.drawImageTo(g, myX, myY, myWidth, myHeight);
-  }
-
-  @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myX, myY, myWidth, myHeight};
   }
 }

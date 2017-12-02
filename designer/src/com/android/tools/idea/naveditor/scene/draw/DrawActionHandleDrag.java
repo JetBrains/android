@@ -58,9 +58,8 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   }
 
   @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myX, myY, myRadius};
+  public String serialize() {
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myRadius);
   }
 
   @Override
