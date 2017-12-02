@@ -17,17 +17,17 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
-import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.android.resourceManagers.ResourceManager
 
 abstract class NavArgumentsProperty(components: List<NlComponent>, val propertiesManager: NavPropertiesManager)
   : SimpleProperty("Arguments", components) {
 
-  private val resourceManager: LocalResourceManager? = if (myComponents.isEmpty()) {
+  private val resourceManager: ResourceManager? = if (myComponents.isEmpty()) {
     null
   }
   else {
-    ModuleResourceManagers.getInstance(myComponents[0].model.facet).localResourceManager
+    ModuleResourceManagers.getInstance(myComponents[0].model.facet).systemResourceManager
   }
 
   protected val attrDefs: AttributeDefinitions? = resourceManager?.attributeDefinitions
