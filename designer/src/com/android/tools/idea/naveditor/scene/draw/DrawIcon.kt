@@ -17,10 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rectToString
 import com.android.tools.idea.common.scene.draw.stringToRect
 import com.android.tools.idea.naveditor.scene.DRAW_ICON_LEVEL
+import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -50,8 +52,8 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
     return DRAW_ICON_LEVEL
   }
 
-  override fun getProperties(): Array<Any> {
-    return arrayOf(rectToString(myRectangle), myIconType)
+  override fun serialize(): String {
+    return buildString(javaClass.simpleName, rectToString(myRectangle), myIconType)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

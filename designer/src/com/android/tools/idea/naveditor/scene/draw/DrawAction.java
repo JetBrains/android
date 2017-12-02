@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 import static java.awt.BasicStroke.*;
 
@@ -49,13 +50,6 @@ public class DrawAction extends NavBaseDrawCommand {
 
   public enum DrawMode {NORMAL, SELECTED}
 
-  @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myConnectionType, DrawCommandSerializationHelperKt.rectToString(mySource),
-      DrawCommandSerializationHelperKt.rectToString(myDest), myMode};
-  }
-
   public DrawAction(@NotNull String s) {
     this(DrawCommandSerializationHelperKt.parse(s, 4));
   }
@@ -63,6 +57,13 @@ public class DrawAction extends NavBaseDrawCommand {
   @Override
   public int getLevel() {
     return DRAW_ACTION_LEVEL;
+  }
+
+  @Override
+  public String serialize() {
+    return DrawCommandSerializationHelperKt
+      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rectToString(mySource),
+                   DrawCommandSerializationHelperKt.rectToString(myDest), myMode);
   }
 
   @Override

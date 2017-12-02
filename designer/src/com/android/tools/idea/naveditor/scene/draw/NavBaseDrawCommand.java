@@ -17,32 +17,14 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Map;
 
 /**
  * {@link NavBaseDrawCommand} Base class for navigation related draw commands.
  */
 public abstract class NavBaseDrawCommand implements DrawCommand {
-  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-  );
-
-  @Override
-  @NotNull
-  public String serialize() {
-    return this.getClass().getSimpleName() + "," + Joiner.on(',').join(this.getProperties());
-  }
-
-  @NotNull
-  protected abstract Object[] getProperties();
-
   @Override
   public final void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     Graphics2D g2 = (Graphics2D)g.create();
@@ -51,8 +33,4 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
   }
 
   protected abstract void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext);
-
-  protected static void setRenderingHints(@NotNull Graphics2D g) {
-    g.setRenderingHints(HQ_RENDERING_HITS);
-  }
 }

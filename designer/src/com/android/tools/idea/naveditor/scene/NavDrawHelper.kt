@@ -22,8 +22,11 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.google.common.collect.ImmutableMap
 import java.awt.Color
 import java.awt.Font
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 
 private const val DEFAULT_FONT_NAME = "Default"
 private const val DEFAULT_FONT_SIZE = 12
@@ -38,6 +41,11 @@ const val DRAW_ACTION_HANDLE_BACKGROUND_LEVEL = DRAW_NAV_SCREEN_LEVEL + 1
 const val DRAW_ACTION_HANDLE_LEVEL = DRAW_ACTION_HANDLE_BACKGROUND_LEVEL + 1
 const val DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1
 
+private val HQ_RENDERING_HITS = ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
+)
 
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet
@@ -87,4 +95,8 @@ fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand
   }
 
   return list.getCommand(level)
+}
+
+fun setRenderingHints(g: Graphics2D) {
+  g.setRenderingHints(HQ_RENDERING_HITS)
 }
