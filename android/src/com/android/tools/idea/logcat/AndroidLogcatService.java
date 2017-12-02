@@ -31,6 +31,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidBundle;
@@ -77,8 +78,11 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   public interface LogcatListener {
-    default void onLogLineReceived(@NotNull LogCatMessage line) {}
-    default void onCleared() {}
+    default void onLogLineReceived(@NotNull LogCatMessage line) {
+    }
+
+    default void onCleared() {
+    }
   }
 
   private final Object myLock = new Object();
@@ -160,7 +164,9 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       if (!myExecutors.containsKey(device)) {
         ThreadFactory factory = new ThreadFactoryBuilder()
-            .setNameFormat("logcat-" + device.getName()).build();
+          .setNameFormat("logcat-" + device.getName())
+          .build();
+
         myExecutors.put(device, Executors.newSingleThreadExecutor(factory));
       }
     }
@@ -311,7 +317,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    */
   @TestOnly
   public void shutdown() {
-    dispose();
+    Disposer.dispose(this);
+
     synchronized (myLock) {
       myExecutors.values().forEach(executor -> {
         try {
