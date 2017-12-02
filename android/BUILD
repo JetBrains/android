@@ -284,7 +284,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/compiler/1.0.0:jar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/extensions/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.0.3:aar",
-        "//prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.0.2:aar",

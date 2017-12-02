@@ -41,7 +41,7 @@ public abstract class NavTestCase extends AndroidTestCase {
 
   protected static final String TAG_NAVIGATION = "navigation";
   private static final String PREBUILT_AAR_PATH =
-    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
+    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar";
   private CodeStyleSettings mySettings;
   private boolean myUseCustomSettings;
 
