@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -177,8 +179,9 @@ public class SdksCleanupStepTest extends IdeaTestCase {
   }
 
   @NotNull
-  private static Sdk createSdk() {
+  private Sdk createSdk() {
     File sdkPath = getSdk();
+    AndroidGradleTestCase.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
     Jdks jdks = Jdks.getInstance();
@@ -186,6 +189,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
 
     Sdk sdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", jdk, true /* add roots */);
     assertNotNull(sdk);
+    IdeSdks.removeJdksOn(getTestRootDisposable());
     return sdk;
   }
 
