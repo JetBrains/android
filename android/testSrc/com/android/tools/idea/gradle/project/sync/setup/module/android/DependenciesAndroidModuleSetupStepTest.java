@@ -71,13 +71,11 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     myBuildFolder = createFolder(getModuleFolder(myModule), "build");
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/UpdateLibraryDependencyWithPlugin2dot3() throws IOException {
+  public void testUpdateLibraryDependencyWithPlugin2dot3() throws IOException {
     updateLibraryDependency("2.3.0", true);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/UpdateLibraryDependencyWithPlugin3dot0() throws IOException {
+  public void testUpdateLibraryDependencyWithPlugin3dot0() throws IOException {
     updateLibraryDependency("3.0.0", false);
   }
 
