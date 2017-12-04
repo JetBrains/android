@@ -24,6 +24,14 @@ import org.mockito.Mockito.mock
 
 // TODO: make this work as a non-gradle test
 class DestinationClassEditorTest : NavigationGradleTestCase() {
+  override fun setUp() {
+    // disabled along with test below
+  }
+
+  override fun tearDown() {
+    // disabled along with test below
+  }
+
   fun testEmpty() {
     // placeholder for disabled test below.
   }
