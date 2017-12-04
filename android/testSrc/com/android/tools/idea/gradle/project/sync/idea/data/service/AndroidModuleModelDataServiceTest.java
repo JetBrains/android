@@ -66,8 +66,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     assertSame(ANDROID_MODEL, myService.getTargetDataKey());
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/ImportData() throws Exception {
+  public void testImportData() throws Exception {
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
