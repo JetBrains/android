@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.fd.InstantRunTasksProvider;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -28,27 +27,29 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 
 public class GradleModuleTasksProvider implements InstantRunTasksProvider {
-  private final Module[] myModules;
+  @NotNull private final Project myProject;
+  @NotNull private final Module[] myModules;
 
   GradleModuleTasksProvider(@NotNull Module[] modules) {
     myModules = modules;
     if (myModules.length == 0) {
       throw new IllegalArgumentException("No modules provided");
     }
+    myProject = myModules[0].getProject();
   }
 
   @NotNull
   public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
-    Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
-    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(myModules, affectedModules, buildMode, UNIT_TESTS);
+    Module[] affectedModules = getAffectedModules(myProject, myModules);
+    File projectPath = Projects.getBaseDirPath(myProject);
+    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(projectPath, affectedModules, myModules, buildMode, UNIT_TESTS);
   }
 
   @NotNull
@@ -66,6 +67,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
 
   @NotNull
   public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {
-    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
+    File projectPath = Projects.getBaseDirPath(myProject);
+    return GradleTaskFinder.getInstance().findTasksToExecute(projectPath, myModules, buildMode, testCompileType);
   }
 }

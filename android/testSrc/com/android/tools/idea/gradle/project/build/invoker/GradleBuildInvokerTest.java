@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
@@ -79,7 +80,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanUp() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
 
     myBuildInvoker.cleanProject();
 
@@ -92,7 +94,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanAndGenerateSources() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
 
     myBuildInvoker.cleanAndGenerateSources();
 
@@ -105,7 +108,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testGenerateSources() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.generateSources();
 
@@ -118,7 +122,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCompileJava() {
     List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
@@ -131,7 +136,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssemble() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.assemble(myModules, TestCompileType.ALL);
 
@@ -144,7 +150,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssembleWithCommandLineArgs() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 

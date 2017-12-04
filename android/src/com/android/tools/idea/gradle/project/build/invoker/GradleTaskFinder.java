@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
@@ -28,15 +27,14 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import one.util.streamex.StreamEx;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +44,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -57,22 +56,36 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleTaskFinder {
+  private final GradleRootPathFinder myRootPathFinder;
+
   @NotNull
   public static GradleTaskFinder getInstance() {
     return ServiceManager.getService(GradleTaskFinder.class);
   }
 
+  @SuppressWarnings("unused") // Invoked by IDEA.
+  public GradleTaskFinder() {
+    this(new GradleRootPathFinder());
+  }
+
+  @VisibleForTesting
+  GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
+    myRootPathFinder = rootPathFinder;
+  }
+
   @NotNull
-  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull Module[] testedModules,
-                                                @NotNull Module[] modules,
-                                                @NotNull BuildMode buildMode,
-                                                @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(testedModules, buildMode, testCompileType);
+  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull File projectPath,
+                                                              @NotNull Module[] modules,
+                                                              @NotNull Module[] testModules,
+                                                              @NotNull BuildMode buildMode,
+                                                              @NotNull TestCompileType testCompileType) {
+    ListMultimap<Path, String> allTasks = findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(projectPath, testModules, buildMode, testCompileType);
 
     // Add testedModulesTasks to allTasks without duplicate
     for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
@@ -84,7 +97,8 @@ public class GradleTaskFinder {
   }
 
   @NotNull
-  public ListMultimap<Path, String> findTasksToExecute(@NotNull Module[] modules,
+  public ListMultimap<Path, String> findTasksToExecute(@NotNull File projectPath,
+                                                       @NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
@@ -92,12 +106,7 @@ public class GradleTaskFinder {
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        StreamEx.of(modules)
-          .map(module -> ExternalSystemApiUtil.getExternalRootProjectPath(module))
-          .nonNull()
-          .distinct()
-          .map(path -> Paths.get(path))
-          .forEach(path -> tasks.put(path, DEFAULT_ASSEMBLE_TASK_NAME));
+        tasks.put(projectPath.toPath(), DEFAULT_ASSEMBLE_TASK_NAME);
         return tasks;
       }
     }
@@ -108,7 +117,7 @@ public class GradleTaskFinder {
         continue;
       }
 
-      String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+      String rootProjectPath = myRootPathFinder.getProjectRootPath(module);
       if (isEmpty(rootProjectPath)) {
         continue;
       }

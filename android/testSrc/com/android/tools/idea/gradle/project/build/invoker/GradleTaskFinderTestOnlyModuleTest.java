@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
@@ -43,14 +45,16 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
   // failing after 2017.3 merge
   public void /*test*/AssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL).get(Paths.get("project_path"));
+    File projectPath = getBaseDirPath(getProject());
+    List<String> tasks = myTaskFinder.findTasksToExecute(projectPath, modules, ASSEMBLE, TestCompileType.ALL).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
   // failing after 2017.3 merge
   public void /*test*/AssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL).get(Paths.get("project_path"));
+    File projectPath = getBaseDirPath(getProject());
+    List<String> tasks = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL).get(Paths.get("project_path"));
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }
