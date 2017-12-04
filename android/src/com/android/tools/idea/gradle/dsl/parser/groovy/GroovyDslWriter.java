@@ -334,7 +334,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public PsiElement createDslJavaVersionElement(@NotNull JavaVersionDslElement element) {
-    GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
+    GroovyPsiElement psiElement = ensureGroovyPsi(extractCorrectJavaVersionPsiElement(element));
     if (psiElement != null) {
       return psiElement;
     }
@@ -398,7 +398,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslJavaVersionElement(@NotNull JavaVersionDslElement element) {
-    PsiElement psiElement = element.getPsiElement();
+    PsiElement psiElement = extractCorrectJavaVersionPsiElement(element);
 
     LanguageLevel newValue = element.getUnsavedValue();
     if (newValue == null || psiElement == null) {
@@ -422,7 +422,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void deleteDslJavaVersionElement(@NotNull JavaVersionDslElement element) {
-    PsiElement psiElement = element.getPsiElement();
+    PsiElement psiElement = extractCorrectJavaVersionPsiElement(element);
     if (psiElement != null) {
       PsiElement parent = psiElement.getParent();
       psiElement.delete();
