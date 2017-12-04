@@ -43,8 +43,7 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
     assertNotNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"));
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/CannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
+  public void testCannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
     assertNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest"));
   }
 
