@@ -37,7 +37,10 @@ public class GradleInvocationResult {
     this(tasks, compilerMessages, buildError, null);
   }
 
-  public GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, @Nullable Throwable buildError, @Nullable Object model) {
+  public GradleInvocationResult(@NotNull List<String> tasks,
+                                @NotNull List<Message> compilerMessages,
+                                @Nullable Throwable buildError,
+                                @Nullable Object model) {
     myTasks = tasks;
     myBuildSuccessful = buildError == null;
     myBuildCancelled = (buildError != null && hasCause(buildError, BuildCancelledException.class));

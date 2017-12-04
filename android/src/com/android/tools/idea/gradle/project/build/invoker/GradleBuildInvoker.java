@@ -233,9 +233,7 @@ public class GradleBuildInvoker {
     if (buildMode != null) {
       setProjectBuildMode(buildMode);
     }
-    tasks.keys().elementSet().forEach(path -> {
-      executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction);
-    });
+    tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
   }
 
   public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {

@@ -361,14 +361,15 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
             buildMessages.add(msg);
           }
-          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model);
+          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
             task.execute(result);
           }
         }
 
         if (!getProject().isDisposed()) {
-          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), Collections.emptyList(), buildError, model);
+          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), Collections.emptyList(), buildError,
+                                                                     model.get());
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
             task.execute(result);
           }
@@ -525,7 +526,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
 
     @Override
-    public boolean canClose(Project project) {
+    public boolean canClose(@NotNull Project project) {
       if (!project.equals(myProject)) {
         return true;
       }
