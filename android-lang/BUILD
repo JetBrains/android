@@ -64,6 +64,7 @@ iml_module(
         "//tools/idea/plugins/IntelliLang:IntelliLang-java",
         "//tools/idea/plugins/IntelliLang:IntelliLang-xml",
         "//tools/idea/uast/uast-java",
+        "//tools/idea/plugins/xslt-debugger",
         "//tools/idea:xdebugger-impl",
         "//tools/idea:lvcs-impl",
         "//tools/idea:credential-store",
