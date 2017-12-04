@@ -48,8 +48,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RunnerComponentsHiddenWhenGradleProject() throws Exception {
+  public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {
     loadSimpleApplication();
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
@@ -74,8 +73,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertEquals(expectedArguments, runnerArguments);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RunnerComponentsEmptyForGradleProjects() throws Exception {
+  public void testRunnerComponentsEmptyForGradleProjects() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
@@ -85,8 +83,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertEmpty(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RunnerOdoNotUsed() throws Exception {
+  public void testRunnerOdoNotUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
     IDevice device = mock(IDevice.class);
@@ -97,8 +94,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), RemoteAndroidTestRunner.class);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RunnerOdoUsed() throws Exception {
+  public void testRunnerOdoUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
     IDevice device = mock(IDevice.class);
@@ -109,8 +105,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), OnDeviceOrchestratorRemoteAndroidTestRunner.class);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RunnerCorrectForTestOnlyModule() throws Exception {
+  public void testRunnerCorrectForTestOnlyModule() throws Exception {
     loadProject(TestProjectPaths.TEST_ONLY_MODULE);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("com.example.android.app.ExampleTest");
     IDevice device = mock(IDevice.class);
