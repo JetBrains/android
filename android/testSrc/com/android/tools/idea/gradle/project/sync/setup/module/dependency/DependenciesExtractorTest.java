@@ -98,8 +98,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     assertEquals(jarFile, binaryPaths[0]);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/ExtractFromAndroidLibraryWithLocalJar() {
+  public void testExtractFromAndroidLibraryWithLocalJar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
