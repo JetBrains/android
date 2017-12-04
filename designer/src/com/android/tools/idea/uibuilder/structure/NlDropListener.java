@@ -219,6 +219,11 @@ public class NlDropListener extends DropTargetAdapter {
 
       event.dropComplete(true);
       model.notifyModified(NlModel.ChangeType.DROP);
+
+      if (view != null) {
+        view.getSelectionModel().setSelection(myDragged);
+        myTree.requestFocus();
+      }
     }
     catch (Exception exception) {
       Logger.getInstance(NlDropListener.class).warn(exception);
