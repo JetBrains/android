@@ -68,6 +68,15 @@
                      implementationClass="com.android.tools.idea.lang.roomSql.RoomUnresolvedReferenceInspection"
                      displayName="Unresolved reference in Room SQL"/>
 
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidRoomQuestionMarkBindParameter"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.roomSql.RoomBindParameterSyntaxInspection"
+                     displayName="'?' used as parameter in a Room query."/>
+
     <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
     <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
   </extensions>

@@ -34,11 +34,23 @@ import com.intellij.psi.tree.IElementType
  * because SQL remains valid when renaming quoted names.
  */
 class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>() {
+  companion object {
+    fun needsQuoting(name: String): Boolean {
+      val lexer = RoomSqlLexer()
+      lexer.start(name)
+      return lexer.tokenType != RoomPsiTypes.IDENTIFIER || lexer.tokenEnd != lexer.bufferEnd
+    }
+
+    /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
+    fun getValidName(name: String): String =
+        if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
+  }
+
   override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String): RoomNameElement {
     element.node.replaceChild(
         element.node.firstChildNode,
-        if (RoomSqlLexer.needsQuoting(newContent)) {
-          newLeaf(RoomPsiTypes.BACKTICK_LITERAL, RoomSqlLexer.getValidName(newContent))
+        if (needsQuoting(newContent)) {
+          newLeaf(RoomPsiTypes.BACKTICK_LITERAL, getValidName(newContent))
         } else {
           newLeaf(RoomPsiTypes.IDENTIFIER, newContent)
         }

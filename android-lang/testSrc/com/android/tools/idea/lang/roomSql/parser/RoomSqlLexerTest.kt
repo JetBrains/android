@@ -20,6 +20,7 @@ import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BACKTICK_LITERAL
 import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_BRACKET_LITERAL
 import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
 import com.android.tools.idea.lang.roomSql.psi.UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL
+import com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.TokenType
 import com.intellij.psi.TokenType.BAD_CHARACTER
@@ -79,7 +80,7 @@ class RoomSqlLexerTest : TestCase() {
         SPACE,
         ">=" to GTE,
         SPACE,
-        ":arg" to PARAMETER_NAME)
+        ":arg" to NAMED_PARAMETER)
   }
 
   fun testComments() {
@@ -152,22 +153,22 @@ class RoomSqlLexerTest : TestCase() {
         "select :P1, :_p2, :3p",
         "select" to SELECT,
         SPACE,
-        ":P1" to PARAMETER_NAME,
+        ":P1" to NAMED_PARAMETER,
         "," to COMMA,
         SPACE,
-        ":_p2" to PARAMETER_NAME,
+        ":_p2" to NAMED_PARAMETER,
         SPACE,
         "," to COMMA,
-        ":3p" to PARAMETER_NAME)
+        ":3p" to NAMED_PARAMETER)
 
     assertTokenTypes(
         "select :P1, ? from foo",
         "select" to SELECT,
         SPACE,
-        ":P1" to PARAMETER_NAME,
+        ":P1" to NAMED_PARAMETER,
         "," to COMMA,
         SPACE,
-        "?" to BAD_CHARACTER, // We don't support unnamed parameters.
+        "?" to NUMBERED_PARAMETER,
         SPACE,
         "from" to FROM,
         SPACE,
@@ -178,7 +179,7 @@ class RoomSqlLexerTest : TestCase() {
         "select" to SELECT,
         SPACE,
         ":" to BAD_CHARACTER,
-        ":P1" to PARAMETER_NAME)
+        ":P1" to NAMED_PARAMETER)
 
     assertTokenTypes(
         "select [table].[column] from [database].[column]",
@@ -297,24 +298,24 @@ class RoomSqlLexerTest : TestCase() {
   }
 
   fun testNeedsQuoting() {
-    assertFalse(RoomSqlLexer.needsQuoting("foo"))
-    assertTrue(RoomSqlLexer.needsQuoting("select"))
-    assertTrue(RoomSqlLexer.needsQuoting("foo.bar"))
-    assertTrue(RoomSqlLexer.needsQuoting("foo'bar"))
-    assertTrue(RoomSqlLexer.needsQuoting("foo bar"))
-    assertTrue(RoomSqlLexer.needsQuoting("foo`bar"))
-    assertTrue(RoomSqlLexer.needsQuoting(":foo"))
-    assertTrue(RoomSqlLexer.needsQuoting("@foo"))
-    assertTrue(RoomSqlLexer.needsQuoting("?foo"))
-    assertTrue(RoomSqlLexer.needsQuoting("\$foo"))
+    assertFalse(RoomNameElementManipulator.needsQuoting("foo"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("select"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("foo.bar"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("foo'bar"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("foo bar"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("foo`bar"))
+    assertTrue(RoomNameElementManipulator.needsQuoting(":foo"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("@foo"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("?foo"))
+    assertTrue(RoomNameElementManipulator.needsQuoting("\$foo"))
   }
 
   fun testValidName() {
-    assertThat(RoomSqlLexer.getValidName("foo")).isEqualTo("foo")
-    assertThat(RoomSqlLexer.getValidName("Order")).isEqualTo("`Order`")
-    assertThat(RoomSqlLexer.getValidName("foo bar")).isEqualTo("`foo bar`")
-    assertThat(RoomSqlLexer.getValidName("foo'bar'baz")).isEqualTo("`foo'bar'baz`")
-    assertThat(RoomSqlLexer.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
-    assertThat(RoomSqlLexer.getValidName("\$foo")).isEqualTo("`\$foo`")
+    assertThat(RoomNameElementManipulator.getValidName("foo")).isEqualTo("foo")
+    assertThat(RoomNameElementManipulator.getValidName("Order")).isEqualTo("`Order`")
+    assertThat(RoomNameElementManipulator.getValidName("foo bar")).isEqualTo("`foo bar`")
+    assertThat(RoomNameElementManipulator.getValidName("foo'bar'baz")).isEqualTo("`foo'bar'baz`")
+    assertThat(RoomNameElementManipulator.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
+    assertThat(RoomNameElementManipulator.getValidName("\$foo")).isEqualTo("`\$foo`")
   }
 }

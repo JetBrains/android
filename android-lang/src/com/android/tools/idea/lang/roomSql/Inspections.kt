@@ -17,12 +17,25 @@ package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.psi.*
 import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
 
-class RoomUnresolvedReferenceInspection : LocalInspectionTool() {
+/**
+ * Inspection for the RoomSql language that only does something when running on a PSI file that's injected into Room's `@Query`.
+ */
+abstract class RoomQueryOnlyInspection : LocalInspectionTool() {
+
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
+    return if (isThisRoomQuery(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
+  }
+
+  private fun isThisRoomQuery(session: LocalInspectionToolSession) = (session.file as? RoomSqlFile)?.queryAnnotation != null
+}
+
+class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : RoomVisitor() {
@@ -62,6 +75,18 @@ class RoomUnresolvedReferenceInspection : LocalInspectionTool() {
        */
       private fun isWellUnderstood(stmt: PsiElement): Boolean =
           stmt is RoomSelectStatement || stmt is RoomDeleteStatement || stmt is RoomUpdateStatement || stmt is RoomInsertStatement
+    }
+  }
+}
+
+class RoomBindParameterSyntaxInspection : RoomQueryOnlyInspection() {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : RoomVisitor() {
+      override fun visitBindParameter(parameter: RoomBindParameter) {
+        if (!parameter.isColonNamedParameter) {
+          holder.registerProblem(parameter, "Room only supports named parameters with a leading colon, e.g. :argName.")
+        }
+      }
     }
   }
 }
