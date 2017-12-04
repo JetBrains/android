@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
@@ -39,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
-import java.io.File;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -72,13 +70,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   public static String getDesignerPluginHome() {
-    // Now that the Android plugin is kept in a separate place, we need to look in
-    // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/designer";
-    if (new File(adtPath).exists()) {
-      return adtPath;
-    }
-    return AndroidTestBase.getAndroidPluginHome();
+    return AndroidTestBase.getModulePath("designer");
   }
 
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
