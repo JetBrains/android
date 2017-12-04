@@ -22,7 +22,7 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -82,6 +82,6 @@ public class AndroidRunConfigurations {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     runManager.addConfiguration(settings, false);
-    ApplicationManager.getApplication().runReadAction(() -> runManager.setSelectedConfiguration(settings));
+    TransactionGuard.submitTransaction(module.getProject(), () -> runManager.setSelectedConfiguration(settings));
   }
 }
