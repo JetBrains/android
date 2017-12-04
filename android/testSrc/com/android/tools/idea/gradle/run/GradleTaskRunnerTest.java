@@ -72,8 +72,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     countDownLatch.await(5, TimeUnit.SECONDS);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/BuildActionRunner() throws Exception {
+  public void testBuildActionRunner() throws Exception {
     loadSimpleApplication();
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = new GradleTaskRunner.DefaultGradleTaskRunner(getProject(), new TestBuildAction());
