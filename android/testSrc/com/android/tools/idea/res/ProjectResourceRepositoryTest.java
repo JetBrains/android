@@ -30,7 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -185,8 +184,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertSameElements(newResourceDirs, flavorDirs);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/RootChangeListener() {
+  public void testRootChangeListener() {
     ProjectResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(myFacet);
     List<? extends LocalResourceRepository> originalChildren = resources.getChildren();
     assertNotEmpty(originalChildren);
