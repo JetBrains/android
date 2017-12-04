@@ -705,29 +705,6 @@ public class SceneComponent {
     myChildren.remove(component);
   }
 
-  /**
-   * Given a list of components, marks the corresponding SceneComponent as selected
-   *
-   * @param components
-   */
-  public void markSelection(List<NlComponent> components) {
-    final int count = components.size();
-    boolean selected = false;
-    for (int i = 0; i < count; i++) {
-      NlComponent component = components.get(i);
-      if (myNlComponent == component) {
-        selected = true;
-        break;
-      }
-    }
-    setSelected(selected);
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
-      child.markSelection(components);
-    }
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
