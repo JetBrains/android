@@ -290,6 +290,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                            + "    <type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
                            + "        xsi:type=\"ns3:genericDetailsType\"/>"
                            + "    <revision><major>23</major><minor>4</minor><micro>5</micro></revision>"
+                           + "    <display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
                            + "  </localPackage>"
                            + "</ns2:repository>");
   }
