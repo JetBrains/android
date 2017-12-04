@@ -82,8 +82,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertEquals("http://example.com/example", deepLinkLaunchState.DEEP_LINK);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/AndroidRunConfigurationWithoutError() throws Exception {
+  public void testAndroidRunConfigurationWithoutError() throws Exception {
     loadProject(INSTANT_APP, "feature");
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
