@@ -454,7 +454,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ToggleViewActionWrapper extends ToggleAction implements ViewActionPresentation {
+  private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final Project myProject;
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
@@ -479,22 +479,17 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       Presentation presentation = getTemplatePresentation();
       presentation.setText(action.getUnselectedLabel());
       presentation.setIcon(action.getUnselectedIcon());
-      presentation.setSelectedIcon(action.getSelectedIcon());
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
-      return myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
-    }
-
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void actionPerformed(AnActionEvent e) {
+      boolean newState = !myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
       if (myAction.affectsUndo()) {
-        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(state));
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(newState));
       }
       else {
         try {
-          applySelection(state);
+          applySelection(newState);
         }
         catch (Throwable t) {
           throw new IncorrectOperationException("View Action required write lock: should not specify affectsUndo=false");
