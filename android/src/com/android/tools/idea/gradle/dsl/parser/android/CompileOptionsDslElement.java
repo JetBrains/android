@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
-  public CompileOptionsDslElement(@Nullable GradleDslElement parent) {
+  public CompileOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent);
   }
 }

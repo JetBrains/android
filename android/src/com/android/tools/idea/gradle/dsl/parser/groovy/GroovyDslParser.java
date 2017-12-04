@@ -420,6 +420,7 @@ public class GroovyDslParser implements GradleDslParser {
     if (propertyElement == null) {
       return false;
     }
+    propertyElement.setUseAssignment(true);
 
     blockElement.setParsedElement(propertyName, propertyElement);
     return true;

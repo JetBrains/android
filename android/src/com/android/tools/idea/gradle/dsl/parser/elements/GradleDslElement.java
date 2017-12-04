@@ -43,6 +43,11 @@ public abstract class GradleDslElement {
 
   private volatile boolean myModified;
 
+  // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
+  // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
+  // the information to make this distinction. GradleDslElement will set this to a default of false.
+  protected boolean myUseAssignment;
+
   /**
    * Creates an in stance of a {@link GradleDslElement}
    *
@@ -71,6 +76,8 @@ public abstract class GradleDslElement {
     else {
       myDslFile = parent.myDslFile;
     }
+
+    myUseAssignment = false;
   }
 
   public void setParsedClosureElement(@NotNull GradleDslClosure closureElement) {
@@ -99,6 +106,14 @@ public abstract class GradleDslElement {
 
   public void setPsiElement(@Nullable PsiElement psiElement) {
     myPsiElement = psiElement;
+  }
+
+  public boolean shouldUseAssignment() {
+    return myUseAssignment;
+  }
+
+  public void setUseAssignment(boolean useAssignment) {
+    myUseAssignment = useAssignment;
   }
 
   @NotNull
