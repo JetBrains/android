@@ -94,14 +94,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return getAndroidPluginHome() + "/testData";
   }
 
-  public static String getAndroidPluginHome() {
+  public static String getAndroidModulePath(String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/" + moduleFolder;
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/" + moduleFolder).getPath();
+  }
+
+  public static String getAndroidPluginHome() {
+    return getAndroidModulePath("android");
   }
 
   protected static Sdk addLatestAndroidSdk(Module module) {
