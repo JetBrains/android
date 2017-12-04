@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -34,10 +40,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class AndroidGradleProjectComponentTest extends IdeaTestCase {
   @Mock LegacyAndroidProjects myLegacyAndroidProjects;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
+  @Mock private AndroidProjectInfo myAndroidProjectInfo;
+  @Mock private GradleSyncInvoker myGradleSyncInvoker;
+  @Mock private GradleBuildInvoker myGradleBuildInvoker;
+  @Mock private CompilerManager myCompilerManager;
+  @Mock private SupportedModuleChecker mySupportedModuleChecker;
+  @Mock private IdeInfo myIdeInfo;
 
-  private IdeComponents myIdeComponents;
-  private SupportedModuleChecker mySupportedModuleChecker;
-  private GradleProjectInfo myGradleProjectInfo;
+  private ExternalSystemNotificationManagerStub myNotificationManager;
   private AndroidGradleProjectComponent myProjectComponent;
 
   @Override
@@ -46,43 +57,39 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    myIdeComponents = new IdeComponents(project);
-    mySupportedModuleChecker = myIdeComponents.mockService(SupportedModuleChecker.class);
-    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
-
-    myProjectComponent = new AndroidGradleProjectComponent(project, myLegacyAndroidProjects);
+    myNotificationManager = new ExternalSystemNotificationManagerStub(project);
+    myProjectComponent =
+      new AndroidGradleProjectComponent(project, myGradleProjectInfo, myAndroidProjectInfo, myNotificationManager, myGradleSyncInvoker,
+                                        myGradleBuildInvoker, myCompilerManager, mySupportedModuleChecker, myIdeInfo,
+                                        myLegacyAndroidProjects);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
+      Disposer.dispose(myNotificationManager);
+      myProjectComponent.projectClosed();
     }
     finally {
       super.tearDown();
     }
   }
 
-  public void testEmpty() {
-    // placeholder for disabled test below.
-  }
-
-  // failing after 2017.3 merge
-  public void /*test*/ProjectOpenedWithProjectCreationError() {
+  public void testProjectOpenedWithProjectCreationError() {
     String projectCreationError = "Something went terribly wrong!";
     when(myGradleProjectInfo.getProjectCreationError()).thenReturn(projectCreationError);
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     Project project = getProject();
-    ExternalSystemNotificationManagerStub notificationManager = new ExternalSystemNotificationManagerStub(project);
-    IdeComponents.replaceService(project, ExternalSystemNotificationManager.class, notificationManager);
+    IdeComponents.replaceService(project, ExternalSystemNotificationManager.class, myNotificationManager);
 
     myProjectComponent.projectOpened();
 
     // http://b/62543339 http://b/62761000
-    assertThat(notificationManager.error).isInstanceOf(ExternalSystemException.class);
-    assertEquals(projectCreationError, notificationManager.error.getMessage());
-    assertEquals(project.getName(), notificationManager.externalProjectName);
-    assertSame(GradleConstants.SYSTEM_ID, notificationManager.externalSystemId);
+    assertThat(myNotificationManager.error).isInstanceOf(ExternalSystemException.class);
+    assertEquals(projectCreationError, myNotificationManager.error.getMessage());
+    assertEquals(project.getName(), myNotificationManager.externalProjectName);
+    assertSame(GradleConstants.SYSTEM_ID, myNotificationManager.externalSystemId);
 
     verify(myGradleProjectInfo, times(1)).setProjectCreationError(null);
     verify(mySupportedModuleChecker, times(1)).checkForSupportedModules(project);
@@ -90,18 +97,23 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
   }
 
   private static class ExternalSystemNotificationManagerStub extends ExternalSystemNotificationManager {
+    @NotNull private final Project myProject;
     private Throwable error;
     private String externalProjectName;
     private ProjectSystemId externalSystemId;
 
     ExternalSystemNotificationManagerStub(@NotNull Project project) {
       super(project);
+      myProject = project;
     }
 
     @Override
     public void processExternalProjectRefreshError(@NotNull Throwable error,
                                                    @NotNull String externalProjectName,
                                                    @NotNull ProjectSystemId externalSystemId) {
+      if (myProject == null || myProject.isDisposed() || !myProject.isOpen()) {
+        return;
+      }
       this.error = error;
       this.externalProjectName = externalProjectName;
       this.externalSystemId = externalSystemId;
