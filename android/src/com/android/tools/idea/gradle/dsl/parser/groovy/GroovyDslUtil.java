@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -261,5 +262,20 @@ public final class GroovyDslUtil {
       return expressionList.getPsiElement();
     }
     return null;
+  }
+
+  /**
+   * Returns the correct PsiElement required to represent the JavaVersionDslElement.
+   */
+  @Nullable
+  static PsiElement extractCorrectJavaVersionPsiElement(@NotNull JavaVersionDslElement element) {
+    PsiElement psiElement = element.getPsiElement();
+    // If psiElement is an instance of GrCommandArgumentList then it only contains the version
+    // part of the element e.g ("1.6" from "sourceCompatibility 1.6").
+    // Since we need to replace both the argument and method name we need to use the parent.
+    if (psiElement instanceof GrCommandArgumentList) {
+      psiElement = psiElement.getParent();
+    }
+    return psiElement;
   }
 }

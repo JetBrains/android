@@ -23,7 +23,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Collection;
@@ -51,11 +50,7 @@ public class JavaVersionDslElement extends GradleDslElement {
   @Nullable
   public PsiElement getPsiElement() {
     if (myInternalVersionElement != null) {
-      PsiElement psiElement = myInternalVersionElement.getPsiElement();
-      if (psiElement instanceof GrCommandArgumentList) {
-        return psiElement.getParent();
-      }
-      return psiElement;
+      return myInternalVersionElement.getPsiElement();
     }
     return null;
   }
