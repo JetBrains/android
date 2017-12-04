@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
-import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClass
@@ -90,7 +90,7 @@ class QualifiedColumnPsiReference(
 private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
   return result
       .map { column ->
-        LookupElementBuilder.create(column.definingElement, RoomSqlLexer.getValidName(column.name!!))
+        LookupElementBuilder.create(column.definingElement, RoomNameElementManipulator.getValidName(column.name!!))
             .withTypeText(column.type?.typeName)
             // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
             // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
@@ -148,7 +148,7 @@ class RoomDefinedTablePsiReference(
 
 private fun lookupElementForTable(table: SqlTable): LookupElement {
   val element = table.definingElement
-  return LookupElementBuilder.create(element, RoomSqlLexer.getValidName(table.name!!))
+  return LookupElementBuilder.create(element, RoomNameElementManipulator.getValidName(table.name!!))
       .withTypeText((element as? PsiClass)?.qualifiedName, true)
       // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
       // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
@@ -173,7 +173,7 @@ private fun lookupElementForTable(table: SqlTable): LookupElement {
  */
 class RoomParameterReference(parameter: RoomBindParameter): PsiReferenceBase<RoomBindParameter>(parameter) {
   override fun resolve(): PsiElement? {
-    val parameterName = element.parameterNameAsString
+    val parameterName = element.parameterNameAsString ?: return null
     return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.psi
   }
 

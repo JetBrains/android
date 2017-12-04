@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.lang.roomSql.refactoring
 
-import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.COMMENTS
+import com.android.tools.idea.lang.roomSql.IDENTIFIERS
+import com.android.tools.idea.lang.roomSql.STRING_LITERALS
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
@@ -29,7 +31,10 @@ import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.ModuleUtil
-import com.intellij.psi.*
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiReference
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
@@ -71,7 +76,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     //   - We search for the right word (as calculate above).
     //   - We use `scopeDeterminedByUser`, not `effectiveScope`. Effective scope for a private field contains only the file in which it's
     //     defined, which is not how Room works.
-    //   - We look for references to the right element: if a table/column name is overriden using annotations, the PSI references may not
+    //   - We look for references to the right element: if a table/column name is overridden using annotations, the PSI references may not
     //     point to the class/field itself, but we still want to show these references in "find usages".
     queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
   }
@@ -80,11 +85,11 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     val name = definition.name ?: return null
 
     val word = when {
-      RoomSqlLexer.needsQuoting(name) -> {
+      RoomNameElementManipulator.needsQuoting(name) -> {
         // We need to figure out how a reference to this element looks like in the IdIndex. We find the first "word" in the quoted name and
         // look for it in the index, as any reference for this table will include this word in its text.
         val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
-        RoomFindUsagesProvider().wordsScanner.processWords(RoomSqlLexer.getValidName(name), processor)
+        RoomFindUsagesProvider().wordsScanner.processWords(RoomNameElementManipulator.getValidName(name), processor)
         processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: name
       }
       else -> name

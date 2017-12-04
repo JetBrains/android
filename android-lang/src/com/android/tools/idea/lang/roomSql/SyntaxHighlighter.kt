@@ -98,7 +98,8 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
     in STRING_LITERALS -> RoomSqlTextAttributes.STRING.keys
     in IDENTIFIERS -> RoomSqlTextAttributes.IDENTIFIER.keys
     NUMERIC_LITERAL -> RoomSqlTextAttributes.NUMBER.keys
-    PARAMETER_NAME -> RoomSqlTextAttributes.PARAMETER.keys
+    NAMED_PARAMETER -> RoomSqlTextAttributes.PARAMETER.keys
+    NUMBERED_PARAMETER -> RoomSqlTextAttributes.NUMBER.keys
     LINE_COMMENT -> RoomSqlTextAttributes.LINE_COMMENT.keys
     COMMENT -> RoomSqlTextAttributes.BLOCK_COMMENT.keys
     LPAREN, RPAREN -> RoomSqlTextAttributes.PARENTHESES.keys

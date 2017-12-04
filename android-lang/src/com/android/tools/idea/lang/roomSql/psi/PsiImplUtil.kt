@@ -43,9 +43,22 @@ fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
   return UnqualifiedColumnPsiReference(columnName)
 }
 
-fun getReference(bindParameter: RoomBindParameter): PsiReference? = RoomParameterReference(bindParameter)
+fun getReference(bindParameter: RoomBindParameter): PsiReference? {
+  return if (bindParameter.isColonNamedParameter) RoomParameterReference(bindParameter) else null
+}
 
-fun getParameterNameAsString(bindParameter: RoomBindParameter) = bindParameter.text.substring(startIndex = 1)
+fun getParameterNameAsString(bindParameter: RoomBindParameter): String? {
+  return if (isColonNamedParameter(bindParameter)) {
+    bindParameter.text.substring(startIndex = 1)
+  } else {
+    null
+  }
+}
+
+fun isColonNamedParameter(bindParameter: RoomBindParameter): Boolean {
+  val node = bindParameter.node.firstChildNode ?: return false
+  return node.elementType == RoomPsiTypes.NAMED_PARAMETER && node.chars.startsWith(':')
+}
 
 fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
   val realTable = fromTable.definedTableName.reference.resolveSqlTable() ?: return null
