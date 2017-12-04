@@ -39,8 +39,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/CanCreateAndroidTestConfigurationFromAndroidTestClass() throws Exception {
+  public void testCanCreateAndroidTestConfigurationFromAndroidTestClass() throws Exception {
     loadSimpleApplication();
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
     assertNotNull(runConfig);
@@ -64,17 +63,14 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/CanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
+  public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
   }
 
-
-  // failing after 2017.3 merge
-  public void /*test*/RuntimeQualifiedNameIsUsed() throws Exception {
+  public void testRuntimeQualifiedNameIsUsed() throws Exception {
     loadSimpleApplication();
 
     File projectDir = VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir());
