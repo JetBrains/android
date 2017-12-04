@@ -32,11 +32,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -50,39 +49,40 @@ import static org.mockito.Mockito.*;
  * Tests for {@link SdksCleanupStep}.
  */
 public class SdksCleanupStepTest extends IdeaTestCase {
-  // failing after 2017.3 merge
-  public void /*test*/CleanUpSdkWithMissingDocumentation() throws Exception {
-    Sdk sdk = createSdk();
+  @Nullable private Sdk myJdk;
+  @Nullable private Sdk mySdk;
+
+  public void testCleanUpSdkWithMissingDocumentation() throws Exception {
+    createSdk();
     try {
-      removeRoots(sdk, JavadocOrderRootType.getInstance());
+      removeRoots(mySdk, JavadocOrderRootType.getInstance());
 
       Module module = getModule();
-      setUpModuleAsAndroid(module, sdk);
+      setUpModuleAsAndroid(module, mySdk);
 
       SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
       Set<Sdk> fixedSdks = new HashSet<>();
       Set<Sdk> invalidSdks = new HashSet<>();
       cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
 
-      String[] urls = sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
+      String[] urls = mySdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
       assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
 
-      assertThat(fixedSdks).containsExactly(sdk);
+      assertThat(fixedSdks).containsExactly(mySdk);
       assertThat(invalidSdks).isEmpty();
     }
     finally {
-      removeSdk(sdk);
+      removeSdk();
     }
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/CleanUpSdkWithSdkWithoutAndroidLibrary() throws Exception {
-    Sdk sdk = createSdk();
+  public void testCleanUpSdkWithSdkWithoutAndroidLibrary() throws Exception {
+    createSdk();
     try {
-      removeRoots(sdk, CLASSES);
+      removeRoots(mySdk, CLASSES);
 
       Module module = getModule();
-      setUpModuleAsAndroid(module, sdk);
+      setUpModuleAsAndroid(module, mySdk);
 
       SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
       Set<Sdk> fixedSdks = new HashSet<>();
@@ -90,15 +90,15 @@ public class SdksCleanupStepTest extends IdeaTestCase {
       cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
 
       // Ensure android.jar was added.
-      VirtualFile[] jars = sdk.getRootProvider().getFiles(CLASSES);
+      VirtualFile[] jars = mySdk.getRootProvider().getFiles(CLASSES);
       long androidDotJarFound = Arrays.stream(jars).filter(file -> file.getName().equals("android.jar")).count();
       assertEquals(1, androidDotJarFound);
 
-      assertThat(fixedSdks).containsExactly(sdk);
+      assertThat(fixedSdks).containsExactly(mySdk);
       assertThat(invalidSdks).isEmpty();
     }
     finally {
-      removeSdk(sdk);
+      removeSdk();
     }
   }
 
@@ -153,47 +153,45 @@ public class SdksCleanupStepTest extends IdeaTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=233392
-  // failing after 2017.3 merge
-  public void /*test*/CleanUpProjectWithSdkWithUpdatedSources() {
-    Sdk sdk = createSdk();
+  public void testCleanUpProjectWithSdkWithUpdatedSources() {
+    createSdk();
     try {
       // We could have created the SDK without roots, but better make it explicit that we need an SDK without sources.
-      removeRoots(sdk, SOURCES);
+      removeRoots(mySdk, SOURCES);
 
       Module module = getModule();
-      setUpModuleAsAndroid(module, sdk);
+      setUpModuleAsAndroid(module, mySdk);
 
       SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
       Set<Sdk> fixedSdks = new HashSet<>();
       Set<Sdk> invalidSdks = new HashSet<>();
       cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
 
-      String[] urls = sdk.getRootProvider().getUrls(SOURCES);
+      String[] urls = mySdk.getRootProvider().getUrls(SOURCES);
       assertThat(urls).hasLength(1);
 
-      assertThat(fixedSdks).containsExactly(sdk);
+      assertThat(fixedSdks).containsExactly(mySdk);
       assertThat(invalidSdks).isEmpty();
     }
     finally {
-      removeSdk(sdk);
+      removeSdk();
     }
   }
 
-  @NotNull
-  private static Sdk createSdk() {
+  private void createSdk() {
     File sdkPath = getSdk();
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
     Jdks jdks = Jdks.getInstance();
-    Sdk jdk = jdks.chooseOrCreateJavaSdk();
+    myJdk = jdks.chooseOrCreateJavaSdk();
 
-    Sdk sdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", jdk, true /* add roots */);
-    assertNotNull(sdk);
-    return sdk;
+    mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", myJdk, true /* add roots */);
+    assertNotNull(mySdk);
   }
 
-  private static void removeSdk(@NotNull Sdk sdk) {
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(sdk));
+  private void removeSdk() {
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(myJdk));
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(mySdk));
   }
 
   private static void removeRoots(@NotNull Sdk sdk, @NotNull OrderRootType rootType) {
