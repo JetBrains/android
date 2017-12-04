@@ -17,9 +17,12 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -27,16 +30,12 @@ import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 
 public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
 
-  public void testEmpty() {
-    // placeholder for disabled test below.
-  }
-
-  // failing after 2017.3 merge
-  public void /*test*/UnitTestsInDependenciesAreNotCompiled() throws Exception {
+  public void testUnitTestsInDependenciesAreNotCompiled() throws Exception {
     loadProject(JAVA_LIB);
     Module app = ModuleManager.getInstance(getProject()).findModuleByName("app");
     GradleModuleTasksProvider gradleModuleTasksProvider = new GradleModuleTasksProvider(new Module[]{app});
-    List<String> tasks = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA).get(Paths.get("project_path"));
+    ListMultimap<Path, String> tasksMultiMap = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
+    List<String> tasks = tasksMultiMap.get(Paths.get(ExternalSystemApiUtil.getExternalRootProjectPath(app)));
     assertDoesntContain(tasks, ":lib:testClasses");
     assertContainsElements(tasks, ":app:compileDebugUnitTestSources", ":app:compileDebugSources", ":lib:compileJava");
   }
