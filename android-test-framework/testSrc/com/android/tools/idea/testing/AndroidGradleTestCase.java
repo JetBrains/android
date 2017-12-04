@@ -32,6 +32,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
@@ -163,8 +164,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
-      String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtil.EMPTY_STRING_ARRAY);
-      VfsRootAccess.allowRootAccess(myFixture.getProjectDisposable(), paths);
+      allowAccessToSdk(myFixture.getProjectDisposable());
       ideSdks.setAndroidSdkPath(androidSdkPath, project);
       IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
@@ -174,6 +174,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Sdk currentJdk = ideSdks.getJdk();
     assertNotNull(currentJdk);
     assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+  }
+
+  public static void allowAccessToSdk(Disposable disposable) {
+    String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+    VfsRootAccess.allowRootAccess(disposable, paths);
   }
 
   @NotNull
