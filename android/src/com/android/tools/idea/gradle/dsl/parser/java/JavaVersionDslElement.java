@@ -23,7 +23,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
@@ -34,24 +33,22 @@ import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.pa
 
 public class JavaVersionDslElement extends GradleDslElement {
   private GradleDslExpression myInternalVersionElement;
-  private boolean myUseAssignment;
   @Nullable private LanguageLevel myUnsavedValue;
 
   public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull String name) {
     super(parent, null, name);
     assert dslElement instanceof GradleDslLiteral || dslElement instanceof GradleDslReference;
-    if (dslElement.getPsiElement() instanceof GrAssignmentExpression) {
-      myUseAssignment = true;
-    }
+    setUseAssignment(dslElement.shouldUseAssignment());
     myInternalVersionElement = dslElement;
   }
 
   public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name, boolean useAssignment) {
     super(parent, null, name);
-    myUseAssignment = useAssignment;
+    setUseAssignment(useAssignment);
   }
 
   @Override
+  @Nullable
   public PsiElement getPsiElement() {
     if (myInternalVersionElement != null) {
       PsiElement psiElement = myInternalVersionElement.getPsiElement();
@@ -76,10 +73,6 @@ public class JavaVersionDslElement extends GradleDslElement {
    */
   public void setVersionElement(@NotNull GradleDslExpression element) {
     myInternalVersionElement = element;
-  }
-
-  public boolean shouldUseAssignment() {
-    return myUseAssignment;
   }
 
   @Nullable
