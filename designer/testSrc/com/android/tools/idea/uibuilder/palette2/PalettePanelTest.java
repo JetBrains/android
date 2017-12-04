@@ -74,6 +74,7 @@ public class PalettePanelTest extends LayoutTestCase {
   private ActionPopupMenu myPopupMenu;
   private JPopupMenu myPopupMenuComponent;
   private PalettePanel myPanel;
+  private SyncNlModel myModel;
 
   @Override
   public void setUp() throws Exception {
@@ -100,6 +101,9 @@ public class PalettePanelTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myPanel);
+      if (myModel != null) {
+        Disposer.dispose(myModel);
+      }
       if (myTrackingDesignSurface != null) {
         cleanUsageTrackerAfterTesting(myTrackingDesignSurface);
       }
@@ -113,6 +117,7 @@ public class PalettePanelTest extends LayoutTestCase {
       myTrackingDesignSurface = null;
       myPopupMenu = null;
       myPanel = null;
+      myModel = null;
     }
     finally {
       super.tearDown();
@@ -284,6 +289,9 @@ public class PalettePanelTest extends LayoutTestCase {
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
       "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+
+    assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
+      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
   public void testOpenContextPopupOnMousePressed() throws Exception {
@@ -328,6 +336,9 @@ public class PalettePanelTest extends LayoutTestCase {
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
       "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+
+    assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
+      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
   public void testAddToDesignUpdateDoesNotCauseDependencyDialog() throws Exception {
@@ -414,11 +425,11 @@ public class PalettePanelTest extends LayoutTestCase {
 
   @NotNull
   private DesignSurface createDesignSurface(@NotNull NlLayoutType layoutType) {
-    SyncNlModel model = createModel().build();
-    DesignSurface surface = model.getSurface();
-    LayoutTestUtilities.createScreen(model);
+    myModel = createModel().build();
+    DesignSurface surface = myModel.getSurface();
+    LayoutTestUtilities.createScreen(myModel);
     when(surface.getLayoutType()).thenReturn(layoutType);
-    myPanel.setToolContext(model.getSurface());
+    myPanel.setToolContext(myModel.getSurface());
     return surface;
   }
 
