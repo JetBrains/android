@@ -45,7 +45,10 @@ public class AndroidJUnitConfigurations {
   public static boolean shouldUseAndroidJUnitConfigurations(@NotNull ConfigurationFromContext self,
                                                             @NotNull ConfigurationFromContext other) {
     RunConfiguration androidConfiguration = self.getConfiguration();
-    if (androidConfiguration instanceof ModuleBasedConfiguration) {
+    RunConfiguration otherConfiguration = other.getConfiguration();
+    if (androidConfiguration instanceof ModuleBasedConfiguration &&
+        (otherConfiguration instanceof JUnitConfiguration) &&
+        !(otherConfiguration instanceof AndroidJUnitConfiguration)) {
       Module module = ((ModuleBasedConfiguration)androidConfiguration).getConfigurationModule().getModule();
       if (module != null && GradleProjects.isIdeaAndroidModule(module)) {
         return true;
