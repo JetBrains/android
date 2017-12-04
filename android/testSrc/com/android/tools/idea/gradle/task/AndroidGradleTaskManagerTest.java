@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.task;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -14,7 +15,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.picocontainer.PicoContainer;
 
@@ -30,18 +30,17 @@ import static org.mockito.Mockito.*;
 public class AndroidGradleTaskManagerTest {
 
   @Test
-  @Ignore("failing after 2017.3 merge")
   public void executeTasks() {
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     Project project = mock(Project.class);
     PicoContainer picoContainer = mock(PicoContainer.class);
-    AndroidProjectInfo androidProjectInfo = mock(AndroidProjectInfo.class);
+    GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
     GradleBuildInvoker gradleBuildInvoker = mock(GradleBuildInvoker.class);
 
     when(taskId.findProject()).thenReturn(project);
     when(project.getPicoContainer()).thenReturn(picoContainer);
-    when(picoContainer.getComponentInstance(AndroidProjectInfo.class.getName())).thenReturn(androidProjectInfo);
-    when(androidProjectInfo.requiresAndroidModel()).thenReturn(true);
+    when(picoContainer.getComponentInstance(GradleProjectInfo.class.getName())).thenReturn(gradleProjectInfo);
+    when(gradleProjectInfo.isDirectGradleBuildEnabled()).thenReturn(true);
     AndroidGradleBuildConfiguration androidGradleBuildConfiguration = new AndroidGradleBuildConfiguration();
     androidGradleBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
     when(picoContainer.getComponentInstance(AndroidGradleBuildConfiguration.class.getName())).thenReturn(androidGradleBuildConfiguration);
