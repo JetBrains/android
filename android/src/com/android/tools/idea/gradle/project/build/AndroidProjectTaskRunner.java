@@ -80,16 +80,16 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
       }
       return;
     }
-    File projectFile = new File(rootProjectPath);
+    File projectPath = new File(rootProjectPath);
     final String projectName;
-    if (projectFile.isFile()) {
-      projectName = projectFile.getParentFile().getName();
+    if (projectPath.isFile()) {
+      projectName = projectPath.getParentFile().getName();
     }
     else {
-      projectName = projectFile.getName();
+      projectName = projectPath.getName();
     }
     String executionName = "Build " + projectName;
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
