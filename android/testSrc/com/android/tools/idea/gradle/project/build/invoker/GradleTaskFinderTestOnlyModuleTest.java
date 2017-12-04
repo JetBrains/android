@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.module.Module;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -38,23 +39,19 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     myTaskFinder = GradleTaskFinder.getInstance();
   }
 
-  public void testEmpty() {
-    // placeholder for disabled tests below.
-  }
-
-  // failing after 2017.3 merge
-  public void /*test*/AssembleTasksCorrect() throws Exception {
+  public void testAssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
     File projectPath = getBaseDirPath(getProject());
-    List<String> tasks = myTaskFinder.findTasksToExecute(projectPath, modules, ASSEMBLE, TestCompileType.ALL).get(Paths.get("project_path"));
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, ASSEMBLE, TestCompileType.ALL);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/AssembleTasksNotDuplicated() throws Exception {
+  public void testAssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
     File projectPath = getBaseDirPath(getProject());
-    List<String> tasks = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL).get(Paths.get("project_path"));
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }
