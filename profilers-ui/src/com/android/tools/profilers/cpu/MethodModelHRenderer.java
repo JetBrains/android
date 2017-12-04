@@ -160,11 +160,13 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
     // Draw text
     Font font = g.getFont();
     FontMetrics fontMetrics = g.getFontMetrics(font);
-    if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
-      g.setPaint(toUnmatchColor(Color.BLACK));
-    } else if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
+    if (captureNode.getFilterType() == null || captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(Color.BLACK);
-    } else {
+    }
+    else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
+      g.setPaint(toUnmatchColor(Color.BLACK));
+    }
+    else {
       g.setPaint(Color.BLACK);
       g.setFont(font.deriveFont(Font.BOLD));
     }
