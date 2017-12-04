@@ -166,15 +166,17 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   protected void ensureSdkManagerAvailable() {
-    AndroidSdks androidSdks = AndroidSdks.getInstance();
-    AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      sdkData = createTestSdkManager();
-      if (sdkData != null) {
-        androidSdks.setSdkData(sdkData);
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      AndroidSdks androidSdks = AndroidSdks.getInstance();
+      AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
+      if (sdkData == null) {
+        sdkData = createTestSdkManager();
+        if (sdkData != null) {
+          androidSdks.setSdkData(sdkData);
+        }
       }
-    }
-    assertNotNull(sdkData);
+      assertNotNull(sdkData);
+    });
   }
 
   @Nullable
