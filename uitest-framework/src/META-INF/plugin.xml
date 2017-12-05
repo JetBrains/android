@@ -14,12 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <!-- DELETE FOR ANT TESTS -->
-  <!--
-    Since we have the main plugin.xml available for ant tests, this one should not be included as it will
-    have duplicate information. The above line indicates that the build should not include this file when
-    running the ant tests.
-  -->
   <name>Android UI Test Framework</name>
   <id>com.android.tools.idea.uitest.framework</id>
 
