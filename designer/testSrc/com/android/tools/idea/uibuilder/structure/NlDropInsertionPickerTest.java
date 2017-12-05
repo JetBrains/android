@@ -19,6 +19,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -34,6 +36,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ConstantConditions")
@@ -323,9 +326,15 @@ public class NlDropInsertionPickerTest {
     @Nullable private DummyComponentGroup myDummyParent = null;
 
     public DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
-      super(model, new EmptyXmlTag());
+      super(model, EmptyXmlTag.INSTANCE, mock(SmartPsiElementPointer.class));
       mySibling = hasSibling;
       myId = id;
+    }
+
+    @NotNull
+    @Override
+    public XmlTag getTag() {
+      return EmptyXmlTag.INSTANCE;
     }
 
     @Nullable

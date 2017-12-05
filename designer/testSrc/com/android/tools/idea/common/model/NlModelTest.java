@@ -529,12 +529,12 @@ public class NlModelTest extends LayoutTestCase {
 
     LayoutlibSceneManager.updateHierarchy(views, model);
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=3}\n" +
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=0}\n" +
                  // Make sure these instances are NOT reusing instances from before that
                  // mismatch, e.g. we should not get <Button> with instance=1 here
                  // since before the reparse instance=1 was associated with a <FrameLayout> !
-                 "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=4}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=5}",
+                 "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=2}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=3}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 

@@ -19,9 +19,9 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -51,7 +51,7 @@ public final class NlComponentTest extends AndroidTestCase {
   }
 
   private NlComponent createComponent(@NotNull XmlTag tag) {
-    NlComponent result = new NlComponent(myModel, tag);
+    NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
     NlComponentHelper.INSTANCE.registerComponent(result);
     return result;
   }
@@ -61,6 +61,12 @@ public final class NlComponentTest extends AndroidTestCase {
     when(tag.getName()).thenReturn(tagName);
 
     return tag;
+  }
+
+  static SmartPsiElementPointer<XmlTag> createTagPointer(XmlTag tag) {
+    SmartPsiElementPointer<XmlTag> tagPointer = mock(SmartPsiElementPointer.class);
+    when(tagPointer.getElement()).thenReturn(tag);
+    return tagPointer;
   }
 
   public void testNeedsDefaultId() {
@@ -257,7 +263,7 @@ public final class NlComponentTest extends AndroidTestCase {
   public void testIdFromMixin() {
     XmlTag tag = mock(XmlTag.class);
     when(tag.isValid()).thenReturn(true);
-    NlComponent component = new NlComponent(mock(NlModel.class), tag);
+    NlComponent component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
 
     NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
     when(mixin.getAttribute(ANDROID_URI, ATTR_ID)).thenReturn("@id/mixinId");
@@ -265,7 +271,7 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("mixinId", component.getId());
 
     when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
-    component = new NlComponent(mock(NlModel.class), tag);
+    component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
     component.setMixin(mixin);
     assertEquals("componentId", component.getId());
   }
