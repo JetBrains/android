@@ -335,6 +335,7 @@ class CpuCaptureView {
   }
 
   private static HTreeChart<CaptureNodeModel> setUpChart(@NotNull CaptureModel.Details.Type type,
+                                                         @NotNull Range globalRange,
                                                          @NotNull Range range,
                                                          @Nullable HNode<CaptureNodeModel> node,
                                                          @NotNull CpuProfilerStageView stageView) {
@@ -345,7 +346,7 @@ class CpuCaptureView {
     else {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
-    HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(range, orientation);
+    HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(globalRange, range, orientation);
     chart.setHRenderer(new MethodModelHRenderer(type));
     chart.setRootVisible(false);
 
@@ -509,18 +510,22 @@ class CpuCaptureView {
     private CallChartView(@NotNull CpuProfilerStageView stageView,
                           @NotNull CaptureModel.CallChart callChart) {
       myCallChart = callChart;
-      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, myCallChart.getRange(), myCallChart.getNode(), stageView);
+      // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
+      // timeline. Users can navigate to other part within the capture by interacting with the call chart UI. When it happens, the timeline
+      // selection should be automatically updated.
+      Range selectionRange = stageView.getTimeline().getSelectionRange();
+      Range captureRange = stageView.getStage().getCapture().getRange();
+      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, captureRange, selectionRange,
+                           myCallChart.getNode(), stageView);
 
       if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
       }
 
-      Range selectionRange = stageView.getTimeline().getSelectionRange();
       // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
       // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
       // capture range.
-      Range captureRange = stageView.getStage().getCapture().getRange();
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
@@ -565,9 +570,14 @@ class CpuCaptureView {
     @NotNull private final Range myMasterRange;
 
     public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+      // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
+      // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
+      // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
+      // sub-range on timeline, the timeline selection should not be updated while users are interacting with flame chart UI. Therefore,
+      // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
-      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, myMasterRange, myFlameChart.getNode(), stageView);
+      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, flameChart.getRange(), myMasterRange, myFlameChart.getNode(), stageView);
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));

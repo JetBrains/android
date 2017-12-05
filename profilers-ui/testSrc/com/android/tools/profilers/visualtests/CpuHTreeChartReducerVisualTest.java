@@ -59,11 +59,11 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     CaptureNode node = parseAndGetHNode();
     myRange.set(node.getStart(), node.getEnd());
 
-    myChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN);
+    myChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN);
     myChart.setHRenderer(new MethodModelHRenderer());
     myChart.setHTree(node);
 
-    myNotOptimizedChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
+    myNotOptimizedChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
     });
     myNotOptimizedChart.setHRenderer(new MethodModelHRenderer());
     myNotOptimizedChart.setHTree(node);
