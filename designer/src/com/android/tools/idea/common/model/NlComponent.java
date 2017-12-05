@@ -35,11 +35,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -59,7 +62,9 @@ public class NlComponent implements NlAttributesHolder {
   private final List<NlComponent> children = Lists.newArrayList();
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
+  //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
   @NotNull private XmlTag myTag;
+  @NotNull private SmartPsiElementPointer<XmlTag> myTagPointer;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
@@ -75,6 +80,24 @@ public class NlComponent implements NlAttributesHolder {
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myTag = tag;
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
+      myTagName = tag.getName();
+    }
+    else {
+      application.runReadAction(() -> {
+        myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
+        myTagName = tag.getName();
+      });
+    }
+  }
+
+  @TestOnly
+  public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
+    myModel = model;
+    myTag = tag;
+    myTagPointer = tagPointer;
     myTagName = tag.getName();
   }
 
@@ -90,7 +113,20 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public XmlTag getTag() {
-    return myTag;
+    // HACK: We want to use SmartPsiElementPointer as they make sure that the XmlTag we return here is not invalid.
+    // However, SmartPsiElementPointer.getElement can return null when the underlying Psi element has been deleted. Since this method is
+    // annotated @NotNull, we return the original tag if the pointer gives a null result.
+    // We do this because the large usage of getTag makes it very risky for the moment to take care everywhere of a possible null value.
+    //TODO(b/70264883): Fix this properly by using more generally SmartPsiElementPointer instead of XmlTag in the layout editor codebase.
+    XmlTag tag;
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      tag = myTagPointer.getElement();
+    }
+    else {
+      tag = application.runReadAction((Computable<XmlTag>)myTagPointer::getElement);
+    }
+    return tag != null ? tag : myTag;
   }
 
   @NotNull
@@ -99,8 +135,25 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public void setTag(@NotNull XmlTag tag) {
+    // HACK: see getTag
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      if (tag.isValid()) {
+        myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
+          .createSmartPsiElementPointer(tag);
+      }
+      myTagName = tag.getName();
+    }
+    else {
+      application.runReadAction(() -> {
+        if (tag.isValid()) {
+          myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
+            .createSmartPsiElementPointer(tag);
+        }
+        myTagName = tag.getName();
+      });
+    }
     myTag = tag;
-    myTagName = tag.getName();
   }
 
   @Nullable
@@ -201,7 +254,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable
   public NlComponent findViewByTag(@NotNull XmlTag tag) {
-    if (myTag == tag) {
+    if (getTag() == tag) {
       return this;
     }
 
@@ -216,16 +269,11 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   private void findViewsByTag(@NotNull XmlTag tag, @NotNull ImmutableList.Builder<NlComponent> builder) {
-    if (myTag == tag) {
-      builder.add(this);
-      return;
-    }
-
     for (NlComponent child : getChildren()) {
       child.findViewsByTag(tag, builder);
     }
 
-    if (myTag == tag) {
+    if (getTag() == tag) {
       builder.add(this);
     }
   }
@@ -238,7 +286,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public boolean isRoot() {
-    return !(myTag.getParent() instanceof XmlTag);
+    return !(getTag().getParent() instanceof XmlTag);
   }
 
   public NlComponent getRoot() {
@@ -299,21 +347,22 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-    if (!myTag.isValid()) {
+    XmlTag tag = getTag();
+    if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
       return;
     }
 
     String prefix = null;
     if (namespace != null && !ANDROID_URI.equals(namespace)) {
-      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
+      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
     String previous = getAttribute(namespace, attribute);
     if (Objects.equals(previous, value)) {
       return;
     }
     // Handle validity
-    myTag.setAttribute(attribute, namespace, value);
+    tag.setAttribute(attribute, namespace, value);
     if (mySnapshot != null) {
       mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
@@ -352,12 +401,15 @@ public class NlComponent implements NlAttributesHolder {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
-    else if (AndroidPsiUtils.isValid(myTag)) {
-      return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
-    }
     else {
-      // Newly created components for example
-      return null;
+      XmlTag tag = getTag();
+      if (AndroidPsiUtils.isValid(tag)) {
+        return AndroidPsiUtils.getAttributeSafely(tag, namespace, attribute);
+      }
+      else {
+        // Newly created components for example
+        return null;
+      }
     }
   }
 
@@ -379,20 +431,21 @@ public class NlComponent implements NlAttributesHolder {
       return mySnapshot.attributes;
     }
 
-    if (myTag.isValid()) {
+    XmlTag tag = getTag();
+    if (tag.isValid()) {
       Application application = ApplicationManager.getApplication();
 
       if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(myTag));
+        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(tag));
       }
-      return AttributeSnapshot.createAttributesForTag(myTag);
+      return AttributeSnapshot.createAttributesForTag(tag);
     }
 
     return Collections.emptyList();
   }
 
   public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
-    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, prefix);
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)getTag().getContainingFile(), namespace, prefix);
   }
 
   public boolean isShowing() {
