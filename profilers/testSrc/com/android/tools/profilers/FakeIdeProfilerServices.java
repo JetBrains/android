@@ -89,6 +89,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsRequestPayloadEnabled = false;
 
   /**
+   * JNI references alloc/dealloc events are tracked and shown.
+   */
+  private boolean myIsJniReferenceTrackingEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -190,6 +195,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isNetworkRequestPayloadEnabled() {
         return myIsRequestPayloadEnabled;
       }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
     };
   }
 
@@ -270,4 +278,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableRequestPayload(boolean enabled) {
     myIsRequestPayloadEnabled = enabled;
   }
+
+  public void setJniReferenceTrackingEnabled(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
 }

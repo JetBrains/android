@@ -196,6 +196,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isNetworkRequestPayloadEnabled() {
         return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
       }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() {
+        return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
+      }
     };
   }
 

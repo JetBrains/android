@@ -79,7 +79,7 @@ public class MethodSet extends ClassifierSet {
     @NotNull
     @Override
     public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
-      AllocationStack stack = instance.getCallStack();
+      AllocationStack stack = instance.getAllocationCallStack();
       int stackDepth = instance.getCallStackDepth();
       if (stack != null && stackDepth > 0 && myDepth < stackDepth) {
         switch (stack.getFrameCase()) {

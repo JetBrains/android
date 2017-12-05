@@ -29,4 +29,5 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isAtraceEnabled();
   boolean isNetworkRequestPayloadEnabled();
+  boolean isJniReferenceTrackingEnabled();
 }

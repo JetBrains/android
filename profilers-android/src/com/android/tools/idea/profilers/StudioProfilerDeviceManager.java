@@ -365,6 +365,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         .setMemConfig(Agent.AgentConfig.MemoryConfig.newBuilder()
                         .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
                         .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+                        .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
                         .build())
         .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
         .setSocketType(socketType)

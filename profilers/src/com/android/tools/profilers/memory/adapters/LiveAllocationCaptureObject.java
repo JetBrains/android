@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -55,6 +56,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   static final String IMAGE_HEAP_NAME = "image";
   static final String ZYGOTE_HEAP_NAME = "zygote";
   static final String APP_HEAP_NAME = "app";
+  static final String JNI_HEAP_NAME = "JNI";
+  public static final int JNI_HEAP_ID = 4;
 
   @Nullable private MemoryProfilerStage myStage;
 
@@ -71,6 +74,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final long myCaptureStartTime;
   private final List<HeapSet> myHeapSets;
   private final AspectObserver myAspectObserver;
+  private final boolean myEnableJniRefsTracking;
 
   private long myEventsEndTimeNs;
   private long myContextEndTimeNs;
@@ -106,10 +110,16 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myAspectObserver = new AspectObserver();
     myStage = stage;
 
-    myHeapSets = Arrays.asList(new HeapSet(this, DEFAULT_HEAP_NAME, 0),  // default
-                               new HeapSet(this, IMAGE_HEAP_NAME, 1),  // image
-                               new HeapSet(this, ZYGOTE_HEAP_NAME, 2),  // zygote
-                               new HeapSet(this, APP_HEAP_NAME, 3)); // app
+    myHeapSets = new ArrayList<>(Arrays.asList(
+           new HeapSet(this, DEFAULT_HEAP_NAME, 0),  // default
+           new HeapSet(this, IMAGE_HEAP_NAME, 1),  // image
+           new HeapSet(this, ZYGOTE_HEAP_NAME, 2),  // zygote
+           new HeapSet(this, APP_HEAP_NAME, 3))); // app
+
+    myEnableJniRefsTracking = stage.getStudioProfilers().getIdeServices().getFeatureConfig().isJniReferenceTrackingEnabled();
+    if (myEnableJniRefsTracking) {
+      myHeapSets.add(new HeapSet(this, JNI_HEAP_NAME, JNI_HEAP_ID));
+    }
 
     myEventsEndTimeNs = Long.MIN_VALUE;
     myContextEndTimeNs = Long.MIN_VALUE;
@@ -310,17 +320,22 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // 1. previous range does not intersect with the new one
         // 2. the selection mode has changed (from point to range selections)
         // 3. the selection mode is a point selection
+        // 4. JNI reference tracking is active
+        // TODO: Implement reuse of already loaded instance objects for allocation data and JNI references in a universal way.
+        // Currently we just don not reuse already loaded data if JNI tracking is enabled.
         boolean clear = (myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs)
-                        || myPreviousQueryStartTimeNs == myPreviousQueryEndTimeNs || isPointSelection;
+                        || (myPreviousQueryStartTimeNs == myPreviousQueryEndTimeNs) || isPointSelection || myEnableJniRefsTracking;
         if (clear) {
           myInstanceMap.clear();
         }
         if (isPointSelection) {
           querySnapshotData(newEndTimeNs, setAllocationList);
+          queryJniReferencesSnapshot(newEndTimeNs, setAllocationList);
         }
         else {
           queryAllocationData(clear, myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs,
                               setAllocationList, resetAllocationList, setDeallocationList, resetDeallocationList);
+          queryJniReferencesData(newStartTimeNs, newEndTimeNs, setAllocationList, setDeallocationList);
         }
 
         myPreviousQueryStartTimeNs = newStartTimeNs;
@@ -374,6 +389,102 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return instance;
   }
 
+  @Nullable
+  private AllocationStack convertNativeCallstack(@Nullable NativeBacktrace backtrace) {
+    if (backtrace == null) return null;
+
+    //TODO: This is not even close to real native symbol resolution, just a temporary code to populate UI.
+    AllocationStack.StackFrameWrapper.Builder frames = AllocationStack.StackFrameWrapper.newBuilder();
+    AllocationStack.Builder stack = AllocationStack.newBuilder();
+    for (long address : backtrace.getAddressesList()) {
+      frames.addFrames(AllocationStack.StackFrame.newBuilder()
+                         .setClassName("CppClass")
+                         .setMethodName("Func_" + address));
+    }
+    stack.setFullStack(frames);
+    return stack.build();
+  }
+
+  @Nullable
+  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue, int threadId) {
+    LiveAllocationInstanceObject referencedObject = myInstanceMap.get(tag);
+    if (referencedObject == null) {
+      // If a Java object can't be found by a given tag, nothing is known about the JNI reference and we can't track it.
+      return null;
+    }
+    ThreadId thread = null;
+    if (threadId != 0) {
+      assert myThreadIdMap.containsKey(threadId);
+      thread = myThreadIdMap.get(threadId);
+    }
+
+    JniReferenceInstanceObject result = referencedObject.getJniRefByValue(refValue);
+    if (result == null) {
+      result = new JniReferenceInstanceObject(referencedObject, thread, tag, refValue);
+      referencedObject.addJniRef(result);
+    }
+    return result;
+  }
+
+  private void queryJniReferencesData(long startTimeNs,
+                                      long endTimeNs,
+                                      @NotNull List<InstanceObject> setAllocationList,
+                                      @NotNull List<InstanceObject> setDeallocationList) {
+    if (!myEnableJniRefsTracking) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
+                                                .setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      switch (event.getEventType()) {
+        case CREATE_GLOBAL_REF:
+          refObject.setAllocationTime(event.getTimestamp());
+          refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+          setAllocationList.add(refObject);
+          break;
+        case DELETE_GLOBAL_REF:
+          refObject.setDeallocTime(event.getTimestamp());
+          refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
+          setDeallocationList.add(refObject);
+          break;
+        default:
+          assert false;
+      }
+    }
+  }
+
+  private void queryJniReferencesSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
+    if (!myEnableJniRefsTracking) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
+      .setStartTime(newTimeNs).setEndTime(newTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
+        continue;
+      }
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+      refObject.setAllocationTime(event.getTimestamp());
+      setAllocationList.add(refObject);
+    }
+  }
+
   private void querySnapshotData(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
     BatchAllocationSample sampleResponse = myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setSession(mySession)
                                                                      .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
@@ -420,7 +531,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         continue;
       }
 
-      boolean insidePreviousRange = startTimeNs >= previousQueryStartTimeNs && endTimeNs <= previousQueryEndTimeNs;
+      boolean insidePreviousRange = startTimeNs >= previousQueryStartTimeNs && endTimeNs <= previousQueryEndTimeNs && !clear;
       boolean insideCurrentRange = startTimeNs >= newStartTimeNs && endTimeNs <= newEndTimeNs;
       if (insidePreviousRange == insideCurrentRange) {
         continue;
