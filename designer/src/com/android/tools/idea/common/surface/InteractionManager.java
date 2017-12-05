@@ -18,16 +18,17 @@ package com.android.tools.idea.common.surface;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
-import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
@@ -362,7 +363,8 @@ public class InteractionManager {
 
     /**
      * Warp to the text editor and show the corresponding XML for the clicked widget.
-     * @param component the target we need to navigate to
+     *
+     * @param component       the target we need to navigate to
      * @param needFocusEditor true for focusing the editor after navigation. false otherwise.
      */
     private void navigateEditor(@NotNull NlComponent component, boolean needFocusEditor) {
@@ -626,7 +628,6 @@ public class InteractionManager {
     public void keyPressed(KeyEvent event) {
       int modifiers = event.getModifiers();
       int keyCode = event.getKeyCode();
-      char keyChar = event.getKeyChar();
 
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = modifiers;
@@ -644,13 +645,6 @@ public class InteractionManager {
         }
       }
 
-      if (keyChar == '+') {
-        mySurface.zoomIn();
-      }
-      else if (keyChar == '-') {
-        mySurface.zoomOut();
-      }
-
       // The below shortcuts only apply without modifier keys.
       // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
       // example Shift+= to create the + key.
@@ -658,43 +652,7 @@ public class InteractionManager {
         return;
       }
 
-      // Fall back to canvas actions for the key press
-      //mySurface.handleKeyPressed(e);
-
-      if (keyChar == '1') {
-        mySurface.zoomActual();
-      }
-      else if (keyChar == 'r') {
-        // Refresh layout
-        RefreshRenderAction.clearCache(mySurface.getConfiguration());
-      }
-      else if (keyChar == 'b') {
-        // TODO: find a way to move layout-specific logic elsewhere.
-        if (mySurface instanceof NlDesignSurface) {
-          SceneMode nextMode = ((NlDesignSurface)mySurface).getSceneMode().next();
-          ((NlDesignSurface)mySurface).setScreenMode(nextMode, true);
-        }
-      }
-      else if (keyChar == '0') {
-        mySurface.zoomToFit();
-      }
-      else if (keyChar == 'd') {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          sceneView.switchDevice();
-        }
-      }
-      else if (keyChar == 'o') {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          sceneView.toggleOrientation();
-        }
-      }
-      else if (keyChar == 'e') {
-        IssuePanel panel = mySurface.getIssuePanel();
-        panel.setMinimized(!panel.isMinimized());
-      }
-      else if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
+      if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
         SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
         if (sceneView != null) {
           SelectionModel model = sceneView.getSelectionModel();
