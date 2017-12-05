@@ -40,10 +40,11 @@ public abstract class NavGradleTestCase extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     loadProject(NAVIGATION_EDITOR_BASIC);
-    generateSources();
+    assertTrue(generateSources().isBuildSuccessful());
     myFixture.setTestDataPath(getTestDataPath());
     TestableThumbnailManager.register(myAndroidFacet);
     System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true");
+    requestSyncAndWait();
   }
 
   @Override
