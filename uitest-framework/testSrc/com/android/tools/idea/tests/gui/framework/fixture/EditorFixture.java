@@ -434,7 +434,7 @@ public class EditorFixture {
       }
     }
     else {
-      GuiTask.execute(() -> {
+      EdtTestUtil.runInEdtAndWait(() -> {
         DataContext context = DataManager.getInstance().getDataContext(component);
         AnActionEvent event = AnActionEvent.createFromAnAction(anAction, null, "menu", context);
         anAction.actionPerformed(event);

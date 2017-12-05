@@ -24,7 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAc
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
