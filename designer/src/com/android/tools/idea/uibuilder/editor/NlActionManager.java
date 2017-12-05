@@ -157,14 +157,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.addSeparator();
     }
 
-    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
-      group.add(new MorphComponentAction(leafComponent, mySurface));
+    if (mySurface.getLayoutType().isLayout()) {
+      createLayoutOnlyActions(leafComponent, group);
     }
-    group.add(new MockupEditAction(mySurface));
-    if (leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
-      group.add(new MockupDeleteAction(leafComponent));
-    }
-    group.addSeparator();
 
     group.add(actionManager.getAction(IdeActions.ACTION_CUT));
     group.add(actionManager.getAction(IdeActions.ACTION_COPY));
@@ -173,15 +168,23 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
     group.add(myGotoComponentAction);
-    group.add(createRefactoringMenu());
     group.add(new SaveScreenshotAction(mySurface));
 
-    if (ConvertToConstraintLayoutAction.ENABLED) {
-      group.addSeparator();
-      group.add(new ConvertToConstraintLayoutAction(mySurface));
-    }
 
     return group;
+  }
+
+  private void createLayoutOnlyActions(@Nullable NlComponent leafComponent, @NotNull DefaultActionGroup group) {
+    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
+      group.add(new MorphComponentAction(leafComponent, mySurface));
+    }
+    group.add(createRefactoringMenu());
+
+    group.add(new MockupEditAction(mySurface));
+    if (leafComponent != null && StudioFlags.NELE_MOCKUP_EDITOR.get() && Mockup.hasMockupAttribute(leafComponent)) {
+      group.add(new MockupDeleteAction(leafComponent));
+    }
+    group.addSeparator();
   }
 
   private void addViewHandlerActions(@NotNull DefaultActionGroup group,
