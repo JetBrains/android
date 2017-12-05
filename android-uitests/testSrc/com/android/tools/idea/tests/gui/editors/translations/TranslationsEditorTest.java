@@ -26,7 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDia
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FixedColumnTableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.components.ServiceManager;
