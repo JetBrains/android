@@ -59,6 +59,12 @@ public class HTreeChart<T> extends AnimatedComponent {
   @NotNull
   private final Range myXRange;
 
+  /**
+   * The X range that myXRange could possibly be. Any changes to X range should be limited within it.
+   */
+  @NotNull
+  private final Range myGlobalXRange;
+
   @NotNull
   private final Range myYRange;
 
@@ -86,13 +92,19 @@ public class HTreeChart<T> extends AnimatedComponent {
 
   private int myCachedMaxHeight;
 
+  /**
+   * Create a Horizontal Tree Chart.
+   * @param globalXRange the bounding range of chart visible area, if not null.
+   * @param viewXRange the range of the chart's visible area.
+   */
   @VisibleForTesting
-  public HTreeChart(@NotNull Range xRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
+  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
-    myXRange = xRange;
+    myGlobalXRange = globalXRange != null ? globalXRange : new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    myXRange = viewXRange;
     myRoot = new DefaultHNode<>();
     myReducer = reducer;
     myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
@@ -103,13 +115,13 @@ public class HTreeChart<T> extends AnimatedComponent {
     initializeInputMap();
     initializeMouseEvents();
     setFont(AdtUiUtils.DEFAULT_FONT);
-    xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
+    myXRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     myYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     changed();
   }
 
-  public HTreeChart(Range xRange, Orientation orientation) {
-    this(xRange, orientation, new DefaultHTreeChartReducer<>());
+  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation) {
+    this(globalXRange, viewXRange, orientation, new DefaultHTreeChartReducer<>());
   }
 
   public void setRootVisible(boolean rootVisible) {
@@ -245,7 +257,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   }
 
   private double positionToRange(double x) {
-    return x / getWidth() * getXRange().getLength() + getXRange().getMin();
+    return x / getWidth() * myXRange.getLength() + myXRange.getMin();
   }
 
   public void setHRenderer(@NotNull HRenderer<T> r) {
@@ -255,10 +267,6 @@ public class HTreeChart<T> extends AnimatedComponent {
   public void setHTree(@Nullable HNode<T> root) {
     this.myRoot = root;
     changed();
-  }
-
-  public Range getXRange() {
-    return myXRange;
   }
 
   @Nullable
@@ -301,7 +309,7 @@ public class HTreeChart<T> extends AnimatedComponent {
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = myXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        myXRange.set(myXRange.getMin() - delta, myXRange.getMax() + delta);
+        myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - delta), Math.min(myGlobalXRange.getMax(), myXRange.getMax() + delta));
       }
     });
 
@@ -309,7 +317,8 @@ public class HTreeChart<T> extends AnimatedComponent {
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = myXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        myXRange.set(myXRange.getMin() - delta, myXRange.getMax() - delta);
+        delta = Math.min(myXRange.getMin() - myGlobalXRange.getMin(), delta);
+        myXRange.shift(-delta);
       }
     });
 
@@ -317,7 +326,8 @@ public class HTreeChart<T> extends AnimatedComponent {
       @Override
       public void actionPerformed(ActionEvent e) {
         double delta = myXRange.getLength() / ACTION_MOVEMENT_FACTOR;
-        myXRange.set(myXRange.getMin() + delta, myXRange.getMax() + delta);
+        delta = Math.min(myGlobalXRange.getMax() - myXRange.getMax(), delta);
+        myXRange.shift(delta);
       }
     });
   }
@@ -340,14 +350,13 @@ public class HTreeChart<T> extends AnimatedComponent {
 
       @Override
       public void mouseDragged(MouseEvent e) {
+        // First, handle Y range.
         // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
         int contentHeight = getMaximumHeight();
         // The height of the GUI component to draw the contents.
         int viewHeight = getHeight();
-        double deltaX = e.getPoint().x - myLastPoint.x;
         double deltaY = e.getPoint().y - myLastPoint.y;
         deltaY = getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY;
-
         if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
           // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
           deltaY = INITIAL_Y_POSITION - myYRange.getMin();
@@ -357,9 +366,20 @@ public class HTreeChart<T> extends AnimatedComponent {
           // Note that the chart may be taller than the stacks, so we need to limit the delta.
           deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
         }
-
         getYRange().shift(deltaY);
-        getXRange().shift(myXRange.getLength() / getWidth() * -deltaX);
+
+        // Second, handle X Range.
+        double deltaX = e.getPoint().x - myLastPoint.x;
+        double deltaXToShift = myXRange.getLength() / getWidth() * -deltaX;
+        if (deltaXToShift > 0) {
+          // User attempts to move the chart towards left to view the area to the right.
+          deltaXToShift = Math.min(myGlobalXRange.getMax() - myXRange.getMax(), deltaXToShift);
+        }
+        else if (deltaXToShift < 0) {
+          // User attempts to move the chart towards right to view the area to the left.
+          deltaXToShift = Math.max(myGlobalXRange.getMin() - myXRange.getMin(), deltaXToShift);
+        }
+        myXRange.shift(deltaXToShift);
 
         myLastPoint = e.getPoint();
       }
@@ -367,12 +387,10 @@ public class HTreeChart<T> extends AnimatedComponent {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
         double cursorRange = positionToRange(e.getX());
-        double leftDelta = (cursorRange - getXRange().getMin()) / ZOOM_FACTOR * e
-          .getWheelRotation();
-        double rightDelta = (getXRange().getMax() - cursorRange) / ZOOM_FACTOR * e
-          .getWheelRotation();
-        getXRange().setMin(getXRange().getMin() - leftDelta);
-        getXRange().setMax(getXRange().getMax() + rightDelta);
+        double leftDelta = (cursorRange - myXRange.getMin()) / ZOOM_FACTOR * e.getWheelRotation();
+        double rightDelta = (myXRange.getMax() - cursorRange) / ZOOM_FACTOR * e.getWheelRotation();
+        myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - leftDelta),
+                     Math.min(myGlobalXRange.getMax(), myXRange.getMax() + rightDelta));
       }
     };
     addMouseWheelListener(adapter);

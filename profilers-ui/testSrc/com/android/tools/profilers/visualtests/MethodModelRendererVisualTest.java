@@ -63,13 +63,13 @@ public class MethodModelRendererVisualTest extends VisualTest {
   protected void populateUi(@NotNull JPanel panel) {
     CaptureNode artNode = parseArtTraceAndGetHNode();
     myArtRange.set(artNode.getStart(), artNode.getEnd());
-    myArtChart = new HTreeChart<>(myArtRange, HTreeChart.Orientation.TOP_DOWN);
+    myArtChart = new HTreeChart<>(null, myArtRange, HTreeChart.Orientation.TOP_DOWN);
     myArtChart.setHRenderer(new MethodModelHRenderer());
     myArtChart.setHTree(artNode);
 
     CaptureNode simpleperfNode = parseSimpleperfTraceAndGetHNode();
     mySimpleperfRange.set(simpleperfNode.getStart(), simpleperfNode.getEnd());
-    mySimpleperfChart = new HTreeChart<>(mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
+    mySimpleperfChart = new HTreeChart<>(null, mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
     mySimpleperfChart.setHRenderer(new MethodModelHRenderer());
     mySimpleperfChart.setHTree(simpleperfNode);
 

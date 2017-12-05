@@ -43,7 +43,7 @@ class HTreeChartTest {
 
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
-    myChart = HTreeChart<String>(myRange, orientation)
+    myChart = HTreeChart<String>(Range(0.0, 100.0), myRange, orientation)
     myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
@@ -71,22 +71,48 @@ class HTreeChartTest {
   fun testMouseDragToEast() {
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
-
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(10, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(7.5)
+    assertThat(myRange.max).isWithin(EPSILON).of(57.5)
+  }
 
-    assertThat(myRange.min).isWithin(EPSILON).of(-5.0)
-    assertThat(myRange.max).isWithin(EPSILON).of(95.0)
+  @Test
+  fun testMouseOverDragToEast() {
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
+    myUi.mouse.press(5, 5)
+    myUi.mouse.dragTo(90, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(50.0)
   }
 
   @Test
   fun testMouseDragToWest() {
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(3, 5)
-    assertThat(myRange.min).isWithin(EPSILON).of(2.0)
-    assertThat(myRange.max).isWithin(EPSILON).of(102.0)
+    assertThat(myRange.min).isWithin(EPSILON).of(11.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(61.0)
+  }
+
+  @Test
+  fun testMouseOverDragToWest() {
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
+    myUi.mouse.press(95, 5)
+    myUi.mouse.dragTo(5, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(50.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
   }
 
   @Test
@@ -159,11 +185,13 @@ class HTreeChartTest {
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
 
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(7, 10)
 
-    assertThat(myRange.min).isWithin(EPSILON).of(-2.0)
-    assertThat(myRange.max).isWithin(EPSILON).of(98.0)
+    assertThat(myRange.min).isWithin(EPSILON).of(9.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(59.0)
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(15.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(15.0)
   }
@@ -214,6 +242,64 @@ class HTreeChartTest {
     myUi.mouse.dragTo(5, 0)
     assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
     assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+  }
+
+  @Test
+  fun testChartMouseWheelZoomIn() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    myUi.mouse.wheel(40, 20, -1)
+    assertThat(myRange.min).isWithin(EPSILON).of(2.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(97.0)
+  }
+
+  @Test
+  fun testChartMouseWheelZoomOut() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 60.0)
+    myUi.mouse.wheel(40, 20, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(5.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(67.5)
+  }
+
+  @Test
+  fun testChartMouseWheelOverZoomOutLeft() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(1.0, 51.0)
+    myUi.mouse.wheel(80, 20, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(53.5)
+  }
+
+  @Test
+  fun testChartMouseWheelOverZoomOutRight() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(49.0, 99.0)
+    myUi.mouse.wheel(20, 20, 5)
+    assertThat(myRange.min).isWithin(EPSILON).of(46.5)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+  }
+
+  @Test
+  fun testChartMouseWheelOverZoomOutBothSides() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
+    myRange.set(10.0, 90.0)
+    myUi.mouse.wheel(25, 20, 15)
+    assertThat(myRange.min).isWithin(EPSILON).of(0.0)
+    assertThat(myRange.max).isWithin(EPSILON).of(100.0)
   }
 
   companion object {
