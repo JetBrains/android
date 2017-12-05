@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -54,7 +55,7 @@ class NavSetStartProvider : InspectorProvider<NavPropertiesManager> {
   private object SetStartButton : InspectorComponent<NavPropertiesManager> {
     lateinit var myComponent: NlComponent
     val myButton = JButton("Set Start Destination")
-    val myPanel = JPanel(BorderLayout())
+    val myPanel = AdtSecondaryPanel(BorderLayout())
     lateinit var myStartDestinationProperty: SetStartDestinationProperty
 
     init {
