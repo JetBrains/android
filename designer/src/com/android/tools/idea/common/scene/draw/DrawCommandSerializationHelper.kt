@@ -21,7 +21,6 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.Point
 import java.awt.Rectangle
-import java.lang.Long
 
 fun parse(s: String, expected: Int): Array<String> {
   val sp = splitString(s, ',').toTypedArray()
@@ -56,7 +55,7 @@ fun rectToString(r: Rectangle): String {
 }
 
 fun stringToColor(s: String): Color {
-  return Color(Long.parseLong(s, 16).toInt())
+  return Color(s.toLong(16).toInt())
 }
 
 fun colorToString(c: Color): String {
