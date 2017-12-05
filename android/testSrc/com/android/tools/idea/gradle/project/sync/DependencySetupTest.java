@@ -80,8 +80,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     return false;
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/WithNonExistingInterModuleDependencies() throws Exception {
+  public void testWithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
@@ -96,8 +95,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     // TODO verify that a message and "quick fix" has been displayed.
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/WithUnresolvedDependencies() throws Exception {
+  public void testWithUnresolvedDependencies() throws Exception {
     loadSimpleApplication();
 
     File buildFilePath = getBuildFilePath("app");
