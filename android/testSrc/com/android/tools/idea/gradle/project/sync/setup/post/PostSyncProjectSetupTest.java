@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.instantapp.ProvistionTasks;
+import com.android.tools.idea.instantapp.ProvisionTasks;
 import com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -73,7 +73,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerImpl myRunManager;
-  @Mock private ProvistionTasks myProvisionTasks;
+  @Mock private ProvisionTasks myProvisionTasks;
 
   private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
@@ -88,7 +88,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
-    myProvisionTasks = new ProvistionTasks();
+    myProvisionTasks = new ProvisionTasks();
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
@@ -203,11 +203,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   }
 
   // failing after 2017.3 merge
-  public void /*test*/ProvisionBeforeRunTaskIsAdded() {
+  public void testProvisionBeforeRunTaskIsAdded() {
     // Create android run configurations
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     AndroidRunConfiguration androidRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
+    androidRunConfiguration.setName("androidRunConfiguration");
     AndroidRunConfiguration androidRunConfiguration2 = new AndroidRunConfiguration(getProject(), configurationFactory);
+    androidRunConfiguration.setName("androidRunConfiguration2");
     myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration, configurationFactory), true);
     myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration2, configurationFactory), true);
 
