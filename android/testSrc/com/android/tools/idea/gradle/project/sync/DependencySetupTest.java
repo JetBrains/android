@@ -157,25 +157,23 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*library\\-debug$", COMPILE);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/WithLocalJarsAsModules() throws Exception {
+  public void testWithLocalJarsAsModules() throws Exception {
     loadProject(LOCAL_JARS_AS_MODULES);
 
-    Module localJarModule = myModules.getModule("Gradle: localJarAsModule");
+    Module localJarModule = myModules.getModule("localJarAsModule");
     // Module should be a Java module, not buildable (since it doesn't have source code).
     JavaFacet javaFacet = JavaFacet.getInstance(localJarModule);
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("Gradle: localJarAsModule.local", COMPILE, true);
+    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("localJarAsModule.local", COMPILE, true);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/WithInterModuleDependencies() throws Exception {
+  public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: library2", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
@@ -199,23 +197,21 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
-  // failing after 2017.3 merge
-  public void /*test*/TransitiveAndroidModuleDependency() throws Exception {
+  public void testTransitiveAndroidModuleDependency() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: library1", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("library1", COMPILE, false);
   }
 
-  // failing after 2017.3 merge
-  public void /*test*/JavaLibraryModuleDependencies() throws Exception {
+  public void testJavaLibraryModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("Gradle: lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib", COMPILE);
   }
 
