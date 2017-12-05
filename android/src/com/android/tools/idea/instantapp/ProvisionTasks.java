@@ -31,7 +31,7 @@ import java.util.List;
  * Provides services for {@link ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask}.
  * Methods are not static so they can be mocked.
  */
-public class ProvistionTasks {
+public class ProvisionTasks {
   /**
    * Create a {@link ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask} in each {@link AndroidRunConfigurationBase} if yet created.
    */
