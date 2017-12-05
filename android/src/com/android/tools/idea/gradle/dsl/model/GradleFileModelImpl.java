@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -82,5 +83,8 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
     }
+
+    // Save the file to disk to ensure the changes exist when it is read.
+    FileDocumentManager.getInstance().saveDocument(document);
   }
 }

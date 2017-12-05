@@ -193,7 +193,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("apply", ImmutableList.of("com.android.library"), buildModel.appliedPlugins());
   }
 
-  public void testRemoveAndApplyPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
+  // Disabled due to b/70214606
+  public void /*test*/RemoveAndApplyPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
     String text = "apply plugin: 'com.android.application'\n" +
                   "apply plugin: 'com.android.library'\n" +
                   "apply plugin: 'com.android.application'";
