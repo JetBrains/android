@@ -165,7 +165,6 @@ public class NlEditorTest {
     assertThat(nele.getScale()).isLessThan(oldScale);
   }
 
-  @Ignore("b/70300930")
   @Test
   public void testAddDesignLibrary() throws Exception {
     guiTest.importSimpleApplication()

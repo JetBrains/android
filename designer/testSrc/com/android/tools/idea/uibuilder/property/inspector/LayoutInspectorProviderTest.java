@@ -132,6 +132,8 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
   private NlComponent newFakeNlComponent(@NotNull String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
+    when(tag.isValid()).thenReturn(true);
+    when(tag.getProject()).thenReturn(myModel.getProject());
 
     return myModel.createComponent(tag);
   }
