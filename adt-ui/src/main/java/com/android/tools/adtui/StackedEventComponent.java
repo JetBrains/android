@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.StackedEventType;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -58,7 +59,6 @@ public class StackedEventComponent extends AnimatedComponent {
 
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
     myModel = model;
-    setFont(DEFAULT_FONT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
@@ -98,7 +98,9 @@ public class StackedEventComponent extends AnimatedComponent {
       if (normalizedStartPosition < 0) {
         normalizedStartPosition = 0;
       }
-      Rectangle2D.Double rect = new Rectangle2D.Double(normalizedStartPosition, 1-DEFAULT_LINE_THICKNESS, normalizedEndPosition, DEFAULT_LINE_THICKNESS);
+      Rectangle2D.Double rect =
+        new Rectangle2D.Double(normalizedStartPosition, 1 - DEFAULT_LINE_THICKNESS, normalizedEndPosition - normalizedStartPosition,
+                               DEFAULT_LINE_THICKNESS);
       myActivities.add(new EventRenderData(data, rect));
     }
 
@@ -124,7 +126,6 @@ public class StackedEventComponent extends AnimatedComponent {
       renderActivity();
       myRender = false;
     }
-    g2d.setFont(DEFAULT_FONT.deriveFont(11f));
     drawActivity(g2d, dim);
   }
 

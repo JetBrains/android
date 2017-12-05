@@ -29,7 +29,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   public EventEntriesRegistrar() {
     registerAddActivityEvent();
     registerAddRunningActivityEvent();
-    registerMultipleStackedActivitiesEvent();
     registerMultipleInlineActivitiesEvent();
     registerSimpleTapEvent();
     registerSimpleTapAndHoldEvent();
@@ -38,100 +37,80 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerAddActivityEvent() {
-    //register(new ActivityEventImageDiffEntry("add_activity_event_baseline.png") {
-    //  @Override
-    //  protected void generateComponent() {
-    //    // Set the height to a low value to reduce the amount of unused space of the component.
-    //    int mainComponentHeight = 50;
-    //    setUpActivityComponent(mainComponentHeight);
-    //  }
-    //
-    //  @Override
-    //  protected void generateTestData() {
-    //    long startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(150); // Add some arbitrary offset to range start
-    //    long endTime = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(600); // Finish activity before range end
-    //    addActivity(startTime, endTime);
-    //  }
-    //});
+    register(new ActivityEventImageDiffEntry("add_activity_event_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Set the height to a low value to reduce the amount of unused space of the component.
+        int mainComponentHeight = 50;
+        setUpActivityComponent(mainComponentHeight);
+      }
+
+      @Override
+      protected void generateTestData() {
+        long startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(150); // Add some arbitrary offset to range start
+        long endTime = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(600); // Finish activity before range end
+        addActivity(startTime, endTime);
+      }
+    });
   }
 
   private void registerAddRunningActivityEvent() {
-    //register(new ActivityEventImageDiffEntry("add_running_activity_event_baseline.png") {
-    //  @Override
-    //  protected void generateComponent() {
-    //    // Set the height to a low value to reduce the amount of unused space of the component.
-    //    int mainComponentHeight = 50;
-    //    setUpActivityComponent(mainComponentHeight);
-    //  }
-    //
-    //  @Override
-    //  protected void generateTestData() {
-    //    long startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(400); // Add some arbitrary offset to range start
-    //    long endTime = myRangeEndUs + 1; // Finish activity after range end
-    //    addActivity(startTime, endTime);
-    //  }
-    //});
+    register(new ActivityEventImageDiffEntry("add_running_activity_event_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Set the height to a low value to reduce the amount of unused space of the component.
+        int mainComponentHeight = 50;
+        setUpActivityComponent(mainComponentHeight);
+      }
+
+      @Override
+      protected void generateTestData() {
+        long startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(400); // Add some arbitrary offset to range start
+        long endTime = myRangeEndUs + 1; // Finish activity after range end
+        addActivity(startTime, endTime);
+      }
+    });
   }
 
   private void registerAddActivityBeforeStartEvent() {
-    //register(new ActivityEventImageDiffEntry("add_activity_before_start_event_baseline.png") {
-    //  @Override
-    //  protected void generateComponent() {
-    //    // Set the height to a low value to reduce the amount of unused space of the component.
-    //    int mainComponentHeight = 50;
-    //    setUpActivityComponent(mainComponentHeight);
-    //  }
-    //
-    //  @Override
-    //  protected void generateTestData() {
-    //    long startTime = myRangeStartUs - TimeUnit.MILLISECONDS.toMicros(400); // Add a negative offset to range start
-    //    long endTime = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(600); // Finish activity before range end
-    //    // Activity should start before the range
-    //    addActivity(startTime, endTime);
-    //  }
-    //});
-  }
+    register(new ActivityEventImageDiffEntry("add_activity_before_start_event_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Set the height to a low value to reduce the amount of unused space of the component.
+        int mainComponentHeight = 50;
+        setUpActivityComponent(mainComponentHeight);
+      }
 
-  private void registerMultipleStackedActivitiesEvent() {
-    //register(new ActivityEventImageDiffEntry("add_multiple_stacked_activities_event_baseline.png") {
-    //  @Override
-    //  protected void generateComponent() {
-    //    // Set the height to a low value to reduce the amount of unused space of the component.
-    //    int mainComponentHeight = 50;
-    //    setUpActivityComponent(mainComponentHeight);
-    //  }
-    //
-    //  @Override
-    //  protected void generateTestData() {
-    //    long startTime1 = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(100); // Add some arbitrary offset to range start
-    //    long endTime1 = startTime1 + TimeUnit.MILLISECONDS.toMicros(1500);  // Finish activity after some time
-    //    long startTime2 = endTime1 - TimeUnit.MILLISECONDS.toMicros(600); // Start this activity before the first one ends to stack them
-    //    long endTime2 = myRangeEndUs + 1; // Finish activity after range end
-    //    addMultipleActivities(new long[]{startTime1, startTime2}, new long[]{endTime1, endTime2});
-    //  }
-    //});
+      @Override
+      protected void generateTestData() {
+        long startTime = myRangeStartUs - TimeUnit.MILLISECONDS.toMicros(400); // Add a negative offset to range start
+        long endTime = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(600); // Finish activity before range end
+        // Activity should start before the range
+        addActivity(startTime, endTime);
+      }
+    });
   }
 
   private void registerMultipleInlineActivitiesEvent() {
-    //register(new ActivityEventImageDiffEntry("add_multiple_inline_activities_event_baseline.png") {
-    //  @Override
-    //  protected void generateComponent() {
-    //    // Set the height to a low value to reduce the amount of unused space of the component.
-    //    int mainComponentHeight = 50;
-    //    setUpActivityComponent(mainComponentHeight);
-    //  }
-    //
-    //  @Override
-    //  protected void generateTestData() {
-    //    long startTime1 = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(100); // Add some arbitrary offset to range start
-    //    long endTime1 = startTime1 + TimeUnit.MILLISECONDS.toMicros(600);  // Finish activity after some time
-    //    long startTime2 = endTime1 + TimeUnit.MILLISECONDS.toMicros(100); // Start this activity after the first one ends to inline them
-    //    long endTime2 = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(100); // Finish activity before range end
-    //    // Start and end the activities one after another, to simulates what happens in reality.
-    //    addActivity(startTime1, endTime1);
-    //    addActivity(startTime2, endTime2);
-    //  }
-    //});
+    register(new ActivityEventImageDiffEntry("add_multiple_inline_activities_event_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Set the height to a low value to reduce the amount of unused space of the component.
+        int mainComponentHeight = 50;
+        setUpActivityComponent(mainComponentHeight);
+      }
+
+      @Override
+      protected void generateTestData() {
+        long startTime1 = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(100); // Add some arbitrary offset to range start
+        long endTime1 = startTime1 + TimeUnit.MILLISECONDS.toMicros(600);  // Finish activity after some time
+        long startTime2 = endTime1 + TimeUnit.MILLISECONDS.toMicros(100); // Start this activity after the first one ends to inline them
+        long endTime2 = myRangeEndUs - TimeUnit.MILLISECONDS.toMicros(100); // Finish activity before range end
+        // Start and end the activities one after another, to simulates what happens in reality.
+        addActivity(startTime1, endTime1);
+        addActivity(startTime2, endTime2);
+      }
+    });
   }
 
   private void registerSimpleTapEvent() {
@@ -189,6 +168,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myData = new DefaultDataSeries<>();
       myStackedEventModel = new EventModel<>(new RangedSeries<>(myXRange, myData));
       myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
+      myStackedEventComponent.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
       myComponents.add(myStackedEventModel);
     }
@@ -204,33 +184,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[0]; // arbitrary activity
 
       // Start event
-      EventAction<StackedEventType> event =
-        new ActivityAction(startTime, 0, StackedEventType.ACTIVITY_STARTED, activityName);
-      myData.add(startTime, event);
-
-      // Completed event
-      event = new ActivityAction(startTime, endTime, StackedEventType.ACTIVITY_COMPLETED, activityName);
-      myData.add(endTime, event);
-    }
-
-    /**
-     * Create all the start events and then the completed events. This is what happens in reality when adding overlapping activities.
-     */
-    protected void addMultipleActivities(long[] startTimeList, long[] endTimeList) {
-      EventAction<StackedEventType> event;
-      for (int i = 0; i < startTimeList.length; i++) {
-        String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
-        // Start event
-        event = new ActivityAction(startTimeList[i], 0, StackedEventType.ACTIVITY_STARTED, activityName);
-        myData.add(startTimeList[i], event);
-      }
-
-      for (int i = 0; i < endTimeList.length; i++) {
-        String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
-        // Completed event
-        event = new ActivityAction(startTimeList[i], endTimeList[i], StackedEventType.ACTIVITY_COMPLETED, activityName);
-        myData.add(endTimeList[i], event);
-      }
+      StackedEventType action = StackedEventType.ACTIVITY_COMPLETED;
+      myData.add(startTime, new ActivityAction(startTime, endTime, action, activityName));
     }
   }
 
