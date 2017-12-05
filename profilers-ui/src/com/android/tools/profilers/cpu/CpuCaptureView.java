@@ -256,9 +256,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -274,9 +274,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -292,9 +292,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .setTreeSorter(sorter)
@@ -764,7 +764,7 @@ class CpuCaptureView {
         double v = myGetter.apply(node);
         if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f%%", v / root.getTotal() * 100), attributes);
+          append(String.format("%.2f", v / root.getTotal() * 100), attributes);
         }
         else {
           append(String.format("%,.0f", v), attributes);
