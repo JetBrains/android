@@ -27,19 +27,27 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea:RegExpSupport",
-        "//tools/idea:lvcs-impl",
         "//tools/idea:xml-structure-view-impl",
         "//tools/idea:spellchecker",
-        "//tools/idea:relaxng",
-        "//tools/idea:json",
         "//tools/idea:images",
-        "//tools/idea:tasks-platform-impl",
-        "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
         "//tools/idea:built-in-server",
+        "//tools/idea:execution-impl",
+        "//tools/idea:external-system-impl",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/adt-branding",
+        "//tools/idea:xdebugger-impl",
+        "//tools/idea:lvcs-impl",
+        "//tools/idea:credential-store",
+        "//tools/idea:configuration-store-impl",
+        "//tools/idea:tasks-platform-impl",
+        "//tools/idea:json",
+        "//tools/idea:relaxng",
+        "//tools/idea/java/compiler/instrumentation-util-8",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android-adb[module, test]",
