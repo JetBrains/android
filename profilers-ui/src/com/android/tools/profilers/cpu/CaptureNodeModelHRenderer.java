@@ -33,14 +33,14 @@ import java.awt.geom.Rectangle2D;
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
  * instances of {@link CaptureNodeModel}.
  */
-public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
+public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
 
   private static final int LEFT_MARGIN_PX = 3;
 
   @NotNull
   private CaptureModel.Details.Type myType;
 
-  public MethodModelHRenderer(@NotNull CaptureModel.Details.Type type) {
+  public CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type) {
     super();
     if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
       throw new IllegalStateException("Chart type not supported and can't be rendered.");
@@ -49,7 +49,7 @@ public class MethodModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   @VisibleForTesting
-  public MethodModelHRenderer() {
+  public CaptureNodeModelHRenderer() {
     this(CaptureModel.Details.Type.CALL_CHART);
   }
 

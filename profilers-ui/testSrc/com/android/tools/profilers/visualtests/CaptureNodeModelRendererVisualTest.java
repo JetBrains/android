@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Displays an ART {@link HTreeChart} with Java methods and a simpleperf one with both java and native methods.
  */
-public class MethodModelRendererVisualTest extends VisualTest {
+public class CaptureNodeModelRendererVisualTest extends VisualTest {
 
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
 
@@ -64,13 +64,13 @@ public class MethodModelRendererVisualTest extends VisualTest {
     CaptureNode artNode = parseArtTraceAndGetHNode();
     myArtRange.set(artNode.getStart(), artNode.getEnd());
     myArtChart = new HTreeChart<>(null, myArtRange, HTreeChart.Orientation.TOP_DOWN);
-    myArtChart.setHRenderer(new MethodModelHRenderer());
+    myArtChart.setHRenderer(new CaptureNodeModelHRenderer());
     myArtChart.setHTree(artNode);
 
     CaptureNode simpleperfNode = parseSimpleperfTraceAndGetHNode();
     mySimpleperfRange.set(simpleperfNode.getStart(), simpleperfNode.getEnd());
-    mySimpleperfChart = new HTreeChart<>(null, mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
-    mySimpleperfChart.setHRenderer(new MethodModelHRenderer());
+    mySimpleperfChart = new HTreeChart<>(null,mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
+    mySimpleperfChart.setHRenderer(new CaptureNodeModelHRenderer());
     mySimpleperfChart.setHTree(simpleperfNode);
 
     panel.setLayout(new GridLayout(2, 1));
