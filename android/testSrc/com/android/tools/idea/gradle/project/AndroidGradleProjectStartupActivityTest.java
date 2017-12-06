@@ -47,6 +47,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     }
     finally {
       super.tearDown();
+      myGradleProjectInfo = null;
     }
   }
 

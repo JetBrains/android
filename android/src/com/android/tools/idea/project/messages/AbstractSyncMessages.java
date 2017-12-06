@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.ide.errorTreeView.NewEditableErrorTreeViewPanel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -43,10 +44,10 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.openapi.wm.ToolWindowId.MESSAGES_WINDOW;
 
-public abstract class AbstractSyncMessages {
+public abstract class AbstractSyncMessages implements Disposable {
   private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
 
-  @NotNull private final Project myProject;
+  private Project myProject;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
 
   protected AbstractSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
@@ -183,5 +184,10 @@ public abstract class AbstractSyncMessages {
   @NotNull
   protected Project getProject() {
     return myProject;
+  }
+
+  @Override
+  public void dispose() {
+    myProject = null;
   }
 }
