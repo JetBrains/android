@@ -19,12 +19,16 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
@@ -43,9 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
 
@@ -60,6 +63,20 @@ public class NavSceneManager extends SceneManager {
 
   @SwingCoordinate private static final int PAN_LIMIT = 150;
   @NavCoordinate private static final int BOUNDING_BOX_PADDING = 100;
+
+  @NavCoordinate public static final int ACTION_ARROW_PARALLEL = 10;
+  @NavCoordinate private static final int ACTION_ARROW_PERPENDICULAR = 12;
+
+  @NavCoordinate private static final int ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
+  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = 6;
+
+  @NavCoordinate private static final int GLOBAL_ACTION_LINE_LENGTH = 8;
+  @NavCoordinate private static final int GLOBAL_ACTION_WIDTH = ACTION_ARROW_PARALLEL + GLOBAL_ACTION_LINE_LENGTH;
+  @NavCoordinate private static final int GLOBAL_ACTION_HORIZONTAL_PADDING = 8;
+
+  @NavCoordinate private static final int EXIT_ACTION_LINE_LENGTH = 14;
+  @NavCoordinate private static final int EXIT_ACTION_WIDTH = ACTION_ARROW_PARALLEL + EXIT_ACTION_LINE_LENGTH;
+  @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = 2;
 
   private final NavScreenTargetProvider myScreenTargetProvider;
 
@@ -100,7 +117,20 @@ public class NavSceneManager extends SceneManager {
   protected void updateFromComponent(@NotNull SceneComponent sceneComponent) {
     super.updateFromComponent(sceneComponent);
 
-    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
+    NlComponent nlComponent = sceneComponent.getNlComponent();
+
+    switch (NavComponentHelperKt.getActionType(nlComponent)) {
+      case GLOBAL:
+        sceneComponent.setSize(GLOBAL_ACTION_WIDTH, ACTION_HEIGHT, false);
+        return;
+      case EXIT:
+        sceneComponent.setSize(EXIT_ACTION_WIDTH, ACTION_HEIGHT, false);
+        return;
+      default:
+        break;
+    }
+
+    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(nlComponent.getTagName());
     if (type != null) {
       sceneComponent.setTargetProvider(myScreenTargetProvider);
 
@@ -186,26 +216,72 @@ public class NavSceneManager extends SceneManager {
   @Override
   @Nullable
   protected SceneComponent createHierarchy(@NotNull NlComponent component) {
-    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
-    if (type != null) {
-      switch (type) {
-        case NAVIGATION:
-          if (component != getRoot()) {
-            SceneComponent sceneComponent = getScene().getSceneComponent(component);
-            if (sceneComponent == null) {
-              sceneComponent = new SceneComponent(getScene(), component);
-            }
-            return sceneComponent;
-          }
-          return super.createHierarchy(component);
-        case FRAGMENT:
-        case ACTIVITY:
-          return super.createHierarchy(component);
-        default:
-          //nothing
+    switch (NavComponentHelperKt.getActionType(component)) {
+      case GLOBAL:
+      case EXIT:
+        return super.createHierarchy(component);
+      default:
+        break;
+    }
+
+    NavigationSchema.DestinationType type = NavComponentHelperKt.getDestinationType(component);
+
+    if (type == null) {
+      return null;
+    }
+
+    switch (type) {
+      case NAVIGATION:
+        if (component == getRoot()) {
+          return buildRoot(component);
+        }
+
+        SceneComponent sceneComponent = getScene().getSceneComponent(component);
+        if (sceneComponent == null) {
+          sceneComponent = new SceneComponent(getScene(), component);
+        }
+        return sceneComponent;
+      case FRAGMENT:
+      case ACTIVITY:
+        return super.createHierarchy(component);
+      default:
+        return null;
+    }
+  }
+
+  private SceneComponent buildRoot(@NotNull NlComponent rootNlComponent) {
+    SceneComponent root = super.createHierarchy(rootNlComponent);
+    if (root == null) {
+      return null;
+    }
+
+    Map<String, SceneComponent> destinationMap = new HashMap<>();
+
+    for (SceneComponent component : root.getChildren()) {
+      NlComponent child = component.getNlComponent();
+      if (NavComponentHelperKt.isDestination(child)) {
+        destinationMap.put(child.getId(), component);
       }
     }
-    return null;
+
+    ArrayList<SceneComponent> globalActions = new ArrayList<>();
+
+    for (SceneComponent component : root.getChildren()) {
+      NlComponent child = component.getNlComponent();
+      if (NavComponentHelperKt.isAction(child)) {
+        globalActions.add(component);
+      }
+    }
+
+    for (SceneComponent globalAction : globalActions) {
+      String destination = NavComponentHelperKt.getActionDestination(globalAction.getNlComponent());
+      SceneComponent parent = destinationMap.get(destination);
+      if (parent != null) {
+        parent.addChild(globalAction);
+      }
+    }
+
+    return root;
   }
 
   @Override
@@ -227,6 +303,92 @@ public class NavSceneManager extends SceneManager {
   private void layoutAll(@NotNull SceneComponent root) {
     root.flatten().filter(component -> component.getParent() != null).forEach(component -> component.setPosition(0, 0));
     root.flatten().filter(component -> component.getParent() != null).forEach(myLayoutAlgorithm::layout);
+
+    HashSet<String> regularActionSources = new HashSet<>();
+    HashSet<String> regularActionDestinations = new HashSet<>();
+
+    getRegularActions(root, regularActionSources, regularActionDestinations);
+
+    for (SceneComponent component : root.getChildren()) {
+      NlComponent nlComponent = component.getNlComponent();
+
+      if (!NavComponentHelperKt.isDestination(nlComponent)) {
+        continue;
+      }
+
+      ArrayList<SceneComponent> globalActions = new ArrayList<>();
+      ArrayList<SceneComponent> exitActions = new ArrayList<>();
+
+      for (SceneComponent child : component.getChildren()) {
+        switch (NavComponentHelperKt.getActionType(child.getNlComponent())) {
+          case GLOBAL:
+            globalActions.add(child);
+            break;
+          case EXIT:
+            exitActions.add(child);
+            break;
+          default:
+            break;
+        }
+      }
+
+      String id = nlComponent.getId();
+
+      layoutGlobalActions(component, globalActions, regularActionDestinations.contains(id));
+      layoutExitActions(component, exitActions, regularActionSources.contains(id));
+    }
+  }
+
+  private static void getRegularActions(@NotNull SceneComponent root, @NotNull HashSet<String> sources, @NotNull HashSet<String> destinations) {
+    for (SceneComponent component : root.getChildren()) {
+      NlComponent nlComponent = component.getNlComponent();
+      if (!NavComponentHelperKt.isDestination(nlComponent)) {
+        continue;
+      }
+
+      // TODO: Handle duplicate ids
+      // TODO: Handle children of sibling navigations
+      nlComponent.flatten()
+        .filter(NavComponentHelperKt::isRegularAction)
+        .forEach(action -> {
+          NlComponent parent = action.getParent();
+          //noinspection ConstantConditions
+          sources.add(parent.getId());
+          destinations.add(NavComponentHelperKt.getActionDestination(action));
+        });
+    }
+  }
+
+  private static void layoutGlobalActions(@NotNull SceneComponent destination, @NotNull ArrayList<SceneComponent> globalActions, Boolean skip) {
+    layoutActions(destination, globalActions, skip, destination.getDrawX() - GLOBAL_ACTION_WIDTH - GLOBAL_ACTION_HORIZONTAL_PADDING);
+  }
+
+  private static void layoutExitActions(@NotNull SceneComponent source, @NotNull ArrayList<SceneComponent> exitActions, Boolean skip) {
+    layoutActions(source, exitActions, skip, source.getDrawX() + source.getDrawWidth() + EXIT_ACTION_HORIZONTAL_PADDING);
+  }
+
+  private static void layoutActions(SceneComponent component, ArrayList<SceneComponent> actions, Boolean skip, @NavCoordinate int x) {
+    int count = actions.size();
+
+    if (count == 0) {
+      return;
+    }
+
+    if (skip) {
+      // Insert a null element to indicate that we need space for regular actions
+      actions.add((count + 1) / 2, null);
+      count++;
+    }
+
+    @NavCoordinate int y = component.getDrawY() + component.getDrawHeight() / 2
+                           - ACTION_HEIGHT / 2 - (count / 2) * (ACTION_HEIGHT + ACTION_VERTICAL_PADDING);
+
+    for (SceneComponent action : actions) {
+      if (action != null) {
+        action.setPosition(x, y);
+      }
+      y += ACTION_HEIGHT + ACTION_VERTICAL_PADDING;
+    }
   }
 
   @Override

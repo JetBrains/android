@@ -40,6 +40,7 @@ class NavSceneDecoratorFactory(schema: NavigationSchema) : SceneDecoratorFactory
       }
 
       ourConstructorMap.put(key, decoratorClass.getConstructor())
+      ourConstructorMap.put(NavigationSchema.TAG_ACTION, ActionDecorator::class.java.getConstructor())
     }
   }
 

@@ -17,10 +17,7 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.idea.common.scene.LerpValue
 import com.google.common.base.Joiner
-import java.awt.Color
-import java.awt.Font
-import java.awt.Point
-import java.awt.Rectangle
+import java.awt.*
 
 fun parse(s: String, expected: Int): Array<String> {
   val sp = splitString(s, ',').toTypedArray()
@@ -73,10 +70,6 @@ fun fontToString(f: Font): String {
   return Joiner.on(':').join(f.name, f.style, f.size)
 }
 
-fun pointToString(p: Point): String {
-  return Joiner.on('x').join(p.x, p.y)
-}
-
 fun stringToPoint(s: String): Point {
   val sp = splitString(s, 'x')
   val p = Point()
@@ -85,8 +78,8 @@ fun stringToPoint(s: String): Point {
   return p
 }
 
-fun lerpToString(l: LerpValue): String {
-  return Joiner.on(':').join(l.start, l.end, l.duration)
+fun pointToString(p: Point): String {
+  return Joiner.on('x').join(p.x, p.y)
 }
 
 fun stringToLerp(s: String): LerpValue {
@@ -96,6 +89,23 @@ fun stringToLerp(s: String): LerpValue {
   val duration = sp[2].toInt()
 
   return LerpValue(start, end, duration)
+}
+
+fun lerpToString(l: LerpValue): String {
+  return Joiner.on(':').join(l.start, l.end, l.duration)
+}
+
+fun stringToStroke(s: String): BasicStroke {
+  val sp = splitString(s, ':')
+  val width = sp[0].toInt()
+  val cap = sp[1].toInt()
+  val join = sp[2].toInt()
+
+  return BasicStroke(width.toFloat(), cap, join)
+}
+
+fun strokeToString(s: BasicStroke): String {
+  return Joiner.on(':').join(s.lineWidth.toInt(), s.endCap, s.lineJoin)
 }
 
 private fun splitString(s: String, delimiter: Char): List<String> {

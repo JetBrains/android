@@ -19,10 +19,16 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.intellij.ui.JBColor;
 
+import java.awt.*;
+
 /**
  * {@link ColorSet} for the navigation editor.
  */
 public class NavColorSet extends ColorSet {
+  private Color mActions;
+  private Color mHighlightedActions;
+  private Color mSelectedActions;
+
   public NavColorSet() {
     mStyle = WidgetDecorator.ANDROID_STYLE;
     mDrawBackground = true;
@@ -41,8 +47,20 @@ public class NavColorSet extends ColorSet {
     mSelectedText = new JBColor(0x1886f7, 0x9ccdff);
     mSubduedText = new JBColor(0x656565, 0xbababb);
 
-    mConstraints = new JBColor(0xb2a7a7a7, 0xb2888888);
-    mHighlightedConstraints = new JBColor(0xa7a7a7, 0x888888);
-    mSelectedConstraints = new JBColor(0x1886f7, 0x9ccdff);
+    mActions = new JBColor(0xb2a7a7a7, 0xb2888888);
+    mHighlightedActions = new JBColor(0xa7a7a7, 0x888888);
+    mSelectedActions = new JBColor(0x1886f7, 0x9ccdff);
+  }
+
+  public Color getActions()  {
+    return mActions;
+  }
+
+  public Color getHighlightedActions()  {
+    return mHighlightedActions;
+  }
+
+  public Color getSelectedActions() {
+    return mSelectedActions;
   }
 }

@@ -53,6 +53,16 @@ abstract class NavScreenDecorator : SceneDecorator() {
     list.add(createDrawCommand(displayList, component))
   }
 
+  // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
+  override fun buildListChildren(list: DisplayList,
+                                 time: Long,
+                                 sceneContext: SceneContext,
+                                 component: SceneComponent) {
+    for (child in component.children) {
+      child.buildDisplayList(time, list, sceneContext)
+    }
+  }
+
   protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
     val image = buildImage(sceneContext, component)
     if (image == null) {

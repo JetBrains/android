@@ -35,12 +35,14 @@ import java.util.List;
 public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTarget {
 
   private final ManualLayoutAlgorithm myAlgorithm;
-
+  private final Point[] myChildOffsets;
 
   public ScreenDragTarget(@NotNull SceneComponent component, @NotNull ManualLayoutAlgorithm algorithm) {
     super();
     setComponent(component);
     myAlgorithm = algorithm;
+
+    myChildOffsets = new Point[component.getChildren().size()];
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +52,16 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   @Override
   protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
     // Nothing
+  }
+
+  @Override
+  public void mouseDown(@NavCoordinate int x, @NavCoordinate int y) {
+    super.mouseDown(x, y);
+
+    for (int i = 0; i < getComponent().getChildren().size(); i++) {
+      SceneComponent child = getComponent().getChild(i);
+      myChildOffsets[i] = new Point(x - child.getDrawX(), y - child.getDrawY());
+    }
   }
 
   @Override
@@ -75,6 +87,12 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
 
     myComponent.setPosition(dx, dy, false);
     myChangedComponent = true;
+
+    for (int i = 0; i < myChildOffsets.length; i++) {
+      @NavCoordinate int newX = x - myChildOffsets[i].x;
+      @NavCoordinate int newY = y - myChildOffsets[i].y;
+      getComponent().getChild(i).setPosition(newX, newY);
+    }
   }
 
   @Override

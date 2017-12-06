@@ -68,6 +68,16 @@ fun textColor(context: SceneContext, component: SceneComponent): Color {
   }
 }
 
+fun actionColor(context: SceneContext, component: SceneComponent): Color {
+  val colorSet = context.colorSet as NavColorSet
+
+  return when {
+    component.isSelected -> colorSet.selectedActions
+    component.drawState == SceneComponent.DrawState.HOVER -> colorSet.highlightedActions
+    else -> colorSet.actions
+  }
+}
+
 @SwingCoordinate
 fun strokeThickness(context: SceneContext, component: SceneComponent, @AndroidCoordinate borderThickness: Int): Int {
   return when (component.drawState) {
