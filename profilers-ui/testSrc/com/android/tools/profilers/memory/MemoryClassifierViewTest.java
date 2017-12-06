@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.perflib.analyzer.Capture;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
@@ -25,6 +24,7 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +48,7 @@ public class MemoryClassifierViewTest {
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
+  private StudioProfilers myProfilers;
 
   @Before
   public void before() {
@@ -55,8 +56,14 @@ public class MemoryClassifierViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices), loader);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+    myStage = new MemoryProfilerStage(myProfilers, loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   /**

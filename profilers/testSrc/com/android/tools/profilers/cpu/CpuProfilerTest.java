@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class CpuProfilerTest {
 
   @Before
   public void setUp() throws Exception {
-    myCpuProfiler = new CpuProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+    myCpuProfiler = new CpuProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer()));
   }
 
   @Test

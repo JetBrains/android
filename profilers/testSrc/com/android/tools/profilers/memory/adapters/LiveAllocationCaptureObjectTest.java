@@ -27,6 +27,7 @@ import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,11 +58,18 @@ public class LiveAllocationCaptureObjectTest {
   private MemoryProfilerStage myStage;
 
   private final AspectObserver myAspectObserver = new AspectObserver();
+  private StudioProfilers myProfilers;
 
   @Before
   public void before() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices));
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+    myStage = new MemoryProfilerStage(myProfilers);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   // Simple test to check that we get the correct data on load.

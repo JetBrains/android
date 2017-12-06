@@ -20,6 +20,7 @@ import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,12 +59,18 @@ public class RpcNetworkConnectionsModelTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myProfilerService,
                                                                    FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
+  private StudioProfilers myProfilers;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myModel = new RpcNetworkConnectionsModel(myProfilers.getClient().getProfilerClient(), myProfilers.getClient().getNetworkClient(), 12,
                                              ProfilersTestData.SESSION_DATA);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   @Test
