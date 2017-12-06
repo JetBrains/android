@@ -36,6 +36,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +59,7 @@ public class IndexingSuspender {
   @GuardedBy("myIndexingLock")
   private boolean myShouldWait;
 
+  private boolean myScheduledAfterProjectInitialisation;
   @Nullable private DeactivationEvent myDeactivationEvent;
   private volatile boolean myActivated;
 
@@ -89,9 +91,31 @@ public class IndexingSuspender {
     LOG.info("Consuming IndexingSuspender activation event: " + event.toString());
     switch (event) {
       case SYNC_STARTED:
-        activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
+        if (!myProject.isInitialized()) {
+          myScheduledAfterProjectInitialisation = true;
+          StartupManager.getInstance(myProject).runWhenProjectIsInitialized(
+            () -> {
+              if (myScheduledAfterProjectInitialisation) {
+                // This is expected to be executed on project setup once the project is initialised.
+                activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
+                myScheduledAfterProjectInitialisation = false;
+              }
+            }
+          );
+        }
+        else {
+          activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
+        }
         break;
       case SETUP_STARTED:
+        if (!myProject.isInitialized()) {
+          clearStateConditions();
+          reportStateError("Project is expected to be initialised before project setup starts.");
+          break;
+        }
+        if (!myActivated) {
+          activate(ActivationEvent.SETUP_STARTED, DeactivationEvent.SYNC_FINISHED);
+        }
         // The sentinel dumb mode will be ended either when build starts or when suspender gets deactivated with a
         // DeactivationEvent
         startSentinelDumbMode("Project Setup");
@@ -112,8 +136,12 @@ public class IndexingSuspender {
 
   private void consumeDeactivationEvent(@NotNull DeactivationEvent event) {
     LOG.info("Consuming IndexingSuspender deactivation event: " + event.toString());
+    // The guard below is against the situation when project initialisation completes after gradle sync.
+    // In practice this won't happen, but for the sanity reasons it makes sense to render the deferred indexing suspender
+    // activation into a no-op, if there is any.
+    myScheduledAfterProjectInitialisation = false;
     if (event == myDeactivationEvent) {
-      deactivate();
+      ensureDeactivated();
     }
     else {
       LOG.info("IndexingSuspender deactivation event received and ignored: " + event.toString());
@@ -188,25 +216,25 @@ public class IndexingSuspender {
       return;
     }
 
+    if (!myProject.isInitialized()) {
+      reportStateError("Attempt to suspend indexing when project is not yet initialised. Ignoring.");
+      return;
+    }
+
     myActivated = true;
     myDeactivationEvent = deactivationEvent;
     startBatchUpdate();
   }
 
-  private void deactivate() {
-    if (!myActivated) {
-      reportStateError("Must not attempt to deactivate IndexingSuspender when it is not activated. Ignored.");
-      return;
-    }
-
-    if (!canActivate()) {
+  private void ensureDeactivated() {
+    if (!canActivate() || !myActivated) {
       return;
     }
 
     finishBatchUpdate();
     ensureNoSentinelDumbMode();
-    myActivated = false;
     clearStateConditions();
+    myActivated = false;
   }
 
   private boolean canActivate() {
