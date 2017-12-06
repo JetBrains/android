@@ -65,15 +65,21 @@ public final class GradleDslNewExpression extends GradleDslExpression {
     return Collections.emptyList();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getValue() {
     PsiElement psiElement = getPsiElement();
     return psiElement != null ? psiElement.getText() : null;
   }
 
-  @Nullable
   @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    return getValue();
+  }
+
+  @Override
+  @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     if (clazz.isAssignableFrom(File.class)) {
       return clazz.cast(getFileValue());
@@ -83,6 +89,12 @@ public final class GradleDslNewExpression extends GradleDslExpression {
       return clazz.cast(value);
     }
     return null;
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    return getValue(clazz);
   }
 
   @Nullable

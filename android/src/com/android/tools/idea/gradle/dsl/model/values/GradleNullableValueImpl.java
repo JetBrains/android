@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T> the type of the returned value.
  */
 public class GradleNullableValueImpl<T> extends GradleValueImpl<T> implements GradleNullableValue<T> {
-  public GradleNullableValueImpl(@NotNull GradleDslElement dslElement, @Nullable T value) {
+  public GradleNullableValueImpl(@Nullable GradleDslElement dslElement, @Nullable T value) {
     super(dslElement, value);
   }
 

@@ -66,6 +66,16 @@ public final class GradleDslLiteral extends GradleDslExpression {
     return getDslFile().getParser().extractValue(this, element, true);
   }
 
+  @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    if (element == null) {
+      return null;
+    }
+    return getDslFile().getParser().extractValue(this, element, false);
+  }
+
   @Nullable
   public PsiElement getUnsavedValue() {
     return myUnsavedValue;
@@ -79,6 +89,16 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     Object value = getValue();
+    if (value != null && clazz.isInstance(value)) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
     if (value != null && clazz.isInstance(value)) {
       return clazz.cast(value);
     }
