@@ -47,8 +47,8 @@ class AddMenuFixture(private val robot: Robot, private val menu: AddMenuWrapper)
     JButtonFixture(robot, menu.myBackButton).click()
   }
 
-  fun selectDestination(qName: String) {
-    val index = menu.myDestinations.indexOfFirst{ it.qualifiedName == qName }
+  fun selectDestination(label: String) {
+    val index = menu.myDestinations.indexOfFirst{ it.label == label }
     JListFixture(robot, menu.myDestinationsGallery).clickItem(index)
   }
 }

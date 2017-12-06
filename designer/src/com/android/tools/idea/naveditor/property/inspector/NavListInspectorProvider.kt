@@ -22,7 +22,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
-import com.android.tools.idea.common.util.WhiteIconGenerator
+import com.android.tools.idea.common.util.ColoredIconGenerator
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -48,7 +48,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   // If we decide to guarantee that each subclass only handles a single tag this map can be replaced with a single value
   private val myInspectors = HashMap<String, InspectorComponent<NavPropertiesManager>>()
 
-  private val whiteIcon = WhiteIconGenerator.generateWhiteIcon(icon)
+  private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(icon)
 
   override fun isApplicable(components: List<NlComponent>,
                             properties: Map<String, NlProperty>,
