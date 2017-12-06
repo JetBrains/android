@@ -29,7 +29,7 @@ public class CpuMonitorTest {
 
   @Test
   public void testName() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
     CpuMonitor monitor = new CpuMonitor(profilers);
     assertEquals("CPU", monitor.getName());
   }

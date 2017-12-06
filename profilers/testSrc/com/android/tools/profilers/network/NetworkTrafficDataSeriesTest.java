@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,16 +47,22 @@ public class NetworkTrafficDataSeriesTest {
     new FakeGrpcChannel("NetworkTrafficDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkTrafficDataSeries mySentSeries;
   private NetworkTrafficDataSeries myReceivedSeries;
+  private StudioProfilers myProfilers;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySentSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    mySentSeries = new NetworkTrafficDataSeries(myProfilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                 ProfilersTestData.SESSION_DATA,
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
-    myReceivedSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+    myReceivedSeries = new NetworkTrafficDataSeries(myProfilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
                                                     ProfilersTestData.SESSION_DATA,
                                                     NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   @Test
