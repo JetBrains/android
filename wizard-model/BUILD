@@ -5,7 +5,6 @@ iml_module(
     srcs = ["src"],
     iml_files = ["wizard-model.iml"],
     tags = ["managed"],
-    test_class = "com.android.tools.idea.wizard.WizardModelTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea:RegExpSupport",
@@ -30,7 +29,5 @@ iml_module(
         "//tools/idea/platform/platform-api[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
