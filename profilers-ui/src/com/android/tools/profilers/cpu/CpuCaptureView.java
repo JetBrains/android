@@ -347,7 +347,7 @@ class CpuCaptureView {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
     HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(globalRange, range, orientation);
-    chart.setHRenderer(new MethodModelHRenderer(type));
+    chart.setHRenderer(new CaptureNodeModelHRenderer(type));
     chart.setRootVisible(false);
 
     chart.setHTree(node);

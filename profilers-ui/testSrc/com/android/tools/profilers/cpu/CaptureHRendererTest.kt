@@ -23,13 +23,13 @@ import java.awt.Color
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
-class MethodModelHRendererTest {
+class CaptureNodeModelHRendererTest {
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
     val unsupportedNode = CaptureNode()
     unsupportedNode.captureNodeModel = SingleNameModel("write")
-    val renderer = MethodModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
     try {
@@ -43,7 +43,7 @@ class MethodModelHRendererTest {
   @Test
   fun invalidChartTypeShouldThrowException() {
     try {
-      MethodModelHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
+      CaptureNodeModelHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
       fail()
     } catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Chart type not supported and can't be rendered.")
@@ -54,7 +54,7 @@ class MethodModelHRendererTest {
   fun testFilterRenderStyle() {
     val simpleNode = CaptureNode()
     simpleNode.captureNodeModel = SyscallModel("write")
-    val renderer = MethodModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
     fakeGraphics.paint = Color.RED
@@ -66,16 +66,16 @@ class MethodModelHRendererTest {
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
-    assertThat(fakeGraphics.paint).isEqualTo(MethodModelHRenderer.toUnmatchColor(Color.BLACK))
+    assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    // TODO: refactor MethodModelHRenderer#render to check font is Bold for EXACT_MATCHES
+    // TODO: refactor CaptureNodeModelHRenderer#render to check font is Bold for EXACT_MATCHES
 
-    // TODO: refactor MethodModelHRenderer#render to cover the case of null filter type
+    // TODO: refactor CaptureNodeModelHRenderer#render to cover the case of null filter type
   }
 
   @Test
@@ -136,9 +136,9 @@ class MethodModelHRendererTest {
     assertThat(color).isEqualTo(callChartBorder)
     // Call chart unmatched
     color = JavaMethodHChartColors.getFillColor(model, callChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(callChartFill))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartFill))
     color = JavaMethodHChartColors.getBorderColor(model, callChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(callChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartBorder))
     // Flame chart not unmatched
     color = JavaMethodHChartColors.getFillColor(model, flameChart, false)
     assertThat(color).isEqualTo(flameChartFill)
@@ -146,9 +146,9 @@ class MethodModelHRendererTest {
     assertThat(color).isEqualTo(flameChartBorder)
     // Flame chart unmatched
     color = JavaMethodHChartColors.getFillColor(model, flameChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(flameChartFill))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartFill))
     color = JavaMethodHChartColors.getBorderColor(model, flameChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(flameChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartBorder))
   }
 
   private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color, callChartBorder: Color, flameChartFill: Color,
@@ -163,9 +163,9 @@ class MethodModelHRendererTest {
     assertThat(color).isEqualTo(callChartBorder)
     // Call chart unmatched
     color = NativeModelHChartColors.getFillColor(model, callChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(callChartFill))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartFill))
     color = NativeModelHChartColors.getBorderColor(model, callChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(callChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartBorder))
     // Flame chart not unmatched
     color = NativeModelHChartColors.getFillColor(model, flameChart, false)
     assertThat(color).isEqualTo(flameChartFill)
@@ -173,8 +173,8 @@ class MethodModelHRendererTest {
     assertThat(color).isEqualTo(flameChartBorder)
     // Flame chart unmatched
     color = NativeModelHChartColors.getFillColor(model, flameChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(flameChartFill))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartFill))
     color = NativeModelHChartColors.getBorderColor(model, flameChart, true)
-    assertThat(color).isEqualTo(MethodModelHRenderer.toUnmatchColor(flameChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartBorder))
   }
 }

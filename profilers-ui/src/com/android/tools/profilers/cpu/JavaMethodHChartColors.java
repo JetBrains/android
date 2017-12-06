@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.profilers.cpu.MethodModelHRenderer.toUnmatchColor;
+import static com.android.tools.profilers.cpu.CaptureNodeModelHRenderer.toUnmatchColor;
 
 /**
  *  Defines the colors (fill and border) of the rectangles used to represent {@link JavaMethodModel} nodes in a
