@@ -280,8 +280,8 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
       return null;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
       return null;
     }

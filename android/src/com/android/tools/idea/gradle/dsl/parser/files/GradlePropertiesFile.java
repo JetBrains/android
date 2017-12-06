@@ -78,12 +78,24 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Override
     @Nullable
+    public Object getUnresolvedValue() {
+      return getValue();
+    }
+
+    @Override
+    @Nullable
     public <T> T getValue(@NotNull Class<T> clazz) {
       Object value = getValue();
       if (clazz.isInstance(value)) {
         return clazz.cast(value);
       }
       return null;
+    }
+
+    @Override
+    @Nullable
+    public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+      return getValue(clazz);
     }
 
     @Override

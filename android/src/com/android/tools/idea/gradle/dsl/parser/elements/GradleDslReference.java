@@ -53,6 +53,16 @@ public final class GradleDslReference extends GradleDslExpression {
     return valueLiteral != null ? valueLiteral.getValue() : getValue(String.class);
   }
 
+  /**
+   * Returns the same as getReferenceText if you need to get the unresolved version of what this
+   * reference refers to then use getResolvedVariables and call getUnresolvedValue on the result.
+   */
+  @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    return getReferenceText();
+  }
+
   @Override
   @NotNull
   public Collection<GradleStringInjection> getResolvedVariables() {
@@ -82,6 +92,16 @@ public final class GradleDslReference extends GradleDslExpression {
       return null;
     }
     return resolveReference(referenceText, clazz);
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
+    if (value != null && clazz.isAssignableFrom(value.getClass())) {
+      return clazz.cast(value);
+    }
+    return null;
   }
 
   @Override
