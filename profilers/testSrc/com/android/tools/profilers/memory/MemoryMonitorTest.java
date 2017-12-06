@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -35,13 +36,14 @@ public class MemoryMonitorTest {
 
   @Test
   public void testName() {
-    MemoryMonitor monitor = new MemoryMonitor(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    MemoryMonitor monitor = new MemoryMonitor(profilers);
     Truth.assertThat(monitor.getName()).isEqualTo("MEMORY");
   }
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     Truth.assertThat(profilers.getStage().getClass()).isEqualTo(NullMonitorStage.class);
     monitor.expand();

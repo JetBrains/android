@@ -55,12 +55,19 @@ public class LiveAllocationCaptureObjectTest {
   protected MemoryProfilerStage myStage;
 
   protected final AspectObserver myAspectObserver = new AspectObserver();
+  private StudioProfilers myProfilers;
 
   @NotNull protected FakeIdeProfilerServices myIdeProfilerServices;
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices));
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices);
+    myStage = new MemoryProfilerStage(myProfilers);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   @RunWith(value = Parameterized.class)

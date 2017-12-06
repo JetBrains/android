@@ -28,6 +28,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,12 +47,18 @@ public class HeapDumpInstanceObjectTest {
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeMemoryService());
 
   private FakeHeapDumpCaptureObject myCaptureObject;
+  private StudioProfilers myProfilers;
 
   @Before
   public void setup() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
-    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient().getMemoryClient());
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+    myCaptureObject = new FakeHeapDumpCaptureObject(myProfilers.getClient().getMemoryClient());
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   /**

@@ -25,6 +25,7 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +51,7 @@ public class MemoryClassifierViewTest {
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
+  private StudioProfilers myProfilers;
 
   @Before
   public void before() {
@@ -57,8 +59,14 @@ public class MemoryClassifierViewTest {
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices), loader);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices);
+    myStage = new MemoryProfilerStage(myProfilers, loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   /**
