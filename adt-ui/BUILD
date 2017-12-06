@@ -13,11 +13,13 @@ iml_module(
         "//tools/idea:xml-structure-view-impl",
         "//tools/idea:spellchecker",
         "//tools/idea:images",
+        "//tools/idea:external-system-impl",
     ],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/adt/idea/adt-branding",
         "//tools/idea:RegExpSupport",
         "//tools/idea:xml-analysis-impl",
         "//tools/idea:xdebugger-impl",
