@@ -59,6 +59,7 @@ public abstract class NavTestCase extends AndroidTestCase {
     };
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/java", "src");
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/res", "res");
+    myFixture.copyFileToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/AndroidManifest.xml", "AndroidManifest.xml");
     File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
     File tempDir = FileUtil.createTempDirectory("NavigationTest", null);
     ZipUtil.extract(aar, tempDir, null);
