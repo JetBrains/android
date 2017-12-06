@@ -30,7 +30,6 @@ import javax.swing.*;
 
 /**
 * @author Dmitry Avdeev
-*         Date: 9/21/12
 */
 public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final AndroidDexCompilerConfiguration myConfig;
