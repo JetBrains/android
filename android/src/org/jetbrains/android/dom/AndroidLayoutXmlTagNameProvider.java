@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
@@ -73,7 +74,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     for (XmlElementDescriptor descriptor : variants) {
       String qualifiedName = descriptor.getName(tag);
 
-      if (qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX)) {
+      if (qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(ANDROIDX_PKG_PREFIX)) {
         supportAlternatives.add(AndroidUtils.getUnqualifiedName(qualifiedName));
       }
     }
@@ -182,6 +183,6 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     if (!modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
       return true;
     }
-    return modifierList.findAnnotation(RESTRICT_TO_ANNOTATION) != null;
+    return modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null || modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
   }
 }

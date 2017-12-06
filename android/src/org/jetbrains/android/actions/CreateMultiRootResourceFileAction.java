@@ -101,7 +101,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
 
     if (DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-      myDefaultRootTag = SdkConstants.CONSTRAINT_LAYOUT;
+      myDefaultRootTag = SdkConstants.CONSTRAINT_LAYOUT.oldName();
     }
 
     List<String> roots = getPossibleRoots(facet);

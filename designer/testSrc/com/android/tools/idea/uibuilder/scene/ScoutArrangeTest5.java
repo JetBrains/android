@@ -34,7 +34,7 @@ public class ScoutArrangeTest5 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -56,7 +56,7 @@ public class ScoutArrangeTest5 extends SceneTest {
                        .withBounds(650, 1150, 200, 50)
                        .width("200dp")
                        .height("50dp"),
-                     component(CLASS_CONSTRAINT_LAYOUT_BARRIER).id("@+id/barrier")
+                     component(CLASS_CONSTRAINT_LAYOUT_BARRIER.defaultName()).id("@+id/barrier")
                        .withBounds(50, 750, 200, 40)
                        .withAttribute("app:barrierDirection", "left")
                        .width("100dp")

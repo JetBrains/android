@@ -56,7 +56,7 @@ public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
   @NotNull
   @Override
   public String getAndroidViewTag() {
-    return SdkConstants.FLOATING_ACTION_BUTTON;
+    return SdkConstants.FLOATING_ACTION_BUTTON.defaultName();
   }
 
   @Override

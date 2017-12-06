@@ -147,23 +147,23 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   static List<AppCompatMigrationEntry> buildMigrationMap() {
     List<AppCompatMigrationEntry> mapEntries = Lists.newArrayListWithExpectedSize(MIGRATION_ENTRY_SIZE);
     // Change Activity => AppCompatActivity
-    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY));
+    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()));
     // ActionBarActivity is deprecated
-    mapEntries.add(new ClassMigrationEntry("android.support.v7.app.ActionBarActivity", CLASS_APP_COMPAT_ACTIVITY));
-    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY));
+    mapEntries.add(new ClassMigrationEntry("android.support.v7.app.ActionBarActivity", CLASS_APP_COMPAT_ACTIVITY.defaultName()));
+    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()));
     mapEntries.add(new ClassMigrationEntry("android.app.ActionBar", "android.support.v7.app.ActionBar"));
     // Change method getActionBar => getSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar", CLASS_APP_COMPAT_ACTIVITY,
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar", CLASS_APP_COMPAT_ACTIVITY.defaultName(),
                                             "getSupportActionBar"));
 
     // Change method setActionBar => setSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar", CLASS_APP_COMPAT_ACTIVITY,
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar", CLASS_APP_COMPAT_ACTIVITY.defaultName(),
                                             "setSupportActionBar"));
 
-    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar", CLASS_TOOLBAR_V7));
+    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar", CLASS_TOOLBAR_V7.defaultName()));
 
     mapEntries.add(new XmlTagMigrationEntry("android.widget.Toolbar", "",
-                                            CLASS_TOOLBAR_V7, "",
+                                            CLASS_TOOLBAR_V7.defaultName(), "",
                                             XmlElementMigration.FLAG_LAYOUT));
 
     // Change usages of Fragment => v4.app.Fragment
@@ -174,7 +174,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                                            "android.support.v4.app.FragmentManager"));
 
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getFragmentManager",
-                                            CLASS_APP_COMPAT_ACTIVITY, "getSupportFragmentManager"));
+                                            CLASS_APP_COMPAT_ACTIVITY.defaultName(), "getSupportFragmentManager"));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.app.AlertDialog",

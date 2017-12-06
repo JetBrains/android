@@ -1026,7 +1026,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
-    return component.getTagName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE);
+    return CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable

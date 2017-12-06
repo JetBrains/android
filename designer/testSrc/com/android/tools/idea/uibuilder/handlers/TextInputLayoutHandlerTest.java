@@ -37,6 +37,6 @@ public class TextInputLayoutHandlerTest {
                       "        android:hint=\"hint\" />\n" +
                       "</android.support.design.widget.TextInputLayout>\n";
     TextInputLayoutHandler handler = new TextInputLayoutHandler();
-    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT, XmlType.COMPONENT_CREATION)).isEqualTo(expected);
+    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT.defaultName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 }

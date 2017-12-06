@@ -116,7 +116,7 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
     if (modifierList != null) {
       Project project = startElement.getProject();
       PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
-      String fqcn = myRequiresApi ? REQUIRES_API_ANNOTATION : FQCN_TARGET_API;
+      String fqcn = myRequiresApi ? REQUIRES_API_ANNOTATION.defaultName() : FQCN_TARGET_API;
       String annotationText;
       if (myRequiresApi) {
         annotationText = "@" + fqcn + "(api=" + getAnnotationValue(true) + ")";

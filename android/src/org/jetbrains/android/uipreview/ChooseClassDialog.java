@@ -213,7 +213,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
         return false;
       }
       for (PsiAnnotation annotation : modifiers.getAnnotations()) {
-        if (Objects.equals(annotation.getQualifiedName(), RESTRICT_TO_ANNOTATION)) {
+        if (RESTRICT_TO_ANNOTATION.isEquals(annotation.getQualifiedName())) {
           return false;
         }
       }
@@ -236,6 +236,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   public static Predicate<String> getIsUserDefinedFilter() {
     return qualifiedName -> !qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
                             !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+                            !qualifiedName.startsWith(ANDROIDX_PKG_PREFIX) &&
                             !qualifiedName.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX);
   }
 

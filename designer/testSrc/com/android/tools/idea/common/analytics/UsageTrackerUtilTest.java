@@ -272,8 +272,8 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
   public void testConvertTagName() {
     assertThat(convertTagName(TEXT_VIEW).getTagName()).isEqualTo(TEXT_VIEW);
-    assertThat(convertTagName(COORDINATOR_LAYOUT).getTagName()).isEqualTo(StringUtil.getShortName(COORDINATOR_LAYOUT));
-    assertThat(convertTagName(CONSTRAINT_LAYOUT).getTagName()).isEqualTo(StringUtil.getShortName(CONSTRAINT_LAYOUT));
+    assertThat(convertTagName(COORDINATOR_LAYOUT.defaultName()).getTagName()).isEqualTo(StringUtil.getShortName(COORDINATOR_LAYOUT.defaultName()));
+    assertThat(convertTagName(CONSTRAINT_LAYOUT.defaultName()).getTagName()).isEqualTo(StringUtil.getShortName(CONSTRAINT_LAYOUT.defaultName()));
     assertThat(convertTagName(AD_VIEW).getTagName()).isEqualTo(StringUtil.getShortName(AD_VIEW));
     assertThat(convertTagName("com.acme.MyClass").getTagName()).isEqualTo(CUSTOM_NAME);
   }
@@ -300,8 +300,8 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
   public void testAcceptedGoogleTagNamespace() {
     assertThat(acceptedGoogleTagNamespace(TEXT_VIEW)).isTrue();
-    assertThat(acceptedGoogleTagNamespace(COORDINATOR_LAYOUT)).isTrue();
-    assertThat(acceptedGoogleTagNamespace(CONSTRAINT_LAYOUT)).isTrue();
+    assertThat(acceptedGoogleTagNamespace(COORDINATOR_LAYOUT.defaultName())).isTrue();
+    assertThat(acceptedGoogleTagNamespace(CONSTRAINT_LAYOUT.defaultName())).isTrue();
     assertThat(acceptedGoogleTagNamespace(AD_VIEW)).isTrue();
     assertThat(acceptedGoogleTagNamespace("com.acme.MyClass")).isFalse();
   }

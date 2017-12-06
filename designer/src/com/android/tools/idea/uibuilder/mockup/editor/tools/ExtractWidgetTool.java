@@ -52,7 +52,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
   /**
    * List the Android view group that cannot host children
    */
-  private static final String[] LIST_CLASSES = new String[]{RECYCLER_VIEW, LIST_VIEW};
+  private static final String[] LIST_CLASSES = new String[]{RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), LIST_VIEW};
 
   /**
    * Here we define all the actions we want to display for the widget creation
@@ -63,10 +63,10 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     // TODO: add new Icons to StudioIcons and replace this.
     .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout, true))
     .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW))
-    .add(new CreatorAction(FLOATING_ACTION_BUTTON, "Create new FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON))
+    .add(new CreatorAction(FLOATING_ACTION_BUTTON.defaultName(), "Create new FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON))
     .add(new CreatorAction(TEXT_VIEW, "Create new TextView", StudioIcons.LayoutEditor.Palette.TEXT_VIEW))
     // TODO: Should have an icon named "RECYCLER_VIEW" in StudioIcons.
-    .add(new CreatorAction(RECYCLER_VIEW, "Create new RecyclerView", StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW))
+    .add(new CreatorAction(RECYCLER_VIEW.defaultName(), "Create new RecyclerView", StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW))
     .build();
 
   private static ImmutableList<CreatorAction> ourOtherCreationActions = new ImmutableList.Builder<CreatorAction>()

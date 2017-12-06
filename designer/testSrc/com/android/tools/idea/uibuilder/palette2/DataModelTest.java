@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import com.android.SdkConstants;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.intellij.ide.util.PropertiesComponent;
@@ -74,10 +75,11 @@ public class DataModelTest extends AndroidTestCase {
   public void testAddFavorite() {
     myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
-    myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON));
+    myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.defaultName()));
 
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW, VIEW_FRAGMENT, SCROLL_VIEW, SWITCH, FLOATING_ACTION_BUTTON).inOrder();
+      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH,
+                       FLOATING_ACTION_BUTTON.defaultName()).inOrder();
 
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
@@ -91,7 +93,7 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
 
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW, VIEW_FRAGMENT, SCROLL_VIEW, SWITCH).inOrder();
+      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH).inOrder();
 
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();

@@ -73,8 +73,10 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       list.add(new AddTargetApiQuickFix(api, false, startElement));
       ApplicationManager.getApplication().assertReadAccessAllowed();
       Project project = startElement.getProject();
-      if (!isXml && JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION,
-                                                                 GlobalSearchScope.allScope(project)) != null) {
+      if (!isXml && (JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.oldName(),
+                                                                  GlobalSearchScope.allScope(project)) != null ||
+                     JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.newName(),
+                                                                  GlobalSearchScope.allScope(project)) != null)) {
         list.add(new AddTargetApiQuickFix(api, true, startElement));
       }
 

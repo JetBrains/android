@@ -245,7 +245,7 @@ public class NlDropListener extends DropTargetAdapter {
 
     NlWriteCommandAction.run(myDragReceiver, "", () -> {
       XmlTag tag = myDragReceiver.getTag();
-      tag.setName(CONSTRAINT_LAYOUT);
+      tag.setName(CONSTRAINT_LAYOUT.defaultName());
 
       myDragReceiver.setTag(tag);
       transaction.commit();

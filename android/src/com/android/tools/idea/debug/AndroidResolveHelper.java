@@ -237,9 +237,9 @@ public class AndroidResolveHelper {
       }
 
       if (qualifiedName.endsWith(ResourceEvaluator.RES_SUFFIX)
-        || qualifiedName.equals(ResourceEvaluator.COLOR_INT_ANNOTATION)
-        || qualifiedName.equals(ResourceEvaluator.PX_ANNOTATION)
-        || qualifiedName.equals(SdkConstants.INT_DEF_ANNOTATION)) {
+        || ResourceEvaluator.COLOR_INT_ANNOTATION.isEquals(qualifiedName)
+        || ResourceEvaluator.PX_ANNOTATION.isEquals(qualifiedName)
+        || SdkConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
         return a;
       }
 

@@ -36,7 +36,7 @@ public class SceneMergeTest extends SceneTest {
                    .withBounds(0, 0, 1000, 1000)
                    .width("1000dp")
                    .height("1000dp")
-                   .withAttribute("tools:parentTag", CONSTRAINT_LAYOUT)
+                   .withAttribute("tools:parentTag", CONSTRAINT_LAYOUT.defaultName())
     );
   }
 

@@ -284,7 +284,7 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
   }
   val facade = JavaPsiFacade.getInstance(this.project)
   var activityClass = facade.findClass(activityClassName, this.module.moduleScope)
-  while (activityClass != null && CLASS_APP_COMPAT_ACTIVITY != activityClass.qualifiedName) {
+  while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)) {
     activityClass = activityClass.superClass
   }
   return activityClass != null

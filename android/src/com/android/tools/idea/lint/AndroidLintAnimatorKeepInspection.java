@@ -59,10 +59,13 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
 
           final PsiModifierList modifierList = container.getModifierList();
           if (modifierList != null) {
-            PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION);
+            PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION.oldName());
+            if (annotation == null) {
+              annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION.newName());
+            }
             if (annotation == null) {
               Project project = startElement.getProject();
-              new AddAnnotationFix(KEEP_ANNOTATION, container).invoke(project, null, container.getContainingFile());
+              new AddAnnotationFix(KEEP_ANNOTATION.defaultName(), container).invoke(project, null, container.getContainingFile());
             }
           }
         }

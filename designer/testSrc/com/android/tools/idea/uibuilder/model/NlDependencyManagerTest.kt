@@ -44,10 +44,10 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     dummyDependenciesManager = DummyDependenciesManager()
     nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
     model = model("model.xml",
-        component(SdkConstants.CONSTRAINT_LAYOUT)
+        component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
             .withBounds(0, 0, 10, 10)
             .children(
-                component(SdkConstants.CARD_VIEW)
+                component(SdkConstants.CARD_VIEW.defaultName())
                     .withBounds(1, 1, 1, 1)
             )).build()
   }

@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
+import com.android.support.AndroidxName
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
@@ -266,6 +267,35 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (className == viewClass.name) {
+        return true
+      }
+      viewClass = viewClass.superclass
+    }
+  }
+  return false
+}
+
+/**
+ * Returns true if this NlComponent's class is the specified class,
+ * or if one of its super classes is the specified class.
+
+ * @param className A fully qualified class name
+ */
+fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
+  return isOrHasSuperclass(className.oldName()) || isOrHasSuperclass(className.newName())
+}
+
+/**
+ * Returns true if this NlComponent's class has a class in the androidx. namespace
+ */
+fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
+  val viewInfo = viewInfo
+  if (viewInfo != null) {
+    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(
+        ANDROIDX_PKG_PREFIX)
+    var viewClass: Class<*> = viewObject.javaClass
+    while (viewClass != Any::class.java) {
+      if (viewClass.name.startsWith(ANDROID_PKG_PREFIX)) {
         return true
       }
       viewClass = viewClass.superclass

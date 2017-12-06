@@ -145,7 +145,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
   public void testPaletteDropLogging() {
     NlUsageTracker tracker = getUsageTracker();
 
-    tracker.logDropFromPalette(CONSTRAINT_LAYOUT, "<" + CONSTRAINT_LAYOUT + "/>", "All", -1);
+    tracker.logDropFromPalette(CONSTRAINT_LAYOUT.defaultName(), "<" + CONSTRAINT_LAYOUT.defaultName() + "/>", "All", -1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -310,7 +310,7 @@ public class NlUsageTrackerManagerTest extends AndroidTestCase {
     NlUsageTracker tracker = getUsageTracker();
     List<NlComponent> components = ImmutableList.of(
       getComponentMock(BUTTON),
-      getComponentMock(FLOATING_ACTION_BUTTON),
+      getComponentMock(FLOATING_ACTION_BUTTON.defaultName()),
       getComponentMock("com.acme.MyCustomView"));
     NlProperty property = mock(NlProperty.class);
     when(property.getName()).thenReturn(ATTR_TEXT);

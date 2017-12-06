@@ -364,7 +364,7 @@ public class NlModelTest extends LayoutTestCase {
     when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
@@ -410,7 +410,7 @@ public class NlModelTest extends LayoutTestCase {
       .thenReturn(true);
 
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
     NlComponent recyclerView =
       NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
@@ -433,7 +433,7 @@ public class NlModelTest extends LayoutTestCase {
           .withBounds(100, 100, 100, 100)
           .width("100dp")
           .height("100dp"),
-        component(RECYCLER_VIEW)
+        component(RECYCLER_VIEW.defaultName())
           .withBounds(100, 200, 100, 100)
           .width("100dp")
           .height("100dp")

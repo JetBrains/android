@@ -38,11 +38,11 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
           .startTag(tagName)
           .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
           .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
-            .startTag(TEXT_INPUT_EDIT_TEXT)
+            .startTag(TEXT_INPUT_EDIT_TEXT.defaultName())
             .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
             .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
             .androidAttribute(ATTR_HINT, "hint")
-            .endTag(TEXT_INPUT_EDIT_TEXT)
+            .endTag(TEXT_INPUT_EDIT_TEXT.defaultName())
           .endTag(tagName)
           .toString();
       default:

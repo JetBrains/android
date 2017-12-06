@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -243,13 +244,17 @@ public class InferSupportAnnotations {
       if (types != null && !types.isEmpty()) {
         List<String> annotations = Lists.newArrayList();
         for (ResourceType type : types) {
-          StringBuilder sb = new StringBuilder();
-          sb.append('@');
+          StringBuilder oldAnnotation = new StringBuilder();
+          StringBuilder newAnnotation = new StringBuilder();
+          oldAnnotation.append('@');
+          newAnnotation.append('@');
           if (type == COLOR_INT_MARKER_TYPE) {
-            sb.append(COLOR_INT_ANNOTATION);
+            oldAnnotation.append(COLOR_INT_ANNOTATION.oldName());
+            newAnnotation.append(COLOR_INT_ANNOTATION.newName());
           }
           else if (type == DIMENSION_MARKER_TYPE) {
-            sb.append(PX_ANNOTATION);
+            oldAnnotation.append(PX_ANNOTATION.oldName());
+            newAnnotation.append(PX_ANNOTATION.newName());
           }
           else {
             if (type == ResourceType.MIPMAP) {
@@ -257,11 +262,16 @@ public class InferSupportAnnotations {
             } else if (type == ResourceType.DECLARE_STYLEABLE) {
               continue;
             }
-            sb.append(SUPPORT_ANNOTATIONS_PREFIX);
-            sb.append(StringUtil.capitalize(type.getName()));
-            sb.append(ResourceEvaluator.RES_SUFFIX);
+            oldAnnotation.append(SUPPORT_ANNOTATIONS_PREFIX.oldName());
+            oldAnnotation.append(StringUtil.capitalize(type.getName()));
+            oldAnnotation.append(ResourceEvaluator.RES_SUFFIX);
+
+            newAnnotation.append(SUPPORT_ANNOTATIONS_PREFIX.newName());
+            newAnnotation.append(StringUtil.capitalize(type.getName()));
+            newAnnotation.append(ResourceEvaluator.RES_SUFFIX);
           }
-          annotations.add(sb.toString());
+          annotations.add(oldAnnotation.toString());
+          annotations.add(newAnnotation.toString());
         }
 
         return annotations;
@@ -276,7 +286,7 @@ public class InferSupportAnnotations {
         if (permissionReferences.size() == 1) {
           Object permission = permissionReferences.iterator().next();
           StringBuilder sb = new StringBuilder();
-          sb.append('@').append(PERMISSION_ANNOTATION).append('(');
+          sb.append('@').append(PERMISSION_ANNOTATION.oldName()).append('(');
           if (permission instanceof String) {
             sb.append('"');
             sb.append(permission);
@@ -299,7 +309,7 @@ public class InferSupportAnnotations {
         }
         else {
           StringBuilder sb = new StringBuilder();
-          sb.append('@').append(PERMISSION_ANNOTATION).append('(');
+          sb.append('@').append(PERMISSION_ANNOTATION.oldName()).append('(');
           if (requireAllPermissions) {
             sb.append(ATTR_ALL_OF);
           }
@@ -336,7 +346,10 @@ public class InferSupportAnnotations {
           }
           sb.append("}");
           sb.append(')');
-          return Collections.singletonList(sb.toString());
+          String annotation = sb.toString();
+          return ImmutableList.of(
+            annotation,
+            StringUtil.replace(annotation, PERMISSION_ANNOTATION.oldName(), PERMISSION_ANNOTATION.newName()));
         }
       }
 
@@ -347,7 +360,8 @@ public class InferSupportAnnotations {
     public String getResourceTypeAnnotationsString() {
       List<String> annotations = getResourceTypeAnnotations();
       if (!annotations.isEmpty()) {
-        return Joiner.on('\n').join(annotations).replace(SUPPORT_ANNOTATIONS_PREFIX, "");
+        return Joiner.on('\n').join(annotations).replace(SUPPORT_ANNOTATIONS_PREFIX.oldName(), "")
+          .replace(SUPPORT_ANNOTATIONS_PREFIX.newName(), "");
       }
 
       return "";
@@ -357,7 +371,8 @@ public class InferSupportAnnotations {
     public String getPermissionAnnotationsString() {
       List<String> annotations = getPermissionAnnotations();
       if (!annotations.isEmpty()) {
-        return Joiner.on('\n').join(annotations).replace(SUPPORT_ANNOTATIONS_PREFIX, "").replace("android.Manifest", "Manifest");
+        return Joiner.on('\n').join(annotations).replace(SUPPORT_ANNOTATIONS_PREFIX.oldName(), "")
+          .replace(SUPPORT_ANNOTATIONS_PREFIX.newName(), "").replace("android.Manifest", "Manifest");
       }
 
       return "";
@@ -600,14 +615,18 @@ public class InferSupportAnnotations {
         continue;
       }
       ResourceType type = null;
-      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(RES_SUFFIX)) {
-        String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.length(), qualifiedName.length() - RES_SUFFIX.length());
+      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName()) && qualifiedName.endsWith(RES_SUFFIX)) {
+        String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length(), qualifiedName.length() - RES_SUFFIX.length());
         type = ResourceType.getEnum(name.toLowerCase(Locale.US));
       }
-      else if (qualifiedName.equals(COLOR_INT_ANNOTATION)) {
+      else if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.newName()) && qualifiedName.endsWith(RES_SUFFIX)) {
+        String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length(), qualifiedName.length() - RES_SUFFIX.length());
+        type = ResourceType.getEnum(name.toLowerCase(Locale.US));
+      }
+      else if (COLOR_INT_ANNOTATION.isEquals(qualifiedName)) {
         type = COLOR_INT_MARKER_TYPE;
       }
-      else if (qualifiedName.equals(PX_ANNOTATION)) {
+      else if (PX_ANNOTATION.isEquals(qualifiedName)) {
         type = DIMENSION_MARKER_TYPE;
       }
       if (type != null) {
@@ -798,7 +817,7 @@ public class InferSupportAnnotations {
       if (qualifiedName == null) {
         continue;
       }
-      if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
+      if (PERMISSION_ANNOTATION.isPrefix(qualifiedName)) {
         if (constraints == null) {
           constraints = new Constraints();
         }
@@ -825,10 +844,10 @@ public class InferSupportAnnotations {
           }
         }
       }
-      else if (qualifiedName.equals(UI_THREAD_ANNOTATION)
-               || qualifiedName.equals(MAIN_THREAD_ANNOTATION)
-               || qualifiedName.equals(BINDER_THREAD_ANNOTATION)
-               || qualifiedName.equals(WORKER_THREAD_ANNOTATION)) {
+      else if (UI_THREAD_ANNOTATION.isEquals(qualifiedName)
+               || MAIN_THREAD_ANNOTATION.isEquals(qualifiedName)
+               || BINDER_THREAD_ANNOTATION.isEquals(qualifiedName)
+               || WORKER_THREAD_ANNOTATION.isEquals(qualifiedName)) {
         // TODO: Record thread here to pass to caller, BUT ONLY IF CONDITIONAL
       }
     }

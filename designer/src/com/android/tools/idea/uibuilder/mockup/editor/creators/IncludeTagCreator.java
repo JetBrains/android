@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -91,7 +90,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
   @Override
   public NlComponent addToModel() {
     NlComponent component = getMockup().getComponent();
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW_V7)) {
       addListItemAttribute(component);
       return component;
     }
