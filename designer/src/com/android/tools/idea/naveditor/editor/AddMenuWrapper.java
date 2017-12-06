@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
+import com.google.common.base.Function;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -125,7 +126,6 @@ public class AddMenuWrapper extends DropDownAction {
                   @Nullable String id,
                   @Nullable String label) {
     String tagName = destination.getTag();
-    String qName = destination.getQualifiedName();
     Consumer<NlComponent> extraActions = component -> {
       XmlFile layout = destination.getLayoutFile();
       if (layout != null) {
@@ -134,27 +134,29 @@ public class AddMenuWrapper extends DropDownAction {
         component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layoutId);
       }
     };
-    addElement(surface, tagName, id != null ? id : qName, label != null ? label : qName, extraActions);
+    addElement(surface, tagName, id != null ? id : destination.getClassName(), destination.getQualifiedName(), label, extraActions);
   }
 
   @VisibleForTesting
   void addElement(@NotNull NavDesignSurface surface,
                   @NotNull String tagName,
-                  @Nullable String idBase,
-                  @Nullable String name,
+                  @NotNull String idBase,
+                  @Nullable String className,
+                  @Nullable String label,
                   @Nullable Consumer<NlComponent> extraActions) {
-    new WriteCommandAction(surface.getProject(), "Create " + name, surface.getModel().getFile()) {
+    new WriteCommandAction(surface.getProject(), "Create " + className, surface.getModel().getFile()) {
       @Override
       protected void run(@NotNull Result result) {
         NlComponent parent = surface.getCurrentNavigation();
         XmlTag tag = parent.getTag().createChildTag(tagName, null, null, true);
         NlComponent newComponent = surface.getModel().createComponent(tag, parent, null);
         surface.getSelectionModel().setSelection(ImmutableList.of(newComponent));
-        if (idBase != null) {
-          newComponent.assignId(idBase);
+        newComponent.assignId(idBase);
+        if (className != null && !className.isEmpty()) {
+          newComponent.setAndroidAttribute(ATTR_NAME, className);
         }
-        if (name != null) {
-          newComponent.setAttribute(ANDROID_URI, ATTR_NAME, name);
+        if (label != null && !label.isEmpty()) {
+          newComponent.setAndroidAttribute(ATTR_LABEL, label);
         }
         if (extraActions != null) {
           extraActions.accept(newComponent);
@@ -236,8 +238,10 @@ public class AddMenuWrapper extends DropDownAction {
       else {
         filename = (String)mySourcePopup.getSelectedItem();
       }
-      String resource = "@" + ResourceType.NAVIGATION.getName() + "/" + FileUtil.getNameWithoutExtension(new File(filename).getName());
-      addElement(mySurface, TAG_INCLUDE, null, null, component -> component.setAttribute(AUTO_URI, "graph", resource));
+      String shortFileName = FileUtil.getNameWithoutExtension(new File(filename).getName());
+      String resource = "@" + ResourceType.NAVIGATION.getName() + "/" + shortFileName;
+      addElement(mySurface, TAG_INCLUDE, shortFileName, null, myLabelField.getText(),
+                 component -> component.setAttribute(AUTO_URI, "graph", resource));
       closePopup();
       return;
     }
@@ -250,7 +254,7 @@ public class AddMenuWrapper extends DropDownAction {
       addElement(dest, mySurface, myIdField.getText(), myLabelField.getText());
     }
     else if (type == NAVIGATION) {
-      addElement(mySurface, mySchema.getTag(psiClass), myIdField.getText(), myLabelField.getText(), null);
+      addElement(mySurface, mySchema.getTag(psiClass), myIdField.getText(), null, myLabelField.getText(), null);
     }
     closePopup();
   }
@@ -410,9 +414,15 @@ public class AddMenuWrapper extends DropDownAction {
   @NotNull
   private JPanel createSelectionPanel() {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
+    Function<NavActionManager.Destination, String> getUiName = destination -> {
+      if (destination.getLayoutFile() != null) {
+        return FileUtil.getNameWithoutExtension(destination.getLayoutFile().getName());
+      }
+      return destination.getClassName();
+    };
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
     myDestinationsGallery = new ASGallery<NavActionManager.Destination>(
-      listModel, d -> null, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
+      listModel, d -> null, getUiName, new Dimension(96, 96), null) {
       @Override
       @NotNull
       public Dimension getPreferredScrollableViewportSize() {
