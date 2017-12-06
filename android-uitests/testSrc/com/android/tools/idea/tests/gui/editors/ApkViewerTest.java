@@ -58,7 +58,7 @@ public class ApkViewerTest {
   @RunIn(TestGroup.QA)
   @Test
   public void launchApkViewer() throws Exception {
-    List<String> apkEntries = guiTest.importSimpleApplication()
+    List<String> apkEntries = guiTest.importSimpleLocalApplication()
       .invokeMenuPath("Build", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
       .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
@@ -88,7 +88,7 @@ public class ApkViewerTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testFileHandleRelease() throws Exception {
-    final String SIMPLE_APP = "SimpleApplication";
+    final String SIMPLE_APP = "SimpleLocalApplication";
     final String APP = "app";
     final String BUILD = "build";
     final String OUTPUTS = "outputs";
@@ -97,7 +97,7 @@ public class ApkViewerTest {
     final String APK_FILE_PATH = String.format("%s/%s/%s/%s/%s/%s",
                                                APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME);
 
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
     ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
