@@ -630,13 +630,13 @@ public class AppBarConfigurationDialog extends JDialog {
   @NotNull
   private static String getDesignContent(@NotNull XmlFile file) {
     XmlTag content = file.getRootTag();
-    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
+    if (content != null && COORDINATOR_LAYOUT.isEquals(content.getName())) {
       XmlTag root = content;
       content = null;
       for (XmlTag tag : root.getSubTags()) {
-        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
-            !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
-          if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
+        if (!APP_BAR_LAYOUT.isEquals(tag.getName()) &&
+            !FLOATING_ACTION_BUTTON.isEquals(tag.getName())) {
+          if (CLASS_NESTED_SCROLL_VIEW.isEquals(tag.getName())) {
             content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
           }
           else {

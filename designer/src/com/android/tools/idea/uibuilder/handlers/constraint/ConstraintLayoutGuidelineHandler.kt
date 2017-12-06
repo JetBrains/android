@@ -32,7 +32,7 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
   }
 
   override fun getIcon(component: NlComponent): Icon {
-    if (component.tagName != CONSTRAINT_LAYOUT_GUIDELINE) {
+    if (!CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
       return super.getIcon(component)
     }
     return if (isVertical(component)) {

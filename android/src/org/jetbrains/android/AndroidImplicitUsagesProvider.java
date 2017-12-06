@@ -165,7 +165,8 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
       final PsiClass aClass = method.getContainingClass();
       if (aClass != null) {
         if (InheritanceUtil.isInheritor(aClass, CLASS_FRAGMENT)
-          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT)
+          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT.oldName())
+          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT.newName())
           || InheritanceUtil.isInheritor(aClass, CLASS_BACKUP_AGENT)) {
           // Activity, Service, ContentProvider and BroadcastReceiver should also be treated as having implicit usages,
           // but for some reason that's already the case (they are not marked as unused constructors currently;

@@ -97,7 +97,7 @@ public class ScoutDirectConvert {
     if (!layout.getTag().getName().equals(RELATIVE_LAYOUT)) {
       return false;
     }
-    layout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
+    layout.getTag().setName(CLASS_CONSTRAINT_LAYOUT.defaultName());
     convert(layout);
     return true;
   }

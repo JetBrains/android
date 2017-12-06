@@ -290,7 +290,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             break;
           }
           else {
-            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, false, false)) {
+            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.oldName(), false, false) &&
+                AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), false, false)) {
               found = false;
               break;
             }
@@ -335,7 +336,9 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final ResourceType resType) {
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
     final boolean extendsFragment =
-      getContainingInheritorOf(element, CLASS_FRAGMENT) != null || getContainingInheritorOf(element, CLASS_V4_FRAGMENT) != null;
+      getContainingInheritorOf(element, CLASS_FRAGMENT) != null ||
+      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
+      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
 
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;

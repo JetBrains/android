@@ -204,16 +204,16 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         continue;
       }
 
-      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) || qualifiedName.startsWith("test.pkg.")) {
-        if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
+      if (SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
+        if (INT_DEF_ANNOTATION.isEquals(qualifiedName) || STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
           if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
         }
-        else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
+        else if (COLOR_INT_ANNOTATION.isEquals(qualifiedName)) {
           constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(COLOR_INT_MARKER_TYPE)), constraint);
         }
-        else if (PX_ANNOTATION.equals(qualifiedName) || DIMENSION_ANNOTATION.equals(qualifiedName)) {
+        else if (PX_ANNOTATION.isEquals(qualifiedName) || DIMENSION_ANNOTATION.isEquals(qualifiedName)) {
           constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(DIMENSION_MARKER_TYPE)), constraint);
         }
         else if (qualifiedName.endsWith(RES_SUFFIX)) {
@@ -401,9 +401,18 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
 
   @Nullable
   public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
-    String resourceTypeName =
-      Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.length())) +
-      qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+    String resourceTypeName = null;
+
+    if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
+                         qualifiedName
+                           .substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+    }
+    else {
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.newName().length())) +
+                         qualifiedName
+                           .substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+    }
     return ResourceType.getEnum(resourceTypeName);
   }
 

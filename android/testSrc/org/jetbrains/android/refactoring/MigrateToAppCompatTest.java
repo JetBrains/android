@@ -73,7 +73,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
   public void testMigrateActivity2AppCompatActivity() throws Exception {
     new MigrationBuilder()
       .withFileInProject("SimpleActivity.java", "src/p1/p2/SimpleActivity.java")
-      .withEntry(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY))
+      .withEntry(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()))
       .run(myFixture);
   }
 
@@ -85,7 +85,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
                        "}\n");
     new MigrationBuilder()
       .withFileInProject("BaseFragmentActivity.java", "src/p1/p2/BaseFragmentActivity.java")
-      .withEntry(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY))
+      .withEntry(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()))
       .run(myFixture);
   }
 
@@ -247,8 +247,8 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
                                          "android.support.v7.widget.Toolbar"))
       .withEntry(new MethodMigrationEntry(
         "android.app.Activity", "setActionBar",
-        CLASS_APP_COMPAT_ACTIVITY, "setSupportActionBar"))
-      .withEntry(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY))
+        CLASS_APP_COMPAT_ACTIVITY.defaultName(), "setSupportActionBar"))
+      .withEntry(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY.defaultName()))
       .run(myFixture);
   }
 

@@ -83,7 +83,8 @@ public class AttributeProcessingUtil {
     ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
     ImmutableSet
-      .of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7, CLASS_PERCENT_RELATIVE_LAYOUT, CLASS_PERCENT_FRAME_LAYOUT);
+      .of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7.oldName(), FQCN_GRID_LAYOUT_V7.newName(),
+          CLASS_PERCENT_RELATIVE_LAYOUT, CLASS_PERCENT_FRAME_LAYOUT);
 
   private AttributeProcessingUtil() {
   }
@@ -261,12 +262,11 @@ public class AttributeProcessingUtil {
    * This is for classes from support libaries without attrs.xml like support lib v4.
    */
   private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
-    switch (StringUtil.notNullize(c.getQualifiedName())) {
-      case CLASS_NESTED_SCROLL_VIEW:
-        return Collections.singleton(getViewClassMap(facet).get(SCROLL_VIEW));
-      default:
-        return Collections.emptySet();
+    if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
+      return Collections.singleton(getViewClassMap(facet).get(SCROLL_VIEW));
     }
+
+    return Collections.emptySet();
   }
 
   @Nullable
@@ -276,6 +276,7 @@ public class AttributeProcessingUtil {
     return qualifiedName != null &&
            qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
            !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+           !qualifiedName.startsWith(ANDROIDX_PKG_PREFIX) &&
            !qualifiedName.startsWith(ANDROID_ARCH_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
   }
 
@@ -426,9 +427,15 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_LISTFOOTER, callback);
       }
 
-      final PsiClass drawerLayout = map.get(CLASS_DRAWER_LAYOUT);
-      if (drawerLayout != null && psiClass != null &&
-          (psiClass.isEquivalentTo(drawerLayout) || psiClass.isInheritor(drawerLayout, true))) {
+      final PsiClass oldDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.oldName());
+      if (oldDrawerLayout != null && psiClass != null &&
+          (psiClass.isEquivalentTo(oldDrawerLayout) || psiClass.isInheritor(oldDrawerLayout, true))) {
+        registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
+      }
+
+      final PsiClass newDrawerLayout = map.get(CLASS_DRAWER_LAYOUT.newName());
+      if (newDrawerLayout != null && psiClass != null &&
+          (psiClass.isEquivalentTo(newDrawerLayout) || psiClass.isInheritor(newDrawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
       }
 

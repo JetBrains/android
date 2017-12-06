@@ -680,7 +680,8 @@ public class HtmlLinkManager {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getUserDefinedPublicAndUnrestrictedFilter();
-    String className = ChooseClassDialog.openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    String className = ChooseClassDialog
+      .openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName());
     if (className == null) {
       return;
     }

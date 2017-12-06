@@ -34,7 +34,7 @@ public class ScoutChainTest02 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 720, 1024)
                    .width("360dp")

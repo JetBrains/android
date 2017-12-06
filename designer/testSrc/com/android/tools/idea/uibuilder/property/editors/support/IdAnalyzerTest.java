@@ -121,7 +121,7 @@ public class IdAnalyzerTest extends LayoutTestCase {
   }
 
   private ModelBuilder createConstraintLayout() {
-    return model("constraint.xml", component(CONSTRAINT_LAYOUT)
+    return model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .id("@+id/constraint")
       .matchParentWidth()

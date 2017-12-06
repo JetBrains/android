@@ -52,10 +52,12 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
+      String tabItemName = node.getTagName().startsWith(ANDROIDX_PKG_PREFIX) ? CLASS_TAB_ITEM.newName() : CLASS_TAB_ITEM.oldName();
+
       // Insert a couple of TabItems:
-      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
+      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
+      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
 
       tab1.setAndroidAttribute(ATTR_TEXT, "Left");
       tab2.setAndroidAttribute(ATTR_TEXT, "Center");
@@ -68,7 +70,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @Override
   public boolean acceptsChild(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild) {
-    return newChild.getTagName().equals(TAB_ITEM);
+    return TAB_ITEM.isEquals(newChild.getTagName());
   }
 
   @Override

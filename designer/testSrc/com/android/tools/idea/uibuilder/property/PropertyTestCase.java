@@ -285,7 +285,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                        ),
-                                     component(CONSTRAINT_LAYOUT)
+                                     component(CONSTRAINT_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/constraintLayout")
                                        .width("700dp")
@@ -298,20 +298,20 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .height("wrap_content")
                                            .text("OtherButton")
                                        ),
-                                     component(CONSTRAINT_LAYOUT)
+                                     component(CONSTRAINT_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/constraintLayoutWithConstraintSet")
                                        .width("700dp")
                                        .height("1000dp")
                                        .withAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET, "@+id/constraints")
                                        .children(
-                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.defaultName())
                                            .withBounds(400, 100, 100, 100)
                                            .id("@+id/constraints")
                                            .width("wrap_content")
                                            .height("wrap_content")
                                        ),
-                                     component(TAB_LAYOUT)
+                                     component(TAB_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/tabLayout")
                                        .width("700dp")
@@ -349,7 +349,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("ButtonInLinearLayout"),
-                                         component(COLLAPSING_TOOLBAR_LAYOUT)
+                                         component(COLLAPSING_TOOLBAR_LAYOUT.defaultName())
                                            .withBounds(400, 300, 100, 200)
                                            .children(
                                              component(IMAGE_VIEW)

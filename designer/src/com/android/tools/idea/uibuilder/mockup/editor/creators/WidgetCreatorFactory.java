@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -50,27 +49,26 @@ public final class WidgetCreatorFactory {
                                      @NotNull SceneView screenView,
                                      @NotNull Rectangle selection) {
     @NotNull final WidgetCreator creator;
-    switch (tagName) {
-      case SdkConstants.VIEW_INCLUDE:
-        creator = new IncludeTagCreator(mockup, model, screenView, selection);
-        break;
-      case SdkConstants.IMAGE_VIEW:
-        creator = new ImageViewCreator(mockup, model, screenView, selection);
-        break;
-      case SdkConstants.FLOATING_ACTION_BUTTON:
-        creator = new FloatingActionButtonCreator(mockup, model, screenView, selection);
-        break;
-      case SdkConstants.TEXT_VIEW:
-        creator = new TextViewCreator(mockup, model, screenView, selection);
-        break;
-      case SdkConstants.ATTR_DRAWABLE:
-        creator = new ExtractIconCreator(mockup, model, screenView, selection);
-        break;
-      case SdkConstants.RECYCLER_VIEW:
-        creator = new RecyclerViewCreator(mockup, model, screenView, selection);
-        break;
-      default:
-        creator = new AutoCompleteViewCreator(mockup, model, screenView, selection);
+    if (SdkConstants.VIEW_INCLUDE.equals(tagName)) {
+      creator = new IncludeTagCreator(mockup, model, screenView, selection);
+    }
+    else if (SdkConstants.IMAGE_VIEW.equals(tagName)) {
+      creator = new ImageViewCreator(mockup, model, screenView, selection);
+    }
+    else if (SdkConstants.FLOATING_ACTION_BUTTON.isEquals(tagName)) {
+      creator = new FloatingActionButtonCreator(mockup, model, screenView, selection);
+    }
+    else if (SdkConstants.TEXT_VIEW.equals(tagName)) {
+      creator = new TextViewCreator(mockup, model, screenView, selection);
+    }
+    else if (SdkConstants.ATTR_DRAWABLE.equals(tagName)) {
+      creator = new ExtractIconCreator(mockup, model, screenView, selection);
+    }
+    else if (SdkConstants.RECYCLER_VIEW.isEquals(tagName)) {
+      creator = new RecyclerViewCreator(mockup, model, screenView, selection);
+    }
+    else {
+      creator = new AutoCompleteViewCreator(mockup, model, screenView, selection);
     }
     return creator;
   }

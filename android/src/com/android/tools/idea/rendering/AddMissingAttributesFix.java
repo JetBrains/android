@@ -184,7 +184,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
     XmlTag parentTag = getParentTag(tag);
     if (parentTag != null) {
       String parentName = parentTag.getName();
-      if (GRID_LAYOUT.equals(parentName) || FQCN_GRID_LAYOUT_V7.equals(parentName)) {
+      if (GRID_LAYOUT.equals(parentName) || FQCN_GRID_LAYOUT_V7.isEquals(parentName)) {
         return false;
       }
     }

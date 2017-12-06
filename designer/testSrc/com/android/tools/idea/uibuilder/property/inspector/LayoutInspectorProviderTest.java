@@ -50,10 +50,10 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myCoordinatorLayout = newFakeNlComponent(COORDINATOR_LAYOUT);
-    myAppBarLayout = newFakeNlComponent(APP_BAR_LAYOUT);
-    myCollapsingToolbarLayout = newFakeNlComponent(COLLAPSING_TOOLBAR_LAYOUT);
-    myToolbar = newFakeNlComponent(TOOLBAR_V7);
+    myCoordinatorLayout = newFakeNlComponent(COORDINATOR_LAYOUT.defaultName());
+    myAppBarLayout = newFakeNlComponent(APP_BAR_LAYOUT.defaultName());
+    myCollapsingToolbarLayout = newFakeNlComponent(COLLAPSING_TOOLBAR_LAYOUT.defaultName());
+    myToolbar = newFakeNlComponent(TOOLBAR_V7.defaultName());
     myFakeImageView = newFakeNlComponent(IMAGE_VIEW);
     myProvider = new LayoutInspectorProvider(getProject());
     initFakeHierarchy();

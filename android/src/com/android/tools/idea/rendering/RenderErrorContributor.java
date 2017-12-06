@@ -1072,7 +1072,7 @@ public class RenderErrorContributor {
         return;
       }
 
-      if (CLASS_CONSTRAINT_LAYOUT.equals(className)) {
+      if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add constraint-layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.CONSTRAINT_LAYOUT));

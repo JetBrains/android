@@ -253,7 +253,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       processComponent(myLayout);
 
       flatten();
-      PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
+      PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT.defaultName());
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
 
       NlModel model = myLayout.getModel();

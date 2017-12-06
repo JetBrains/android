@@ -142,35 +142,35 @@ public class StyleFilterTest extends AndroidGradleTestCase {
                    ImmutableList.of(),
                    ImmutableList.of("Widget.AppCompat.TextView.SpinnerItem"),
                    ImmutableList.of("Widget.TextView", "Widget.Material.TextView"));
-    assertTagStyle(SdkConstants.APP_BAR_LAYOUT, 0, 1, 0,
+    assertTagStyle(SdkConstants.APP_BAR_LAYOUT.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.AppBarLayout"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.COLLAPSING_TOOLBAR_LAYOUT, 0, 1, 0,
+    assertTagStyle(SdkConstants.COLLAPSING_TOOLBAR_LAYOUT.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.CollapsingToolbar"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.COORDINATOR_LAYOUT, 0, 1, 0,
+    assertTagStyle(SdkConstants.COORDINATOR_LAYOUT.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.CoordinatorLayout"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.FLOATING_ACTION_BUTTON, 0, 1, 0,
+    assertTagStyle(SdkConstants.FLOATING_ACTION_BUTTON.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.FloatingActionButton"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.NAVIGATION_VIEW, 0, 1, 0,
+    assertTagStyle(SdkConstants.NAVIGATION_VIEW.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.NavigationView"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.SNACKBAR, 0, 1, 0,
+    assertTagStyle(SdkConstants.SNACKBAR.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.Snackbar"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.TAB_LAYOUT, 0, 1, 0,
+    assertTagStyle(SdkConstants.TAB_LAYOUT.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.TabLayout"),
                    ImmutableList.of());
-    assertTagStyle(SdkConstants.TEXT_INPUT_LAYOUT, 0, 1, 0,
+    assertTagStyle(SdkConstants.TEXT_INPUT_LAYOUT.defaultName(), 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.TextInputLayout"),
                    ImmutableList.of());

@@ -76,11 +76,12 @@ class DependencyManagerTest : AndroidTestCase() {
 
   fun testNeedsLibraryLoad() {
     assertThat(myManager!!.needsLibraryLoad(findItem(TEXT_VIEW))).isFalse()
-    assertThat(myManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON))).isTrue()
+    assertThat(myManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName()))).isTrue()
   }
 
   fun testEnsureLibraryIsIncluded() {
-    val (floatingActionButton, recyclerView, cardView) = listOf(FLOATING_ACTION_BUTTON, RECYCLER_VIEW, CARD_VIEW).map(this::findItem)
+    val (floatingActionButton, recyclerView, cardView) =
+        listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
 
     assertThat(myManager!!.needsLibraryLoad(floatingActionButton)).isTrue()
     assertThat(myManager!!.needsLibraryLoad(recyclerView)).isTrue()
@@ -99,7 +100,7 @@ class DependencyManagerTest : AndroidTestCase() {
     simulateProjectSync()
     verify(myPanel, never())!!.repaint()
 
-    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON))
+    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
     verify(myPanel)!!.repaint()
   }
@@ -107,7 +108,7 @@ class DependencyManagerTest : AndroidTestCase() {
   fun testDisposeStopsProjectSyncListening() {
     Disposer.dispose(myDisposable!!)
 
-    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON))
+    myManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
     verify(myPanel, never())!!.repaint()
   }

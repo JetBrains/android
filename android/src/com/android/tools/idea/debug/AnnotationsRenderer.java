@@ -53,13 +53,13 @@ public class AnnotationsRenderer {
       return renderUnknown(null, value);
     }
 
-    if (ResourceEvaluator.COLOR_INT_ANNOTATION.equals(qualifiedName)) {
+    if (ResourceEvaluator.COLOR_INT_ANNOTATION.isEquals(qualifiedName)) {
       return renderColorInt(value);
     }
     else if (qualifiedName.endsWith(ResourceEvaluator.RES_SUFFIX)) {
       return renderResourceRefAnnotation(resolver, value, qualifiedName);
     }
-    else if (qualifiedName.equals(SdkConstants.INT_DEF_ANNOTATION)) {
+    else if (SdkConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)) {
       return renderIntDefAnnotation(annotation, value);
     }
 

@@ -110,7 +110,8 @@ public class ChooseClassDialogTest extends AndroidTestCase {
     assertFalse(isUserDefined.test("android.view.ViewStub"));
     assertFalse(isUserDefined.test("android.webkit.WebView"));
     assertFalse(isUserDefined.test(CLASS_AD_VIEW));
-    assertFalse(isUserDefined.test(CLASS_CONSTRAINT_LAYOUT));
+    assertFalse(isUserDefined.test(CLASS_CONSTRAINT_LAYOUT.oldName()));
+    assertFalse(isUserDefined.test(CLASS_CONSTRAINT_LAYOUT.newName()));
     assertTrue(isUserDefined.test("p1.p2.CustomImageView"));
   }
 }

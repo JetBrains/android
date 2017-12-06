@@ -63,7 +63,7 @@ public class SceneDeleteBarrierTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@id/root")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -79,7 +79,7 @@ public class SceneDeleteBarrierTest extends SceneTest {
                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent"),
-                     component(CLASS_CONSTRAINT_LAYOUT_HELPER)
+                     component(CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
                        .id("@id/barrier")
                        .withBounds(900, 1052, 200, 40)
                        .width("100dp")

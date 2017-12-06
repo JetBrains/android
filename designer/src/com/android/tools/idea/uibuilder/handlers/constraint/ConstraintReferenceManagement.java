@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlTag;
@@ -44,22 +44,25 @@ class ConstraintReferenceManagement {
    */
   private static void ensurePresence(@NotNull NlComponent component, @NotNull NlComponent constraints) {
     if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
-        || component.getTagName().equals(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+        || CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.isEquals(component.getTagName())
         || NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)
-        || component.getTagName().equals(CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+        || CLASS_CONSTRAINT_LAYOUT_REFERENCE.isEquals(component.getTagName())) {
       return;
     }
     if (exists(component, constraints)) {
       return;
     }
 
+    boolean useAndroidx = NlComponentHelperKt.isOrHasAndroidxSuperclass(component);
     // the component wasn't found, let's add it.
 
     component.ensureId();
     ApplicationManager.getApplication().runWriteAction(
       () -> {
         XmlTag parentTag = constraints.getTag();
-        XmlTag childTag = parentTag.createChildTag(CLASS_CONSTRAINT_LAYOUT_REFERENCE, null, null, false);
+        XmlTag childTag = parentTag
+          .createChildTag(useAndroidx ? CLASS_CONSTRAINT_LAYOUT_REFERENCE.newName() : CLASS_CONSTRAINT_LAYOUT_REFERENCE.oldName(), null,
+                          null, false);
         childTag.setAttribute(PREFIX_ANDROID + ATTR_ID, NEW_ID_PREFIX + component.getId());
         for (Pair<String, String> pair : ConstraintComponentUtilities.ourLayoutAttributes) {
           String value = component.getLiveAttribute(pair.getFirst(), pair.getSecond());

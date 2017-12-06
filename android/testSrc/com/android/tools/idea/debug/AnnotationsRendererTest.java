@@ -28,11 +28,11 @@ import static org.mockito.Mockito.when;
 public class AnnotationsRendererTest extends AndroidTestCase {
   public void testColorIntRendering() {
     AnnotationsRenderer.Result result =
-      AnnotationsRenderer.render(null, createFakeAnnotation(ResourceEvaluator.COLOR_INT_ANNOTATION), 0x112233);
+      AnnotationsRenderer.render(null, createFakeAnnotation(ResourceEvaluator.COLOR_INT_ANNOTATION.defaultName()), 0x112233);
     assertEquals("0x00112233 {a=255 r=17 g=34 b=51}", result.label);
     assertNotNull(result.icon);
 
-    result = AnnotationsRenderer.render(null, createFakeAnnotation(ResourceEvaluator.COLOR_INT_ANNOTATION), 0x55112233);
+    result = AnnotationsRenderer.render(null, createFakeAnnotation(ResourceEvaluator.COLOR_INT_ANNOTATION.defaultName()), 0x55112233);
     assertEquals("0x55112233 {a=85 r=17 g=34 b=51}", result.label);
     assertNotNull(result.icon);
   }

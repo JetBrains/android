@@ -93,11 +93,11 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
       component = parent;
       parent = component.getParent();
     }
-    if (!component.getTagName().equals(COORDINATOR_LAYOUT)) {
+    if (!COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
       return null;
     }
     for (NlComponent child : component.getChildren()) {
-      if (child.getTagName().equals(APP_BAR_LAYOUT)) {
+      if (APP_BAR_LAYOUT.isEquals(child.getTagName())) {
         return child;
       }
     }

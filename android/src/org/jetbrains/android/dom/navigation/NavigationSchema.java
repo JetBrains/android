@@ -88,7 +88,8 @@ public class NavigationSchema implements Disposable {
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
     SdkConstants.CLASS_ACTIVITY, ACTIVITY,
     SdkConstants.CLASS_FRAGMENT, FRAGMENT,
-    SdkConstants.CLASS_V4_FRAGMENT, FRAGMENT);
+    SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT,
+    SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
 
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 

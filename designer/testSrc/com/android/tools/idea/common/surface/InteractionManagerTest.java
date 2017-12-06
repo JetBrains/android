@@ -294,7 +294,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   private InteractionManager setupConstraintLayoutCursorTest() {
-    SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT)
+    SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()

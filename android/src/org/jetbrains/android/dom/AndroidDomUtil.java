@@ -66,7 +66,8 @@ public class AndroidDomUtil {
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
-    new PackageClassConverter(false, true, CLASS_RECYCLER_VIEW_LAYOUT_MANAGER);
+    new PackageClassConverter(false, true,
+                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(), CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName());
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
@@ -214,7 +215,7 @@ public class AndroidDomUtil {
     else {
       // TODO: This should be duplicated to handle the similar classes from the new support packages
       // RecyclerView:
-      if (localName.equals(ATTR_LAYOUT_MANAGER) && tagName.equals(RECYCLER_VIEW)) {
+      if (localName.equals(ATTR_LAYOUT_MANAGER) && RECYCLER_VIEW.isEquals(tagName)) {
         return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
       }
     }

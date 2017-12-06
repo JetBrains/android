@@ -29,9 +29,11 @@ class MorphManager {
       val suggestions: MutableList<String>
       if (component.isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
         suggestions = mutableListOf(
-            SdkConstants.CONSTRAINT_LAYOUT,
+            SdkConstants.CONSTRAINT_LAYOUT.oldName(),
+            SdkConstants.CONSTRAINT_LAYOUT.newName(),
             SdkConstants.LINEAR_LAYOUT,
-            SdkConstants.COORDINATOR_LAYOUT,
+            SdkConstants.COORDINATOR_LAYOUT.newName(),
+            SdkConstants.COORDINATOR_LAYOUT.oldName(),
             SdkConstants.RELATIVE_LAYOUT,
             SdkConstants.FRAME_LAYOUT)
       }
@@ -49,7 +51,7 @@ class MorphManager {
       // Ensure that the component for which we get the suggestion is the first one in the list
       val currentComponentIndex = suggestions.indexOf(component.tagName)
       if (currentComponentIndex > 1) {
-        val current = suggestions.get(currentComponentIndex)
+        val current = suggestions[currentComponentIndex]
         suggestions.removeAt(currentComponentIndex)
         suggestions.add(0, current)
       }

@@ -330,7 +330,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
-    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN);
+    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
     copy(myButton);
     mySurface.getSelectionModel().toggle(chain);
     assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
@@ -475,19 +475,19 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModelWithAppBar() {
     ModelBuilder builder = model("coordinator.xml",
-                                 component(COORDINATOR_LAYOUT)
+                                 component(COORDINATOR_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
                                    .children(
-                                     component(APP_BAR_LAYOUT)
+                                     component(APP_BAR_LAYOUT.defaultName())
                                        .withBounds(0, 0, 1000, 192).matchParentWidth().height("192dp").children(
-                                       component(COLLAPSING_TOOLBAR_LAYOUT).withBounds(0, 0, 1000, 192).matchParentHeight()
+                                       component(COLLAPSING_TOOLBAR_LAYOUT.defaultName()).withBounds(0, 0, 1000, 192).matchParentHeight()
                                          .matchParentWidth()
                                          .children(component(IMAGE_VIEW).withBounds(0, 0, 1000, 192).matchParentWidth().matchParentHeight(),
                                                    component("android.support.v7.widget.Toolbar").withBounds(0, 0, 1000, 18)
                                                      .height("?attr/actionBarSize").matchParentWidth())),
-                                     component(CLASS_NESTED_SCROLL_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth()
+                                     component(CLASS_NESTED_SCROLL_VIEW.defaultName()).withBounds(0, 192, 1000, 808).matchParentWidth()
                                        .matchParentHeight().withAttribute(AUTO_URI, "layout_behavior",
                                                                           "android.support.design.widget.AppBarLayout$ScrollingViewBehavior")
                                        .children(component(TEXT_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth().wrapContentHeight()
@@ -509,7 +509,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModelWithConstraintLayout() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
@@ -529,7 +529,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .id("@+id/button1")
                                        .wrapContentWidth()
                                        .wrapContentHeight(),
-                                     component(CLASS_CONSTRAINT_LAYOUT_CHAIN)
+                                     component(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName())
                                        .withBounds(0, 0, 200, 200)
                                        .id("@+id/chain")
                                        .wrapContentWidth()
@@ -612,7 +612,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModelWithBarriers() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
@@ -627,7 +627,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .id("@+id/button3")
                                        .wrapContentWidth()
                                        .wrapContentHeight(),
-                                     component(CLASS_CONSTRAINT_LAYOUT_HELPER)
+                                     component(CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
                                        .withBounds(0, 0, 200, 200)
                                        .id("@+id/barrier")
                                        .wrapContentWidth()

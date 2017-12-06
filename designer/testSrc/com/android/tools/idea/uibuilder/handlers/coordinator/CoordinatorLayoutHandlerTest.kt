@@ -96,7 +96,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     val builder = model("coordinator.xml",
-        component(SdkConstants.COORDINATOR_LAYOUT)
+        component(SdkConstants.COORDINATOR_LAYOUT.defaultName())
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
             .matchParentHeight()

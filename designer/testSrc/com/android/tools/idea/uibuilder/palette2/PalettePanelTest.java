@@ -249,7 +249,7 @@ public class PalettePanelTest extends LayoutTestCase {
     TransferHandler handler = list.getTransferHandler();
     imitateDragAndDrop(handler, list);
 
-    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, "Layouts", -1);
+    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT.defaultName(), representation, "Layouts", -1);
   }
 
   public void testDragAndDropInDumbMode() throws Exception {

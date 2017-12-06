@@ -44,7 +44,8 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   private static final String[] CONTEXT_CLASSES = {
     SdkConstants.CLASS_ACTIVITY,
     SdkConstants.CLASS_FRAGMENT,
-    SdkConstants.CLASS_V4_FRAGMENT,
+    SdkConstants.CLASS_V4_FRAGMENT.oldName(),
+    SdkConstants.CLASS_V4_FRAGMENT.newName(),
     "android.widget.Adapter"
   };
 

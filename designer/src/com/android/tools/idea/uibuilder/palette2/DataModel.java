@@ -149,7 +149,7 @@ public class DataModel {
   private static List<String> readFavoriteItems() {
     String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW, VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
+      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
     }
     return Lists.newArrayList(favorites);
   }
