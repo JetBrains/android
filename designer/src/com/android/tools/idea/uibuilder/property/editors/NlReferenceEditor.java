@@ -60,6 +60,7 @@ import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPi
 
 public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
+  private static final int ICON_SIZE = 16;
   private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
   private final JPanel myPanel;
@@ -317,7 +318,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
     }
     else {
-      int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
+      int iconSize = JBUI.scale(ICON_SIZE);
       Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
       myIconLabel.setIcon(icon);
       myIconLabel.setVisible(icon != null);
