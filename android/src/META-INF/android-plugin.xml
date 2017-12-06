@@ -308,6 +308,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
     <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
