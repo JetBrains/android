@@ -24,6 +24,7 @@ import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,12 +56,19 @@ public class LiveAllocationCaptureObjectTest {
   protected MemoryProfilerStage myStage;
 
   protected final AspectObserver myAspectObserver = new AspectObserver();
+  private StudioProfilers myProfilers;
 
   @NotNull protected FakeIdeProfilerServices myIdeProfilerServices;
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices));
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices);
+    myStage = new MemoryProfilerStage(myProfilers);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   @RunWith(value = Parameterized.class)
