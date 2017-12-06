@@ -23,6 +23,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.containers.HashSet;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -1346,6 +1347,87 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     // For example, app:layout_constraintXXX attributes should be supported when it is in the ConstraintLayout.
 
     // TODO: Improve the test framework and test the cusomized domain case.
+  }
+
+  @Language("JAVA")
+  String restrictText =
+    "package android.support.annotation;\n" +
+    "\n" +
+    "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+    "import static java.lang.annotation.ElementType.CONSTRUCTOR;\n" +
+    "import static java.lang.annotation.ElementType.FIELD;\n" +
+    "import static java.lang.annotation.ElementType.METHOD;\n" +
+    "import static java.lang.annotation.ElementType.PACKAGE;\n" +
+    "import static java.lang.annotation.ElementType.TYPE;\n" +
+    "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+    "\n" +
+    "import java.lang.annotation.Retention;\n" +
+    "import java.lang.annotation.Target;\n" +
+    "\n" +
+    "@Retention(CLASS)\n" +
+    "@Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})\n" +
+    "public @interface RestrictTo {\n" +
+    "\n" +
+    "    Scope[] value();\n" +
+    "\n" +
+    "    enum Scope {\n" +
+    "        LIBRARY,\n" +
+    "        LIBRARY_GROUP,\n" +
+    "        @Deprecated\n" +
+    "        GROUP_ID,\n" +
+    "        TESTS,\n" +
+    "        SUBCLASSES,\n" +
+    "    }\n" +
+    "}";
+
+  @Language("JAVA")
+  String protectedView =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.widget.ImageView;\n" +
+    "\n" +
+    "class MyAddedProtectedImageView extends ImageView {\n" +
+    "    public MyAddedProtectedImageView(Context context) {\n" +
+    "        super(context);\n" +
+    "    }\n" +
+    "}";
+
+  @Language("JAVA")
+  String restrictedView =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.support.annotation.RestrictTo;\n" +
+    "import android.widget.ImageView;\n" +
+    "\n" +
+    "@RestrictTo(RestrictTo.Scope.SUBCLASSES)\n" +
+    "public class MyAddedHiddenImageView extends ImageView {\n" +
+    "    public MyAddedHiddenImageView(Context context) {\n" +
+    "        super(context);\n" +
+    "    }\n" +
+    "}";
+
+  @Language("JAVA")
+  String view =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.widget.ImageView;\n" +
+    "\n" +
+    "public class MyAddedImageView extends ImageView {\n" +
+    "    public MyAddedImageView(Context context) {\n" +
+    "        super(context);\n" +
+    "    }\n" +
+    "}";
+
+  public void testRestricted() throws Throwable {
+    myFixture.addClass(restrictText);
+    myFixture.addClass(protectedView);
+    myFixture.addClass(restrictedView);
+    myFixture.addClass(view);
+
+    toTestCompletion("restricted.xml", "restricted_after.xml");
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
