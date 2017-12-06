@@ -121,7 +121,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
     String cardSize = AvdOptionsModel.toIniString(DEFAULT_INTERNAL_STORAGE, false);
-    File hardwareSkinPath = resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
+    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);

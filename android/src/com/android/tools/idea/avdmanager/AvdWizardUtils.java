@@ -241,81 +241,124 @@ public class AvdWizardUtils {
     return candidate;
   }
 
+  /**
+   * Determine where the skins are and ensure they're current.
+   *
+   * @param deviceFile the name of the hardware device
+   * @param image the system image holding the skins
+   * @param fop FileOp to use
+   * @return where the (possibly updated) skins are. Generally this is in the SDK.
+   */
   @Nullable
-  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
-    if (path == null || path.getPath().isEmpty()) {
-      return path;
+  public static File pathToUpdatedSkins(@Nullable File deviceFile, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
+    if (deviceFile == null || deviceFile.getPath().isEmpty()) {
+      return deviceFile;
     }
-    if (FileUtil.filesEqual(path, NO_SKIN)) {
+    if (FileUtil.filesEqual(deviceFile, NO_SKIN)) {
       return NO_SKIN;
     }
-    if (!path.isAbsolute()) {
-      if (image != null) {
-        File[] skins = image.getSkins();
-        for (File skin : skins) {
-          if (skin.getPath().endsWith(File.separator + path.getPath())) {
-            return skin;
-          }
-        }
-      }
-      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-      File dest = null;
-      if (sdkData != null) {
-        File sdkDir = sdkData.getLocation();
-        File sdkSkinDir = new File(sdkDir, "skins");
-        dest = new File(sdkSkinDir, path.getPath());
-        if (fop.exists(dest)) {
-          return dest;
-        }
-      }
-
-      File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
-      if (resourceDir != null) {
-        File resourcePath = new File(resourceDir, path.getPath());
-        if (!fop.exists(resourcePath)) {
-          String name = resourcePath.getName();
-          // Unfortunately these have a different name than that included in the system images, so remap if necessary.
-          if (name.equals("AndroidWearSquare")) {
-            resourcePath = new File(resourcePath.getParent(), "wear_square");
-          }
-          if (name.equals("AndroidWearRound")) {
-            resourcePath = new File(resourcePath.getParent(), "wear_round");
-          }
-        }
-        if (fop.exists(resourcePath)) {
-          if (dest != null) {
-            try {
-              // Convert from webp to png here since emulator appears not to support it
-              fop.mkdirs(dest);
-
-              // Convert skin files (which are in webp format) to PNG for older versions of the emulator?
-              // As of 25.2.3, emulator supports webp directly.
-              AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
-
-              if (!emulatorSupportsWebp(sdkHandler)) {
-                convertWebpSkinToPng(fop, dest, resourcePath);
-              } else {
-                // Normal copy
-                for (File src : fop.listFiles(resourcePath)) {
-                  File target = new File(dest, src.getName());
-                  if (fop.isFile(src) && !fop.exists(target)) {
-                    fop.copyFile(src, target);
-                  }
-                }
-              }
-
-              return dest;
-            }
-            catch (IOException e) {
-              getLog().warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
-                                     dest, resourcePath));
-            }
-          }
-          return resourcePath;
+    if (deviceFile.isAbsolute()) {
+      return deviceFile;
+    }
+    if (image != null) {
+      File[] skins = image.getSkins();
+      for (File skin : skins) {
+        if (skin.getPath().endsWith(File.separator + deviceFile.getPath())) {
+          return skin;
         }
       }
     }
-    return path;
+    // Find the resource in the Studio distribution
+    File resourcePath = null;
+    File resourceParent = DeviceArtDescriptor.getBundledDescriptorsFolder();
+    if (resourceParent != null) {
+      // Unfortunately, some Wear devices use one name for the resource directory
+      // and different name for the skin directory. Remap those.
+      String deviceName = deviceFile.getPath();
+      if (deviceName.equals("AndroidWearSquare")) {
+        deviceName = "wear_square";
+      }
+      else if (deviceName.equals("AndroidWearRound")) {
+        deviceName = "wear_round";
+      }
+      resourcePath = new File(resourceParent, deviceName);
+    }
+    // Find the local SDK and the directory for the local copy of the skin.
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    File skinDir = null;
+    if (sdkData != null) {
+      File sdkDir = sdkData.getLocation();
+      File sdkSkinsDir = new File(sdkDir, "skins");
+      skinDir = new File(sdkSkinsDir, deviceFile.getPath());
+    }
+    boolean webpOk = (sdkData != null) && emulatorSupportsWebp(sdkData.getSdkHandler());
+    return ensureSkinsAreCurrent(resourcePath, skinDir, deviceFile, webpOk, fop);
+  }
+
+  /**
+   * Ensure that the skin images for this hardware device are current.
+   *
+   * If the skin files don't exist in the SDK, or if the skin files in the SDK
+   * are old, then copy the skin files from the Studio resource into the SDK.
+   *
+   * @param resourcePath where these skin files are in the Studio distribution.
+   * @param skinDestination where the skin files should be
+   * @param deviceName the hardware device that the skins represent
+   * @param emulatorCanDecodeWebp true if our version of the emulator supports WebP files
+   * @param fop the FileOp to use
+   * @return where to find the skin files for use in the emulator
+   */
+  @VisibleForTesting
+  @Nullable
+  public static File ensureSkinsAreCurrent(@Nullable File resourcePath,
+                                           @Nullable File skinDestination,
+                                           @Nullable File deviceName,
+                                           boolean emulatorCanDecodeWebp,
+                                           @NotNull FileOp fop) {
+    if (resourcePath == null) {
+      return (skinDestination == null) ? deviceName : skinDestination;
+    }
+    if (skinDestination == null) {
+      return resourcePath;
+    }
+    // The resource and destination paths both exist.
+    if (fop.exists(skinDestination)) {
+      // The destination skin directory already exists. Check if its files are up to date.
+      File resourceLayout = new File(resourcePath, FN_SKIN_LAYOUT);
+      File destLayout = new File(skinDestination, FN_SKIN_LAYOUT);
+      if (!resourceLayout.exists() ||
+          (destLayout.exists() && destLayout.lastModified() >= resourceLayout.lastModified())) {
+        // The 'dest/layout' file is up to date. Assume the other 'dest/' files are, also.
+        return skinDestination;
+      }
+      // The resource and destination directories exists, but the destination has old files.
+      // Remove the destination directory. We'll re-create it below.
+      fop.deleteFileOrFolder(skinDestination);
+    }
+    // Create the destination skin directory and populate it from
+    // the resource.
+    try {
+      fop.mkdirs(skinDestination);
+      if (!emulatorCanDecodeWebp) {
+        // Convert webp skin files to PNG for older versions of the emulator.
+        convertWebpSkinToPng(fop, skinDestination, resourcePath);
+      }
+      else {
+        // Normal copy
+        for (File src : fop.listFiles(resourcePath)) {
+          File target = new File(skinDestination, src.getName());
+          if (fop.isFile(src)) {
+            fop.copyFile(src, target);
+          }
+        }
+      }
+      return skinDestination;
+    }
+    catch (IOException e) {
+      getLog().warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
+                                  skinDestination, resourcePath));
+    }
+    return resourcePath;
   }
 
   @VisibleForTesting
@@ -378,7 +421,7 @@ public class AvdWizardUtils {
       // wear ones are not in webp format), or it's a webp file where we couldn't
       // (a) decode the webp file (for example if there's a problem loading the native library doing webp
       // decoding, or (b) there was an I/O error writing the PNG file. In that case we'll leave the file in
-      // webp format (future emulators support it.)
+      // webp format (current emulators support it.)
       File target = new File(dest, name);
       if (fop.isFile(src) && !fop.exists(target)) {
         fop.copyFile(src, target);
