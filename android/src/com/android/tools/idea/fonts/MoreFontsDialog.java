@@ -120,7 +120,9 @@ public class MoreFontsDialog extends DialogWrapper {
     myResolver = resolver;
     myContentPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
     myFontList.setMinimumSize(new Dimension(MIN_FONT_LIST_WIDTH, MIN_FONT_LIST_HEIGHT));
+    myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
+    myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myModel = new FontListModel(resolver);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
