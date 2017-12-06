@@ -80,6 +80,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     }
     finally {
       super.tearDown();
+      myBuildSettings = null;
+      myBuildInvoker = null;
     }
   }
 

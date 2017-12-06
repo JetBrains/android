@@ -37,6 +37,12 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
                                        myTestProjectSystem, getTestRootDisposable());
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    myAction = null;
+  }
+
   public void testGetAllowedTagNamesModuleDoesntDependOnConstaintLayout() {
     myAction.getAllowedTagNames(myFacet);
     assertEquals(SdkConstants.LINEAR_LAYOUT, myAction.getDefaultRootTag());

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +48,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public GradleSyncMessagesStub(@NotNull Project project) {
     super(project, mock(ExternalSystemNotificationManager.class));
+    Disposer.register(project, this);
   }
 
   @Override
