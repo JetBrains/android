@@ -202,7 +202,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     assertTrue(myProjectStructure.analyzed);
   }
 
-  // failing after 2017.3 merge
   public void testProvisionBeforeRunTaskIsAdded() {
     // Create android run configurations
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
