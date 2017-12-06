@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -26,6 +27,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -66,25 +69,42 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getFile();
   }
 
+  private void saveAllRelatedFiles() {
+    Set<PsiElement> relatedPsiElements = new HashSet<>();
+    relatedPsiElements.add(myGradleDslFile.getPsiElement());
+
+    // Add all parent dsl files.
+    GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
+    while (file!= null) {
+      relatedPsiElements.add(file.getPsiElement());
+      file = file.getParentModuleDslFile();
+    }
+
+    // Now relatedPsiElements should contain psi elements for the whole GradleDslFile tree.
+    // TODO: Only save the files that were actually modified by the build model.
+    for (PsiElement psiElement : relatedPsiElements) {
+      // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
+      assert psiElement instanceof PsiFile;
+
+      PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
+      Document document = psiDocumentManager.getDocument((PsiFile)psiElement);
+      if (document == null) {
+        return;
+      }
+
+      if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
+        psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+      }
+
+      // Save the file to disk to ensure the changes exist when it is read.
+      FileDocumentManager.getInstance().saveDocument(document);
+    }
+  }
+
   @Override
   public void applyChanges() {
     myGradleDslFile.applyChanges();
 
-    // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
-    PsiElement psiElement = myGradleDslFile.getPsiElement();
-    assert psiElement instanceof PsiFile;
-
-    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
-    Document document = psiDocumentManager.getDocument((PsiFile)psiElement);
-    if (document == null) {
-      return;
-    }
-
-    if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
-      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-    }
-
-    // Save the file to disk to ensure the changes exist when it is read.
-    FileDocumentManager.getInstance().saveDocument(document);
+    saveAllRelatedFiles();
   }
 }
