@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -185,8 +186,8 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-    getComponentAssistant().sceneChanged(surface, sceneView);
+  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
+    getComponentAssistant().sceneChanged(surface, scene);
   }
 
   @Override

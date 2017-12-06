@@ -279,12 +279,23 @@ public class ViewEditorImpl extends ViewEditor {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
   }
 
+
   /**
-   * Try to get an existing View editor from the {@link SceneView}'s {@link com.android.tools.idea.common.surface.DesignSurface}
-   * or create a new one using the provided {@link ScreenView} if it's null
+   * Try to get an existing View editor from the {@link SceneView}'s {@link SceneManager}
+   *
+   * @deprecated use {@link #getOrCreate(Scene)} instead.
    */
+  @Deprecated
   @NotNull
   public static ViewEditor getOrCreate(@NotNull SceneView sceneView) {
-    return sceneView.getSceneManager().getViewEditor();
+    return getOrCreate(sceneView.getScene());
+  }
+
+  /**
+   * Try to get an existing View editor from the {@link Scene}'s {@link SceneManager}
+   */
+  @NotNull
+  public static ViewEditor getOrCreate(@NotNull Scene scene) {
+    return scene.getSceneManager().getViewEditor();
   }
 }

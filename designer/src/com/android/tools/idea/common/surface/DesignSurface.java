@@ -664,12 +664,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  public void notifySceneViewChanged() {
+  public void notifySceneChanged(@NotNull Scene scene) {
     layoutContent();
-    SceneView screenView = getCurrentSceneView();
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
-      listener.sceneChanged(this, screenView);
+      listener.sceneChanged(this, scene);
     }
   }
 
