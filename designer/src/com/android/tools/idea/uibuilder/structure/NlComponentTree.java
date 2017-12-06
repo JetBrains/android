@@ -570,15 +570,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implements DataProvider ----
   @Override
   public Object getData(@NonNls String dataId) {
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
-        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      if (mySurface != null) {
-        return new DesignSurfaceActionHandler(mySurface);
-      }
-    }
-    return null;
+    return mySurface == null ? null : mySurface.getData(dataId);
   }
 
   /**

@@ -1149,7 +1149,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
       return new DesignSurfaceActionHandler(this);
     }
-    return null;
+    return myLayeredPane.getData(dataId);
   }
 
   /**
