@@ -80,7 +80,7 @@ public class GradleFiles {
     if (myProject.isInitialized()) {
       updateFileHashes();
     }
-    else {
+    else if (!myProject.isDefault()) {
       StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
     }
   }
