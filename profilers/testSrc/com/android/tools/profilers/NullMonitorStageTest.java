@@ -29,12 +29,13 @@ public class NullMonitorStageTest {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NullMonitorStageTest", myRpcService);
+  private StudioProfilers myProfilers;
 
   @Test
   public void testModelMessageAndTitle() {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
-    NullMonitorStage stage = new NullMonitorStage(profilers);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    NullMonitorStage stage = new NullMonitorStage(myProfilers);
     // No device was added, check for the appropriate message and title
     assertEquals(stage.getMessage(), NullMonitorStage.NO_DEVICE_MESSAGE);
     assertEquals(stage.getTitle(), NullMonitorStage.ANDROID_PROFILER_TITLE);

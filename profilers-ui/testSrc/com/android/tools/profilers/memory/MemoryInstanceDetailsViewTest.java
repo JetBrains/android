@@ -22,6 +22,7 @@ import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObje
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,15 +47,22 @@ public class MemoryInstanceDetailsViewTest {
   private MemoryInstanceDetailsView myDetailsView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private FakeCaptureObject myFakeCaptureObject;
+  private StudioProfilers myProfilers;
 
   @Before
   public void setup() {
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()), loader);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myStage = new MemoryProfilerStage(myProfilers, loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myProfilers.stop();
   }
 
   @Test
