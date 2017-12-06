@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -245,6 +246,22 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
     assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  public void testNothingInDefaultProject() {
+    /* Prior to fix this would throw
+    ERROR: Assertion failed: Please don't register startup activities for the default project: they won't ever be run
+    java.lang.Throwable: Assertion failed: Please don't register startup activities for the default project: they won't ever be run
+	at com.intellij.openapi.diagnostic.Logger.assertTrue(Logger.java:174)
+	at com.intellij.ide.startup.impl.StartupManagerImpl.checkNonDefaultProject(StartupManagerImpl.java:80)
+	at com.intellij.ide.startup.impl.StartupManagerImpl.registerPostStartupActivity(StartupManagerImpl.java:99)
+	at com.android.tools.idea.gradle.project.sync.GradleFiles.<init>(GradleFiles.java:84)
+     */
+
+    // Default projects are initialized during the IDE build for example to generate the searchable index.
+    GradleFiles gradleFiles = GradleFiles.getInstance(ProjectManager.getInstance().getDefaultProject());
+    PsiFile psiFile = findOrCreatePsiFileInProjectRootFolder(FN_GRADLE_PROPERTIES); // not in the default project
+    assertTrue(gradleFiles.isGradleFile(psiFile));
   }
 
   @NotNull
