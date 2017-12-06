@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.ddms;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -41,9 +42,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.IntStream;
 
 public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
                                     AndroidDebugBridge.IClientChangeListener, Disposable {
@@ -56,7 +57,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, String> myPreferredClients;
-  private boolean myIgnoreActionEvents;
+  private boolean myIgnoringActionEvents;
 
   private JComboBox<IDevice> myDeviceCombo;
   private JComboBox<Client> myClientCombo;
@@ -90,7 +91,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
     AccessibleContextUtil.setName(myDeviceCombo, "Devices");
     myDeviceCombo.addActionListener(actionEvent -> {
-      if (myIgnoreActionEvents) return;
+      if (myIgnoringActionEvents) return;
 
       updateClientCombo();
       Object sel = myDeviceCombo.getSelectedItem();
@@ -129,7 +130,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     AccessibleContextUtil.setName(myClientCombo, "Processes");
     myClientCombo.setName("Processes");
     myClientCombo.addActionListener(actionEvent -> {
-      if (myIgnoreActionEvents) return;
+      if (myIgnoringActionEvents) return;
 
       Client client = (Client)myClientCombo.getSelectedItem();
       if (client != null) {
@@ -144,7 +145,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   @NotNull
-  public Component getDeviceComboBox() {
+  public JComboBox<IDevice> getDeviceComboBox() {
     return myDeviceCombo;
   }
 
@@ -198,6 +199,11 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     }));
   }
 
+  @VisibleForTesting
+  void setBridge(@NotNull AndroidDebugBridge bridge) {
+    myBridge = bridge;
+  }
+
   @Override
   public void deviceConnected(@NotNull final IDevice device) {
     LOG.info("Device connected: " + device.getName());
@@ -230,46 +236,64 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     }
   }
 
-  private void updateDeviceCombo() {
-    myIgnoreActionEvents = true;
+  @VisibleForTesting
+  void updateDeviceCombo() {
+    if (myBridge == null) {
+      return;
+    }
 
-    boolean update = true;
-    IDevice selected = (IDevice)myDeviceCombo.getSelectedItem();
+    myIgnoringActionEvents = true;
+
+    IDevice selectedDevice = (IDevice)myDeviceCombo.getSelectedItem();
     myDeviceCombo.removeAllItems();
-    boolean shouldAddSelected = true;
-    if (myBridge != null) {
-      IDevice[] devices = myBridge.getDevices();
 
-      // determine if there are duplicate devices, if so, show serial number
-      myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
+    List<IDevice> devices = Arrays.asList(myBridge.getDevices());
 
-      for (IDevice device : devices) {
-        myDeviceCombo.addItem(device);
-        // If we reattach an actual device into Studio, "device" will be the connected IDevice and "selected" will be the disconnected one.
-        boolean isSelectedReattached =
-          selected != null && !selected.isEmulator() && selected.getSerialNumber().equals(device.getSerialNumber());
-        if (selected == device || isSelectedReattached) {
-          myDeviceCombo.setSelectedItem(device);
-          shouldAddSelected = false;
-          update = selected != device;
-        }
-      }
+    devices.forEach(device -> myDeviceCombo.addItem(device));
+    myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(devices));
+
+    Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
+      .mapToObj(i -> myDeviceCombo.getItemAt(i))
+      .filter(device -> equals(device, selectedDevice))
+      .findFirst();
+
+    if (optionalDevice.isPresent()) {
+      IDevice device = optionalDevice.get();
+
+      myDeviceCombo.setSelectedItem(device);
+      myDeviceContext.fireDeviceSelected(device);
     }
-    if (selected != null && shouldAddSelected) {
-      myDeviceCombo.addItem(selected);
-      myDeviceCombo.setSelectedItem(selected);
-    }
+    else {
+      myDeviceCombo.addItem(selectedDevice);
+      myDeviceCombo.setSelectedItem(selectedDevice);
 
-    if (update) {
-      myDeviceContext.fireDeviceSelected((IDevice)myDeviceCombo.getSelectedItem());
-      updateClientCombo();
+      myDeviceContext.fireDeviceSelected(selectedDevice);
     }
 
-    myIgnoreActionEvents = false;
+    updateClientCombo();
+    myIgnoringActionEvents = false;
+  }
+
+  private static boolean equals(@NotNull IDevice device1, @Nullable IDevice device2) {
+    if (device2 == null) {
+      return false;
+    }
+
+    boolean device1Emulator = device1.isEmulator();
+
+    if (device1Emulator != device2.isEmulator()) {
+      return false;
+    }
+
+    if (device1Emulator) {
+      return Objects.equals(device1.getAvdName(), device2.getAvdName());
+    }
+
+    return device1.getSerialNumber().equals(device2.getSerialNumber());
   }
 
   private void updateClientCombo() {
-    myIgnoreActionEvents = true;
+    myIgnoringActionEvents = true;
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
     Client selected = (Client)myClientCombo.getSelectedItem();
@@ -278,7 +302,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myClientCombo.removeAllItems();
     if (device != null) {
       // Change the currently selected client if the user has a preference.
-      String preferred = getPreferredClientForDevice(device.getName());
+      String preferred = getPreferredClient(device.getName());
       if (preferred != null) {
         Client preferredClient = device.getClient(preferred);
         if (preferredClient != null) {
@@ -310,16 +334,26 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       update = toSelect != selected;
     }
 
-    myIgnoreActionEvents = false;
+    myIgnoringActionEvents = false;
 
     if (update) {
       myDeviceContext.fireClientSelected((Client)myClientCombo.getSelectedItem());
     }
   }
 
+  @VisibleForTesting
+  void setIgnoringActionEvents(boolean ignoringActionEvents) {
+    myIgnoringActionEvents = ignoringActionEvents;
+  }
+
   @Nullable
-  private String getPreferredClientForDevice(String deviceName) {
-    String client = myPreferredClients.get(deviceName);
+  private String getPreferredClient(@NotNull String device) {
+    String client = myPreferredClients.get(device);
     return client == null ? myCandidateClientName.getValue() : client;
+  }
+
+  @VisibleForTesting
+  void putPreferredClient(@NotNull String device, @NotNull String client) {
+    myPreferredClients.put(device, client);
   }
 }
