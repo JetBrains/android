@@ -82,6 +82,7 @@ import java.util.function.Function;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -366,6 +367,11 @@ public class AvdManagerConnection {
     }
 
     final String avdName = info.getName();
+
+    File skinFile = new File(info.getProperties().get(AVD_INI_SKIN_PATH));
+    File baseSkinFile = new File(skinFile.getName());
+    // Ensure the skin files are up-to-date
+    AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
