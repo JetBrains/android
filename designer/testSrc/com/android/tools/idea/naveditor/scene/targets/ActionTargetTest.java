@@ -65,12 +65,12 @@ public class ActionTargetTest extends NavTestCase {
 
 
     InteractionManager interactionManager = new InteractionManager(surface);
-    interactionManager.registerListeners();
+    interactionManager.startListening();
 
     LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
                                    Coordinates.getSwingYDip(view, component.getCenterY()), 0);
 
     assertEquals(model.find("action1"), surface.getSelectionModel().getPrimary());
-    interactionManager.unregisterListeners();
+    interactionManager.stopListening();
   }
 }

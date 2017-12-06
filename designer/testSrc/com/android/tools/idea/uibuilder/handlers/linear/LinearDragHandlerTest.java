@@ -62,7 +62,7 @@ public class LinearDragHandlerTest extends LayoutTestCase {
     surface.setModel(model);
     Transferable transferable = surface.getSelectionModel().getTransferable(model.getId());
     InteractionManager manager = new InteractionManager(surface);
-    manager.registerListeners();
+    manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 13, 0, transferable, DnDConstants.ACTION_MOVE);
     assertEquals(3, model.find("inner").getChildCount());
     assertEquals("button", model.find("inner").getChild(1).getId());

@@ -126,7 +126,7 @@ public class NavDesignSurfaceTest extends NavTestCase {
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
     when(surface.getLayeredPane()).thenReturn(mock(JComponent.class));
     InteractionManager interactionManager = new InteractionManager(surface);
-    interactionManager.registerListeners();
+    interactionManager.startListening();
 
     SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);

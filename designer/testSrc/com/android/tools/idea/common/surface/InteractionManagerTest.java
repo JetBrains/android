@@ -178,7 +178,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     selections = surface.getSelectionModel().getSelection();
     assertEquals(ImmutableList.of(button.getNlComponent()), selections);
 
-    manager.unregisterListeners();
+    manager.stopListening();
     Disposer.dispose(surface);
   }
 

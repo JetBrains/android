@@ -125,7 +125,7 @@ public class InteractionManager {
   /**
    * Listener for mouse motion, click and keyboard events.
    */
-  private Listener myListener;
+  private final Listener myListener;
 
   /**
    * Drop target installed by this manager
@@ -150,6 +150,8 @@ public class InteractionManager {
    */
   public InteractionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
+
+    myListener = new Listener();
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
     myHoverTimer.setRepeats(false);
@@ -178,11 +180,13 @@ public class InteractionManager {
   }
 
   /**
-   * Registers all the listeners needed by the {@link InteractionManager}.
+   * This will registers all the listeners to {@link DesignSurface} needed by the {@link InteractionManager}.<br>
+   * Do nothing if it is listening already.
+   * @see #stopListening()
    */
-  public void registerListeners() {
-    if (myListener == null) {
-      myListener = new Listener();
+  public void startListening() {
+    if (myIsListening) {
+      return;
     }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
@@ -198,10 +202,14 @@ public class InteractionManager {
   }
 
   /**
-   * Unregisters all the listeners previously registered by
-   * {@link #registerListeners}.
+   * This will unregister all the listeners previously registered by from {@link DesignSurface}.<br>
+   * Do nothing if it is not listening.
+   * @see #startListening()
    */
-  public void unregisterListeners() {
+  public void stopListening() {
+    if (!myIsListening) {
+      return;
+    }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.removeMouseMotionListener(myListener);
     layeredPane.removeMouseWheelListener(myListener);
@@ -212,14 +220,6 @@ public class InteractionManager {
     }
     myHoverTimer.removeActionListener(myListener);
     myHoverTimer.stop();
-    myIsListening = false;
-  }
-
-  /**
-   * Returns whether this is currently listening to interactions with a {@link Listener}
-   */
-  public boolean isListening() {
-    return myIsListening;
   }
 
   /**
