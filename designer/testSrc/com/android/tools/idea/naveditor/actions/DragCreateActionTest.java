@@ -152,7 +152,7 @@ public class DragCreateActionTest extends NavTestCase {
 
   private static InteractionManager initializeInteractionManager(NavDesignSurface surface) {
     InteractionManager interactionManager = new InteractionManager(surface);
-    interactionManager.registerListeners();
+    interactionManager.startListening();
     return interactionManager;
   }
 

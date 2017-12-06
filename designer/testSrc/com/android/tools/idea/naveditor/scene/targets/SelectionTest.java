@@ -64,7 +64,7 @@ public class SelectionTest extends NavTestCase {
     scene.layout(0, SceneContext.get());
 
     myInteractionManager = new InteractionManager(surface);
-    myInteractionManager.registerListeners();
+    myInteractionManager.startListening();
 
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
@@ -81,7 +81,7 @@ public class SelectionTest extends NavTestCase {
 
     checkSelection(x1, y1, x2, y2, component1, component2);
 
-    myInteractionManager.unregisterListeners();
+    myInteractionManager.stopListening();
   }
 
   private void checkSelection(@NavCoordinate int x1,

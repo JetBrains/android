@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
@@ -36,7 +35,6 @@ import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -50,7 +48,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -62,7 +59,6 @@ import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
@@ -178,7 +174,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     });
 
-    myInteractionManager.registerListeners();
+    myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = createActionManager();
     myActionManager.registerActionsShortcuts(myLayeredPane);
@@ -261,11 +257,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     mySceneManager = createSceneManager(model);
     mySceneManager.addRenderListener(myRenderListener);
 
-    if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
-      myInteractionManager.unregisterListeners();
+    if (getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.startListening();
     }
-    else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
-      myInteractionManager.registerListeners();
+    else {
+      myInteractionManager.stopListening();
     }
 
     layoutContent();
@@ -279,7 +275,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
-    myInteractionManager.unregisterListeners();
+    myInteractionManager.stopListening();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
       myModel.removeListener(myModelListener);
@@ -344,6 +340,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
    */
+  @VisibleForTesting
   public void startDragDropInteraction() {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
@@ -366,6 +363,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
    */
+  @VisibleForTesting
   public void stopDragDropInteraction() {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {

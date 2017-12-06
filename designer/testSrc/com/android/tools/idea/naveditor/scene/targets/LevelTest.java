@@ -54,7 +54,7 @@ public class LevelTest extends NavTestCase {
   protected void tearDown() throws Exception {
     try {
       if (myInteractionManager != null) {
-        myInteractionManager.unregisterListeners();
+        myInteractionManager.stopListening();
       }
     }
     finally {
@@ -79,7 +79,7 @@ public class LevelTest extends NavTestCase {
     scene.layout(0, SceneContext.get());
 
     myInteractionManager = new InteractionManager(surface);
-    myInteractionManager.registerListeners();
+    myInteractionManager.startListening();
 
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
