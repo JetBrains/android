@@ -105,16 +105,8 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
     }
 
   @VisibleForTesting
-  data class Destination(val layoutFile: XmlFile?, private val className: String, val qualifiedName: String,
+  data class Destination(val layoutFile: XmlFile?, val className: String, val qualifiedName: String,
                                             val tag: String, val thumbnail: Image?) {
-
-    val name: String
-      get() {
-        if (layoutFile != null) {
-          return FileUtil.getNameWithoutExtension(layoutFile.name)
-        }
-        return className
-      }
 
     companion object {
       fun create(layout: XmlFile?, psiClass: PsiClass, tag: String, thumbnail: Image): Destination? {
