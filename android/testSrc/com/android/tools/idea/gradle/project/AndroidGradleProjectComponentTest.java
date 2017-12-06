@@ -58,6 +58,8 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
     }
     finally {
       super.tearDown();
+      myGradleProjectInfo = null;
+      myProjectComponent = null;
     }
   }
 
