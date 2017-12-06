@@ -16,11 +16,29 @@
 package com.android.tools.idea.projectsystem;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
+import com.android.tools.tests.LeakCheckerRule;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(GradleProjectSystemTestSuite.class)  // a suite mustn't contain itself
 public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
+  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
+
+  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+
+  static {
+    symlinkToIdeaHome("tools/adt/idea/android/annotations",
+                      "tools/adt/idea/android/testData",
+                      "tools/base/templates",
+                      "tools/idea/java",
+                      "prebuilts/studio/sdk",
+                      "prebuilts/tools/common/offline-m2");
+
+    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+    setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+  }
 }
 
