@@ -89,14 +89,6 @@ public class BackNavigationComponent extends JPanel {
   private DesignSurfaceListener createDesignSurfaceListener() {
     return new DesignSurfaceListener() {
       @Override
-      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-      }
-
-      @Override
-      public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-      }
-
-      @Override
       public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
         updateBackNavigation();
       }

@@ -455,14 +455,9 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     }
 
     @Override
-    public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-    }
-
-    @Override
     public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
       myEditor.setModel(model);
     }
-
 
     @Override
     public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {

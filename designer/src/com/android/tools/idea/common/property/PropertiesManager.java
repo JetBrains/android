@@ -368,14 +368,6 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-  }
-
-  @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-  }
-
-  @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
     // Do nothing
   }

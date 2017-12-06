@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
@@ -224,7 +225,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
     // The toolbar depends on the current ScreenView for its content,
     // so reload when the ScreenView changes.
     myNorthToolbar.updateActionsImmediately();
