@@ -461,7 +461,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // @formatter:on
   }
 
-  // failing after 2017.3 merge
   public void testSyncWithAARDependencyAddsSources() throws Exception {
     Project project = getProject();
 
