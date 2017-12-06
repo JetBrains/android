@@ -53,7 +53,7 @@ public class MemoryNavigationTest {
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices), loader);
+    myStage = new MemoryProfilerStage(profilers, loader);
     myStageView = new MemoryProfilerStageView(profilersView, myStage);
   }
 
