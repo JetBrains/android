@@ -18,6 +18,7 @@ package com.android.tools.idea.testing;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.pico.DefaultPicoContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,11 +32,12 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
 public final class IdeComponents {
-  private final Project myProject;
+  private Project myProject;
   private final Queue<Runnable> myUndoQueue = new ArrayDeque<>();
 
   public IdeComponents(@Nullable Project project) {
     myProject = project;
+    Disposer.register(project, () -> myProject = null);
   }
 
   @NotNull

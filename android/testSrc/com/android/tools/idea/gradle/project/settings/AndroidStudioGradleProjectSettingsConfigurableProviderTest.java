@@ -54,6 +54,7 @@ public class AndroidStudioGradleProjectSettingsConfigurableProviderTest extends 
     }
     finally {
       super.tearDown();
+      myProvider = null;
     }
   }
 

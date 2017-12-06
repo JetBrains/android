@@ -31,6 +31,12 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
     myAction = Mockito.spy(new CreateMultiRootResourceFileAction("Layout", ResourceFolderType.LAYOUT));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    myAction = null;
+  }
+
   public void testGetAllowedTagNamesModuleDoesntDependOnConstaintLayout() {
     Mockito.doReturn(false).when(myAction).dependsOn(myFacet, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
 

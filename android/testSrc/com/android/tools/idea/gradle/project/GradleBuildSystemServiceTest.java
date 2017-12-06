@@ -63,6 +63,8 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
       myIdeComponents.restore();
     } finally {
       super.tearDown();
+      myGradleProjectInfo = null;
+      myService = null;
     }
   }
 
