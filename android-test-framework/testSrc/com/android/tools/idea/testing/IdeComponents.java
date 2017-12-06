@@ -89,7 +89,7 @@ public final class IdeComponents {
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
     assertNotNull(myProject);
-    doReplaceService(myProject, serviceType, mock, null);
+    doReplaceService(myProject, serviceType, mock, myUndoQueue);
     return mock;
   }
 
