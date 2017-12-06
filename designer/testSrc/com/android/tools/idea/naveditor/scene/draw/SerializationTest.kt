@@ -16,10 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.LerpValue
-import com.android.tools.idea.common.scene.draw.DrawCircle
-import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawFilledCircle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
+import com.android.tools.idea.common.scene.draw.*
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
 import java.awt.*
@@ -105,6 +102,26 @@ class SerializationTest : TestCase() {
         DrawFilledCircle(0, Point(10, 20), Color.RED, LerpValue(1, 2, 3)), factory)
     testSerialization("DrawFilledCircle,1,30x40,ff0000ff,4:5:6",
         DrawFilledCircle(1, Point(30, 40), Color.BLUE, LerpValue(4, 5, 6)), factory)
+  }
+
+  fun testDrawArrow() {
+    val factory = { s: String -> DrawArrow(s) }
+
+    testSerialization("DrawArrow,0,10x20x30x40,ffff0000",
+        DrawArrow(0, Rectangle(10, 20, 30, 40), Color.RED), factory)
+    testSerialization("DrawArrow,1,60x70x80x90,ff0000ff",
+        DrawArrow(1, Rectangle(60, 70, 80, 90), Color.BLUE), factory)
+  }
+
+  fun testDrawLine() {
+    val factory = { s: String -> DrawLine(s) }
+
+    testSerialization("DrawLine,0,10x20,30x40,ffff0000,1:0:1",
+        DrawLine(0, Point(10, 20), Point(30, 40),
+            Color.RED, BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)), factory)
+    testSerialization("DrawLine,1,60x70,80x90,ffff0000,2:1:2",
+        DrawLine(1, Point(60, 70), Point(80, 90),
+            Color.RED, BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)), factory)
   }
 
   companion object {

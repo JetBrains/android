@@ -321,6 +321,8 @@ public class NavSceneTest extends NavTestCase {
                  "DrawFilledCircle,6,478x464,fff5f5f5,0:0:0\n" +
                  "DrawCircle,7,478x464,ffa7a7a7,2,0:0:0\n" +
                  "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,477x464,484x464,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,484x461x5x6,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -421,14 +423,16 @@ public class NavSceneTest extends NavTestCase {
                  "DrawCircle,7,158x-36,ffa7a7a7,2,0:0:0\n" +
                  "DrawIcon,80x-111x7x7,START_DESTINATION\n" +
                  "DrawTruncatedText,3,fragment2,88x-110x68x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,157x-36,164x-36,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,164x-39x5x6,ffa7a7a7\n" +
                  "\n" +
-                 "DrawFilledRectangle,-100x-100x70x19,fffafafa,6\n" +
-                 "DrawRectangle,-101x-101x72x21,ffa7a7a7,1,6\n" +
-                 "DrawTruncatedText,3,Nested Graph,-100x-100x70x19,ffa7a7a7,Default:1:9,true\n" +
-                 "DrawAction,NORMAL,-100x-100x70x19,-10x-100x76x128,NORMAL\n" +
-                 "DrawFilledCircle,6,-29x-91,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,-29x-91,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,subnav,-100x-110x70x5,ff656565,Default:0:9,false\n" +
+                 "DrawFilledRectangle,-100x-70x70x19,fffafafa,6\n" +
+                 "DrawRectangle,-101x-71x72x21,ffa7a7a7,1,6\n" +
+                 "DrawTruncatedText,3,Nested Graph,-100x-70x70x19,ffa7a7a7,Default:1:9,true\n" +
+                 "DrawAction,NORMAL,-100x-70x70x19,-10x-100x76x128,NORMAL\n" +
+                 "DrawFilledCircle,6,-29x-61,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-29x-61,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,subnav,-100x-80x70x5,ff656565,Default:0:9,false\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
     list.clear();
@@ -450,6 +454,8 @@ public class NavSceneTest extends NavTestCase {
                  "DrawFilledCircle,6,-22x-36,fff5f5f5,0:0:0\n" +
                  "DrawCircle,7,-22x-36,ffa7a7a7,2,0:0:0\n" +
                  "DrawTruncatedText,3,fragment4,-100x-110x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,-23x-36,-16x-36,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,-16x-39x5x6,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -648,6 +654,148 @@ public class NavSceneTest extends NavTestCase {
                  "DrawRectangle,450x450x128x72,FRAMES,1,0\n" +
                  "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
                  "DrawTruncatedText,3,fragment1,450x440x128x5,SUBDUED_TEXT,0,false\n" +
+                 "\n" +
+                 "UNClip\n", list.serialize());
+  }
+
+  public void testGlobalActions() {
+    SyncNlModel model = model("nav.xml", rootComponent("root")
+      .unboundedChildren(
+        actionComponent("action1").withDestinationAttribute("fragment1"),
+        actionComponent("action2").withDestinationAttribute("fragment2"),
+        actionComponent("action3").withDestinationAttribute("fragment2"),
+        actionComponent("action4").withDestinationAttribute("fragment3"),
+        actionComponent("action5").withDestinationAttribute("fragment3"),
+        actionComponent("action6").withDestinationAttribute("fragment3"),
+        fragmentComponent("fragment1"),
+        fragmentComponent("fragment2")
+          .unboundedChildren(
+            actionComponent("action7")
+              .withDestinationAttribute("fragment3")
+          ),
+        fragmentComponent("fragment3")
+      )).build();
+
+    DisplayList list = new DisplayList();
+    DesignSurface surface = model.getSurface();
+    Scene scene = surface.getScene();
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
+    assertEquals("Clip,0,0,1086,928\n" +
+                 "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawFilledCircle,6,568x464,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,568x464,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,477x464,481x464,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,481x461x5x6,ffa7a7a7\n" +
+                 "\n" +
+                 "DrawRectangle,610x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,611x401x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,611x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
+                 "DrawFilledCircle,6,688x464,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,688x464,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment2,610x390x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,597x455,601x455,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,601x452x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,597x464,601x464,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,601x461x5x6,ffa7a7a7\n" +
+                 "\n" +
+                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawFilledCircle,6,478x464,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,478x464,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,387x446,391x446,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,391x443x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,387x455,391x455,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,391x452x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,387x473,391x473,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,391x470x5x6,ffa7a7a7\n" +
+                 "\n" +
+                 "UNClip\n", list.serialize());
+  }
+
+  public void testExitActions() {
+    SyncNlModel model = model("nav.xml", rootComponent("root")
+      .withStartDestinationAttribute("fragment1")
+      .unboundedChildren(
+        fragmentComponent("fragment1"),
+        navigationComponent("subnav")
+          .unboundedChildren(
+            fragmentComponent("fragment2")
+              .unboundedChildren(actionComponent("action1").withDestinationAttribute("fragment1")),
+            fragmentComponent("fragment3")
+              .unboundedChildren(
+                actionComponent("action2").withDestinationAttribute("fragment1"),
+                actionComponent("action3").withDestinationAttribute("fragment1")),
+            fragmentComponent("fragment4")
+              .unboundedChildren(
+                actionComponent("action4").withDestinationAttribute("fragment1"),
+                actionComponent("action5").withDestinationAttribute("fragment1"),
+                actionComponent("action6").withDestinationAttribute("fragment1"),
+                actionComponent("action7").withDestinationAttribute("fragment2"))
+          ))).build();
+
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
+    surface.setSize(1000, 1000);
+    surface.setModel(model);
+    surface.zoom(ZoomType.ACTUAL);
+
+    if (!SystemInfo.isMac || !UIUtil.isRetina()) {
+      surface.zoomOut();
+      surface.zoomOut();
+      surface.zoomOut();
+      surface.zoomOut();
+    }
+
+    Scene scene = surface.getScene();
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
+
+    NavView view = new NavView(surface, surface.getSceneManager());
+    surface.setCurrentNavigation(model.find("subnav"));
+    scene.layout(0, SceneContext.get(view));
+    scene.buildDisplayList(list, 0, view);
+
+
+    assertEquals("Clip,0,0,86,-72\n" +
+                 "DrawRectangle,-10x-100x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-9x-99x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-9x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawFilledCircle,6,68x-36,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,68x-36,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment2,-10x-110x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,67x-36,74x-36,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,74x-39x5x6,ffa7a7a7\n" +
+                 "\n" +
+                 "DrawRectangle,110x-100x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,111x-99x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,111x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawFilledCircle,6,188x-36,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,188x-36,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment3,110x-110x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,187x-45,194x-45,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,194x-48x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,187x-36,194x-36,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,194x-39x5x6,ffa7a7a7\n" +
+                 "\n" +
+                 "DrawRectangle,-100x-100x76x128,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-99x-99x74x126,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-99x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawAction,NORMAL,-100x-100x76x128,-10x-100x76x128,NORMAL\n" +
+                 "DrawFilledCircle,6,-22x-36,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-22x-36,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment4,-100x-110x76x5,ff656565,Default:0:9,false\n" +
+                 "DrawLine,2,-23x-54,-16x-54,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,-16x-57x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,-23x-45,-16x-45,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,-16x-48x5x6,ffa7a7a7\n" +
+                 "DrawLine,2,-23x-27,-16x-27,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,-16x-30x5x6,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }

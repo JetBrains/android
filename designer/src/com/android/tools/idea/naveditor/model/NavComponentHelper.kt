@@ -33,6 +33,23 @@ import java.io.File
  * Extensions to NlComponent used by the navigation editor
  */
 
+/**
+ * This is an enumeration indicating the type of action represented by the specified NlComponent.
+ * GLOBAL: The parent of this action element is a navigation element.
+ * EXIT: The destination attribute of this action element refers to a destination that is not in the current root navigation
+ * SELF: The destination attribute of this action element refers to its own parent.
+ * REGULAR: The destination attribute of this action element refers to a destination that is in the current root navigation
+ * NONE: This tag is either not an action or is invalid.
+ */
+// TODO: Add support for global exit and global self actions
+enum class ActionType {
+  GLOBAL,
+  EXIT,
+  SELF,
+  REGULAR,
+  NONE
+}
+
 fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
   val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
       id ?:
@@ -88,6 +105,43 @@ val NlComponent.isStartDestination: Boolean
     val actualStart = NlComponent.stripId(parent?.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
     return actualStart != null && actualStart == id
   }
+
+val NlComponent.isDestination: Boolean
+  get() = destinationType != null
+
+val NlComponent.isAction: Boolean
+  get() = tagName == NavigationSchema.TAG_ACTION
+
+val NlComponent.isNavigation: Boolean
+  get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
+
+val NlComponent.isRegularAction: Boolean
+  get() = actionType == ActionType.REGULAR
+
+val NlComponent.actionType: ActionType
+  get() {
+    if (!isAction) {
+      return ActionType.NONE
+    }
+
+    if (parent?.isNavigation == true) {
+      return ActionType.GLOBAL
+    }
+
+    if (parent?.id == actionDestination) {
+      return ActionType.SELF
+    }
+
+    val containingNavigation = parent?.parent ?: return ActionType.NONE
+
+    return if (containingNavigation.children
+        .map { it.id }
+        .contains(actionDestination)) ActionType.REGULAR
+    else ActionType.EXIT
+  }
+
+val NlComponent.actionDestination
+  get() = NlComponent.stripId(getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION))
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

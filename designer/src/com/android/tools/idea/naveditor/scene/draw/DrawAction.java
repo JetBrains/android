@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
+import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
@@ -69,7 +70,7 @@ public class DrawAction extends NavBaseDrawCommand {
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     setRenderingHints(g);
-    ColorSet color = sceneContext.getColorSet();
+    NavColorSet color = (NavColorSet)sceneContext.getColorSet();
     draw(g, color, myConnectionType, mySource, myDest, myMode, sceneContext);
   }
 
@@ -97,13 +98,13 @@ public class DrawAction extends NavBaseDrawCommand {
   }
 
   private static void draw(@NotNull Graphics2D g,
-                           @NotNull ColorSet color,
+                           @NotNull NavColorSet color,
                            @NotNull ActionTarget.ConnectionType connectionType,
                            @SwingCoordinate Rectangle source,
                            @SwingCoordinate Rectangle dest,
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
-    Color actionColor = (mode == SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
+    Color actionColor = (mode == SELECTED) ? color.getSelectedActions() : color.getActions();
 
     @SwingCoordinate int endX;
     @SwingCoordinate int endY;
