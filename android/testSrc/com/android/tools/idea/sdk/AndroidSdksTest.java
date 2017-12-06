@@ -19,9 +19,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
@@ -73,6 +72,8 @@ public class AndroidSdksTest extends IdeaTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     mySdkPath = getSdk();
+
+    AndroidGradleTestCase.allowAccessToSdk(getTestRootDisposable());
 
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
@@ -193,8 +194,8 @@ public class AndroidSdksTest extends IdeaTestCase {
 
     VirtualFile[] sourcesRoots = sdkModificator.getRoots(SOURCES);
     assertThat(sourcesRoots).isNotEmpty();
-    VirtualFile[] sdkRoots = sdk.getRootProvider().getFiles(CLASSES);
-    assertThat(sdkRoots).isEmpty();
+
+    sdkModificator.commitChanges();
   }
 
   public void testCreateSdkWithoutSpecifyingJdk() {
