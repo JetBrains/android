@@ -126,7 +126,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
           Collections.addAll(result, fixes);
         }
 
-        if (!result.isEmpty()) {
+        if (!result.isEmpty() &&
+            (fixData == null || result.size() != 1 ||
+             !result.get(0).getName().startsWith("Suppress: "))) {
           // If one or more fixes were registered by quickfix providers, and this is a Kotlin file,
           // it's likely that the Kotlin plugin provided an alternative quickfix for this problem,
           // and we don't want to include the Java-centric quickfixes from the Android plugin
