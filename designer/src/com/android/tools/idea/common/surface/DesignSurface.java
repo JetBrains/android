@@ -268,6 +268,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       myInteractionManager.registerListeners();
     }
 
+    layoutContent();
     repaint();
 
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
@@ -661,14 +662,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
       listener.componentSelectionChanged(this, newSelection);
-    }
-  }
-
-  public void notifySceneChanged(@NotNull Scene scene) {
-    layoutContent();
-    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-    for (DesignSurfaceListener listener : listeners) {
-      listener.sceneChanged(this, scene);
     }
   }
 

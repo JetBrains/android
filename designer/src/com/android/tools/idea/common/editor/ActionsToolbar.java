@@ -225,19 +225,12 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
-    // The toolbar depends on the current ScreenView for its content,
-    // so reload when the ScreenView changes.
-    myNorthToolbar.updateActionsImmediately();
-    updateActions();
-  }
-
-  @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    myNorthToolbar.updateActionsImmediately();
     if (myDynamicGroup.getChildrenCount() == 0) {
       myModel = model;
-      updateActions();
     }
+    updateActions();
   }
 
   @Override
