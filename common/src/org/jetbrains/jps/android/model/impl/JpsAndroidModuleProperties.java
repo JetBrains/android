@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -110,7 +111,7 @@ public class JpsAndroidModuleProperties {
   public List<String> RES_OVERLAY_FOLDERS = new ArrayList<>();
 
   @Tag(ADDITIONAL_NATIVE_LIBS_ELEMENT)
-  @AbstractCollection(surroundWithTag = false)
+  @XCollection
   public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<>();
 
   @Tag("notImportedProperties")
