@@ -32,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -164,6 +165,7 @@ public class NlEditorTest {
     assertThat(nele.getScale()).isLessThan(oldScale);
   }
 
+  @Ignore("b/70300930")
   @Test
   public void testAddDesignLibrary() throws Exception {
     guiTest.importSimpleApplication()
