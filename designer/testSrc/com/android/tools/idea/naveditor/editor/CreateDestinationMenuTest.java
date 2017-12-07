@@ -1,36 +1,27 @@
-/*
- * Copyright (C) 2017 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (C) 2017 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.SdkConstants;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.mockito.Mockito;
 
 import javax.swing.*;
@@ -44,11 +35,11 @@ import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 
 // TODO: testing with custom navigators
-public class AddMenuWrapperTest extends NavTestCase {
+public class CreateDestinationMenuTest extends NavTestCase {
 
   private SyncNlModel myModel;
   private NavDesignSurface mySurface;
-  private AddMenuWrapper myMenu;
+  private CreateDestinationMenu myMenu;
 
   private final Map<NavigationSchema.DestinationType, Pair<String, PsiClass>> myItemsByType = new HashMap<>();
 
@@ -64,7 +55,7 @@ public class AddMenuWrapperTest extends NavTestCase {
     mySurface = new NavDesignSurface(getProject(), myRootDisposable);
     mySurface.setSize(1000, 1000);
     mySurface.setModel(myModel);
-    myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());
+    myMenu = new CreateDestinationMenu(mySurface);
     myMenu.createCustomComponentPopup();
 
     NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
@@ -81,27 +72,6 @@ public class AddMenuWrapperTest extends NavTestCase {
     myModel = null;
     myMenu = null;
     super.tearDown();
-  }
-
-  public void testAddFromDestination() {
-    XmlFile layout = (XmlFile)LocalResourceManager.getInstance(myFacet.getModule()).findResourceFiles(
-      ResourceFolderType.LAYOUT).stream().filter(file -> file.getName().equals("activity_main.xml")).findFirst().get();
-    new Destination.RegularDestination(mySurface.getCurrentNavigation(), "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-                                       "myId", layout)
-      .addToGraph();
-    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
-                 "    NlComponent{tag=<fragment>, instance=1}\n" +
-                 "    NlComponent{tag=<navigation>, instance=2}\n" +
-                 "        NlComponent{tag=<fragment>, instance=3}\n" +
-                 "    NlComponent{tag=<activity>, instance=4}",
-                 new NlTreeDumper().toTree(myModel.getComponents()));
-    NlComponent newChild = myModel.find("myId");
-    assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
-                 newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT));
-    assertEquals("mytest.navtest.MainActivity",
-                 newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME));
-    assertEquals("@+id/myId",
-                 newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID));
   }
 
   public void testFragmentValidation() {
@@ -239,7 +209,7 @@ public class AddMenuWrapperTest extends NavTestCase {
   }
 
   public void testCreateFragment() {
-    AddMenuWrapper menu = Mockito.spy(myMenu);
+    CreateDestinationMenu menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     menu.myIdField.setText("myId");
@@ -253,7 +223,7 @@ public class AddMenuWrapperTest extends NavTestCase {
   }
 
   public void testCreateActivity() {
-    AddMenuWrapper menu = Mockito.spy(myMenu);
+    CreateDestinationMenu menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.ACTIVITY));
     menu.myIdField.setText("myId");
@@ -293,13 +263,13 @@ public class AddMenuWrapperTest extends NavTestCase {
     myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     assertEquals("fragment", myMenu.myIdField.getText());
     myMenu.createDestination();
-    myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());
+    myMenu = new CreateDestinationMenu(mySurface);
     myMenu.createCustomComponentPopup();
     myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     assertEquals("fragment2", myMenu.myIdField.getText());
   }
 
-  public void testImageLoading() throws Exception {
+  public void testImageLoading() {
     // TODO: implement thumbnails for destinations
     /*
     Lock lock = new ReentrantLock();

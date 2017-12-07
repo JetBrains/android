@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor;
 
-import com.android.tools.idea.naveditor.editor.AddMenuWrapper;
+import com.android.tools.idea.naveditor.editor.AddExistingDestinationMenu;
+import com.android.tools.idea.naveditor.editor.CreateDestinationMenu;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -59,17 +61,26 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
   }
 
   @Nullable
-  public AddMenuFixture openAddMenu() {
+  private <T extends AnAction> T openMenu(Class<T> menuType) {
     waitForRenderToFinish();
     ActionToolbarImpl toolbar = robot().finder().findByName(target().getParent(), "NlLayoutToolbar", ActionToolbarImpl.class);
     ActionButton button = waitUntilShowing(robot(), toolbar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
-        return component.getAction() instanceof AddMenuWrapper;
+        return menuType.isInstance(component.getAction());
       }
     });
     new ActionButtonFixture(robot(), button).click();
-    AddMenuWrapper menu = (AddMenuWrapper)button.getAction();
-    return new AddMenuFixture(robot(), menu);
+    return (T)button.getAction();
+  }
+
+  @Nullable
+  public CreateDestinationMenuFixture openNewDestinationMenu() {
+    return new CreateDestinationMenuFixture(robot(), openMenu(CreateDestinationMenu.class));
+  }
+
+  @Nullable
+  public AddExistingDestinationMenuFixture openAddExistingMenu() {
+    return new AddExistingDestinationMenuFixture(robot(), openMenu(AddExistingDestinationMenu.class));
   }
 }
