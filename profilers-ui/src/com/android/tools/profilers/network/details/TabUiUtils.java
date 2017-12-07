@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,6 +80,18 @@ final class TabUiUtils {
   public static JBScrollPane createVerticalScrollPane(@NotNull JComponent component) {
     JBScrollPane scrollPane = createScrollPane(component);
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    return scrollPane;
+  }
+
+  /**
+   * Like {@link #createScrollPane(JComponent)} but this scroll pane vertical scrolling is
+   * delegated to upper level scroll pane and its own vertical scroll bar is hidden.
+   */
+  @NotNull
+  public static JBScrollPane createNestedScrollPane(@NotNull JComponent component) {
+    JBScrollPane scrollPane = createScrollPane(component);
+    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+    scrollPane.addMouseWheelListener(new DelegateMouseWheelListener(scrollPane));
     return scrollPane;
   }
 
@@ -180,5 +194,59 @@ final class TabUiUtils {
     }
 
     return (matches.size() == 1) ? (JComponent)matches.get(0) : null;
+  }
+
+  /**
+   * Delegates given scroll pane's vertical wheel event to the parent scroll pane.
+   */
+  static class DelegateMouseWheelListener implements MouseWheelListener {
+    @NotNull private final JScrollPane myScrollPane;
+    @Nullable private JScrollPane myParentScrollPane;
+    private int myLastScrollOffset = 0;
+
+    DelegateMouseWheelListener(@NotNull JScrollPane scrollPane) {
+      myScrollPane = scrollPane;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      setParentScrollPane();
+      if (myParentScrollPane == null) {
+        myScrollPane.removeMouseWheelListener(this);
+        return;
+      }
+
+      JScrollBar scrollBar = myScrollPane.getVerticalScrollBar();
+      int terminalValue = e.getWheelRotation() < 0 ? 0 : scrollBar.getMaximum() - scrollBar.getVisibleAmount();
+      if (scrollBar.getValue() == terminalValue && myLastScrollOffset == terminalValue) {
+        // Clone the event since this pane already consumes it.
+        myParentScrollPane.dispatchEvent(clone(myParentScrollPane, e));
+      }
+      myLastScrollOffset = scrollBar.getValue();
+    }
+
+    private void setParentScrollPane() {
+      if (myParentScrollPane == null) {
+        Component parent = myScrollPane.getParent();
+        while (parent != null && !(parent instanceof JScrollPane)) {
+          parent = parent.getParent();
+        }
+        myParentScrollPane = (JScrollPane) parent;
+      }
+    }
+
+    private static MouseWheelEvent clone(JScrollPane source, MouseWheelEvent e) {
+      return new MouseWheelEvent(source,
+                                 e.getID(),
+                                 e.getWhen(),
+                                 e.getModifiers(),
+                                 e.getX(),
+                                 e.getY(),
+                                 e.getClickCount(),
+                                 e.isPopupTrigger(),
+                                 e.getScrollType(),
+                                 e.getScrollAmount(),
+                                 e.getWheelRotation());
+    }
   }
 }
