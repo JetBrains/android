@@ -69,6 +69,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.T
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
+@Ignore("b/70295823")
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
   private static final int CHINESE_IN_CHINA_COLUMN = 4;
