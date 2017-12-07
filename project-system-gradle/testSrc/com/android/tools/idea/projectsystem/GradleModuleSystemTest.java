@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion;
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
-import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mockito;
@@ -78,7 +78,7 @@ public class GradleModuleSystemTest extends IdeaTestCase {
 
   private GradleCoordinate getLatestCoordinateForArtifactId(GoogleMavenArtifactId id) {
     GradleCoordinate wildCardCoordinate = GradleCoordinate.parseCoordinateString(id.toString() + ":+");
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(wildCardCoordinate, null, false);
+    GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(wildCardCoordinate, null, false);
     return GradleCoordinate.parseCoordinateString(id.toString() + ":" + version);
   }
 }

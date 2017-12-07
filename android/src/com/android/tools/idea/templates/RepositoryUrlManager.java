@@ -16,11 +16,8 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.*;
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.MavenRepositories;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -81,6 +78,7 @@ public class RepositoryUrlManager {
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
   private final boolean myForceRepositoryChecksInTests;
+  private GoogleMavenRepository myGoogleMavenRepository;
 
   public static RepositoryUrlManager get() {
     return ServiceManager.getService(RepositoryUrlManager.class);
@@ -88,16 +86,24 @@ public class RepositoryUrlManager {
 
   @SuppressWarnings("unused") // registered as service
   RepositoryUrlManager() {
-    this(false);
+    this(IdeGoogleMavenRepository.INSTANCE, false);
   }
 
   @VisibleForTesting
-  RepositoryUrlManager(boolean forceRepositoryChecks) {
+  RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
+    myGoogleMavenRepository = repository;
   }
 
   @Nullable
   public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId, boolean preview) {
+    return getArtifactStringCoordinate(artifactId, null, preview);
+  }
+
+  @Nullable
+  public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId,
+                                            @Nullable Predicate<GradleVersion> filter,
+                                            boolean preview) {
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
@@ -105,7 +111,7 @@ public class RepositoryUrlManager {
 
     String revision = getLibraryRevision(artifactId.getMavenGroupId(),
                                          artifactId.getMavenArtifactId(),
-                                         null,
+                                         filter,
                                          preview,
                                          sdk.getLocation(),
                                          FileOpUtils.create());
@@ -134,7 +140,7 @@ public class RepositoryUrlManager {
                                    @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, includePreviews);
+    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
     if (version != null) {
       return version.toString();
     }
@@ -407,11 +413,11 @@ public class RepositoryUrlManager {
     Predicate<GradleVersion> filter = version -> version.toString().startsWith(versionPrefix);
 
     // First check the Google maven repository, which has most versions
-    GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
+    GradleVersion stable = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, false);
     if (stable != null) {
       return stable.toString();
     }
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
+    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, true);
     if (version != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       return version.toString();

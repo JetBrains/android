@@ -27,7 +27,8 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-object GoogleMavenVersionLookup : GoogleMavenRepository(getCacheDir()) {
+/** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
+object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
   override fun readUrlData(url: String, timeout: Int): ByteArray? {
     val query = URL(url)
     val connection = HttpConfigurable.getInstance().openConnection(query.toExternalForm())
@@ -35,19 +36,17 @@ object GoogleMavenVersionLookup : GoogleMavenRepository(getCacheDir()) {
       connection.connectTimeout = timeout
       connection.readTimeout = timeout
     }
-    try {
+    return try {
       val stream = connection.getInputStream() ?: return null
-      return ByteStreams.toByteArray(stream)
+      ByteStreams.toByteArray(stream)
     }
     finally {
-      if (connection is HttpURLConnection) {
-        connection.disconnect()
-      }
+      (connection as? HttpURLConnection)?.disconnect()
     }
   }
 
   override fun error(throwable: Throwable, message: String?) {
-    Logger.getInstance(GoogleMavenVersionLookup::class.java).warn(message, throwable)
+    Logger.getInstance(IdeGoogleMavenRepository::class.java).warn(message, throwable)
   }
 }
 

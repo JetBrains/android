@@ -172,7 +172,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
 
     PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();
     assertNotNull(declaredSpec);
-    assertEquals("com.android.support:appcompat-v7:26.0.2", declaredSpec.toString());
+    assertEquals("com.android.support:appcompat-v7:26.1.0", declaredSpec.toString());
 
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
