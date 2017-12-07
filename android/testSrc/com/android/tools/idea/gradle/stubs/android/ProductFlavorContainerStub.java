@@ -21,6 +21,7 @@ import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -40,8 +41,12 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
    * @param fileStructure the file structure of the Gradle project this
    *                      {@code ProductFlavorContainer} belongs to.
    */
-  ProductFlavorContainerStub(@NotNull String flavorName, @NotNull FileStructure fileStructure) {
-    myFlavor = new ProductFlavorStub(flavorName);
+  ProductFlavorContainerStub(
+    @NotNull String flavorName,
+    @NotNull FileStructure fileStructure,
+    @Nullable String dimension
+  ) {
+    myFlavor = new ProductFlavorStub(flavorName, dimension);
     mySourceProvider = new SourceProviderStub(fileStructure);
     myInstrumentationTestSourceProvider = new SourceProviderStub(fileStructure);
     myExtraArtifactSourceProviders.add(

@@ -37,7 +37,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
-  @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
+  @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
 
@@ -66,7 +66,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
     this.myName = name;
     myFileStructure = fileStructure;
     myBuildFolder = myFileStructure.createProjectDir("build");
-    myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure);
+    myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure, null);
     myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
 
@@ -88,6 +88,9 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @Override
   public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
+    for (IdeVariant next: myVariants.values()) {
+      action.accept(next);
+    }
   }
 
   @Override
@@ -139,8 +142,11 @@ public class AndroidProjectStub implements IdeAndroidProject {
   }
 
   @NotNull
-  public ProductFlavorContainerStub addProductFlavor(@NotNull String flavorName) {
-    ProductFlavorContainerStub flavor = new ProductFlavorContainerStub(flavorName, myFileStructure);
+  public ProductFlavorContainerStub addProductFlavor(@NotNull String flavorName, String flavorDimension) {
+    if (!myFlavorDimensions.contains(flavorDimension)) {
+      myFlavorDimensions.add(flavorDimension);
+    }
+    ProductFlavorContainerStub flavor = new ProductFlavorContainerStub(flavorName, myFileStructure, flavorDimension);
     myProductFlavors.put(flavorName, flavor);
     return flavor;
   }
@@ -179,7 +185,9 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
-    return myVariants.values();
+    List<Variant> result = new ArrayList<>();
+    result.addAll(myVariants.values());
+    return result;
   }
 
   @Override

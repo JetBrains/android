@@ -29,14 +29,16 @@ import static org.mockito.Mockito.mock;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
+  @Nullable private final String myDimension;
 
   /**
    * Creates a new {@code ProductFlavorStub}.
    *
    * @param name the name of the product flavor.
    */
-  ProductFlavorStub(@NotNull String name) {
+  ProductFlavorStub(@NotNull String name, @Nullable String dimension) {
     this.myName = name;
+    this.myDimension = dimension;
   }
 
   @Override
@@ -60,7 +62,7 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public String getDimension() {
-    return null;
+    return myDimension;
   }
 
   @Override
