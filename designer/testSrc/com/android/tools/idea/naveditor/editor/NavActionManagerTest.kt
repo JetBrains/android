@@ -27,7 +27,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.mockito.Mockito.`when`
 
