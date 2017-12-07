@@ -169,6 +169,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       ClipboardSynchronizer.getInstance().resetContent();
     }
     finally {
+      myMockService = null;
+      myMockView = null;
       super.tearDown();
     }
   }
