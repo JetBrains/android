@@ -17,6 +17,9 @@ package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -40,6 +43,19 @@ public abstract class AndroidInspectionTestCase extends LightInspectionTestCase 
       ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
       sdkModificator.commitChanges();
     }
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    AndroidFacet instance = AndroidFacet.getInstance(myModule);
+    if (instance != null) {
+      WriteAction.run(() -> {
+        ModifiableFacetModel model = FacetManager.getInstance(myModule).createModifiableModel();
+        model.removeFacet(instance);
+        model.commit();
+      });
+    }
+    super.tearDown();
   }
 
   protected void addManifest(int minApi) {
