@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,7 +98,6 @@ public class AdaptiveIconPreviewTest {
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff00ff00");
   }
 
-  @Ignore("b/70300515")
   @Test
   public void themeSelector() throws IOException {
     NlPreviewFixture preview =
