@@ -19,17 +19,16 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
-import com.android.tools.idea.common.actions.DeselectAllAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;
-import com.android.tools.idea.common.actions.SelectAllAction;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.uibuilder.actions.*;
+import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
+import com.android.tools.idea.uibuilder.actions.SelectAllAction;
+import com.android.tools.idea.uibuilder.actions.SelectParentAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.*;
@@ -153,7 +152,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
       }
 
-      group.add(createSelectActionGroup(screenView.getSelectionModel()));
       group.addSeparator();
     }
 
@@ -197,24 +195,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     if (group.getChildrenCount() > prevCount) {
       group.addSeparator();
     }
-  }
-
-  @NotNull
-  private ActionGroup createSelectActionGroup(@NotNull SelectionModel model) {
-    DefaultActionGroup group = new DefaultActionGroup("_Select", true);
-
-    AnAction selectSiblings = new SelectSiblingsAction(model);
-    AnAction selectSameType = new SelectSameTypeAction(model);
-    AnAction deselectAllAction = new DeselectAllAction(model);
-
-    group.add(mySelectParent);
-    group.add(selectSiblings);
-    group.add(selectSameType);
-    group.addSeparator();
-    group.add(mySelectAllAction);
-    group.add(deselectAllAction);
-
-    return group;
   }
 
   @Override
