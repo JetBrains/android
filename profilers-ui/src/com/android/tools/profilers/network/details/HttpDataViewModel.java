@@ -77,7 +77,7 @@ final class HttpDataViewModel {
       // Disable line wrapping, since we know we're in a scroller
       JPanel noWrapPanel = new JPanel(new BorderLayout());
       noWrapPanel.add(headers);
-      return TabUiUtils.createScrollPane(noWrapPanel);
+      return TabUiUtils.createNestedScrollPane(noWrapPanel);
     }
     else {
       return mapComponent;
