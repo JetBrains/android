@@ -18,7 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
-import com.google.protobuf3jarjar.InvalidProtocolBufferException;
+import com.google.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
