@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
 import com.android.tools.profiler.proto.Profiler.BytesResponse;
 import com.android.tools.profilers.network.httpdata.HttpData;
-import com.google.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
