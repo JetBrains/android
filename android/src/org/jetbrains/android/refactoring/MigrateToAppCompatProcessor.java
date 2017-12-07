@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -582,7 +582,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     AndroidVersion finalAndroidVersion = highest;
     Predicate<GradleVersion> filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
 
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(
+    GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(
       GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), filter,
       finalAndroidVersion.isPreview());
 

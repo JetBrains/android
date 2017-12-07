@@ -257,7 +257,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
     myIdeComponents = new IdeComponents(null);
-    myIdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
+    myIdeComponents.replaceService(RepositoryUrlManager.class,
+                                   new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override

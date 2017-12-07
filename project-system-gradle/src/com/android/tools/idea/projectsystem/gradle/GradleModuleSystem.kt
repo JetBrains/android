@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.*
-import com.android.tools.idea.templates.GoogleMavenVersionLookup
+import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.*
@@ -40,7 +40,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
       val coordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate)
           ?: throw DependencyManagementException("Could not parse known artifact string $artifactCoordinate into gradle coordinate!",
           DependencyManagementException.ErrorCodes.MALFORMED_PROJECT)
-      GoogleMavenVersionLookup.findVersion(coordinate, null, allowPreview = false)
+      IdeGoogleMavenRepository.findVersion(coordinate, null, allowPreview = false)
           ?: throw DependencyManagementException("Could not find an $coordinate artifact for addition!",
           DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
     }
