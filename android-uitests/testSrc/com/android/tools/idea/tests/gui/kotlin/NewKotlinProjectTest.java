@@ -62,7 +62,7 @@ public class NewKotlinProjectTest {
    *   3. Ensure the app is deployed on the emulator.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70339267
   @Test
   public void createBasicKotlinProject() throws Exception {
     createNewBasicKotlinProject(false);
@@ -98,7 +98,7 @@ public class NewKotlinProjectTest {
    *   3. Ensure the app is deployed on the emulator.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70339267
   @Test
   public void createCppKotlinProject() throws Exception {
     createNewBasicKotlinProject(true);
