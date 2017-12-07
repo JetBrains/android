@@ -108,6 +108,11 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
     return myAvdInfoProvider.getAvdInfo();
   }
 
+  @Nullable
+  protected Project getProject() {
+    return myAvdInfoProvider.getProject();
+  }
+
   protected void refreshAvds() {
     myAvdInfoProvider.refreshAvds();
   }
@@ -119,9 +124,5 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
     actionPerformed(null);
-  }
-
-  protected Project getProject() {
-    return myAvdInfoProvider.getProject();
   }
 }

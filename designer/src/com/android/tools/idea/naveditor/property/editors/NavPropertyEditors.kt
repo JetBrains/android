@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAU
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
 class NavPropertyEditors : PropertyEditors() {
 
@@ -38,6 +38,8 @@ class NavPropertyEditors : PropertyEditors() {
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
       ATTR_START_DESTINATION -> return ChildDestinationsEditor()
       ATTR_NAME -> return DestinationClassEditor()
+      ATTR_POP_UP_TO -> return AllDestinationsEditor()
+      ATTR_GRAPH -> return SourceGraphEditor()
     }
     if (property.definition?.formats?.contains(AttributeFormat.Boolean) == true) {
       return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)

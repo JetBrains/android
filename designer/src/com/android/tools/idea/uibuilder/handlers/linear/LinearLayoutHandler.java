@@ -24,7 +24,6 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
@@ -474,7 +473,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
     NlModel model = parent.getModel();
     model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN,
-                        component.getScene().getDesignSurface().getViewEditor());
+                        component.getScene().getSceneManager().getViewEditor());
     return true;
   }
 

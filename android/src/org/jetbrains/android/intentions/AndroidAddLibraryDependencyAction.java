@@ -109,7 +109,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     if (!(file instanceof GroovyFile) || !file.getName().equals("build.gradle")) {
       return false;
     }
-    if (!AndroidFacet.hasAndroid(project)) return false;
+    if (AndroidFacet.getInstance(file) == null) return false;
 
     GradleBuildModel buildModel = getGradleBuildModel(project, file);
     // Check that this file is a gradle model and that it declares dependencies

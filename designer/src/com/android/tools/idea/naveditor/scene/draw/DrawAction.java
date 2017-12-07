@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 import static java.awt.BasicStroke.*;
 
@@ -47,19 +50,20 @@ public class DrawAction extends NavBaseDrawCommand {
 
   public enum DrawMode {NORMAL, SELECTED}
 
-  @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myConnectionType, rectToString(mySource), rectToString(myDest), myMode};
-  }
-
   public DrawAction(@NotNull String s) {
-    this(parse(s, 4));
+    this(DrawCommandSerializationHelperKt.parse(s, 4));
   }
 
   @Override
   public int getLevel() {
     return DRAW_ACTION_LEVEL;
+  }
+
+  @Override
+  public String serialize() {
+    return DrawCommandSerializationHelperKt
+      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rectToString(mySource),
+                   DrawCommandSerializationHelperKt.rectToString(myDest), myMode);
   }
 
   @Override
@@ -80,7 +84,8 @@ public class DrawAction extends NavBaseDrawCommand {
   }
 
   private DrawAction(@NotNull String[] s) {
-    this(ActionTarget.ConnectionType.valueOf(s[0]), stringToRect(s[1]), stringToRect(s[2]), DrawMode.valueOf(s[3]));
+    this(ActionTarget.ConnectionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect(s[1]),
+         DrawCommandSerializationHelperKt.stringToRect(s[2]), DrawMode.valueOf(s[3]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,

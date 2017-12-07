@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,6 +56,7 @@ class XvfbServer {
         boolean exited = process.waitFor(1, TimeUnit.SECONDS);
         if (!exited) {
           this.process = process;
+          System.out.println("Launched xvfb on \"" + display + "\"");
           return display;
         }
       } catch (InterruptedException e) {

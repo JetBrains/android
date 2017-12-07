@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.tools.adtui.common.AdtPrimaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
@@ -33,8 +36,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,14 +129,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     eastToolbarComponent.setName("NlRhsToolbar");
     eastToolbarComponent.setBorder(JBUI.Borders.empty());
 
-    JComponent northPanel = new JPanel(new BorderLayout());
-    northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
+    northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
     northPanel.add(northToolbarComponent, BorderLayout.CENTER);
     northPanel.add(northEastToolbarComponent, BorderLayout.EAST);
 
-    JComponent panel = new JPanel(new BorderLayout());
-    panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-
+    JComponent panel = new AdtPrimaryPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
     panel.add(northPanel, BorderLayout.NORTH);
     panel.add(centerToolbarComponent, BorderLayout.CENTER);
     panel.add(eastToolbarComponent, BorderLayout.EAST);
@@ -225,7 +225,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
     // The toolbar depends on the current ScreenView for its content,
     // so reload when the ScreenView changes.
     myNorthToolbar.updateActionsImmediately();

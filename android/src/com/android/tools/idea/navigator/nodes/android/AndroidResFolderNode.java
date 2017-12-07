@@ -105,7 +105,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
   @Override
   public void navigate(boolean requestFocus) {
     if (myProject != null) {
-      new OpenFileDescriptor(myProject, ResourceExplorerFile.getResourceEditorFile(myProject)).navigate(requestFocus);
+      new OpenFileDescriptor(myProject, ResourceExplorerFile.getResourceEditorFile(myProject, getAndroidFacet())).navigate(requestFocus);
     }
   }
 }

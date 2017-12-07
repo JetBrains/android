@@ -70,7 +70,6 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
   }
 
-
   public void testRuntimeQualifiedNameIsUsed() throws Exception {
     loadSimpleApplication();
 

@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -100,19 +101,28 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
   }
 
-  protected static void addLatestAndroidSdk(Module module) {
+  protected static Sdk addLatestAndroidSdk(Module module) {
     Sdk androidSdk = createLatestAndroidSdk();
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    return androidSdk;
   }
 
   public static Sdk createLatestAndroidSdk() {
+    return createLatestAndroidSdk(AndroidTestBase.class.getName(), true);
+  }
+
+  public static Sdk createLatestAndroidSdk(String name, boolean addToSdkTable) {
     String sdkPath = TestUtils.getSdk().toString();
     String platformDir = TestUtils.getLatestAndroidPlatform();
 
-    Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
+    Sdk sdk = ProjectJdkTable.getInstance().createSdk(name, AndroidSdkType.getInstance());
+    if (addToSdkTable) {
+      ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
+    }
+
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 
@@ -156,15 +166,17 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   protected void ensureSdkManagerAvailable() {
-    AndroidSdks androidSdks = AndroidSdks.getInstance();
-    AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      sdkData = createTestSdkManager();
-      if (sdkData != null) {
-        androidSdks.setSdkData(sdkData);
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      AndroidSdks androidSdks = AndroidSdks.getInstance();
+      AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
+      if (sdkData == null) {
+        sdkData = createTestSdkManager();
+        if (sdkData != null) {
+          androidSdks.setSdkData(sdkData);
+        }
       }
-    }
-    assertNotNull(sdkData);
+      assertNotNull(sdkData);
+    });
   }
 
   @Nullable

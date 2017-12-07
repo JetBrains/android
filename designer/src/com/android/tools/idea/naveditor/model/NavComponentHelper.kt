@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.AUTO_URI
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
@@ -68,15 +70,32 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
 val NlComponent.destinationType
   get() = model.schema.getDestinationType(tagName)
 
+val NlComponent.includeAttribute: String?
+  get() = resolveAttribute(AUTO_URI, ATTR_GRAPH)
+
+val NlComponent.includeFile: XmlFile?
+  get() {
+    val resources = model.configuration.resourceResolver ?: return null
+    val value = resources.findResValue(includeAttribute, false) ?: return null
+    val vFile = VfsUtil.findFileByIoFile(File(value.value), true) ?: return null
+    return PsiManager.getInstance(model.project).findFile(vFile) as? XmlFile
+  }
+
+val NlComponent.includeFileName: String?
+  get() = includeFile?.name
+
+val NlComponent.isStartDestination: Boolean
+  get() {
+    val actualStart = NlComponent.stripId(parent?.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    return actualStart != null && actualStart == id
+  }
+
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
 
   private val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
-    val resources = component.model.configuration.resourceResolver ?: return null
-    val value = resources.findResValue(component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH), false) ?: return null
-    val vFile = VfsUtil.findFileByIoFile(File(value.value), true) ?: return null
-    val xmlFile = PsiManager.getInstance(component.model.project).findFile(vFile) as? XmlFile ?: return null
+    val xmlFile = component.includeFile ?: return null
     val result: Table<String, String, String> = HashBasedTable.create()
     xmlFile.rootTag?.attributes?.forEach { result.put(it.namespace, it.localName, it.value) }
     return result

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
@@ -28,6 +27,9 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -42,10 +44,10 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
@@ -55,38 +57,53 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleTaskFinder {
+  private final GradleRootPathFinder myRootPathFinder;
+
   @NotNull
   public static GradleTaskFinder getInstance() {
     return ServiceManager.getService(GradleTaskFinder.class);
   }
 
+  @SuppressWarnings("unused") // Invoked by IDEA.
+  public GradleTaskFinder() {
+    this(new GradleRootPathFinder());
+  }
+
+  @VisibleForTesting
+  GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
+    myRootPathFinder = rootPathFinder;
+  }
+
   @NotNull
-  public List<String> findTasksToExecuteForTest(@NotNull Module[] testedModules,
-                                                @NotNull Module[] modules,
-                                                @NotNull BuildMode buildMode,
-                                                @NotNull TestCompileType testCompileType) {
-    List<String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-    List<String> testedModulesTasks = findTasksToExecute(testedModules, buildMode, testCompileType);
+  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull File projectPath,
+                                                              @NotNull Module[] modules,
+                                                              @NotNull Module[] testModules,
+                                                              @NotNull BuildMode buildMode,
+                                                              @NotNull TestCompileType testCompileType) {
+    ListMultimap<Path, String> allTasks = findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(projectPath, testModules, buildMode, testCompileType);
 
     // Add testedModulesTasks to allTasks without duplicate
-    for (String task : testedModulesTasks) {
-      if (!allTasks.contains(task)) {
-        allTasks.add(task);
+    for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
+      if (!allTasks.values().contains(task.getValue())) {
+        allTasks.put(task.getKey(), task.getValue());
       }
     }
     return allTasks;
   }
 
   @NotNull
-  public List<String> findTasksToExecute(@NotNull Module[] modules,
-                                         @NotNull BuildMode buildMode,
-                                         @NotNull TestCompileType testCompileType) {
-    List<String> tasks = new ArrayList<>();
+  public ListMultimap<Path, String> findTasksToExecute(@NotNull File projectPath,
+                                                       @NotNull Module[] modules,
+                                                       @NotNull BuildMode buildMode,
+                                                       @NotNull TestCompileType testCompileType) {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
 
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        return Collections.singletonList(DEFAULT_ASSEMBLE_TASK_NAME);
+        tasks.put(projectPath.toPath(), DEFAULT_ASSEMBLE_TASK_NAME);
+        return tasks;
       }
     }
 
@@ -95,10 +112,25 @@ public class GradleTaskFinder {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }
-      findAndAddGradleBuildTasks(module, buildMode, tasks, testCompileType);
+
+      String rootProjectPath = myRootPathFinder.getProjectRootPath(module);
+      if (isEmpty(rootProjectPath)) {
+        continue;
+      }
+
+      Set<String> moduleTasks = new LinkedHashSet<>();
+      findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
+
+      // Remove duplicates.
+      Path keyPath = Paths.get(rootProjectPath);
+      List<String> existingTasks = tasks.get(keyPath);
+      moduleTasks.addAll(existingTasks);
+
+      tasks.removeAll(keyPath);
+      tasks.putAll(keyPath, moduleTasks);
     }
     if (buildMode == REBUILD && !tasks.isEmpty()) {
-      tasks.add(0, CLEAN_TASK_NAME);
+      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
 
     if (tasks.isEmpty()) {
@@ -119,7 +151,7 @@ public class GradleTaskFinder {
 
   private void findAndAddGradleBuildTasks(@NotNull Module module,
                                           @NotNull BuildMode buildMode,
-                                          @NotNull List<String> tasks,
+                                          @NotNull Set<String> tasks,
                                           @NotNull TestCompileType testCompileType) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
@@ -236,7 +268,7 @@ public class GradleTaskFinder {
     return false;
   }
 
-  private void addAssembleTasksForTargetVariants(@NotNull List<String> tasks, @NotNull Module testOnlyModule) {
+  private void addAssembleTasksForTargetVariants(@NotNull Set<String> tasks, @NotNull Module testOnlyModule) {
     AndroidModuleModel testAndroidModel = AndroidModuleModel.get(testOnlyModule);
 
     if (testAndroidModel == null ||
@@ -271,7 +303,7 @@ public class GradleTaskFinder {
     return Logger.getInstance(GradleTaskFinder.class);
   }
 
-  private void addAfterSyncTasksForTestArtifacts(@NotNull List<String> tasks,
+  private void addAfterSyncTasksForTestArtifacts(@NotNull Set<String> tasks,
                                                  @NotNull String gradlePath,
                                                  @NotNull TestCompileType testCompileType,
                                                  @NotNull AndroidModuleModel androidModel) {
@@ -284,7 +316,7 @@ public class GradleTaskFinder {
     }
   }
 
-  private void addAfterSyncTasks(@NotNull List<String> tasks,
+  private void addAfterSyncTasks(@NotNull Set<String> tasks,
                                  @NotNull String gradlePath,
                                  @NotNull JpsAndroidModuleProperties properties) {
     // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
@@ -296,7 +328,7 @@ public class GradleTaskFinder {
     }
   }
 
-  private void addTaskIfSpecified(@NotNull List<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
+  private void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
       String buildTask = createBuildTask(gradlePath, gradleTaskName);
       if (!tasks.contains(buildTask)) {

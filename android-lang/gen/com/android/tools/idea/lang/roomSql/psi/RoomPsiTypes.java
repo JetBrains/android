@@ -223,12 +223,14 @@ public interface RoomPsiTypes {
   IElementType MATCH = new RoomTokenType("MATCH");
   IElementType MINUS = new RoomTokenType("-");
   IElementType MOD = new RoomTokenType("%");
+  IElementType NAMED_PARAMETER = new RoomTokenType("NAMED_PARAMETER");
   IElementType NATURAL = new RoomTokenType("NATURAL");
   IElementType NO = new RoomTokenType("NO");
   IElementType NOT = new RoomTokenType("NOT");
   IElementType NOTNULL = new RoomTokenType("NOTNULL");
   IElementType NOT_EQ = new RoomTokenType("!=");
   IElementType NULL = new RoomTokenType("NULL");
+  IElementType NUMBERED_PARAMETER = new RoomTokenType("NUMBERED_PARAMETER");
   IElementType NUMERIC_LITERAL = new RoomTokenType("NUMERIC_LITERAL");
   IElementType OF = new RoomTokenType("OF");
   IElementType OFFSET = new RoomTokenType("OFFSET");
@@ -236,7 +238,6 @@ public interface RoomPsiTypes {
   IElementType OR = new RoomTokenType("OR");
   IElementType ORDER = new RoomTokenType("ORDER");
   IElementType OUTER = new RoomTokenType("OUTER");
-  IElementType PARAMETER_NAME = new RoomTokenType("PARAMETER_NAME");
   IElementType PLAN = new RoomTokenType("PLAN");
   IElementType PLUS = new RoomTokenType("+");
   IElementType PRAGMA = new RoomTokenType("PRAGMA");

@@ -21,6 +21,8 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -554,5 +556,5 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<>();
+  private static Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
 }

@@ -294,7 +294,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     toolbarGroup.add(new BackAction(component));
     toolbarGroup.add(new ForwardAction(component));
 
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, toolbarGroup, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructure", toolbarGroup, true);
     toolbar.setTargetComponent(component);
     myToolbarComponent = toolbar.getComponent();
 

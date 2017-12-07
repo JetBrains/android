@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,15 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class GradleModelProvider {
-  private static final ExtensionPointName<GradleModelProvider> EP_NAME =
-    ExtensionPointName.create("com.android.tools.gradleModelProvider");
 
   @NotNull
   public static GradleModelProvider get() {
-    if (EP_NAME.getExtensions().length == 0) {
-      throw new RuntimeException("Unable to find gradleModelProvider!");
-    }
-    return EP_NAME.getExtensions()[0];
+    return new GradleModelSource();
   }
 
   @Nullable

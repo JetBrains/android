@@ -50,7 +50,7 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     super(project, tree, treeModel, comparator, treeStructure);
 
     MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener.Adapter() {
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         for (VFileEvent e : events) {

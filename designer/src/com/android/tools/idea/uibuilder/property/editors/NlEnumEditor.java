@@ -80,6 +80,4 @@ public class NlEnumEditor extends EnumEditor {
     IAndroidTarget target = property != EmptyProperty.INSTANCE ? property.getModel().getConfiguration().getTarget() : null;
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
-
-
 }

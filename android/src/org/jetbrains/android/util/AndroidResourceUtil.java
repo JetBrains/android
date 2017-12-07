@@ -22,9 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -96,7 +94,21 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
   public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
-  public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = Maps.newEnumMap(ResourceType.class);
+  public static final ImmutableMap<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = ImmutableMap.<ResourceType, ResourceFolderType>builder()
+    .put(ResourceType.ANIM, ResourceFolderType.ANIM)
+    .put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR)
+    .put(ResourceType.COLOR, ResourceFolderType.COLOR)
+    .put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE)
+    .put(ResourceType.FONT, ResourceFolderType.FONT)
+    .put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR)
+    .put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT)
+    .put(ResourceType.NAVIGATION, ResourceFolderType.NAVIGATION)
+    .put(ResourceType.MENU, ResourceFolderType.MENU)
+    .put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP)
+    .put(ResourceType.RAW, ResourceFolderType.RAW)
+    .put(ResourceType.TRANSITION, ResourceFolderType.TRANSITION)
+    .put(ResourceType.XML, ResourceFolderType.XML)
+    .build();
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
@@ -140,20 +152,6 @@ public class AndroidResourceUtil {
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
     ALL_VALUE_RESOURCE_TYPES.add(ATTR);
     ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
-
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIM, ResourceFolderType.ANIM);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.COLOR, ResourceFolderType.COLOR);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.FONT, ResourceFolderType.FONT);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.NAVIGATION, ResourceFolderType.NAVIGATION);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.MENU, ResourceFolderType.MENU);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.RAW, ResourceFolderType.RAW);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.TRANSITION, ResourceFolderType.TRANSITION);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.XML, ResourceFolderType.XML);
   }
 
   public static String packageToRClass(@NotNull String packageName) {

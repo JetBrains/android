@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +43,27 @@ public class TestPath extends PsPath {
 
   @Nullable
   @Override
-  public String getHyperlinkDestination() {
+  public String getHyperlinkDestination(@NotNull PsContext context) {
     return null;
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return myOtherValue;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    TestPath path = (TestPath)o;
+    return Objects.equal(myComparisonValue, path.myComparisonValue) &&
+           Objects.equal(myOtherValue, path.myOtherValue);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(myComparisonValue, myOtherValue);
   }
 }

@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -187,5 +189,16 @@ public final class GradleProjects {
 
   public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
     return SYNC_REQUESTED_DURING_BUILD.get(project, false);
+  }
+
+  public static boolean isIdeaAndroidModule(@NotNull Module module) {
+    if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null) {
+      return true;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+      return true;
+    }
+    return false;
   }
 }

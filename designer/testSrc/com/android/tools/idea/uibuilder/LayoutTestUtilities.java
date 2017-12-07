@@ -190,16 +190,16 @@ public class LayoutTestUtilities {
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
     NlDesignSurface surface = (NlDesignSurface) model.getSurface();
-    ScreenView screenView = new ScreenView(surface, model) {
+    LayoutlibSceneManager spy = spy(surface.getSceneManager());
+    when(surface.getSceneManager()).thenReturn(spy);
+    ScreenView screenView = new ScreenView(surface, spy) {
       @Override
       public double getScale() {
         return scale;
       }
     };
     screenView.setLocation(x, y);
-    LayoutlibSceneManager spy = spy(surface.getSceneManager());
     when(spy.getSceneView()).thenReturn(screenView);
-    when(surface.getSceneManager()).thenReturn(spy);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
   }

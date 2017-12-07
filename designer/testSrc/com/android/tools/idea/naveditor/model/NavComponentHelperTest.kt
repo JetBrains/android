@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -58,7 +58,7 @@ class NavComponentHelperTest {
   }
 }
 
-class NavComponentHelperTest2 : NavigationTestCase() {
+class NavComponentHelperTest2 : NavTestCase() {
 
   fun testVisibleDestinations() {
     val model = model("nav.xml",

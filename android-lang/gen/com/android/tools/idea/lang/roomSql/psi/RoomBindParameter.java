@@ -25,13 +25,15 @@ import com.intellij.psi.PsiReference;
 
 public interface RoomBindParameter extends PsiElement {
 
-  @NotNull
-  PsiElement getParameterName();
+  @Nullable
+  PsiElement getNamedParameter();
 
-  @NotNull
+  @Nullable
   String getParameterNameAsString();
 
   @Nullable
   PsiReference getReference();
+
+  boolean isColonNamedParameter();
 
 }

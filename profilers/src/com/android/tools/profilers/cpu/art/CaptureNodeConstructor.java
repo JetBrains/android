@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.perflib.vmtrace.TraceAction;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ class CaptureNodeConstructor {
   /**
    * Method model corresponding to the top level node under which all calls are nested.
    */
-  private final MethodModel myTopLevelMethodModel;
+  private final CaptureNodeModel myTopLevelNodeModel;
 
   /**
    * List of nodes currently assumed to be at stack depth 0 (called from the top level)
@@ -49,23 +49,23 @@ class CaptureNodeConstructor {
    */
   private CaptureNode myTopLevelNode;
 
-  CaptureNodeConstructor(MethodModel methodModel) {
-    myTopLevelMethodModel = methodModel;
+  CaptureNodeConstructor(CaptureNodeModel captureNodeModel) {
+    myTopLevelNodeModel = captureNodeModel;
   }
 
-  void addTraceAction(MethodModel methodModel, TraceAction action, int threadTime, int globalTime) {
+  void addTraceAction(CaptureNodeModel captureNodeModel, TraceAction action, int threadTime, int globalTime) {
     if (action == TraceAction.METHOD_ENTER) {
-      enterMethod(methodModel, threadTime, globalTime);
+      enterMethod(captureNodeModel, threadTime, globalTime);
     } else {
-      exitMethod(methodModel, threadTime, globalTime);
+      exitMethod(captureNodeModel, threadTime, globalTime);
     }
   }
 
-  private void enterMethod(MethodModel methodModel, int threadTime, int globalTime) {
+  private void enterMethod(CaptureNodeModel captureNodeModel, int threadTime, int globalTime) {
     CaptureNode node = new CaptureNode();
     node.setStartGlobal(globalTime);
     node.setStartThread(threadTime);
-    node.setMethodModel(methodModel);
+    node.setCaptureNodeModel(captureNodeModel);
 
     if (myCurrentNode == null) {
       myTopLevelNodes.add(node);
@@ -76,13 +76,13 @@ class CaptureNodeConstructor {
     myCurrentNode = node;
   }
 
-  private void exitMethod(MethodModel methodModel, long threadTime, long globalTime) {
+  private void exitMethod(CaptureNodeModel captureNodeModel, long threadTime, long globalTime) {
     if (myCurrentNode != null) {
-      assert myCurrentNode.getMethodModel() != null;
-      if (myCurrentNode.getMethodModel() != methodModel) {
+      assert myCurrentNode.getCaptureNodeModel() != null;
+      if (myCurrentNode.getCaptureNodeModel() != captureNodeModel) {
         String msg = String
           .format("Error during call stack reconstruction. Attempt to exit from method %s while in method %s",
-                  myCurrentNode.getMethodModel().getId(), methodModel.getId());
+                  myCurrentNode.getCaptureNodeModel().getId(), captureNodeModel.getId());
         throw new RuntimeException(msg);
       }
 
@@ -93,7 +93,7 @@ class CaptureNodeConstructor {
       // We are exiting out of a method that was entered into before tracing was started.
       // In such a case, create this method
       CaptureNode node = new CaptureNode();
-      node.setMethodModel(methodModel);
+      node.setCaptureNodeModel(captureNodeModel);
       // All the previous nodes at the top level are now assumed to have been called from
       // this method. So mark this method as having called all of those methods, and reset
       // the top level to only include this method
@@ -126,12 +126,12 @@ class CaptureNodeConstructor {
 
   /**
    * Generates a trace action equivalent to exiting from the given method
-   * @param methodModel model of the method from which we are exiting
+   * @param captureNodeModel model of the method from which we are exiting
    * @param entryThreadTime method's thread entry time
    * @param entryGlobalTime method's global entry time
    * @param children from the method that we are exiting
    */
-  private void exitMethod(MethodModel methodModel, long entryThreadTime, long entryGlobalTime,
+  private void exitMethod(CaptureNodeModel captureNodeModel, long entryThreadTime, long entryGlobalTime,
                           @Nullable List<CaptureNode> children) {
     long lastExitThreadTime;
     long lastExitGlobalTime;
@@ -148,7 +148,7 @@ class CaptureNodeConstructor {
       lastExitGlobalTime = last.getEndGlobal() + 1;
     }
 
-    exitMethod(methodModel, lastExitThreadTime, lastExitGlobalTime);
+    exitMethod(captureNodeModel, lastExitThreadTime, lastExitGlobalTime);
   }
 
   private void fixUpCallStacks() {
@@ -160,13 +160,13 @@ class CaptureNodeConstructor {
     // exit trace action for them, so clean those up
     //noinspection WhileLoopSpinsOnField
     while (myCurrentNode != null) {
-      exitMethod(myCurrentNode.getMethodModel(), myCurrentNode.getStartThread(),
+      exitMethod(myCurrentNode.getCaptureNodeModel(), myCurrentNode.getStartThread(),
                  myCurrentNode.getStartGlobal(), myCurrentNode.getChildren());
     }
 
     // Now that we have parsed the entire call stack, let us move all of it under a single
     // top level call.
-    exitMethod(myTopLevelMethodModel, 0, 0, myTopLevelNodes);
+    exitMethod(myTopLevelNodeModel, 0, 0, myTopLevelNodes);
 
     // Build calls from their respective builders
     // Now that we've added the top level call, there should be only 1 top level call

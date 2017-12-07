@@ -45,7 +45,8 @@ COMMENT="/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
 IDENTIFIER=([[:jletter:]--$])[:jletterdigit:]*
 LINE_COMMENT=--[^\r\n]*
 NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
-PARAMETER_NAME=:[:jletterdigit:]+
+NAMED_PARAMETER=[:@$][:jletterdigit:]+
+NUMBERED_PARAMETER=\?\d*
 
 UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL=X?\'(\'\'|[^\'])*
 SINGLE_QUOTE_STRING_LITERAL={UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL} \'
@@ -215,7 +216,8 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   {IDENTIFIER}                        { return IDENTIFIER; }
   {LINE_COMMENT}                      { return LINE_COMMENT; }
   {NUMERIC_LITERAL}                   { return NUMERIC_LITERAL; }
-  {PARAMETER_NAME}                    { return PARAMETER_NAME; }
+  {NAMED_PARAMETER}                   { return NAMED_PARAMETER; }
+  {NUMBERED_PARAMETER}                { return NUMBERED_PARAMETER; }
   {SINGLE_QUOTE_STRING_LITERAL}       { return SINGLE_QUOTE_STRING_LITERAL; }
 
   {UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL} { return UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL; }

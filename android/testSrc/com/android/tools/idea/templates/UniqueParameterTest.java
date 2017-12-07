@@ -21,8 +21,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +36,8 @@ import org.w3c.dom.Element;
 import javax.imageio.metadata.IIOMetadataNode;
 import java.util.Set;
 
-import static com.android.tools.idea.templates.Template.*;
 import static com.android.tools.idea.templates.Parameter.Constraint.UNIQUE;
+import static com.android.tools.idea.templates.Template.*;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 
 /**
@@ -70,7 +74,8 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(myAppFacet);
 
-    addLatestAndroidSdk(myAppModule);
+    Sdk sdk = addLatestAndroidSdk(myAppModule);
+    Disposer.register(myAppFacet, ()-> WriteAction.run(()-> ProjectJdkTable.getInstance().removeJdk(sdk)));
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 

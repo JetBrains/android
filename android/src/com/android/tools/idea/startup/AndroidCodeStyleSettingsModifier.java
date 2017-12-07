@@ -17,6 +17,7 @@
 package com.android.tools.idea.startup;
 
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
 import com.intellij.psi.codeStyle.PackageEntry;
 import com.intellij.psi.codeStyle.PackageEntryTable;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
@@ -33,13 +34,15 @@ public class AndroidCodeStyleSettingsModifier {
     xmlStyle.apply(settings);
 
     // Java:
+    JavaCodeStyleSettings javaSettings = settings.getCustomSettings(JavaCodeStyleSettings.class);
+
     // Set Import order
-    settings.IMPORT_LAYOUT_TABLE.copyFrom(getAndroidImportOrder());
+    javaSettings.IMPORT_LAYOUT_TABLE.copyFrom(getAndroidImportOrder());
 
     // Don't use wildcard imports
-    settings.PACKAGES_TO_USE_IMPORT_ON_DEMAND.copyFrom(new PackageEntryTable());
-    settings.CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND = 99; // Class count to use import with "*"
-    settings.NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND = 99; // Name count to use static import with "*"
+    javaSettings.PACKAGES_TO_USE_IMPORT_ON_DEMAND.copyFrom(new PackageEntryTable());
+    javaSettings.CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND = 99; // Class count to use import with "*"
+    javaSettings.NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND = 99; // Name count to use static import with "*"
 
     // set margin to 100 columns
     settings.setDefaultRightMargin(100);

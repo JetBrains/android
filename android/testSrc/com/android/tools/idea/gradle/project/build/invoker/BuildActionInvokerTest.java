@@ -17,10 +17,14 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.util.Ref;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Tests for making sure that {@link org.gradle.tooling.BuildAction} is run when passed to {@link GradleBuildInvoker}.
@@ -29,7 +33,8 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
   public void testBuildWithBuildAction() throws Exception {
     loadSimpleApplication();
 
-    AtomicReference<String> model = new AtomicReference<>("");
+    Ref<String> model = new Ref<>("");
+    CountDownLatch latch = new CountDownLatch(1);
 
     GradleBuildInvoker invoker = GradleBuildInvoker.getInstance(getProject());
     invoker.add(result -> {
@@ -37,8 +42,13 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
       if (resultModel instanceof String) {
         model.set((String)resultModel);
       }
+      latch.countDown();
     });
-    invoker.executeTasks(Lists.newArrayList("assembleDebug"), BuildMode.ASSEMBLE, Collections.emptyList(), new TestBuildAction());
+
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
+    invoker.executeTasks(tasks, BuildMode.ASSEMBLE, Collections.emptyList(), new TestBuildAction());
+    latch.await();
 
     assertEquals("test", model.get());
   }

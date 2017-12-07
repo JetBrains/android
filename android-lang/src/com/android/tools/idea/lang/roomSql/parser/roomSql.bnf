@@ -55,7 +55,7 @@
 
     // Some approximation of what's actually allowed. This doesn't seem to be defined anywhere.
     IDENTIFIER='regexp:([:letter:]|_)([:letter:]|[:digit:]|_)*'
-    PARAMETER_NAME='regexp::\w+' // Simple regexp for Live Preview, this is tweaked in the flex file.
+    NAMED_PARAMETER='regexp::\w+' // Simple regexp for Live Preview, this is tweaked in the flex file.
     COMMENT='regexp:/\*.*\*/' // Simple regexp for Live Preview, this is tweaked in the flex file.
     LINE_COMMENT='regexp:--[^r\n]*'
 
@@ -356,10 +356,11 @@ column_ref_expression ::=
 
 function_name ::= name
 
-bind_parameter ::= PARAMETER_NAME {
+bind_parameter ::= NUMBERED_PARAMETER | NAMED_PARAMETER {
   methods=[
     getParameterNameAsString
     getReference
+    isColonNamedParameter
   ]
 }
 

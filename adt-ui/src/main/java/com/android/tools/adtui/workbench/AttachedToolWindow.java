@@ -16,6 +16,8 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -306,10 +308,10 @@ class AttachedToolWindow<T> implements Disposable {
 
   @NotNull
   private JComponent createHeader(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
-    JPanel header = new JPanel(new BorderLayout());
+    JPanel header = new AdtSecondaryPanel(new BorderLayout());
     header.add(createTitlePanel(myDefinition.getTitle(), includeSearchButton, mySearchField), BorderLayout.CENTER);
     header.add(createActionPanel(includeSearchButton, additionalActions), BorderLayout.EAST);
-    header.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    header.setBorder(new SideBorder(StudioColorsKt.getBorder(), SideBorder.BOTTOM));
     return header;
   }
 

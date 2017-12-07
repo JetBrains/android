@@ -76,13 +76,17 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public String getError() {
-    return waitForErrorLabel().getText();
+    return GuiTests.waitUntilShowing(robot(), waitForErrorPanel(), Matchers.byType(JLabel.class)).getText();
   }
 
   @NotNull
-  public JLabel waitForErrorLabel() {
-    return (JLabel)GuiTests.waitUntilShowing(
-      robot(), Matchers.byText(JLabel.class, "").negate().and(Matchers.byIcon(JLabel.class, AllIcons.General.Error)));
+  public JPanel waitForErrorPanel() {
+    return GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JPanel>(JPanel.class) {
+        @Override
+        protected boolean isMatching(@NotNull JPanel component) {
+          return ("com.intellij.openapi.ui.DialogWrapper$ErrorText").equals(component.getClass().getName());
+        }
+      });
   }
 
   public void requireNoError() {

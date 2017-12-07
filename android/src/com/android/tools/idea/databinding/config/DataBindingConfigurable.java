@@ -103,12 +103,6 @@ public class DataBindingConfigurable implements SearchableConfigurable {
     return IdeInfo.getInstance().isAndroidStudio() ? "Data Binding" : "Android Data Binding";
   }
 
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
   private DataBindingConfiguration.CodeNavigationMode getNavigationModeFromUI() {
     if (myGeneratedCodeRadioButton.isSelected()) {
       return DataBindingConfiguration.CodeNavigationMode.CODE;

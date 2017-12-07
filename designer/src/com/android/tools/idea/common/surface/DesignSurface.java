@@ -26,11 +26,9 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -44,7 +42,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -54,7 +51,6 @@ import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -78,7 +74,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -92,7 +87,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   @VisibleForTesting
-  @NotNull public ImmutableList<Layer> myLayers = ImmutableList.of();
+  @NotNull
+  public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -102,13 +98,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable protected NlModel myModel;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
-  private ViewEditorImpl myViewEditor;
   private final RenderListener myRenderListener = this::modelRendered;
   private final ModelListener myModelListener = (model, animate) -> repaint();
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
-  private final JBSplitter myErrorPanelSplitter;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
@@ -129,7 +123,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setOpaque(true);
     setFocusable(true);
     setRequestFocusEnabled(true);
-    setBackground(UIUtil.TRANSPARENT_COLOR);
 
     mySelectionModel = new SelectionModel();
     mySelectionModel.addListener(mySelectionListener);
@@ -151,22 +144,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
+    myScrollPane.getViewport().setBackground(getBackground());
 
     myIssuePanel = new IssuePanel(this, myIssueModel);
     Disposer.register(this, myIssuePanel);
-    myIssuePanel.setMinimizeListener((isMinimized) -> {
-      NlUsageTrackerManager.getInstance(this).logAction(
-        isMinimized ? LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL
-                    : LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-      updateErrorPanelSplitterUi(isMinimized);
-    });
 
-    // The error panel can only take up to 50% of the surface and it will take a 25% by default
-    myErrorPanelSplitter = new OnePixelSplitter(true, 0.75f, 0.5f, 1f);
-    myErrorPanelSplitter.setHonorComponentsMinimumSize(true);
-    myErrorPanelSplitter.setFirstComponent(myScrollPane);
-    myErrorPanelSplitter.setSecondComponent(myIssuePanel);
-    add(myErrorPanelSplitter);
+    add(myScrollPane);
 
     // TODO: Do this as part of the layout/validate operation instead
     addComponentListener(new ComponentListener() {
@@ -681,12 +664,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  public void notifySceneViewChanged() {
+  public void notifySceneChanged(@NotNull Scene scene) {
     layoutContent();
-    SceneView screenView = getCurrentSceneView();
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
-      listener.sceneChanged(this, screenView);
+      listener.sceneChanged(this, scene);
     }
   }
 
@@ -808,8 +790,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
-      setOpaque(true);
-      setBackground(UIUtil.TRANSPARENT_COLOR);
       setupCorners();
     }
 
@@ -859,8 +839,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private class MyLayeredPane extends JLayeredPane implements Magnificator, DataProvider {
     public MyLayeredPane() {
-      setOpaque(true);
-      setBackground(UIUtil.TRANSPARENT_COLOR);
 
       // Enable pinching to zoom
       putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
@@ -916,7 +894,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
       int width = myScrollPane.getWidth();
       int height = myScrollPane.getHeight();
-      graphics.setColor(getBackgroundColor());
+      graphics.setColor(getBackground());
       graphics.fillRect(lx, ly, width, height);
     }
 
@@ -946,11 +924,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       return null;
     }
-  }
-
-  @NotNull
-  protected JBColor getBackgroundColor() {
-    return DESIGN_SURFACE_BG;
   }
 
   private static class GlassPane extends JComponent {
@@ -1185,25 +1158,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public abstract boolean isLayoutDisabled();
 
   @Nullable
-  public ViewEditor getViewEditor() {
-    NlModel model = getModel();
-    Scene scene = getScene();
-    if (model == null || scene == null) {
-      String message = "Trying to get a view editor but the model (" + model + ") or scene (" + scene + ")are null: ";
-      Logger.getInstance(DesignSurface.class)
-        .warn(message);
-      assert false : message;
-      return null;
-    }
-    if (myViewEditor == null
-        || myViewEditor.getModel() != model
-        || myViewEditor.getScene() != scene) {
-      myViewEditor = new ViewEditorImpl(model, scene);
-    }
-    return myViewEditor;
-  }
-
-  @Nullable
   @Override
   public Configuration getConfiguration() {
     return getModel() != null ? getModel().getConfiguration() : null;
@@ -1219,16 +1173,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myIssuePanel;
   }
 
-  @NotNull
-  @TestOnly
-  public JBSplitter getErrorPanelSplitter() {
-    return myErrorPanelSplitter;
-  }
-
   public void setShowIssuePanel(boolean show) {
     UIUtil.invokeLaterIfNeeded(() -> {
       myIssuePanel.setMinimized(!show);
-      updateErrorPanelSplitterUi(myIssuePanel.isMinimized());
       revalidate();
       repaint();
     });
@@ -1245,21 +1192,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private void updateErrorPanelSplitterUi(boolean isMinimized) {
-    boolean showDivider = !isMinimized;
-    myErrorPanelSplitter.setShowDividerIcon(showDivider);
-    myErrorPanelSplitter.setShowDividerControls(showDivider);
-    myErrorPanelSplitter.setResizeEnabled(showDivider);
-
-    if (isMinimized) {
-      myErrorPanelSplitter.setProportion(1f);
-    }
-    else {
-      int height = myIssuePanel.getSuggestedHeight();
-      float proportion = 1 - (height / (float)getHeight());
-      myErrorPanelSplitter.setProportion(Math.max(0.5f, proportion));
-    }
-  }
 
   /**
    * Attaches the given {@link Layer}s to the current design surface.
@@ -1272,7 +1204,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Deattaches the given {@link Layer}s to the current design surface
    */
   public void removeLayers(@NotNull ImmutableList<Layer> layers) {
-   myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
+    myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
   }
 
   /**

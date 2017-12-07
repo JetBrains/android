@@ -32,7 +32,9 @@ import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -45,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,8 +115,8 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       args.add("--no-build-cache"); // Instant Run doesn't work with task caching (introduced in 3.0.0-alpha4).
     }
 
-    List<String> tasks = new LinkedList<>();
-    tasks.addAll(myTasksProvider.getFullBuildTasks());
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(myTasksProvider.getFullBuildTasks());
     return taskRunner.run(tasks, null, args);
   }
 

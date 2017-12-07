@@ -47,6 +47,8 @@ public abstract class ClassifierSet implements MemoryObject {
 
   protected boolean myIsFiltered;
   protected boolean myIsMatched;
+  // We need to apply filter to ClassifierSet again after any updates (insertion, deletion etc.)
+  protected boolean myNeedsRefiltering;
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
@@ -150,6 +152,8 @@ public abstract class ClassifierSet implements MemoryObject {
     if (instanceAdded && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount++;
     }
+
+    myNeedsRefiltering = true;
     return instanceAdded;
   }
 
@@ -183,6 +187,8 @@ public abstract class ClassifierSet implements MemoryObject {
     if (instanceRemoved && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount--;
     }
+
+    myNeedsRefiltering = true;
     return instanceRemoved;
   }
 
@@ -294,7 +300,14 @@ public abstract class ClassifierSet implements MemoryObject {
     return myIsMatched;
   }
 
-  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor) {
+  // Apply filter and update allocation information
+  // Filter children classifierSets that neither match the pattern nor have any matched ancestors
+  // Update information base on unfiltered children classifierSets
+  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor, boolean filterChanged) {
+    if (!filterChanged && !myNeedsRefiltering) {
+      return;
+    }
+
     myIsFiltered = true;
     ensurePartition();
     myAllocatedCount = 0;
@@ -308,7 +321,8 @@ public abstract class ClassifierSet implements MemoryObject {
 
     assert myClassifier != null;
     for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
-      classifierSet.applyFilter(filter, hasMatchedAncestor || myIsMatched);
+      classifierSet.applyFilter(filter, hasMatchedAncestor || myIsMatched, filterChanged);
+
       if (!classifierSet.getIsFiltered()) {
         myIsFiltered = false;
         myAllocatedCount += classifierSet.myAllocatedCount;
@@ -319,6 +333,8 @@ public abstract class ClassifierSet implements MemoryObject {
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
       }
     }
+
+    myNeedsRefiltering = false;
   }
 
   protected boolean matches(Pattern filter) {

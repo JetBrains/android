@@ -169,6 +169,26 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         Disposer.dispose(myMockFileManager);
         myMockFileManager = null;
       }
+      myMockView = null;
+
+      myFooLink1 = null;
+      myFooFile1 = null;
+      myFooFile2 = null;
+      myFooDir = null;
+      myDevice1 = null;
+      myDevice2 = null;
+      myFoo = null;
+      myFile1 = null;
+      myFile2 = null;
+
+      if (myMockService != null) {
+        Disposer.dispose(myMockService);
+        myMockService = null;
+      }
+
+      myModel = null;
+      myTaskExecutor = null;
+      myEdtExecutor = null;
       ClipboardSynchronizer.getInstance().resetContent();
     }
     finally {

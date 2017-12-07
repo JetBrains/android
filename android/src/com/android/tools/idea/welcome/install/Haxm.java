@@ -339,7 +339,7 @@ public final class Haxm extends InstallableComponent {
       final StringBuffer output = new StringBuffer();
       process.addProcessListener(new ProcessAdapter() {
         @Override
-        public void onTextAvailable(ProcessEvent event, Key outputType) {
+        public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
           output.append(event.getText());
           super.onTextAvailable(event, outputType);
         }

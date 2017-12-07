@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AnimatedIcon;
@@ -94,6 +95,11 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
 
   public void clickOk() {
     findAndClickOkButton(this);
+  }
+
+  public void clickHelp() {
+    Robot robot = this.robot();
+    new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, this.target(), Matchers.byText(JButton.class, "Help"))).click();
   }
 
   @NotNull

@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -161,6 +162,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
 
       ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
 
@@ -176,6 +179,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    myModules = null;
+    myAndroidFacet = null;
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
@@ -333,7 +338,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
-    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(Lists.newArrayList(tasks)));
+    File projectDir = getBaseDirPath(project);
+    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks)));
   }
 
   @NotNull
@@ -491,7 +497,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     SyncListener syncListener = new SyncListener();
     refreshProjectFiles();
 
-    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, syncListener);
+    Project project = getProject();
+    GradleProjectInfo.getInstance(project).setImportedProject(true);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
 
     syncListener.await();
     return syncListener;

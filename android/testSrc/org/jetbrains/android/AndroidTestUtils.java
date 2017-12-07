@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.IntentionActionDelegate;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +52,9 @@ public class AndroidTestUtils {
       if (!message.equals(action.getText())) {
         continue;
       }
-
+      if (action instanceof IntentionActionDelegate) {
+        action = ((IntentionActionDelegate)action).getDelegate();
+      }
       if (aClass.isAssignableFrom(action.getClass())) {
         //noinspection unchecked
         return (T)action;

@@ -101,7 +101,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                    new StudioProgressRunner(true, false, false, "Finding Available SDK Components", null),
+                    new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
@@ -215,7 +215,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                     myComponentTree.updateState(myLocalHandler);
                     myComponentsStep.stopLoading();
                   }), ImmutableList.of(() -> myComponentsStep.loadingError()),
-                  new StudioProgressRunner(false, true, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
+                  new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
                   StudioSettingsController.getInstance(), false);
         }
       }

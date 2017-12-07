@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceFolderType.*;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_TYPES;
 
 /**
  * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
@@ -89,6 +90,9 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  */
 public final class ResourceFolderRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
+
+  private static final ImmutableSet<ResourceFolderType> XML_RESOURCE_FOLDERS = ImmutableSet.copyOf(XML_FILE_RESOURCE_TYPES.values());
+
   private final Module myModule;
   private final AndroidFacet myFacet;
   private final PsiListener myListener;
@@ -987,9 +991,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myPendingScans.add(psiFile);
     }
     ApplicationManager.getApplication().invokeLater(() -> {
-      if (!psiFile.isValid()) {
-        return;
-      }
 
       ApplicationManager.getApplication().runWriteAction(() -> {
         boolean rescan;
@@ -1046,6 +1047,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ApplicationManager.getApplication().runReadAction(() -> rescanImmediately(psiFile, folderType));
       return;
     }
+
+    if (psiFile.getProject().isDisposed()) return;
 
     PsiFile file = psiFile;
     if (folderType == VALUES) {
@@ -1762,6 +1765,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     setModificationCount(ourModificationCounter.incrementAndGet());
                     scanDataBinding(resourceFile, getModificationCount());
                   }
+                } else if (XML_RESOURCE_FOLDERS.contains(folderType)) {
+                  // This is an XML change within an ID generating folder to something that it's not an ID. While we do not need
+                  // to generate the ID, we need to notify that something relevant has changed.
+                  // One example of this change would be an edit to a drawable.
+                  setModificationCount(ourModificationCounter.incrementAndGet());
                 }
               }
 
@@ -1772,6 +1780,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
             rescan(psiFile, folderType);
           } else if (folderType == VALUES) {
+            // This is a folder that *may* contain XML files. Check if this is a relevant XML edit.
             PsiElement parent = event.getParent();
             if (parent instanceof XmlElement) {
               // Editing within an XML file
@@ -1929,6 +1938,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
               setModificationCount(ourModificationCounter.incrementAndGet());
               return;
+            }
+          } else if (XML_RESOURCE_FOLDERS.contains(folderType)) {
+            PsiElement parent = event.getParent();
+
+            if (parent instanceof XmlElement) {
+              if (parent instanceof XmlComment) {
+                // Nothing to do
+                return;
+              }
+
+              // A change to an XML file that does not require adding/removing resources. This could be a change to the contents of an XML
+              // file in the raw folder.
+              setModificationCount(ourModificationCounter.incrementAndGet());
             }
           } // else: can ignore this edit
         }

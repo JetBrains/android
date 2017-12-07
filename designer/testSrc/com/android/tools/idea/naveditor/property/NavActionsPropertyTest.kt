@@ -17,9 +17,9 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 
-class NavActionsPropertyTest : NavigationTestCase() {
+class NavActionsPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
 
   override fun setUp() {

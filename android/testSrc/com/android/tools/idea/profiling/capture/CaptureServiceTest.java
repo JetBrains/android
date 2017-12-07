@@ -74,7 +74,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     Element element = readElement("  <extensions defaultExtensionNs=\"com.android\">\n" +
                                   "    <captureType implementation=\"" + MyCaptureType.class.getName() +
                                   "\"/>\n  </extensions>");
-    area.registerExtension(new DefaultPluginDescriptor(PluginId.getId("com.android")), element.getChild("captureType"));
+    area.registerExtension(new DefaultPluginDescriptor(PluginId.getId("com.android")), element.getChild("captureType"), "com.android");
     MyCaptureType type = CaptureTypeService.getInstance().getType(MyCaptureType.class);
 
     service.update();

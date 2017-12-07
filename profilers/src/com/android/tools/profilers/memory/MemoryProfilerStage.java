@@ -437,6 +437,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public void refreshSelectedHeap() {
     myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS);
+    selectCaptureFilter(getCaptureFilter());
   }
 
   public void selectHeapSet(@Nullable HeapSet heapSet) {

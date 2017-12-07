@@ -15,27 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker.messages;
 
-import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory;
 import com.google.common.base.Joiner;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.containers.Convertor;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,47 +100,6 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
   @Nullable
   private GradleBuildTreeViewConfiguration getConfiguration() {
     return myConfiguration;
-  }
-
-  @Override
-  protected void fillRightToolbarGroup(DefaultActionGroup group) {
-    super.fillRightToolbarGroup(group);
-    group.add(new DumbAwareAction("Show Console Output", null, AndroidIcons.GradleConsole) {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(GradleConsoleToolWindowFactory.ID);
-        if (window != null) {
-          window.activate(null, false);
-        }
-      }
-
-      @Override
-      public void update(AnActionEvent e) {
-        e.getPresentation().setEnabledAndVisible(true);
-      }
-    });
-
-    DefaultActionGroup filterGroup = new DefaultActionGroup("GradleBuildMessagesFilter", true) {
-      @Override
-      public void update(AnActionEvent e) {
-        Presentation presentation = e.getPresentation();
-        presentation.setDescription("Filter messages to display");
-        presentation.setIcon(AllIcons.General.Filter);
-      }
-
-      @Override
-      public boolean isDumbAware() {
-        return true;
-      }
-    };
-
-    // We could have iterated through ErrorTreeElementKind.values() and have less code, but we want to keep this order:
-    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.ERROR));
-    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.WARNING));
-    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.INFO));
-    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.NOTE));
-    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.GENERIC));
-    group.add(filterGroup);
   }
 
   @Override

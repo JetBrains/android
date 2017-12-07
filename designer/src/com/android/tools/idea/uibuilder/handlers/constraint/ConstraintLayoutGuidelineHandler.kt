@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
-import com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT
+import com.android.SdkConstants.*
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewHandler
+import icons.StudioIcons
+import javax.swing.Icon
 
 /**
  * Handles interactions with a Guideline for a ConstraintLayout.
@@ -27,4 +30,22 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
     return CONSTRAINT_LAYOUT_LIB_ARTIFACT
   }
 
+  override fun getIcon(component: NlComponent): Icon {
+    if (component.tagName != CONSTRAINT_LAYOUT_GUIDELINE) {
+      return super.getIcon(component)
+    }
+    return if (isVertical(component)) {
+      StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE
+    }
+    else {
+      StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun isVertical(component: NlComponent): Boolean {
+      return ATTR_GUIDELINE_ORIENTATION_VERTICAL == component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
+    }
+  }
 }

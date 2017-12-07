@@ -83,14 +83,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 
 /** Performs Gradle-specific IDE initialization */
 public class GradleSpecificInitializer implements Runnable {
-  /**
-   * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
-   * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
-   */
-  public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
-  static {
-    System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
-  }
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
@@ -310,7 +302,10 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    if (GuiTestingService.getInstance().isGuiTestingMode()) {
+    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initialisers
+    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
+        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }

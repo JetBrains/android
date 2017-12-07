@@ -107,7 +107,8 @@ public class IssuePanelTest {
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().openIssuePanel();
-    IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
+    IssuePanelFixture panelFixture = layout.getIssuePanel();
+    layout.enlargeBottomComponentSplitter();
     String errorTitle = "Unknown fragments";
     GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
     panelFixture.findIssueWithTitle(errorTitle).doubleClick();
@@ -129,7 +130,8 @@ public class IssuePanelTest {
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().openIssuePanel();
-    IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
+    IssuePanelFixture panelFixture = layout.getIssuePanel();
+    layout.enlargeBottomComponentSplitter();
     String errorTitle = "Unknown fragments";
     GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
     panelFixture.findIssueWithTitle(errorTitle).doubleClick();

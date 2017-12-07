@@ -26,7 +26,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
 import com.jetbrains.cidr.lang.symbols.OCSymbol;
@@ -122,18 +121,16 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       }
 
       // Check if method parameters match the function's
-      String signature = location.getSignature();
-      if (signature != null) {
-        String[] splitParams = signature.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : signature.split(", ");
-
+      List<String> parameters = location.getMethodParameters();
+      if (parameters != null) {
         List<OCDeclaratorSymbol> functionParams = function.getParameterSymbols();
-        if (functionParams.size() != splitParams.length) {
+        if (functionParams.size() != parameters.size()) {
           return true; // Parameters count don't match. Continue the processing.
         }
 
         boolean match = true;
-        for (int i = 0; i < splitParams.length; i++) {
-          if (!splitParams[i].equals(functionParams.get(i).getType().getName())) {
+        for (int i = 0; i < parameters.size(); i++) {
+          if (!parameters.get(i).equals(functionParams.get(i).getType().getName())) {
             match = false;
             break;
           }

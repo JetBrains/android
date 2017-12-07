@@ -61,7 +61,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Projec
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    if(toImport.isEmpty() || !myIdeInfo.isAndroidStudio()) {
+    if (toImport.isEmpty()) {
       return;
     }
 

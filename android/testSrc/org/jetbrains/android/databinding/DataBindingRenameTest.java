@@ -19,7 +19,6 @@ import com.android.ide.common.blame.Message;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,8 +29,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.testFramework.TestActionEvent;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
@@ -75,8 +76,9 @@ public class DataBindingRenameTest extends AndroidGradleTestCase {
     assertFalse(syncState.isSyncNeeded().toBoolean());
     assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
 
-    // Trigger initialization.
-    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
+    // Make sure that all file system events up to this point have been processed.
+    VirtualFileManager.getInstance().syncRefresh();
+    UIUtil.dispatchAllInvocationEvents();
 
     VirtualFile file =
         getProject().getBaseDir().findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java");

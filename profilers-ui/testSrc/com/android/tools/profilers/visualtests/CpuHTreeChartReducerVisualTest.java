@@ -23,8 +23,8 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.MethodModel;
-import com.android.tools.profilers.cpu.MethodModelHRenderer;
+import com.android.tools.profilers.cpu.CaptureNodeModelHRenderer;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.art.ArtTraceHandler;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +40,8 @@ import java.util.Map;
 public class CpuHTreeChartReducerVisualTest extends VisualTest {
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
 
-  private HTreeChart<MethodModel> myChart;
-  private HTreeChart<MethodModel> myNotOptimizedChart;
+  private HTreeChart<CaptureNodeModel> myChart;
+  private HTreeChart<CaptureNodeModel> myNotOptimizedChart;
   private Range myRange = new Range();
 
   @Override
@@ -59,13 +59,13 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     CaptureNode node = parseAndGetHNode();
     myRange.set(node.getStart(), node.getEnd());
 
-    myChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN);
-    myChart.setHRenderer(new MethodModelHRenderer());
+    myChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN);
+    myChart.setHRenderer(new CaptureNodeModelHRenderer());
     myChart.setHTree(node);
 
-    myNotOptimizedChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
+    myNotOptimizedChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
     });
-    myNotOptimizedChart.setHRenderer(new MethodModelHRenderer());
+    myNotOptimizedChart.setHRenderer(new CaptureNodeModelHRenderer());
     myNotOptimizedChart.setHTree(node);
 
     panel.setLayout(new GridLayout(2, 1));

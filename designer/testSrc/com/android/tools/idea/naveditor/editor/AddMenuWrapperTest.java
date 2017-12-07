@@ -20,7 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
@@ -55,7 +55,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 
 // TODO: testing with custom navigators
-public class AddMenuWrapperTest extends NavigationTestCase {
+public class AddMenuWrapperTest extends NavTestCase {
 
   private SyncNlModel myModel;
   private NavDesignSurface mySurface;
@@ -116,7 +116,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testAddDirectly() {
-    myMenu.addElement(mySurface, "myTag", "myId", "myName", component -> component.setAttribute("ns", "attr", "value"));
+    myMenu.addElement(mySurface, "myTag", "myId", "myClassName", "myLabel", component -> component.setAttribute("ns", "attr", "value"));
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +
                  "    NlComponent{tag=<navigation>, instance=2}\n" +
@@ -125,7 +125,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
                  new NlTreeDumper().toTree(myModel.getComponents()));
     NlComponent newChild = myModel.find("myId");
     assertEquals(ImmutableList.of(newChild), mySurface.getSelectionModel().getSelection());
-    assertEquals("myName", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME));
+    assertEquals("myClassName", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME));
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID));
     assertEquals("value", newChild.getAttribute("ns", "attr"));
   }
@@ -255,7 +255,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
 
     menu.createDestination();
 
-    Mockito.verify(menu).addElement(mySurface, "navigation", "myId", "myLabel", null);
+    Mockito.verify(menu).addElement(mySurface, "navigation", "myId", null, "myLabel", null);
   }
 
   public void testCreateFragment() {
@@ -299,7 +299,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<NlComponent>> consumerArg = ArgumentCaptor.forClass(Consumer.class);
     Mockito.verify(menu)
-      .addElement(eq(mySurface), eq("include"), isNull(), isNull(), consumerArg.capture());
+      .addElement(eq(mySurface), eq("include"), eq("navigation"), isNull(), eq("myLabel"), consumerArg.capture());
 
     NlComponent component = Mockito.mock(NlComponent.class);
     consumerArg.getValue().accept(component);

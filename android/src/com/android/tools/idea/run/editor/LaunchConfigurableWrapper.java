@@ -46,12 +46,6 @@ public class LaunchConfigurableWrapper implements Configurable, Configurable.NoS
 
   @Nullable
   @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public JComponent createComponent() {
     return getConfigurable().createComponent();
   }
@@ -79,13 +73,5 @@ public class LaunchConfigurableWrapper implements Configurable, Configurable.NoS
 
   @Override
   public void apply() throws ConfigurationException {
-  }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public void disposeUIResources() {
   }
 }

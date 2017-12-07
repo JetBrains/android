@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property.inspector;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -56,7 +57,7 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
-public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>> extends JPanel implements KeyEventDispatcher {
+public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>> extends AdtSecondaryPanel implements KeyEventDispatcher {
   private static final int HORIZONTAL_SPACING = 6;
   private static final int COLUMN_COUNT = 2;
 
@@ -477,7 +478,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
    * This is a hack to attempt to keep the column size fo the grid to 40% for the label and 60% for the editor.
    * We want to update the constraints before <code>doLayout</code> is called on the panel.
    */
-  private static class GridInspectorPanel extends JPanel {
+  private static class GridInspectorPanel extends AdtSecondaryPanel {
     private int myWidth;
 
     @Override

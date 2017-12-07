@@ -16,8 +16,8 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
@@ -29,15 +29,15 @@ import java.awt.Dimension
 /**
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
-class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, model) {
+class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView(surface, sceneManager) {
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
-  override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawX ?: 0)
-  override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, surface.scene?.root?.drawY ?: 0)
+  override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
+  override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawY ?: 0)
   override fun getPreferredSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 
-    result.height = Coordinates.dpToPx(this, surface.scene?.root?.drawHeight ?: 0)
-    result.width = Coordinates.dpToPx(this, surface.scene?.root?.drawWidth ?: 0)
+    result.height = Coordinates.dpToPx(this, sceneManager.scene.root?.drawHeight ?: 0)
+    result.width = Coordinates.dpToPx(this, sceneManager.scene.root?.drawWidth ?: 0)
     return result
   }
 

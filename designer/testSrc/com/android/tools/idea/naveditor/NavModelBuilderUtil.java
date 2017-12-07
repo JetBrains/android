@@ -205,11 +205,11 @@ public class NavModelBuilderUtil {
   public static class ArgumentComponentDescriptor extends ComponentDescriptor {
     public ArgumentComponentDescriptor(@NotNull String name) {
       super(TAG_ARGUMENT);
-      withAttribute(SdkConstants.ATTR_NAME, name);
+      withAttribute(AUTO_URI, SdkConstants.ATTR_NAME, name);
     }
 
     public ArgumentComponentDescriptor withDefaultValueAttribute(@NotNull String defaultValue) {
-      withAttribute(NavigationSchema.ATTR_DEFAULT_VALUE, defaultValue);
+      withAttribute(AUTO_URI, NavigationSchema.ATTR_DEFAULT_VALUE, defaultValue);
       return this;
     }
   }

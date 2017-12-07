@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.layout;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent;
@@ -27,7 +27,7 @@ import static com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
 /**
  * Tests for {@link DummyAlgorithm}
  */
-public class DummyAlgorithmTest extends NavigationTestCase {
+public class DummyAlgorithmTest extends NavTestCase {
 
   /**
    * Just lay out some components using this algorithm. The basic layout will be:

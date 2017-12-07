@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -51,10 +52,13 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
-  private static final String GSON = "com.google.code.gson:gson:2.2.4@jar";
-  private static final String GUAVA = "com.google.guava:guava:18.0@jar";
-  private static final String HAMCREST = "org.hamcrest:hamcrest-core:1.3@jar";
-  private static final String JUNIT = "junit:junit:4.12@jar";
+  // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
+  private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+
+  private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.2.4@jar";
+  private static final String GUAVA = GRADLE_PREFIX + "com.google.guava:guava:18.0@jar";
+  private static final String HAMCREST = GRADLE_PREFIX + "org.hamcrest:hamcrest-core:1.3@jar";
+  private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12@jar";
   @Override
   protected boolean shouldRunTest() {
     if (SystemInfo.isWindows) {

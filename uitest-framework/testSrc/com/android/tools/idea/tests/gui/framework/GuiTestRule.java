@@ -101,11 +101,11 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     return RuleChain.emptyRuleChain()
+      .around(new LogStartAndStop())
       .around(new BlockReloading())
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new LogStartAndStop())
       .around(new ScreenshotOnFailure())
       .around(myTimeout)
       .apply(base, description);

@@ -118,7 +118,7 @@ public class PatchGenerator {
         Files.copy(is, destFs.getPath("patch-file.zip"));
       }
     }
-    catch (IOException|OperationCancelledException e) {
+    catch (IOException e) {
       progress.logWarning("Failed to create patch", e);
       return false;
     }
@@ -174,20 +174,15 @@ public class PatchGenerator {
     }
 
     @Override
-    public void setStatus(@Nullable String status) {
-      myProgressIndicator.setSecondaryText(status);
-    }
-
-    @Override
-    public void showError(@Nullable Throwable e) {
-      myProgressIndicator.logWarning("Error", e);
-    }
-
-    @Override
     public void checkCancelled() throws OperationCancelledException {
       if (myProgressIndicator.isCanceled()) {
         throw new OperationCancelledException();
       }
+    }
+
+    @Override
+    public void showError(String message) {
+      myProgressIndicator.logError(message);
     }
 
     @Override
@@ -196,9 +191,8 @@ public class PatchGenerator {
     }
 
     @Override
-    public boolean showWarning(String message) {
+    public void askUser(String message) throws OperationCancelledException {
       // unused
-      return false;
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
+import org.jetbrains.android.AndroidTestBase
 
 /**
  * Return a fake directory on a DummyFileSystem.
@@ -32,3 +33,5 @@ fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   }
   return root
 }
+
+fun getTestDataDirectory() = AndroidTestBase.getTestDataPath() + "/resourceExplorer"

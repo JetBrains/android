@@ -47,6 +47,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -264,6 +265,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions
       .add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
         ConstraintViewActions.HELPER_ACTIONS)));
+
+    ViewActionSeparator.setupFollowingActions(actions);
   }
 
   private static boolean isConstraintLayoutChild(List<NlComponent> children) {
@@ -598,8 +601,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     String mType;
 
     public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
-      // TODO: add new icons to StudioIcons and replace these icons
-      super(AndroidIcons.SherpaIcons.Unchecked, AndroidIcons.SherpaIcons.Checked, text, text);
+      super(null, AllIcons.Actions.Checked, text, text);
       mType = type;
       ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type, defaultValue));
     }

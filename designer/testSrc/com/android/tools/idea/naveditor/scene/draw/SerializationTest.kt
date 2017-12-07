@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.draw.DrawCircle
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawFilledCircle
+import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import junit.framework.TestCase
-import java.awt.Rectangle
+import java.awt.*
 
 class SerializationTest : TestCase() {
   fun testDrawIcon() {
@@ -42,15 +46,6 @@ class SerializationTest : TestCase() {
         DrawAction.DrawMode.SELECTED), factory)
   }
 
-  fun testDrawActionHandle() {
-    val factory = { s: String -> DrawActionHandle(s) }
-
-    testSerialization("DrawActionHandle,10,20,5,10,FRAMES,100", DrawActionHandle(10, 20, 5, 10, DrawColor.FRAMES, 100), factory)
-    testSerialization("DrawActionHandle,20,40,10,5,SELECTED_FRAMES,200", DrawActionHandle(20, 40, 10, 5, DrawColor.SELECTED_FRAMES, 200), factory)
-    testSerialization("DrawActionHandle,10,60,5,20,FRAMES,300", DrawActionHandle(10, 60, 5, 20, DrawColor.FRAMES, 300), factory)
-    testSerialization("DrawActionHandle,20,80,5,10,SELECTED_FRAMES,400", DrawActionHandle(20, 80, 5, 10, DrawColor.SELECTED_FRAMES, 400), factory)
-  }
-
   fun testDrawActionHandleDrag() {
     val factory = { s: String -> DrawActionHandleDrag(s) }
 
@@ -58,35 +53,58 @@ class SerializationTest : TestCase() {
     testSerialization("DrawActionHandleDrag,30,50,10", DrawActionHandleDrag(30, 50, 10), factory)
   }
 
-  fun testDrawScreenLabel() {
-    val factory = { s: String -> DrawScreenLabel(s) }
+  fun testDrawTruncatedText() {
+    val factory = { s: String -> DrawTruncatedText(s) }
 
-    testSerialization("DrawScreenLabel,10,20,foo", DrawScreenLabel(10, 20, "foo"), factory)
-    testSerialization("DrawScreenLabel,30,40,bar", DrawScreenLabel(30, 40, "bar"), factory)
+    testSerialization("DrawTruncatedText,0,foo,10x20x30x40,ffff0000,Default:0:10,true",
+        DrawTruncatedText(0, "foo", Rectangle(10, 20, 30, 40), Color.RED,
+            Font("Default", Font.PLAIN, 10), true), factory)
+
+    testSerialization("DrawTruncatedText,1,bar,50x60x70x80,ff0000ff,Helvetica:1:20,false",
+        DrawTruncatedText(1, "bar", Rectangle(50, 60, 70, 80), Color.BLUE,
+            Font("Helvetica", Font.BOLD, 20), false), factory)
   }
 
   fun testDrawRectangle() {
     val factory = { s: String -> DrawRectangle(s) }
 
-    testSerialization("DrawRectangle,10x20x30x40,SELECTED_FRAMES,1,0",
+    testSerialization("DrawRectangle,10x20x30x40,ffff0000,1,0",
         DrawRectangle(Rectangle(10, 20, 30, 40),
-            DrawColor.SELECTED_FRAMES, 1), factory)
+            Color.RED, 1), factory)
 
-    testSerialization("DrawRectangle,50x60x70x80,HIGHLIGHTED_FRAMES,3,4",
+    testSerialization("DrawRectangle,50x60x70x80,ff0000ff,3,4",
         DrawRectangle(Rectangle(50, 60, 70, 80),
-            DrawColor.HIGHLIGHTED_FRAMES, 3, 4), factory)
+            Color.BLUE, 3, 4), factory)
   }
 
   fun testDrawFilledRectangle() {
     val factory = { s: String -> DrawFilledRectangle(s) }
 
-    testSerialization("DrawFilledRectangle,10x20x30x40,SELECTED_FRAMES,2",
+    testSerialization("DrawFilledRectangle,10x20x30x40,ffff0000,2",
         DrawFilledRectangle(Rectangle(10, 20, 30, 40),
-            DrawColor.SELECTED_FRAMES, 2), factory)
+            Color.RED, 2), factory)
 
-    testSerialization("DrawFilledRectangle,50x60x70x80,HIGHLIGHTED_FRAMES,4",
+    testSerialization("DrawFilledRectangle,50x60x70x80,ff0000ff,4",
         DrawFilledRectangle(Rectangle(50, 60, 70, 80),
-            DrawColor.HIGHLIGHTED_FRAMES, 4), factory)
+            Color.BLUE, 4), factory)
+  }
+
+  fun testDrawCircle() {
+    val factory = { s: String -> DrawCircle(s) }
+
+    testSerialization("DrawCircle,0,10x20,ffff0000,1,1:2:3",
+        DrawCircle(0, Point(10, 20), Color.RED, BasicStroke(1F), LerpValue(1, 2, 3)), factory)
+    testSerialization("DrawCircle,1,30x40,ff0000ff,2,4:5:6",
+        DrawCircle(1, Point(30, 40), Color.BLUE, BasicStroke(2F), LerpValue(4, 5, 6)), factory)
+  }
+
+  fun testDrawFilledCircle() {
+    val factory = { s: String -> DrawFilledCircle(s) }
+
+    testSerialization("DrawFilledCircle,0,10x20,ffff0000,1:2:3",
+        DrawFilledCircle(0, Point(10, 20), Color.RED, LerpValue(1, 2, 3)), factory)
+    testSerialization("DrawFilledCircle,1,30x40,ff0000ff,4:5:6",
+        DrawFilledCircle(1, Point(30, 40), Color.BLUE, LerpValue(4, 5, 6)), factory)
   }
 
   companion object {
@@ -94,7 +112,7 @@ class SerializationTest : TestCase() {
       val serialized = drawCommand.serialize()
       TestCase.assertEquals(serialized, s)
 
-      val deserialized = factory(serialized)
+      val deserialized = factory(serialized.substringAfter(','))
       TestCase.assertEquals(serialized, deserialized.serialize())
     }
   }

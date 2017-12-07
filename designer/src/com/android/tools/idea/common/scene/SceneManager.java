@@ -22,6 +22,8 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.util.ListenerCollection;
@@ -47,6 +49,7 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface myDesignSurface;
   @NotNull private final Scene myScene;
+  @NotNull private final ViewEditor myViewEditor;
   // This will be initialized when constructor calls updateSceneView().
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
@@ -58,6 +61,7 @@ abstract public class SceneManager implements Disposable {
     Disposer.register(model, this);
 
     myScene = new Scene(this, myDesignSurface);
+    myViewEditor = new ViewEditorImpl(myModel, myScene);
 
     createSceneView();
   }
@@ -69,7 +73,7 @@ abstract public class SceneManager implements Disposable {
     mySceneView = doCreateSceneView();
 
     myDesignSurface.addLayers(getLayers());
-    myDesignSurface.notifySceneViewChanged();
+    myDesignSurface.notifySceneChanged(myScene);
   }
 
   /**
@@ -228,6 +232,11 @@ abstract public class SceneManager implements Disposable {
     return tempComponent;
   }
 
+  @NotNull
+  public ViewEditor getViewEditor() {
+    return myViewEditor;
+  }
+
   /**
    * Updates a single SceneComponent from its corresponding NlComponent.
    */
@@ -241,7 +250,7 @@ abstract public class SceneManager implements Disposable {
   }
 
   @NotNull
-  protected NlModel getModel() {
+  public NlModel getModel() {
     return myModel;
   }
 

@@ -24,17 +24,17 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 class CpuChartTooltipView extends MouseAdapter {
   @NotNull
-  private final HTreeChart<MethodModel> myChart;
+  private final HTreeChart<CaptureNodeModel> myChart;
 
   @NotNull
   private final TooltipComponent myTooltipComponent;
@@ -45,7 +45,7 @@ class CpuChartTooltipView extends MouseAdapter {
   @NotNull
   private final CpuProfilerStageView myStageView;
 
-  private CpuChartTooltipView(@NotNull HTreeChart<MethodModel> chart, @NotNull CpuProfilerStageView stageView) {
+  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
     myStageView = stageView;
     myChart = chart;
 
@@ -63,13 +63,13 @@ class CpuChartTooltipView extends MouseAdapter {
   @Override
   public void mouseMoved(MouseEvent e) {
     myTooltipComponent.setVisible(false);
-    HNode<MethodModel> node = myChart.getNodeAt(e.getPoint());
+    HNode<CaptureNodeModel> node = myChart.getNodeAt(e.getPoint());
     if (node != null) {
       showTooltip(node);
     }
   }
 
-  private void showTooltip(@NotNull HNode<MethodModel> node) {
+  private void showTooltip(@NotNull HNode<CaptureNodeModel> node) {
     assert node.getData() != null;
     myTooltipComponent.setVisible(true);
     Range dataRange = myStageView.getTimeline().getDataRange();
@@ -87,7 +87,7 @@ class CpuChartTooltipView extends MouseAdapter {
     myContent.setText(text);
   }
 
-  static void install(@NotNull HTreeChart<MethodModel> chart, @NotNull CpuProfilerStageView stageView) {
+  static void install(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
     chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
   }
 }

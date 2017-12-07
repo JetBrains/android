@@ -159,7 +159,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       }
     }
     ActionToolbar actionToolbar = ActionManager.getInstance()
-      .createActionToolbar(ActionPlaces.UNKNOWN, group, false);
+      .createActionToolbar("AndroidDesignerExtractWidgetTool", group, false);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     actionToolbar.setTargetComponent(this);
     actionToolbar.getComponent().setBackground(JBColor.WHITE);

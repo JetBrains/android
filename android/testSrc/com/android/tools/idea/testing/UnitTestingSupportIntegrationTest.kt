@@ -19,12 +19,14 @@ import com.android.tools.idea.testartifacts.TestConfigurationTesting.createConte
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
+import com.intellij.execution.impl.ExecutionManagerKtImpl
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.CountDownLatch
@@ -56,15 +58,22 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   override fun runInDispatchThread(): Boolean = false
   override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
 
-  /** This fails on macOS buildbot for some reason. See b/67325961. */
-  override fun shouldRunTest() = !SystemInfo.isMac
+  override fun shouldRunTest(): Boolean {
+    // This fails on macOS buildbot for some reason. See b/67325961.
+     return !SystemInfo.isMac
+  }
 
   override fun setUp() {
-    super.setUp()
+    TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait {
+      super.setUp()
       loadProject(TestProjectPaths.UNIT_TESTING)
+
       // Without this, the execution manager will not invoke gradle to compile the project, so no tests will be found.
-      ExecutionManagerImpl.getInstance(project).setForceCompilationInTests(true)
+      val executionManager = ExecutionManagerImpl.getInstance(project)
+      if (executionManager is ExecutionManagerKtImpl) {
+        executionManager.forceCompilationInTests = true
+      }
       log("project imported")
 
       // Calling the code below makes sure there are no mistakes in the test project and that all class files are in place. Doing this

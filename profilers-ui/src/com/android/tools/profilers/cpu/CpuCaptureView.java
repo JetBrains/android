@@ -28,6 +28,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
@@ -253,9 +256,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -271,9 +274,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -289,9 +292,9 @@ class CpuCaptureView {
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.LEFT))
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .setTreeSorter(sorter)
@@ -308,17 +311,7 @@ class CpuCaptureView {
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
-    MethodModel method = ((CpuTreeNode)node.getUserObject()).getMethodModel();
-    CodeLocation.Builder codeLocation = new CodeLocation.Builder(method.getClassOrNamespace())
-      .setMethodName(method.getName())
-      .setNativeCode(method.isNative());
-    if (method.isNative()) {
-      codeLocation.setMethodParameters(method.getParameters());
-    }
-    else {
-      codeLocation.setMethodSignature(method.getSignature());
-    }
-    return codeLocation.build();
+    return modelToCodeLocation(((CpuTreeNode)node.getUserObject()).getMethodModel());
   }
 
   /**
@@ -341,10 +334,11 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
-  private static HTreeChart<MethodModel> setUpChart(@NotNull CaptureModel.Details.Type type,
-                                                    @NotNull Range range,
-                                                    @Nullable HNode<MethodModel> node,
-                                                    @NotNull CpuProfilerStageView stageView) {
+  private static HTreeChart<CaptureNodeModel> setUpChart(@NotNull CaptureModel.Details.Type type,
+                                                         @NotNull Range globalRange,
+                                                         @NotNull Range range,
+                                                         @Nullable HNode<CaptureNodeModel> node,
+                                                         @NotNull CpuProfilerStageView stageView) {
     HTreeChart.Orientation orientation;
     if (type == CaptureModel.Details.Type.CALL_CHART) {
       orientation = HTreeChart.Orientation.TOP_DOWN;
@@ -352,8 +346,8 @@ class CpuCaptureView {
     else {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
-    HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
-    chart.setHRenderer(new MethodModelHRenderer(type));
+    HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(globalRange, range, orientation);
+    chart.setHRenderer(new CaptureNodeModelHRenderer(type));
     chart.setRootVisible(false);
 
     chart.setHTree(node);
@@ -509,25 +503,29 @@ class CpuCaptureView {
   static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @NotNull private final CaptureModel.CallChart myCallChart;
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
 
     private AspectObserver myObserver;
 
     private CallChartView(@NotNull CpuProfilerStageView stageView,
                           @NotNull CaptureModel.CallChart callChart) {
       myCallChart = callChart;
-      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, myCallChart.getRange(), myCallChart.getNode(), stageView);
+      // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
+      // timeline. Users can navigate to other part within the capture by interacting with the call chart UI. When it happens, the timeline
+      // selection should be automatically updated.
+      Range selectionRange = stageView.getTimeline().getSelectionRange();
+      Range captureRange = stageView.getStage().getCapture().getRange();
+      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, captureRange, selectionRange,
+                           myCallChart.getNode(), stageView);
 
       if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
       }
 
-      Range selectionRange = stageView.getTimeline().getSelectionRange();
       // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
       // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
       // capture range.
-      Range captureRange = stageView.getStage().getCapture().getRange();
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
@@ -547,7 +545,7 @@ class CpuCaptureView {
     }
 
     private void callChartRangeChanged() {
-      HNode<MethodModel> node = myCallChart.getNode();
+      HNode<CaptureNodeModel> node = myCallChart.getNode();
       assert node != null;
       Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
@@ -562,7 +560,7 @@ class CpuCaptureView {
 
   static class FlameChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
     @NotNull private final AspectObserver myObserver;
     @NotNull private final CaptureModel.FlameChart myFlameChart;
 
@@ -572,9 +570,14 @@ class CpuCaptureView {
     @NotNull private final Range myMasterRange;
 
     public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+      // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
+      // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
+      // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
+      // sub-range on timeline, the timeline selection should not be updated while users are interacting with flame chart UI. Therefore,
+      // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
-      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, myMasterRange, myFlameChart.getNode(), stageView);
+      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, flameChart.getRange(), myMasterRange, myFlameChart.getNode(), stageView);
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
@@ -607,10 +610,10 @@ class CpuCaptureView {
   }
 
   private static class TreeChartNavigationHandler extends MouseAdapter {
-    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart, @NotNull CodeNavigator navigator) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CodeNavigator navigator) {
       myChart = chart;
       new DoubleClickListener() {
         @Override
@@ -647,22 +650,37 @@ class CpuCaptureView {
 
     @Nullable
     private CodeLocation getCodeLocation() {
-      HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
+      HNode<CaptureNodeModel> n = myChart.getNodeAt(myLastPopupPoint);
       if (n == null || n.getData() == null) {
         return null;
       }
-      MethodModel method = n.getData();
-      CodeLocation.Builder codeLocation = new CodeLocation.Builder(method.getClassOrNamespace())
-        .setMethodName(method.getName())
-        .setNativeCode(method.isNative());
-      if (method.isNative()) {
-        codeLocation.setMethodParameters(method.getParameters());
-      }
-      else {
-        codeLocation.setMethodSignature(method.getSignature());
-      }
-      return codeLocation.build();
+      return modelToCodeLocation(n.getData());
     }
+  }
+
+  /**
+   * Produces a {@link CodeLocation} corresponding to a {@link CaptureNodeModel}. Returns null if the model is not navigatable.
+   */
+  @Nullable
+  private static CodeLocation modelToCodeLocation(CaptureNodeModel model) {
+    if (model instanceof CppFunctionModel) {
+      CppFunctionModel nativeFunction = (CppFunctionModel)model;
+      return new CodeLocation.Builder(nativeFunction.getClassOrNamespace())
+        .setMethodName(nativeFunction.getName())
+        .setMethodParameters(nativeFunction.getParameters())
+        .setNativeCode(true)
+        .build();
+    }
+    else if (model instanceof JavaMethodModel) {
+      JavaMethodModel javaMethod = (JavaMethodModel)model;
+      return new CodeLocation.Builder(javaMethod.getClassName())
+        .setMethodName(javaMethod.getName())
+        .setMethodSignature(javaMethod.getSignature())
+        .setNativeCode(false)
+        .build();
+    }
+    // Code is not navigatable.
+    return null;
   }
 
   /**
@@ -756,7 +774,7 @@ class CpuCaptureView {
         double v = myGetter.apply(node);
         if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f%%", v / root.getTotal() * 100), attributes);
+          append(String.format("%.2f", v / root.getTotal() * 100), attributes);
         }
         else {
           append(String.format("%,.0f", v), attributes);
@@ -836,15 +854,23 @@ class CpuCaptureView {
           ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
         CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
         SimpleTextAttributes attributes = getTextAttributes(node);
-        MethodModel model = node.getMethodModel();
+        CaptureNodeModel model = node.getMethodModel();
+        String classOrNamespace = "";
+        if (model instanceof CppFunctionModel) {
+          classOrNamespace = ((CppFunctionModel)model).getClassOrNamespace();
+        }
+        else if (model instanceof JavaMethodModel) {
+          classOrNamespace = ((JavaMethodModel)model).getClassName();
+        }
+
         if (model.getName().isEmpty()) {
           setIcon(AllIcons.Debugger.ThreadSuspended);
-          append(model.getClassOrNamespace(), attributes);
+          append(classOrNamespace, attributes);
         }
         else {
           setIcon(PlatformIcons.METHOD_ICON);
           append(model.getName() + "()", attributes);
-          append(" (" + model.getClassOrNamespace() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+          append(" (" + classOrNamespace + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
       }
       else {

@@ -30,7 +30,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.editor.event.DocumentAdapter;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.editor.highlighter.HighlighterClient;
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Keeps track of attributes for ranges and has some special support for tracking process output.
  */
-public final class ConsoleHighlighter extends DocumentAdapter implements EditorHighlighter {
+public final class ConsoleHighlighter implements EditorHighlighter, DocumentListener {
   private List<HighlightRange> myRanges = Lists.newArrayListWithCapacity(1024);
   private boolean myIsUpdatePending = false;
   private StringBuilder myPendingStrings = new StringBuilder(4096);
@@ -188,7 +188,7 @@ public final class ConsoleHighlighter extends DocumentAdapter implements EditorH
     private AtomicBoolean mySkipped = new AtomicBoolean(false);
 
     @Override
-    public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+    public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
       if (!mySkipped.compareAndSet(false, true)) {
         print(event.getText(), ConsoleViewContentType.getConsoleViewType(outputType).getAttributes());
       }

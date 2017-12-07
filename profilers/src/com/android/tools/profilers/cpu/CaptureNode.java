@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CaptureNode implements HNode<MethodModel> {
+public class CaptureNode implements HNode<CaptureNodeModel> {
 
   /**
    * Start time with GLOBAL clock.
@@ -60,7 +61,7 @@ public class CaptureNode implements HNode<MethodModel> {
   /**
    * The corresponding method of this node.
    */
-  private MethodModel myMethodModel;
+  private CaptureNodeModel myCaptureNodeModel;
 
   /**
    * see {@link FilterType}.
@@ -130,8 +131,8 @@ public class CaptureNode implements HNode<MethodModel> {
 
   @Nullable
   @Override
-  public MethodModel getData() {
-    return myMethodModel;
+  public CaptureNodeModel getData() {
+    return myCaptureNodeModel;
   }
 
   @Override
@@ -190,12 +191,12 @@ public class CaptureNode implements HNode<MethodModel> {
   }
 
   @Nullable
-  public MethodModel getMethodModel() {
-    return myMethodModel;
+  public CaptureNodeModel getCaptureNodeModel() {
+    return myCaptureNodeModel;
   }
 
-  public void setMethodModel(MethodModel methodModel) {
-    myMethodModel = methodModel;
+  public void setCaptureNodeModel(CaptureNodeModel captureNodeModel) {
+    myCaptureNodeModel = captureNodeModel;
   }
 
   public void setDepth(int depth) {
@@ -207,8 +208,8 @@ public class CaptureNode implements HNode<MethodModel> {
    * Note: this node matches to the null {@param filter}.
    */
   public boolean matchesToFilter(@Nullable Pattern filter) {
-    assert getMethodModel() != null;
-    return filter == null || filter.matcher(getMethodModel().getFullName()).matches();
+    assert getCaptureNodeModel() != null;
+    return filter == null || filter.matcher(getCaptureNodeModel().getFullName()).matches();
   }
 
   public FilterType getFilterType() {

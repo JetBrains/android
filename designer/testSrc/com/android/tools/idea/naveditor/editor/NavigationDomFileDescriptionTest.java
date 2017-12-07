@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -24,7 +24,7 @@ import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 /**
  * Tests for {@link NavigationDomFileDescription}
  */
-public class NavigationDomFileDescriptionTest extends NavigationTestCase {
+public class NavigationDomFileDescriptionTest extends NavTestCase {
 
   public void testDescription() {
     assertFalse(isNavFile("res/layout/activity_main.xml"));

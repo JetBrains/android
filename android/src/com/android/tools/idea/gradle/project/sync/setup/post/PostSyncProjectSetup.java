@@ -37,7 +37,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.instantapp.ProvistionTasks;
+import com.android.tools.idea.instantapp.ProvisionTasks;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -86,7 +86,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerImpl myRunManager;
-  @NotNull private final ProvistionTasks myProvistionTasks;
+  @NotNull private final ProvisionTasks myProvisionTasks;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -107,7 +107,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
+         RunManagerImpl.getInstanceImpl(project), new ProvisionTasks());
   }
 
   @VisibleForTesting
@@ -125,7 +125,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
                        @NotNull RunManagerImpl runManager,
-                       @NotNull ProvistionTasks provistionTasks) {
+                       @NotNull ProvisionTasks provisionTasks) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -140,7 +140,7 @@ public class PostSyncProjectSetup {
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
-    myProvistionTasks = provistionTasks;
+    myProvisionTasks = provisionTasks;
   }
 
   /**
@@ -197,7 +197,7 @@ public class PostSyncProjectSetup {
 
     modifyJUnitRunConfigurations();
 
-    myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
+    myProvisionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
     AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
     myProjectStructure.analyzeProjectStructure(progressIndicator);
@@ -290,15 +290,15 @@ public class PostSyncProjectSetup {
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
         RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
         AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
+        // Set the correct "Make step" in the "JUnit Run Configuration" template.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
         runConfiguration.setWorkingDirectory("$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$");
       }
 
       // Fix existing JUnit Configurations.
-      RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(junitConfigurationType);
-      for (RunConfiguration runConfiguration : junitRunConfigurations) {
-        AndroidJUnitConfiguration androidJUnitConfiguration = (AndroidJUnitConfiguration)runConfiguration;
-        setMakeStepInJUnitConfiguration(targetProvider, androidJUnitConfiguration);
+      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+        // Set the correct "Make step" in existing JUnit Configurations.
+        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
     }
   }
@@ -306,7 +306,8 @@ public class PostSyncProjectSetup {
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
     List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
-    for (BeforeRunTask beforeRunTask : myRunManager.getBeforeRunTasks(runConfiguration)) {
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
         BeforeRunTask task = targetProvider.createTask(runConfiguration);
         if (task != null) {
@@ -318,7 +319,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    myRunManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {

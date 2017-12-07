@@ -155,7 +155,7 @@ public final class SdkQuickfixUtils {
     List<String> unknownPaths = new ArrayList<>();
     List<UpdatablePackage> resolvedPackages;
     mgr.load(0, null, null, null,
-             new StudioProgressRunner(true, false, false, "Finding Available SDK Components", project),
+             new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
              new StudioDownloader(), StudioSettingsController.getInstance(), true);
     RepositoryPackages packages = mgr.getPackages();
     if (requestedPackages == null) {

@@ -20,6 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -28,6 +29,7 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,33 +107,32 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    openIncludedLayout(editor, component);
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
+    openIncludedLayout(component);
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
-                                        @NotNull NlComponent component,
+  public void onActivateInDesignSurface(@NotNull NlComponent component,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
-    openIncludedLayout(editor, component);
+    openIncludedLayout(component);
   }
 
   /**
    * Open the layout referenced by the attribute {@link SdkConstants#ATTR_LAYOUT} in
    * the provided {@link SdkConstants#VIEW_INCLUDE}.
    *
-   * @param viewEditor
    * @param component  The include component
    */
-  private static void openIncludedLayout(ViewEditor viewEditor, @NotNull NlComponent component) {
+  private static void openIncludedLayout(@NotNull NlComponent component) {
     NlModel model = component.getModel();
     String attribute = component.getAttribute(null, ATTR_LAYOUT);
     if (attribute == null) {
       return;
     }
     Configuration configuration = model.getConfiguration();
-    boolean editorOpened = viewEditor.openResource(configuration, attribute, component.getTag().getContainingFile().getVirtualFile());
+    VirtualFile virtualFile = component.getTag().getContainingFile().getVirtualFile();
+    boolean editorOpened = DesignSurfaceHelper.openResource(model.getProject(), configuration, attribute, virtualFile);
     if (!editorOpened) {
       Logger.getInstance(IncludeHandler.class).warn(
         String.format("Cannot open included layout \"%s\" for %s tag with id \"%s\"", attribute, component.getTag(), component.getId())

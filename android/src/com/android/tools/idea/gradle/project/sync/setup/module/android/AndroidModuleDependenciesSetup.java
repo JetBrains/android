@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -24,14 +23,15 @@ import com.intellij.openapi.roots.AnnotationOrderRootType;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static java.io.File.separatorChar;
 
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
@@ -57,15 +57,17 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull File artifactPath,
                               @NotNull File[] binaryPaths,
                               boolean exported) {
+
+    // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
+    // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
+    String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+    libraryName = libraryName.isEmpty() || StringUtil.startsWith(libraryName, prefix) ? libraryName : prefix + libraryName;
+
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null) {
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
-    }
-    else {
-      SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
-      registry.markAsUsed(library, binaryPaths);
     }
 
     if (newLibrary) {
@@ -101,7 +103,7 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
             updateLibraryRootTypePaths(library, AnnotationOrderRootType.getInstance(), modelsProvider, annotations);
           }
         }
-        else if (libraryName.startsWith("support-annotations-") && pathName.endsWith(DOT_JAR)) {
+        else if (libraryName.startsWith(prefix + "support-annotations-") && pathName.endsWith(DOT_JAR)) {
           // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
           // with its own external annotations. However, there are a few that we want to make available in the
           // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the

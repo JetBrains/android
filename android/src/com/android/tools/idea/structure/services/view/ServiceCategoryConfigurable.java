@@ -46,12 +46,6 @@ public final class ServiceCategoryConfigurable implements Configurable {
 
   @Nullable
   @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public JComponent createComponent() {
     return myServicesPanel;
   }

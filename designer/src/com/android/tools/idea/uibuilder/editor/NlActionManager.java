@@ -157,14 +157,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.addSeparator();
     }
 
-    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
-      group.add(new MorphComponentAction(leafComponent, mySurface));
+    if (mySurface.getLayoutType().isLayout()) {
+      createLayoutOnlyActions(leafComponent, group);
     }
-    group.add(new MockupEditAction(mySurface));
-    if (leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
-      group.add(new MockupDeleteAction(leafComponent));
-    }
-    group.addSeparator();
 
     group.add(actionManager.getAction(IdeActions.ACTION_CUT));
     group.add(actionManager.getAction(IdeActions.ACTION_COPY));
@@ -173,15 +168,23 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
     group.add(myGotoComponentAction);
-    group.add(createRefactoringMenu());
     group.add(new SaveScreenshotAction(mySurface));
 
-    if (ConvertToConstraintLayoutAction.ENABLED) {
-      group.addSeparator();
-      group.add(new ConvertToConstraintLayoutAction(mySurface));
-    }
 
     return group;
+  }
+
+  private void createLayoutOnlyActions(@Nullable NlComponent leafComponent, @NotNull DefaultActionGroup group) {
+    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
+      group.add(new MorphComponentAction(leafComponent, mySurface));
+    }
+    group.add(createRefactoringMenu());
+
+    group.add(new MockupEditAction(mySurface));
+    if (leafComponent != null && StudioFlags.NELE_MOCKUP_EDITOR.get() && Mockup.hasMockupAttribute(leafComponent)) {
+      group.add(new MockupDeleteAction(leafComponent));
+    }
+    group.addSeparator();
   }
 
   private void addViewHandlerActions(@NotNull DefaultActionGroup group,
@@ -316,7 +319,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       target.add(new DirectViewActionWrapper(project, (DirectViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ViewActionSeparator) {
-      target.add(Separator.getInstance());
+      if (((ViewActionSeparator)viewAction).isVisible(editor, handler, parent, newSelection)) {
+        target.add(Separator.getInstance());
+      }
     }
     else if (viewAction instanceof ToggleViewAction) {
       target.add(new ToggleViewActionWrapper(project, (ToggleViewAction)viewAction, editor, handler, parent, newSelection));
@@ -454,7 +459,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ToggleViewActionWrapper extends ToggleAction implements ViewActionPresentation {
+  private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final Project myProject;
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
@@ -479,22 +484,17 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       Presentation presentation = getTemplatePresentation();
       presentation.setText(action.getUnselectedLabel());
       presentation.setIcon(action.getUnselectedIcon());
-      presentation.setSelectedIcon(action.getSelectedIcon());
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
-      return myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
-    }
-
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
+    public void actionPerformed(AnActionEvent e) {
+      boolean newState = !myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
       if (myAction.affectsUndo()) {
-        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(state));
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(newState));
       }
       else {
         try {
-          applySelection(state);
+          applySelection(newState);
         }
         catch (Throwable t) {
           throw new IncorrectOperationException("View Action required write lock: should not specify affectsUndo=false");
@@ -686,7 +686,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       JPanel panel = new JPanel(new VerticalLayout(0));
       for (List<ViewAction> row : rows) {
         if (row.size() == 1 && row.get(0) instanceof ViewActionSeparator) {
-          panel.add(new JSeparator());
+          if (((ViewActionSeparator)row.get(0)).isVisible(myEditor, myHandler, myComponent, mySelectedChildren)) {
+            panel.add(new JSeparator());
+          }
           continue;
         }
         List<AnAction> actions = Lists.newArrayList();

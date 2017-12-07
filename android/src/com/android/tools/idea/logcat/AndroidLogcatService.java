@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellEnabledDevice;
+import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
@@ -28,15 +31,15 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,8 +78,11 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   public interface LogcatListener {
-    default void onLogLineReceived(@NotNull LogCatMessage line) {}
-    default void onCleared() {}
+    default void onLogLineReceived(@NotNull LogCatMessage line) {
+    }
+
+    default void onCleared() {
+    }
   }
 
   private final Object myLock = new Object();
@@ -117,19 +123,20 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       final AndroidLogcatReceiver receiver = createReceiver(device);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
-      ExecutorService executor = myExecutors.get(device);
-      executor.submit((() -> {
-        try {
-          executeCommandOnDevice(device, "logcat -v long", receiver, 0, true);
-        }
-        catch (Exception e) {
-          getLog().info(String.format(
-            "Caught exception when capturing logcat output from the device %1$s. Receiving logcat output from this device will be " +
-            "stopped, and the listeners will be notified with this exception as the last message", device.getName()), e);
-          LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
-          receiver.notifyLine(dummyHeader, e.getMessage());
-        }
-      }));
+      myExecutors.get(device).submit(() -> executeLogcatWithLongOutputFormat(device, receiver));
+    }
+  }
+
+  private static void executeLogcatWithLongOutputFormat(@NotNull IShellEnabledDevice device, @NotNull AndroidLogcatReceiver receiver) {
+    try {
+      execute(device, "logcat -v long", receiver, Duration.ZERO);
+    }
+    catch (Exception exception) {
+      String message = "Caught an exception when capturing logcat output from the device " + device.getName() + ". Receiving output from " +
+                       "the device will be stopped and the listeners will be notified with the exception message as the last message.";
+
+      getLog().info(message, exception);
+      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO), exception.getMessage());
     }
   }
 
@@ -157,7 +164,9 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       if (!myExecutors.containsKey(device)) {
         ThreadFactory factory = new ThreadFactoryBuilder()
-            .setNameFormat("logcat-" + device.getName()).build();
+          .setNameFormat("logcat-" + device.getName())
+          .build();
+
         myExecutors.put(device, Executors.newSingleThreadExecutor(factory));
       }
     }
@@ -197,8 +206,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
         executor.submit(() -> {
           try {
-            long timeoutMs = 5000; // should require less than a second to complete, 5s is just being very conservative
-            executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), timeoutMs, false);
+            execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
           }
           catch (final Exception e) {
             getLog().info(e);
@@ -309,7 +317,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    */
   @TestOnly
   public void shutdown() {
-    dispose();
+    Disposer.dispose(this);
+
     synchronized (myLock) {
       myExecutors.values().forEach(executor -> {
         try {
@@ -323,18 +332,16 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
-  private static void executeCommandOnDevice(@NotNull IDevice device,
-                                             @NotNull String command,
-                                             @NotNull AndroidOutputReceiver receiver,
-                                             long timeoutMs,
-                                             boolean retry)
-    throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
-    final int MAX_RETRIES = 5;
+  private static void execute(@NotNull IShellEnabledDevice device,
+                              @NotNull String command,
+                              @NotNull AndroidOutputReceiver receiver,
+                              @NotNull Duration duration) throws Exception {
+    device.executeShellCommand(command, receiver, duration.toMillis(), TimeUnit.MILLISECONDS);
 
-    for (int attempt = 0; retry && attempt < MAX_RETRIES; attempt++) {
-      device.executeShellCommand(command, receiver, timeoutMs, TimeUnit.MILLISECONDS);
-      if (receiver.isCancelled()) break;
-      receiver.invalidate();
+    if (receiver.isCancelled()) {
+      return;
     }
+
+    receiver.invalidate();
   }
 }

@@ -16,16 +16,17 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.TextAccessor;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import java.awt.*;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
@@ -38,10 +39,15 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BU
  */
 public class DropDownActionButton extends ActionButtonWithText implements TextAccessor {
 
-  private static final int DROP_DOWN_ICON_MARGIN_RIGHT = JBUI.scale(2);
   private static final Icon DROP_DOWN_ICON = AllIcons.General.Combo3;
   private static final int ICON_TEXT_SPACE = JBUI.scale(4);
-  private static final Border ICON_MARGIN_BORDER = BorderFactory.createEmptyBorder(0, 0, 0, DROP_DOWN_ICON.getIconWidth());
+  private static final JBInsets INSETS = JBUI.insets(0, 4, 0, 2);
+
+  /**
+   * The icon has some padding, this constant is used to compensate the padding
+   * so the whole button looks as expected
+   */
+  private static final int DROP_DOWN_ICON_SIZE_OFFSET = JBUI.scale(-8);
 
   private boolean myIsSelected = false;
 
@@ -49,8 +55,7 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
                               @NotNull Presentation presentation,
                               @NotNull String place) {
     super(action, presentation, place, DEFAULT_MINIMUM_BUTTON_SIZE);
-    setHorizontalTextAlignment(SwingConstants.CENTER);
-    setBorder(new CompoundBorder(getBorder(), ICON_MARGIN_BORDER));
+    setForeground(JBColor.foreground());
   }
 
   @Override
@@ -62,8 +67,21 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
     Insets insets = getInsets();
-    DROP_DOWN_ICON.paintIcon(this, g, getWidth() - DROP_DOWN_ICON.getIconWidth() - DROP_DOWN_ICON_MARGIN_RIGHT,
-                             (getHeight() - DROP_DOWN_ICON.getIconHeight() - insets.bottom - insets.top) / 2);
+    if (shouldPaintArrow()) {
+      DROP_DOWN_ICON.paintIcon(this, g, getWidth() - DROP_DOWN_ICON.getIconWidth() - insets.right,
+                               (getHeight() - DROP_DOWN_ICON.getIconHeight() - insets.bottom - insets.top) / 2);
+    }
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    Dimension size = super.getPreferredSize();
+    if (shouldPaintArrow()) {
+      return new Dimension(size.width + DROP_DOWN_ICON.getIconWidth() + DROP_DOWN_ICON_SIZE_OFFSET, size.height);
+    }
+    else {
+      return size;
+    }
   }
 
   @Override
@@ -71,9 +89,22 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
     return ICON_TEXT_SPACE;
   }
 
+  @Override
+  public Insets getInsets() {
+    Insets insets = super.getInsets();
+    insets.left += INSETS.left;
+    insets.right += INSETS.right;
+    return insets;
+  }
+
   public void setSelected(boolean selected) {
     myIsSelected = selected;
     repaint();
+  }
+
+  @Override
+  protected int horizontalTextAlignment() {
+    return SwingConstants.LEFT;
   }
 
   @Override
@@ -84,5 +115,9 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   @Override
   public String getText() {
     return myPresentation.getText();
+  }
+
+  private boolean shouldPaintArrow() {
+    return myAction instanceof ActionGroup && ((ActionGroup)myAction).getChildren(null).length > 1;
   }
 }

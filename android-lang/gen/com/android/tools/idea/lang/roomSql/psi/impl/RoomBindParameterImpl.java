@@ -45,12 +45,12 @@ public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomB
   }
 
   @Override
-  @NotNull
-  public PsiElement getParameterName() {
-    return findNotNullChildByType(PARAMETER_NAME);
+  @Nullable
+  public PsiElement getNamedParameter() {
+    return findChildByType(NAMED_PARAMETER);
   }
 
-  @NotNull
+  @Nullable
   public String getParameterNameAsString() {
     return PsiImplUtil.getParameterNameAsString(this);
   }
@@ -58,6 +58,10 @@ public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomB
   @Nullable
   public PsiReference getReference() {
     return PsiImplUtil.getReference(this);
+  }
+
+  public boolean isColonNamedParameter() {
+    return PsiImplUtil.isColonNamedParameter(this);
   }
 
 }

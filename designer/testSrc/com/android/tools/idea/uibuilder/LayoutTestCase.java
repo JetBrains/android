@@ -22,6 +22,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -62,6 +63,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       myScreenFixtures.clear();
+      RenderTestUtil.afterRenderTestCase();
     }
     finally {
       super.tearDown();

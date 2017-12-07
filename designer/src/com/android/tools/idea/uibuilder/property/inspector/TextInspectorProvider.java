@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
@@ -29,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,13 +151,13 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
       myEndEditor = new NlBooleanIconEditor(StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_RIGHT, "Align End of View", TextAlignment.VIEW_END);
       myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
 
-      myTextStylePanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myTextStylePanel = new AdtSecondaryPanel(new FlowLayout(FlowLayout.LEADING));
       myTextStylePanel.setFocusable(false);
       myTextStylePanel.add(myBoldEditor.getComponent());
       myTextStylePanel.add(myItalicsEditor.getComponent());
       myTextStylePanel.add(myAllCapsEditor.getComponent());
 
-      myAlignmentPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myAlignmentPanel = new AdtSecondaryPanel(new FlowLayout(FlowLayout.LEADING));
       myAlignmentPanel.setFocusable(false);
       myAlignmentPanel.add(myStartEditor.getComponent());
       myAlignmentPanel.add(myLeftEditor.getComponent());

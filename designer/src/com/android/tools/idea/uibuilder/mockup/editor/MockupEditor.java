@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -456,14 +455,9 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     }
 
     @Override
-    public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-    }
-
-    @Override
     public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
       myEditor.setModel(model);
     }
-
 
     @Override
     public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {

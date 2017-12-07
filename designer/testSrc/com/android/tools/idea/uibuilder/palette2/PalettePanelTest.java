@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.SyncNlModel;
@@ -23,6 +24,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -35,6 +37,7 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Disposer;
@@ -42,7 +45,6 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
-import com.intellij.util.ui.JBUI;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +54,7 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.lang.reflect.Method;
+import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
@@ -63,6 +66,7 @@ import static org.mockito.Mockito.*;
 public class PalettePanelTest extends LayoutTestCase {
   private NlTreeDumper myTreeDumper;
   private CopyPasteManager myCopyPasteManager;
+  private GradleDependencyManager myGradleDependencyManager;
   private DependencyManager myDependencyManager;
   private BrowserLauncher myBrowserLauncher;
   private ActionManager myActionManager;
@@ -70,6 +74,7 @@ public class PalettePanelTest extends LayoutTestCase {
   private ActionPopupMenu myPopupMenu;
   private JPopupMenu myPopupMenuComponent;
   private PalettePanel myPanel;
+  private SyncNlModel myModel;
 
   @Override
   public void setUp() throws Exception {
@@ -81,10 +86,12 @@ public class PalettePanelTest extends LayoutTestCase {
     myPopupMenu = mock(ActionPopupMenu.class);
     myPopupMenuComponent = mock(JPopupMenu.class);
     myActionManager = mock(ActionManager.class);
+    myGradleDependencyManager = mock(GradleDependencyManager.class);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     registerApplicationComponentImplementation(ActionManager.class, myActionManager);
+    registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager);
@@ -94,6 +101,9 @@ public class PalettePanelTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myPanel);
+      if (myModel != null) {
+        Disposer.dispose(myModel);
+      }
       if (myTrackingDesignSurface != null) {
         cleanUsageTrackerAfterTesting(myTrackingDesignSurface);
       }
@@ -107,6 +117,7 @@ public class PalettePanelTest extends LayoutTestCase {
       myTrackingDesignSurface = null;
       myPopupMenu = null;
       myPanel = null;
+      myModel = null;
     }
     finally {
       super.tearDown();
@@ -149,7 +160,8 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
-    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, 690, 10, 1, false));
+    int x = itemList.getWidth() - 10;
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, x, 10, 1, false));
     verify(myDependencyManager).ensureLibraryIsIncluded(eq(itemList.getSelectedValue()));
   }
 
@@ -158,7 +170,8 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
-    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, 400, 10, 1, false));
+    int x = itemList.getWidth() - 30;
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, x, 10, 1, false));
     verify(myDependencyManager, never()).ensureLibraryIsIncluded(any(Palette.Item.class));
   }
 
@@ -182,32 +195,6 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setFilter("%");
     assertThat(myPanel.getCategoryList().getItemsCount()).isEqualTo(1);
     assertThat(myPanel.getItemList().getItemsCount()).isEqualTo(0);
-  }
-
-  public void testInitialCategoryWidthIsReadFromOptions() {
-    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
-    Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager);
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
-  }
-
-  public void testInitialCategoryWidthIsReadFromOptionsButOverriddenIfTooSmall() {
-    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "0");
-    Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager);
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(20));
-  }
-
-  public void testCategoryResize() {
-    myPanel.setSize(800, 1000);
-    doLayout(myPanel);
-    setCategoryWidth(388);
-    fireComponentResize(myPanel.getCategoryList());
-    assertThat(PropertiesComponent.getInstance().getValue(PalettePanel.PALETTE_CATEGORY_WIDTH)).isEqualTo("388");
   }
 
   public void testLayoutTypes() {
@@ -241,7 +228,7 @@ public class PalettePanelTest extends LayoutTestCase {
     ActionEvent event = mock(ActionEvent.class);
 
     listener.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   public void testDragAndDropAreLoggedForAnalytics() throws Exception {
@@ -302,6 +289,9 @@ public class PalettePanelTest extends LayoutTestCase {
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
       "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+
+    assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
+      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
   public void testOpenContextPopupOnMousePressed() throws Exception {
@@ -346,6 +336,25 @@ public class PalettePanelTest extends LayoutTestCase {
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
       "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+
+    assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
+      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+  }
+
+  public void testAddToDesignUpdateDoesNotCauseDependencyDialog() throws Exception {
+    setUpLayoutDesignSurface();
+    myPanel.getCategoryList().setSelectedIndex(6); // Google
+    myPanel.getItemList().setSelectedIndex(0);     // AdView
+    assertThat(myPanel.getItemList().getSelectedValue().getTagName()).isEqualTo(AD_VIEW);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    Presentation presentation = myPanel.getAddToDesignAction().getTemplatePresentation().clone();
+    when(event.getPresentation()).thenReturn(presentation);
+    when(myGradleDependencyManager.findMissingDependencies(any(Module.class), anyCollection())).thenReturn(Collections.singletonList(
+      GradleCoordinate.parseCoordinateString(ADS_ARTIFACT)));
+
+    // This statement would fail if the user is asked if they want to add a dependency on play-services-ads:
+    myPanel.getAddToDesignAction().update(event);
   }
 
   public void testOpenAndroidDocumentation() throws Exception {
@@ -356,7 +365,7 @@ public class PalettePanelTest extends LayoutTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAndroidDocAction().actionPerformed(event);
 
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull(), isNull());
   }
 
   public void testOpenMaterialDesignDocumentation() throws Exception {
@@ -367,7 +376,7 @@ public class PalettePanelTest extends LayoutTestCase {
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getMaterialDocAction().actionPerformed(event);
 
-    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull(), isNull());
   }
 
   @NotNull
@@ -416,11 +425,11 @@ public class PalettePanelTest extends LayoutTestCase {
 
   @NotNull
   private DesignSurface createDesignSurface(@NotNull NlLayoutType layoutType) {
-    SyncNlModel model = createModel().build();
-    DesignSurface surface = model.getSurface();
-    LayoutTestUtilities.createScreen(model);
+    myModel = createModel().build();
+    DesignSurface surface = myModel.getSurface();
+    LayoutTestUtilities.createScreen(myModel);
     when(surface.getLayoutType()).thenReturn(layoutType);
-    myPanel.setToolContext(model.getSurface());
+    myPanel.setToolContext(myModel.getSurface());
     return surface;
   }
 
@@ -434,7 +443,7 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   private boolean isCategoryListVisible() {
-    return myPanel.getSplitter().getFirstComponent().isVisible();
+    return myPanel.getCategoryList().getParent().getParent().isVisible();
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -442,14 +451,6 @@ public class PalettePanelTest extends LayoutTestCase {
     for (ComponentListener listener : component.getComponentListeners()) {
       listener.componentResized(event);
     }
-  }
-
-  private int getCategoryWidth() {
-    return myPanel.getSplitter().getFirstSize();
-  }
-
-  private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
-    myPanel.getSplitter().setFirstSize(width);
   }
 
   private static class StartFiltering implements StartFilteringListener {

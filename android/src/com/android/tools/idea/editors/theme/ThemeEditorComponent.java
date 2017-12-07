@@ -43,14 +43,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.rename.RenameProcessor;
@@ -891,31 +890,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       // Check whenever we reload the theme as any external file could have been changed that would affect this.
       // e.g. change to the manifest to use a theme.
       final PsiElement name = selectedTheme.getNamePsiElement();
-      mySwingWorker = new SwingWorker<Boolean, Object>() {
-        @Override
-        protected Boolean doInBackground() throws Exception {
-          assert name != null; // it's a project theme, so we should always have a name.
-
-          // Work around bug 67309838 in Kotlin plugin by creating a read action
-          return ApplicationManager.getApplication().runReadAction(
-            (Computable<PsiReference>)() -> ReferencesSearch.search(name).findFirst()) == null;
-        }
-
-        @Override
-        protected void done() {
-          if (isCancelled()) {
-            return;
-          }
-          try {
-            myPanel.setShowThemeNotUsedWarning(get());
-          }
-          catch (Exception ex) {
-            // should never happen, as we are calling get from done.
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-      mySwingWorker.execute();
+      DumbService.getInstance(myProject).smartInvokeLater(() -> {
+        assert name != null; // it's a project theme, so we should always have a name.
+        myPanel.setShowThemeNotUsedWarning(ReferencesSearch.search(name).findFirst() == null);
+      });
     }
 
     myThemeEditorContext.setCurrentTheme(selectedTheme);

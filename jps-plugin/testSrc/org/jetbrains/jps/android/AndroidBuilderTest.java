@@ -44,6 +44,8 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -1275,11 +1277,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                  AndroidBuildTestingCommandExecutor.normalizeLog(executor.getLog()));
   }
 
-  private Pair<JpsModule, File> setUpSimpleAndroidStructure(String[] sourceRoots, MyExecutor executor, String contentRootDir) {
+  private Pair<JpsModule, Path> setUpSimpleAndroidStructure(String[] sourceRoots, MyExecutor executor, String contentRootDir) {
     return setUpSimpleAndroidStructure(sourceRoots, executor, contentRootDir, getTestName(true));
   }
 
-  private Pair<JpsModule, File> setUpSimpleAndroidStructure(String[] sourceRoots,
+  private Pair<JpsModule, Path> setUpSimpleAndroidStructure(String[] sourceRoots,
                                                             MyExecutor executor,
                                                             String contentRootDir,
                                                             String testDirName) {
@@ -1310,7 +1312,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     AndroidBuildTestingManager.startBuildTesting(executor);
   }
 
-  private Pair<JpsModule, File> addAndroidModule(String moduleName,
+  private Pair<JpsModule, Path> addAndroidModule(String moduleName,
                                                  String[] sourceRoots,
                                                  String contentRootDir,
                                                  String dstContentRootDir,
@@ -1319,7 +1321,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                             dstContentRootDir, androidSdk, getTestName(true));
   }
 
-  private Pair<JpsModule, File> addAndroidModule(String moduleName,
+  private Pair<JpsModule, Path> addAndroidModule(String moduleName,
                                                  String[] sourceRoots,
                                                  String contentRootDir,
                                                  String dstContentRootDir,
@@ -1355,9 +1357,9 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     properties.PACK_TEST_CODE = false;
 
     module.getContainer().setChild(JpsModuleSerializationDataExtensionImpl.ROLE,
-                                   new JpsModuleSerializationDataExtensionImpl(new File(root)));
+                                   new JpsModuleSerializationDataExtensionImpl(Paths.get(root)));
     module.getContainer().setChild(JpsAndroidModuleExtensionImpl.KIND, new JpsAndroidModuleExtensionImpl(properties));
-    return Pair.create(module, new File(root));
+    return Pair.create(module, Paths.get(root));
   }
 
   private String getDefaultTestDataDirForCurrentTest() {
@@ -1376,7 +1378,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     final JpsTypedLibrary<JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>>> library =
       myModel.getGlobal().addSdk("android_sdk", sdkPath, "", JpsAndroidSdkType.INSTANCE,
-                                 new JpsSimpleElementImpl<JpsAndroidSdkProperties>(properties));
+                                 new JpsSimpleElementImpl<>(properties));
     library.addRoot(new File(sdkPath + "/platforms/android-1.5/android.jar"), JpsOrderRootType.COMPILED);
     //library.addRoot(new File(getAndroidHomePath() + "/testData/android.jar"), JpsOrderRootType.COMPILED);
     return library.getProperties();

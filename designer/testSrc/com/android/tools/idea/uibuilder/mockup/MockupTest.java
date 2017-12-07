@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
-import com.android.resources.Density;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -240,9 +238,15 @@ public class MockupTest extends MockupTestCase {
     final NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
-    NlDesignSurface mockSurface = mock(NlDesignSurface.class);
-    when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new ScreenView(mockSurface, model);
+
+    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject());
+    surface.setModel(model);
+    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
+      @Override
+      public double getScale() {
+        return 1.0;
+      }
+    };
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
@@ -257,9 +261,15 @@ public class MockupTest extends MockupTestCase {
     final NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
-    NlDesignSurface mockSurface = mock(NlDesignSurface.class);
-    when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new ScreenView(mockSurface, model);
+
+    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject());
+    surface.setModel(model);
+    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
+      @Override
+      public double getScale() {
+        return 1.0;
+      }
+    };
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
     assertEquals(new Rectangle(0, 0, NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)), destinationRectangle);
   }

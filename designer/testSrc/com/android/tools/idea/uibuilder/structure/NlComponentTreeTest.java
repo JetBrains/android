@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -49,7 +48,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -58,8 +56,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class NlComponentTreeTest extends LayoutTestCase {
 
   private NlDesignSurface mySurface;
-  @Mock
-  private ScreenView myScreen;
 
   @Mock
   private BrowserLauncher myBrowserLauncher;
@@ -80,7 +76,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     super.setUp();
     initMocks(this);
     myModel = createModel();
-    myScreen = createScreen(myModel);
     // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
     //noinspection Convert2Lambda
     myDisposable = new Disposable() {
@@ -89,13 +84,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
-      @Nullable
-      @Override
-      public ScreenView getCurrentSceneView() {
-        return myScreen;
-      }
-    };
+    mySurface = new NlDesignSurface(getProject(), false, myDisposable);
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
@@ -144,7 +133,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
       myButton = null;
       myTextView = null;
       myAbsoluteLayout = null;
-      myScreen = null;
       mySurface = null;
       myModel = null;
       myTree = null;
@@ -167,7 +155,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   public void testTreeStructureOfAppBar() {
     SyncNlModel model = createModelWithAppBar();
-    myScreen = createScreen(model);
+    mySurface.setModel(model);
     myTree.setDesignSurface(mySurface);
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
@@ -339,7 +327,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
-    myScreen = createScreen(myModel);
+    mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN);
     copy(myButton);
@@ -401,7 +389,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     mySurface.getSelectionModel().toggle(myTextView);
     action.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   private void copy(@NotNull NlComponent... components) {
@@ -559,7 +547,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   public void testNonNlComponentDrop() {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
-    myScreen = createScreen(myModel);
+    mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
 
     // Check initial state
