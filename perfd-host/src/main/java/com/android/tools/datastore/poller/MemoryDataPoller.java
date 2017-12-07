@@ -19,7 +19,7 @@ import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.google.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

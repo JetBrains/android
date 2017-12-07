@@ -17,10 +17,10 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.google.profiler.protobuf3jarjar.ByteString;
-import com.google.profiler.protobuf3jarjar.GeneratedMessageV3;
-import com.google.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.google.profiler.protobuf3jarjar.Message;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
+import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.android.tools.profiler.protobuf3jarjar.Message;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
