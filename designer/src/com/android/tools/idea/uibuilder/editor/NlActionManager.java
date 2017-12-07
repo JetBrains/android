@@ -319,7 +319,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       target.add(new DirectViewActionWrapper(project, (DirectViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ViewActionSeparator) {
-      target.add(Separator.getInstance());
+      if (((ViewActionSeparator)viewAction).isVisible(editor, handler, parent, newSelection)) {
+        target.add(Separator.getInstance());
+      }
     }
     else if (viewAction instanceof ToggleViewAction) {
       target.add(new ToggleViewActionWrapper(project, (ToggleViewAction)viewAction, editor, handler, parent, newSelection));
@@ -684,7 +686,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       JPanel panel = new JPanel(new VerticalLayout(0));
       for (List<ViewAction> row : rows) {
         if (row.size() == 1 && row.get(0) instanceof ViewActionSeparator) {
-          panel.add(new JSeparator());
+          if (((ViewActionSeparator)row.get(0)).isVisible(myEditor, myHandler, myComponent, mySelectedChildren)) {
+            panel.add(new JSeparator());
+          }
           continue;
         }
         List<AnAction> actions = Lists.newArrayList();

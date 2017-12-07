@@ -265,6 +265,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions
       .add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
         ConstraintViewActions.HELPER_ACTIONS)));
+
+    ViewActionSeparator.setupFollowingActions(actions);
   }
 
   private static boolean isConstraintLayoutChild(List<NlComponent> children) {
