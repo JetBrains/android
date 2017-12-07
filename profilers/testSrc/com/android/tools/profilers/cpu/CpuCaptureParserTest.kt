@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf3jarjar.ByteString
+import com.google.profiler.protobuf3jarjar.ByteString
 import org.junit.Assert.fail
 import org.junit.Test
 import java.util.concurrent.ExecutionException

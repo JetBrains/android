@@ -18,7 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
