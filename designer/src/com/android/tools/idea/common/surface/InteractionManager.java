@@ -138,6 +138,11 @@ public class InteractionManager {
   private boolean myIsListening;
 
   /**
+   * Flag to indicate that the user is panning the surface
+   */
+  private boolean myIsPanning;
+
+  /**
    * Constructs a new {@link InteractionManager} for the given
    * {@link NlDesignSurface}.
    *
@@ -418,6 +423,11 @@ public class InteractionManager {
       int x = event.getX();
       int y = event.getY();
       int modifiers = event.getModifiers();
+
+      if (interceptPanInteraction(event, x, y)) {
+        return;
+      }
+
       if (myCurrentInteraction == null) {
         boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
         selectComponentAt(x, y, allowToggle, false);
@@ -599,6 +609,10 @@ public class InteractionManager {
       int y = event.getY();
       myLastMouseX = x;
       myLastMouseY = y;
+
+      if (interceptPanInteraction(event, x, y)) {
+        return;
+      }
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = event.getModifiers();
 
@@ -645,6 +659,11 @@ public class InteractionManager {
         }
       }
 
+      if (keyCode == DesignSurfaceShortcut.PAN.getKeyCode()) {
+        setPanning(true);
+        return;
+      }
+
       // The below shortcuts only apply without modifier keys.
       // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
       // example Shift+= to create the + key.
@@ -671,6 +690,11 @@ public class InteractionManager {
 
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
+      }
+
+      if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
+        setPanning(false);
+        updateCursor(myLastMouseX, myLastMouseY);
       }
     }
 
@@ -926,6 +950,14 @@ public class InteractionManager {
     }
   }
 
+  private void setPanning(boolean panning) {
+    if (panning != myIsPanning) {
+      myIsPanning = panning;
+      mySurface.setCursor(panning ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                                  : Cursor.getDefaultCursor());
+    }
+  }
+
   /**
    * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key and scroll the {@link DesignSurface}
    * by the same amount as the drag distance.
@@ -939,12 +971,14 @@ public class InteractionManager {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
-    if ((event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
+    if (myIsPanning
+        || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
         || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
       DesignSurface surface = getSurface();
       Point position = surface.getScrollPosition();
       position.translate(myLastMouseX - x, myLastMouseY - y);
       surface.setScrollPosition(position);
+      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       return true;
     }
     return false;

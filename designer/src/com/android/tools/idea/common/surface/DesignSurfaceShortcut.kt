@@ -33,7 +33,7 @@ import javax.swing.KeyStroke
  * @see KeyStroke
  * @See KeyEvent
  */
-enum class DesignSurfaceShortcut(keyCode: Int, keyChar: Char? = null) {
+enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = null) {
   ZOOM_IN(KeyEvent.VK_PLUS, '+'),
   ZOOM_OUT(KeyEvent.VK_MINUS, '-'),
   ZOOM_FIT(KeyEvent.VK_0, '0'),
@@ -43,16 +43,18 @@ enum class DesignSurfaceShortcut(keyCode: Int, keyChar: Char? = null) {
   SWITCH_ORIENTATION(KeyEvent.VK_O),
   NEXT_DEVICE(KeyEvent.VK_D),
   REFRESH_LAYOUT(KeyEvent.VK_R),
-  DESIGN_MODE(KeyEvent.VK_B);
+  DESIGN_MODE(KeyEvent.VK_B),
 
-  private val shortcutSet: ShortcutSet
+  PAN(KeyEvent.VK_SPACE);
 
-  init {
+  private val shortcutSet: ShortcutSet by lazy { createShortcutSet() }
+
+  private fun createShortcutSet(): ShortcutSet {
     val shortcuts = mutableListOf(KeyboardShortcut(KeyStroke.getKeyStroke(keyCode, 0), null))
     if (keyChar != null) {
       shortcuts += KeyboardShortcut(KeyStroke.getKeyStroke(keyChar), null)
     }
-    shortcutSet = CustomShortcutSet(*shortcuts.toTypedArray())
+    return CustomShortcutSet(*shortcuts.toTypedArray())
   }
 
   /**
@@ -69,7 +71,7 @@ enum class DesignSurfaceShortcut(keyCode: Int, keyChar: Char? = null) {
    *
    * @return visibleAction.
    */
-  fun registerForAction(visibleAction: AnAction, shortcutAction : AnAction, component: JComponent): AnAction {
+  fun registerForAction(visibleAction: AnAction, shortcutAction: AnAction, component: JComponent): AnAction {
     shortcutAction.registerCustomShortcutSet(shortcutSet, component)
     val presentation = visibleAction.templatePresentation
     presentation.description = presentation.description +
