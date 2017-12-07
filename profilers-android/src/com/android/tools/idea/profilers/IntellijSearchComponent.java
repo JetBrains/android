@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -101,6 +103,15 @@ public class IntellijSearchComponent implements SearchComponent {
       }
     };
     myFilterComponent.setMinimumSize(new Dimension(0, myFilterComponent.getPreferredSize().height + 3));
+
+    myComponent.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentShown(ComponentEvent e) {
+        super.componentShown(e);
+        myFilterComponent.requestFocusInWindow();
+      }
+    });
+
     myComponent.add(myFilterComponent, new TabularLayout.Constraint(1, 0));
 
     // Configure Regex checkbox

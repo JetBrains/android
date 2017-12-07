@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,30 +134,6 @@ class CaptureModel {
     }
     myFilter = filter;
     rebuildDetails();
-  }
-
-  /**
-   * @return collection of all class names and class name combined with method name
-   * (in the format: |classname.methodname|) of all nodes of the current tree {@link #getNode()}.
-   */
-  @NotNull
-  Collection<String> getPossibleFilters() {
-    CaptureNode node = getNode();
-    if (node == null) {
-      return Collections.emptySet();
-    }
-    Set<String> filters = new HashSet<>();
-    Queue<CaptureNode> queue = new LinkedList<>();
-    queue.add(node);
-    while (!queue.isEmpty()) {
-      CaptureNode curNode = queue.poll();
-      assert curNode.getData() != null;
-      filters.add(curNode.getData().getClassOrNamespace());
-      filters.add(curNode.getData().getFullName());
-
-      queue.addAll(curNode.getChildren());
-    }
-    return filters;
   }
 
   void setDetails(@Nullable Details.Type type) {
@@ -357,7 +334,7 @@ class CaptureModel {
 
   public static class CallChart implements Details {
     @NotNull private final Range myRange;
-    @Nullable private HNode<MethodModel> myNode;
+    @Nullable private HNode<CaptureNodeModel> myNode;
 
     public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
       myRange = range;
@@ -370,7 +347,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<MethodModel> getNode() {
+    public HNode<CaptureNodeModel> getNode() {
       return myNode;
     }
 
@@ -389,7 +366,7 @@ class CaptureModel {
     }
 
     @NotNull private final Range myFlameRange;
-    @Nullable private HNode<MethodModel> myFlameNode;
+    @Nullable private HNode<CaptureNodeModel> myFlameNode;
     @Nullable private final TopDownNode myTopDownNode;
 
     @NotNull private final Range mySelectionRange;
@@ -431,7 +408,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<MethodModel> getNode() {
+    public HNode<CaptureNodeModel> getNode() {
       return myFlameNode;
     }
 
@@ -454,7 +431,7 @@ class CaptureModel {
       assert topDown.getTotal() > 0;
       CaptureNode node = new CaptureNode();
 
-      node.setMethodModel(topDown.getNodes().get(0).getData());
+      node.setCaptureNodeModel(topDown.getNodes().get(0).getData());
       node.setFilterType(topDown.getNodes().get(0).getFilterType());
       node.setStartGlobal((long)start);
       node.setStartThread((long)start);

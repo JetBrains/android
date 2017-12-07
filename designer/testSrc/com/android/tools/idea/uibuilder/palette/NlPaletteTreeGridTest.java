@@ -156,7 +156,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     Holder<Palette.Item> lastSelectedItem = new Holder<>();
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
 
-    clickOnItem(3, 2);
+    clickOnItem(3, 3);
     assertThat(lastSelectedItem.value.getTagName()).isEqualTo(LINEAR_LAYOUT);
   }
 
@@ -277,7 +277,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     when(event.getDataContext()).thenReturn(context);
 
     action.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull());
   }
 
   public void testDefaultInitialCategoryWidth() {
@@ -315,7 +315,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
 
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    clickOnItem(3, 7);  // Select Space (to avoid preview)
+    clickOnItem(3, 8);  // Select Space (to avoid preview)
 
     JList<Palette.Item> list = myPanel.getComponentTree().getSelectedList();
     assertThat(list).isNotNull();

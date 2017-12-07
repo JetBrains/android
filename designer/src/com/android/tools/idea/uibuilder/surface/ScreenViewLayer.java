@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.ImagePool;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +33,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Responsible for painting a screen view
@@ -202,7 +200,13 @@ public class ScreenViewLayer extends Layer {
     if (myScheduledFuture != null && !myScheduledFuture.isDone()) {
       myScheduledFuture.cancel(false);
     }
-    myScheduledFuture = myScheduledExecutorService.schedule(myRescaleRunnable, REQUEST_SCALE_DEBOUNCE_TIME_IN_MS, TimeUnit.MILLISECONDS);
+    try {
+      myScheduledFuture = myScheduledExecutorService.schedule(myRescaleRunnable, REQUEST_SCALE_DEBOUNCE_TIME_IN_MS, TimeUnit.MILLISECONDS);
+    }
+    catch (RejectedExecutionException e) {
+      // Catch the potential race condition where we've disposed the ScreenViewLayer but we have requested a high quality scaled image
+      Logger.getInstance(ScreenViewLayer.class).warn(e);
+    }
   }
 
   @Override

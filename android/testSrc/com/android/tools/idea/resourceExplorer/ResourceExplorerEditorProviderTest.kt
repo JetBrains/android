@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import org.junit.Assert
 
@@ -23,15 +22,15 @@ class ResourceExplorerEditorProviderTest : ResourceExplorerTestCase() {
 
   fun testAccept() {
     ResourceExplorerTestCase.runWithResourceExplorerFlagDisabled {
-      Assert.assertFalse(ResourceExplorerEditorProvider().accept(project, ResourceExplorerFile.getResourceEditorFile(project)))
+      Assert.assertFalse(ResourceExplorerEditorProvider().accept(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet)))
     }
-    Assert.assertTrue(ResourceExplorerEditorProvider().accept(project, ResourceExplorerFile.getResourceEditorFile(project)))
+    Assert.assertTrue(ResourceExplorerEditorProvider().accept(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet)))
   }
 
   fun testCreateEditor() {
-    val editor = ResourceExplorerEditorProvider().createEditor(project, ResourceExplorerFile.getResourceEditorFile(project))
+    val editor = ResourceExplorerEditorProvider().createEditor(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet))
     Assert.assertTrue(editor is ResourceExplorerEditor)
-    val providers = FileEditorProviderManager.getInstance().getProviders(project, ResourceExplorerFile.getResourceEditorFile(project))
+    val providers = FileEditorProviderManager.getInstance().getProviders(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet))
     Assert.assertEquals(1, providers.size)
     Assert.assertTrue(providers[0] is ResourceExplorerEditorProvider)
   }

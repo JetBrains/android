@@ -44,7 +44,7 @@ public class ModuleManagerStub extends ModuleManagerImpl {
 
   @NotNull
   @Override
-  protected ModuleEx createAndLoadModule(@NotNull String filePath, @NotNull VirtualFile file) throws IOException {
+  protected ModuleEx createAndLoadModule(@NotNull String filePath) throws IOException {
     throw new UnsupportedOperationException();
   }
 

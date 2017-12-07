@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.importer
 import com.android.ide.common.resources.configuration.DensityQualifier
 
 import com.android.resources.Density
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.vfs.VirtualFile
@@ -49,7 +50,7 @@ private fun getDesignAssets(
 private fun createAsset(child: VirtualFile): Pair<String, DesignAsset> {
   val drawableName = getBaseName(child)
   val qualifiers = getQualifiers(child)
-  return drawableName.to(DesignAsset(child, qualifiers))
+  return drawableName.to(DesignAsset(child, qualifiers, ResourceFolderType.DRAWABLE))
 }
 
 /**

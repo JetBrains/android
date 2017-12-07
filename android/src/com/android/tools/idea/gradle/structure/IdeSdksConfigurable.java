@@ -81,8 +81,8 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -95,6 +95,7 @@ import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
  */
 public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navigator {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
+  @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
@@ -133,6 +134,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
+    myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);
 
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);
@@ -150,7 +152,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", project);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
     RepoManager.RepoLoadedCallback onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         if (packages.getRemotePackages().get(FD_NDK) != null) {
@@ -187,7 +189,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       boolean useEmbeddedJdk = useEmbeddedJdk();
       updateJdkTextField(useEmbeddedJdk);
 
-      String path = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
+      File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
+      String path = embeddedJdkPath != null ? embeddedJdkPath.getPath() : "";
       if (!useEmbeddedJdk) {
         // If the user-selected path is the same as the "embedded JDK" path, ignore it because there is no user-selected path yet.
         if (path.equals(myUserSelectedJdkHomePath)) {

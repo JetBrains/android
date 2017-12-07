@@ -56,7 +56,10 @@ public class DependenciesTest {
   private static final String MIN_SDK = "18";
   private static final String LIB_NAME_1 = "modulea";
   private static final String LIB_NAME_2 = "moduleb";
+  private static final String JAVA_MODULE_1 = "lib"; // default name
+  private static final String JAVA_MODULE_2 = "lib2"; // default name
   private static final String ANDROID_LIBRARY = "Android Library";
+  private static final String JAVA_LIBRARY = "Java Library";
   private static final String CLASS_NAME_1 = "ModuleA";
   private static final String CLASS_NAME_2 = "ModuleB";
 
@@ -267,10 +270,67 @@ public class DependenciesTest {
     addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "API");
     createJavaClassInModule(ideFrame, LIB_NAME_2, CLASS_NAME_2);
 
+    accessLibraryClassAndVerify(ideFrame, LIB_NAME_1, LIB_NAME_2);
+  }
+
+  /**
+   * Verifies that transitive dependencies with Java Libraries are resolved in a gradle file.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 5f5581fe-b02f-4775-aa76-f592e011080d
+   * <p>
+   *   <pre>
+   *   Test Steps
+   *   1. Create a new Android Studio project.
+   *   2. Go to File Menu > New Module > Java Library, create new Java library module.
+   *   3. Right click on the app module > Module settings under dependencies, add module dependency
+   *      (default: implementation) to library create in step 2. Create a Java class in this
+   *      new Android library module.
+   *   4. Go to File Menu > New Module > Java Library, create another new Android library module.
+   *   5. Right click on the module (created in step 2) > Module settings under dependencies, add
+   *      module dependency (default: implementation) to library create in step 4.
+   *      Create a Java class in module created in step 4.
+   *   6. Try accessing Library2 classes in Library1 (verify 1).
+   *   7. Try accessing both Library1 and Library2 classes in app module of your project(verify 2).
+   *   Verification
+   *   1. Library 2 classes should be accessible to Library 1 and should get resolved successfully.
+   *   2. Library 2 and Library 1 classes should be accessible to app module and should get
+   *      resolved successfully.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void multiJavaLibraries() throws Exception {
+    IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
+
+    createJavaModule(ideFrame); // default name: lib
+    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "IMPLEMENTATION");
+    createJavaClassInModule(ideFrame, JAVA_MODULE_1, CLASS_NAME_1);
+
+    createJavaModule(ideFrame); // default name: lib2
+    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "IMPLEMENTATION");
+    createJavaClassInModule(ideFrame, JAVA_MODULE_2, CLASS_NAME_2);
+
+    // Test will fail here because of bug: 69813406
+    accessLibraryClassAndVerify(ideFrame, JAVA_MODULE_1, JAVA_MODULE_2);
+  }
+
+  private void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
+    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType(JAVA_LIBRARY)
+      .clickNextToStep(JAVA_LIBRARY)
+      .clickFinish() // Use default Java Module name.
+      .waitForGradleProjectSyncToFinish();
+  }
+
+  private void accessLibraryClassAndVerify(@NotNull IdeFrameFixture ideFrame,
+                                           @NotNull String module1,
+                                           @NotNull String modeule2) {
     // Accessing Library2 classes in Library1, and verify.
-    ideFrame.getEditor().open(LIB_NAME_1 + "/src/main/java/android/com/" + LIB_NAME_1 + "/" + CLASS_NAME_1 + ".java")
-      .moveBetween("package android.com." + LIB_NAME_1 + ";", "")
-      .enterText("\n\nimport android.com." + LIB_NAME_2 + "." + CLASS_NAME_2 + ";")
+    ideFrame.getEditor().open(module1 + "/src/main/java/android/com/" + module1 + "/" + CLASS_NAME_1 + ".java")
+      .moveBetween("package android.com." + module1 + ";", "")
+      .enterText("\n\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
       .moveBetween("public class " + CLASS_NAME_1 + " {", "")
       .enterText("\n" + CLASS_NAME_2 + " className2 = new " + CLASS_NAME_2 + "();");
     GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
@@ -279,8 +339,8 @@ public class DependenciesTest {
     // Accessing both Library1 and Library2 classes in app module, and verify.
     ideFrame.getEditor().open("app/src/main/java/android/com/app/MainActivity.java")
       .moveBetween("import android.os.Bundle;", "")
-      .enterText("\nimport android.com." + LIB_NAME_1 + "." + CLASS_NAME_1 + ";" +
-                 "\nimport android.com." + LIB_NAME_2 + "." + CLASS_NAME_2 + ";")
+      .enterText("\nimport android.com." + module1 + "." + CLASS_NAME_1 + ";" +
+                 "\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
       .moveBetween("setContentView(R.layout.activity_main);", "")
       .enterText("\n" + CLASS_NAME_1 + " classNameA = new " + CLASS_NAME_1 + "();")
       .enterText("\n" + CLASS_NAME_2 + " classNameB = new " + CLASS_NAME_2 + "();");

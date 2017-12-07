@@ -95,7 +95,9 @@ public class NewInstantAppTest {
       .clickNext() // Complete "Add Activity" step
       .clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
   }
 
   @Test

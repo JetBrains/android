@@ -7,19 +7,20 @@ iml_module(
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:testExtensions",
-        "//tools/idea:external-system-impl",
         "//tools/idea:execution-impl",
+        "//tools/idea:external-system-impl",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea:lvcs-impl",
         "//tools/idea:credential-store",
         "//tools/idea:configuration-store-impl",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:json",
         "//tools/idea:relaxng",
-        "//tools/idea:lvcs-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
     ],
     # do not sort: must match IML order
     deps = [
@@ -37,7 +38,7 @@ iml_module(
         "//tools/adt/idea/artwork[module]",
         "//tools/base/sdk-common:studio.sdk-common[module]",
         "//tools/idea/.idea/libraries:dexlib2",
-        "//tools/idea:compiler-impl_and_others[module]",
+        "//tools/idea:jps-builders_and_others[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/smali[module]",
         "//tools/adt/idea/android-lang[module]",

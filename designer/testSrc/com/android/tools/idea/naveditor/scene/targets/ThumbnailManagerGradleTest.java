@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.targets;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.naveditor.NavigationGradleTestCase;
+import com.android.tools.idea.naveditor.NavGradleTestCase;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link ThumbnailManager} that require a complete gradle project to run.
  */
-public class ThumbnailManagerGradleTest extends NavigationGradleTestCase {
+public class ThumbnailManagerGradleTest extends NavGradleTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 6.5f;
 
   public void testGeneratedImage() throws Exception {

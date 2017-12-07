@@ -16,9 +16,11 @@
 package com.android.tools.idea.resourceExplorer
 
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -28,7 +30,12 @@ class ResourceExplorerEditorProvider : FileEditorProvider {
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
-    return ResourceExplorerEditor()
+    if (file is ResourceExplorerFile) {
+      return ResourceExplorerEditor(file.facet)
+    }
+    Logger.getInstance(this::class.java).error("Resource Explorer can only accept instances of ResourceExplorerFile.\n" +
+        "Fallback to a simple text editor")
+    return TextEditorProvider.getInstance().createEditor(project, file)
   }
 
   override fun getEditorTypeId(): String = "Resource Explorer"

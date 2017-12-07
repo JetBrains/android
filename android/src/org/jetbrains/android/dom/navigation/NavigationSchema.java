@@ -77,6 +77,9 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_CLEAR_TASK = "clearTask";
   public static final String ATTR_ENTER_ANIM = "enterAnim";
   public static final String ATTR_EXIT_ANIM = "exitAnim";
+  public static final String ATTR_ACTION = "action";
+  public static final String ATTR_DATA = "data";
+  public static final String ATTR_DATA_PATTERN = "dataPattern";
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
@@ -302,6 +305,11 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public String getTagLabel(@NotNull String tag) {
+    return getTagLabel(tag, false);
+  }
+
+  @NotNull
+  public String getTagLabel(@NotNull String tag, boolean isRoot) {
     String text = null;
     if (TAG_INCLUDE.equals(tag)) {
       text = INCLUDE_GRAPH_LABEL;
@@ -312,7 +320,7 @@ public class NavigationSchema implements Disposable {
     else {
       NavigationSchema.DestinationType type = getDestinationType(tag);
       if (type == NAVIGATION) {
-        text = "Nested Graph";
+        text = isRoot ? "Root Graph" : "Nested Graph";
       }
       else if (type == FRAGMENT) {
         text = "Fragment";

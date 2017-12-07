@@ -9,6 +9,7 @@ import com.intellij.database.psi.BasicDbPsiManager;
 import com.intellij.database.psi.DbDataSource;
 import com.intellij.database.psi.DbElement;
 import com.intellij.database.psi.DbPsiFacade;
+import com.intellij.database.util.DbSqlUtil;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -22,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.sql.dialects.SqlLanguageDialect;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +49,12 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   @Override
   public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSource element) {
     return SqliteDialect.INSTANCE;
+  }
+
+  @Nullable
+  @Override
+  public SqlLanguageDialect getSqlDialect(@NotNull DbDataSource element) {
+    return DbSqlUtil.findSqlDialect(SqliteDialect.INSTANCE);
   }
 
   @Override
@@ -75,7 +83,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public Configurable createDataSourceEditor(DbDataSource template) {
     if (!(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     AndroidDataSource dataSource = (AndroidDataSource)template.getDelegate();
-    return new AndroidDataSourcePropertiesDialog(this, template.getProject(), dataSource);
+    return new AndroidDataSourceConfigurable(this, template.getProject(), dataSource);
   }
 
   @NotNull

@@ -15,35 +15,42 @@
  */
 package com.android.tools.idea.gradle.structure.quickfix;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.structure.configurables.issues.QuickFixLinkHandler.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX;
 
-public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
+public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
+  public static final String DEFAULT_QUICK_FIX_TEXT = "[Fix]";
+
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
   @NotNull private final String myVersion;
+  @NotNull private final String myQuickFixText;
 
-  @NotNull private String myHrefText = "[Fix]";
-
-  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency) {
+  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String quickFixText) {
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     String version = dependency.getResolvedSpec().getVersion();
     assert version != null;
     myVersion = version;
+    myQuickFixText = quickFixText;
   }
 
-  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String version) {
+  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency,
+                                                @NotNull String version,
+                                                @NotNull String quickFixText) {
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
     myVersion = version;
+    myQuickFixText = quickFixText;
   }
 
   @NotNull
@@ -58,26 +65,35 @@ public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @Override
   @NotNull
   public String toText(@NotNull TexType type) {
-    if (type == TexType.HTML) {
-      return getHtmlText();
-    }
     return myDependency;
-  }
-
-  public void setHrefText(@NotNull String hrefText) {
-    myHrefText = hrefText;
-  }
-
-  @NotNull
-  private String getHtmlText() {
-    String href = getHyperlinkDestination();
-    return String.format("<a href='%1$s'>%2$s</a>", href, myHrefText);
   }
 
   @Override
   @NotNull
-  public String getHyperlinkDestination() {
+  public String getHyperlinkDestination(@NotNull PsContext context) {
     String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
     return QUICK_FIX_PATH_TYPE + path;
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return String.format("<a href=\"%s\">%s</a>", getHyperlinkDestination(context), myQuickFixText);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    PsLibraryDependencyVersionQuickFixPath path = (PsLibraryDependencyVersionQuickFixPath)o;
+    return Objects.equal(myModuleName, path.myModuleName) &&
+           Objects.equal(myDependency, path.myDependency) &&
+           Objects.equal(myVersion, path.myVersion) &&
+           Objects.equal(myQuickFixText, path.myQuickFixText);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(myModuleName, myDependency, myVersion, myQuickFixText);
   }
 }

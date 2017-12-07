@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.fd;
 
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.nio.file.Path;
 
 public interface InstantRunTasksProvider {
   @NotNull
-  List<String> getFullBuildTasks();
+  ListMultimap<Path, String> getFullBuildTasks();
 }

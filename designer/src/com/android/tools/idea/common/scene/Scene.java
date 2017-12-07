@@ -334,10 +334,20 @@ public class Scene implements SelectionListener, Disposable {
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     if (myRoot != null) {
-      myRoot.markSelection(selection);
+      markSelection(myRoot, model);
     }
   }
 
+  /**
+   * Given a {@link SelectionModel}, marks the corresponding SceneComponent as selected.
+   */
+  private static void markSelection(SceneComponent component, SelectionModel model) {
+    component.setSelected(model.isSelected(component.getNlComponent()));
+
+    for (SceneComponent child : component.getChildren()) {
+      markSelection(child, model);
+    }
+  }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////

@@ -16,11 +16,12 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public class NlFlagEditor extends BaseComponentEditor implements NlComponentEdit
   private NlFlagEditor(@NotNull NlEditingListener listener, boolean includeLabel) {
     super(listener);
     myIncludeLabel = includeLabel;
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
     myCheckbox = new JCheckBox();
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
     myCheckbox.addActionListener(this::actionPerformed);

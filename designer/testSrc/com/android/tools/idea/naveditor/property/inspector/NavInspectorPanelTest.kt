@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.common.collect.HashMultimap
@@ -28,7 +28,7 @@ import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
-class NavInspectorPanelTest : NavigationTestCase() {
+class NavInspectorPanelTest : NavTestCase() {
   private lateinit var model: SyncNlModel
   private lateinit var panel: NavInspectorPanel
   private lateinit var manager: NavPropertiesManager
@@ -67,7 +67,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     // All the properties will be there, but the specific inspectors can decline to show if more than one is selected
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
@@ -108,7 +108,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("navigation", captor.value.keys)
   }
@@ -122,7 +122,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("activity", captor.value.keys)
   }
@@ -136,7 +136,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavActionArgumentsProperty::class.java)
     assertFalse(captor.value.containsKey(SET_START_DESTINATION_PROPERTY_NAME))
     validateProperties("action", captor.value.keys)
   }
@@ -150,7 +150,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
     assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("fragment", captor.value.keys)
   }

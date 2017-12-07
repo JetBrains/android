@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.splitter.ComponentsSplitter;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -40,7 +40,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
@@ -52,8 +51,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -71,28 +68,23 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 /**
  * Top level Palette UI.
  */
-public class PalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
-  @VisibleForTesting
-  static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
-  private static final int DEFAULT_CATEGORY_WIDTH = 100;
+public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
-  private static final int MIN_CONTROL_WIDTH = 20;
 
   private final Project myProject;
   private final DependencyManager myDependencyManager;
   private final DataModel myDataModel;
-  private final ComponentsSplitter mySplitter;
   private final CopyProvider myCopyProvider;
   private final CategoryList myCategoryList;
+  private final JScrollPane myCategoryScrollPane;
   private final ItemList myItemList;
   private final AddToDesignAction myAddToDesignAction;
   private final FavoriteAction myFavoriteAction;
@@ -128,25 +120,18 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
 
-    myCategoryList.setBackground(UIUtil.getPanelBackground());
-    myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
+    myCategoryList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    myItemList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
 
-    // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
-    mySplitter = new ComponentsSplitter(false, true);
-    Disposer.register(this, mySplitter);
-    mySplitter.setFirstComponent(createScrollPane(myCategoryList));
-    mySplitter.setInnerComponent(createScrollPane(myItemList));
-    mySplitter.setHonorComponentsMinimumSize(true);
-    mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
-    mySplitter.setFocusCycleRoot(false);
-    add(mySplitter, BorderLayout.CENTER);
+    myCategoryScrollPane = createScrollPane(myCategoryList);
+    add(myCategoryScrollPane, BorderLayout.WEST);
+    add(createScrollPane(myItemList), BorderLayout.CENTER);
 
     myFilterKeyListener = createFilterKeyListener();
     KeyListener keyListener = createKeyListener();
 
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
-    myCategoryList.addComponentListener(createCategoryWidthUpdater());
     myCategoryList.addKeyListener(keyListener);
 
     PreviewProvider provider = new PreviewProvider(() -> myDesignSurface, myDependencyManager);
@@ -197,7 +182,6 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     scrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     scrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
-    setMinimumWidth(scrollPane, JBUI.scale(MIN_CONTROL_WIDTH));
     return scrollPane;
   }
 
@@ -287,28 +271,6 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     return item != null ? item.getTagName() : null;
   }
 
-  private static int getInitialCategoryWidth() {
-    try {
-      int width =
-        Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH, String.valueOf(DEFAULT_CATEGORY_WIDTH)));
-      return Math.max(width, MIN_CONTROL_WIDTH);
-    }
-    catch (NumberFormatException unused) {
-      return DEFAULT_CATEGORY_WIDTH;
-    }
-  }
-
-  @NotNull
-  private ComponentListener createCategoryWidthUpdater() {
-    return new ComponentAdapter() {
-      @Override
-      public void componentResized(@NotNull ComponentEvent event) {
-        PropertiesComponent.getInstance()
-          .setValue(PALETTE_CATEGORY_WIDTH, String.valueOf(AdtUiUtils.unscale(mySplitter.getFirstSize())));
-      }
-    };
-  }
-
   private void categorySelectionChanged() {
     Palette.Group newSelection = myCategoryList.getSelectedValue();
     if (newSelection == null) {
@@ -331,12 +293,6 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @Override
   public JComponent getFocusedComponent() {
     return myCategoryList;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  ComponentsSplitter getSplitter() {
-    return mySplitter;
   }
 
   @NotNull
@@ -421,8 +377,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   }
 
   private void setCategoryListVisible(boolean visible) {
-    //noinspection ConstantConditions
-    mySplitter.getFirstComponent().setVisible(visible);
+    myCategoryScrollPane.setVisible(visible);
   }
 
   @Nullable
@@ -588,11 +543,13 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
       List<NlComponent> toAdd = NlModelHelperKt.createComponents(model, sceneView, dndItem, insertType);
 
       NlComponent root = roots.get(0);
-      if (!model.canAddComponents(toAdd, root, null)) {
+      if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType, myDesignSurface.getViewEditor());
+        model.addComponents(toAdd, root, null, insertType, sceneView.getSceneManager().getViewEditor());
+        myDesignSurface.getSelectionModel().setSelection(toAdd);
+        myDesignSurface.getLayeredPane().requestFocus();
       }
       return true;
     }

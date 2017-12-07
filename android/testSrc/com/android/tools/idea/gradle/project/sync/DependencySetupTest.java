@@ -69,6 +69,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    myModules = null;
     //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
@@ -151,7 +152,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*library\\-debug$", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*library\\-debug$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
@@ -180,7 +181,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*guava.*$", COMPILE, PROVIDED);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*guava.*$", COMPILE, PROVIDED);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -190,7 +191,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*commons\\-io.*$", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*commons\\-io.*$", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -209,13 +210,13 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // dependency should be set on the module not the compiled jar.
     assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib", COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib", COMPILE);
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
@@ -224,11 +225,11 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-    assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, ".*fakelib.*", COMPILE);
+    assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*fakelib.*", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
   }
 }

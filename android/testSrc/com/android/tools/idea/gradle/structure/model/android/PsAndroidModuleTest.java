@@ -106,7 +106,8 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     return variants;
   }
 
-  public void testEditableDependencies() throws Throwable {
+  // Disabled due to b/70214606
+  public void /*test*/EditableDependencies() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();

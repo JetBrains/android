@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -153,7 +154,7 @@ public class CpuTreeSorterTest {
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel.Builder(method).build());
+    node.setCaptureNodeModel(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(start);
 

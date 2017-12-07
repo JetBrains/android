@@ -256,6 +256,11 @@
             text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
@@ -282,13 +287,20 @@
         icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
         text="Connection Assistant"
         description="Help debug device connection">
-      <add-to-group group-id="AndroidToolsGroupExtension" anchor="last"/>
+      <add-to-group group-id="AndroidToolsGroupExtension"/>
     </action>
     <action
       id="LayoutEditor.AddSampleData"
       class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
       text="Add Sample Data File"
       description="Adds a new data sample file">
+    </action>
+    <!-- Note: the action id "Android.HotswapChanges" is used in HotswapAction to determine the current shortcut. -->
+    <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop"/>
+      <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
+      <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
     </action>
   </actions>
 
@@ -298,9 +310,12 @@
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
     <testTasksProvider implementation="com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider"/>
+    <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
+                       order="first, before gradle"/>
     <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
          so we need to set order to prevent overriding other position managers as well -->
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
@@ -313,7 +328,6 @@
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>
-    <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
@@ -594,6 +608,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatCustomView" displayName="Appcompat Custom Widgets" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatMethod" displayName="Using Wrong AppCompat Method" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatResource" displayName="Menu namespace" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppCompatResourceInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintAppIndexingService" displayName="App Indexing Background Services" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppIndexingServiceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinksAutoVerifyError" displayName="App Links Auto Verification Failure" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinksAutoVerifyErrorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinksAutoVerifyWarning" displayName="Potential App Links Auto Verification Failure" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinksAutoVerifyWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppLinkUrlError" displayName="URL not supported by app for Firebase App Indexing" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAppLinkUrlErrorInspection"/>
@@ -931,12 +946,6 @@
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="AndroidIcons.DeviceExplorer.ToolWindow"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <toolWindow id="Gradle Console"
-                anchor="bottom"
-                secondary="true"
-                conditionClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleCondition"
-                icon="AndroidIcons.GradleConsoleToolWindow"
-                factoryClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
@@ -946,8 +955,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
-    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView"
-                    serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
@@ -1053,8 +1060,8 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;build-common.jar;android-rt.jar;sdk-common.jar"/>
-    <compileServer.plugin classpath="repository.jar;sdklib.jar;../../../lib/android-base-common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;build-common.jar;android-rt.jar;sdk-common.jar"/>
+    <compileServer.plugin classpath="repository.jar;sdklib.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
@@ -1066,9 +1073,9 @@
     <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
-    <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
+    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
@@ -1227,7 +1234,6 @@
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>
 
-    <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.LibraryCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
@@ -1314,11 +1320,6 @@
     </component>
   </module-components>
 
-
-  <extensions defaultExtensionNs="com.intellij">
-    <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
-  </extensions>
-
   <!-- Connection Assistant -->
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
@@ -1327,5 +1328,4 @@
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
   </extensions>
-
 </idea-plugin>

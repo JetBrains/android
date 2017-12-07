@@ -32,7 +32,7 @@
       <add-to-group relative-to-action="openAssertEqualsDiff" anchor="after" group-id="TestTreePopupMenu"/>
     </group>
     <group>
-      <action class="com.android.tools.idea.testartifacts.junit.AndroidJUnitAddToTestsPatternAction" id="androidAddToISuite" text="Add to pattern suite"/>
+      <action class="com.android.tools.idea.testartifacts.junit.AndroidJUnitAddToTestsPatternAction" id="androidAddToISuite" text="Add to Android JUnit pattern suite"/>
       <add-to-group anchor="last" group-id="RunContextGroup"/>
     </group>
   </actions>

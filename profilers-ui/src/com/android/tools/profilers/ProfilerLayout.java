@@ -78,7 +78,7 @@ public class ProfilerLayout {
   public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
 
   public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(300);
-  public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 1000;
+  public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

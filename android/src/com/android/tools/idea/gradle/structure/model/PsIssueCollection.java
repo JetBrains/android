@@ -63,7 +63,7 @@ public class PsIssueCollection {
 
     if (model instanceof PsLibraryDependency) {
       PsLibraryDependency dependency = (PsLibraryDependency)model;
-      path = new PsLibraryDependencyNavigationPath(myContext, dependency);
+      path = new PsLibraryDependencyNavigationPath(dependency);
     }
 
     if (path != null) {

@@ -50,6 +50,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,8 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -79,7 +82,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   private final ListenerManager myListeners = new ListenerManager();
   private final ObjectValueProperty<Integer> myEnabledFormFactors = new ObjectValueProperty<>(0);
   private final Map<FormFactor, FormFactorInfo> myFormFactors = Maps.newTreeMap();
-  private final StudioWizardStepPanel myRootPanel;
+  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
 
@@ -95,7 +98,8 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    myRootPanel = new JBScrollPane(new StudioWizardStepPanel(myValidatorPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myRootPanel.setBorder(null);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

@@ -82,17 +82,17 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public NavDesignSurface getDesignSurface() {
+  protected NavDesignSurface getDesignSurface() {
     return (NavDesignSurface)super.getDesignSurface();
   }
 
   @Override
   @NotNull
   protected SceneView doCreateSceneView() {
-    NlModel model = getModel();
-    NavView navView = new NavView(getDesignSurface(), model);
-    getDesignSurface().getLayeredPane().setPreferredSize(navView.getPreferredSize());
-    getDesignSurface().setShowIssuePanel(false);
+    NavDesignSurface surface = getDesignSurface();
+    NavView navView = new NavView(surface, this);
+    surface.getLayeredPane().setPreferredSize(navView.getPreferredSize());
+    surface.setShowIssuePanel(false);
     return navView;
   }
 

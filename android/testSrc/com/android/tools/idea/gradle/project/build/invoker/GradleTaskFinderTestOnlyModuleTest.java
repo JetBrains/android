@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.module.Module;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
@@ -33,18 +37,21 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     super.setUp();
     loadProject(TEST_ONLY_MODULE);
     myTaskFinder = GradleTaskFinder.getInstance();
-
   }
 
   public void testAssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
+    File projectPath = getBaseDirPath(getProject());
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, ASSEMBLE, TestCompileType.ALL);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
   public void testAssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
+    File projectPath = getBaseDirPath(getProject());
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }

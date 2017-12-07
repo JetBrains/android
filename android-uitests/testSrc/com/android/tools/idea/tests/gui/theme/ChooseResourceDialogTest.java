@@ -110,7 +110,7 @@ public class ChooseResourceDialogTest {
     assertFalse(state3.getValueComponent().hasWarningIcon());
     assertFalse(state3.isAlphaVisible());
 
-    dialog.waitForErrorLabel();
+    dialog.waitForErrorPanel();
     dialog.clickCancel();
     stateListCell.stopEditing();
   }
@@ -169,8 +169,8 @@ public class ChooseResourceDialogTest {
     assertThat(text).endsWith(badText);
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
-                                 "' is not a valid resource name character</left></b></font></html>";
-    Wait.seconds(1).expecting("error to update").until(() -> dialog.getError().equals(expectedError));
+                                 "' is not a valid resource name character</left><br/></font></html>";
+    Wait.seconds(100).expecting("error to update").until(() -> dialog.getError().equals(expectedError));
 
     dialog.clickCancel();
     colorCell.cancelEditing();

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.editor.NlEditorProvider
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
@@ -168,6 +169,11 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
       return false
     }
   }
+  return true
+}
+
+fun NlModel.checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>): Boolean {
+  // May bring up a dialog such that the user can confirm the addition of the new dependencies:
   return NlDependencyManager.get().checkIfUserWantsToAddDependencies(toAdd, facet)
 }
 
@@ -237,13 +243,18 @@ fun NlModel.createComponent(editor: ViewEditor,
   return child
 }
 
+@Deprecated("This function is going to be removed.", ReplaceWith("NlModel.createComponents(Scene, DnDTransferItem, InsertType)"))
 fun NlModel.createComponents(sceneView: SceneView,
+                             item: DnDTransferItem,
+                             insertType: InsertType) = createComponents(sceneView.scene, item, insertType)
+
+fun NlModel.createComponents(scene: Scene,
                              item: DnDTransferItem,
                              insertType: InsertType): List<NlComponent> {
   val components = ArrayList<NlComponent>(item.components.size)
   for (dndComponent in item.components) {
-    val tag = createTag(sceneView.model.project, dndComponent.representation)
-    val component = createComponent(ViewEditorImpl.getOrCreate(sceneView), tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
+    val tag = createTag(project, dndComponent.representation)
+    val component = createComponent(ViewEditorImpl.getOrCreate(scene), tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
     component.w = dndComponent.width
     component.h = dndComponent.height
     components.add(component)

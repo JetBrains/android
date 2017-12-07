@@ -33,8 +33,8 @@ public class LeakCheck extends Verifier {
     }
 
     try {
-      // TODO: should checkProjectLeak return all the leaks at once, instead of bailing out with the first?
-      LeakHunter.checkProjectLeak();
+      // TODO: should checkNonDefaultProjectLeak return all the leaks at once, instead of bailing out with the first?
+      LeakHunter.checkNonDefaultProjectLeak();
       // TODO: Can we say anything about the Disposer state?
       // Disposer.assertIsEmpty(true);
     } catch (Exception ignored) {}

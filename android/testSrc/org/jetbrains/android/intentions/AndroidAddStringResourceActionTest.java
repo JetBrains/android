@@ -26,7 +26,7 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
+    TemplateManagerImpl.setTemplateTesting(getProject(), getProject());
 
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
     assertNotNull(sdk);

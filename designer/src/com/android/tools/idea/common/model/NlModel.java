@@ -856,7 +856,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Returns true if the specified components can be added to the specified receiver.
    */
-  public boolean canAddComponents(@NotNull List<NlComponent> toAdd, @NotNull NlComponent receiver, @Nullable NlComponent before) {
+  public boolean canAddComponents(@NotNull List<NlComponent> toAdd,
+                                  @NotNull NlComponent receiver,
+                                  @Nullable NlComponent before) {
+    return canAddComponents(toAdd, receiver, before, false);
+  }
+
+  public boolean canAddComponents(@NotNull List<NlComponent> toAdd,
+                                  @NotNull NlComponent receiver,
+                                  @Nullable NlComponent before,
+                                  boolean ignoreMissingDependencies) {
     if (before != null && before.getParent() != receiver) {
       return false;
     }
@@ -877,8 +886,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         same = same.getParent();
       }
     }
-
-    return true;
+    return ignoreMissingDependencies || NlModelHelperKt.checkIfUserWantsToAddDependencies(this, toAdd);
   }
 
   /**

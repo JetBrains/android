@@ -4,19 +4,17 @@ iml_module(
     name = "designer",
     srcs = ["src"],
     iml_files = ["designer.iml"],
-    javacopts = [
-        "-Xep:MissingCasesInEnumSwitch:WARN",
-        "-Xep:IdentityBinaryExpression:WARN",
-    ],
+    javacopts = ["-XepAllErrorsAsWarnings"],
     resources = ["resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea:credential-store",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:json",
         "//tools/idea:relaxng",
-        "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     # do not sort: must match IML order
@@ -47,7 +45,6 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
-        "//tools/adt/idea/gradle-dsl-parser[module]",
     ],
 )
 
@@ -66,14 +63,14 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
-        "//tools/adt/idea/android:test_deps_repo.zip",
+        "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/bazel:offline_repo_repo.zip",
+        "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -81,8 +78,9 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea:json",
+        "//tools/idea:tasks-platform-impl",
         "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
+        "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     test_srcs = ["testSrc"],
@@ -100,7 +98,7 @@ iml_module(
         "//tools/adt/idea/designer[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/xml/xml-psi-api[module, test]",
-        "//tools/idea:compiler-impl_and_others[module, test]",
+        "//tools/idea:jps-builders_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api[module, test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",

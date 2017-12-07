@@ -17,10 +17,10 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
-class SetStartDestinationPropertyTest : NavigationTestCase() {
+class SetStartDestinationPropertyTest : NavTestCase() {
 
   fun testProperty() {
     val model = model("nav.xml",

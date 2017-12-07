@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -27,8 +28,7 @@ const val SET_START_DESTINATION_PROPERTY_NAME = "StartDestination"
 class SetStartDestinationProperty(components: List<NlComponent>) : SimpleProperty(SET_START_DESTINATION_PROPERTY_NAME, components) {
 
   override fun getValue(): String? {
-    val actualStart = NlComponent.stripId(myComponents[0].parent?.getAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
-    return if (actualStart != null && actualStart == myComponents[0].id) "true" else null
+    return if (myComponents[0].isStartDestination) "true" else null
   }
 
   override fun setValue(value: Any?) {

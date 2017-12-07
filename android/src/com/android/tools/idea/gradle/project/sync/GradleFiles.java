@@ -80,7 +80,7 @@ public class GradleFiles {
     if (myProject.isInitialized()) {
       updateFileHashes();
     }
-    else {
+    else if (!myProject.isDefault()) {
       StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
     }
   }
@@ -161,12 +161,15 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
-    Computable<PsiFile> computable = () -> PsiManager.getInstance(myProject).findFile(file);
-    PsiFile psiFile = ApplicationManager.getApplication().runReadAction(computable);
-    if (psiFile != null && psiFile.isValid()) {
-      return psiFile.getText().hashCode();
-    }
-    return null;
+    return ApplicationManager.getApplication().runReadAction((Computable<Integer>)() -> {
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+
+      if (psiFile != null && psiFile.isValid()) {
+        return psiFile.getText().hashCode();
+      }
+
+      return null;
+    });
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -318,7 +321,7 @@ public class GradleFiles {
    */
   private class SyncListener extends GradleSyncListener.Adapter {
     @Override
-    public void syncStarted(@NotNull Project project) {
+    public void syncStarted(@NotNull Project project, boolean skipped) {
       maybeProcessSyncStarted(project);
     }
 

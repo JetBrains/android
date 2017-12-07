@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * Test to verify that components are selected when
  * mousePress event is received.
  */
-public class SelectionTest extends NavigationTestCase {
+public class SelectionTest extends NavTestCase {
 
   private InteractionManager myInteractionManager;
   private SceneView mySceneView;
@@ -56,7 +56,7 @@ public class SelectionTest extends NavigationTestCase {
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    mySceneView = new NavView(surface, model);
+    mySceneView = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(mySceneView);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(mySceneView);
 

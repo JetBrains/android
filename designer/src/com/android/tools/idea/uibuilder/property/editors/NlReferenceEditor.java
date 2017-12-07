@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.property.NlProperty;
@@ -59,6 +60,7 @@ import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPi
 
 public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
+  private static final int ICON_SIZE = 16;
   private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
   private final JPanel myPanel;
@@ -111,7 +113,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
                               boolean isInspector,
                               int verticalSpacing) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout());
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
@@ -316,7 +318,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
     }
     else {
-      int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
+      int iconSize = JBUI.scale(ICON_SIZE);
       Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
       myIconLabel.setIcon(icon);
       myIconLabel.setVisible(icon != null);
@@ -426,7 +428,11 @@ public class NlReferenceEditor extends BaseComponentEditor {
 
   @Override
   public void requestFocus() {
-    myTextEditorWithAutoCompletion.requestFocus();
+    if (myTextEditorWithAutoCompletion.getEditor() != null) {
+      // When running in unit test, the Editor is not created and requesting the focus will result in an
+      // endless loop
+      myTextEditorWithAutoCompletion.requestFocus();
+    }
     myTextEditorWithAutoCompletion.selectAll();
     myTextEditorWithAutoCompletion.scrollRectToVisible(myTextEditorWithAutoCompletion.getBounds());
   }

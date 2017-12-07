@@ -17,32 +17,35 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.*
+import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import java.awt.BasicStroke
+import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Rectangle
 
 class DrawRectangle(@SwingCoordinate private val myRectangle: Rectangle,
-                    @SwingCoordinate private val myColor: DrawColor,
+                    @SwingCoordinate private val myColor: Color,
                     @SwingCoordinate private val myBrushThickness: Int,
                     @SwingCoordinate private val myArcSize: Int) : NavBaseDrawCommand() {
 
-  constructor(myRectangle: Rectangle, myColor: DrawColor, myBrushThickness: Int) : this(myRectangle, myColor, myBrushThickness, 0)
+  constructor(myRectangle: Rectangle, myColor: Color, myBrushThickness: Int) : this(myRectangle, myColor, myBrushThickness, 0)
 
-  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]), DrawColor.valueOf(sp[1]),
+  private constructor(sp: Array<String>) : this(stringToRect(sp[0]), stringToColor(sp[1]),
       sp[2].toInt(), sp[3].toInt())
 
   constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel(): Int {
-    return NavBaseDrawCommand.DRAW_FRAME_LEVEL
+    return DRAW_FRAME_LEVEL
   }
 
-  override fun getProperties(): Array<Any> {
-    return arrayOf(NavBaseDrawCommand.rectToString(myRectangle), myColor, myBrushThickness, myArcSize)
+  override fun serialize(): String {
+    return buildString(javaClass.simpleName, rectToString(myRectangle), colorToString(myColor), myBrushThickness, myArcSize)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.color = myColor.color(sceneContext)
+    g.color = myColor
     g.stroke = BasicStroke(myBrushThickness.toFloat())
     g.drawRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, myArcSize, myArcSize)
   }

@@ -307,6 +307,12 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
 
   }
 
+  @Nullable
+  @Override
+  public String getStaticDescription() {
+    return "Description is under construction";
+  }
+
   //TODO: Add annotaction check
   private PsiMethod[] removeMethodsRequireNoPermission(PsiMethod[] methodsArray) {
     return methodsArray;

@@ -74,7 +74,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     myMatchComponentRatioAction = new MatchComponentRatio();
     final DefaultActionGroup group = new DefaultActionGroup(new ToggleCrop(), myMatchComponentRatioAction);
     final ActionToolbar actionToolbar = ActionManager.getInstance()
-      .createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+      .createActionToolbar("AndroidDesignerCropTool", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     return actionToolbar.getComponent();
   }

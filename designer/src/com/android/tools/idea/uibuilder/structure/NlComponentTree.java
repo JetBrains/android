@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -75,7 +75,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
 
-  private SceneView myScreenView;
+  private Scene myScene;
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
@@ -138,18 +138,18 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       mySurface.getActionManager().registerActionsShortcuts(this);
       mySurface.getActionManager().registerActionsShortcuts(this);
     }
-    setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
+    setScene(designSurface != null ? designSurface.getScene() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
-  private void setScreenView(@Nullable SceneView screenView) {
-    myScreenView = screenView;
-    setModel(screenView != null ? screenView.getModel() : null);
+  private void setScene(@Nullable Scene scene) {
+    myScene = scene;
+    setModel(scene == null ? null : scene.getSceneManager().getModel());
   }
 
   @Nullable
-  public SceneView getScreenView() {
-    return myScreenView;
+  public Scene getScene() {
+    return myScene;
   }
 
   private void setModel(@Nullable NlModel model) {
@@ -195,7 +195,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
 
         if (value instanceof NlComponent) {
-          StructureTreeDecorator.decorate(this, (NlComponent)value, hasFocus);
+          StructureTreeDecorator.decorate(this, (NlComponent)value, tree.hasFocus() && selected);
         }
         else if (value instanceof String) {
           StructureTreeDecorator.decorate(this, (String)value);
@@ -472,12 +472,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-  }
-
-  @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-    setScreenView(sceneView);
+  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
+    setScene(scene);
   }
 
   @Override

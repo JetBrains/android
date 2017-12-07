@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlLayoutType;
@@ -26,20 +27,24 @@ import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
+import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.JBSplitter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,22 +54,25 @@ import java.util.List;
 /**
  * Assembles a designer editor from various components
  */
-public class NlEditorPanel extends WorkBench<DesignSurface> {
+public class NlEditorPanel extends JPanel implements Disposable {
   private final NlEditor myEditor;
   private final Project myProject;
   private final VirtualFile myFile;
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
+  private final WorkBench<DesignSurface> myWorkBench;
   private boolean myIsActive;
+  private JBSplitter mySplitter;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull VirtualFile file) {
-    super(project, "NELE_EDITOR", editor);
-    setOpaque(true);
+    super(new BorderLayout());
+    myWorkBench = new WorkBench<>(project, "NELE_EDITOR", editor);
+    myWorkBench.setOpaque(true);
 
     myEditor = editor;
     myProject = project;
     myFile = file;
-    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel = new AdtPrimaryPanel(new BorderLayout());
 
     if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
       mySurface = new NavDesignSurface(project, editor);
@@ -74,17 +82,22 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
       ((NlDesignSurface)mySurface).setCentered(true);
     }
 
-    setLoadingText("Waiting for build to finish...");
+    myWorkBench.setLoadingText("Waiting for build to finish...");
     if (GradleProjects.isBuildWithGradle(project)) {
       DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
-    } else {
+    }
+    else {
       initNeleModel();
     }
+
+    mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
+    add(mySplitter);
+    Disposer.register(editor, myWorkBench);
   }
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    loadingStopped("Design editor is unavailable until a successful build");
+    myWorkBench.loadingStopped("Design editor is unavailable until a successful build");
   }
 
   private void initNeleModel() {
@@ -127,9 +140,9 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
       }
     }
 
-    init(myContentPanel, mySurface, tools);
+    myWorkBench.init(myContentPanel, mySurface, tools);
     if (myIsActive) {
-      model.activate(this);
+      model.activate(myWorkBench);
     }
   }
 
@@ -158,5 +171,14 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
     assert file != null;
     return file;
+  }
+
+  @TestOnly
+  public void setIssuePanelProportion(float proportion) {
+    mySplitter.setProportion(proportion);
+  }
+
+  @Override
+  public void dispose() {
   }
 }

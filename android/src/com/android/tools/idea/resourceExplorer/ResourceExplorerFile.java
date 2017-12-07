@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.io.URLUtil;
 import icons.StudioIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,36 +35,38 @@ import javax.swing.*;
 
 /**
  * Virtual file used to have resource editor in a separate tab, not tied to any particular
- * XML file with style definitions
+ * XML file with style definitions.
  */
 public class ResourceExplorerFile extends LightVirtualFile {
   public static final String FILENAME = "Resource Editor";
   private static final Key<ResourceExplorerFile> KEY = Key.create(ResourceExplorerFile.class.getName());
   private static final Key<Boolean> CACHE_LOOKUP_KEY = Key.create("cache_lookup_key");
+  private final AndroidFacet myFacet;
 
   private VirtualFile myParent;
   private final String myPath;
 
-  private ResourceExplorerFile(final @NotNull Project project) {
+  private ResourceExplorerFile(final @NotNull AndroidFacet facet) {
     super(FILENAME);
-    myPath = AndroidFakeFileSystem.constructPathForFile(FILENAME, project);
+    myPath = AndroidFakeFileSystem.constructPathForFile(FILENAME, facet.getModule());
+    myFacet = facet;
   }
 
   @NotNull
-  public static ResourceExplorerFile getResourceEditorFile(@NotNull Project project) {
-    ResourceExplorerFile vFile = project.getUserData(KEY);
+  public static ResourceExplorerFile getResourceEditorFile(@NotNull Project project, AndroidFacet facet) {
+    ResourceExplorerFile vFile = facet.getUserData(KEY);
     if (vFile == null) {
-      vFile = getResourceEditorVirtualFileFromCache(project);
+      vFile = getResourceEditorVirtualFileFromCache(facet);
 
       if (vFile == null) {
-        vFile = new ResourceExplorerFile(project);
+        vFile = new ResourceExplorerFile(facet);
       }
 
       // If the ResourceEditorVirtualFile comes from the cache, it might have been created by another project,
       // since the cache is indexed by the file url. So we know that myPath will be accurate, but we need to
       // get the correct parent virtual file.
       vFile.myParent = project.getBaseDir();
-      project.putUserData(KEY, vFile);
+      facet.putUserData(KEY, vFile);
     }
 
     return vFile;
@@ -75,14 +78,14 @@ public class ResourceExplorerFile extends LightVirtualFile {
    * Otherwise return null.
    */
   @Nullable
-  private static ResourceExplorerFile getResourceEditorVirtualFileFromCache(@NotNull Project project) {
-    if (project.getUserData(CACHE_LOOKUP_KEY) == null) {
+  private static ResourceExplorerFile getResourceEditorVirtualFileFromCache(@NotNull AndroidFacet facet) {
+    if (facet.getUserData(CACHE_LOOKUP_KEY) == null) {
       // Needed to avoid infinite loops since VirtualFilePointerManager.create calls getResourceEditorFile
-      project.putUserData(CACHE_LOOKUP_KEY, true);
+      facet.putUserData(CACHE_LOOKUP_KEY, true);
       String url = AndroidFakeFileSystem.INSTANCE.getProtocol() + URLUtil.SCHEME_SEPARATOR
-                   + AndroidFakeFileSystem.constructPathForFile(FILENAME, project);
+                   + AndroidFakeFileSystem.constructPathForFile(FILENAME, facet.getModule());
       // VirtualFilePointerManager does not have a get method, but the create method is equivalent to a get when the pointer exists
-      VirtualFilePointer pointer = VirtualFilePointerManager.getInstance().create(url, project, null);
+      VirtualFilePointer pointer = VirtualFilePointerManager.getInstance().create(url, facet, null);
       return (ResourceExplorerFile)pointer.getFile();
     }
     return null;
@@ -107,13 +110,18 @@ public class ResourceExplorerFile extends LightVirtualFile {
   }
 
   @NotNull
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  @NotNull
   @Override
   public String getPath() {
     return myPath;
   }
 
   private static class ResourceEditorFileType extends FakeFileType {
-    private ResourceEditorFileType() { }
+
     public static final ResourceEditorFileType INSTANCE = new ResourceEditorFileType();
 
     @Override

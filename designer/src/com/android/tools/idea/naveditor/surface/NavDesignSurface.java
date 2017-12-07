@@ -66,6 +66,7 @@ public class NavDesignSurface extends DesignSurface {
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
+    setBackground(JBColor.white);
   }
 
   @Override
@@ -105,12 +106,6 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   protected void layoutContent() {
     requestRender();
-  }
-
-  @NotNull
-  @Override
-  protected JBColor getBackgroundColor() {
-    return JBColor.white;
   }
 
   @NotNull

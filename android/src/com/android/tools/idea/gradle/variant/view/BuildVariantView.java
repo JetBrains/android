@@ -344,7 +344,7 @@ public class BuildVariantView {
       prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
       group.add(prevConflictAction);
 
-      ActionToolbar toolbar = actionManager.createActionToolbar("", group, true);
+      ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);
       toolbar.setReservePlaceAutoPopupIcon(false);
       toolbar.setMinimumButtonSize(JBUI.size(23, 23)); // a little smaller than default (25 x 25)
 

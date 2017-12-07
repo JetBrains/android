@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.model
 
+import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
+import com.android.resources.ResourceFolderType
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -25,7 +27,8 @@ import com.intellij.openapi.vfs.VirtualFile
  */
 data class DesignAsset(
     val file: VirtualFile,
-    val qualifiers: List<ResourceQualifier>
+    val qualifiers: List<ResourceQualifier>,
+    val type : ResourceFolderType
 )
 
 /**
@@ -37,4 +40,17 @@ data class DesignAsset(
 data class DesignAssetSet(
     val name: String,
     var designAssets: List<DesignAsset>
-)
+) {
+
+  /**
+   * Return the asset in this set with the highest density
+   */
+  fun getHighestDensityAsset(): DesignAsset {
+    return designAssets.maxBy { asset ->
+      asset.qualifiers
+          .filterIsInstance<DensityQualifier>()
+          .map { densityQualifier -> densityQualifier.value.dpiValue }
+          .singleOrNull() ?: 0
+    } ?: designAssets[0]
+  }
+}

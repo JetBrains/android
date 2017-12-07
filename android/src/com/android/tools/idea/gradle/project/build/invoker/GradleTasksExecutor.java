@@ -16,12 +16,8 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.intellij.notification.NotificationGroup;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.MessageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle Build (Logging)");
   @NotNull public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("Gradle Build (Balloon)");
-
-  protected static final Key<Key<?>> CONTENT_ID_KEY = Key.create("CONTENT_ID");
 
   protected GradleTasksExecutor(@Nullable Project project) {
     super(project, "Gradle Build Running", true);
@@ -50,27 +44,4 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
    * executed.
    */
   public abstract void queueAndWaitForCompletion();
-
-  public static void clearMessageView(@NotNull Project project) {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      if (!project.isDisposed()) {
-        removeUnpinnedBuildMessages(project, null);
-      }
-    });
-  }
-
-  protected static void removeUnpinnedBuildMessages(@NotNull Project project, @Nullable Content toKeep) {
-    if (project.isInitialized()) {
-      MessageView messageView = MessageView.SERVICE.getInstance(project);
-      Content[] contents = messageView.getContentManager().getContents();
-      for (Content content : contents) {
-        if (content.isPinned() || content == toKeep) {
-          continue;
-        }
-        if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
-          messageView.getContentManager().removeContent(content, true);
-        }
-      }
-    }
-  }
 }

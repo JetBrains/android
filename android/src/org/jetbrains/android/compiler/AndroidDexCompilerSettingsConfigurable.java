@@ -104,10 +104,6 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     myProguardVmOptionsEditor.setText(myConfig.PROGUARD_VM_OPTIONS);
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   @NotNull
   @Override
   public String getId() {

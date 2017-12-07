@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixt
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ public class GradleRenameModuleTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @Ignore("b/70293507")
   @Test
   public void testRenameModule() throws IOException {
     guiTest.importSimpleApplication()
@@ -58,6 +60,7 @@ public class GradleRenameModuleTest {
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }
 
+  @Ignore("b/70293507")
   @Test
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
     guiTest.importMultiModule()

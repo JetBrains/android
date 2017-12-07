@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.intellij.execution.BeforeRunTask;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -50,7 +51,7 @@ public class MakeBeforeRunTask extends BeforeRunTask<MakeBeforeRunTask> {
   }
 
   @Override
-  public void writeExternal(Element element) {
+  public void writeExternal(@NotNull Element element) {
     super.writeExternal(element);
     if (myGoal != null) {
       element.setAttribute(SERIALIZATION_KEY, myGoal);
@@ -58,7 +59,7 @@ public class MakeBeforeRunTask extends BeforeRunTask<MakeBeforeRunTask> {
   }
 
   @Override
-  public void readExternal(Element element) {
+  public void readExternal(@NotNull Element element) {
     super.readExternal(element);
     myGoal = element.getAttributeValue(SERIALIZATION_KEY);
   }

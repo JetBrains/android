@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -46,15 +47,17 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEFAULT_PADDING_Y_PX;
 import static com.android.tools.profilers.ProfilerLayout.*;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
@@ -489,11 +492,21 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         searchTextArea.getComponent().setVisible(button.isSelected());
         if (button.isSelected()) {
           searchTextArea.setText("");
-        } else {
+        }
+        else {
           getStage().selectCaptureFilter(null);
         }
         headingPanel.revalidate();
       });
+
+      headingPanel.registerKeyboardAction(event -> {
+                                            button.setSelected(!button.isSelected());
+                                            for (ActionListener listener : button.getActionListeners()) {
+                                              listener.actionPerformed(event);
+                                            }
+                                          },
+                                          KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK),
+                                          JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
     JPanel capturePanel = new JPanel(new BorderLayout());

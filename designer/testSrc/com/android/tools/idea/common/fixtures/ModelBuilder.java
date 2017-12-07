@@ -24,11 +24,15 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -186,7 +190,7 @@ public class ModelBuilder {
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       SceneView sceneView;
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        sceneView = mockSceneView(model, surface);
+        sceneView = createSceneView(surface);
         when(surface.getCurrentSceneView()).thenReturn(sceneView);
       }
 
@@ -195,12 +199,24 @@ public class ModelBuilder {
   }
 
   @NotNull
-  private static ScreenView mockSceneView(SyncNlModel model, DesignSurface surface) {
-    return new ScreenView(((NlDesignSurface)surface), model) {
+  private static SceneView createSceneView(DesignSurface surface) {
+    return new SceneView(surface, surface.getSceneManager()) {
+      @NotNull
+      @Override
+      protected ImmutableList<Layer> createLayers() {
+        return ImmutableList.of();
+      }
+
       @NotNull
       @Override
       public Dimension getPreferredSize(@Nullable Dimension dimension) {
         return new Dimension(1000, 1000);
+      }
+
+      @NotNull
+      @Override
+      public ColorSet getColorSet() {
+        return new ColorSet();
       }
     };
   }

@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.google.common.base.Charsets;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;

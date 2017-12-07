@@ -18,6 +18,7 @@ package com.android.tools.adtui.workbench;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.base.Splitter;
@@ -93,7 +94,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * @param fileEditor the file editor this work space is associated with.
    */
   public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor) {
-    this(project, name, fileEditor, InitParams.createParams(project));
+    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project));
   }
 
   /**
@@ -109,6 +110,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
+    content.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, StudioColorsKt.getBorder()));
+    myMainPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, StudioColorsKt.getBorder()));
     mySplitter.setInnerComponent(content);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
     mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
@@ -162,12 +165,13 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   WorkBench(@NotNull Project project,
             @NotNull String name,
             @Nullable FileEditor fileEditor,
-            @NotNull InitParams<T> params) {
+            @NotNull InitParams<T> params,
+            @NotNull DetachedToolWindowManager detachedToolWindowManager) {
     myName = name;
     myFileEditor = fileEditor;
     myPropertiesComponent = PropertiesComponent.getInstance();
     myWorkBenchManager = WorkBenchManager.getInstance();
-    myDetachedToolWindowManager = DetachedToolWindowManager.getInstance(project);
+    myDetachedToolWindowManager = detachedToolWindowManager;
     myFileEditorManager = FileEditorManager.getInstance(project);
     myToolDefinitions = new ArrayList<>(4);
     myModel = params.myModel;

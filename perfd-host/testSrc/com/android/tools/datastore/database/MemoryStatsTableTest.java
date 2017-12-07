@@ -19,7 +19,7 @@ import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;

@@ -68,11 +68,6 @@ import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
-/**
- * User: Eugene.Kudelevsky
- * Date: Aug 27, 2009
- * Time: 2:23:56 PM
- */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
 
@@ -553,7 +548,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // run in a separate thread as this will block until the tests complete
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         try {
-          runner.run(new AndroidTestListener(launchStatus, printer));
+          runner.run(new AndroidTestListener(launchStatus, printer), new UsageTrackerTestRunListener(myArtifact, device));
         }
         catch (Exception e) {
           LOG.info(e);

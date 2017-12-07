@@ -31,6 +31,8 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedListValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -57,9 +59,11 @@ import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.font.FontRenderContext;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
@@ -386,13 +390,68 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static class FontFamilyRenderer extends ColoredListCellRenderer<FontFamily> {
+    private static final int FONT_CACHE_LOAD_BATCH_SIZE = 15;
+
     private final DownloadableFontCacheService myFontService;
     private final JLabel myTitle;
+    private final Cache<FontFamily, Font> myMenuFontCache = CacheBuilder.newBuilder()
+      .softValues()
+      .build();
+
 
     private FontFamilyRenderer() {
       myFontService = DownloadableFontCacheService.getInstance();
       myTitle = new HeaderLabel();
       myTitle.setBorder(JBUI.Borders.empty(0, 35, 0, 5));
+
+      warmUpCache();
+    }
+
+    /**
+     * Iterates over all the available families and pre-populates the cache.
+     */
+    private void warmUpCache() {
+      List<FontFamily> families = myFontService.getFontFamilies();
+      int familyCount = families.size();
+
+      if (familyCount == 0) {
+        return;
+      }
+
+      int batches = (familyCount / FONT_CACHE_LOAD_BATCH_SIZE) + 1;
+      for (int i = 0; i < batches; i ++) {
+        final int batchStart = i * FONT_CACHE_LOAD_BATCH_SIZE;
+        final int batchEnd = Math.min((i + 1) * FONT_CACHE_LOAD_BATCH_SIZE, familyCount);
+        ForkJoinPool.commonPool().submit(() -> {
+          for (int j = batchStart; j < batchEnd; j++) {
+            FontFamily family = families.get(j);
+            Font addedFont = getMenuFontFromFamily(family);
+
+            if (addedFont == null) {
+               continue;
+            }
+
+            // This is just to warm-up the font measuring call. Subsequent calls will be faster.
+            FontRenderContext fontRenderContext = getFontMetrics(addedFont).getFontRenderContext();
+            addedFont.getStringBounds(family.getMenuName(), fontRenderContext);
+          }
+        });
+      }
+    }
+
+    @Nullable
+    private Font getMenuFontFromFamily(@NotNull FontFamily fontFamily) {
+      Font font = myMenuFontCache.getIfPresent(fontFamily);
+      if (font == null) {
+        font = myFontService.loadMenuFont(fontFamily);
+        String text = fontFamily.getMenuName();
+        if (font != null && font.canDisplayUpTo(text) < 0) {
+          font = font.deriveFont(FONT_SIZE_IN_LIST);
+          myMenuFontCache.put(fontFamily, font);
+        }
+      }
+
+      return font;
     }
 
     @Override
@@ -410,12 +469,11 @@ public class MoreFontsDialog extends DialogWrapper {
     @Override
     protected void customizeCellRenderer(@NotNull JList<? extends FontFamily> list,
                                          @NotNull FontFamily fontFamily, int index, boolean selected, boolean hasFocus) {
-      String text = fontFamily.getMenuName();
-      Font font = myFontService.loadMenuFont(fontFamily);
-      if (font != null && font.canDisplayUpTo(text) < 0) {
-        setFont(font.deriveFont(FONT_SIZE_IN_LIST));
+      Font font = getMenuFontFromFamily(fontFamily);
+      if (font != null) {
+        setFont(font);
       }
-      append(text);
+      append(fontFamily.getMenuName());
       setIconTextGap(JBUI.scale(4));
 
       switch (fontFamily.getFontSource()) {

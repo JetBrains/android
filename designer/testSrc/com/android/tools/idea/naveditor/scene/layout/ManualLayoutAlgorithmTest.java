@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.layout;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.io.FileUtil;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link ManualLayoutAlgorithm}
  */
-public class ManualLayoutAlgorithmTest extends NavigationTestCase {
+public class ManualLayoutAlgorithmTest extends NavTestCase {
 
   public void testSimple() {
     SyncNlModel model = model("nav.xml",

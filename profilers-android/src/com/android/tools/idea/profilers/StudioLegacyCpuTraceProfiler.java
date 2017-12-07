@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.profiler.proto.CpuProfiler.*;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 

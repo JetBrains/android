@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +36,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -72,6 +76,10 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
     when(myModule1.getModuleFilePath()).thenReturn(module1File.getPath());
     when(myModule2.getModuleFilePath()).thenReturn(module2File.getPath());
     when(myModule3.getModuleFilePath()).thenReturn(module3File.getPath());
+
+    setAsAndroidIdeaModule(myModule1);
+    setAsAndroidIdeaModule(myModule2);
+    setAsAndroidIdeaModule(myModule3);
 
     myStrategy.validate(myModule1);
     myStrategy.validate(myModule2);
@@ -123,5 +131,12 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
     SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNull(message);
+  }
+
+  private static void setAsAndroidIdeaModule(@NotNull Module module) {
+    // UniquePathModuleValidatorStrategy#validate uses the presence of one of Android Studio facets to verify if that's an Idea Android module
+    FacetManager facetManager = mock(FacetManager.class);
+    when(module.getComponent(eq(FacetManager.class))).thenReturn(facetManager);
+    when(facetManager.getFacetByType(eq(GradleFacet.getFacetTypeId()))).thenReturn(mock(GradleFacet.class));
   }
 }

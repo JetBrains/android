@@ -16,16 +16,19 @@
 package org.jetbrains.android.compiler;
 
 import com.intellij.compiler.CompilerConfiguration;
-import com.intellij.compiler.CompilerConfigurationImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.server.BuildManager;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -68,7 +71,7 @@ public class AndroidPrecompileTask implements CompileTask {
   public boolean execute(CompileContext context) {
     final Project project = context.getProject();
 
-    if (!AndroidFacet.hasAndroid(project)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return true;
     }
     BuildManager.forceModelLoading(context);
@@ -91,7 +94,7 @@ public class AndroidPrecompileTask implements CompileTask {
     ExcludesConfiguration configuration =
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
-    Set<ExcludeEntryDescription> addedEntries = new HashSet<ExcludeEntryDescription>();
+    Set<ExcludeEntryDescription> addedEntries = new HashSet<>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -123,13 +126,14 @@ public class AndroidPrecompileTask implements CompileTask {
 
     if (!addedEntries.isEmpty()) {
       LOG.debug("Files excluded by Android: " + addedEntries.size());
-      CompilerManager.getInstance(project).addCompilationStatusListener(new MyCompilationStatusListener(project, addedEntries), project);
+      project.getMessageBus().connect().subscribe(CompilerTopics.COMPILATION_STATUS, new MyCompilationStatusListener(project, addedEntries));
     }
     return true;
   }
 
   private static void createGenModulesAndSourceRoots(final Project project) {
-    final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
+    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+    final List<AndroidFacet> facets = new ArrayList<>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -145,7 +149,7 @@ public class AndroidPrecompileTask implements CompileTask {
         public void run() {
           AndroidCompileUtil.createGenModulesAndSourceRoots(project, facets);
         }
-      });
+      }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
     }
   }
 
@@ -162,9 +166,9 @@ public class AndroidPrecompileTask implements CompileTask {
     if (artifacts == null) {
       return true;
     }
-    final Set<Artifact> debugArtifacts = new HashSet<Artifact>();
-    final Set<Artifact> releaseArtifacts = new HashSet<Artifact>();
-    final Map<AndroidFacet, List<Artifact>> facet2artifacts = new HashMap<AndroidFacet, List<Artifact>>();
+    final Set<Artifact> debugArtifacts = new HashSet<>();
+    final Set<Artifact> releaseArtifacts = new HashSet<>();
+    final Map<AndroidFacet, List<Artifact>> facet2artifacts = new HashMap<>();
 
     for (final Artifact artifact : artifacts) {
       final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
@@ -188,7 +192,7 @@ public class AndroidPrecompileTask implements CompileTask {
       if (facet != null) {
         List<Artifact> list = facet2artifacts.get(facet);
         if (list == null) {
-          list = new ArrayList<Artifact>();
+          list = new ArrayList<>();
           facet2artifacts.put(facet, list);
         }
         list.add(artifact);
@@ -322,7 +326,7 @@ public class AndroidPrecompileTask implements CompileTask {
   private static void unexcludeAllSourceRoots(AndroidFacet facet,
                                               ExcludesConfiguration configuration) {
     final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(facet.getModule()).getSourceRoots();
-    final Set<VirtualFile> sourceRootSet = new HashSet<VirtualFile>();
+    final Set<VirtualFile> sourceRootSet = new HashSet<>();
     sourceRootSet.addAll(Arrays.asList(sourceRoots));
 
     final String aidlGenSourceRootPath = AndroidRootUtil.getAidlGenSourceRootPath(facet);
@@ -392,10 +396,7 @@ public class AndroidPrecompileTask implements CompileTask {
 
     @Override
     public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-      CompilerManager.getInstance(myProject).removeCompilationStatusListener(this);
-
-      ExcludesConfiguration configuration =
-        ((CompilerConfigurationImpl)CompilerConfiguration.getInstance(myProject)).getExcludedEntriesConfiguration();
+      ExcludesConfiguration configuration = CompilerConfiguration.getInstance(myProject).getExcludedEntriesConfiguration();
       ExcludeEntryDescription[] descriptions = configuration.getExcludeEntryDescriptions();
 
       configuration.removeAllExcludeEntryDescriptions();

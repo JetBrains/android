@@ -19,7 +19,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.SET_START_DESTINATION_PROPERTY_NAME
 import com.google.common.collect.HashBasedTable
@@ -30,7 +30,7 @@ import java.awt.Component
 import java.awt.Container
 import javax.swing.JButton
 
-class NavSetStartProviderTest : NavigationTestCase() {
+class NavSetStartProviderTest : NavTestCase() {
   lateinit var myModel: SyncNlModel
 
   override fun setUp() {
@@ -54,7 +54,7 @@ class NavSetStartProviderTest : NavigationTestCase() {
     assertTrue(isApplicable(provider, myModel, "f1"))
     assertTrue(isApplicable(provider, myModel, "subnav"))
     assertTrue(isApplicable(provider, myModel, "f2"))
-    assertTrue(isApplicable(provider, myModel, "activity"))
+    assertFalse(isApplicable(provider, myModel, "activity"))
     assertFalse(isApplicable(provider, myModel, "f1", "f2"))
     assertFalse(isApplicable(provider, myModel))
   }
@@ -81,9 +81,6 @@ class NavSetStartProviderTest : NavigationTestCase() {
 
     panel.setComponent(listOf(myModel.find("subnav")!!), table, manager)
     assertTrue(button.isEnabled)
-
-    panel.setComponent(listOf(myModel.find("activity")!!), table, manager)
-    assertFalse(button.isEnabled)
 
     panel.setComponent(listOf(myModel.find("f2")!!), table, manager)
     assertTrue(button.isEnabled)

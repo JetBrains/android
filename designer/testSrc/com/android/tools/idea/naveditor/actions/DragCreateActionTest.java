@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
@@ -36,7 +36,7 @@ import static java.awt.event.MouseEvent.BUTTON1;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
-public class DragCreateActionTest extends NavigationTestCase {
+public class DragCreateActionTest extends NavTestCase {
   private static final String FRAGMENT1 = "fragment1";
   private static final String FRAGMENT2 = "fragment2";
   private static final String ACTION = "action1";
@@ -138,7 +138,7 @@ public class DragCreateActionTest extends NavigationTestCase {
 
   private static NavDesignSurface initializeNavDesignSurface(SyncNlModel model) {
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView view = new NavView(surface, model);
+    SceneView view = new NavView(surface, surface.getSceneManager());
     when(surface.getCurrentSceneView()).thenReturn(view);
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(view);
     return surface;

@@ -493,7 +493,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   @Override
-  public void syncStarted(@NotNull Project project) {
+  public void syncStarted(@NotNull Project project, boolean skipped) {
     if (myUiInitialized) {
       myNotificationPanel.removeAll();
       EditorNotificationPanel notification = new EditorNotificationPanel();
@@ -630,7 +630,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
         group.add(new DeleteModuleAction(this));
-        JComponent toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+        JComponent toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructureConfigurable", group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
       }
     }

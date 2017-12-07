@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
@@ -33,6 +36,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,13 +49,17 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.exe
 public class IndexingSuspender {
   private static final Logger LOG = Logger.getInstance(IndexingSuspender.class);
 
-  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
+  @VisibleForTesting
+  static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
+
+  private boolean myTestingIndexingSuspender;
 
   @NotNull private final Project myProject;
   @NotNull private final Object myIndexingLock = new Object();
+  @GuardedBy("myIndexingLock")
   private boolean myShouldWait;
 
-  @Nullable private ActivationEvent myActivationEvent;
+  private boolean myScheduledAfterProjectInitialisation;
   @Nullable private DeactivationEvent myDeactivationEvent;
   private volatile boolean myActivated;
 
@@ -59,13 +67,20 @@ public class IndexingSuspender {
     ServiceManager.getService(project, IndexingSuspender.class);
   }
 
-  private IndexingSuspender(@NotNull Project project) {
+  // This is a service constructor and is called implicitly by the platform's service management core.
+  @SuppressWarnings("unused")
+  public IndexingSuspender(@NotNull Project project) {
+    this(project, false);
+  }
+
+  @VisibleForTesting
+  IndexingSuspender(@NotNull Project project, boolean testing) {
+    myTestingIndexingSuspender = testing;
     myProject = project;
 
-    if (!StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
-      // Do not perform any subscriptions.
-      // Since the service is designed to be event-driven only, it will just do nothing without
-      // receiving project messages.
+    if (!canActivate()) {
+      // Don't even perform subscriptions if can't activate. The activation conditions for this service are expected to be
+      // invariant during the Application instance lifetime.
       return;
     }
 
@@ -76,22 +91,34 @@ public class IndexingSuspender {
     LOG.info("Consuming IndexingSuspender activation event: " + event.toString());
     switch (event) {
       case SYNC_STARTED:
-        if (myProject.isInitialized()) {
-          activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
+        if (!myProject.isInitialized()) {
+          myScheduledAfterProjectInitialisation = true;
+          StartupManager.getInstance(myProject).runWhenProjectIsInitialized(
+            () -> {
+              if (myScheduledAfterProjectInitialisation) {
+                // This is expected to be executed on project setup once the project is initialised.
+                activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
+                myScheduledAfterProjectInitialisation = false;
+              }
+            }
+          );
         }
         else {
-          myActivationEvent = ActivationEvent.SETUP_STARTED;
+          activate(ActivationEvent.SYNC_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
         break;
       case SETUP_STARTED:
-        if (myActivationEvent == ActivationEvent.SETUP_STARTED) {
-          if (!myProject.isInitialized()) {
-            clearStateConditions();
-            reportStateError("Project is expected to be initialised before project setup starts.");
-            break;
-          }
+        if (!myProject.isInitialized()) {
+          clearStateConditions();
+          reportStateError("Project is expected to be initialised before project setup starts.");
+          break;
+        }
+        if (!myActivated) {
           activate(ActivationEvent.SETUP_STARTED, DeactivationEvent.SYNC_FINISHED);
         }
+        // The sentinel dumb mode will be ended either when build starts or when suspender gets deactivated with a
+        // DeactivationEvent
+        startSentinelDumbMode("Project Setup");
         break;
       case BUILD_EXECUTOR_CREATED:
         if (myDeactivationEvent == DeactivationEvent.SYNC_FINISHED) {
@@ -109,8 +136,12 @@ public class IndexingSuspender {
 
   private void consumeDeactivationEvent(@NotNull DeactivationEvent event) {
     LOG.info("Consuming IndexingSuspender deactivation event: " + event.toString());
+    // The guard below is against the situation when project initialisation completes after gradle sync.
+    // In practice this won't happen, but for the sanity reasons it makes sense to render the deferred indexing suspender
+    // activation into a no-op, if there is any.
+    myScheduledAfterProjectInitialisation = false;
     if (event == myDeactivationEvent) {
-      deactivate();
+      ensureDeactivated();
     }
     else {
       LOG.info("IndexingSuspender deactivation event received and ignored: " + event.toString());
@@ -128,10 +159,10 @@ public class IndexingSuspender {
   }
 
   private void subscribeToSyncAndBuildEvents() {
-    LOG.info("Subscribing project to IndexingSuspender events: " + myProject.toString());
+    LOG.info(String.format("Subscribing project '%1$s' to indexing suspender events (%2$s)", myProject.toString(), toString()));
     GradleSyncState.subscribe(myProject, new GradleSyncListener() {
       @Override
-      public void syncStarted(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project, boolean skipped) {
         consumeActivationEvent(ActivationEvent.SYNC_STARTED);
       }
 
@@ -180,16 +211,8 @@ public class IndexingSuspender {
       return;
     }
 
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
-      // IDEA DumbService executes dumb mode tasks on the same thread when in unittest/headless
-      // mode. This will lead to a deadlock during tests execution, so indexing suspender should
-      // be a no-op in this case. Also indexing implementation in unit test mode uses quite a few
-      // stubs, so we wouldn't get a real indexing behaviour if even threading model was the same
-      // as in production. This also means that the only way to reproduce the real production
-      // behaviour on CI is a UI test.
-      LOG.info(String.format("Indexing suspension omitted in unittest/headless mode (context: " +
-                             "'%1$s')", activationEvent.name()));
+    if (!canActivate()) {
+      LOG.info(String.format("Indexing suspension not activated (context: '%1$s')", activationEvent.name()));
       return;
     }
 
@@ -201,30 +224,45 @@ public class IndexingSuspender {
     myActivated = true;
     myDeactivationEvent = deactivationEvent;
     startBatchUpdate();
-    if (activationEvent == ActivationEvent.SYNC_STARTED || activationEvent == ActivationEvent.SETUP_STARTED) {
-      startSentinelDumbMode("Gradle Sync");
-    }
   }
 
-  private void deactivate() {
-    if (!myActivated) {
-      reportStateError("Must not attempt to deactivate IndexingSuspender when it is not activated. Ignored.");
-      return;
-    }
-
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+  private void ensureDeactivated() {
+    if (!canActivate() || !myActivated) {
       return;
     }
 
     finishBatchUpdate();
     ensureNoSentinelDumbMode();
-    myActivated = false;
     clearStateConditions();
+    myActivated = false;
+  }
+
+  private boolean canActivate() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      // IntelliJ won't necessarily have the same events workflow related to Gradle build & sync, so render IndexingSuspender
+      // a no-op in that case.
+      return false;
+    }
+
+    if (!StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
+      // Do not perform any subscriptions.
+      // Since the service is designed to be event-driven only, it will just do nothing without
+      // receiving project messages.
+      return false;
+    }
+
+    Application application = ApplicationManager.getApplication();
+    if ((application.isUnitTestMode() || application.isHeadlessEnvironment()) && !myTestingIndexingSuspender) {
+      // Do nothing if in a unit test not dedicated to this service.
+      // In a headless environment, don't suspend indexing either, since in that case DumbServiceImpl
+      // executes indexing tasks synchronously anyway.
+      return false;
+    }
+
+    return true;
   }
 
   private void clearStateConditions() {
-    myActivationEvent = null;
     myDeactivationEvent = null;
   }
 
@@ -259,7 +297,14 @@ public class IndexingSuspender {
   /**
    * Queue IndexingSuspenderTask, thus ensuring that sentinel dumb mode is entered.
    *
+   * Note: In unit test mode and when {@link #myTestingIndexingSuspender} is true, the project's DumbService must be prepared
+   * accordingly before the control flow reaches this method. Namely, it should not execute the queued task straight away on the event
+   * dispatch thread like the default DumbServiceImpl does in unit test mode, because otherwise the test will deadlock.
+   * A sensible way to achieve that would be to mock DumbService in advance somewhere in the test setUp() method, using the corresponding
+   * facilities in com.android.tools.idea.testing.IdeComponents.
+   *
    * @param contextDescription Human-readable description of the context where the sentinel dumb mode was requested.
+   * @see #canActivate()
    */
   @SuppressWarnings("SameParameterValue")
   private void startSentinelDumbMode(@NotNull String contextDescription) {
@@ -296,7 +341,8 @@ public class IndexingSuspender {
    * has to take care about it depending on the context it is executing in, for example
    * by calling DumbService.waitForSmartMode() or DumbService.runWhenSmart().
    */
-  private class IndexingSuspenderTask extends DumbModeTask {
+  @VisibleForTesting
+  class IndexingSuspenderTask extends DumbModeTask {
     @NotNull private final String myContextDescription;
 
     IndexingSuspenderTask(@NotNull String contextDescription) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.idea.common.property.NlProperty;
@@ -35,7 +36,7 @@ public abstract class NlAttributeRenderer extends PTableCellRenderer {
 
   public NlAttributeRenderer() {
     myBrowsePanel = new BrowsePanel();
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
     myPanel.add(this, BorderLayout.CENTER);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
   }

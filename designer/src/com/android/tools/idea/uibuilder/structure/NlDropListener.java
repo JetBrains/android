@@ -19,12 +19,11 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
@@ -113,21 +112,21 @@ public class NlDropListener extends DropTargetAdapter {
   @Nullable
   private InsertType captureDraggedComponents(@NotNull NlDropEvent event, boolean isPreview) {
     clearDraggedComponents();
-    SceneView screenView = myTree.getScreenView();
-    if (screenView == null) {
+    Scene scene = myTree.getScene();
+    if (scene == null) {
       return null;
     }
-    NlModel model = screenView.getModel();
+    NlModel model = scene.getSceneManager().getModel();
     if (event.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
       try {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(screenView.getSelectionModel().getSelection()));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(scene.getDesignSurface().getSelectionModel().getSelection()));
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType)));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, scene, myTransferItem, insertType)));
         }
         return insertType;
       }
@@ -207,8 +206,8 @@ public class NlDropListener extends DropTargetAdapter {
    */
   private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
-      SceneView view = myTree.getScreenView();
-      ViewEditor editor = view != null ? ViewEditorImpl.getOrCreate(view) : null;
+      Scene scene = myTree.getScene();
+      ViewEditor editor = scene != null ? ViewEditorImpl.getOrCreate(scene) : null;
       model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, editor);
 
       // This determines how the DnD source acts to a completed drop.
@@ -219,6 +218,11 @@ public class NlDropListener extends DropTargetAdapter {
 
       event.dropComplete(true);
       model.notifyModified(NlModel.ChangeType.DROP);
+
+      if (scene != null) {
+        scene.getDesignSurface().getSelectionModel().setSelection(myDragged);
+        myTree.requestFocus();
+      }
     }
     catch (Exception exception) {
       Logger.getInstance(NlDropListener.class).warn(exception);

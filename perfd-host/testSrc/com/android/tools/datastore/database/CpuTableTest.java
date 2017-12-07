@@ -18,7 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;

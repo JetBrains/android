@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 
 class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy {
@@ -43,7 +43,10 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
 
   @Override
   void validate(@NotNull Module module) {
-    File moduleFolderPath = findModuleRootFolderPath(module);
+    if (!GradleProjects.isIdeaAndroidModule(module)) {
+      return;
+    }
+    File moduleFolderPath = GradleProjects.findModuleRootFolderPath(module);
     if (moduleFolderPath != null) {
       myModulesByPath.put(moduleFolderPath.getPath(), module);
     }

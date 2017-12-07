@@ -51,6 +51,7 @@ public class HeapSet extends ClassifierSet {
     myInstances.clear();
     myClassifier = null;
     myInstances.addAll(descendantsStream);
+    myNeedsRefiltering = true;
   }
 
   public int getId() {
@@ -58,10 +59,16 @@ public class HeapSet extends ClassifierSet {
   }
 
   // Select and apply the filter if it is different from previous one.
-  // Calling selectFilter() on the same String would not filter newly added ClassSets, please call applyFilter() instead.
   public void selectFilter(@Nullable Pattern filter) {
+    // We do not apply filter when both old and new filters are null
+    if (myFilter == null && filter == null) {
+      return;
+    }
+
+    boolean filterChanged =
+      filter == null || myFilter == null || filter.flags() != myFilter.flags() || !filter.pattern().equals(myFilter.pattern());
     myFilter = filter;
-    applyFilter();
+    applyFilter(filterChanged);
   }
 
   @Nullable
@@ -70,8 +77,9 @@ public class HeapSet extends ClassifierSet {
   }
 
   // Filter child ClassSets based on current selected filter string
-  public void applyFilter() {
-    applyFilter(myFilter, false);
+  // If filterChanged is false, we only update modified classifierSets
+  private void applyFilter(boolean filterChanged) {
+    applyFilter(myFilter, false, filterChanged);
   }
 
   @NotNull

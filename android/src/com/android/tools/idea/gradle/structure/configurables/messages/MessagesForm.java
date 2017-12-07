@@ -56,7 +56,7 @@ class MessagesForm implements Disposable {
       analyzeProject();
     }, this));
 
-    myIssuesViewer = new IssuesViewer(context, new DependencyViewIssuesRenderer());
+    myIssuesViewer = new IssuesViewer(myContext, new DependencyViewIssuesRenderer(myContext));
 
     JPanel issuesViewerPanel = myIssuesViewer.getPanel();
     JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);

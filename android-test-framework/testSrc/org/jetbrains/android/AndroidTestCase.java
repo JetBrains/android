@@ -18,6 +18,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -28,15 +29,19 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.reference.RefEntity;
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -67,7 +72,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -106,6 +110,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myFacet = addAndroidFacet(myModule);
 
+    removeFacetOn(myFixture.getProjectDisposable(), myFacet);
+
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
       LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
@@ -121,6 +127,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
       AndroidFacet facet = addAndroidFacet(additionalModule);
+      removeFacetOn(myFixture.getProjectDisposable(), facet);
       facet.setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
       myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
@@ -153,6 +160,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
+
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override
@@ -285,13 +294,20 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return addAndroidFacet(module, true);
   }
 
-  private static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+  public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+    Sdk sdk;
     if (attachSdk) {
-      addLatestAndroidSdk(module);
+      sdk = addLatestAndroidSdk(module);
+    }
+    else {
+      sdk = null;
     }
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
+    if (sdk != null) {
+      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
+    }
     return facet;
   }
 
@@ -364,7 +380,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
@@ -374,7 +390,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * inspection on the current test project and verify that its output matches that of the
    * expected file.
    */
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     myFixture.enableInspections(wrapper.getTool());
 
@@ -467,5 +483,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     protected ModuleFixtureImpl instantiateFixture() {
       return new ModuleFixtureImpl(this);
     }
+  }
+
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
+    Disposer.register(disposable, () -> WriteAction.run(() -> {
+      Module module = facet.getModule();
+      if (!module.isDisposed()) {
+        FacetManager facetManager = FacetManager.getInstance(module);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        model.removeFacet(facet);
+        model.commit();
+      }
+    }));
   }
 }

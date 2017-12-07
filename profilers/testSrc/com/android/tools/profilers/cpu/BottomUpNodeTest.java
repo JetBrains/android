@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -364,7 +365,7 @@ public class BottomUpNodeTest {
 
   private static CaptureNode newNode(String method, long start, long end, boolean unmatched) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel.Builder(method).build());
+    node.setCaptureNodeModel(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     node.setStartThread(start);
@@ -401,7 +402,7 @@ public class BottomUpNodeTest {
     private boolean myIsUnmatch = false;
 
     private ExpectedNode(String method, double total, double childrenTotal, boolean unmatch) {
-      myId = new MethodModel.Builder(method).build().getId();
+      myId = new SingleNameModel(method).getId();
       myTotal = total;
       myChildrenTotal = childrenTotal;
       myIsUnmatch = unmatch;

@@ -17,9 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_DRAG_LEVEL;
 
 /**
  * {@linkplain DrawActionHandleDrag} is visible while the user is performing
@@ -42,7 +45,7 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   }
 
   public DrawActionHandleDrag(String s) {
-    this(parse(s, 3));
+    this(DrawCommandSerializationHelperKt.parse(s, 3));
   }
 
   private DrawActionHandleDrag(String[] sp) {
@@ -55,9 +58,8 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   }
 
   @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myX, myY, myRadius};
+  public String serialize() {
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myRadius);
   }
 
   @Override

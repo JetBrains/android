@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class StudioProgressRunnerTest extends AndroidTestCase {
   public void testSyncWithProgressNonUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", null);
+    StudioProgressRunner runner = new StudioProgressRunner(true, false, "test", null);
     AtomicBoolean invoked = new AtomicBoolean(false);
     ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
       assertFalse(ApplicationManager.getApplication().isDispatchThread());
@@ -48,7 +48,7 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
   }
 
   public void testAsyncWithProgressNonUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "test", null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "test", null);
     Semaphore lock = new Semaphore(1);
     lock.acquire();
     ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
@@ -67,7 +67,7 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
 
   public void testSyncFromNonUi() throws Exception {
     Future f = ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", null);
+      StudioProgressRunner runner = new StudioProgressRunner(true, false, "test", null);
       AtomicBoolean invoked = new AtomicBoolean(false);
       ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
         assertFalse(ApplicationManager.getApplication().isDispatchThread());

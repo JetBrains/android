@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
-import com.android.tools.profilers.cpu.MethodModel;
 import com.android.tools.profilers.cpu.TraceParser;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import trebuchet.model.Model;
 import trebuchet.model.ProcessModel;
 import trebuchet.model.ThreadModel;
@@ -88,7 +88,7 @@ public class AtraceParser implements TraceParser {
         if (thread.getHasContent()) {
           CpuThreadInfo threadInfo = new CpuThreadInfo(thread.getId(), thread.getName());
           CaptureNode root = new CaptureNode();
-          root.setMethodModel(new MethodModel.Builder("root").setNativeNamespaceAndClass("root").setParameters("").build());
+          root.setCaptureNodeModel(new SingleNameModel("root"));
           root.setStartGlobal((long)range.getMin());
           root.setEndGlobal((long)range.getMax());
           captureTreeNodes.put(threadInfo, root);
@@ -104,7 +104,7 @@ public class AtraceParser implements TraceParser {
 
   private CaptureNode populateCaptureNode(SliceGroup slice, int depth) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel.Builder(slice.getName()).setNativeNamespaceAndClass(slice.getName()).setParameters("").build());
+    node.setCaptureNodeModel(new SingleNameModel(slice.getName()));
     node.setStartGlobal(convertToUserTimeUs(slice.getStartTime()));
     node.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
     node.setDepth(depth);

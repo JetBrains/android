@@ -19,9 +19,9 @@ import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.NavTestCase
 
-class NavDeeplinksPropertyTest : NavigationTestCase() {
+class NavDeeplinksPropertyTest : NavTestCase() {
   private lateinit var model: SyncNlModel
   private val uri1 = "http://www.example.com"
   private val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"

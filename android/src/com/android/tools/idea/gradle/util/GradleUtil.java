@@ -76,7 +76,6 @@ import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -97,6 +96,7 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -364,7 +364,7 @@ public final class GradleUtil {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
-  @Nullable
+  @NotNull
   public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -377,6 +377,9 @@ public final class GradleUtil {
           executionSettings.setJavaHome(jdkPath.getPath());
         }
       }
+    }
+    if(executionSettings == null) {
+      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
     }
     return executionSettings;
   }
@@ -393,13 +396,7 @@ public final class GradleUtil {
     }
 
     try {
-      GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
-      if (settings != null) {
-        // By setting the Gradle daemon timeout to -1, we don't allow IDEA to set it to 1 minute. Gradle daemons need to be reused as
-        // much as possible. The default timeout is 3 hours.
-        settings.setRemoteProcessIdleTtlInMs(GRADLE_DAEMON_TIMEOUT_MS);
-      }
-      return settings;
+      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
     }
     catch (IllegalArgumentException e) {
       LOG.info("Failed to obtain Gradle execution settings", e);

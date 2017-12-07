@@ -414,9 +414,7 @@ final class MemoryClassifierView extends AspectObserver {
         myTreeModel.nodeStructureChanged(treeNode);
         MemoryClassifierTreeNode nextNode = null;
         for (MemoryObjectTreeNode<ClassifierSet> child : treeNode.getChildren()) {
-          if (child.getAdapter().getIsFiltered()) {
-            break;
-          }
+          assert !child.getAdapter().getIsFiltered();
           assert child instanceof MemoryClassifierTreeNode;
           nextNode = (MemoryClassifierTreeNode)child;
           break;

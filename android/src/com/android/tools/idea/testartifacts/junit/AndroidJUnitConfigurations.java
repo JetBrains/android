@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.RunManager;
@@ -25,13 +24,13 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.junit.PatternConfigurationProducer;
 import com.intellij.execution.junit.TestObject;
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +42,19 @@ import static com.intellij.execution.junit.JUnitUtil.getTestMethod;
  * Common code for the {@link RunConfigurationProducer}s in Android JUnit configurations.
  */
 public class AndroidJUnitConfigurations {
-  public static boolean shouldUseAndroidJUnitConfigurations(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
-    Project project = self.getConfiguration().getProject();
-    return IdeInfo.getInstance().isAndroidStudio() || AndroidProjectInfo.getInstance(project).requiresAndroidModel();
+  public static boolean shouldUseAndroidJUnitConfigurations(@NotNull ConfigurationFromContext self,
+                                                            @NotNull ConfigurationFromContext other) {
+    RunConfiguration androidConfiguration = self.getConfiguration();
+    RunConfiguration otherConfiguration = other.getConfiguration();
+    if (androidConfiguration instanceof ModuleBasedConfiguration &&
+        (otherConfiguration instanceof JUnitConfiguration) &&
+        !(otherConfiguration instanceof AndroidJUnitConfiguration)) {
+      Module module = ((ModuleBasedConfiguration)androidConfiguration).getConfigurationModule().getModule();
+      if (module != null && GradleProjects.isIdeaAndroidModule(module)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Copy of JUnitConfigurationProducer#isConfigurationFromContext using AndroidJUnitConfigurationType instead of JUnitConfigurationType

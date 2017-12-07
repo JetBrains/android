@@ -17,8 +17,8 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
-import com.google.protobuf3jarjar.ByteString;
-import com.google.protobuf3jarjar.InvalidProtocolBufferException;
+import com.google.profiler.protobuf3jarjar.ByteString;
+import com.google.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 

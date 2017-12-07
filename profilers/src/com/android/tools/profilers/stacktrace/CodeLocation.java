@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.Arrays;
+import java.util.List;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
@@ -39,7 +40,7 @@ public final class CodeLocation {
    * See {@link Builder#setMethodParameters(String)} for details about this field.
    */
   @Nullable
-  private final String myMethodParameters;
+  private final List<String> myMethodParameters;
 
   private final int myLineNumber;
   private final boolean myNativeCode;
@@ -109,7 +110,7 @@ public final class CodeLocation {
   }
 
   @Nullable
-  public String getMethodParameters() {
+  public List<String> getMethodParameters() {
     return myMethodParameters;
   }
 
@@ -141,7 +142,7 @@ public final class CodeLocation {
     @Nullable String myFileName;
     @Nullable String myMethodName;
     @Nullable String mySignature;
-    @Nullable String myMethodParameters;
+    @Nullable List<String> myMethodParameters;
     int myLineNumber = INVALID_LINE_NUMBER;
     boolean myNativeCode;
 
@@ -186,12 +187,12 @@ public final class CodeLocation {
     }
 
     /**
-     * Parameters of a method, comma separated.
+     * Parameters of a method or function.
      *
-     * For example, {@code int aMethod(int a, float b} generates "int, float" as the parameters string..
+     * For example, {@code int aMethod(int a, float b} produces {@code ["int", "float"]} as the list of parameters.
      */
     @NotNull
-    public Builder setMethodParameters(@NotNull String methodParameters) {
+    public Builder setMethodParameters(@NotNull List<String> methodParameters) {
       myMethodParameters = methodParameters;
       return this;
     }

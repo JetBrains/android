@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -43,6 +42,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -51,7 +51,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
-  @Mock private SyncLibraryRegistry myLibraryRegistry;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;
 
@@ -60,18 +59,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    SyncLibraryRegistry.replaceForTesting(getProject(), myLibraryRegistry);
     myDependenciesSetup = new AndroidModuleDependenciesSetup(myLibraryFilePaths);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      SyncLibraryRegistry.replaceForTesting(getProject(), null);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testSetUpLibraryWithExistingLibrary() throws IOException {
@@ -85,7 +73,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths,false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -93,7 +81,6 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
     assertSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should not have been changed.
 
-    verify(myLibraryRegistry).markAsUsed(newLibrary, binaryPaths);
     // Should not attempt to look up sources and documentation for existing libraries.
     verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
@@ -103,7 +90,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
-    Library library = libraryTableModel.createLibrary(binaryPath.getName());
+    Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
 
     Application application = ApplicationManager.getApplication();
     application.runWriteAction(libraryTableModel::commit);
@@ -125,7 +112,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     when(myLibraryFilePaths.findSourceJarPath(binaryPath)).thenReturn(sourcePath);
     when(myLibraryFilePaths.findJavadocJarPath(binaryPath)).thenReturn(javadocPath);
 
-    String libraryName = binaryPath.getName();
+    String libraryName = "Gradle: " + binaryPath.getName();
     Module module = getModule();
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
@@ -156,7 +143,6 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     assertThat(javadocUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(javadocPath), javadocUrls[0]);
 
-    verify(myLibraryRegistry, never()).markAsUsed(library, binaryPaths); // Should not mark new libraries as "used"
     verify(myLibraryFilePaths).findSourceJarPath(binaryPath);
     // Documentation paths are populated at the LibraryDependency level - no look-up to be done during setup itself
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);

@@ -41,7 +41,6 @@ import static java.io.File.separator;
 import static org.junit.Assert.*;
 
 public class RenderSecurityManagerTest {
-
   private Object myCredential = new Object();
 
   @Test
@@ -247,11 +246,11 @@ public class RenderSecurityManagerTest {
 
       File jdkHome = new File(System.getProperty("java.home"));
       assertTrue(jdkHome.exists());
-      //noinspection ResultOfMethodCallIgnored
       File[] files = jdkHome.listFiles();
       if (files != null) {
         for (File file : files) {
           if (file.isFile()) {
+            //noinspection ResultOfMethodCallIgnored
             Files.toByteArray(file);
           }
         }
@@ -802,24 +801,23 @@ public class RenderSecurityManagerTest {
     }
   }
 
-
   @Test
   public void testSetTimeZone() throws Exception {
     RenderSecurityManager manager = new RenderSecurityManager(null, null);
     try {
       manager.setActive(true, myCredential);
 
-            /* ICU needs this (needed for Calendar widget rendering)
-                at java.util.TimeZone.hasPermission(TimeZone.java:597)
-                at java.util.TimeZone.setDefault(TimeZone.java:619)
-                at com.ibm.icu.util.TimeZone.setDefault(TimeZone.java:973)
-                at libcore.icu.DateIntervalFormat_Delegate.createDateIntervalFormat(DateIntervalFormat_Delegate.java:61)
-                at libcore.icu.DateIntervalFormat.createDateIntervalFormat(DateIntervalFormat.java)
-                at libcore.icu.DateIntervalFormat.getFormatter(DateIntervalFormat.java:112)
-                at libcore.icu.DateIntervalFormat.formatDateRange(DateIntervalFormat.java:102)
-                at libcore.icu.DateIntervalFormat.formatDateRange(DateIntervalFormat.java:71)
-                at android.text.format.DateUtils.formatDateRange(DateUtils.java:826)
-             */
+      /* ICU needs this (needed for Calendar widget rendering)
+          at java.util.TimeZone.hasPermission(TimeZone.java:597)
+          at java.util.TimeZone.setDefault(TimeZone.java:619)
+          at com.ibm.icu.util.TimeZone.setDefault(TimeZone.java:973)
+          at libcore.icu.DateIntervalFormat_Delegate.createDateIntervalFormat(DateIntervalFormat_Delegate.java:61)
+          at libcore.icu.DateIntervalFormat.createDateIntervalFormat(DateIntervalFormat.java)
+          at libcore.icu.DateIntervalFormat.getFormatter(DateIntervalFormat.java:112)
+          at libcore.icu.DateIntervalFormat.formatDateRange(DateIntervalFormat.java:102)
+          at libcore.icu.DateIntervalFormat.formatDateRange(DateIntervalFormat.java:71)
+          at android.text.format.DateUtils.formatDateRange(DateUtils.java:826)
+       */
       TimeZone deflt = TimeZone.getDefault();
       String[] availableIDs = TimeZone.getAvailableIDs();
       TimeZone timeZone = TimeZone.getTimeZone(availableIDs[0]);

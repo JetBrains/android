@@ -48,7 +48,14 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
 
     addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
     addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)
-    addProperties(components, schema, propertiesByName, ArgumentElement::class.java, { c -> NavArgumentsProperty(c, propertiesManager) } )
+    addProperties(components, schema, propertiesByName, ArgumentElement::class.java) { c ->
+      if (c.all { it.destinationType != null }) {
+        NavDestinationArgumentsProperty(c, propertiesManager)
+      }
+      else {
+        NavActionArgumentsProperty(c, propertiesManager)
+      }
+    }
   }
 
   private fun addProperties(components: List<NlComponent>, schema: NavigationSchema, propertiesByName: MutableMap<String, NlProperty>,

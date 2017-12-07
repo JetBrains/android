@@ -71,7 +71,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   }
 
   public void testExecuteWithModule() throws Exception {
-    // Check that quickfix adds google maven repository to mdoule when the repositories are defined in the module
+    // Check that quickfix adds google maven repository to module when the repositories are defined in the module
     loadProject(SIMPLE_APPLICATION);
     Project project = getProject();
     // Remove repositories from project and add a repository block to app
@@ -132,7 +132,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(buildModel).isNotNull();
     List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
-    assertEquals(type ,repositories.get(0).getType());
+    assertEquals(type, repositories.get(0).getType());
 
     // Verify it was added in buildscript
     repositories = buildModel.buildscript().repositories().repositories();

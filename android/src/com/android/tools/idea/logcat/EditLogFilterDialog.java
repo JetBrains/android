@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
@@ -32,6 +31,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -56,47 +56,39 @@ import java.util.Set;
  * A dialog which is shown to the user when they request to modify or add a new log filter.
  */
 final class EditLogFilterDialog extends DialogWrapper {
+  static final int FILTER_HISTORY_SIZE = 5;
   private static final String NEW_FILTER_NAME_PREFIX = "Unnamed-";
   @NonNls private static final String EDIT_FILTER_DIALOG_DIMENSIONS_KEY =
     "edit.logcat.filter.dialog.dimensions";
-  static final int FILTER_HISTORY_SIZE = 5;
   @NonNls private static final String LOG_FILTER_MESSAGE_HISTORY = "LOG_FILTER_MESSAGE_HISTORY";
   @NonNls private static final String LOG_FILTER_TAG_HISTORY = "LOG_FILTER_TAG_HISTORY";
   @NonNls private static final String LOG_FILTER_PACKAGE_NAME_HISTORY = "LOG_FILTER_PACKAGE_NAME_HISTORY";
 
   private final Splitter mySplitter;
+  private final List<FilterData> myFilters;
+  private final AndroidLogcatView myView;
+  private final Project myProject;
   private JPanel myContentPanel;
   private JPanel myLeftPanel;
-
   private EditorTextField myFilterNameField;
   private RegexFilterComponent myLogMessageField;
   private RegexFilterComponent myTagField;
   private TextFieldWithAutoCompletion myPidField;
   private RegexFilterComponent myPackageNameField;
   private JComboBox myLogLevelCombo;
-
   private JPanel myLogMessageFieldWrapper;
   private JPanel myTagFieldWrapper;
   private JPanel myPidFieldWrapper;
   private JPanel myPackageNameFieldWrapper;
-
   private JBLabel myNameFieldLabel;
   private JBLabel myLogTagLabel;
   private JBLabel myLogMessageLabel;
   private JBLabel myPidLabel;
   private JBLabel myPackageNameLabel;
-
   private JBList myFiltersList;
   private CollectionListModel<String> myFiltersListModel;
-
   @Nullable private FilterData myActiveFilter;
-  private final List<FilterData> myFilters;
-
   private JPanel myFiltersToolbarPanel;
-
-  private final AndroidLogcatView myView;
-  private final Project myProject;
-
   private boolean myExistingMessagesParsed = false;
 
   private List<String> myUsedPids;
@@ -151,7 +143,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myTagFieldWrapper.add(myTagField);
     myLogTagLabel.setLabelFor(myTagField);
 
-    myPidField = new TextFieldWithAutoCompletion<String>(myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
+    myPidField = new TextFieldWithAutoCompletion<>(myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
       @NotNull
       @Override
       public Collection<String> getItems(String prefix, boolean cached, CompletionParameters parameters) {
@@ -174,7 +166,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPackageNameFieldWrapper.add(myPackageNameField);
     myPackageNameLabel.setLabelFor(myPackageNameField);
 
-    myLogLevelCombo.setModel(new EnumComboBoxModel<Log.LogLevel>(Log.LogLevel.class));
+    myLogLevelCombo.setModel(new EnumComboBoxModel<>(Log.LogLevel.class));
     myLogLevelCombo.setRenderer(new ListCellRendererWrapper() {
       @Override
       public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
@@ -196,11 +188,11 @@ final class EditLogFilterDialog extends DialogWrapper {
     });
 
 
-    final Key<JComponent> componentKey = new Key<JComponent>("myComponent");
+    final Key<JComponent> componentKey = new Key<>("myComponent");
     myFilterNameField.getDocument().putUserData(componentKey, myFilterNameField);
     myPidField.getDocument().putUserData(componentKey, myPidField);
 
-    DocumentListener l = new DocumentAdapter() {
+    DocumentListener l = new DocumentListener() {
       @Override
       public void documentChanged(DocumentEvent e) {
         if (myActiveFilter == null) {
@@ -263,7 +255,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       }
     });
 
-    myFiltersListModel = new CollectionListModel<String>();
+    myFiltersListModel = new CollectionListModel<>();
     for (FilterData filter : myFilters) {
       myFiltersListModel.add(filter.getName());
     }
@@ -276,7 +268,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     group.add(new MyAddFilterAction());
     group.add(new MyRemoveFilterAction());
     final JComponent component =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+      ActionManager.getInstance().createActionToolbar("AndroidEditLogFilter", group, true).getComponent();
     myFiltersToolbarPanel.add(component, BorderLayout.CENTER);
   }
 
@@ -291,7 +283,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       return;
     }
 
-    final Set<String> pidSet = new HashSet<String>();
+    final Set<String> pidSet = new HashSet<>();
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
@@ -427,7 +419,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   }
 
   private String getUniqueName() {
-    Set<String> names = new HashSet<String>(myFilters.size());
+    Set<String> names = new HashSet<>(myFilters.size());
     for (FilterData filter : myFilters) {
       names.add(filter.getName());
     }
@@ -438,6 +430,10 @@ final class EditLogFilterDialog extends DialogWrapper {
         return n;
       }
     }
+  }
+
+  private String getSelectedFilterName() {
+    return (String)myFiltersList.getSelectedValue();
   }
 
   private final class MyAddFilterAction extends AnAction {
@@ -455,7 +451,9 @@ final class EditLogFilterDialog extends DialogWrapper {
       myFiltersListModel.add(myActiveFilter.getName());
       updateFilters();
 
-      myFilterNameField.requestFocus();
+      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+        IdeFocusManager.getGlobalInstance().requestFocus(myFilterNameField, true);
+      });
     }
   }
 
@@ -493,9 +491,5 @@ final class EditLogFilterDialog extends DialogWrapper {
 
       updateFilters();
     }
-  }
-
-  private String getSelectedFilterName() {
-    return (String)myFiltersList.getSelectedValue();
   }
 }

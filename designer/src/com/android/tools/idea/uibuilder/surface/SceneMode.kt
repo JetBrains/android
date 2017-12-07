@@ -16,14 +16,13 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 
 enum class SceneMode(val displayName: String,
-                     val primary: (NlDesignSurface, NlModel) -> SceneView,
-                     val secondary: ((NlDesignSurface, NlModel) -> SceneView)? = null) {
+                     val primary: (NlDesignSurface, LayoutlibSceneManager) -> ScreenView,
+                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null) {
   SCREEN_ONLY("Design", ::ScreenView),
   BLUEPRINT_ONLY("Blueprint", ::BlueprintView),
   BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView);
@@ -33,11 +32,11 @@ enum class SceneMode(val displayName: String,
     return values[(ordinal + 1) % values.size]
   }
 
-  fun createPrimarySceneView(surface: NlDesignSurface, model: NlModel): SceneView =
-      primary(surface, model)
+  fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
+      primary(surface, manager)
 
-  fun createSecondarySceneView(surface: NlDesignSurface, model: NlModel): SceneView? =
-      secondary?.invoke(surface, model)?.apply { setSecondary(true) }
+  fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? =
+      secondary?.invoke(surface, manager)?.apply { isSecondary = true }
 
   companion object {
 
@@ -64,20 +63,3 @@ enum class SceneMode(val displayName: String,
     fun savePreferredMode(mode: SceneMode) = PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name)
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
