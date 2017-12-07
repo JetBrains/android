@@ -75,7 +75,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
 
-  private Scene myScene;
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
@@ -138,18 +137,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       mySurface.getActionManager().registerActionsShortcuts(this);
       mySurface.getActionManager().registerActionsShortcuts(this);
     }
-    setScene(designSurface != null ? designSurface.getScene() : null);
+    setModel(designSurface != null ? designSurface.getModel() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
-  }
-
-  private void setScene(@Nullable Scene scene) {
-    myScene = scene;
-    setModel(scene == null ? null : scene.getSceneManager().getModel());
   }
 
   @Nullable
   public Scene getScene() {
-    return myScene;
+    return mySurface != null ? mySurface.getScene() : null;
   }
 
   private void setModel(@Nullable NlModel model) {
@@ -472,8 +466,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
-    setScene(scene);
+  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    setModel(model);
   }
 
   @Override

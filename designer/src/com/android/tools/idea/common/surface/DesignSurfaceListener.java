@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.tools.idea.common.scene.Scene;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,9 +28,6 @@ import java.util.List;
 public interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
   default void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {}
-
-  /** The current scene, if any, changed */
-  default void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {}
 
   /** The current model changed */
   default void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {}
