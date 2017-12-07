@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -100,6 +101,7 @@ class UsageTrackerTestRunListenerTest {
         testExecution = TestRun.TestExecution.HOST
         testKind = TestRun.TestKind.INSTRUMENTATION_TEST
         testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
+        testLibraries = TestLibraries.getDefaultInstance()
         build()
       })
     }
@@ -127,6 +129,7 @@ class UsageTrackerTestRunListenerTest {
         testKind = TestRun.TestKind.INSTRUMENTATION_TEST
         testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
         crashed = true
+        testLibraries = TestLibraries.getDefaultInstance()
         build()
       })
     }
