@@ -1,7 +1,7 @@
 package org.jetbrains.android.maven;
 
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +30,7 @@ public class MavenArtifactResolvedInfo {
   }
 
   @Tag("dependencies")
-  @AbstractCollection(surroundWithTag = false)
+  @XCollection
   public List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> getDependencies() {
     return myDependencies;
   }

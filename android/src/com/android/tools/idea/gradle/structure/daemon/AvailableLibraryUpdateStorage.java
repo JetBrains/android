@@ -22,9 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.Transient;
+import com.intellij.util.xmlb.annotations.XCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +63,7 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
 
   public static class AvailableLibraryUpdates {
     @Tag("library-updates")
-    @AbstractCollection(surroundWithTag = false)
+    @XCollection
     @NotNull public List<AvailableLibraryUpdate> updates = Lists.newArrayList();
 
     @Tag("last-search-timestamp")
