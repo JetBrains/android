@@ -39,6 +39,7 @@ public class DataStoreDatabase {
   /**
    * @param dbPath the path to the backing DB file, if {@link Characteristic#DURABLE}.
    */
+  @SuppressWarnings("JDBCResourceOpenedButNotSafelyClosed")
   public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic) {
     Connection connection = null;
     try {
@@ -52,6 +53,13 @@ public class DataStoreDatabase {
           break;
         case DURABLE:
           File dbFile = new File(dbPath);
+          // Due to an incompatible update in SQLite we do not support loading SQL files from previous versions of studio.
+          // As a intermediate measure we delete the file until we support loading existing databases.
+          // TODO: Investigate removing this when we add a feature to restore sessions from prior Studio runs.
+          if (dbFile.exists()) {
+            dbFile.delete();
+          }
+
           File parent = dbFile.getParentFile();
           if (parent != null) {
             if (!parent.mkdirs() && !parent.exists()) {
