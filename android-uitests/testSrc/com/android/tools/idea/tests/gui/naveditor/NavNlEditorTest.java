@@ -75,7 +75,7 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
     layout.waitForRenderToFinish();
 
-    ((NavDesignSurfaceFixture)layout.getSurface()).openAddMenu().selectDestination("MyFragment");
+    ((NavDesignSurfaceFixture)layout.getSurface()).openAddExistingMenu().selectDestination("MyFragment");
 
     DestinationListFixture.Companion.create(guiTest.robot()).selectItem("Main Activity");
     assertEquals(1, layout.getSelection().size());

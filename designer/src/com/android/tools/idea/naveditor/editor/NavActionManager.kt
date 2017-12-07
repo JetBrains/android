@@ -56,7 +56,8 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
                           parent: NlComponent?,
                           newSelection: List<NlComponent>,
                           toolbar: Boolean) {
-    group.add(AddMenuWrapper(mySurface, destinations))
+    group.add(CreateDestinationMenu(mySurface))
+    group.add(AddExistingDestinationMenu(mySurface, destinations))
   }
 
   @VisibleForTesting
