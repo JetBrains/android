@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,7 +42,6 @@ class NopTracker implements NlUsageTracker {
   @Override
   public void logDropFromPalette(@NotNull String viewTagName,
                                  @NotNull String representation,
-                                 @NotNull PaletteMode paletteMode,
                                  @NotNull String selectedGroup,
                                  int filterMatches) {
   }

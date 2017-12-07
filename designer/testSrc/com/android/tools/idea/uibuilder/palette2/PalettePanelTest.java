@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
@@ -250,7 +249,7 @@ public class PalettePanelTest extends LayoutTestCase {
     TransferHandler handler = list.getTransferHandler();
     imitateDragAndDrop(handler, list);
 
-    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, PaletteMode.ICON_AND_NAME, "Layouts", -1);
+    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, "Layouts", -1);
   }
 
   public void testDragAndDropInDumbMode() throws Exception {

@@ -21,16 +21,15 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
@@ -145,7 +144,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
   public void testPaletteDropLogging() {
     NlUsageTracker tracker = getUsageTracker();
 
-    tracker.logDropFromPalette(CONSTRAINT_LAYOUT, "<" + CONSTRAINT_LAYOUT + "/>", PaletteMode.ICON_AND_NAME, "All", -1);
+    tracker.logDropFromPalette(CONSTRAINT_LAYOUT, "<" + CONSTRAINT_LAYOUT + "/>", "All", -1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -153,7 +152,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.ICON_AND_NAME);
   }
 
   public void testPaletteDropTextEditLogging() {
@@ -167,7 +165,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
                             "              android:ems=\"10\"\n" +
                             "            />\n";
 
-    tracker.logDropFromPalette(EDIT_TEXT, representation, PaletteMode.ICON_AND_NAME, "All", -1);
+    tracker.logDropFromPalette(EDIT_TEXT, representation, "All", -1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -175,14 +173,13 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.EMAIL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.ICON_AND_NAME);
   }
 
   public void testPaletteDropCustomViewLogging() {
     String tag = "com.acme.MyCustomControl";
     NlUsageTracker tracker = getUsageTracker();
 
-    tracker.logDropFromPalette(tag, "<" + tag + "/>", PaletteMode.LARGE_ICONS, "Advanced", 1);
+    tracker.logDropFromPalette(tag, "<" + tag + "/>", "Advanced", 1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -190,7 +187,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.LARGE_IONS);
   }
 
   public void testPropertyChangeLogging() {
