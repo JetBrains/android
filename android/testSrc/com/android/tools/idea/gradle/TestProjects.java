@@ -93,8 +93,8 @@ public final class TestProjects {
 
     f1faDebugVariant.addProductFlavors("f1", "fa");
 
-    project.addProductFlavor("f1");
-    project.addProductFlavor("fa");
+    project.addProductFlavor("f1", "dim1");
+    project.addProductFlavor("fa", "dim2");
 
     return project;
   }
