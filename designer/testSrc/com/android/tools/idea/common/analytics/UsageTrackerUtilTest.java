@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,16 +18,14 @@ package com.android.tools.idea.common.analytics;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
-import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
 import com.google.wireless.android.sdk.stats.SearchOption;
 import com.intellij.openapi.project.Project;
@@ -231,12 +229,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"horizontal\"/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertPaletteMode() {
-    assertThat(convertPaletteMode(PaletteMode.ICON_AND_NAME)).isEqualTo(LayoutPaletteEvent.ViewType.ICON_AND_NAME);
-    assertThat(convertPaletteMode(PaletteMode.LARGE_ICONS)).isEqualTo(LayoutPaletteEvent.ViewType.LARGE_IONS);
-    assertThat(convertPaletteMode(PaletteMode.SMALL_ICONS)).isEqualTo(LayoutPaletteEvent.ViewType.SMALL_ICONS);
   }
 
   public void testConvertPropertiesMode() {

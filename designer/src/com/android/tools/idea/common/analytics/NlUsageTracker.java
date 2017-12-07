@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,15 +26,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.common.model.NlModel.*;
-
 /**
  * Interface for usage tracking in the layout editor. Not that implementations of these methods should aim to return immediately.
  */
 public interface NlUsageTracker {
   /**
    * Logs a layout editor event in the usage tracker. Note that rendering actions should be logged through the
-   * {@link #logRenderResult(ChangeType, RenderResult, long)} method so it contains additional information about the render result.
+   * {@link #logRenderResult} method so it contains additional information about the render result.
    */
   void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType);
 
@@ -51,13 +48,11 @@ public interface NlUsageTracker {
    *
    * @param viewTagName The tag name of the component dropped in the layout editor.
    * @param representation The XML representation of the component.
-   * @param paletteMode The mode used in the palette during the drop: icon & name, or icon only.
    * @param selectedGroup The group used to find this component on the palette.
    * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
    */
   void logDropFromPalette(@NotNull String viewTagName,
                           @NotNull String representation,
-                          @NotNull PaletteMode paletteMode,
                           @NotNull String selectedGroup,
                           int filterMatches);
 

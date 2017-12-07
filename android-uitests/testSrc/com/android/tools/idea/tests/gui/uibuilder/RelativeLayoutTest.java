@@ -40,13 +40,11 @@ public class RelativeLayoutTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NELE_NEW_PALETTE.override(true);
     StudioFlags.NELE_TARGET_RELATIVE.override(true);
   }
 
   @After
   public void tearDown() {
-    StudioFlags.NELE_NEW_PALETTE.clearOverride();
     StudioFlags.NELE_TARGET_RELATIVE.clearOverride();
   }
 

@@ -161,11 +161,6 @@ public final class StudioFlags {
     "Enable the new Target architecture in relative layout",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_PALETTE = Flag.create(
-    NELE, "new.palette", "Enable the new Palette",
-    "Enable the new Palette with advanced Search",
-    true);
-
   private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",

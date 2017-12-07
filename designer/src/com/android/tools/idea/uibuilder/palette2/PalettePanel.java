@@ -35,7 +35,6 @@ import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
@@ -154,13 +153,6 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   AnAction getAddToDesignAction() {
     //noinspection ReturnOfInnerClass
     return myAddToDesignAction;
-  }
-
-  @NotNull
-  @TestOnly
-  AnAction getFavoriteAction() {
-    //noinspection ReturnOfInnerClass
-    return myFavoriteAction;
   }
 
   @NotNull
@@ -472,7 +464,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return;
       }
       NlUsageTrackerManager.getInstance(myDesignSurface).logDropFromPalette(
-        component.getTag(), component.getRepresentation(), PaletteMode.ICON_AND_NAME, getGroupName(), myDataModel.getMatchCount());
+        component.getTag(), component.getRepresentation(), getGroupName(), myDataModel.getMatchCount());
     }
 
     @NotNull
