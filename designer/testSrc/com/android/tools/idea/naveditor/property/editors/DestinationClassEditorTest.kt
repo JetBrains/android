@@ -16,15 +16,14 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavGradleTestCase
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-// TODO: make this work as a non-gradle test
-class DestinationClassEditorTest : NavGradleTestCase() {
+class DestinationClassEditorTest : NavTestCase() {
   fun testFragment() {
     val model = model("nav.xml",
         NavModelBuilderUtil.rootComponent("root")

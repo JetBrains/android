@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.targets;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.naveditor.NavGradleTestCase;
+import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
@@ -35,22 +35,22 @@ import java.util.concurrent.CompletableFuture;
 import static org.mockito.Mockito.mock;
 
 /**
- * Tests for {@link ThumbnailManager} that require a complete gradle project to run.
+ * Tests for {@link ThumbnailManager}
  */
-public class ThumbnailManagerGradleTest extends NavGradleTestCase {
+public class ThumbnailManagerTest extends NavTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 6.5f;
 
   public void testGeneratedImage() throws Exception {
     File goldenFile = new File(getTestDataPath() + "/naveditor/thumbnails/basic_activity_1.png");
     BufferedImage goldenImage = ImageIO.read(goldenFile);
 
-    ThumbnailManager manager = ThumbnailManager.getInstance(myAndroidFacet);
+    ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(null, myAndroidFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(null, myFacet, psiFile.getVirtualFile());
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image.getCopy(), MAX_PERCENT_DIFFERENT);
