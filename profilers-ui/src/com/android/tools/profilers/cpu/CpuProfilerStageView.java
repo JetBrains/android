@@ -273,7 +273,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       @Override
       public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2 && !e.isConsumed()) {
-          getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
+          clearSelection();
         }
       }
     };
@@ -362,6 +362,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
+  }
+
+  private void clearSelection() {
+    getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
@@ -531,6 +535,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureViewLoading.startLoading();
         mySplitter.setSecondComponent(myCaptureViewLoading.getComponent());
         break;
+      case PARSING_FAILURE:
+        mySplitter.setSecondComponent(null);
+        break;
       case STARTING:
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Starting record...");
@@ -545,7 +552,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureSelection() {
-    updateCaptureState();
     CpuCapture capture = myStage.getCapture();
     if (capture == null) {
       // If the capture is still being parsed, the splitter second component should be myCaptureViewLoading
@@ -557,6 +563,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           mySplitter.setSecondComponent(null);
         }
       }
+      // Clear the selection if it exists
+      clearSelection();
       myCaptureView = null;
     }
     else if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE) {
@@ -583,6 +591,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateThreadSelection() {
+    if (myStage.getSelectedThread() == CaptureModel.NO_THREAD) {
+      myThreads.clearSelection();
+      return;
+    }
+
     // Select the thread which has its tree displayed in capture panel in the threads list
     for (int i = 0; i < myThreads.getModel().getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = myThreads.getModel().getElementAt(i);
