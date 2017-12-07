@@ -40,7 +40,30 @@ public class HideablePanel extends JPanel {
 
   public HideablePanel(@NotNull Builder builder) {
     super(new BorderLayout());
-    myHideableDecorator = new HideableDecorator(this, builder.myTitle, false, builder.myNorthEastComponent);
+    myHideableDecorator = new HideableDecorator(this, builder.myTitle, false, builder.myNorthEastComponent) {
+      @Override
+      protected void on() {
+        super.on();
+        handleToggled();
+      }
+
+      @Override
+      protected void off() {
+        super.off();
+        handleToggled();
+      }
+
+      private void handleToggled() {
+        // For some reason, Swing doesn't consistently redo the layout when this panel's content
+        // is hidden. The UI leaves a big blank space there until something else triggers a layout
+        // (like a resize). Therefore, we force a layout, which really should be happening anyway.
+        Container parent = HideablePanel.this.getParent();
+        if (parent != null) {
+          parent.doLayout();
+        }
+      }
+    };
+
     builder.myContent.setBorder(HIDEABLE_CONTENT_BORDER);
     myHideableDecorator.setContentComponent(builder.myContent);
     setBorder(HIDEABLE_PANEL_BORDER);
