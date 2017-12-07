@@ -59,6 +59,12 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
     myNotificationProvider = new SmaliFileNotificationProvider(project, DexSourceFiles.getInstance(project));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myNotificationProvider = null;
+    super.tearDown();
+  }
+
   public void testCreateNotificationPanelWithSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
 

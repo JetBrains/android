@@ -59,6 +59,12 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
     myStrategy = new UniquePathModuleValidatorStrategy(project);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myStrategy = null;
+    super.tearDown();
+  }
+
   @NotNull
   private static File doCreateTempFolder(@NotNull String name) throws IOException {
     return createTempDirectory(name, null, true /* delete on exit */);

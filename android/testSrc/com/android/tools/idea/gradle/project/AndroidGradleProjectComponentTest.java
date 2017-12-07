@@ -20,6 +20,7 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -69,6 +70,7 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
 
     Project project = getProject();
     ExternalSystemNotificationManagerStub notificationManager = new ExternalSystemNotificationManagerStub(project);
+    Disposer.register(project, notificationManager);
     IdeComponents.replaceService(project, ExternalSystemNotificationManager.class, notificationManager);
 
     myProjectComponent.projectOpened();

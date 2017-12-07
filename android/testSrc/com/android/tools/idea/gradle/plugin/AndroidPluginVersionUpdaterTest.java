@@ -45,6 +45,12 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, mySyncInvoker, myTextSearch);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myVersionUpdater = null;
+    super.tearDown();
+  }
+
   public void testHandleUpdateResultWithPreviousSyncFailed() {
     // http://b/38487637
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);

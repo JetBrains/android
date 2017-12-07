@@ -48,6 +48,12 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mock(GradleSyncState.class));
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myVersionUpdater = null;
+    super.tearDown();
+  }
+
   public void testUpdatePluginVersion() throws Throwable {
     loadProject(SYNC_MULTIPROJECT);
     setAndroidPluginVersion("1.0.0");
