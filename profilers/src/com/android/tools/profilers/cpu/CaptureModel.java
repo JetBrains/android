@@ -38,7 +38,7 @@ class CaptureModel {
   /**
    * Negative number used when no thread is selected.
    */
-  static final int NO_THREAD = -1;
+  public static final int NO_THREAD = -1;
 
   @NotNull
   private final CpuProfilerStage myStage;
