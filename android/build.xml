@@ -26,13 +26,14 @@
         <isset property="config"/>
     </condition>
 
-    <target name="preBuild" depends="profiler, android-plugin">
+    <target name="preBuild" depends="bazel-dependencies, android-plugin">
     </target>
 
-    <target name="profiler" unless="${skip.bazel.dependencies}">
+    <target name="bazel-dependencies" unless="${skip.bazel.dependencies}">
         <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />
             <arg value="//tools/adt/idea/android:profiler-artifacts" />
+            <arg value="//tools/adt/idea/android:aia-artifacts" />
             <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
         </exec>
     </target>

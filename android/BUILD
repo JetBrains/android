@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/android/lib:bundled-libs",
         "//tools/adt/idea/android/lib:sample-data",
         "//tools/adt/idea/android:profiler-artifacts",
+        "//tools/adt/idea/android:aia-artifacts",
     ] + glob([
         "build.xml",
     ]),
@@ -273,6 +274,14 @@ filegroup(
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
     }),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "aia-artifacts",
+    srcs = [
+        "//tools/base/sdk-common/aia-manifest-jar-generator:jarjar.jar",
+    ],
     visibility = ["//visibility:public"],
 )
 
