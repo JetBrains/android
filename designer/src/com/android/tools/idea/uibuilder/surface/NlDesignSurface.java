@@ -491,6 +491,14 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
+  public void forceUserRequestedRefresh() {
+    LayoutlibSceneManager sceneManager = getSceneManager();
+    if (sceneManager != null) {
+      sceneManager.requestUserInitatedRender();
+    }
+  }
+
+  @Override
   protected boolean useSmallProgressIcon() {
     if (getCurrentSceneView() == null) {
       return false;
