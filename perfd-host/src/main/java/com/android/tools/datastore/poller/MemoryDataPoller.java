@@ -31,23 +31,18 @@ import java.util.stream.Collectors;
 
 public class MemoryDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
-
   private AllocationsInfo myPendingAllocationSample = null;
   private HeapDumpInfo myPendingHeapDumpSample = null;
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
   private final MemoryStatsTable myMemoryStatsTable;
-
-  private int myProcessId = -1;
   private final Common.Session mySession;
   private final Consumer<Runnable> myFetchExecutor;
 
-  public MemoryDataPoller(int processId,
-                          Common.Session session,
+  public MemoryDataPoller(Common.Session session,
                           MemoryStatsTable statsTable,
                           MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
                           Consumer<Runnable> fetchExecutor) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
     mySession = session;
     myMemoryStatsTable = statsTable;
     myPollingService = pollingService;
@@ -58,17 +53,16 @@ public class MemoryDataPoller extends PollRunner {
   public void stop() {
     if (myPendingHeapDumpSample != null) {
       myMemoryStatsTable.insertOrReplaceHeapInfo(
-        myProcessId, mySession, myPendingHeapDumpSample.toBuilder().setEndTime(myPendingHeapDumpSample.getStartTime() + 1).build());
+        mySession, myPendingHeapDumpSample.toBuilder().setEndTime(myPendingHeapDumpSample.getStartTime() + 1).build());
       myMemoryStatsTable.insertHeapDumpData(
-        myProcessId, mySession, myPendingHeapDumpSample.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY);
+        mySession, myPendingHeapDumpSample.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY);
       myPendingHeapDumpSample = null;
     }
 
     // O+ live allocation tracking sample is always ongoing for the during of the app, so we don't mark its end time here.
     if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
-      myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, myPendingAllocationSample.toBuilder()
-        .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(
-          AllocationsInfo.Status.FAILURE_UNKNOWN).build());
+      myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, myPendingAllocationSample.toBuilder()
+        .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN).build());
     }
 
     super.stop();
@@ -76,21 +70,17 @@ public class MemoryDataPoller extends PollRunner {
 
   @Override
   public void poll() {
-    if (myProcessId == -1) {
-      return;
-    }
-
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTime(myDataRequestStartTimestampNs)
       .setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getData(dataRequestBuilder.build());
 
     // TODO: A UI request may come in while mid way through the poll, this can cause us to have partial data
     // returned to the UI. This can be solved using transactions in the DB when this class is moved fully over.
-    myMemoryStatsTable.insertMemory(myProcessId, mySession, response.getMemSamplesList());
-    myMemoryStatsTable.insertAllocStats(myProcessId, mySession, response.getAllocStatsSamplesList());
-    myMemoryStatsTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
+    myMemoryStatsTable.insertMemory(mySession, response.getMemSamplesList());
+    myMemoryStatsTable.insertAllocStats(mySession, response.getAllocStatsSamplesList());
+    myMemoryStatsTable.insertGcStats(mySession, response.getGcStatsSamplesList());
 
     List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
@@ -103,13 +93,13 @@ public class MemoryDataPoller extends PollRunner {
           break;
         }
 
-        myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
+        myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, info);
         allocDumpsToFetch.add(info);
         myPendingAllocationSample = null;
       }
       else {
         AllocationsInfo info = response.getAllocationsInfo(i);
-        myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
+        myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, info);
         if (info.getEndTime() == Long.MAX_VALUE) {
           // Note - there should be at most one unfinished allocation tracking info at a time. e.g. the final info from the response.
           assert i == response.getAllocationsInfoCount() - 1;
@@ -131,13 +121,13 @@ public class MemoryDataPoller extends PollRunner {
           // Deduping - ignoring identical ongoing heap dump samples.
           break;
         }
-        myMemoryStatsTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
+        myMemoryStatsTable.insertOrReplaceHeapInfo(mySession, info);
         heapDumpsToFetch.add(info);
         myPendingHeapDumpSample = null;
       }
       else {
         HeapDumpInfo info = response.getHeapDumpInfos(i);
-        myMemoryStatsTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
+        myMemoryStatsTable.insertOrReplaceHeapInfo(mySession, info);
         if (info.getEndTime() == Long.MAX_VALUE) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
           assert i == response.getHeapDumpInfosCount() - 1;
@@ -169,7 +159,7 @@ public class MemoryDataPoller extends PollRunner {
       HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
       for (AllocationsInfo sample : dumpsToFetch) {
         LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
-          LegacyAllocationEventsRequest.newBuilder().setProcessId(myProcessId).setStartTime(sample.getStartTime())
+          LegacyAllocationEventsRequest.newBuilder().setSession(mySession).setStartTime(sample.getStartTime())
             .setEndTime(sample.getEndTime())
             .build());
         eventsToSave.put(sample.getStartTime(), allocEventsResponse);
@@ -181,21 +171,21 @@ public class MemoryDataPoller extends PollRunner {
 
         // Also save out raw dump
         DumpDataResponse allocDumpResponse = myPollingService.getLegacyAllocationDump(
-          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+          DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(sample.getStartTime()).build());
         myMemoryStatsTable
-          .updateLegacyAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
+          .updateLegacyAllocationDump(mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
       }
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
       // in the tables.
       LegacyAllocationContextsRequest contextRequest =
-        LegacyAllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).addAllClassIds(classesToFetch)
+        LegacyAllocationContextsRequest.newBuilder().setSession(mySession).setSession(mySession).addAllClassIds(classesToFetch)
           .addAllStackIds(stacksToFetch).build();
       AllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
-      myMemoryStatsTable.insertLegacyAllocationContext(myProcessId, mySession, contextsResponse.getAllocatedClassesList(),
+      myMemoryStatsTable.insertLegacyAllocationContext(mySession, contextsResponse.getAllocatedClassesList(),
                                                        contextsResponse.getAllocationStacksList());
       eventsToSave
-        .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(myProcessId, mySession, startTime, response));
+        .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(mySession, startTime, response));
     };
     myFetchExecutor.accept(query);
   }
@@ -208,9 +198,9 @@ public class MemoryDataPoller extends PollRunner {
     Runnable query = () -> {
       for (HeapDumpInfo sample : dumpsToFetch) {
         DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
-          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+          DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(sample.getStartTime()).build());
         myMemoryStatsTable
-          .insertHeapDumpData(myProcessId, mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
+          .insertHeapDumpData(mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
       }
     };
     myFetchExecutor.accept(query);

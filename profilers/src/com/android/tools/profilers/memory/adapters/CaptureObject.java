@@ -106,10 +106,6 @@ public interface CaptureObject extends MemoryObject {
     return null;
   }
 
-  default int getProcessId() {
-    return -1;
-  }
-
   @Nullable
   default MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
     return null;

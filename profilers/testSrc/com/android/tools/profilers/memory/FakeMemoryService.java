@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -68,13 +69,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private int myTrackAllocationCount;
   private int mySuspectAllocationCount;
   private int myResumeAllocationCount;
-  private int myAppId;
+  private Common.Session mySession;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
                                  StreamObserver<MemoryStartResponse> responseObserver) {
 
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(MemoryStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -82,13 +83,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void stopMonitoringApp(MemoryStopRequest request,
                                 StreamObserver<MemoryStopResponse> responseObserver) {
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(MemoryStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
   public int getProcessId() {
-    return myAppId;
+    return mySession.getPid();
   }
 
   @Override

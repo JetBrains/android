@@ -59,7 +59,7 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo =
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the HeapDumpInfo object.
@@ -130,7 +130,7 @@ public class HeapDumpCaptureObjectTest {
   public void testLoadingFailure() throws Exception {
     MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo, null,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
                                 myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
@@ -146,13 +146,12 @@ public class HeapDumpCaptureObjectTest {
 
   @Test
   public void testSaveToFile() throws Exception {
-    int appId = -1;
     long startTimeNs = 3;
     long endTimeNs = 8;
     MemoryProfiler.HeapDumpInfo dumpInfo =
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId,
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     final CountDownLatch loadLatch = new CountDownLatch(1);

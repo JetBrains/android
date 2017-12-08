@@ -25,19 +25,14 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 
 public class MemoryJvmtiDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
-
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
   private final MemoryLiveAllocationTable myLiveAllocationTable;
-
-  private int myProcessId = -1;
   private final Common.Session mySession;
 
-  public MemoryJvmtiDataPoller(int processId,
-                               Common.Session session,
+  public MemoryJvmtiDataPoller(Common.Session session,
                                MemoryLiveAllocationTable liveAllocationTable,
                                MemoryServiceGrpc.MemoryServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
     mySession = session;
     myLiveAllocationTable = liveAllocationTable;
     myPollingService = pollingService;
@@ -45,24 +40,20 @@ public class MemoryJvmtiDataPoller extends PollRunner {
 
   @Override
   public void poll() {
-    if (myProcessId == -1) {
-      return;
-    }
-
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTime(myDataRequestStartTimestampNs)
       .setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getJvmtiData(dataRequestBuilder.build());
 
     for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
-      myLiveAllocationTable.insertMethodInfo(myProcessId, mySession, sample.getMethodsList());
-      myLiveAllocationTable.insertStackInfo(myProcessId, mySession, sample.getStacksList());
-      myLiveAllocationTable.insertThreadInfo(myProcessId, mySession, sample.getThreadInfosList());
-      myLiveAllocationTable.insertAllocationData(myProcessId, mySession, sample);
+      myLiveAllocationTable.insertMethodInfo(mySession, sample.getMethodsList());
+      myLiveAllocationTable.insertStackInfo(mySession, sample.getStacksList());
+      myLiveAllocationTable.insertThreadInfo(mySession, sample.getThreadInfosList());
+      myLiveAllocationTable.insertAllocationData(mySession, sample);
     }
     for (MemoryProfiler.BatchJNIGlobalRefEvent batchJniEvent : response.getJniReferenceEventBatchesList()) {
-      myLiveAllocationTable.insertJniReferenceData(myProcessId, mySession, batchJniEvent);
+      myLiveAllocationTable.insertJniReferenceData(mySession, batchJniEvent);
     }
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();

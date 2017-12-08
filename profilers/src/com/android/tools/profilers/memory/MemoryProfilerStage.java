@@ -71,8 +71,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final MemoryStageLegends myTooltipLegends;
   private final EaseOutModel myInstructionsEaseOutModel;
 
-  private final int myProcessId;
-  @Nullable
+  @NotNull
   private final Common.Session mySessionData;
   private DurationDataModel<GcDurationData> myGcStats;
 
@@ -103,14 +102,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @VisibleForTesting
   public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
-    myProcessId = profilers.getProcessId();
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
                                     profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
@@ -134,7 +132,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
-    myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
+    myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, mySessionData)));
     myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
     myEventMonitor = new EventMonitor(profilers);
@@ -308,15 +306,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void requestHeapDump() {
-    TriggerHeapDumpResponse response =
-      myClient
-        .triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
+    TriggerHeapDumpResponse response = myClient.triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myPendingCaptureStartTime = response.getInfo().getStartTime();
         break;
       case IN_PROGRESS:
-        getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
+        getLogger().debug(String.format("A heap dump for %d is already in progress.", mySessionData.getPid()));
         break;
       case UNSPECIFIED:
       case NOT_PROFILING:
@@ -331,8 +327,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public void forceGarbageCollection() {
-    myClient.forceGarbageCollection(
-      ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build());
+    myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
   }
 
   public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
@@ -351,8 +346,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     try {
       TrackAllocationsResponse response = myClient.trackAllocations(
-        TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
-          .setEnabled(enabled).build());
+        TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setEnabled(enabled).build());
       AllocationsInfo info = response.getInfo();
       switch (response.getStatus()) {
         case SUCCESS:

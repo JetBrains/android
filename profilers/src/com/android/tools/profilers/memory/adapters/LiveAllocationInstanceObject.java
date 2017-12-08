@@ -129,7 +129,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
       AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();
       for (AllocationStack.SmallFrame frame : smallFrames.getFramesList()) {
         StackFrameInfoResponse frameInfo =
-          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId())
+          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder()
                                                           .setSession(myCaptureObject.getSession())
                                                           .setMethodId(frame.getMethodId()).build());
         CodeLocation.Builder builder = new CodeLocation.Builder(frameInfo.getClassName())

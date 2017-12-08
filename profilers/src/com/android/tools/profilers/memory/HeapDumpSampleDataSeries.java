@@ -34,10 +34,9 @@ import java.util.concurrent.TimeUnit;
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
-                                  int processId,
                                   @NotNull RelativeTimeConverter converter,
                                   @NotNull FeatureTracker featureTracker) {
-    super(client, session, processId, converter, featureTracker);
+    super(client, session, converter, featureTracker);
   }
 
   @Override
@@ -45,8 +44,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
-      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setProcessId(myProcessId).setStartTime(rangeMin)
-        .setEndTime(rangeMax).build());
+      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (MemoryProfiler.HeapDumpInfo info : response.getInfosList()) {
@@ -56,7 +54,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter, myFeatureTracker)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myConverter, myFeatureTracker)))));
     }
 
     return seriesData;

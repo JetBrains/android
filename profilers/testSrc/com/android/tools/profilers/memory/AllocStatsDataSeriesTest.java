@@ -48,7 +48,7 @@ public class AllocStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocStatsDataSeries series =
-      new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA,
+      new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                sample -> (long)sample.getJavaAllocationCount());
     List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
@@ -57,7 +57,7 @@ public class AllocStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA,
+    series = new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                       sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());

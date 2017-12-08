@@ -42,8 +42,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
   @NotNull private final ClassDb myClassDb;
   @NotNull private final String myLabel;
-  private final int myProcessId;
-  private final Common.Session mySession;
+  @NotNull private final Common.Session mySession;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private final FeatureTracker myFeatureTracker;
@@ -53,14 +52,12 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   private final HeapSet myFakeHeapSet;
 
   public LegacyAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                                       @Nullable Common.Session session,
-                                       int processId,
+                                       @NotNull Common.Session session,
                                        @NotNull MemoryProfiler.AllocationsInfo info,
                                        @NotNull RelativeTimeConverter converter,
                                        @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myClassDb = new ClassDb();
-    myProcessId = processId;
     mySession = session;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
@@ -96,7 +93,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
     MemoryProfiler.DumpDataResponse response = myClient.getLegacyAllocationDump(
-      MemoryProfiler.DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myStartTimeNs).build());
+      MemoryProfiler.DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myStartTimeNs).build());
     if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
       myFeatureTracker.trackExportAllocation();
@@ -129,7 +126,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     MemoryProfiler.LegacyAllocationEventsResponse response;
     while (true) {
       response = myClient.getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()
-                                                      .setProcessId(myProcessId)
                                                       .setSession(mySession)
                                                       .setStartTime(myStartTimeNs)
                                                       .setEndTime(myEndTimeNs).build());
@@ -152,7 +148,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     }
 
     MemoryProfiler.LegacyAllocationContextsRequest contextRequest = MemoryProfiler.LegacyAllocationContextsRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getStackId).collect(Collectors.toSet()))
       .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getClassId).collect(Collectors.toSet()))

@@ -47,7 +47,7 @@ public class GcStatsDataSeriesTest {
       .build();
     myService.setMemoryData(memoryData);
 
-    GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA);
+    GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA);
     List<SeriesData<GcDurationData>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

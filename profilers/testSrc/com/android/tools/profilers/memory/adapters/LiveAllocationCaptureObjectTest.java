@@ -51,7 +51,6 @@ public class LiveAllocationCaptureObjectTest {
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", myService);
 
-  private final int APP_ID = 1;
   private final int CAPTURE_START_TIME = 0;
   private final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
   private final Executor LOAD_JOINER = MoreExecutors.directExecutor();
@@ -75,7 +74,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -117,7 +115,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -153,7 +150,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           null,
                                                                           myStage);
@@ -232,7 +228,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -320,7 +315,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -418,7 +412,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -484,7 +477,6 @@ public class LiveAllocationCaptureObjectTest {
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
@@ -546,7 +538,6 @@ public class LiveAllocationCaptureObjectTest {
   public void testLazyLoadedCallStack() throws Exception {
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          APP_ID,
                                                                           CAPTURE_START_TIME,
                                                                           LOAD_SERVICE,
                                                                           myStage);
