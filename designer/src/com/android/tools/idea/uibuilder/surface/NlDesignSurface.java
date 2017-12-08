@@ -128,6 +128,10 @@ public class NlDesignSurface extends DesignSurface {
         manager.updateSceneView();
         manager.requestLayoutAndRender(false);
       }
+      if (!contentResizeSkipped()) {
+        zoomToFit();
+      }
+      updateScrolledAreaSize();
       repaint();
     }
   }
@@ -257,7 +261,11 @@ public class NlDesignSurface extends DesignSurface {
    */
   @Override
   public float getSceneScalingFactor() {
-    return getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+    Configuration configuration = getConfiguration();
+    if (configuration != null) {
+      return configuration.getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+    }
+    return 1f;
   }
 
   @NotNull
@@ -301,7 +309,7 @@ public class NlDesignSurface extends DesignSurface {
         if (mySceneMode == SceneMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
-          }
+        }
         myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
@@ -328,6 +336,8 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     manager.getScene().needsRebuildList();
+    revalidate();
+    repaint();
   }
 
   @Override
@@ -389,7 +399,7 @@ public class NlDesignSurface extends DesignSurface {
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
     SceneManager manager = getSceneManager();
     SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    if(primarySceneView == null) {
+    if (primarySceneView == null) {
       return JBUI.emptySize();
     }
     Dimension preferredSize = primarySceneView.getPreferredSize();

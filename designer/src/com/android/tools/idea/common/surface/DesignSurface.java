@@ -102,6 +102,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
 
+  /**
+   * Flag to indicate if the surface should resize its content when
+   * it's being resized.
+   */
+  private boolean mySkipResizeContent;
+
+  /**
+   * Flag to indicate that the surface should not resize its content
+   * on the next resize event.
+   */
+  private boolean mySkipResizeContentOnce;
+
   private final ConfigurationListener myConfigurationListener = flags -> {
     if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
       zoom(ZoomType.FIT_INTO);
@@ -109,6 +121,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     return true;
   };
+  private ZoomType myCurrentZoomType;
 
   public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -150,13 +163,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        if (isShowing() && getWidth() > 0 && getHeight() > 0 && getFitScale(false) > myScale) {
-          // Only rescale if the user did not set the zoom
-          // to something else than fit
+        if (isShowing() && getWidth() > 0 && getHeight() > 0
+            && (!contentResizeSkipped() || getFitScale(false) > myScale)) {
+          // We skip the resize only if the flag is set to true
+          // and the content size will be increased.
+          // Like this, when the issue panel is opened, the content size stays the
+          // same but if the user clicked "zoom to fit" while the issue panel was open,
+          // we zoom to fit when the panel is closed so the content retake the optimal
+          // space.
           zoomToFit();
         }
         else {
           layoutContent();
+          updateScrolledAreaSize();
         }
       }
 
@@ -431,6 +450,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
     }
+    myCurrentZoomType = type;
     switch (type) {
       case IN: {
         double currentScale = myScale;
@@ -785,6 +805,39 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   public SceneManager getSceneManager() {
     return mySceneManager;
+  }
+
+  /**
+   * Set to true if the content should automatically
+   * resize when its surface is resized.
+   * <p>
+   * If once is set to true, the skip flag will be reset to false after the first
+   * skip. The once flag is ignored if skipLayout is false.
+   */
+  public void setSkipResizeContent(boolean skipLayout) {
+    mySkipResizeContent = skipLayout;
+  }
+
+  public void skipContentResizeOnce() {
+    mySkipResizeContentOnce = true;
+  }
+
+  /**
+   * Return true if the content resize should be skipped
+   */
+  public boolean isSkipContentResize() {
+    return mySkipResizeContent || mySkipResizeContentOnce
+           || myCurrentZoomType != ZoomType.FIT;
+  }
+
+  /**
+   * Return true if the content resize step should skipped and reset mySkipResizeContentOnce to
+   * false
+   */
+  protected boolean contentResizeSkipped() {
+    boolean skip = isSkipContentResize();
+    mySkipResizeContentOnce = false;
+    return skip;
   }
 
   private static class MyScrollPane extends JBScrollPane {
