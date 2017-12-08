@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.adtui.ui.FixedColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -26,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDia
 import com.android.tools.idea.tests.gui.framework.fixture.translations.FixedColumnTableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.components.ServiceManager;
@@ -69,7 +69,6 @@ import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.T
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@Ignore("b/70295823")
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
   private static final int CHINESE_IN_CHINA_COLUMN = 4;
@@ -138,6 +137,7 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
+  @Ignore
   @Test
   public void dialogDoesntAddKeyInSameFolder() throws IOException {
     importSimpleApplication();
