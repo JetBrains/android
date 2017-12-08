@@ -81,7 +81,7 @@ public final class TranslationsEditorTest {
   private TranslationsEditorFixture myTranslationsEditor;
 
   private void importSimpleApplication() throws IOException {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
     openTranslationsEditor(FileSystems.getDefault().getPath("app", "src", "main", "res", "values", "strings.xml"));
   }
 
