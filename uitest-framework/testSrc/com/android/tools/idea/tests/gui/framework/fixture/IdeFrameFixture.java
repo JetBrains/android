@@ -503,6 +503,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  private ActionButtonFixture findActionButtonByActionId(String actionId, long secondsToWait) {
+    return ActionButtonFixture.findByActionId(actionId, robot(), target(), secondsToWait);
+  }
+
+  @NotNull
   private ActionButtonFixture findActionButtonByText(@NotNull String text) {
     return ActionButtonFixture.findByText(text, robot(), target());
   }
@@ -566,7 +571,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public AvdManagerDialogFixture invokeAvdManager() {
     // The action button is prone to move during rendering so that robot.click() could miss.
     // So, we use component's click here directly.
-    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager", 30);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() {

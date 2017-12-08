@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -138,5 +139,8 @@ public class NewKotlinProjectTest {
     newProjectWizard.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    // Build project after Gradle sync finished.
+    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
   }
 }

@@ -51,6 +51,25 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   }
 
   @NotNull
+  public static ActionButtonFixture findByActionId(@NotNull final String actionId,
+                                                   @NotNull final Robot robot,
+                                                   @NotNull final Container container,
+                                                   long secondsToWait) {
+    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        AnAction action = component.getAction();
+        if (action != null) {
+          String id = ActionManager.getInstance().getId(action);
+          return actionId.equals(id);
+        }
+        return false;
+      }
+    }, secondsToWait);
+    return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
     // move mouse over the target button due to Intellij bug that can cause buttons state to not be updated correctly
     // see: http://b.android.com/231853
