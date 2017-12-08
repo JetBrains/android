@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
@@ -26,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
@@ -56,7 +56,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBEditorTabs;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -64,7 +63,6 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
