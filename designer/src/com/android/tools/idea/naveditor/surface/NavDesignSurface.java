@@ -85,6 +85,10 @@ public class NavDesignSurface extends DesignSurface {
     return mySchema;
   }
 
+  @Override
+  public void forceUserRequestedRefresh() {
+  }
+
   @NotNull
   @Override
   protected NavActionManager createActionManager() {

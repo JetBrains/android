@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
@@ -1096,14 +1095,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
         return myLargeProgressIcon;
       }
-    }
-  }
-
-  @Override
-  public void forceUserRequestedRefresh() {
-    SceneManager sceneManager = getSceneManager();
-    if (sceneManager instanceof LayoutlibSceneManager) {
-      ((LayoutlibSceneManager)sceneManager).requestUserInitatedRender();
     }
   }
 
