@@ -43,5 +43,6 @@
     <orderEntry type="module" module-name="flags" scope="TEST" />
     <orderEntry type="module" module-name="android-common" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="testGuiFramework" scope="TEST" />
   </component>
 </module>
