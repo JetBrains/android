@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +62,7 @@ public class NavNlEditorTest {
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
   }
 
+  @Ignore("b/70305086")
   @Test
   public void testCreateAndDelete() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
