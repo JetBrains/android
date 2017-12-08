@@ -137,7 +137,6 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
-  @Ignore
   @Test
   public void dialogDoesntAddKeyInSameFolder() throws IOException {
     importSimpleApplication();
