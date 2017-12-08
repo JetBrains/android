@@ -21,7 +21,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
@@ -524,7 +526,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (!(component instanceof NlComponent)) {
         return;
       }
-      mySurface.notifyComponentActivate((NlComponent)component);
+
+      ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
+      if (handler != null) {
+        handler.onActivateInComponentTree((NlComponent)component);
+      }
     }
   }
 
