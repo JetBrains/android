@@ -58,7 +58,6 @@
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
     <group id="Android.NavBarToolBar">
       <reference id="Android.SyncProject" />
-      <reference id="Android.RunAndroidSdkManager" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
