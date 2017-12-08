@@ -22,11 +22,11 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.profilers.LegacyAllocationConverter;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
@@ -50,9 +50,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class MemoryServiceProxyTest {
-
-  private static final int MONITOR_PROCESS_1 = 1;
-  private static final int MONITOR_PROCESS_2 = 2;
+  private static final Common.Session SESSION1 = Common.Session.newBuilder().setSessionId(1).setPid(1).build();
+  private static final Common.Session SESSION2 = Common.Session.newBuilder().setSessionId(2).setPid(2).build();
 
   /**
    * Auxiliary static test data used for verifying legacy allocation tracking workflow
@@ -97,23 +96,15 @@ public class MemoryServiceProxyTest {
     myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
 
     // Monitoring two processes simultaneously
-    myProxy.startMonitoringApp(
-      MemoryStartRequest.newBuilder().setSession(ProfilersTestData.SESSION_DATA).setProcessId(MONITOR_PROCESS_1).build(),
-      mock(StreamObserver.class));
-    myProxy.startMonitoringApp(
-      MemoryStartRequest.newBuilder().setSession(ProfilersTestData.SESSION_DATA).setProcessId(MONITOR_PROCESS_2).build(),
-      mock(StreamObserver.class));
+    myProxy.startMonitoringApp(MemoryStartRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
+    myProxy.startMonitoringApp(MemoryStartRequest.newBuilder().setSession(SESSION2).build(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     // Stop the two process monitoring
-    myProxy
-      .stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(ProfilersTestData.SESSION_DATA).setProcessId(MONITOR_PROCESS_1).build(),
-                         mock(StreamObserver.class));
-    myProxy
-      .stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(ProfilersTestData.SESSION_DATA).setProcessId(MONITOR_PROCESS_2).build(),
-                         mock(StreamObserver.class));
+    myProxy.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
+    myProxy.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(SESSION2).build(), mock(StreamObserver.class));
   }
 
   @Test
@@ -133,7 +124,7 @@ public class MemoryServiceProxyTest {
     myService.setMemoryData(memData);
 
     StreamObserver<MemoryData> observer = mock(StreamObserver.class);
-    myProxy.getData(MemoryRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).build(), observer);
+    myProxy.getData(MemoryRequest.newBuilder().setSession(SESSION1).build(), observer);
     verify(observer, times(1)).onNext(memData);
     verify(observer, times(1)).onCompleted();
   }
@@ -144,12 +135,12 @@ public class MemoryServiceProxyTest {
     int startTime2 = 10;
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(startTime1).build(),
+      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION1).setRequestTime(startTime1).build(),
       mock(StreamObserver.class));
 
     // Enable a tracking sesion on Process 2
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).setEnabled(true).setRequestTime(startTime2).build(),
+      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION2).setRequestTime(startTime2).build(),
       mock(StreamObserver.class));
 
     MemoryData expected1 = MemoryData.newBuilder()
@@ -158,7 +149,7 @@ public class MemoryServiceProxyTest {
       .setEndTimestamp(startTime1)
       .build();
     StreamObserver<MemoryData> observer1 = mock(StreamObserver.class);
-    myProxy.getData(MemoryRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(0).setEndTime(11).build(), observer1);
+    myProxy.getData(MemoryRequest.newBuilder().setSession(SESSION1).setStartTime(0).setEndTime(11).build(), observer1);
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
@@ -168,7 +159,7 @@ public class MemoryServiceProxyTest {
       .setEndTimestamp(startTime2)
       .build();
     StreamObserver<MemoryData> observer2 = mock(StreamObserver.class);
-    myProxy.getData(MemoryRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).setStartTime(0).setEndTime(11).build(), observer2);
+    myProxy.getData(MemoryRequest.newBuilder().setSession(SESSION2).setStartTime(0).setEndTime(11).build(), observer2);
     verify(observer2, times(1)).onNext(expected2);
     verify(observer2, times(1)).onCompleted();
   }
@@ -178,7 +169,7 @@ public class MemoryServiceProxyTest {
     int time1 = 5;
     int time2 = 10;
     LegacyAllocationEventsRequest eventRequest =
-      LegacyAllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
+      LegacyAllocationEventsRequest.newBuilder().setSession(SESSION1).setStartTime(time1).setEndTime(time2).build();
 
     // Enable a tracking session on Process 1
     TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
@@ -187,7 +178,7 @@ public class MemoryServiceProxyTest {
           .setLegacy(true).build()).build();
     StreamObserver<TrackAllocationsResponse> observer1 = mock(StreamObserver.class);
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(time1).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(time1).build(),
       observer1);
     assertThat(myAllocationTrackingState).isTrue();
     verify(observer1, times(1)).onNext(expected1);
@@ -205,7 +196,7 @@ public class MemoryServiceProxyTest {
       .build();
     StreamObserver<TrackAllocationsResponse> observer2 = mock(StreamObserver.class);
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setRequestTime(time2).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(false).setRequestTime(time2).build(),
       observer2);
     verify(observer2, times(1)).onNext(expected2);
     verify(observer2, times(1)).onCompleted();
@@ -228,20 +219,19 @@ public class MemoryServiceProxyTest {
       .addAllAllocationStacks(myAllocationConverter.getAllocationStacks()).build();
     StreamObserver<AllocationContextsResponse> observer4 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).addClassIds(expectedEvents.get(0).getClassId())
+      LegacyAllocationContextsRequest.newBuilder().setSession(SESSION1).addClassIds(expectedEvents.get(0).getClassId())
         .addStackIds(expectedEvents.get(0).getStackId()).build(), observer4);
     verify(observer4, times(1)).onNext(expected4);
     verify(observer4, times(1)).onCompleted();
 
     // Verify that ListAllocationContexts for the wrong pid/capture time returns empty result.
     StreamObserver<AllocationContextsResponse> observer5 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).build(), observer5);
+    myProxy.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().build(), observer5);
     verify(observer5, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
     verify(observer5, times(1)).onCompleted();
     StreamObserver<AllocationContextsResponse> observer6 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).build(), observer6);
+      LegacyAllocationContextsRequest.newBuilder().build(), observer6);
     verify(observer6, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
     verify(observer6, times(1)).onCompleted();
   }
@@ -253,12 +243,12 @@ public class MemoryServiceProxyTest {
 
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(time1).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(time1).build(),
       mock(StreamObserver.class));
 
     // Disable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(false).setRequestTime(time2).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(false).setRequestTime(time2).build(),
       mock(StreamObserver.class));
 
     // Mock completion of the parsing process and returning of null data;
@@ -266,7 +256,7 @@ public class MemoryServiceProxyTest {
     myParsingWaitLatch.countDown();
     myParsingDoneLatch.await();
     LegacyAllocationEventsRequest eventRequest =
-      LegacyAllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
+      LegacyAllocationEventsRequest.newBuilder().setSession(SESSION1).setStartTime(time1).setEndTime(time2).build();
     LegacyAllocationEventsResponse expected1 =
       LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
     StreamObserver<LegacyAllocationEventsResponse> observer1 = mock(StreamObserver.class);
@@ -274,10 +264,8 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
-    DumpDataRequest dumpRequest =
-      DumpDataRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setDumpTime(time1).build();
-    DumpDataResponse expected2 =
-      DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
+    DumpDataRequest dumpRequest = DumpDataRequest.newBuilder().setSession(SESSION1).setDumpTime(time1).build();
+    DumpDataResponse expected2 = DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
     StreamObserver<DumpDataResponse> observer2 = mock(StreamObserver.class);
     myProxy.getLegacyAllocationDump(dumpRequest, observer2);
     verify(observer2, times(1)).onNext(expected2);
@@ -289,9 +277,9 @@ public class MemoryServiceProxyTest {
     Client client = mock(Client.class);
     ClientData clientData = mock(ClientData.class);
     when(client.getClientData()).thenReturn(clientData);
-    when(clientData.getPid()).thenReturn(123);
+    when(clientData.getPid()).thenReturn(SESSION1.getPid());
     when(myDevice.getClients()).thenReturn(new Client[]{client});
-    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
     verify(client, times(1)).executeGarbageCollector();
   }
 
@@ -301,9 +289,8 @@ public class MemoryServiceProxyTest {
     Client client = mock(Client.class);
     ClientData clientData = mock(ClientData.class);
     when(client.getClientData()).thenReturn(clientData);
-    when(clientData.getPid()).thenReturn(123);
     when(myDevice.getClients()).thenReturn(new Client[]{client});
-    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
     verify(client, never()).executeGarbageCollector();
   }
 
@@ -312,9 +299,9 @@ public class MemoryServiceProxyTest {
     Client client = mock(Client.class);
     ClientData clientData = mock(ClientData.class);
     when(client.getClientData()).thenReturn(clientData);
-    when(clientData.getPid()).thenReturn(123);
+    when(clientData.getPid()).thenReturn(SESSION1.getPid());
     when(myDevice.getClients()).thenReturn(new Client[0]);
-    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setProcessId(123).build(), mock(StreamObserver.class));
+    myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
     verify(client, never()).executeGarbageCollector();
   }
 
@@ -339,8 +326,8 @@ public class MemoryServiceProxyTest {
               myParsingWaitLatch.await();
             }
             catch (InterruptedException ignored) {
-
             }
+
             if (myReturnNullTrackingData) {
               allocationConsumer.accept(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             }

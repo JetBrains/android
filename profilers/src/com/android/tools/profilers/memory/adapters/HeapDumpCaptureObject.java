@@ -50,9 +50,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryServiceBlockingStub myClient;
 
-  private final int myProcessId;
-
-  @Nullable
+  @NotNull
   private final Common.Session mySession;
 
   @NotNull
@@ -87,14 +85,12 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private boolean myHasNativeAllocations;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                               @Nullable Common.Session session,
-                               int appId,
+                               @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
                                @NotNull RelativeTimeConverter converter,
                                @NotNull FeatureTracker featureTracker) {
     myClient = client;
-    myProcessId = appId;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
@@ -125,8 +121,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    DumpDataResponse response = myClient.getHeapDump(
-      DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
+    DumpDataResponse response =
+      myClient.getHeapDump(DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
     if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
       myFeatureTracker.trackExportHeap();
@@ -188,7 +184,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
     while (true) {
       // TODO move this to another thread and complete before we notify
       response = myClient.getHeapDump(DumpDataRequest.newBuilder()
-                                        .setProcessId(myProcessId)
                                         .setSession(mySession)
                                         .setDumpTime(myHeapDumpInfo.getStartTime()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {

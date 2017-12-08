@@ -49,13 +49,11 @@ public class MemoryProfiler extends StudioProfiler {
   @Override
   public void startProfiling(Common.Session session, Common.Process process) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
-                                                                   .setProcessId(process.getPid())
                                                                    .setSession(session).build());
 
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
         myProfilers.getClient().getMemoryClient().resumeTrackAllocations(ResumeTrackAllocationsRequest.newBuilder()
-                                                                           .setProcessId(process.getPid())
                                                                            .setSession(session).build());
       }
     }
@@ -69,7 +67,6 @@ public class MemoryProfiler extends StudioProfiler {
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
         myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
-                                                                            .setProcessId(process.getPid())
                                                                             .setSession(session).build());
       }
     }
@@ -78,7 +75,6 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
-                                                                  .setProcessId(process.getPid())
                                                                   .setSession(session).build());
   }
 
@@ -99,7 +95,7 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session, process.getPid(),
+      new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session,
                                     myProfilers.getRelativeTimeConverter(), myProfilers.getIdeServices().getFeatureTracker(), null);
     // Only starts live tracking if an existing one is not available.
     if (!allocationSeries.getDataForXRange(myProfilers.getTimeline().getDataRange()).isEmpty()) {
@@ -113,11 +109,9 @@ public class MemoryProfiler extends StudioProfiler {
       // Attempts to stop an existing tracking session first.
       // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
       myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setProcessId(process.getPid())
-                                                                   .setEnabled(false).build());
+                                                                   .setSession(session).setEnabled(false).build());
       myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setProcessId(process.getPid())
-                                                                   .setEnabled(true).build());
+                                                                   .setSession(session).setEnabled(true).build());
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);

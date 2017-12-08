@@ -68,7 +68,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
-  private final int myProcessId;
   private final long myCaptureStartTime;
   private final List<HeapSet> myHeapSets;
   private final AspectObserver myAspectObserver;
@@ -83,8 +82,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private Future myCurrentTask;
 
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                                     @Nullable Common.Session session,
-                                     int processId,
+                                     @NotNull Common.Session session,
                                      long captureStartTime,
                                      @Nullable ExecutorService loadService,
                                      @Nullable MemoryProfilerStage stage) {
@@ -104,7 +102,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
     myClient = client;
     mySession = session;
-    myProcessId = processId;
     myCaptureStartTime = captureStartTime;
     myAspectObserver = new AspectObserver();
     myStage = stage;
@@ -124,11 +121,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   public Common.Session getSession() {
     return mySession;
-  }
-
-  @Override
-  public int getProcessId() {
-    return myProcessId;
   }
 
   @Override
@@ -217,10 +209,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   public MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
     StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
     if (frameInfo == null) {
-      frameInfo = getClient().getStackFrameInfo(
-        StackFrameInfoRequest.newBuilder().setProcessId(getProcessId()).setSession(getSession())
-          .setMethodId(methodId).build()
-      );
+      frameInfo = getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setSession(getSession()).setMethodId(methodId).build());
       myFrameInfoResponseMap.put(methodId, frameInfo);
     }
 
@@ -249,8 +238,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       return;
     }
     AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
-      AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-        .setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
+      AllocationContextsRequest.newBuilder().setSession(mySession).setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
 
     for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
       ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
@@ -304,8 +292,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
         // We +1 because current range is left close and right open
         if (newEndTimeNs > myEventsEndTimeNs + 1) {
-          LatestAllocationTimeResponse timeResponse = myClient
-            .getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).build());
+          LatestAllocationTimeResponse timeResponse =
+            myClient.getLatestAllocationTime(LatestAllocationTimeRequest.newBuilder().setSession(mySession).build());
           myEventsEndTimeNs = Math.max(myEventsEndTimeNs, timeResponse.getTimestamp());
           if (newEndTimeNs > myEventsEndTimeNs + 1) {
             newEndTimeNs = myEventsEndTimeNs + 1;
@@ -387,9 +375,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   private void querySnapshotData(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
-    BatchAllocationSample sampleResponse =
-      myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
+    BatchAllocationSample sampleResponse = myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setSession(mySession)
+                                                                     .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
 
     for (AllocationEvent event : sampleResponse.getEventsList()) {
       if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
@@ -439,9 +426,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         continue;
       }
 
-      BatchAllocationSample sampleResponse =
-        myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                  .setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+      BatchAllocationSample sampleResponse = myClient.getAllocations(
+        AllocationSnapshotRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build());
 
       for (AllocationEvent event : sampleResponse.getEventsList()) {
         if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {

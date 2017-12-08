@@ -25,17 +25,16 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class FakeGrpcServer extends FakeGrpcChannel {
   /**
-   * Mapping from processes being profiled to the number of profilers that are monitoring it.
+   * Mapping from sessions being profiled to the number of profilers that are monitoring it.
    *
    * It is better to be a non-static variable. But that requires changing the nested service classes
    * defined in this class to be either non-static or to take a FakeGrpcServer parameter in constructors.
    * Neither approach is very clean; not worth it.
    */
-  private static Map<ProfiledProcess, Integer> ourProfiledProcesses = new HashMap<>(7);
+  private static Map<Long, Integer> ourProfiledProcesses = new HashMap<>(7);
 
   public FakeGrpcServer(String name, BindableService service) {
     super(name, service, new EventService(),
@@ -54,49 +53,22 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     return ourProfiledProcesses.keySet().size();
   }
 
-  private synchronized static void addProfileredProcess(Common.Session session, int pid) {
-    ProfiledProcess process = new ProfiledProcess(session.getSessionId(), pid);
-    int profilerCount = ourProfiledProcesses.getOrDefault(process, 0);
-    ourProfiledProcesses.put(process, profilerCount + 1);
+  private synchronized static void addProfileredProcess(Common.Session session) {
+    long sessionId = session.getSessionId();
+    int profilerCount = ourProfiledProcesses.getOrDefault(sessionId, 0);
+    ourProfiledProcesses.put(sessionId, profilerCount + 1);
   }
 
-  private synchronized static void removeProfileredProcess(Common.Session session, int pid) {
-    ProfiledProcess process = new ProfiledProcess(session.getSessionId(), pid);
-    Integer profilerCount = ourProfiledProcesses.get(process);
+  private synchronized static void removeProfileredProcess(Common.Session session) {
+    long sessionId = session.getSessionId();
+    Integer profilerCount = ourProfiledProcesses.get(sessionId);
     if (profilerCount != null) {
       if (profilerCount.intValue() > 1) {
-        ourProfiledProcesses.replace(process, profilerCount.intValue() - 1);
+        ourProfiledProcesses.replace(sessionId, profilerCount.intValue() - 1);
       }
       else {
-        ourProfiledProcesses.remove(process);
+        ourProfiledProcesses.remove(sessionId);
       }
-    }
-  }
-
-  private static class ProfiledProcess {
-    private final long mySessionId;
-    private final int myPid;
-
-    ProfiledProcess(long sessionId, int pid) {
-      mySessionId = sessionId;
-      myPid = pid;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (o == this) {
-        return true;
-      }
-      if (!(o instanceof ProfiledProcess)) {
-        return false;
-      }
-      ProfiledProcess other = (ProfiledProcess)o;
-      return this.mySessionId == other.mySessionId && this.myPid == other.myPid;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(mySessionId, myPid);
     }
   }
 
@@ -105,14 +77,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession(), request.getProcessId());
+      addProfileredProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession(), request.getProcessId());
+      removeProfileredProcess(request.getSession());
     }
 
     @Override
@@ -133,14 +105,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession(), request.getProcessId());
+      addProfileredProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession(), request.getProcessId());
+      removeProfileredProcess(request.getSession());
     }
 
     @Override
@@ -155,14 +127,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession(), request.getProcessId());
+      addProfileredProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession(), request.getProcessId());
+      removeProfileredProcess(request.getSession());
     }
 
     @Override
@@ -177,14 +149,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession(), request.getProcessId());
+      addProfileredProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession(), request.getProcessId());
+      removeProfileredProcess(request.getSession());
     }
 
     @Override

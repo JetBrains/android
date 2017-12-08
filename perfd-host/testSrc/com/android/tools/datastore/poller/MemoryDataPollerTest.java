@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -30,7 +31,6 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
-  private static final int TEST_APP_ID = 1234;
+  private static final Common.Session TEST_SESSION = Common.Session.newBuilder().setSessionId(1234).setPid(4321).build();
   private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
@@ -115,20 +115,20 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private void startMonitoringApp() {
     myMemoryService
-      .startMonitoringApp(MemoryStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .startMonitoringApp(MemoryStartRequest.newBuilder().setSession(TEST_SESSION).build(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     myDataStore.shutdown();
     myMemoryService
-      .stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), mock(StreamObserver.class));
   }
 
   @Test
   public void testAppStoppedRequestHandled() {
     myMemoryService
-      .stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), mock(StreamObserver.class));
     when(myDataStore.getMemoryClient(any())).thenReturn(null);
     StreamObserver<TriggerHeapDumpResponse> heapDump = mock(StreamObserver.class);
     myMemoryService.triggerHeapDump(TriggerHeapDumpRequest.getDefaultInstance(), heapDump);
@@ -154,7 +154,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     MemoryRequest request = MemoryRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -186,7 +186,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     MemoryRequest request = MemoryRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(TEST_SESSION)
       .setStartTime(BASE_TIME_NS)
       .setEndTime(delayTimeFromBase(-2))
       .build();
@@ -198,9 +198,9 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   @Ignore
-  public void testGetDataInvalidAppId() throws Exception {
+  public void testGetDataInvalidSession() throws Exception {
     MemoryRequest request = MemoryRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(Common.Session.getDefaultInstance())
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -213,7 +213,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testTrackAllocations() throws Exception {
     TrackAllocationsRequest request = TrackAllocationsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setEnabled(true)
       .build();
     TrackAllocationsResponse expected = TrackAllocationsResponse.newBuilder()
@@ -228,7 +228,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   public void testTrackAllocationsImmediatelyCreatesInfoData() throws Exception {
     // Make sure there are no AllocationsInfos in the table:
     MemoryRequest memoryRequest = MemoryRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -240,7 +240,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     // Enable allocation tracking.
     myFakeMemoryService.setTrackAllocationsInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     TrackAllocationsRequest request = TrackAllocationsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setEnabled(true)
       .build();
     TrackAllocationsResponse trackAllocationsExpected = TrackAllocationsResponse.newBuilder()
@@ -262,7 +262,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   public void testTriggerHeapDumpImmediatelyCreatesInfoData() throws Exception {
     // Make sure there are no HeapDumpInfos in the table:
     ListDumpInfosRequest listHeapDumpRequest = ListDumpInfosRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -274,7 +274,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
     // Triggers heap dump
     myFakeMemoryService.setTriggerHeapDumpInfo(DEFAULT_DUMP_INFO);
-    TriggerHeapDumpRequest triggerHeapDumpRequest = TriggerHeapDumpRequest.newBuilder().setProcessId(TEST_APP_ID).build();
+    TriggerHeapDumpRequest triggerHeapDumpRequest = TriggerHeapDumpRequest.newBuilder().setSession(TEST_SESSION).build();
     TriggerHeapDumpResponse expectedTrigger = TriggerHeapDumpResponse.newBuilder().setStatus(TriggerHeapDumpResponse.Status.SUCCESS)
       .setInfo(DEFAULT_DUMP_INFO).build();
     StreamObserver<TriggerHeapDumpResponse> triggerHeapDumpObserver = mock(StreamObserver.class);
@@ -296,7 +296,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     ListDumpInfosRequest request = ListDumpInfosRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(BASE_TIME_NS)
       .build();
@@ -308,7 +308,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
 
     request = ListDumpInfosRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(BASE_TIME_NS)
       .setEndTime(delayTimeFromBase(1))
       .build();
@@ -321,7 +321,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
 
     request = ListDumpInfosRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(delayTimeFromBase(1))
       .setEndTime(delayTimeFromBase(2))
       .build();
@@ -339,10 +339,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
     getPollTicker().run();
-    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), stopObserver);
 
     DumpDataRequest request =
-      DumpDataRequest.newBuilder().setProcessId(TEST_APP_ID).setDumpTime(NOT_READY_DUMP_INFO.getStartTime()).build();
+      DumpDataRequest.newBuilder().setSession(TEST_SESSION).setDumpTime(NOT_READY_DUMP_INFO.getStartTime()).build();
     StreamObserver<DumpDataResponse> dumpObserver = mock(StreamObserver.class);
     myMemoryService.getHeapDump(request, dumpObserver);
     DumpDataResponse dumpExpectedResponse =
@@ -358,7 +358,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     ListDumpInfosRequest request = ListDumpInfosRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(delayTimeFromBase(2))
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -395,7 +395,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setDumpTime(DEFAULT_DUMP_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
@@ -413,7 +413,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setDumpTime(FINISHED_LEGACY_ALLOCATION_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
@@ -430,10 +430,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     getPollTicker().run();
     StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
-    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), stopObserver);
 
     MemoryRequest request = MemoryRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -451,7 +451,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(observer, expected);
 
     LegacyAllocationEventsRequest eventsRequest = LegacyAllocationEventsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime())
       .build();
     LegacyAllocationEventsResponse eventsExpected = LegacyAllocationEventsResponse.newBuilder()
@@ -462,7 +462,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(eventsObserver, eventsExpected);
 
     DumpDataRequest dumpRequest = DumpDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setDumpTime(IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime())
       .build();
     DumpDataResponse dumpExpected = DumpDataResponse.newBuilder()
@@ -478,10 +478,10 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO);
     getPollTicker().run();
     StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
-    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), stopObserver);
 
     MemoryRequest request = MemoryRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(0)
       .setEndTime(Long.MAX_VALUE)
       .build();
@@ -500,7 +500,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setDumpTime(FINISHED_LIVE_ALLOCATION_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
@@ -517,7 +517,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     getPollTicker().run();
 
     LegacyAllocationEventsRequest request = LegacyAllocationEventsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setStartTime(FINISHED_LIVE_ALLOCATION_INFO.getStartTime())
       .build();
     LegacyAllocationEventsResponse expected = LegacyAllocationEventsResponse.newBuilder()
@@ -530,7 +530,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private void getHeapDumpError(long dumpTime, DumpDataResponse.Status error) {
     DumpDataRequest request = DumpDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(TEST_SESSION)
       .setDumpTime(dumpTime)
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()

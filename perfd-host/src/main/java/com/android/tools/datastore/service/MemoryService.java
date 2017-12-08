@@ -25,7 +25,6 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -44,16 +43,15 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFO
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
   private static final BackingNamespace LIVE_ALLOCATION_NAMESPACE = new BackingNamespace("LiveAllocations", PERFORMANT);
 
-  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
-  private final Map<Integer, PollRunner> myJvmtiRunners = new HashMap<>();
+  private final Map<Long, PollRunner> myRunners = new HashMap<>();
+  private final Map<Long, PollRunner> myJvmtiRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
 
   // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService,
-                       Consumer<Runnable> fetchExecutor) {
+  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
     myStatsTable = new MemoryStatsTable();
@@ -62,17 +60,16 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
-      int processId = request.getProcessId();
       Common.Session session = request.getSession();
-      myJvmtiRunners.put(processId, new MemoryJvmtiDataPoller(processId, session, myAllocationsTable, client));
-      myRunners.put(processId, new MemoryDataPoller(processId, session, myStatsTable, client, myFetchExecutor));
-      myFetchExecutor.accept(myJvmtiRunners.get(processId));
-      myFetchExecutor.accept(myRunners.get(processId));
+      long sessionId = session.getSessionId();
+      myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
+      myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
+      myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
+      myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
       observer.onNext(MemoryStartResponse.getDefaultInstance());
@@ -82,12 +79,12 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
-    int processId = request.getProcessId();
-    PollRunner runner = myRunners.remove(processId);
+    long sessionId = request.getSession().getSessionId();
+    PollRunner runner = myRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }
-    runner = myJvmtiRunners.remove(processId);
+    runner = myJvmtiRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }
@@ -107,8 +104,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     TriggerHeapDumpResponse response = TriggerHeapDumpResponse.getDefaultInstance();
     if (client != null) {
       response = client.triggerHeapDump(request);
@@ -116,7 +112,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
       if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
         assert response.getInfo() != null;
-        myStatsTable.insertOrReplaceHeapInfo(request.getProcessId(), request.getSession(), response.getInfo());
+        myStatsTable.insertOrReplaceHeapInfo(request.getSession(), response.getInfo());
       }
     }
     responseObserver.onNext(response);
@@ -126,11 +122,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-
-    DumpDataResponse.Status status = myStatsTable.getHeapDumpStatus(request.getProcessId(), request.getSession(), request.getDumpTime());
+    DumpDataResponse.Status status = myStatsTable.getHeapDumpStatus(request.getSession(), request.getDumpTime());
     switch (status) {
       case SUCCESS:
-        byte[] data = myStatsTable.getHeapDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
+        byte[] data = myStatsTable.getHeapDumpData(request.getSession(), request.getDumpTime());
         assert data != null;
         responseBuilder.setData(ByteString.copyFrom(data));
         responseBuilder.setStatus(status);
@@ -153,7 +148,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void listHeapDumpInfos(ListDumpInfosRequest request,
                                 StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
     ListHeapDumpInfosResponse.Builder responseBuilder = ListHeapDumpInfosResponse.newBuilder();
-    List<HeapDumpInfo> dump = myStatsTable.getHeapDumpInfoByRequest(request.getProcessId(), request.getSession(), request);
+    List<HeapDumpInfo> dump = myStatsTable.getHeapDumpInfoByRequest(request.getSession(), request);
     responseBuilder.addAllInfos(dump);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
@@ -162,8 +157,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     TrackAllocationsResponse response = TrackAllocationsResponse.getDefaultInstance();
     if (client != null) {
       response = client.trackAllocations(request);
@@ -171,7 +165,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
       if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
         assert response.getInfo() != null;
-        myStatsTable.insertOrReplaceAllocationsInfo(request.getProcessId(), request.getSession(), response.getInfo());
+        myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), response.getInfo());
       }
     }
     responseObserver.onNext(response);
@@ -181,8 +175,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void suspendTrackAllocations(SuspendTrackAllocationsRequest request,
                                       StreamObserver<SuspendTrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     SuspendTrackAllocationsResponse response = SuspendTrackAllocationsResponse.getDefaultInstance();
     if (client != null) {
       response = client.suspendTrackAllocations(request);
@@ -194,8 +187,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void resumeTrackAllocations(ResumeTrackAllocationsRequest request,
                                      StreamObserver<ResumeTrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     ResumeTrackAllocationsResponse response = ResumeTrackAllocationsResponse.getDefaultInstance();
     if (client != null) {
       response = client.resumeTrackAllocations(request);
@@ -215,7 +207,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getDumpTime());
+    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getDumpTime());
     if (response == null) {
       responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
     }
@@ -224,7 +216,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     }
     else {
       if (response.getLegacy()) {
-        byte[] data = myStatsTable.getLegacyAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
+        byte[] data = myStatsTable.getLegacyAllocationDumpData(request.getSession(), request.getDumpTime());
         if (data == null) {
           responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
         }
@@ -245,7 +237,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getStackFrameInfo(StackFrameInfoRequest request,
                                 StreamObserver<StackFrameInfoResponse> responseObserver) {
-    responseObserver.onNext(myAllocationsTable.getStackFrameInfo(request.getProcessId(), request.getSession(), request.getMethodId()));
+    responseObserver.onNext(myAllocationsTable.getStackFrameInfo(request.getSession(), request.getMethodId()));
     responseObserver.onCompleted();
   }
 
@@ -254,7 +246,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
                                         StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
     LegacyAllocationEventsResponse.Builder builder = LegacyAllocationEventsResponse.newBuilder();
 
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getStartTime());
+    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getStartTime());
     if (response == null) {
       builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND);
     }
@@ -264,7 +256,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     else {
       if (response.getLegacy()) {
         LegacyAllocationEventsResponse events =
-          myStatsTable.getLegacyAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
+          myStatsTable.getLegacyAllocationData(request.getSession(), request.getStartTime());
         if (events == null) {
           builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
         }
@@ -292,11 +284,11 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
     BatchAllocationSample response;
     if (request.getLiveObjectsOnly()) {
-      response = myAllocationsTable.getSnapshot(request.getProcessId(), request.getSession(), request.getEndTime());
+      response = myAllocationsTable.getSnapshot(request.getSession(), request.getEndTime());
     }
     else {
       response =
-        myAllocationsTable.getAllocations(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
+        myAllocationsTable.getAllocations(request.getSession(), request.getStartTime(), request.getEndTime());
     }
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -305,8 +297,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
                                      StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
-    BatchJNIGlobalRefEvent result = myAllocationsTable.getJniReferencesAliveInRange(request.getProcessId(), request.getSession(),
-                                                                                      request.getStartTime(), request.getEndTime());
+    BatchJNIGlobalRefEvent result =
+      myAllocationsTable.getJniReferencesAliveInRange(request.getSession(), request.getStartTime(), request.getEndTime());
     responseObserver.onNext(result);
     responseObserver.onCompleted();
   }
@@ -314,8 +306,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getLatestAllocationTime(LatestAllocationTimeRequest request,
                                       StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    LatestAllocationTimeResponse response =
-      myAllocationsTable.getLatestDataTimestamp(request.getProcessId(), request.getSession());
+    LatestAllocationTimeResponse response = myAllocationsTable.getLatestDataTimestamp(request.getSession());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -323,15 +314,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getAllocationContexts(AllocationContextsRequest request, StreamObserver<AllocationContextsResponse> responseObserver) {
     AllocationContextsResponse response =
-      myAllocationsTable.getAllocationContexts(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
+      myAllocationsTable.getAllocationContexts(request.getSession(), request.getStartTime(), request.getEndTime());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
   @Override
   public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.forceGarbageCollection(request));
     }

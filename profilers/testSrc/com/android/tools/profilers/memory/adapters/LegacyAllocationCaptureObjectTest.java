@@ -56,13 +56,12 @@ public class LegacyAllocationCaptureObjectTest {
    */
   @Test
   public void testAllocationsObjectGeneration() throws Exception {
-    int appId = -1;
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId, testInfo,
+      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
                                         myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
@@ -131,7 +130,7 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
+      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
                                         myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());

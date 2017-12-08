@@ -20,7 +20,10 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -35,6 +38,7 @@ import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
 
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
+  private static final Common.Session TEST_SESSION = Common.Session.newBuilder().setSessionId(1).setPid(FAKE_PID).build();
   private static final long DEVICE_STARTTIME_NS = 0;
 
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
@@ -58,7 +62,7 @@ public class MemoryProfilerTest {
   @Test
   public void testStartMonitoring() {
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    memoryProfiler.startProfiling(TEST_SESSION, FAKE_PROCESS);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
     Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
@@ -68,7 +72,7 @@ public class MemoryProfilerTest {
   @Test
   public void testStopMonitoring() {
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    memoryProfiler.stopProfiling(TEST_SESSION, FAKE_PROCESS);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
     Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);

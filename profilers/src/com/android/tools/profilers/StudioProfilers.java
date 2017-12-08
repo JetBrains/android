@@ -86,7 +86,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Common.Device myDevice;
 
-  @Nullable
+  @NotNull
   private Common.Session mySessionData;
 
   @NotNull
@@ -305,7 +305,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         endSession();
       }
 
-      mySessionData = null;
+      mySessionData = Common.Session.getDefaultInstance();
 
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
@@ -393,7 +393,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         setStage(new NullMonitorStage(this));
       }
       else if (myProcess.getState() == Common.Process.State.ALIVE) {
-        assert mySessionData != null;
         setStage(new StudioMonitorStage(this));
       }
 
@@ -415,13 +414,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private void endSession() {
-    assert mySessionData != null;
     EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
                                                                             .setDeviceId(myDevice.getDeviceId())
                                                                             .setSessionId(mySessionData.getSessionId())
                                                                             .build());
     myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
-    mySessionData = null;
+    mySessionData = Common.Session.getDefaultInstance();
   }
 
   /**
@@ -497,7 +495,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
-  @Nullable
+  @NotNull
   public Common.Session getSession() {
     return mySessionData;
   }
