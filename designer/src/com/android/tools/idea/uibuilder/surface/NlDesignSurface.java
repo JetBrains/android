@@ -415,17 +415,6 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void notifyComponentActivate(@NotNull NlComponent component) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
-
-    if (handler != null) {
-      handler.onActivateInComponentTree(component);
-    }
-
-    super.notifyComponentActivate(component);
-  }
-
-  @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
 
