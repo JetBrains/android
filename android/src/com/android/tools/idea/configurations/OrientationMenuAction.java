@@ -36,12 +36,10 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
@@ -67,11 +65,6 @@ public class OrientationMenuAction extends DropDownAction {
     mySurface = surface;
   }
 
-  @NotNull
-  private static String getPresentationDescription(@NotNull State state) {
-    return String.format("Switch to %1$s", state.getName());
-  }
-
   @Override
   protected boolean updateActions() {
     removeAll();
@@ -79,10 +72,11 @@ public class OrientationMenuAction extends DropDownAction {
     if (configuration != null) {
       Device device = configuration.getDevice();
       if (device != null) {
-        List<State> states = device.getAllStates();
+        State currentDeviceState = configuration.getDeviceState();
 
-        for (State config : states) {
-          String stateName = config.getName();
+        List<State> states = device.getAllStates();
+        for (State state : states) {
+          String stateName = state.getName();
           String title = stateName;
 
           VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
@@ -90,7 +84,7 @@ public class OrientationMenuAction extends DropDownAction {
             title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
           }
 
-          add(new SetDeviceStateAction(myRenderContext, title, config, false));
+          add(new SetDeviceStateAction(myRenderContext, title, state, state == currentDeviceState));
         }
         addSeparator();
       }
@@ -186,19 +180,6 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @NotNull
-  public static Icon getOrientationIcon(@NotNull ScreenOrientation orientation, boolean flip) {
-    switch (orientation) {
-      case LANDSCAPE:
-        return flip ? AndroidIcons.FlipLandscape : AndroidIcons.Landscape;
-      case SQUARE:
-        return AndroidIcons.Square;
-      case PORTRAIT:
-      default:
-        return flip ? AndroidIcons.FlipPortrait : AndroidIcons.Portrait;
-    }
-  }
-
-  @NotNull
   public static ScreenOrientation getOrientation(@NotNull State state) {
     FolderConfiguration config = DeviceConfigHelper.getFolderConfig(state);
     ScreenOrientation orientation = null;
@@ -220,11 +201,12 @@ public class OrientationMenuAction extends DropDownAction {
     private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
                                  @NotNull String title,
                                  @NotNull State state,
-                                 boolean flip) {
+                                 boolean isCurrentState) {
       super(renderContext, title);
       myState = state;
-      ScreenOrientation orientation = getOrientation(state);
-      getTemplatePresentation().setIcon(getOrientationIcon(orientation, flip));
+      if (isCurrentState) {
+        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      }
     }
 
     @Override
