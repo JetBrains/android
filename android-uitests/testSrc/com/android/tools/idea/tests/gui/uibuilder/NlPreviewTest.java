@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -220,7 +219,7 @@ public class NlPreviewTest {
 
   @Test
   public void testCopyAndPaste() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -253,7 +252,7 @@ public class NlPreviewTest {
   @Test
   public void testPreviewingDrawable() throws Exception {
     // Regression test for http://b.android.com/221330
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
@@ -281,7 +280,7 @@ public class NlPreviewTest {
     // Navigate in the preview. Only 1 of the layouts should change its scroll position (regression test for b/62367302).
     // Navigate in the file. The preview selection should update.
 
-    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
+    EditorFixture editor = guiTest.importSimpleLocalApplication().getEditor();
     editor
       .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
       .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY)
@@ -301,7 +300,7 @@ public class NlPreviewTest {
 
   @Test
   public void deletePreviewedFile() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
@@ -320,7 +319,7 @@ public class NlPreviewTest {
   @Test
   public void closeLayoutShouldNotClosePreviewForAnotherLayout() throws Exception {
     // Regression test for b/64288544
-    EditorFixture editor = guiTest.importSimpleApplication()
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR);
@@ -335,12 +334,11 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
-  @Ignore("b/70303886")
   @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
-    EditorFixture editor = guiTest.importSimpleApplication()
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/drawable/ic_launcher.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
