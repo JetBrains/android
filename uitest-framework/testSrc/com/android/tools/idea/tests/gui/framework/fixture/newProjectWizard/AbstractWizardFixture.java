@@ -45,6 +45,14 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   }
 
   @NotNull
+  protected JRootPane findStepWithTitle(@NotNull final String title,
+                                        long secondsToWait) {
+    JRootPane rootPane = target().getRootPane();
+    waitUntilShowing(robot(), rootPane, JLabelMatcher.withText(title), secondsToWait);
+    return rootPane;
+  }
+
+  @NotNull
   public S clickNext() {
     findAndClickButtonWhenEnabled(this, "Next");
     return myself();
