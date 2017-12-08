@@ -75,7 +75,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
         try {
           Field field = ActionButton.class.getDeclaredField("myIcon");
           field.setAccessible(true);
-          JBUI.JBIcon fieldIcon = (JBUI.JBIcon)field.get(component);
+          Icon fieldIcon = (Icon)field.get(component);
           return icon.equals(fieldIcon);
         }
         catch (NoSuchFieldException | IllegalAccessException e) {
