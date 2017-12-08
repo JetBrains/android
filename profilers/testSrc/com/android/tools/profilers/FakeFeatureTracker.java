@@ -173,7 +173,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectNetworkDetailsResponse() {
+  public void trackSelectNetworkDetailsOverview() {
 
   }
 
@@ -183,7 +183,22 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectNetworkDetailsResponse() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsRequest() {
+
+  }
+
+  @Override
   public void trackSelectNetworkDetailsStack() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsError() {
 
   }
 

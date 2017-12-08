@@ -180,9 +180,9 @@ public interface FeatureTracker {
   void trackSelectNetworkRequest();
 
   /**
-   * Track the user opening up the "Response" tab in the network details view.
+   * Track the user opening up the "Overview" tab in the network details view.
    */
-  void trackSelectNetworkDetailsResponse();
+  void trackSelectNetworkDetailsOverview();
 
   /**
    * Track the user opening up the "Headers" tab in the network details view.
@@ -190,9 +190,24 @@ public interface FeatureTracker {
   void trackSelectNetworkDetailsHeaders();
 
   /**
+   * Track the user opening up the "Response" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsResponse();
+
+  /**
+   * Track the user opening up the "Request" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsRequest();
+
+  /**
    * Track the user opening up the "Trace" tab in the network details view.
    */
   void trackSelectNetworkDetailsStack();
+
+  /**
+   * Track the user opening up the "Error" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsError();
 
   /**
    * Track the user opening up the CPU profiling configurations dialog.
