@@ -79,7 +79,7 @@ final class ResponseTabContent extends TabContent {
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
-    // TODO(b/69739486): Add missing tracking for NEW "Response" tab.
+    featureTracker.trackSelectNetworkDetailsResponse();
   }
 
   @Nullable

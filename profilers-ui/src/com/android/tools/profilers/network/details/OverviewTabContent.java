@@ -271,7 +271,7 @@ final class OverviewTabContent extends TabContent {
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
     if (myFeatures.isNetworkRequestPayloadEnabled()) {
-      // TODO(b/69739486): Add missing tracking for "Overview" tab
+      featureTracker.trackSelectNetworkDetailsOverview();
     }
     else {
       featureTracker.trackSelectNetworkDetailsResponse();
