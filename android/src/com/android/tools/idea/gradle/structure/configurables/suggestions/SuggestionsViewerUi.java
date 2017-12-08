@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.issues;
+package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
-import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.panels.VerticalLayout;
 
-public interface IssueRenderer {
-  void renderIssue(StringBuilder buffer, PsIssue issue);
+import javax.swing.*;
 
-  default String renderIssue(PsIssue issue) {
-    StringBuilder sb = new StringBuilder();
-    renderIssue(sb, issue);
-    return sb.toString();
+public abstract class SuggestionsViewerUi {
+  protected JBLabel myEmptyIssuesLabel;
+  protected JPanel myMainPanel;
+
+  public SuggestionsViewerUi() {
+    myMainPanel.setLayout(new VerticalLayout(0));
   }
 }
