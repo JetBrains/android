@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import org.fest.swing.core.ComponentFinder
 import org.fest.swing.core.GenericTypeMatcher
 import java.awt.Container
 import javax.swing.JComponent
@@ -40,6 +39,3 @@ inline fun <reified T : JComponent> matcher(crossinline predicate: (T) -> Boolea
 
 fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
 fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
-inline fun <reified T : JComponent> ComponentFinder.findByType(root: Container) = findByType(root, T::class.java, true)
-inline fun <reified T : JComponent> ComponentFinder.findByLabel(root: Container, label: String)
-    = findByLabel(root, label, T::class.java, true)

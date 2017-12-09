@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openFromMenu
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
-import org.fest.swing.timing.Pause
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +46,7 @@ class BasePerspectiveConfigurableTest {
         .openFromMenu({ ProjectStructureDialogFixture.find(it) }, "File", "Project Structure...") {
           selectDependenciesConfigurable {
             requireVisibleModuleSelector()
-            minimizeModulesList()
+            minizeModulesList()
             requireMinimizedModuleSelector()
           }
           selectIdeSdksLocationConfigurable {}
@@ -59,33 +58,6 @@ class BasePerspectiveConfigurableTest {
             requireMinimizedModuleSelector()
             restoreModulesList()
             requireVisibleModuleSelector()
-          }
-          clickCancel()
-        }
-  }
-
-  @Test
-  fun testModuleSelectorPreservesSelectionOnModeChanges() {
-    guiTest
-        .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
-        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, "File", "Project Structure...") {
-          selectDependenciesConfigurable {
-            requireVisibleModuleSelector {
-              requireModules("<All Modules>", "app", "mylibrary")
-              selectModule("app")
-            }
-            minimizeModulesList()
-            requireMinimizedModuleSelector {
-              requireSelectedModule("app")
-              requireModules("<All Modules>", "app", "mylibrary")
-              selectModule("mylibrary")
-            }
-            restoreModulesList()
-            requireVisibleModuleSelector {
-              requireSelectedModule("mylibrary")
-              requireModules("<All Modules>", "app", "mylibrary")
-              selectModule("<All Modules>")
-            }
           }
           clickCancel()
         }
