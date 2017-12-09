@@ -23,6 +23,8 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -74,6 +76,7 @@ public class StudioProfilersView extends AspectObserver {
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
+    myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
     updateStageView();
@@ -344,7 +347,8 @@ public class StudioProfilersView extends AspectObserver {
     private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
-      NetworkProfilerStage.class, "NETWORK");
+      NetworkProfilerStage.class, "NETWORK",
+      EnergyProfilerStage.class, "ENERGY");
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {

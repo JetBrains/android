@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EnergyMonitor extends ProfilerMonitor {
 
-  private static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mAh");
+  static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mAh");
 
   @NotNull private final EnergyUsage myUsage;
   @NotNull private final AxisComponentModel myAxis;
@@ -48,8 +48,7 @@ public class EnergyMonitor extends ProfilerMonitor {
 
   @Override
   public void expand() {
-    // TODO: uncomment this when L2 is ready
-    // myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
+    myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
   }
 
   @Override

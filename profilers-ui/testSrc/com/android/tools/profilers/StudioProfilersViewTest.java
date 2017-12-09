@@ -22,6 +22,8 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.energy.EnergyMonitor;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitor;
@@ -51,7 +53,9 @@ public class StudioProfilersViewTest {
   @Before
   public void setUp() throws Exception {
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
+    services.enableEnergyProfiler(true);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), services, myTimer);
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
@@ -79,24 +83,31 @@ public class StudioProfilersViewTest {
       .filter(d -> d instanceof LineChart)
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
-    // Test that we have three monitors
-    assertThat(points.size()).isEqualTo(3);
+    // Test that we have the expected number of monitors
+    assertThat(points.size()).isEqualTo(4);
 
-    // Test the first monitor goes to cpu profiling
+    //// Test the first monitor goes to cpu profiler
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
-    // Test the second monitor goes to memory profiling
+    // Test the second monitor goes to memory profiler
     myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
-    // Test the third monitor goes to network profiling
+    // Test the third monitor goes to network profiler
     myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
     assertThat(myProfilers.getStage()).isInstanceOf(NetworkProfilerStage.class);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the fourth monitor goes to energy profiler
+    myUi.mouse.click(points.get(3).x + 1, points.get(3).y + 1);
+    assertThat(myProfilers.getStage()).isInstanceOf(EnergyProfilerStage.class);
+    myProfilers.setMonitoringStage();
   }
 
   @Test
@@ -108,24 +119,30 @@ public class StudioProfilersViewTest {
       .filter(d -> d instanceof LineChart)
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
-    // Test that we have three monitors
-    assertThat(points.size()).isEqualTo(3);
+    // Test that we have the expected number of monitors
+    assertThat(points.size()).isEqualTo(4);
 
-    // cpu monitoring
+    // cpu monitor tooltip
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
     assertThat(stage.getTooltip()).isInstanceOf(CpuMonitor.class);
     assertThat(stage.getTooltip().isFocused()).isTrue();
     stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
-    // memory monitoring
+    // memory monitor tooltip
     myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
     assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitor.class);
     assertThat(stage.getTooltip().isFocused()).isTrue();
     stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
-    // network monitoring
+    // network monitor tooltip
     myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
     assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+
+    // energy monitor tooltip
+    myUi.mouse.moveTo(points.get(3).x + 1, points.get(3).y + 1);
+    assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitor.class);
     assertThat(stage.getTooltip().isFocused()).isTrue();
     stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
 
@@ -255,6 +272,11 @@ public class StudioProfilersViewTest {
   @Test
   public void testCpuStage() throws Exception {
     transitionStage(new CpuProfilerStage(myProfilers));
+  }
+
+  @Test
+  public void testEnergyStage() throws Exception {
+    transitionStage(new EnergyProfilerStage(myProfilers));
   }
 
   @Test
