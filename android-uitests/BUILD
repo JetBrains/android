@@ -88,7 +88,7 @@ java_test(
         "testData/DatabindingMethodsTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
-    tags = COMMON_TAGS + ["manual"],  # Breaks after IJ2017.3 merge
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
