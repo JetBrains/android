@@ -30,7 +30,7 @@ iml_module(
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:credential-store",
+        "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
         "//tools/vendor/intellij/cidr:doxygen",
@@ -59,8 +59,8 @@ iml_module(
         "//tools/idea/plugins/gradle[module, test]",
         "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
         "//tools/idea:java-impl[module, test]",
-        "//tools/idea:dom-openapi[module, test]",
-        "//tools/idea:xdebugger-impl[module, test]",
+        "//tools/idea/xml/dom-openapi[module, test]",
+        "//tools/idea/platform/xdebugger-impl[module, test]",
         "//tools/adt/idea/designer[module, test]",
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
