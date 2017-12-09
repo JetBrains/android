@@ -485,10 +485,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   */
+  protected double getFitScale(boolean fitInto) {
+    int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
+    int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
+    return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
+  }
+
+  /**
+   * @param size dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  protected double getFitScale(boolean fitInto) {
+  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
@@ -496,9 +505,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     availableWidth -= padding.width;
     availableHeight -= padding.height;
 
-    Dimension preferredSize = getPreferredContentSize(availableWidth, availableHeight);
-    double scaleX = preferredSize.width == 0 ? 1 : (double)availableWidth / preferredSize.width;
-    double scaleY = preferredSize.height == 0 ? 1 : (double)availableHeight / preferredSize.height;
+    double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
+    double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
     double scale = Math.min(scaleX, scaleY);
     if (fitInto) {
       double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
@@ -551,6 +559,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.getViewport().setViewPosition(p);
   }
 
+  @SwingCoordinate
   public Point getScrollPosition() {
     return myScrollPane.getViewport().getViewPosition();
   }
@@ -580,7 +589,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    */
-  private void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
+  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  public void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
 
     if (scale < 0) {
       // We wait for component resized to be fired

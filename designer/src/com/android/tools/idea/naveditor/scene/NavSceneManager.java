@@ -323,10 +323,17 @@ public class NavSceneManager extends SceneManager {
   @NavCoordinate
   @NotNull
   public static Rectangle getBoundingBox(@NotNull SceneComponent root) {
-    @NavCoordinate Rectangle boundingBox = new Rectangle(0, 0, -1, -1);
+    return getBoundingBox(root.getChildren());
+  }
 
-    for (SceneComponent child : root.getChildren()) {
-      @NavCoordinate Rectangle childRect = child.fillDrawRect(0, null);
+  @NavCoordinate
+  @NotNull
+  public static Rectangle getBoundingBox(@NotNull List<SceneComponent> components) {
+    @NavCoordinate Rectangle boundingBox = new Rectangle(0, 0, -1, -1);
+    @NavCoordinate Rectangle childRect = new Rectangle();
+
+    for (SceneComponent child : components) {
+      child.fillDrawRect(0, childRect);
       if (boundingBox.width < 0) {
         boundingBox.setBounds(childRect);
       }
