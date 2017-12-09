@@ -42,7 +42,7 @@ public class GradleProjectEventListener extends GradleSyncListener.Adapter imple
   private final Object myLock = new Object();
 
   @Override
-  public void syncStarted(@NotNull Project project, boolean skipped) {
+  public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     reset();
     synchronized (myLock) {
       mySyncStarted = true;
