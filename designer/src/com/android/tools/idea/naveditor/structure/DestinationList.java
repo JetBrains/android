@@ -198,12 +198,13 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       mySelectionModel.addListener(mySelectionModelListener);
       myListSelectionListener = e -> {
-        if (mySelectionUpdating) {
+        if (mySelectionUpdating || e.getValueIsAdjusting()) {
           return;
         }
         try {
           mySelectionUpdating = true;
           mySelectionModel.setSelection(myList.getSelectedValuesList());
+          myDesignSurface.scrollToCenter(myList.getSelectedValuesList());
         }
         finally {
           mySelectionUpdating = false;

@@ -29,9 +29,14 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
@@ -138,5 +143,59 @@ public class NavDesignSurfaceTest extends NavTestCase {
     LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0);
 
     verify(surface).notifyComponentActivate(eq(fragment.getNlComponent()), anyInt(), anyInt());
+  }
+
+  public void testScrollToCenter() {
+    SyncNlModel model = model("nav.xml", rootComponent("root")
+      .unboundedChildren(
+        fragmentComponent("fragment1"),
+        fragmentComponent("fragment2"),
+        fragmentComponent("fragment3"))
+    ).build();
+    NavDesignSurface surface = (NavDesignSurface)model.getSurface();
+    JViewport viewport = mock(JViewport.class);
+    JScrollPane scrollPane = mock(JScrollPane.class);
+    when(surface.getScrollPane()).thenReturn(scrollPane);
+    when(scrollPane.getViewport()).thenReturn(viewport);
+    when(viewport.getExtentSize()).thenReturn(new Dimension(1000, 1000));
+    NavView view = new NavView(surface, surface.getSceneManager());
+    when(surface.getCurrentSceneView()).thenReturn(view);
+    when(surface.getScrollDurationMs()).thenReturn(1);
+    AtomicReference<Future<?>> scheduleRef = new AtomicReference<>();
+    when(surface.getScheduleRef()).thenReturn(scheduleRef);
+    doCallRealMethod().when(surface).scrollToCenter(any());
+    Point scrollPosition = new Point();
+    doAnswer(invocation -> {
+      scrollPosition.setLocation(invocation.getArgument(0), invocation.getArgument(1));
+      return null;
+    }).when(surface).setScrollPosition(anyInt(), anyInt());
+
+    NlComponent f1 = model.find("fragment1");
+    NlComponent f2 = model.find("fragment2");
+    NlComponent f3 = model.find("fragment3");
+
+    surface.getScene().getSceneComponent(f1).setPosition(0, 0);
+    surface.getScene().getSceneComponent(f2).setPosition(100, 100);
+    surface.getScene().getSceneComponent(f3).setPosition(200, 200);
+
+    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -22, 4);
+    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -47, -21);
+    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -22, 4);
+    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 28, 54);
+  }
+
+  private static void verifyScroll(
+    List<NlComponent> components,
+    NavDesignSurface surface,
+    AtomicReference<Future<?>> scheduleRef,
+    Point scrollPosition,
+    int expectedX,
+    int expectedY) {
+    surface.scrollToCenter(components);
+
+    while (scheduleRef.get() != null && !scheduleRef.get().isCancelled()) {
+      UIUtil.dispatchAllInvocationEvents();
+    }
+    assertEquals(new Point(expectedX, expectedY), scrollPosition);
   }
 }
