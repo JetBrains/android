@@ -205,6 +205,14 @@ public class ProfilerColors {
 
   public static final Color MEMORY_ALLOC_BG = new JBColor(new Color(0xECF2FA), new Color(0x323940));
 
+  /**
+   * TODO: Get actual energy colors from UX. (Currently they're copied from memory)
+   */
+  public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
+
+  public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
+
+
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
   public static final Color MONITORS_HEADER_TEXT = new JBColor(0x545454, 0xCACACA);

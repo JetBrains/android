@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -45,8 +46,19 @@ class EnergyMonitorTest {
   @Before
   fun setUp() {
     timer = FakeTimer()
-    monitor = EnergyMonitor(StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer))
+    val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
+    monitor = EnergyMonitor(StudioProfilers(grpcChannel.client, services, timer))
   }
+
+  @Test
+  fun testExpand() {
+    assertThat(monitor.profilers.stage).isInstanceOf(NullMonitorStage::class.java)
+    // One second is enough for new devices (and processes) to be picked up
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    monitor.expand()
+    assertThat(monitor.profilers.stage).isInstanceOf(EnergyProfilerStage::class.java)
+  }
+
 
   @Test
   fun testEnergyUsage() {
@@ -57,7 +69,7 @@ class EnergyMonitorTest {
   }
 
   @Test
-  fun testGetName() {
+  fun testName() {
     assertThat(monitor.name).isEqualTo("ENERGY")
   }
 

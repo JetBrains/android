@@ -22,7 +22,7 @@ import io.grpc.stub.StreamObserver
 import java.util.ArrayList
 import java.util.stream.Collectors
 
-internal class FakeEnergyService(val dataList: List<EnergySample>) : EnergyServiceGrpc.EnergyServiceImplBase() {
+class FakeEnergyService(val dataList: List<EnergySample> = ArrayList()) : EnergyServiceGrpc.EnergyServiceImplBase() {
 
   override fun getData(request: EnergyDataRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
     val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })

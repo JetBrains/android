@@ -54,6 +54,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myAtraceEnabled = false;
 
   /**
+   * Toggle for including an energy profiler in our profiler view.
+   */
+  private boolean myEnergyProfilerEnabled = false;
+
+  /**
    * Toggle for faking jvmti agent support in tests.
    */
   private boolean myJvmtiAgentEnabled = false;
@@ -67,7 +72,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Toggle for faking memory snapshot support in tests.
    */
-  private boolean isMemorySnapshotEnabled = false;
+  private boolean myMemorySnapshotEnabled = false;
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
@@ -159,7 +164,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isEnergyProfilerEnabled() {
-        return false;
+        return myEnergyProfilerEnabled;
       }
 
       @Override
@@ -182,7 +187,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isMemorySnapshotEnabled() {
-        return isMemorySnapshotEnabled;
+        return myMemorySnapshotEnabled;
       }
 
       @Override
@@ -260,6 +265,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myAtraceEnabled = enabled;
   }
 
+  public void enableEnergyProfiler(boolean enabled) {
+    myEnergyProfilerEnabled = enabled;
+  }
+
   public void enableJvmtiAgent(boolean enabled) {
     myJvmtiAgentEnabled = enabled;
   }
@@ -269,7 +278,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableMemorySnapshot(boolean enabled) {
-    isMemorySnapshotEnabled = enabled;
+    myMemorySnapshotEnabled = enabled;
   }
 
   public void enableRequestPayload(boolean enabled) {
