@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class ResourceCacheClearingComponentTest {
+class ClearResourceCacheAfterFirstBuildTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   private lateinit var project: Project
