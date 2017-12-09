@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EventListener;
 
 public interface GradleSyncListener extends EventListener {
-  void syncStarted(@NotNull Project project, boolean skipped);
+  void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested);
 
   void setupStarted(@NotNull Project project);
 
@@ -43,7 +43,7 @@ public interface GradleSyncListener extends EventListener {
 
   abstract class Adapter implements GradleSyncListener {
     @Override
-    public void syncStarted(@NotNull Project project, boolean skipped) {
+    public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     }
 
     @Override

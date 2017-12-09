@@ -62,7 +62,7 @@ public class PsContext implements Disposable {
 
   private void requestGradleSync() {
     Project project = myProject.getResolvedModel();
-    myGradleSyncEventDispatcher.getMulticaster().syncStarted(project, false);
+    myGradleSyncEventDispatcher.getMulticaster().syncStarted(project, false, false);
     FastGradleSync.Callback callback = myGradleSync.requestProjectSync(project);
     callback.doWhenDone(() -> myGradleSyncEventDispatcher.getMulticaster().syncSucceeded(project));
     callback.doWhenRejected(() -> {

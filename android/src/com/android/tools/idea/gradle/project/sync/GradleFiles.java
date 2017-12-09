@@ -333,7 +333,7 @@ public class GradleFiles {
    */
   private class SyncListener extends GradleSyncListener.Adapter {
     @Override
-    public void syncStarted(@NotNull Project project, boolean skipped) {
+    public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
     }
 
