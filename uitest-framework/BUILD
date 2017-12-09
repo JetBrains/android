@@ -33,7 +33,6 @@ iml_module(
         "//tools/idea/java/openapi[module, test]",
         "//tools/idea/platform/testRunner[module, test]",
         "//tools/idea/platform/bootstrap[module, test]",
-        "//tools/idea/platform/testGuiFramework[test]",
         "//tools/idea:xdebugger-impl[module, test]",
         "//tools/idea:dom-openapi[module, test]",
         "//tools/adt/idea/android/lib:spantable[test]",

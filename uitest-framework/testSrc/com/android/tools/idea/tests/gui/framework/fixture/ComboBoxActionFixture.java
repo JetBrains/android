@@ -70,11 +70,6 @@ public class ComboBoxActionFixture {
     myTarget = target;
   }
 
-  @NotNull
-  public JButton getTarget() {
-    return myTarget;
-  }
-
   public void selectItem(@NotNull String itemName) {
     click();
     selectItemByText(itemName);
@@ -85,7 +80,7 @@ public class ComboBoxActionFixture {
     return GuiQuery.getNonNull(myTarget::getText);
   }
 
-  public void click() {
+  private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
     Wait.seconds(1).expecting("comboBoxButton to be enabled")
       .until(() -> GuiQuery.getNonNull(() -> comboBoxButtonFixture.target().isEnabled()));
