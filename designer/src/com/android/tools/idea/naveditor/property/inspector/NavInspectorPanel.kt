@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
@@ -55,6 +56,10 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
       else {
         NavActionArgumentsProperty(c, propertiesManager)
       }
+    }
+    components.filter { it.tagName == TAG_INCLUDE }.forEach {
+      propertiesByName.put(ATTR_ID, SimpleProperty(ATTR_ID, listOf(it), ANDROID_URI, it.id))
+      propertiesByName.put(ATTR_LABEL, SimpleProperty(ATTR_LABEL, listOf(it), ANDROID_URI, it.resolveAttribute(ANDROID_URI, ATTR_LABEL)))
     }
   }
 

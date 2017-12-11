@@ -20,7 +20,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -54,8 +53,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.annotations.VisibleForTesting.Visibility;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 
 /**
  * {@link DesignSurface} for the navigation editor.

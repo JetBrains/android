@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.TAG_DEEPLINK;
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
 /**
@@ -53,8 +54,6 @@ public class NavigationSchema implements Disposable {
   // TODO: move these to a UI-specific place
   public static final String INCLUDE_GRAPH_LABEL = "Include Graph";
   public static final String ACTION_LABEL = "Action";
-
-  public static final String TAG_INCLUDE = "include";
 
   private static final String NAVIGATOR_CLASS_NAME = "android.arch.navigation.Navigator";
   private static final String ACTION_CLASS_NAME = "android.arch.navigation.NavAction";

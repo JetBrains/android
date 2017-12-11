@@ -40,8 +40,8 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 
 /**
  * "Add" popup menu in the navigation editor.
@@ -68,10 +68,6 @@ public class CreateDestinationMenu extends DropDownAction {
   JLabel myValidationLabel;
   private final NavigationSchema mySchema;
   private JPanel myMainPanel;
-  @VisibleForTesting
-  public JButton myNewDestinationButton;
-  @VisibleForTesting
-  public JButton myBackButton;
   @VisibleForTesting
   public JButton myCreateButton;
   @VisibleForTesting

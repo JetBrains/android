@@ -51,6 +51,7 @@ import java.util.*;
 import java.util.List;
 
 import static icons.StudioIcons.NavEditor.Tree.*;
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
@@ -108,7 +109,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
         Icon icon = FRAGMENT;
-        if (component.getTagName().equals(NavigationSchema.TAG_INCLUDE)) {
+        if (component.getTagName().equals(TAG_INCLUDE)) {
           icon = INCLUDE_GRAPH;
         }
         else if (NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.ACTIVITY) {
