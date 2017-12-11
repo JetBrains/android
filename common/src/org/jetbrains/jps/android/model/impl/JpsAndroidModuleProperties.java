@@ -106,12 +106,10 @@ public class JpsAndroidModuleProperties {
   @Tag(INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;
 
-  @Tag("resOverlayFolders")
-  @AbstractCollection(surroundWithTag = false, elementTag = "path", elementValueAttribute = "")
+  @XCollection(propertyElementName = "resOverlayFolders", elementName = "path", valueAttributeName = "")
   public List<String> RES_OVERLAY_FOLDERS = new ArrayList<>();
 
-  @Tag(ADDITIONAL_NATIVE_LIBS_ELEMENT)
-  @XCollection
+  @XCollection(propertyElementName = "additionalNativeLibs")
   public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<>();
 
   @Tag("notImportedProperties")

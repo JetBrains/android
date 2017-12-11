@@ -58,8 +58,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
    * Returns a copy of the list of filters. If you need to modify a filter, use
    * {@link #setFilters(List)} to do so.
    */
-  @Tag("filters")
-  @XCollection
+  @XCollection(style = XCollection.Style.v2)
   public List<FilterData> getFilters() {
     return Lists.newArrayList(Lists.transform(myFilters, new Function<FilterData, FilterData>() {
       @NotNull

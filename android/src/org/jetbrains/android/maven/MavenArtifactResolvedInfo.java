@@ -14,12 +14,12 @@ import java.util.List;
 public class MavenArtifactResolvedInfo {
   private String myApiLevel;
   private List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>
-    myDependencies = new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
+    myDependencies = new ArrayList<>();
 
   public MavenArtifactResolvedInfo(String apiLevel,
                                    Collection<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencyInfos) {
     myApiLevel = apiLevel;
-    myDependencies = new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>(dependencyInfos);
+    myDependencies = new ArrayList<>(dependencyInfos);
   }
 
   public MavenArtifactResolvedInfo() {
@@ -29,8 +29,7 @@ public class MavenArtifactResolvedInfo {
     return myApiLevel;
   }
 
-  @Tag("dependencies")
-  @XCollection
+  @XCollection(propertyElementName = "dependencies")
   public List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> getDependencies() {
     return myDependencies;
   }

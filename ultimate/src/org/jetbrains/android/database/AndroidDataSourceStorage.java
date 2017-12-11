@@ -3,7 +3,6 @@ package org.jetbrains.android.database;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 
 import java.util.ArrayList;
@@ -58,8 +57,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
   }
 
   public static class State {
-    @Tag("data-sources")
-    @XCollection
+    @XCollection(propertyElementName = "data-sources")
     public List<AndroidDataSource.State> myDataSources = new ArrayList<>();
   }
 }
