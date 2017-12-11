@@ -33,14 +33,14 @@ import java.util.Map;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-@State(
-  name = "AvailableLibraryUpdateStorage",
-  storages = @Storage(StoragePathMacros.WORKSPACE_FILE)
-)
 /**
  * Stores available library updates to disk. These stored updates are displayed to the user in the "Project Structure" dialog, until the
  * next scheduled check for updates is executed or until the user manually triggers a check for updates.
  */
+@State(
+  name = "AvailableLibraryUpdateStorage",
+  storages = @Storage(StoragePathMacros.WORKSPACE_FILE)
+)
 public class AvailableLibraryUpdateStorage implements PersistentStateComponent<AvailableLibraryUpdateStorage.AvailableLibraryUpdates> {
   @NotNull public AvailableLibraryUpdates state = new AvailableLibraryUpdates();
 
@@ -62,8 +62,7 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
   }
 
   public static class AvailableLibraryUpdates {
-    @Tag("library-updates")
-    @XCollection
+    @XCollection(propertyElementName = "library-updates")
     @NotNull public List<AvailableLibraryUpdate> updates = Lists.newArrayList();
 
     @Tag("last-search-timestamp")
