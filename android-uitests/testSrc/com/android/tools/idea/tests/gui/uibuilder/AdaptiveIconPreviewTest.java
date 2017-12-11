@@ -80,7 +80,7 @@ public class AdaptiveIconPreviewTest {
       .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription())
       .isEqualTo("M50 0C77.6 0 100 22.4 100 50C100 77.6 77.6 100 50 100C22.4 100 0 77.6 0 50C0 22.4 22.4 0 50 0Z");
-    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("fff2f2f2");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("fff5f5f5");
     toolbar.chooseShape("Rounded Corners")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
@@ -108,11 +108,11 @@ public class AdaptiveIconPreviewTest {
     Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.openThemeSelectionDialog()
-      .selectsTheme("Material Light", "android:Theme.Material.Light")
+      .selectsTheme("Holo Light", "android:Theme.Holo.Light")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("fff5f5f5");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ffe6e6e6");
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Dark", "android:Theme.Material")
       .clickOk();
