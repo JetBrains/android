@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class InstantRunWithKotlin {
+public class InstantRunWithKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
@@ -71,7 +71,7 @@ public class InstantRunWithKotlin {
    */
   @Test
   @RunIn(TestGroup.QA)
-  public void testInstantRunWithKotlin() throws Exception {
+  public void instantRunWithKotlin() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");
 
