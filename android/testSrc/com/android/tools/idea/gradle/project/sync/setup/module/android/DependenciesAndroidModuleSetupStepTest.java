@@ -98,12 +98,12 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
+    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "Gradle: myLibrary", COMPILE, dependency.getArtifactPath(),
                                                        dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), exported);
   }
 
   @NotNull
-  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) throws IOException {
+  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) {
     // Create mock IdeAndroidProject.
     createContentRoot(myModule);
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
