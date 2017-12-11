@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -38,7 +37,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourceDialog> {
   @NotNull
@@ -76,12 +75,12 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public String getError() {
-    return GuiTests.waitUntilShowing(robot(), waitForErrorPanel(), Matchers.byType(JLabel.class)).getText();
+    return waitUntilShowing(robot(), waitForErrorPanel(), Matchers.byType(JLabel.class)).getText();
   }
 
   @NotNull
   public JPanel waitForErrorPanel() {
-    return GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JPanel>(JPanel.class) {
+    return waitUntilShowing(robot(), new GenericTypeMatcher<JPanel>(JPanel.class) {
         @Override
         protected boolean isMatching(@NotNull JPanel component) {
           return ("com.intellij.openapi.ui.DialogWrapper$ErrorText").equals(component.getClass().getName());
@@ -90,27 +89,27 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   }
 
   public void requireNoError() {
-    GuiTests.waitUntilGone(robot(), target(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).andIsShowing());
+    waitUntilGone(robot(), target(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).andIsShowing());
   }
 
   @NotNull
   public ColorPickerFixture getColorPicker() {
-    return new ColorPickerFixture(robot(), robot().finder().findByType(this.target(), ColorPicker.class));
+    return new ColorPickerFixture(robot(), waitUntilFound(robot(), target(), Matchers.byType(ColorPicker.class)));
   }
 
   @NotNull
   public StateListPickerFixture getStateListPicker() {
-    return new StateListPickerFixture(robot(), robot().finder().findByType(this.target(), StateListPicker.class));
+    return new StateListPickerFixture(robot(), waitUntilFound(robot(), target(), Matchers.byType(StateListPicker.class)));
   }
 
   @NotNull
   public EditReferenceFixture getEditReferencePanel() {
-    return new EditReferenceFixture(robot(), (Box)robot().finder().findByName(this.target(), "ReferenceEditor"));
+    return new EditReferenceFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(Box.class, "ReferenceEditor")));
   }
 
   @NotNull
   public JListFixture getList(@NotNull String appNamespaceLabel) {
-    return new JListFixture(robot(), (JList)robot().finder().findByName(target(), appNamespaceLabel));
+    return new JListFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(JList.class, appNamespaceLabel)));
   }
 
   public void clickOK() {
@@ -119,32 +118,32 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JPopupMenuFixture clickNewResource() {
-    new JLabelFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), JLabelMatcher.withText("Add new resource"))).click();
+    new JLabelFixture(robot(), waitUntilShowing(robot(), target(), JLabelMatcher.withText("Add new resource"))).click();
     return new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
   }
 
   public JTableFixture getResourceNameTable() {
-    return new JTableFixture(robot(), (JTable)robot().finder().findByName(target(), "nameTable"));
+    return new JTableFixture(robot(), waitUntilFound(robot(), Matchers.byName(JTable.class, "nameTable")));
   }
 
   public JTableFixture getResourceValueTable() {
-    return new JTableFixture(robot(), (JTable)robot().finder().findByName(target(), "valueTable"));
+    return new JTableFixture(robot(), waitUntilFound(robot(), Matchers.byName(JTable.class, "valueTable")));
   }
 
   public JLabelFixture getDrawablePreviewName() {
-    return new JLabelFixture(robot(), (JLabel)robot().finder().findByName(target(), "drawablePreviewName"));
+    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewName")));
   }
 
   public JLabelFixture getDrawablePreviewLabel() {
-    return new JLabelFixture(robot(), (JLabel)robot().finder().findByName(target(), "drawablePreviewLabel"));
+    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewLabel")));
   }
 
   public JLabelFixture getDrawablePreviewType() {
-    return new JLabelFixture(robot(), (JLabel)robot().finder().findByName(target(), "drawablePreviewType"));
+    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewType")));
   }
 
   public JPanelFixture getDrawablePreviewResolutionPanel() {
-    return new JPanelFixture(robot(), (JPanel)robot().finder().findByName(target(), "resolutionChain"));
+    return new JPanelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JPanel.class, "resolutionChain")));
   }
 
   public String getDrawableResolutionChain() {
