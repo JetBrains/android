@@ -172,6 +172,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       myMockService = null;
       myMockView = null;
       myModel = null;
+      myDevice1 = null;
+      myDevice2 = null;
       super.tearDown();
     }
   }
