@@ -16,8 +16,7 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.SdkConstants.ATTR_GRAPH
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
@@ -102,7 +101,7 @@ class NavComponentMixin(component: NlComponent)
   })
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    if (component.tagName == NavigationSchema.TAG_INCLUDE) {
+    if (component.tagName == TAG_INCLUDE) {
       if (attribute == NavigationSchema.ATTR_GRAPH) {
         // To avoid recursion
         return null
