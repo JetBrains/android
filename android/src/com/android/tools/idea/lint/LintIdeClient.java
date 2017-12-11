@@ -386,6 +386,8 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   public void dispose() {
+    myProject = null;
+    myModuleMap = null;
   }
 
   @Nullable
