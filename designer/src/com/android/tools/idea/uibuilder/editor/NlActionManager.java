@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.actions.SelectParentAction;
@@ -175,6 +176,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private void createLayoutOnlyActions(@Nullable NlComponent leafComponent, @NotNull DefaultActionGroup group) {
     if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
       group.add(new MorphComponentAction(leafComponent, mySurface));
+    }
+    if (ConvertToConstraintLayoutAction.ENABLED) {
+      group.add(new ConvertToConstraintLayoutAction(mySurface));
     }
     group.add(createRefactoringMenu());
 
