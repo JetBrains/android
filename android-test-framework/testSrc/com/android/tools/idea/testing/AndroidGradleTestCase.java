@@ -48,6 +48,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
@@ -87,6 +88,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -174,6 +176,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Sdk currentJdk = ideSdks.getJdk();
     assertNotNull(currentJdk);
     assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+
+    // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
+    // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
+    // so it doesn't require the Gradle JDK setting to be defined
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      new WriteAction() {
+        @Override
+        protected void run(@NotNull Result result) {
+          ProjectRootManager.getInstance(project).setProjectSdk(currentJdk);
+        }
+      }.execute();
+    }
   }
 
   public static void allowAccessToSdk(Disposable disposable) {
@@ -330,6 +344,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateVersionAndDependencies(projectRoot);
 
+    // Refresh project dir to have files under of the project.getBaseDir() visible to VFS
+    synchronizeTempDirVfs(project.getBaseDir());
     return projectRoot;
   }
 
@@ -543,7 +559,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private Module createModule(@NotNull VirtualFile file, @NotNull ModuleType type) {
     return new WriteAction<Module>() {
       @Override
-      protected void run(@NotNull Result<Module> result) throws Throwable {
+      protected void run(@NotNull Result<Module> result) {
         ModuleManager moduleManager = ModuleManager.getInstance(getProject());
         Module module = moduleManager.newModule(file.getPath(), type.getId());
         module.getModuleFile();

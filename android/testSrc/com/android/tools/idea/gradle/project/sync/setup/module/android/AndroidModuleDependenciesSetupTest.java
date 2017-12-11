@@ -91,7 +91,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
-    Library library = libraryTableModel.createLibrary(binaryPath.getName());
+    Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
 
     Application application = ApplicationManager.getApplication();
     application.runWriteAction(libraryTableModel::commit);
@@ -112,7 +112,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
     when(myLibraryFilePaths.findSourceJarPath(binaryPath)).thenReturn(sourcePath);
 
-    String libraryName = binaryPath.getName();
+    String libraryName = "Gradle: " + binaryPath.getName();
     Module module = getModule();
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());

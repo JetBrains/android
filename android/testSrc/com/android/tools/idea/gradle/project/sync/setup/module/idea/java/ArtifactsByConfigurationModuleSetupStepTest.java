@@ -133,7 +133,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return "Gradle: " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
