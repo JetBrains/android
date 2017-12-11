@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBLabel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +97,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
    *   6. Build the project and check build is successful.
    *   </pre>
    */
+  @Ignore("b/70508451")
   @RunIn(TestGroup.QA)
   @Test
   public void upgradeBuildTools() throws Exception {
