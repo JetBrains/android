@@ -18,9 +18,9 @@ package com.android.tools.idea.configurations;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,12 +35,11 @@ public class ConfigurationProjectState {
   @Nullable private String myTarget;
   private boolean myPickTarget = true;
   /** List (in MRU order) of device IDs manually chosen */
-  @NotNull private List<String> myDeviceIds = new ArrayList<String>();
+  @NotNull private List<String> myDeviceIds = new ArrayList<>();
 
   @NotNull
   @Property(surroundWithTag = false)
-  @Tag("devices")
-  @AbstractCollection(surroundWithTag = false, elementTag = "device", elementValueAttribute = "id")
+  @XCollection(elementName = "device", valueAttributeName = "id")
   public List<String> getDeviceIds() {
     return myDeviceIds;
   }

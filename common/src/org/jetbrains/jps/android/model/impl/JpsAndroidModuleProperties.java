@@ -18,7 +18,6 @@ package org.jetbrains.jps.android.model.impl;
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
@@ -43,8 +42,7 @@ public class JpsAndroidModuleProperties {
   public String ASSEMBLE_TEST_TASK_NAME = "";
   public String COMPILE_JAVA_TEST_TASK_NAME = "";
 
-  @Tag("afterSyncTasks")
-  @AbstractCollection(surroundWithTag = false, elementTag = "task", elementValueAttribute = "")
+  @XCollection(propertyElementName = "afterSyncTasks", elementName = "task", valueAttributeName = "")
   public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
 
   // This value is false when the Android project is Gradle-based.
@@ -80,8 +78,7 @@ public class JpsAndroidModuleProperties {
 
   public String PROGUARD_LOGS_FOLDER_RELATIVE_PATH = "/" + DIRECTORY_FOR_LOGS_NAME;
 
-  @Tag("proGuardCfgFiles")
-  @AbstractCollection(surroundWithTag = false, elementTag = "file", elementValueAttribute = "")
+  @XCollection(propertyElementName = "proGuardCfgFiles", elementName = "file", valueAttributeName = "")
   public List<String> myProGuardCfgFiles = Lists.newArrayList(PROGUARD_SYSTEM_CFG_FILE_URL);
 
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
@@ -112,8 +109,7 @@ public class JpsAndroidModuleProperties {
   @XCollection(propertyElementName = "additionalNativeLibs")
   public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<>();
 
-  @Tag("notImportedProperties")
-  @AbstractCollection(surroundWithTag = false, elementTag = "property", elementValueAttribute = "")
+  @XCollection(propertyElementName = "notImportedProperties", elementName = "property", valueAttributeName = "")
   public Set<AndroidImportableProperty> myNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
   @Tag(ITEM_ELEMENT)
