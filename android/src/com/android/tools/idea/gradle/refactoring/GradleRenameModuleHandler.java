@@ -194,7 +194,17 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             return;
           }
 
+          // Changing and applying the Gradle models MUST be done before attempting to change the module roots. If not
+          // the view provider used to construct the psi tree will be marked as invalid and any attempted change will
+          // cause a PsiInvalidAccessException.
           settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
+
+          // Rename all references in build.gradle
+          for (GradleBuildModel buildModel : modifiedBuildModels) {
+            buildModel.applyChanges();
+          }
+          settingsModel.applyChanges();
+
           // Rename the directory
           try {
             moduleRoot.rename(this, inputString);
@@ -208,12 +218,6 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
           }
 
           modifiableModel.commit();
-
-          // Rename all references in build.gradle
-          for (GradleBuildModel buildModel : modifiedBuildModels) {
-            buildModel.applyChanges();
-          }
-          settingsModel.applyChanges();
 
           UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
             @Override
