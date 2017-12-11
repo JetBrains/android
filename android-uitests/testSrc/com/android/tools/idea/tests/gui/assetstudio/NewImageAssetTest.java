@@ -100,6 +100,9 @@ public class NewImageAssetTest {
       .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .moveBetween("minSdkVersion ", "4")
+      .getIdeFrame()
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
     Path projectDir = guiTest.getProjectPath().toPath();
