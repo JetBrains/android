@@ -169,9 +169,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public Point getAdaptiveIconTopLeftCorner() {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
 
-    SceneView view = surface.getCurrentSceneView();
-    assert view != null;
-    return new Point(view.getX(), (surface.getHeight() - view.getSize().width + 1) / 2);
+    Dimension contentDimension = surface.getContentSize(null);
+    return new Point(surface.getContentOriginX() , surface.getContentOriginY() + (contentDimension.height - contentDimension.width + 1) / 2);
   }
 
   @NotNull
