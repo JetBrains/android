@@ -134,6 +134,42 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     stopDebugSession(debugToolWindowFixture);
   }
 
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testNativeDebuggerCleanWhileDebugging() throws  Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
+
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.invokeMenuPath("Build", "Clean Project");
+    MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Cancel and check that the debugging session is still happening.
+    messagesFixture.clickCancel();
+    checkAppIsPaused(projectFrame, new String[]{});
+
+    projectFrame.invokeMenuPath("Build", "Clean Project");
+    messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Click okay and check that the debugger has been killed.
+    messagesFixture.click("Terminate");
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-native")).isNull();
+  }
+
   /**
    * Verifies that instant run hot swap works as expected on a C++ support project.
    * <p>

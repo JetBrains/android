@@ -33,7 +33,11 @@ import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
 import com.intellij.build.output.KotlincOutputParser;
+import com.intellij.debugger.DebuggerManager;
+import com.intellij.debugger.engine.DebugProcess;
+import com.intellij.debugger.engine.JavaDebugProcess;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -51,6 +55,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.MessageDialogBuilder;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +76,8 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static com.intellij.openapi.ui.Messages.*;
+
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -102,8 +112,10 @@ public class GradleBuildInvoker {
   }
 
   public void cleanProject() {
+    if (stopNativeDebuggingOrCancel()) {
+      return;
+    }
     setProjectBuildMode(CLEAN);
-
     // "Clean" also generates sources.
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
     File projectPath = getBaseDirPath(myProject);
@@ -130,11 +142,100 @@ public class GradleBuildInvoker {
     File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {
+      if (stopNativeDebuggingOrCancel()) {
+        return;
+      }
       tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
     }
+  }
+
+  /**
+   * Gets the currently-running native debug session if it exists.
+   *
+   * @return the native debug session or {@code null} if none exists.
+   */
+  @Nullable
+  private XDebugSession getNativeDebugSession() {
+    DebuggerManager debuggerManager = DebuggerManager.getInstance(myProject);
+    for (XDebugSession session : XDebuggerManager.getInstance(myProject).getDebugSessions()) {
+      DebugProcess debugProcess = debuggerManager.getDebugProcess(session.getDebugProcess().getProcessHandler());
+      if (!(debugProcess instanceof JavaDebugProcess)) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  private boolean isNativeDebugging() {
+    return getNativeDebugSession() != null;
+  }
+
+  /**
+   * Synchronously stops the current native debugging session.
+   */
+  private void stopNativeDebugging() {
+    XDebugSession session = getNativeDebugSession();
+    if (session == null) {
+      return;
+    }
+    session.stop();
+  }
+
+  /**
+   * Asks the user if they want to stop native debugging.
+   *
+   * @return true if the user hit the "Cancel" button, meaning the current task should stop.
+   */
+  private boolean stopNativeDebuggingOrCancel() {
+    if (isNativeDebugging()) {
+      // If we have a native debugging process running, we need to kill it to release the files from being held open by the OS.
+      final String propKey = "gradle.project.build.invoker.clean-terminates-debugger";
+      // We set the property globally, rather than on a per-project basis since the debugger either keeps files open on the OS or not.
+      // If the user sets the property, it is stored in <config-dir>/config/options/options.xml
+      String value = PropertiesComponent.getInstance().getValue(propKey);
+
+      @YesNoCancelResult
+      int res;
+      if (value == null) {
+        res = MessageDialogBuilder.yesNoCancel("Terminate debugging",
+                                               "Cleaning or rebuilding your project while debugging can lead to unexpected " +
+                                               "behavior.\n" +
+                                               "You can choose to either terminate the debugger before cleaning your project " +
+                                               "or keep debugging while cleaning.\n" +
+                                               "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
+                                               "and preserves your debug process.")
+          .project(myProject).yesText("Terminate").noText("Do not terminate").cancelText("Cancel").doNotAsk(
+            new DialogWrapper.DoNotAskOption.Adapter() {
+              @Override
+              public void rememberChoice(boolean isSelected, int exitCode) {
+                if (isSelected) {
+                  PropertiesComponent.getInstance().setValue(propKey, Boolean.toString(exitCode == YES));
+                }
+              }
+            })
+          .show();
+      } else {
+        getLogger().info(propKey + ": " + value);
+        if (value.equals("true")) {
+          res = YES;
+        } else {
+          res = NO;
+        }
+      }
+      switch (res) {
+        case YES:
+          stopNativeDebugging();
+          break;
+        case NO:
+          break;
+        case CANCEL:
+          return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
