@@ -128,7 +128,7 @@ public class NewAndroidComponentAction extends AnAction {
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
-      project, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription);
+      module, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");

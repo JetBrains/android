@@ -503,7 +503,7 @@ public class TemplateManager {
           String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
           Project project = facet.getModule().getProject();
 
-          RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, moduleTemplates.get(0),
+          RenderTemplateModel renderModel = new RenderTemplateModel(module, null, initialPackageSuggestion, moduleTemplates.get(0),
             AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
           NewModuleModel moduleModel = new NewModuleModel(project);
