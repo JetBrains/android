@@ -37,6 +37,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -67,6 +68,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
+  @Nullable private final Module myModule;
   private final boolean myIsNewProject;
 
   /**
@@ -77,19 +79,20 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @Nullable private IconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull Project project,
+  public RenderTemplateModel(@NotNull Module module,
                              @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
                              @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
-    myProject = new OptionalValueProperty<>(project);
+    myProject = new OptionalValueProperty<>(module.getProject());
+    myModule = module;
     myInstantApp = new BoolValueProperty(false);
     myPackageName = new StringValueProperty(initialPackageSuggestion);
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
-    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
+    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(module.getProject()));
     myIsNewProject = myProject.getValueOrNull() == null;
     init();
   }
@@ -99,6 +102,7 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
+    myModule = null;
     myInstantApp = moduleModel.instantApp();
     myPackageName = moduleModel.packageName();
     myTemplates = new ObjectValueProperty<>(template);
@@ -271,6 +275,7 @@ public final class RenderTemplateModel extends WizardModel {
       .withDryRun(dryRun)
       .withShowErrors(true)
       .withModuleRoot(paths.getModuleRoot())
+      .withModule(myModule)
       .withParams(myTemplateValues)
       .intoOpenFiles(filesToOpen)
       .intoTargetFiles(filesToReformat)
