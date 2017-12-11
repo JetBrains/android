@@ -44,6 +44,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private final Application myApplication;
   private final Project myProject;
   private final FileEditorManager myEditorManager;
+  private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
   private final HashMap<String, DetachedToolWindow> myToolWindowMap;
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
@@ -60,6 +61,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     myApplication = application;
     myProject = currentProject;
     myEditorManager = fileEditorManager;
+    myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     //noinspection unchecked
@@ -107,7 +109,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   @Override
   public void projectOpened() {
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @Override
