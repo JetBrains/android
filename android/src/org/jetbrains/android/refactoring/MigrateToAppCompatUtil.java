@@ -29,7 +29,6 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -59,7 +58,6 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.CLASS_ACTIVITY;
-import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 class MigrateToAppCompatUtil {
 
@@ -68,16 +66,19 @@ class MigrateToAppCompatUtil {
   }
 
   static List<UsageInfo> findClassUsages(@NonNull Project project,
-                                         @NonNull Module[] modules,
-                                         @NonNull PsiMigration psiMigration,
                                          @NonNull String qName) {
-    PsiClass aClass = findOrCreateClass(project, psiMigration, qName);
-    if (aClass == null) {
+    PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project));
+    return findRefs(project, aClass);
+  }
+
+  @NotNull
+  private static List<UsageInfo> findRefs(@NonNull Project project, PsiElement element) {
+    if (element == null) {
       return Collections.emptyList();
     }
     List<UsageInfo> results = new SmartList<>();
-    for (Module module : modules) {
-      for (PsiReference usage : ReferencesSearch.search(aClass, GlobalSearchScope.moduleScope(module), false)) {
+    for (PsiReference usage : ReferencesSearch.search(element, GlobalSearchScope.projectScope(project), false)) {
+      if (usage.getElement().isWritable()) {
         results.add(new UsageInfo(usage));
       }
     }
@@ -87,7 +88,9 @@ class MigrateToAppCompatUtil {
   static Collection<PsiReference> findChangeMethodRefs(Project project, MethodMigrationEntry entry) {
     String psiClass = entry.myOldClassName;
     PsiClass psiLookupClass = JavaPsiFacade.getInstance(project).findClass(psiClass, GlobalSearchScope.allScope(project));
-    assert psiLookupClass != null : psiClass + " not found";
+    if (psiLookupClass == null) {
+      return Collections.emptyList();
+    }
     PsiMethod[] methods = psiLookupClass.findMethodsByName(entry.myOldMethodName, true);
     if (methods.length > 0) {
       List<PsiReference> refs = new ArrayList<>();
@@ -199,51 +202,6 @@ class MigrateToAppCompatUtil {
   }
 
   /**
-   * Class Migrations such as replacing imports, changing extends require the following logic
-   * to ensure that fully qualified names do not end up in the surce java files.
-   *
-   * First, collect all the changes necessary for a particular {@link PsiFile}.
-   * Next, sort the changes to have the import replacements <strong>before</strong> any
-   * of the other changes such as extends clauses.
-   *
-   * If this order is not followed, shortenClassReferences() does not work because it finds
-   * an import with a similar shortName.
-   *
-   * @param psiMigration    The PsiMigration instance necessary for looking up or creating classes.
-   * @param classMigrations The list of UsageInfo's to be migrated.
-   */
-  static void doClassMigrations(@NonNull PsiMigration psiMigration,
-                                @NonNull List<ClassMigrationUsageInfo> classMigrations) {
-    ArrayListMultimap<PsiFile, ClassMigrationUsageInfo> map = ArrayListMultimap.create();
-    for (ClassMigrationUsageInfo migrationUsageInfo : classMigrations) {
-      if (migrationUsageInfo.getElement() == null || migrationUsageInfo.getElement().getContainingFile() == null) {
-        continue;
-      }
-      map.put(migrationUsageInfo.getElement().getContainingFile(), migrationUsageInfo);
-    }
-
-    for (PsiFile key : map.keySet()) {
-      List<ClassMigrationUsageInfo> usageInfos = map.get(key);
-      usageInfos.sort((a, b) -> {
-        boolean aIsImport = getParentOfType(a.getElement(), PsiImportStatement.class) != null;
-        boolean bIsImport = getParentOfType(b.getElement(), PsiImportStatement.class) != null;
-        if (aIsImport && bIsImport) {
-          return 0;
-        }
-        else if (aIsImport) {
-          return -1;
-        }
-        else {
-          return 1;
-        }
-      });
-      for (ClassMigrationUsageInfo info : usageInfos) {
-        info.applyChange(psiMigration);
-      }
-    }
-  }
-
-  /**
    * Get {@link XmlFile} instances of type {@link ResourceType} from the given
    * {@link AbstractResourceRepository} and {@link Project}.
    *
@@ -334,9 +292,6 @@ class MigrateToAppCompatUtil {
    * for e.g: onAttach(Activity activity) - should not be migrated.
    *
    * @param infos The usageInfos to process
-   * @param filesNeedingActivityOrFragmentActivity files which were part of the exclude
-   *                                               because they contained references to the specific
-   *                                               classes in method parameters.
    */
   public static void removeUnneededUsages(@NonNull List<UsageInfo> infos) {
 

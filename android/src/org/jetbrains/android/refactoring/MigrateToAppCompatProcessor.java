@@ -40,9 +40,11 @@ import com.intellij.openapi.roots.JavaProjectModelModificationService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.migration.PsiMigrationManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringEventData;
@@ -53,6 +55,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.SmartHashSet;
 import com.siyeh.ig.psiutils.MethodUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,6 +102,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private AppCompatStyleMigration myAppCompatStyleMigration;
   private PsiElement[] myElements = PsiElement.EMPTY_ARRAY;
   private final boolean myCreateAppCompatStyleInstance;
+  private List<SmartPsiElementPointer<PsiElement>> myRefsToShorten;
+  private List<ClassMigrationUsageInfo> myClassMigrations;
 
   /**
    * Keep track of files that may need {@link android.app.Activity} to be imported
@@ -107,12 +112,12 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
    * or
    * b. A PsiVariable of the type Activity which in turn may be used for passing to a method
    */
-  private final Set<PsiFile> myPsiFilesWithActivityImports;
+  private final Set<VirtualFile> myPsiFilesWithActivityImports;
 
   /**
    * Keep track of files that need {@code CLASS_SUPPORT_FRAGMENT_ACTIVITY} to be imported.
    */
-  private final Set<PsiFile> myPsiFilesWithFragmentActivityImports;
+  private final Set<VirtualFile> myPsiFilesWithFragmentActivityImports;
 
   private PsiMigration myPsiMigration;
 
@@ -134,13 +139,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   }
 
   private PsiMigration startMigration(Project project) {
-    final PsiMigration migration = PsiMigrationManager.getInstance(project).startMigration();
-    for (AppCompatMigrationEntry entry : myMigrationMap) {
-      if (entry.getType() == CHANGE_CLASS) {
-        MigrateToAppCompatUtil.findOrCreateClass(project, migration, ((ClassMigrationEntry)entry).myOldName);
-      }
-    }
-    return migration;
+    return PsiMigrationManager.getInstance(project).startMigration();
   }
 
   @VisibleForTesting
@@ -295,7 +294,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
           case CHANGE_CLASS: {
             ClassMigrationEntry classMigrationEntry = (ClassMigrationEntry)entry;
             List<UsageInfo> usages =
-              MigrateToAppCompatUtil.findClassUsages(myProject, myModules, myPsiMigration, classMigrationEntry.myOldName);
+              MigrateToAppCompatUtil.findClassUsages(myProject, classMigrationEntry.myOldName);
             boolean isActivity = classMigrationEntry.myOldName.equals(CLASS_ACTIVITY);
             boolean isFragmentActivity = classMigrationEntry.myOldName.equals(CLASS_SUPPORT_FRAGMENT_ACTIVITY);
 
@@ -308,7 +307,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                 // we instead want to special case this to onAttach(Activity)?
                 if (psiMethod != null
                     && (MethodUtils.hasSuper(psiMethod) || MethodUtils.isOverridden(psiMethod))) {
-                  PsiFile containingFile = element.getContainingFile();
+                  VirtualFile containingFile = element.getContainingFile().getVirtualFile();
                   myPsiFilesWithActivityImports.add(containingFile);
                   // ignore the actual UsageInfo
                   continue;
@@ -317,11 +316,11 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
               else if (isFragmentActivity && getParentOfType(element, PsiVariable.class) != null) {
                 // Special case FragmentActivity activity = getActivity() (within a fragment)
                 // TODO maybe look to see if the class extends to support Fragment?
-                PsiFile containingFile = element.getContainingFile();
+                VirtualFile containingFile = element.getContainingFile().getVirtualFile();
                 myPsiFilesWithFragmentActivityImports.add(containingFile);
                 continue;
               }
-              infos.add(new MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo(usageInfo, classMigrationEntry));
+              infos.add(new ClassMigrationUsageInfo(usageInfo, classMigrationEntry));
             }
             break;
           }
@@ -396,26 +395,30 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     finishMigration();
     PsiMigration psiMigration = PsiMigrationManager.getInstance(myProject).startMigration();
-    List<MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo> classMigrations = Lists.newArrayList();
+    myClassMigrations = Lists.newArrayList();
+    myRefsToShorten = Lists.newArrayList();
 
     try {
       // Mark the command as global, so that `Undo` is available even if the current file in the
       // editor has not been modified by the refactoring.
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
+      SmartPointerManager smartPointerManager = SmartPointerManager.getInstance(myProject);
 
       for (UsageInfo usage : usages) {
-        if (usage instanceof MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo) {
-          classMigrations.add((MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo)usage);
+        PsiElement psiElement = null;
+        if (usage instanceof ClassMigrationUsageInfo) {
+          ClassMigrationUsageInfo classMigrationUsageInfo = (ClassMigrationUsageInfo)usage;
+          myClassMigrations.add(classMigrationUsageInfo);
+          psiElement = classMigrationUsageInfo.applyChange(psiMigration);
         }
         else if (usage instanceof MigrateToAppCompatUsageInfo) {
-          ((MigrateToAppCompatUsageInfo)usage).applyChange(psiMigration);
+          psiElement = ((MigrateToAppCompatUsageInfo)usage).applyChange(psiMigration);
+        }
+
+        if (psiElement != null) {
+          myRefsToShorten.add(smartPointerManager.createSmartPsiElementPointer(psiElement));
         }
       }
-
-      // special handling for class migrations
-      MigrateToAppCompatUtil.doClassMigrations(psiMigration, classMigrations);
-
-      postProcessClassMigrations(psiMigration, classMigrations);
 
       // Process the build.gradle dependency change at the very *end*.
       // Note: The reason this is explicitly done after all the migrations is to prevent the index
@@ -438,6 +441,19 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     }
     finally {
       psiMigration.finish();
+    }
+  }
+
+  @Override
+  protected void performPsiSpoilingRefactoring() {
+    postProcessClassMigrations(myClassMigrations);
+    JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(myProject);
+    for (SmartPsiElementPointer<PsiElement> pointer : myRefsToShorten) {
+      PsiElement element = pointer.getElement();
+      if (element != null) {
+        styleManager.shortenClassReferences(element);
+        styleManager.optimizeImports(element.getContainingFile());
+      }
     }
   }
 
@@ -525,33 +541,34 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   /**
    * Once all Class migrations are done, we look at {@code myPsiFilesWithActivityImports}
    * and {@code myPsiFilesWithFragmentActivityImports} and do two things.
-   * First we add the specific an import of Activity or FragmentActivity to the file and then call optimizeImports().
+   * First we add the specific import of Activity or FragmentActivity to the file and then call optimizeImports().
    *
    * The reason this is done is to ensure that any import migration due to a method parameter or
    * a return type does not affect the compilationUnit.
    *
    * @param psiMigration    PsiMigration instance for looking up the Class.
-   * @param classMigrations List of {@link MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo}'s to be processed.
+   * @param classMigrations List of {@link ClassMigrationUsageInfo}'s to be processed.
    */
-  private void postProcessClassMigrations(@NonNull PsiMigration psiMigration,
-                                          @NonNull List<MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo> classMigrations) {
-    PsiClass activityClass = MigrateToAppCompatUtil.findOrCreateClass(myProject, psiMigration, CLASS_ACTIVITY);
+  private void postProcessClassMigrations(@NonNull List<ClassMigrationUsageInfo> classMigrations) {
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(myProject);
+    GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
-    PsiClass fragmentActivityClass =
-      MigrateToAppCompatUtil.findOrCreateClass(myProject, psiMigration, CLASS_SUPPORT_FRAGMENT_ACTIVITY);
+    PsiClass activityClass = psiFacade.findClass(CLASS_ACTIVITY, scope);
+    PsiClass fragmentActivityClass = psiFacade.findClass(CLASS_SUPPORT_FRAGMENT_ACTIVITY, scope);
 
     JavaCodeStyleManager codeStyleManager = JavaCodeStyleManager.getInstance(myProject);
 
     classMigrations.stream()
-      .filter(u -> u.getElement() != null && u.getElement().isValid() && u.getElement().getContainingFile() != null)
+      .filter(u -> u.getElement() != null && u.getElement().isValid())
       .map(u -> u.getElement() == null ? null : u.getElement().getContainingFile())
       .filter(Objects::nonNull)
       .distinct()
       .forEach(psiFile -> {
-        if (myPsiFilesWithActivityImports.contains(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (myPsiFilesWithActivityImports.contains(virtualFile) && activityClass != null) {
           codeStyleManager.addImport((PsiJavaFile)psiFile, activityClass);
         }
-        else if (myPsiFilesWithFragmentActivityImports.contains(psiFile)) {
+        else if (myPsiFilesWithFragmentActivityImports.contains(virtualFile) && fragmentActivityClass != null) {
           codeStyleManager.addImport((PsiJavaFile)psiFile, fragmentActivityClass);
         }
         codeStyleManager.optimizeImports(psiFile);

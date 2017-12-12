@@ -206,7 +206,7 @@ public final class StudioFlags {
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "enabled", "Enable the Migrate to AppCompat refactoring feature",
+    REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring feature",
     "If enabled, show the action in the refactoring menu", true);
 
   private StudioFlags() {
