@@ -24,34 +24,56 @@ import java.awt.Rectangle
 /**
  * [DrawArrow] draws a triangular arrow in the specified rectangle.
  */
+
+enum class ArrowDirection {
+  LEFT,
+  UP,
+  RIGHT,
+  DOWN
+}
+
 // TODO: Integrate with DrawConnectionUtils
-class DrawArrow(private val myLevel: Int, @SwingCoordinate private val myRectangle: Rectangle, private val myColor: Color) : DrawCommand {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToRect(sp[1]), stringToColor(sp[2]))
-  constructor(s: String) : this(parse(s, 3))
+class DrawArrow(private val myLevel: Int, private val myDirection: ArrowDirection,
+                @SwingCoordinate private val myRectangle: Rectangle, private val myColor: Color) : DrawCommand {
+  private constructor(sp: Array<String>) : this(sp[0].toInt(), ArrowDirection.valueOf(sp[1]), stringToRect(sp[2]), stringToColor(sp[3]))
+  constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel() = myLevel
 
-  override fun serialize(): String {
-    return buildString(javaClass.simpleName, myLevel, rectToString(myRectangle), colorToString(myColor))
-  }
+  override fun serialize(): String = buildString(javaClass.simpleName, myLevel, myDirection, rectToString(myRectangle), colorToString(myColor))
 
-  // TODO: Add support for other directions
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    @SwingCoordinate val x = IntArray(3)
-    x[0] = myRectangle.x
-    x[1] = myRectangle.x + myRectangle.width
-    x[2] = myRectangle.x
-
-    @SwingCoordinate val y = IntArray(3)
-    y[0] = myRectangle.y
-    y[1] = myRectangle.y + myRectangle.height / 2
-    y[2] = myRectangle.y + myRectangle.height
-
     val g2 = g.create()
 
     g2.color = myColor
-    g2.fillPolygon(x, y, 3)
+    g2.fillPolygon(xValues, yValues, 3)
 
     g2.dispose()
   }
+
+  private val left
+    get() = myRectangle.x
+
+  private val right
+    get() = myRectangle.x + myRectangle.width
+
+  private val top
+    get() = myRectangle.y
+
+  private val bottom
+    get() = myRectangle.y + myRectangle.height
+
+  private val xValues: IntArray
+    get() = when (myDirection) {
+      ArrowDirection.LEFT -> intArrayOf(right, left, right)
+      ArrowDirection.RIGHT -> intArrayOf(left, right, left)
+      else -> intArrayOf(left, (left + right) / 2, right)
+    }
+
+  private val yValues: IntArray
+    get() = when (myDirection) {
+      ArrowDirection.UP -> intArrayOf(bottom, top, bottom)
+      ArrowDirection.DOWN -> intArrayOf(top, bottom, top)
+      else -> intArrayOf(top, (top + bottom) / 2, bottom)
+    }
 }

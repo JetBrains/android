@@ -65,7 +65,7 @@ public class NavSceneManager extends SceneManager {
   @NavCoordinate private static final int BOUNDING_BOX_PADDING = 100;
 
   @NavCoordinate public static final int ACTION_ARROW_PARALLEL = 10;
-  @NavCoordinate private static final int ACTION_ARROW_PERPENDICULAR = 12;
+  @NavCoordinate public static final int ACTION_ARROW_PERPENDICULAR = 12;
 
   @NavCoordinate private static final int ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
   @NavCoordinate private static final int ACTION_VERTICAL_PADDING = 6;

@@ -21,9 +21,9 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
+import com.android.tools.idea.naveditor.scene.decorator.ActionDecoratorKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -32,7 +32,6 @@ import java.awt.geom.GeneralPath;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
-import static java.awt.BasicStroke.*;
 
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
@@ -42,9 +41,6 @@ public class DrawAction extends NavBaseDrawCommand {
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private final Rectangle mySource = new Rectangle();
   @SwingCoordinate private final Rectangle myDest = new Rectangle();
-  private static final Stroke BACKGROUND_STROKE = new BasicStroke(8.0f, CAP_BUTT, JOIN_MITER);
-  private static final Stroke REGULAR_ACTION_STROKE = new BasicStroke(3.0f);
-  private static final Stroke SELF_ACTION_STROKE = new BasicStroke(3.0f, CAP_BUTT, JOIN_ROUND, 10.0f, new float[]{6.0f, 3.0f}, 0.0f);
   private static final int ARCH_LEN = 10;
 
   private final DrawMode myMode;
@@ -105,15 +101,7 @@ public class DrawAction extends NavBaseDrawCommand {
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
     Color actionColor = (mode == SELECTED) ? color.getSelectedActions() : color.getActions();
-
-    @SwingCoordinate int endX;
-    @SwingCoordinate int endY;
-    Stroke actionStroke;
-    ActionTarget.ConnectionDirection direction;
-
     PATH.reset();
-    g.setStroke(BACKGROUND_STROKE);
-    g.setColor(color.getBackground());
 
     switch (connectionType) {
       case SELF:
@@ -122,38 +110,19 @@ public class DrawAction extends NavBaseDrawCommand {
         DrawConnectionUtils
           .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCH_LEN));
 
-        endX = selfActionPoints.x[selfActionPoints.y.length - 1];
-        endY = selfActionPoints.y[selfActionPoints.y.length - 1];
-        actionStroke = SELF_ACTION_STROKE;
-        direction = selfActionPoints.dir;
-
         break;
       case NORMAL:
-        ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest);
+        ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest, sceneContext);
         PATH.moveTo(points.p1.x, points.p1.y);
         PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
-
-        endX = points.p4.x;
-        endY = points.p4.y;
-        actionStroke = REGULAR_ACTION_STROKE;
-        direction = points.dir;
 
         break;
       default:
         return;
     }
 
-    @SwingCoordinate int arrowX = endX - ActionTarget.getDestinationDx(direction);
-    @SwingCoordinate int arrowY = endY - ActionTarget.getDestinationDy(direction);
-    @SwingCoordinate int[] xPoints = new int[3];
-    @SwingCoordinate int[] yPoints = new int[3];
-    DrawConnectionUtils
-      .getArrow(direction.ordinal(), arrowX, arrowY, xPoints, yPoints);
-    g.fillPolygon(xPoints, yPoints, 3);
-    g.draw(PATH);
-    g.setStroke(actionStroke);
+    g.setStroke(ActionDecoratorKt.ACTION_STROKE); // TODO: Draw dashed stroke for nested actions
     g.setColor(actionColor);
-    g.fillPolygon(xPoints, yPoints, 3);
     g.draw(PATH);
   }
 }
