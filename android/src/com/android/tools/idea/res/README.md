@@ -196,3 +196,66 @@ etc. XML files for `android:id=@+id/foo` attributes.
 Even with these optimizations, each ResourceFolderRepository initialization can still involve much I/O, especially on first run. For
 projects with many res/ folders, a `PopulateCachesTask` can be invoked on project startup to initialize separate res/ folders in parallel.
 
+
+## Value resources and the style system
+
+Here are some notes about how the style system works and how it's encoded in the APK. A good way to inspect value resources is to use
+`aapt dump --values resources path/to/my.apk`. Value resources are the ones stored in the resources.arsc table, not as files in the APK.
+
+When the app runs, all resources are referenced using numeric IDs, not human readable names. Simple resources like strings or colors are 
+assigned an ID and their value (which may be a reference to another resource ID) is stored in the resource table. You can read them using
+e.g. `getResources().getColor(R.color.my_shade_of_blue)`. IDs for framework ("android") resources start with 0x01, IDs for app resources 
+(in the old world without namespaces) start with 0x7f.
+
+Attributes are keys in the key-value mapping that styles are all about. Every attribute has a unique identity (which ends up encoded as the
+numeric ID) and a format: the set of types allowed for values stored under the given attribute. You can think of an attribute declared as
+`<attr name="my_color" format="color" />` as something similar to `static Key<Color> myColor = new Key<Color>()` in the IDE java code. 
+Attributes can be declared independently of styles and styleables, you can also use attributes already declared by the platform.  Attributes
+don't store any values, their job is to have an identity under which values can be stored.
+
+Styles are maps. A given style maps attributes to values (again, the value can be a reference to another resource). Styles may have parent 
+styles, in which case a lookup is done in the parent if the current style doesn't define a value for a given attribute. This works similar
+to how JavaScript property lookup works, if that helps.
+
+A theme is a property of a context (e.g. an activity). Theme is a style. In the declaration of an activity you choose which style will be 
+used as the theme for this activity.
+
+A styleable is a collection of attributes. The XML syntax of `<declare-styleable>` lets you declare attributes "inline" when declaring the
+styleable, but you can declare all the attributes upfront and just reference them by name inside the styleable declaration (or you can use
+platform attributes). For example:
+
+```xml
+<resources>
+  <attr name="my_name" format="string" />
+
+  <declare-styleable name="HasNameAndColor">
+    <attr name="my_name" />
+    <attr name="android:color" />
+  </declare-styleable>
+</resources>
+
+```
+
+A styleable is used to look up all its attributes at once in a style (most often the theme). In reality styleables are just arrays of ints,
+where the values are IDs of attributes. They are not stored in resources.arsc but in the R class. There's also no corresponding Java type,
+you can create the table of attribute ids on the fly and pass it to Theme.obtainStyledAttributes. Styleables just make it a bit easier to 
+keep track of the order in which the attributes are stored in the array, because the R class contains helpful constants for them:
+
+```java
+class R {
+  class attr {
+    public static final int my_name = 0x7faaaaaa;
+    // ...
+  }
+  class styleable {
+    public static final int[] HasNameAndColor = {
+      0x7faaaaaa, // my_name
+      0x01bbbbbb  // android:color
+    };
+
+    public static final int HasNameAndColor_my_name = 0; // Index in the array above.
+    public static final int HasNameAndColor_android_color = 1; // Index in the array above.
+  }
+  // ...
+}
+```
