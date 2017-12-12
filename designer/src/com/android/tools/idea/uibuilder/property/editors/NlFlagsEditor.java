@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.plaf.TextUI;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
@@ -191,21 +190,16 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
 
     @Override
     public void setUI(TextUI ui) {
-      super.setUI(new CustomTextFieldUI(this));
+      super.setUI(new CustomTextFieldUI());
     }
   }
 
   private static class CustomTextFieldUI extends DarculaTextFieldUI {
-
-    public CustomTextFieldUI(JTextField textField) {
-      super(textField);
-    }
-
     @Override
-    protected void paintDarculaBackground(Graphics2D graphics2D, JTextComponent component, Border border) {
+    protected void paintDarculaBackground(Graphics graphics2D, JTextComponent component) {
       // Override the background color of this non editable JTextField
       graphics2D.setColor(component.getBackground());
-      super.paintDarculaBackground(graphics2D, component, border);
+      super.paintDarculaBackground(graphics2D, component);
     }
   }
 }
