@@ -384,7 +384,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
           // Attempt to get the document from the PSI file rather than the file on disk: get edited contents too
           String text;
-          if (xmlFile != null) {
+          if (xmlFile != null && xmlFile.isValid()) {
             text = xmlFile.getText();
           }
           else {
