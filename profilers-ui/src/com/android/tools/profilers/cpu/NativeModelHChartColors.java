@@ -16,6 +16,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +36,14 @@ public class NativeModelHChartColors {
     }
   }
 
-  private static boolean isMethodVendor(CaptureNodeModel method) {
-    return method.getFullName().startsWith("openjdkjvmti::");
+  private static boolean isUserFunction(CaptureNodeModel model) {
+    if (!(model instanceof CppFunctionModel)) {
+      return false; // Not even a function.
+    }
+    return ((CppFunctionModel)model).isUserCode();
   }
 
-  private static boolean isMethodPlatform(CaptureNodeModel method) {
+  private static boolean isPlatformFunction(CaptureNodeModel method) {
     // TODO: include all the art-related methods (e.g. artQuickToInterpreterBridge and artMterpAsmInstructionStart)
     return method.getFullName().startsWith("art::") ||
            method.getFullName().startsWith("android::") ||
@@ -53,25 +57,25 @@ public class NativeModelHChartColors {
     // TODO(b/68014311): Define colors for each type of model and differentiate user code properly
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR;
+      if (isUserFunction(model)) {
+        color = ProfilerColors.CPU_CALLCHART_APP;
       }
-      else if (isMethodPlatform(model)) {
+      else if (isPlatformFunction(model)) {
         color = ProfilerColors.CPU_CALLCHART_PLATFORM;
       }
       else {
-        color = ProfilerColors.CPU_CALLCHART_APP;
+        color = ProfilerColors.CPU_CALLCHART_VENDOR;
       }
     }
     else {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR;
+      if (isUserFunction(model)) {
+        color = ProfilerColors.CPU_FLAMECHART_APP;
       }
-      else if (isMethodPlatform(model)) {
+      else if (isPlatformFunction(model)) {
         color = ProfilerColors.CPU_FLAMECHART_PLATFORM;
       }
       else {
-        color = ProfilerColors.CPU_FLAMECHART_APP;
+        color = ProfilerColors.CPU_FLAMECHART_VENDOR;
       }
     }
     return isUnmatched ? toUnmatchColor(color) : color;
@@ -83,25 +87,25 @@ public class NativeModelHChartColors {
     // TODO(b/68014311): Define colors for each type of model and differentiate user code properly
     Color color;
     if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
+      if (isUserFunction(model)) {
+        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
       }
-      else if (isMethodPlatform(model)) {
+      else if (isPlatformFunction(model)) {
         color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
       }
       else {
-        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
+        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
       }
     }
     else {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
+      if (isUserFunction(model)) {
+        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
       }
-      else if (isMethodPlatform(model)) {
+      else if (isPlatformFunction(model)) {
         color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
       }
       else {
-        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
+        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
       }
     }
     return isUnmatched ? toUnmatchColor(color) : color;

@@ -26,7 +26,7 @@ class NodeNameParserTest {
 
   @Test
   fun testCppMethodsParsing() {
-    var model = NodeNameParser.parseNodeName("art::ArtMethod::Invoke()")
+    var model = NodeNameParser.parseNodeName("art::ArtMethod::Invoke()", true)
     assertThat(model).isInstanceOf(CppFunctionModel::class.java)
     assertThat(model.name).isEqualTo("Invoke")
     assertThat(model.fullName).isEqualTo("art::ArtMethod::Invoke")
@@ -34,8 +34,9 @@ class NodeNameParserTest {
     var cppFunctionModel: CppFunctionModel = model as CppFunctionModel
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("art::ArtMethod")
     assertThat(cppFunctionModel.parameters).isEmpty()
+    assertThat(cppFunctionModel.isUserCode).isTrue()
 
-    model = NodeNameParser.parseNodeName("art::interpreter::DoCall(bool, art::Thread*)")
+    model = NodeNameParser.parseNodeName("art::interpreter::DoCall(bool, art::Thread*)", false)
     assertThat(model.name).isEqualTo("DoCall")
     assertThat(model.fullName).isEqualTo("art::interpreter::DoCall")
     assertThat(model.id).isEqualTo("art::interpreter::DoCall[bool, art::Thread*]")
@@ -44,16 +45,18 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.parameters).hasSize(2)
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("bool")
     assertThat(cppFunctionModel.parameters[1]).isEqualTo("art::Thread*")
+    assertThat(cppFunctionModel.isUserCode).isFalse()
 
-    model = NodeNameParser.parseNodeName("art::SomeClass::add<int>()")
+    model = NodeNameParser.parseNodeName("art::SomeClass::add<int>()", true)
     assertThat(model.name).isEqualTo("add")
     assertThat(model.fullName).isEqualTo("art::SomeClass::add")
     assertThat(model.id).isEqualTo("art::SomeClass::add[]")
     cppFunctionModel = model as CppFunctionModel
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("art::SomeClass")
     assertThat(cppFunctionModel.parameters).isEmpty()
+    assertThat(cppFunctionModel.isUserCode).isTrue()
 
-    model = NodeNameParser.parseNodeName("Shader::Render(glm::detail::tmat4x4<float, (glm::precision)0>*)")
+    model = NodeNameParser.parseNodeName("Shader::Render(glm::detail::tmat4x4<float, (glm::precision)0>*)", false)
     assertThat(model.name).isEqualTo("Render")
     assertThat(model.fullName).isEqualTo("Shader::Render")
     assertThat(model.id).isEqualTo("Shader::Render[glm::detail::tmat4x4*]")
@@ -61,8 +64,9 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("Shader")
     assertThat(cppFunctionModel.parameters).hasSize(1)
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("glm::detail::tmat4x4*")
+    assertThat(cppFunctionModel.isUserCode).isFalse()
 
-    model = NodeNameParser.parseNodeName("art::StackVisitor::GetDexPc(bool) const")
+    model = NodeNameParser.parseNodeName("art::StackVisitor::GetDexPc(bool) const", true)
     assertThat(model.name).isEqualTo("GetDexPc")
     assertThat(model.fullName).isEqualTo("art::StackVisitor::GetDexPc")
     assertThat(model.id).isEqualTo("art::StackVisitor::GetDexPc[bool]")
@@ -70,8 +74,9 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("art::StackVisitor")
     assertThat(cppFunctionModel.parameters).hasSize(1)
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("bool")
+    assertThat(cppFunctionModel.isUserCode).isTrue()
 
-    model = NodeNameParser.parseNodeName("Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)")
+    model = NodeNameParser.parseNodeName("Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)", false)
     assertThat(model.name).isEqualTo("FuncTemplate")
     assertThat(model.fullName).isEqualTo("Type2::FuncTemplate")
     assertThat(model.id).isEqualTo("Type2::FuncTemplate[Type4]")
@@ -79,8 +84,9 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.classOrNamespace).isEqualTo("Type2")
     assertThat(cppFunctionModel.parameters).hasSize(1)
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("Type4")
+    assertThat(cppFunctionModel.isUserCode).isFalse()
 
-    model = NodeNameParser.parseNodeName("int Abc123(bool)")
+    model = NodeNameParser.parseNodeName("int Abc123(bool)", true)
     assertThat(model.name).isEqualTo("Abc123")
     assertThat(model.fullName).isEqualTo("Abc123")
     assertThat(model.id).isEqualTo("Abc123[bool]")
@@ -90,7 +96,7 @@ class NodeNameParserTest {
     assertThat(cppFunctionModel.parameters[0]).isEqualTo("bool")
 
     try {
-      NodeNameParser.parseNodeName("malformed::method<(")
+      NodeNameParser.parseNodeName("malformed::method<(", true)
       fail()
     } catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Native function signature must have matching parentheses and brackets.")
@@ -99,7 +105,7 @@ class NodeNameParserTest {
 
   @Test
   fun testJavaMethodsParsing() {
-    var model = NodeNameParser.parseNodeName("java.util.String.toString")
+    var model = NodeNameParser.parseNodeName("java.util.String.toString", true)
     assertThat(model).isInstanceOf(JavaMethodModel::class.java)
     assertThat(model.name).isEqualTo("toString")
     assertThat(model.fullName).isEqualTo("java.util.String.toString")
@@ -108,7 +114,7 @@ class NodeNameParserTest {
     assertThat(javaMethodModel.className).isEqualTo("java.util.String")
     assertThat(javaMethodModel.signature).isEmpty()
 
-    model = NodeNameParser.parseNodeName("java.lang.Object.internalClone [DEDUPED]")
+    model = NodeNameParser.parseNodeName("java.lang.Object.internalClone [DEDUPED]", true)
     assertThat(model).isInstanceOf(JavaMethodModel::class.java)
     assertThat(model.name).isEqualTo("internalClone [DEDUPED]")
     assertThat(model.fullName).isEqualTo("java.lang.Object.internalClone [DEDUPED]")
@@ -120,7 +126,7 @@ class NodeNameParserTest {
 
   @Test
   fun testSyscallParsing() {
-    val model = NodeNameParser.parseNodeName("write")
+    val model = NodeNameParser.parseNodeName("write", true)
     assertThat(model).isInstanceOf(SyscallModel::class.java)
     assertThat(model.name).isEqualTo("write")
     assertThat(model.fullName).isEqualTo("write")

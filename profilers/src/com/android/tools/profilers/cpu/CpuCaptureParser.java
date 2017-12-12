@@ -120,9 +120,9 @@ public class CpuCaptureParser {
     return CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceBytes, profilerType), myServices.getPoolExecutor());
   }
 
-  private static CpuCapture traceBytesToCapture(@NotNull Common.Session session,
-                                                @NotNull ByteString traceData,
-                                                CpuProfilerType profilerType) {
+  private CpuCapture traceBytesToCapture(@NotNull Common.Session session,
+                                         @NotNull ByteString traceData,
+                                         CpuProfilerType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
@@ -137,7 +137,7 @@ public class CpuCaptureParser {
         isCaptureDualClock = true;
       }
       else if (profilerType == CpuProfilerType.SIMPLEPERF) {
-        parser = new SimpleperfTraceParser();
+        parser = new SimpleperfTraceParser(myServices.getApplicationId());
         isCaptureDualClock = false;
       }
       else if (profilerType == CpuProfilerType.ATRACE) {

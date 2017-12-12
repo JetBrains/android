@@ -46,7 +46,7 @@ public class SimpleperfTraceParserTest {
       out.write(traceBytes.toByteArray());
     }
     myTraceFile = trace;
-    myParser = new SimpleperfTraceParser();
+    myParser = new SimpleperfTraceParser("some.app.id");
   }
 
   @Test
@@ -151,7 +151,7 @@ public class SimpleperfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser = new SimpleperfTraceParser();
+    myParser = new SimpleperfTraceParser("some.app.id");
 
     try {
       myParser.parse(trace);

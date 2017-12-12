@@ -257,6 +257,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return myCustomProfilingConfigurations;
   }
 
+  @NotNull
+  @Override
+  public String getApplicationId() {
+    return "some.id";
+  }
+
   @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     return myNativeProfilingConfigurationPreferred;
