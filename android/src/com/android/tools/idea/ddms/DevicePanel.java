@@ -263,7 +263,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       myDeviceCombo.setSelectedItem(device);
       myDeviceContext.fireDeviceSelected(device);
     }
-    else {
+    else if (selectedDevice != null) {
       myDeviceCombo.addItem(selectedDevice);
       myDeviceCombo.setSelectedItem(selectedDevice);
 

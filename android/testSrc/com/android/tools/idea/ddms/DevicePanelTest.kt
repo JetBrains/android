@@ -23,14 +23,25 @@ import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.JComboBox
 import javax.swing.plaf.basic.BasicComboBoxRenderer
 
 internal class DevicePanelTest {
   private lateinit var myProject: Project
+  private lateinit var myBridge: AndroidDebugBridge
+
+  private lateinit var myPanel: DevicePanel
+  private lateinit var myDeviceComboBox: JComboBox<IDevice>
 
   @Before
-  fun mockProject() {
+  fun setUp() {
     myProject = Mockito.mock(Project::class.java)
+    myBridge = Mockito.mock(AndroidDebugBridge::class.java)
+
+    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java))
+
+    myDeviceComboBox = myPanel.deviceComboBox
+    myDeviceComboBox.renderer = BasicComboBoxRenderer.UIResource()
   }
 
   @After
@@ -41,38 +52,43 @@ internal class DevicePanelTest {
   @Test
   fun updateDeviceCombo() {
     val device = mockDevice()
+    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
 
-    Mockito.`when`(device.clients).thenReturn(arrayOf())
-    Mockito.`when`(device.name).thenReturn("emulator-5554")
+    myPanel.setBridge(myBridge)
+    myPanel.setIgnoringActionEvents(true)
+    myPanel.putPreferredClient("emulator-5554", "com.google.myapplication")
+    myDeviceComboBox.addItem(mockDevice())
 
-    val panel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java))
+    myPanel.updateDeviceCombo()
 
-    panel.setBridge(mockBridge(device))
-    panel.setIgnoringActionEvents(true)
-    panel.putPreferredClient("emulator-5554", "com.google.myapplication")
+    assertEquals(1, myDeviceComboBox.itemCount)
+    assertSame(device, myDeviceComboBox.selectedItem)
+  }
 
-    val deviceComboBox = panel.deviceComboBox
+  @Test
+  fun updateDeviceComboNullSelectedDeviceDoesntGetAdded() {
+    Mockito.`when`(myBridge.devices).thenReturn(emptyArray())
 
-    deviceComboBox.renderer = BasicComboBoxRenderer.UIResource()
-    deviceComboBox.addItem(mockDevice())
+    myPanel.setBridge(myBridge)
+    myPanel.updateDeviceCombo()
 
-    panel.updateDeviceCombo()
+    val device = mockDevice()
+    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
 
-    assertEquals(1, deviceComboBox.itemCount)
-    assertSame(device, deviceComboBox.selectedItem)
+    myPanel.putPreferredClient("emulator-5554", "com.google.myapplication")
+    myPanel.updateDeviceCombo()
+
+    assertEquals(1, myDeviceComboBox.itemCount)
+    assertSame(device, myDeviceComboBox.selectedItem)
   }
 
   private fun mockDevice(): IDevice {
     val device = Mockito.mock(IDevice::class.java)
+
+    Mockito.`when`(device.clients).thenReturn(emptyArray())
     Mockito.`when`(device.isEmulator).thenReturn(true)
+    Mockito.`when`(device.name).thenReturn("emulator-5554")
 
     return device
-  }
-
-  private fun mockBridge(device: IDevice): AndroidDebugBridge {
-    val bridge = Mockito.mock(AndroidDebugBridge::class.java)
-    Mockito.`when`(bridge.devices).thenReturn(arrayOf(device))
-
-    return bridge
   }
 }
