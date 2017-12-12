@@ -197,6 +197,12 @@ public final class GroovyDslUtil {
         listOrMap.delete();
       }
     }
+    else if (element instanceof GrNamedArgument) {
+      GrNamedArgument namedArgument = (GrNamedArgument)element;
+      if (namedArgument.getExpression() == null) {
+        namedArgument.delete();
+      }
+    }
 
     if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
       deleteIfEmpty(parent);
