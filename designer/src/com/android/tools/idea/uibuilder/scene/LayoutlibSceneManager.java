@@ -52,6 +52,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -648,10 +649,27 @@ public class LayoutlibSceneManager extends SceneManager {
     updateBounds(rootViews, model);
   }
 
-
   @VisibleForTesting
   public static void updateHierarchy(@NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    updateHierarchy(AndroidPsiUtils.getRootTagSafely(model.getFile()), rootViews, model);
+    XmlTag root = getRootTag(model);
+    if (root != null) {
+      updateHierarchy(root, rootViews, model);
+    }
+  }
+
+  // Get the root tag of the xml file associated with the specified model.
+  // Since this code may be called on a non UI thread be extra careful about expired objects.
+  // Note: NlModel.getFile() probably should be nullable.
+  @Nullable
+  private static XmlTag getRootTag(@NotNull NlModel model) {
+    if (Disposer.isDisposed(model)) {
+      return null;
+    }
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(model.getProject(), model.getVirtualFile());
+    if (file == null) {
+      return null;
+    }
+    return AndroidPsiUtils.getRootTagSafely(model.getFile());
   }
 
   /**
