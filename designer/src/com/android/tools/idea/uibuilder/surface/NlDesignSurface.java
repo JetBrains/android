@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -36,7 +37,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -46,9 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 
@@ -520,6 +517,15 @@ public class NlDesignSurface extends DesignSurface {
     return 10;
   }
 
+  public boolean hasCustomDevice() {
+    Configuration configuration = getConfiguration();
+    if (configuration == null) {
+      return false;
+    }
+    Device device = configuration.getDevice();
+    return device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
+  }
+
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   @Nullable
   @Override
@@ -528,7 +534,7 @@ public class NlDesignSurface extends DesignSurface {
     Dimension size = screenView.getSize();
     Rectangle resizeZone =
       new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(mouseX, mouseY)) {
+    if (resizeZone.contains(mouseX, mouseY) && hasCustomDevice()) {
       Configuration configuration = getConfiguration();
       assert configuration != null;
       return new CanvasResizeInteraction(this, screenView, configuration);

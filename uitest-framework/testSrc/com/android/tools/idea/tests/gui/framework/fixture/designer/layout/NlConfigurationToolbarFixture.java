@@ -224,6 +224,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
       else if (item.contains("(")) {
         return deviceName.equals(item.substring(item.lastIndexOf('(') + 1, item.lastIndexOf(')')));
       }
+      else if (item.equals("Custom")) {
+        return deviceName.equals(item);
+      }
       return false;
     }
   }
