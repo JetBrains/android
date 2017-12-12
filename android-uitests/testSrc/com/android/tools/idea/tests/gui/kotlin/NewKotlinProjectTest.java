@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,7 +64,7 @@ public class NewKotlinProjectTest {
    *   3. Ensure the app is deployed on the emulator.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70339267
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createBasicKotlinProject() throws Exception {
     createNewBasicKotlinProject(false);
@@ -99,7 +100,7 @@ public class NewKotlinProjectTest {
    *   3. Ensure the app is deployed on the emulator.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70339267
+  @RunIn(TestGroup.SANITY)
   @Test
   public void createCppKotlinProject() throws Exception {
     createNewBasicKotlinProject(true);
@@ -141,6 +142,6 @@ public class NewKotlinProjectTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Build project after Gradle sync finished.
-    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
+    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60));
   }
 }

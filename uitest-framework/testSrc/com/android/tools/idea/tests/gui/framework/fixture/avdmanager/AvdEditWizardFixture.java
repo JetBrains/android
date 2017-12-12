@@ -26,7 +26,7 @@ import javax.swing.*;
 
 public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFixture> {
   public static AvdEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Virtual Device Configuration"));
+    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, "Virtual Device Configuration"), 30);
     return new AvdEditWizardFixture(robot, dialog);
   }
 
