@@ -1430,6 +1430,52 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     toTestCompletion("restricted.xml", "restricted_after.xml");
   }
 
+  @Language("JAVA")
+  String innerClass =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.widget.ImageView;\n" +
+    "import android.widget.LinearLayout;\n" +
+    "import android.widget.TextView;\n" +
+    "\n" +
+    "public class MyImageView extends ImageView {\n" +
+    "    public MyImageView(Context context) {\n" +
+    "        super(context);\n" +
+    "    }\n" +
+    "    public static class MyTextView extends TextView {\n" +
+    "        public MyTextView(Context context) {\n" +
+    "            super(context);\n" +
+    "        }\n" +
+    "    }\n" +
+    "    public static class MyLinearLayout extends LinearLayout {\n" +
+    "        public MyLinearLayout(Context context) {\n" +
+    "            super(context);\n" +
+    "        }\n" +
+    "    }\n" +
+    "}";
+
+  public void testTagCompletionUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    toTestCompletion("innerClass1.xml", "innerClass1_after.xml");
+  }
+
+  public void testTagReplacementUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("innerClass2.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("\t");
+    myFixture.checkResultByFile(myTestFolder + "/innerClass2_after.xml");
+  }
+
+  public void testTagLayoutCompletionUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    toTestCompletion("innerClass3.xml", "innerClass3_after.xml");
+  }
+
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
