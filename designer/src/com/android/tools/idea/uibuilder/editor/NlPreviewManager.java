@@ -29,9 +29,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.*;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
@@ -52,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Arrays;
@@ -281,16 +280,28 @@ public class NlPreviewManager implements ProjectComponent {
 
         myToolWindow.setAvailable(true, null);
         final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible();
-        if (visible) {
+        if (visible && !myToolWindow.isVisible()) {
+          Runnable restoreFocus = null;
+          if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
+            // Ugly hack: Fix for b/68148499
+            // We never want the preview to take focus when the content of the preview changes because of a file change.
+            // Even when the preview is restored after being closed (move from Java file to an XML file).
+            // There is no way to show the tool window without also taking the focus.
+            // This hack is a workaround that sets the focus back to editor.
+            // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
+            restoreFocus = () -> IdeFocusManager.getInstance(myProject).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
+          }
           // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
           // tool window is shown and the time the render has completed
-          if (!myToolWindow.isVisible()) {
-            myToolWindowForm.clearRenderResult();
-          }
-          myToolWindow.show(null);
+          myToolWindowForm.clearRenderResult();
+          myToolWindow.activate(restoreFocus, false, false);
         }
       }
     });
+  }
+
+  private static void restoreFocusToEditor(@NotNull TextEditor newEditor) {
+    ApplicationManager.getApplication().invokeLater(() -> newEditor.getEditor().getContentComponent().requestFocus());
   }
 
   /**
