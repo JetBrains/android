@@ -30,10 +30,18 @@ class NodeNameParser {
 
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
 
-  static CaptureNodeModel parseNodeName(String fullName) {
+  /**
+   * Parses a string representing a full symbol name into its corresponding model. For example:
+   *    "namespace::Class::Fun<int>(params)" is parsed into a {@link CppFunctionModel}
+   *    "java.util.String.toString" is parsed into a {@link JavaMethodModel}
+   *    "ioctl" is parsed into a {@link SyscallModel}
+   * @param fullName       name to be parsed into a {@link CaptureNodeModel}.
+   * @param isUserWritten  whether the symbol is part of the user-written code
+   */
+  static CaptureNodeModel parseNodeName(String fullName, boolean isUserWritten) {
     // C/C++ methods are represented as Namespace::Class::MethodName() in simpleperf. Check for the presence of "(".
     if (fullName.contains("(")) {
-      return parseCppFunctionName(fullName);
+      return parseCppFunctionName(fullName, isUserWritten);
     }
     else if (fullName.contains(".")) {
       // Method is in the format java.package.Class.method. Parse it into a CaptureNodeModel.
@@ -52,7 +60,7 @@ class NodeNameParser {
    * the function name into a {@link CaptureNodeModel}.
    */
   @NotNull
-  private static CaptureNodeModel parseCppFunctionName(String functionFullName) {
+  private static CaptureNodeModel parseCppFunctionName(String functionFullName, boolean isUserWritten) {
     // First, remove template information.
     functionFullName = removeTemplateInformation(functionFullName);
 
@@ -80,6 +88,7 @@ class NodeNameParser {
     }
     return new CppFunctionModel.Builder(modelInfo.getName())
       .setClassOrNamespace(modelInfo.getClassOrNamespace())
+      .setIsUserCode(isUserWritten)
       .setParameters(parameters)
       .build();
   }

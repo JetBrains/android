@@ -96,7 +96,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
       parser = new ArtTraceParser();
     }
     else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      parser = new SimpleperfTraceParser();
+      parser = new SimpleperfTraceParser("some.app.id");
     }
     else {
       throw new IllegalArgumentException("There is no parser available for profiler type " + profilerType);

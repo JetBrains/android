@@ -18,7 +18,9 @@ package com.android.tools.profilers.cpu.simpleperf;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
-import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
@@ -45,6 +47,13 @@ public class SimpleperfTraceParser implements TraceParser {
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
    */
   private static final int INVALID_SYMBOL_ID = -1;
+
+  /**
+   * Directory containing files (.art, .odex, .so, .apk) related to app's. Each app's files are located in a subdirectory whose name starts
+   * with the app ID. For instance, "com.google.sample.tunnel" app's directory could be something like
+   * "/data/app/com.google.sample.tunnel-qpKipbnc0pE6uQs6gxAmbQ=="
+   */
+  private static final String DATA_APP_DIR = "/data/app";
 
   /**
    * Maps a file id to its correspondent {@link SimpleperfReport.File}.
@@ -87,7 +96,15 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private List<String> myEventTypes;
 
-  public SimpleperfTraceParser() {
+  /**
+   * Prefix (up to the app name) of the /data/app subfolder corresponding to the app being profiled. For example:
+   * "/data/app/com.google.sample.tunnel".
+   */
+  @NotNull
+  private final String myAppDataFolderPrefix;
+
+  public SimpleperfTraceParser(@NotNull String applicationId) {
+    myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, applicationId);
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
     myCaptureTrees = new HashMap<>();
@@ -403,7 +420,9 @@ public class SimpleperfTraceParser implements TraceParser {
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
       return new NoSymbolModel(methodName);
     }
-    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId));
+    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel.
+    // User's code symbols come from files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
+    boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten);
   }
 }

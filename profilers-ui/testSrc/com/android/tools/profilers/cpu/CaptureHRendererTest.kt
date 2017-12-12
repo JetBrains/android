@@ -115,15 +115,15 @@ class CaptureNodeHRendererTest {
       assertThat(e.message).isEqualTo("Model must be a subclass of NativeNodeModel.")
     }
 
-    val vendorModel = CppFunctionModel.Builder("Load").setClassOrNamespace("openjdkjvmti").build()
+    val vendorModel = CppFunctionModel.Builder("Load").setIsUserCode(false).setClassOrNamespace("glClear").build()
     doTestNativeColors(vendorModel, ProfilerColors.CPU_CALLCHART_VENDOR, ProfilerColors.CPU_CALLCHART_VENDOR_BORDER,
         ProfilerColors.CPU_FLAMECHART_VENDOR, ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER)
 
-    val platformModel = CppFunctionModel.Builder("Inflate").setClassOrNamespace("android::Activity").build()
+    val platformModel = CppFunctionModel.Builder("Inflate").setIsUserCode(false).setClassOrNamespace("android::Activity").build()
     doTestNativeColors(platformModel, ProfilerColors.CPU_CALLCHART_PLATFORM, ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER,
         ProfilerColors.CPU_FLAMECHART_PLATFORM, ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER)
 
-    val appModel = CppFunctionModel.Builder("DoFrame").setClassOrNamespace("PlayScene").build()
+    val appModel = CppFunctionModel.Builder("DoFrame").setIsUserCode(true).setClassOrNamespace("PlayScene").build()
     doTestNativeColors(appModel, ProfilerColors.CPU_CALLCHART_APP, ProfilerColors.CPU_CALLCHART_APP_BORDER,
         ProfilerColors.CPU_FLAMECHART_APP, ProfilerColors.CPU_FLAMECHART_APP_BORDER)
   }
@@ -193,8 +193,8 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(flameChartBorder))
   }
 
-  private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color, callChartBorder: Color, flameChartFill: Color,
-                                 flameChartBorder: Color) {
+  private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color, callChartBorder: Color,
+                                 flameChartFill: Color, flameChartBorder: Color) {
     val callChart = CaptureModel.Details.Type.CALL_CHART
     val flameChart = CaptureModel.Details.Type.FLAME_CHART
 

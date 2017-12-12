@@ -32,5 +32,6 @@
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="android-adb" />
     <orderEntry type="module" module-name="cidr-lang" />
+    <orderEntry type="module" module-name="dom-openapi" />
   </component>
 </module>

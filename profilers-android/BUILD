@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/android-adb[module]",
         "//tools/vendor/intellij/cidr:cidr-lang[module]",
+        "//tools/idea/xml/dom-openapi[module]",
     ],
 )
