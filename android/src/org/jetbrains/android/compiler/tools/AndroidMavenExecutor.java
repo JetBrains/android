@@ -31,6 +31,7 @@ import org.jetbrains.android.util.WaitingStrategies;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenExternalParameters;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
+import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import java.util.ArrayList;
@@ -52,8 +53,9 @@ public class AndroidMavenExecutor {
   public static Map<CompilerMessageCategory, List<String>> generateResources(final Module module) {
     MavenProjectsManager projectsManager = MavenProjectsManager.getInstance(module.getProject());
 
+    MavenProject mavenProject = projectsManager.findProject(module);
     final MavenRunnerParameters parameters =
-      new MavenRunnerParameters(true, projectsManager.findProject(module).getDirectory(),
+      new MavenRunnerParameters(true, mavenProject.getDirectory(), mavenProject.getFile().getName(),
                                 Collections.singletonList("process-resources"),
                                 projectsManager.getExplicitProfiles());
 
