@@ -69,18 +69,6 @@ interface ProjectSystemSyncManager {
    */
   fun getLastSyncResult(): SyncResult
 
-  /**
-   * Executes [callback] after the project's first successful sync with source generation. If sources have already been
-   * generated for the project during this session, [callback] will be executed immediately in the calling thread.
-   *
-   * If the initial project sync fails and sources won't be generated until after some user interaction,
-   * this method will notify [callback] of the error and queue [callback] for later execution once the errors are
-   * resolved and source generation completes successfully.
-   *
-   * @param callback callback to execute after source generation is complete
-   */
-  fun addSourceGenerationCallback(callback: SourceGenerationCallback)
-
   /** The result of a sync request */
   enum class SyncResult(val isSuccessful: Boolean) {
     /** The result of the latest sync could not be determined */
@@ -112,16 +100,6 @@ interface ProjectSystemSyncManager {
     fun syncEnded(result: SyncResult)
   }
 
-  /**
-   * Callback to be executed after the project's first successful sync with source generation.
-   * See [addSourceGenerationCallback].
-   */
-  interface SourceGenerationCallback {
-    /** Called when the first project sync with source generation has successfully completed */
-    fun sourcesGenerated()
-    /** Called in the event the initial sync with source generation fails */
-    fun sourceGenerationError()
-  }
 }
 
 /** Endpoint for broadcasting changes in global sync status */

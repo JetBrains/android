@@ -27,9 +27,10 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -283,7 +284,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
-      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initPreviewForm, this::buildError);
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
+      }
+      else {
+        initPreviewForm();
+      }
     }
     else {
       initNeleModel();

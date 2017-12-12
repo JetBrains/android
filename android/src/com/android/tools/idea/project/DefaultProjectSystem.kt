@@ -18,7 +18,6 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SourceGenerationCallback
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.sdk.AndroidSdks
@@ -61,7 +60,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun isSyncInProgress() = false
     override fun isSyncNeeded() = false
     override fun getLastSyncResult() = SyncResult.SUCCESS
-    override fun addSourceGenerationCallback(callback: SourceGenerationCallback) = callback.sourcesGenerated()
   }
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
