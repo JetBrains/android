@@ -16,17 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+
+import static org.fest.swing.edt.GuiTask.execute;
 
 public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, JRootPane> {
   protected AbstractWizardStepFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JRootPane target) {
@@ -65,7 +68,10 @@ public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, 
     // Better use deleteText() here for the same effect, but we need to update FEST
     // 1 - FEST deleteText() calls scrollToVisible and EditorComponentImpl throws exception when it has only empty text
     // 2 - FEST assumes that all input components support "delete-previous" -> Throws ActionFailedException
-    new JTextComponentFixture(robot(), textField).setText("").enterText(text);
+    // 3 - IJ EditorComponent executes setText() on a transaction Guard, and it will be postponed if the shown textField is on a dialog
+    execute(() -> ((TransactionGuardImpl) TransactionGuard.getInstance()).performUserActivity(
+      () -> textField.setText(text)
+    ));
   }
 
   public String getValidationText() {
