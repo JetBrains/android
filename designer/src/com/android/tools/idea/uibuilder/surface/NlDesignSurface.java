@@ -55,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
@@ -162,6 +163,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return (LayoutlibSceneManager)super.getSceneManager();
   }
 
+  private int getSceneViewNumber() {
+    return myModelToSceneManagers.size() * (getSceneMode() == SceneMode.BOTH ? 2 : 1);
+  }
+
   /**
    * Set the ConstraintsLayer and SceneLayer layers to paint,
    * even if they are set to paint only on mouse hover
@@ -225,19 +230,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     Dimension size = primarySceneView.getSize();
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
-    Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    if (mySceneMode == SceneMode.BOTH) {
-      if (isStackVertically()) {
-        dimension.setSize(dimension.getWidth(),
-                          dimension.getHeight() + size.height + SCREEN_DELTA);
-      }
-      else {
-        dimension.setSize(dimension.getWidth() + size.width + SCREEN_DELTA,
-                          dimension.getHeight());
-      }
+    int contentWidth;
+    int contentHeight;
+
+    // TODO: adjust it to better result.
+    if (isStackVertically()) {
+      contentWidth = size.width;
+      contentHeight = (size.height + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
     }
-    return dimension;
+    else {
+      contentWidth = (size.width + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
+      contentHeight = size.height;
+    }
+    return new Dimension(contentWidth + 2 * DEFAULT_SCREEN_OFFSET_X,
+                         contentHeight + 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -311,12 +317,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected void layoutContent() {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    if (primarySceneView == null) {
+    Iterator<SceneManager> iterator = myModelToSceneManagers.values().iterator();
+    if (!iterator.hasNext()) {
       return;
     }
-
+    LayoutlibSceneManager manager = (LayoutlibSceneManager) iterator.next();
+    SceneView primarySceneView = manager.getSceneView();
     Dimension screenViewSize = primarySceneView.getSize();
 
     // Position primary screen
@@ -365,6 +371,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     manager.getScene().needsRebuildList();
+
+    int nextX = myScreenX + screenViewSize.width + SCREEN_DELTA;
+    while (iterator.hasNext()) {
+      LayoutlibSceneManager additionalManager = (LayoutlibSceneManager) iterator.next();
+      SceneView view = additionalManager.getSceneView();
+      view.setLocation(nextX, myScreenY);
+      nextX += screenViewSize.width + SCREEN_DELTA;
+    }
+
     revalidate();
     repaint();
   }
@@ -414,6 +429,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         getCurrentSceneView().getSize().getWidth(),
         getCurrentSceneView().getSize().getHeight());
     }
+
+    // TODO: adjust it to better result.
+    if (isStackVertically()) {
+      dimension.height *= myModelToSceneManagers.size();
+    }
+    else {
+      dimension.width *= myModelToSceneManagers.size();
+    }
     return dimension;
   }
 
@@ -435,6 +458,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     int requiredWidth = preferredSize.width;
     int requiredHeight = preferredSize.height;
+
+    // TODO: adjust it to better result.
+    for (SceneManager sceneManager: myModelToSceneManagers.values()) {
+      Dimension size = sceneManager.getSceneView().getSize();
+      if (isStackVertically()) {
+        requiredHeight += size.height;
+        requiredHeight += SCREEN_DELTA;
+      }
+      else {
+        requiredWidth += size.width;
+        requiredWidth += SCREEN_DELTA;
+      }
+    }
 
     if (mySceneMode == SceneMode.BOTH) {
       if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
@@ -550,9 +586,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public void forceUserRequestedRefresh() {
-    LayoutlibSceneManager sceneManager = getSceneManager();
-    if (sceneManager != null) {
-      sceneManager.requestUserInitatedRender();
+    for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
+      layoutlibSceneManager.requestUserInitatedRender();
     }
   }
 

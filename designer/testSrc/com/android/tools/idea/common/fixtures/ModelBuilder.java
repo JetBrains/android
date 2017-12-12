@@ -182,6 +182,7 @@ public class ModelBuilder {
         model.getConfiguration().setDevice(myDevice, true);
       }
       Scene scene = sceneManager.getScene();
+      sceneManager.update();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();

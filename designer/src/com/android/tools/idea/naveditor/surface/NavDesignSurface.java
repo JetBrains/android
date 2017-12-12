@@ -483,15 +483,16 @@ public class NavDesignSurface extends DesignSurface {
    * Sometimes the model gets regenerated and we need to update the current view root component. This tries to do that as best as possible.
    */
   public void refreshRoot() {
-    if (myModel == null) {
+    NlModel model = getModel();
+    if (model == null) {
       return;
     }
-    NlComponent match = myModel.getComponents().get(0);
+    NlComponent match = model.getComponents().get(0);
     if (myCurrentNavigation != null) {
       boolean includingParent = false;
       TagSnapshot currentSnapshot = myCurrentNavigation.getSnapshot();
       NlComponent currentParent = myCurrentNavigation.getParent();
-      for (NlComponent component : (Iterable<NlComponent>)myModel.flattenComponents()::iterator) {
+      for (NlComponent component : (Iterable<NlComponent>)model.flattenComponents()::iterator) {
         if (!NavComponentHelperKt.isNavigation(component)) {
           continue;
         }

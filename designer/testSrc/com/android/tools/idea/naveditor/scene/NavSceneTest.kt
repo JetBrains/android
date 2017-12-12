@@ -445,6 +445,7 @@ class NavSceneTest : NavTestCase() {
       }
     }.execute()
     val manager = NavSceneManager(model, model.surface as NavDesignSurface)
+    manager.update()
     val scene = manager.scene
 
     assertTrue(scene.getSceneComponent("myId")!!.isSelected)

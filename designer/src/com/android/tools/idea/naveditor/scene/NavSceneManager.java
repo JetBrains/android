@@ -108,7 +108,6 @@ public class NavSceneManager extends SceneManager {
     updateHierarchy(getModel(), null);
     getModel().addListener(new ModelChangeListener());
     getDesignSurface().getSelectionModel().addListener((unused, selection) -> getScene().needsRebuildList());
-    requestRender();
   }
 
   @Override
