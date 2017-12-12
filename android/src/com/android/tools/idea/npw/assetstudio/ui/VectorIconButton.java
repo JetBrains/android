@@ -40,14 +40,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Button which wraps a {@link VectorAsset}, allowing the user to browse a list of icons each
- * associated with a XML file representing a vector asset.
+ * Button that allows user to select an icon from a list of icons each associated with a XML file
+ * representing a vector asset.
  */
 public final class VectorIconButton extends JButton
     implements AssetComponent<VectorAsset>, Disposable, PersistentStateComponent<PersistentState> {
   private static final String URL_PROPERTY = "url";
 
-  private final VectorAsset myXmlAsset = new VectorAsset(VectorAsset.FileType.VECTOR_DRAWABLE);
+  private final VectorAsset myXmlAsset = new VectorAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 

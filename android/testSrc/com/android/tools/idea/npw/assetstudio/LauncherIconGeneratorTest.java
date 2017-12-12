@@ -123,7 +123,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
 
   @NotNull
   private BaseAsset createClipartAsset(@NotNull String filename) {
-    VectorAsset asset = new VectorAsset(VectorAsset.FileType.VECTOR_DRAWABLE);
+    VectorAsset asset = new VectorAsset();
     filename = FileUtil.join(getTestDataPath(), getTestName(true), filename);
     asset.path().set(new File(filename));
     asset.outputWidth().set(432);

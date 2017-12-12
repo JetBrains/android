@@ -147,7 +147,7 @@ public abstract class IconGenerator implements Disposable {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
@@ -169,7 +169,7 @@ public abstract class IconGenerator implements Disposable {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
@@ -196,7 +196,7 @@ public abstract class IconGenerator implements Disposable {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
+   * will be created / overwritten if {@link #generateIconsToDisk(AndroidModuleTemplate)} is called.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
@@ -224,14 +224,12 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Generates png icons into the target path.
+   * Generates icons and writes them to disk.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
-   *
-   * This method must be called from within a WriteAction.
    */
-  public void generateImageIconsIntoPath(@NotNull AndroidModuleTemplate paths) {
+  public void generateIconsToDisk(@NotNull AndroidModuleTemplate paths) {
     Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(paths);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
@@ -265,11 +263,11 @@ public abstract class IconGenerator implements Disposable {
   private void writePngToDisk(@NotNull File file, @NotNull BufferedImage image) {
     try {
       VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
-      VirtualFile imageFile = directory.findChild(file.getName());
-      if (imageFile == null || !imageFile.exists()) {
-        imageFile = directory.createChildData(this, file.getName());
+      VirtualFile virtualFile = directory.findChild(file.getName());
+      if (virtualFile == null || !virtualFile.exists()) {
+        virtualFile = directory.createChildData(this, file.getName());
       }
-      try (OutputStream outputStream = imageFile.getOutputStream(this)) {
+      try (OutputStream outputStream = virtualFile.getOutputStream(this)) {
         ImageIO.write(image, "PNG", outputStream);
       }
     }
@@ -281,11 +279,11 @@ public abstract class IconGenerator implements Disposable {
   private void writeTextToDisk(@NotNull File file, @NotNull String text) {
     try {
       VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
-      VirtualFile imageFile = directory.findChild(file.getName());
-      if (imageFile == null || !imageFile.exists()) {
-        imageFile = directory.createChildData(this, file.getName());
+      VirtualFile virtualFile = directory.findChild(file.getName());
+      if (virtualFile == null || !virtualFile.exists()) {
+        virtualFile = directory.createChildData(this, file.getName());
       }
-      try (OutputStream outputStream = imageFile.getOutputStream(this)) {
+      try (OutputStream outputStream = virtualFile.getOutputStream(this)) {
         byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
         outputStream.write(bytes);
       }
@@ -293,20 +291,6 @@ public abstract class IconGenerator implements Disposable {
     catch (IOException e) {
       getLog().error(e);
     }
-  }
-
-  /**
-   * Generates a single icon using the given options.
-   *
-   * @param context render context to use for looking up resources etc
-   * @param options options controlling the appearance of the icon
-   * @return a {@link BufferedImage} with the generated icon
-   */
-  @Nullable
-  public GeneratedIcon generateIcon(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name,
-                                    @NotNull IconCategory category) {
-    BufferedImage image = generate(context, options);
-    return new GeneratedImageIcon(getIconFileName(options, name), Paths.get(getIconPath(options, name)), category, options.density, image);
   }
 
   @NotNull

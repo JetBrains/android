@@ -92,12 +92,12 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JRadioButton myTextRadioButton;
   private JRadioButton myImageRadioButton;
   private JPanel myAllOptionsPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel mySourceAssetTypePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myIconOptionsPanel;
   private JRadioButton myTrimmedRadioButton;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JRadioButton myNotTrimmedRadioButton;
   private JPanel myTrimOptionsPanel;
   private JSlider myPaddingSlider;
@@ -105,13 +105,13 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JPanel myAssetRadioButtonsPanel;
   private JPanel myPaddingSliderPanel;
   private JTextField myOutputNameTextField;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myOutputNamePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myTrimRowPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myNameRowPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myPaddingRowPanel;
   private JPanel myForegroundRowPanel;
   private ColorPanel myForegroundColorPanel;
@@ -121,10 +121,10 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JPanel myShapeRowPanel;
   private JPanel myScalingRadioButtonsPanel;
   private JRadioButton myCropRadioButton;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JRadioButton myShrinkToFitRadioButton;
   private JPanel myEffectRadioButtonsPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JRadioButton myNoEffectRadioButton;
   private JRadioButton myDogEarRadioButton;
   private JPanel myThemeRowPanel;
@@ -134,7 +134,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JComboBox<Shape> myShapeComboBox;
   private JPanel myCustomThemeRowPanel;
   private ColorPanel myCustomThemeColorPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myAssetPanels;
   private JPanel myImageAssetRowPanel;
   private JPanel myClipartAssetRowPanel;

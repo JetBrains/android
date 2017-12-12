@@ -18,14 +18,15 @@ package com.android.tools.idea.ui;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageComponent;
 import com.android.tools.adtui.util.GraphicsUtil;
-import com.intellij.ui.Gray;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+import static com.android.tools.idea.npw.assetstudio.wizard.CheckeredBackgroundPanel.DEFAULT_EVEN_CELL_COLOR;
+import static com.android.tools.idea.npw.assetstudio.wizard.CheckeredBackgroundPanel.DEFAULT_ODD_CELL_COLOR;
+
 /**
- * VectorImageComponent is a Swing component that displays an image.
- * Particularly added a 3D boundary and center the image in the middle.
+ * A Swing component that displays an image centered in the middle.
  */
 public class VectorImageComponent extends ImageComponent {
   private Rectangle myRectangle = new Rectangle();
@@ -33,18 +34,13 @@ public class VectorImageComponent extends ImageComponent {
 
   @Override
   protected void paintChildren(@NotNull Graphics g) {
-    Graphics2D g2d = (Graphics2D) g;
-
-    // Draw the chess board background all the time.
+    // Draw the chess board background.
     myRectangle.setBounds(0, 0, getWidth(), getHeight());
-    GraphicsUtil.paintCheckeredBackground(g, Gray.xAA, Gray.xEE, myRectangle, CELL_SIZE);
+    GraphicsUtil.paintCheckeredBackground(g, DEFAULT_ODD_CELL_COLOR, DEFAULT_EVEN_CELL_COLOR, myRectangle, CELL_SIZE);
 
-    // Then draw the icon to the center.
-    if (myImage == null) return;
-
-    g.draw3DRect(0, 0, getWidth() - 1, getHeight() - 1, false);
-
-    Rectangle rect = new Rectangle(0, 0, getWidth(), getHeight());
-    AssetUtil.drawCenterInside(g2d, myImage, rect);
+    if (myImage != null) {
+      // Draw the image in the center.
+      AssetUtil.drawCenterInside((Graphics2D) g, myImage, myRectangle);
+    }
   }
 }

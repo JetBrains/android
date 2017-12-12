@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
@@ -41,7 +42,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
@@ -54,13 +54,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -178,57 +175,55 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JBLabel myBackgroundColorLabel;
   private JBLabel myLegacyIconShapeLabel;
   private JBScrollPane myOtherIconsScrollPane;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myOtherIconsAllOptionsPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myForegroundAssetTypePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myForegroundLayerNamePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myForegroundAssetTypeSourcePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myForegroundImageOptionsPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myBackgroundLayerNamePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myBackgroundAssetTypePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myBackgroundAssetTypeSourcePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myBackgroundImageOptionsPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myLegacyIconShapePanelRow;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myOutputNamePanelRow;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private TitledSeparator myForegroundScalingTitleSeparator;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private TitledSeparator mySourceAssetTitleSeparator;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myForegroundResizePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private TitledSeparator myBackgroundScalingTitleSeparator;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private TitledSeparator myBackgroundSourceAssetTitleSeparator;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myGenerateLegacyIconRowPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myForegroundTrimPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myLegacyIconShapePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myGenerateWebIconRowPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JBLabel myGenerateWebIconLabel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myGenerateWebIconRadioButtonsPanel;
   private JRadioButton myGenerateWebIconYesRadioButton;
   private JRadioButton myBackgroundTrimNoRadioButton;
   private JBLabel myWebIconShapeLabel;
   private JComboBox<Shape> myWebIconShapeComboBox;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myWebIconShapePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myWebIconShapePanelRow;
 
   // @formatter:off
@@ -252,11 +247,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
 
   @NotNull private final ImmutableMap<ForegroundAssetType, AssetComponent> myForegroundAssetPanelMap;
 
-  @NotNull private final ObjectProperty<BaseAsset> myForegroundActiveAsset;
-  @NotNull private final OptionalProperty<ImageAsset> myBackgroundImageAsset;
   @NotNull private final StringProperty myOutputName;
   @NotNull private final StringProperty myForegroundLayerName;
   @NotNull private final StringProperty myBackgroundLayerName;
+  @NotNull private final ObjectProperty<BaseAsset> myForegroundActiveAsset;
+  @NotNull private final OptionalProperty<ImageAsset> myBackgroundImageAsset;
+  @NotNull private final ObjectProperty<Validator.Result> myForegroundAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
+  @NotNull private final ObjectProperty<Validator.Result> myBackgroundAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   @NotNull private final AbstractProperty<ForegroundAssetType> myForegroundAssetType;
   @NotNull private final AbstractProperty<BackgroundAssetType> myBackgroundAssetType;
   @NotNull private final BoolProperty myShowGrid;
@@ -381,11 +378,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
                                                               myForegroundTextRadioButton);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
+    myForegroundImageAssetBrowser.getAsset().setRole("a foreground image file");
     myForegroundColorPanel.setSelectedColor(myIconGenerator.foregroundColor().get());
 
     myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
                                                               myBackgroundImageRadioButton, myBackgroundColorRadioButton);
     myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
+    myBackgroundImageAssetBrowser.getAsset().setRole("a background image file");
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
     initializeListenersAndBindings();
@@ -468,28 +467,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     return new File(TemplateManager.getTemplateRootFolder(), path);
   }
 
-  @NotNull
-  private static Path getImageSamplesPath() {
-    String userHome = System.getProperty("user.home");
-    String path = null;
-    if (SystemInfo.isWindows) {
-      // On Windows, we need the localized "Documents" folder name.
-      path = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-    }
-    else if (SystemInfo.isMac) {
-      // On OSX, "Documents" is not localized.
-      path = FileUtil.join(userHome, "Documents");
-    }
-    else if (SystemInfo.isLinux) {
-      // On Linux, there is no standard "Documents" folder, so use the home folder.
-      path = userHome;
-    }
-    if (StringUtil.isEmpty(path)) {
-      throw new RuntimeException("Platform is not supported");
-    }
-    return Paths.get(path, "AndroidStudio", "ImageAssets", "Samples");
-  }
-
   private void initializeListenersAndBindings() {
     myForegroundTrimmed = new SelectedProperty(myForegroundTrimYesRadioButton);
     myBackgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
@@ -549,12 +526,19 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
     myListeners.listenAndFire(myForegroundActiveAsset, sender -> {
       myForegroundActiveAssetBindings.releaseAll();
-      myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, myForegroundActiveAsset.get().trimmed());
-      myForegroundActiveAssetBindings.bindTwoWay(myForegroundResizePercent, myForegroundActiveAsset.get().scalingPercent());
-      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, myForegroundActiveAsset.get().color());
-      myForegroundActiveAssetBindings.bind(foregroundIsResizable, myForegroundActiveAsset.get().isResizable());
+      BaseAsset asset = myForegroundActiveAsset.get();
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, asset.trimmed());
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundResizePercent, asset.scalingPercent());
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, asset.color());
+      myForegroundActiveAssetBindings.bind(foregroundIsResizable, asset.isResizable());
+      if (asset instanceof ImageAsset) {
+        myForegroundActiveAssetBindings.bind(myForegroundAssetValidityState, ((ImageAsset)asset).getValidityState());
+      }
+      else {
+        myForegroundAssetValidityState.set(Validator.Result.OK);
+      }
 
-      getIconGenerator().sourceAsset().setValue(myForegroundActiveAsset.get());
+      getIconGenerator().sourceAsset().setValue(asset);
       onAssetModified.run();
     });
 
@@ -562,16 +546,18 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     // When switching between Image/Color for background, bind corresponding properties and regenerate asset (to be sure).
     Runnable onBackgroundAssetModified = () -> {
       myBackgroundActiveAssetBindings.releaseAll();
-      ImageAsset imageAsset = myBackgroundImageAsset.getValueOrNull();
-      if (imageAsset != null) {
-        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundTrimmed, imageAsset.trimmed());
-        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundResizePercent, imageAsset.scalingPercent());
-        myBackgroundActiveAssetBindings.bind(backgroundIsResizable, imageAsset.isResizable());
+      ImageAsset asset = myBackgroundImageAsset.getValueOrNull();
+      if (asset != null) {
+        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundTrimmed, asset.trimmed());
+        myBackgroundActiveAssetBindings.bindTwoWay(myBackgroundResizePercent, asset.scalingPercent());
+        myBackgroundActiveAssetBindings.bind(backgroundIsResizable, asset.isResizable());
+        myBackgroundActiveAssetBindings.bind(myBackgroundAssetValidityState, asset.getValidityState());
       }
       else {
         backgroundIsResizable.set(false);
+        myBackgroundAssetValidityState.set(Validator.Result.OK);
       }
-      getIconGenerator().backgroundImageAsset().setNullableValue(imageAsset);
+      getIconGenerator().backgroundImageAsset().setNullableValue(asset);
       onAssetModified.run();
     };
     myListeners.listenAndFire(myBackgroundImageAsset, sender -> onBackgroundAssetModified.run());
@@ -655,9 +641,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
 
-    //TODO: Validate background layer drawable path
-
-    //TODO: Validate foreground layer image path
+    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
+    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
   }
 
   @NotNull
