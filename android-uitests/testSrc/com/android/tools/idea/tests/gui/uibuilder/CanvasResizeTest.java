@@ -41,6 +41,7 @@ public class CanvasResizeTest {
       .getConfigToolbar()
       .setOrientationAsLandscape()
       .requireOrientation("Landscape")
+      .chooseDevice("Custom")
       .leaveConfigToolbar()
       .startResizeInteraction()
       .resizeToAndroidSize(365, 638) // Size of Nexus 5 in portrait is (360 x 640)
