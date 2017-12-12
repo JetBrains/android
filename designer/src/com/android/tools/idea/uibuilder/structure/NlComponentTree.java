@@ -211,9 +211,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void dispose() {
-    if (mySurface != null) {
-      mySurface.getSelectionModel().removeListener(this);
-    }
+    setDesignSurface(null);
     if (myModel != null) {
       myModel.removeListener(this);
       myModel = null;

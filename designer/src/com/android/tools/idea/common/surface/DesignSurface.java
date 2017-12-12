@@ -61,12 +61,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -92,8 +92,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
-  @Nullable protected NlModel myModel;
-  private SceneManager mySceneManager;
+
+  protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
     @Override
@@ -234,10 +235,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public NlLayoutType getLayoutType() {
-    if (myModel == null) {
-      return NlLayoutType.UNKNOWN;
-    }
-    return myModel.getType();
+    NlModel model = getModel();
+    return model == null ? NlLayoutType.UNKNOWN : model.getType();
   }
 
   @NotNull
@@ -251,61 +250,131 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public ItemTransferable getSelectionAsTransferable() {
-    return getSelectionModel().getTransferable(myModel != null ? myModel.getId() : 0);
+    NlModel model = getModel();
+    return getSelectionModel().getTransferable(model != null ? model.getId() : 0);
   }
 
+  /**
+   * @return the primary (first) {@link NlModel} if exist. null otherwise.
+   * @see #getModels()
+   */
   @Nullable
   public NlModel getModel() {
-    return myModel;
+    List<NlModel> models = getModels();
+    return models.isEmpty() ? null : models.get(0);
   }
 
-  public void setModel(@Nullable NlModel model) {
-    if (model == myModel) {
-      return;
-    }
+  /**
+   * @return the list of added {@link NlModel}s.
+   * @see #getModel()
+   */
+  @NotNull
+  public ImmutableList<NlModel> getModels() {
+    return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+  }
 
-    if (myModel != null) {
-      myModel.getConfiguration().removeListener(myConfigurationListener);
-      myModel.removeListener(myModelListener);
-
-      // Removed the added layers.
-      removeLayers(mySceneManager.getLayers());
-
-      Disposer.dispose(mySceneManager);
-    }
-
-    myModel = model;
-    if (model == null) {
-      mySceneManager = null;
+  /**
+   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * @param model the added {@link NlModel}
+   */
+  public void addModel(@NotNull NlModel model) {
+    // No need to add same model twice.
+    if (myModelToSceneManagers.containsKey(model)) {
       return;
     }
 
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
-    mySceneManager = createSceneManager(model);
+    SceneManager manager = createSceneManager(model);
 
+    myModelToSceneManagers.put(model, manager);
+
+    reactivateInteractionManager();
+
+    layoutContent();
+    repaint();
+
+    zoomToFit();
+  }
+
+  /**
+   * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
+   * @param model the added {@link NlModel}
+   * @return the removed SceneManager
+   */
+  @Nullable
+  public SceneManager removeModel(@NotNull NlModel model) {
+    if (!myModelToSceneManagers.containsKey(model)) {
+      return null;
+    }
+
+    model.getConfiguration().removeListener(myConfigurationListener);
+    model.removeListener(myModelListener);
+
+    SceneManager manager = myModelToSceneManagers.remove(model);
+    assert manager != null;
+
+
+    // Removed the added layers.
+    removeLayers(manager.getLayers());
+
+    Disposer.dispose(manager);
+
+    reactivateInteractionManager();
+
+    layoutContent();
+    repaint();
+
+    zoomToFit();
+
+    return manager;
+  }
+
+  /**
+   * Sets the current {@link NlModel} to DesignSurface.
+   * @deprecated This function is going to be removed. Use {@link #addModel(NlModel)} and {@link #removeModel(NlModel)} instead.
+   */
+  @Deprecated
+  public void setModel(@Nullable NlModel model) {
+    NlModel oldModel = getModel();
+    if (model == oldModel) {
+      return;
+    }
+
+    if (oldModel != null) {
+      removeModel(oldModel);
+    }
+
+    // Should not have any other NlModel in this use case.
+    assert myModelToSceneManagers.isEmpty();
+
+    if (model != null) {
+      addModel(model);
+    }
+
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.modelChanged(this, model);
+    }
+  }
+
+  /**
+   * Update the status of {@link InteractionManager}. It will start or stop listening depending on the current layout type.
+   */
+  private void reactivateInteractionManager() {
     if (getLayoutType().isSupportedByDesigner()) {
       myInteractionManager.startListening();
     }
     else {
       myInteractionManager.stopListening();
     }
-
-    layoutContent();
-    repaint();
-
-    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-      listener.modelChanged(this, model);
-    }
-    zoomToFit();
   }
 
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
-    if (myModel != null) {
-      myModel.getConfiguration().removeListener(myConfigurationListener);
-      myModel.removeListener(myModelListener);
+    for (NlModel model : myModelToSceneManagers.keySet()) {
+      model.getConfiguration().removeListener(myConfigurationListener);
+      model.removeListener(myModelListener);
     }
   }
 
@@ -324,6 +393,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.setSize(dimension.width, dimension.height);
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
+
     SceneView view = getCurrentSceneView();
     if (view != null) {
       myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
@@ -753,15 +823,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
-    if (!myIsActive && myModel != null) {
-      myModel.activate(this);
+    if (!myIsActive) {
+      for (NlModel model : myModelToSceneManagers.keySet()) {
+        model.activate(this);
+      }
     }
     myIsActive = true;
   }
 
   public void deactivate() {
-    if (myIsActive && myModel != null) {
-      myModel.deactivate(this);
+    if (myIsActive) {
+      for (NlModel model : myModelToSceneManagers.keySet()) {
+        model.deactivate(this);
+      }
     }
     myIsActive = false;
 
@@ -793,14 +867,35 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getCurrentSceneView();
   }
 
+  /**
+   * @return the {@link Scene} of {@link SceneManager} associates to primary {@link NlModel}.
+   * @see #getSceneManager()
+   * @see #getSceneManager(NlModel)
+   * @see SceneManager#getScene()
+   */
+  @Deprecated
   @Nullable
   public Scene getScene() {
-    return getSceneManager() != null ? mySceneManager.getScene() : null;
+    SceneManager sceneManager = getSceneManager();
+    return sceneManager != null ? sceneManager.getScene() : null;
   }
 
+  /**
+   * @deprecated Use {@link #getSceneManager(NlModel)} instead.
+   */
+  @Deprecated
   @Nullable
   public SceneManager getSceneManager() {
-    return mySceneManager;
+    NlModel model = getModel();
+    return model != null ? getSceneManager(model) : null;
+  }
+
+  /**
+   * @return The {@link SceneManager} associated to the given {@link NlModel}.
+   */
+  @Nullable
+  public SceneManager getSceneManager(@NotNull NlModel model) {
+    return myModelToSceneManagers.get(model);
   }
 
   /**
@@ -983,8 +1078,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           return list.toArray(XmlTag.EMPTY);
         }
       }
-      if (LangDataKeys.MODULE.is(dataId) && myModel != null) {
-        return myModel.getModule();
+      NlModel model = getModel();
+      if (LangDataKeys.MODULE.is(dataId) && model != null) {
+        return model.getModule();
       }
 
       return null;
@@ -1174,12 +1270,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
+   * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
    */
   public void requestRender() {
-    SceneManager sceneManager = getSceneManager();
-    if (sceneManager != null) {
-      sceneManager.requestRender();
+    for (SceneManager manager : myModelToSceneManagers.values()) {
+      manager.requestRender();
     }
   }
 
