@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
+import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawLine
@@ -37,7 +38,8 @@ import java.awt.Rectangle
  */
 
 @SwingCoordinate private const val ACTION_STROKE_WIDTH = 3f
-private val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+@JvmField
+val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
 class ActionDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
@@ -60,7 +62,7 @@ class ActionDecorator : SceneDecorator() {
         arrowRect.y = drawRect.y
         arrowRect.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL)
         arrowRect.height = drawRect.height
-        list.add(DrawArrow(DRAW_ACTION_LEVEL, arrowRect, color))
+        list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.RIGHT, arrowRect, color))
       }
     }
   }

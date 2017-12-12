@@ -107,10 +107,10 @@ class SerializationTest : TestCase() {
   fun testDrawArrow() {
     val factory = { s: String -> DrawArrow(s) }
 
-    testSerialization("DrawArrow,0,10x20x30x40,ffff0000",
-        DrawArrow(0, Rectangle(10, 20, 30, 40), Color.RED), factory)
-    testSerialization("DrawArrow,1,60x70x80x90,ff0000ff",
-        DrawArrow(1, Rectangle(60, 70, 80, 90), Color.BLUE), factory)
+    testSerialization("DrawArrow,0,RIGHT,10x20x30x40,ffff0000",
+        DrawArrow(0, ArrowDirection.RIGHT, Rectangle(10, 20, 30, 40), Color.RED), factory)
+    testSerialization("DrawArrow,1,UP,60x70x80x90,ff0000ff",
+        DrawArrow(1, ArrowDirection.UP, Rectangle(60, 70, 80, 90), Color.BLUE), factory)
   }
 
   fun testDrawLine() {
