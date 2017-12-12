@@ -74,7 +74,7 @@ import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateImageIconsModel>
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel>
     implements PersistentStateComponent<PersistentState> {
   private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
   private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
@@ -125,7 +125,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIma
   private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateImagesStep(@NotNull GenerateImageIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
+  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
@@ -396,7 +396,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIma
       Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
-      // Create a FileTreeModel containing all generated files
+      // Create a FileTreeModel containing all generated files.
       FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
       for (Map.Entry<File, GeneratedIcon> entry : pathIconMap.entrySet()) {
         File path = entry.getKey();

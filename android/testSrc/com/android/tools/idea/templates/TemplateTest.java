@@ -1519,7 +1519,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
         if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
-          iconGenerator.generateImageIconsIntoPath(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
+          iconGenerator.generateIconsToDisk(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
         }
         projectState.updateParameters();
 

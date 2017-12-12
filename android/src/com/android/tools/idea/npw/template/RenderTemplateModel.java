@@ -213,7 +213,7 @@ public final class RenderTemplateModel extends WizardModel {
         protected void run(@NotNull Result<Boolean> result) throws Throwable {
           boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
           if (success && myIconGenerator != null) {
-            myIconGenerator.generateImageIconsIntoPath(paths);
+            myIconGenerator.generateIconsToDisk(paths);
           }
 
           result.setResult(success);

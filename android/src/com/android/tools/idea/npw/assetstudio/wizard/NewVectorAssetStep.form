@@ -71,7 +71,7 @@
                   <text value="Name:"/>
                 </properties>
               </component>
-              <component id="5777" class="javax.swing.JTextField" binding="myOutputNameField">
+              <component id="5777" class="javax.swing.JTextField" binding="myOutputNameTextField">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <minimum-size width="-1" height="20"/>
@@ -96,10 +96,10 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Icon:"/>
+                  <text value="Clip Art:"/>
                 </properties>
               </component>
-              <component id="5f74b" class="com.android.tools.idea.npw.assetstudio.ui.VectorIconButton" binding="myIconButton">
+              <component id="5f74b" class="com.android.tools.idea.npw.assetstudio.ui.VectorIconButton" binding="myClipartAssetButton">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                     <preferred-size width="24" height="24"/>
@@ -109,7 +109,7 @@
               </component>
             </children>
           </grid>
-          <grid id="c1857" binding="myBrowserPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="c1857" binding="myFileBrowserPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="true"/>
@@ -119,7 +119,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <component id="b0fb0" class="javax.swing.JLabel" binding="myImageFileLabel">
+              <component id="b0fb0" class="javax.swing.JLabel">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -127,7 +127,7 @@
                   <text value="Path:"/>
                 </properties>
               </component>
-              <component id="3a86" class="com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser" binding="myBrowser">
+              <component id="3a86" class="com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser" binding="myFileBrowser">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -151,13 +151,13 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="3f923" class="javax.swing.JRadioButton" binding="myMaterialIconRadioButton">
+                  <component id="3f923" class="javax.swing.JRadioButton" binding="myClipartRadioButton">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <selected value="true"/>
-                      <text value="Material Icon"/>
+                      <text value="Clip Art"/>
                     </properties>
                   </component>
                   <component id="59c65" class="javax.swing.JRadioButton" binding="myLocalFileRadioButton">
@@ -338,19 +338,27 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="3" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
-            <border type="none">
-              <color color="-16777216"/>
-            </border>
+            <border type="none"/>
             <children>
-              <component id="960a1" class="com.android.tools.idea.ui.VectorImageComponent" binding="myImagePreview">
+              <grid id="4827c" binding="myImagePreviewPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="1" fill="0" indent="1" use-parent-layout="false">
-                    <minimum-size width="256" height="256"/>
-                    <preferred-size width="256" height="256"/>
-                  </grid>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
-              </component>
+                <border type="line"/>
+                <children>
+                  <component id="960a1" class="com.android.tools.idea.ui.VectorImageComponent" binding="myImagePreview">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="1" fill="0" indent="0" use-parent-layout="false">
+                        <minimum-size width="256" height="256"/>
+                        <preferred-size width="256" height="256"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
               <component id="207db" class="javax.swing.JLabel">
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>

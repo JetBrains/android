@@ -16,8 +16,10 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.ide.common.vectordrawable.Svg2Vector;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
@@ -47,11 +49,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public final class ImageAsset extends BaseAsset {
   @NotNull private final OptionalValueProperty<File> myImagePath;
-  @NotNull private final ObservableBool myIsVectorGraphics;
   @NotNull private final ObservableBool myIsResizable;
   @NotNull private final BoolValueProperty myXmlDrawableIsResizable = new BoolValueProperty();
-  @NotNull private final OptionalValueProperty<String> myError = new OptionalValueProperty<>();
-  @NotNull private final OptionalValueProperty<String> myWarning = new OptionalValueProperty<>();
+  @NotNull private final ObjectValueProperty<Validator.Result> myValidityState = new ObjectValueProperty<>(Validator.Result.OK);
+  @NotNull private String myRole = "an image file";
 
   @NotNull private final Object myLock = new Object();
   @GuardedBy("myLock")
@@ -72,14 +73,6 @@ public final class ImageAsset extends BaseAsset {
       }
     });
 
-    myIsVectorGraphics = new BooleanExpression(myImagePath) {
-      @Override
-      @NotNull
-      public Boolean get() {
-        return isVectorGraphics(getFileType(myImagePath.getValueOrNull()));
-      }
-    };
-
     myIsResizable = new BooleanExpression(myImagePath, myXmlDrawableIsResizable) {
       @Override
       @NotNull
@@ -99,9 +92,14 @@ public final class ImageAsset extends BaseAsset {
     };
   }
 
-  @Nullable
-  private static FileType getFileType(@Nullable File file) {
-    return file == null ? null : FileType.fromFile(file);
+  /**
+   * Sets the role played by this image asset. Can be used for producing unambiguous error messages in situations
+   * when there are multiple image assets. The default role is "an image file".
+   *
+   * @param role a short description of the role, e.g. "a background image file"
+   */
+  public void setRole(@NotNull String role) {
+    myRole = role;
   }
 
   /**
@@ -112,14 +110,6 @@ public final class ImageAsset extends BaseAsset {
     return myImagePath;
   }
 
-  /**
-   * Returns an observable boolean reflecting whether the image asset represents a vector graphics file or not.
-   */
-  @NotNull
-  public ObservableBool isVectorGraphics() {
-    return myIsVectorGraphics;
-  }
-
   @Override
   @NotNull
   public ObservableBool isResizable() {
@@ -127,19 +117,12 @@ public final class ImageAsset extends BaseAsset {
   }
 
   /**
-   * Returns an observable reflecting the latest error encountered while reading the file or processing its contents.
+   * Returns an observable reflecting the latest error or warning encountered while reading
+   * the file or processing its contents.
    */
   @NotNull
-  public OptionalValueProperty<String> getError() {
-    return myError;
-  }
-
-  /**
-   * Returns an observable reflecting the latest warning encountered while reading the file or processing its contents.
-   */
-  @NotNull
-  public OptionalValueProperty<String> getWarning() {
-    return myWarning;
+  public ObjectValueProperty<Validator.Result> getValidityState() {
+    return myValidityState;
   }
 
   @Override
@@ -155,11 +138,6 @@ public final class ImageAsset extends BaseAsset {
       }
       return myImageFuture;
     }
-  }
-
-  private void setError(@Nullable String message) {
-    myError.setNullableValue(message);
-    myWarning.setNullableValue(null);
   }
 
   /**
@@ -189,78 +167,102 @@ public final class ImageAsset extends BaseAsset {
   @Nullable
   private String loadXmlDrawable(@NotNull File file) {
     String xmlText = null;
-    String error = null;
-    String warning = null;
+    Validator.Result validityState = checkFileExistence(file);
 
-    FileType fileType = FileType.fromFile(file);
-    try {
-      switch (fileType) {
-        case XML_DRAWABLE:
-          xmlText = Files.toString(file, UTF_8);
-          break;
+    if (validityState.getSeverity() == Validator.Severity.OK) {
+      FileType fileType = FileType.fromFile(file);
+      try {
+        switch (fileType) {
+          case XML_DRAWABLE:
+            xmlText = Files.toString(file, UTF_8);
+            break;
 
-        case SVG:
-          ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-          warning = Svg2Vector.parseSvgToXml(file, outStream);
-          xmlText = outStream.toString(UTF_8.name());
-          break;
+          case SVG:
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            String message = Svg2Vector.parseSvgToXml(file, outStream);
+            xmlText = outStream.toString(UTF_8.name());
+            if (xmlText.isEmpty()) {
+              xmlText = null;
+            }
+            if (!message.isEmpty()) {
+              validityState = new Validator.Result(xmlText == null ? Validator.Severity.ERROR : Validator.Severity.WARNING, message);
+            }
+            break;
 
-        case LAYERED_IMAGE:
-          xmlText = new LayeredImageConverter().toVectorDrawableXml(file);
-          break;
+          case LAYERED_IMAGE:
+            xmlText = new LayeredImageConverter().toVectorDrawableXml(file);
+            break;
 
-        default:
-          break;
+          default:
+            break;
+        }
+      }
+      catch (IOException e) {
+        validityState = Validator.Result.fromThrowable(e);
       }
     }
-    catch (IOException e) {
-      error = e.getMessage();
-    }
 
+    if (xmlText == null && validityState.getSeverity() == Validator.Severity.OK) {
+      validityState = Validator.Result.fromNullableMessage("The specified asset could not be parsed. Please choose another asset.");
+    }
     boolean resizable = xmlText != null && TAG_VECTOR.equals(XmlUtils.getRootTagName(xmlText));
-    String finalError = error;
-    String finalWarning = error != null ? null : warning;
-    UIUtil.invokeLaterIfNeeded(() -> {
-      if (FileUtil.filesEqual(file, myImagePath.getValueOrNull())) {
-        myXmlDrawableIsResizable.set(resizable);
-        myError.setNullableValue(finalError);
-        myWarning.setNullableValue(finalWarning);
-      }
-    });
 
+    updateValidityStateAndResizability(file, validityState, resizable);
     return xmlText;
   }
 
   @Nullable
   private BufferedImage loadImage(@NotNull File file) {
     BufferedImage image = null;
-    String error = null;
+    Validator.Result validityState = checkFileExistence(file);
 
-    FileType fileType = FileType.fromFile(file);
-    if (fileType == FileType.RASTER_IMAGE_CANDIDATE) {
-      try {
-        image = ImageIO.read(file);
-      }
-      catch (IOException e) {
-        error = e.getMessage();
+    if (validityState.getSeverity() == Validator.Severity.OK) {
+      FileType fileType = FileType.fromFile(file);
+      if (fileType == FileType.RASTER_IMAGE_CANDIDATE) {
+        try {
+          image = ImageIO.read(file);
+        }
+        catch (IOException e) {
+          validityState = Validator.Result.fromThrowable(e);
+        }
       }
     }
 
-    BufferedImage finalImage = image;
-    String finalError = error;
+    updateValidityStateAndResizability(file, validityState, image != null);
+    return image;
+  }
+
+  @NotNull
+  private Validator.Result checkFileExistence(@NotNull File file) {
+    if (!file.exists()) {
+      return Validator.Result.fromNullableMessage("File " + file.getName() + " does not exist");
+    }
+    if (file.isDirectory()) {
+      return new Validator.Result(Validator.Severity.WARNING, "Please select " + myRole);
+    }
+
+    return Validator.Result.OK;
+  }
+
+  /**
+   * Updates validity state and resizability asynchronously on the UI thread. May be called from any thread.
+   */
+  private void updateValidityStateAndResizability(@NotNull File file, @NotNull Validator.Result validityState, boolean resizable) {
     UIUtil.invokeLaterIfNeeded(() -> {
       if (FileUtil.filesEqual(file, myImagePath.getValueOrNull())) {
-        myXmlDrawableIsResizable.set(finalImage != null);
-        myError.setNullableValue(finalError);
-        myWarning.setNullableValue(null);
+        myValidityState.set(validityState);
+        myXmlDrawableIsResizable.set(resizable);
       }
     });
-
-    return image;
   }
 
   private static boolean isVectorGraphics(@Nullable FileType fileType) {
     return fileType == FileType.XML_DRAWABLE || fileType == FileType.SVG || fileType == FileType.LAYERED_IMAGE;
+  }
+
+  @Nullable
+  private static FileType getFileType(@Nullable File file) {
+    return file == null ? null : FileType.fromFile(file);
   }
 
   private enum FileType {
