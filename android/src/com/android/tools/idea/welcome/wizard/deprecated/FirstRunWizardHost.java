@@ -35,7 +35,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,12 +98,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private void setupWizard() {
     DynamicWizard wizard = new FirstRunWizard(this, myMode);
     wizard.init();
-    JBScrollPane scrollPane =
-      new JBScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    scrollPane.setViewportView(wizard.getContentPane());
-    scrollPane.setBorder(JBUI.Borders.empty());
-    scrollPane.setViewportBorder(JBUI.Borders.empty());
-    add(scrollPane, BorderLayout.CENTER);
+    add(wizard.getContentPane(), BorderLayout.CENTER);
   }
 
   @Override
