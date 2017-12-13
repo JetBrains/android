@@ -44,6 +44,7 @@ import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
 import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -191,15 +192,16 @@ public class NlPaletteModel implements Disposable {
     Project project = myModule.getProject();
     viewClasses.apply(project).forEach(psiClass -> {
       String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-      String className = psiClass.getQualifiedName();
+      String tagName = psiClass.getQualifiedName();
+      String className = PackageClassConverter.getQualifiedName(psiClass);
 
-      if (description == null || className == null) {
+      if (description == null || tagName == null || className == null) {
         // Currently we ignore anonymous views
         return false;
       }
 
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE, className, null, null, "",
+                             StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE, tagName, className, null, null, "",
                              null, Collections.emptyList(), Collections.emptyList());
 
       return true;
@@ -216,6 +218,7 @@ public class NlPaletteModel implements Disposable {
                                  @Nullable Icon icon16,
                                  @Nullable Icon icon24,
                                  @NotNull String tagName,
+                                 @NotNull String className,
                                  @Nullable @Language("XML") String xml,
                                  @Nullable @Language("XML") String previewXml,
                                  @NotNull String libraryCoordinate,
@@ -253,12 +256,12 @@ public class NlPaletteModel implements Disposable {
       }
 
       if (handler instanceof ViewGroupHandler) {
-        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate,
-                                             preferredProperty, properties, layoutProperties);
+        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, className, xml, previewXml,
+                                             libraryCoordinate, preferredProperty, properties, layoutProperties);
       }
       else {
-        handler =
-          new CustomViewHandler(handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate, preferredProperty, properties);
+        handler = new CustomViewHandler(handler, icon16, icon24, tagName, className, xml, previewXml,
+                                        libraryCoordinate, preferredProperty, properties);
       }
     }
 
