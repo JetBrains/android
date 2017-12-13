@@ -70,6 +70,7 @@ final class ThreadsView {
     ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
     myThreadsTable = new HoverRowTable(model, ProfilerColors.DEFAULT_HOVER_COLOR);
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
+    myThreadsTable.getColumnModel().getColumn(0).setCellRenderer(new BorderlessTableCellRenderer());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setShowVerticalLines(true);
