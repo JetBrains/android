@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.google.common.collect.ImmutableList;
+
+import java.awt.*;
+import java.awt.event.MouseEvent;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 
@@ -49,6 +54,18 @@ public class AddExistingDestinationMenuTest extends NavTestCase {
     myModel = null;
     myMenu = null;
     super.tearDown();
+  }
+
+  public void testNewComponentSelected() {
+    ASGallery<Destination> gallery = myMenu.myDestinationsGallery;
+    Rectangle cell0Bounds = gallery.getCellBounds(0, 0);
+    Destination destination = (Destination)gallery.getModel().getElementAt(0);
+    gallery.setSelectedElement(destination);
+    gallery.dispatchEvent(new MouseEvent(
+      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+      (int)cell0Bounds.getCenterX(), (int)cell0Bounds.getCenterX(), 1, false));
+    assertNotNull(destination.getComponent());
+    assertEquals(ImmutableList.of(destination.getComponent()), mySurface.getSelectionModel().getSelection());
   }
 
   public void testImageLoading() throws Exception {

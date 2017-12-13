@@ -31,6 +31,8 @@ sealed class Destination {
   abstract val label: String
   abstract val thumbnail: Image?
 
+  var component: NlComponent? = null
+
   @VisibleForTesting
   data class RegularDestination @JvmOverloads constructor(
       val parent: NlComponent, val tag: String, val destinationLabel: String? = null, val className: String? = null,
@@ -58,6 +60,7 @@ sealed class Destination {
             newComponent.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, layoutId)
           }
           newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LABEL, destinationLabel)
+          component = newComponent
         }
       }.execute()
     }
@@ -72,6 +75,7 @@ sealed class Destination {
           val newComponent = model.createComponent(tag, parent, null)
           newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_GRAPH,
               "@${ResourceType.NAVIGATION.getName()}/${FileUtil.getNameWithoutExtension(graph)}")
+          component = newComponent
         }
       }.execute()
     }
