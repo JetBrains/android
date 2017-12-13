@@ -74,7 +74,7 @@ public final class VectorAsset extends BaseAsset {
   /**
    * Since vector assets can be rendered at any size, set this width to a positive value if you
    * want to override the final output width.
-   *
+   * <p>
    * Otherwise, the asset's default width (as parsed from the file) will be used.
    *
    * @see #outputHeight()
@@ -213,7 +213,8 @@ public final class VectorAsset extends BaseAsset {
   }
 
   /**
-   * Modifies the source XML content with custom values set by the user, such as final output size and opacity.
+   * Modifies the source XML content with custom values set by the user, such as final output size
+   * and opacity.
    */
   @Nullable
   private String overrideXmlFileContent(@NotNull Document document, @NotNull VdPreview.SourceSize originalSize,
@@ -233,7 +234,7 @@ public final class VectorAsset extends BaseAsset {
     finalWidth = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalWidth);
     finalHeight = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalHeight);
 
-    VdOverrideInfo overrideInfo = new VdOverrideInfo(finalWidth, finalHeight, myOpacityPercent.get(), myAutoMirrored.get());
+    VdOverrideInfo overrideInfo = new VdOverrideInfo(finalWidth, finalHeight, color().get(), myOpacityPercent.get(), myAutoMirrored.get());
     return VdPreview.overrideXmlContent(document, overrideInfo, errorBuffer);
   }
 

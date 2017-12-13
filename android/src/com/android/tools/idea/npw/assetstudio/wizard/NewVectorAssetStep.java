@@ -43,6 +43,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -73,6 +74,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   // Start with the Clip Art radio button selected, because the clip art icons are easy to browse
   // and play around with right away.
   private static final AssetSourceType DEFAULT_ASSET_SOURCE_TYPE = AssetSourceType.CLIP_ART;
+  @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons.
+  private static final Color DEFAULT_COLOR = Color.BLACK;
 
   private static final String VECTOR_ASSET_STEP_PROPERTY = "vectorAssetStep";
   private static final String OUTPUT_NAME_PROPERTY = "outputName";
@@ -82,6 +85,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private static final String OVERRIDE_SIZE_PROPERTY = "overrideSize";
   private static final String WIDTH_PROPERTY = "width";
   private static final String HEIGHT_PROPERTY = "height";
+  private static final String COLOR_PROPERTY = "color";
   private static final String OPACITY_PERCENT_PROPERTY = "opacityPercent";
   private static final String AUTO_MIRRORED_PROPERTY = "autoMirrored";
 
@@ -92,6 +96,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final BoolProperty myOverrideSize;
   private final IntProperty myWidth = new IntValueProperty();
   private final IntProperty myHeight = new IntValueProperty();
+  private final ObjectProperty<Color> myColor;
   private final IntProperty myOpacityPercent;
   private final BoolProperty myAutoMirrored;
 
@@ -110,38 +115,39 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myPanel;
   private JPanel myImagePreviewPanel;
   private VectorImageComponent myImagePreview;
-  private JTextField myOutputNameTextField;
-  private JPanel myErrorPanel;
-  private JPanel myFileBrowserPanel;
-  private JTextField myWidthTextField;
-  private JTextField myHeightTextField;
-  private JCheckBox myEnableAutoMirroredCheckBox;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myPreviewPanel;
-  private JSlider myOpacitySlider;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myResizePanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JLabel mySizeLabel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myResourceNamePanel;
+  private JTextField myOutputNameTextField;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel mySourceAssetTypePanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel mySourceAssetRadioButtons;
   private JRadioButton myClipartRadioButton;
   private JRadioButton myLocalFileRadioButton;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel myOpacityPanel;
   private JPanel myIconPickerPanel;
+  private VectorIconButton myClipartAssetButton;
+  private JPanel myFileBrowserPanel;
+  private VectorAssetBrowser myFileBrowser;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myResizePanel;
+  private JTextField myWidthTextField;
+  private JTextField myHeightTextField;
   private JCheckBox myOverrideSizeCheckBox;
+  private JPanel myColorRowPanel;
+  private ColorPanel myColorPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myOpacityPanel;
+  private JSlider myOpacitySlider;
   private JBLabel myOpacityValueLabel;
+  private JCheckBox myEnableAutoMirroredCheckBox;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myPreviewPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myLeftPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myRightPanel;
-  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
-  private JPanel mySourceAssetTypePanel;
-  private VectorAssetBrowser myFileBrowser;
-  private VectorIconButton myClipartAssetButton;
+  private JPanel myErrorPanel;
   private JBScrollPane myErrorsScrollPane;
   private JTextArea myErrorsTextArea;
 
@@ -160,6 +166,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myActiveAsset = new ObjectValueProperty<>(myClipartAssetButton.getAsset());
     myOutputName = new TextProperty(myOutputNameTextField);
     myOverrideSize = new SelectedProperty(myOverrideSizeCheckBox);
+    myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
@@ -171,6 +178,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     myListeners.receiveAndFire(myAssetSourceType, sourceType -> {
       myIconPickerPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
+      myColorRowPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
       myFileBrowserPanel.setVisible(sourceType == AssetSourceType.FILE);
       myActiveAsset.set(sourceType == AssetSourceType.CLIP_ART ? myClipartAssetButton.getAsset() : myFileBrowser.getAsset());
     });
@@ -192,7 +200,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     myGeneralBindings.bind(new TextProperty(myOpacityValueLabel), new FormatExpression("%d %%", myOpacityPercent));
 
-    myListeners.listenAll(myActiveAsset, myOverrideSize, myWidth, myHeight, myOpacityPercent, myAutoMirrored).with(this::renderPreviews);
+    myListeners.listenAll(myActiveAsset, myOverrideSize, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
+        .with(this::renderPreviews);
 
     myListeners.listenAndFire(myActiveAsset, sender -> {
       myActiveAssetBindings.releaseAll();
@@ -217,6 +226,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
 
+      if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
+        myActiveAssetBindings.bind(myActiveAsset.get().color(), myColor);
+      }
       myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);
       myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), myWidth);
@@ -279,6 +291,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.set(OVERRIDE_SIZE_PROPERTY, myOverrideSize.get(), false);
     state.set(WIDTH_PROPERTY, myWidth.get(), DEFAULT_MATERIAL_ICON_SIZE);
     state.set(HEIGHT_PROPERTY, myHeight.get(), DEFAULT_MATERIAL_ICON_SIZE);
+    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
     return state;
@@ -297,6 +310,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         myOverrideSize.set(state.get(OVERRIDE_SIZE_PROPERTY, false));
         myWidth.set(state.get(WIDTH_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
         myHeight.set(state.get(HEIGHT_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
+        myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
       },
