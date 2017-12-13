@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.debugger;
+package com.android.tools.idea.tests.gui.cpp;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -34,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith (GuiTestRunner.class)
 public class CLionIntegrationTest {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String NATIVE_C_FILE_PATH = "app/src/main/cpp/hello-jni.c";
   private static final String NATIVE_C_HEADER_FILE = "hello-jni.h";
