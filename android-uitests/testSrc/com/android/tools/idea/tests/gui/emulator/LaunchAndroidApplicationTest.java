@@ -71,7 +71,7 @@ public class LaunchAndroidApplicationTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70628325
   @Test
   public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
@@ -110,7 +110,7 @@ public class LaunchAndroidApplicationTest {
    *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70628325
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
