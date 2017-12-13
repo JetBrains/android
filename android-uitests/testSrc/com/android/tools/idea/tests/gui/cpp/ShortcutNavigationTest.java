@@ -50,7 +50,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
    *      "Java_com_example_hellojni_HelloJni_stringFromJNI" (the native implementation).
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70629375
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
     IdeFrameFixture ideFrame =

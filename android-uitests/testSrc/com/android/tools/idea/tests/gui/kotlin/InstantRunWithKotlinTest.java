@@ -70,7 +70,7 @@ public class InstantRunWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634044
   public void instantRunWithKotlin() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");

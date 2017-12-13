@@ -259,7 +259,7 @@ public class ConstraintLayoutTest {
    *   5. Preview layout is rendered for the selected activity.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/69792022
   @Test
   public void layoutPreviewRendering() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -497,7 +497,7 @@ public class ConstraintLayoutTest {
    *   2. Constraints for that widget should get cleared.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634894
   @Test
   public void clearConstraint() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");

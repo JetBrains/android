@@ -299,7 +299,7 @@ public class DependenciesTest {
    *      resolved successfully.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70633460
   @Test
   public void multiJavaLibraries() throws Exception {
     IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
