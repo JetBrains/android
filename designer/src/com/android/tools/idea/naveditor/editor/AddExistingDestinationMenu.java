@@ -16,7 +16,9 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.SearchTextField;
@@ -154,6 +156,11 @@ public class AddExistingDestinationMenu extends DropDownAction {
         Destination element = myDestinationsGallery.getSelectedElement();
         if (element != null) {
           element.addToGraph();
+          // explicitly update so the new SceneComponent is created
+          mySurface.getSceneManager().update();
+          NlComponent component = element.getComponent();
+          mySurface.getSelectionModel().setSelection(ImmutableList.of(component));
+          mySurface.scrollToCenter(ImmutableList.of(component));
           closePopup();
         }
       }
