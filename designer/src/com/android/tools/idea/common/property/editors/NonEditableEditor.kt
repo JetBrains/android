@@ -15,23 +15,54 @@
  */
 package com.android.tools.idea.common.property.editors
 
+import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
+import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
+import com.intellij.openapi.command.undo.UndoConstants
 import com.intellij.ui.EditorTextField
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Insets
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
+import javax.swing.plaf.InsetsUIResource
 
 class NonEditableEditor(listener: NlEditingListener) : BaseComponentEditor(listener) {
-  val component = JPanel(BorderLayout())
-  val textField = EditorTextField()
-  lateinit var _property: NlProperty
+  val component = AdtSecondaryPanel(BorderLayout())
+
+  // TODO: factor this behavior out of here and TextEditorWithAutoCompletion
+  val textField = object: EditorTextField() {
+    override fun addNotify() {
+      super.addNotify()
+      editor?.document?.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
+      editor?.setBorder(object : DarculaEditorTextFieldBorder() {
+        override fun getBorderInsets(component: Component): Insets {
+          val myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+              HORIZONTAL_PADDING,
+              VERTICAL_SPACING + VERTICAL_PADDING,
+              HORIZONTAL_PADDING)
+          return InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right)
+        }
+      })
+    }
+
+    override fun removeNotify() {
+      super.removeNotify()
+
+      // Remove the editor from the component tree.
+      // The editor component is added in EditorTextField.addNotify but never removed by EditorTextField.
+      // This is causing paint problems when this component is reused in a different panel.
+      removeAll()
+    }
+  }
+  private lateinit var _property: NlProperty
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER)
 
   init {
-    textField.border = EmptyBorder(VERTICAL_PADDING, HORIZONTAL_SPACING, VERTICAL_PADDING, HORIZONTAL_SPACING)
+    component.border = EmptyBorder(VERTICAL_PADDING, HORIZONTAL_SPACING, VERTICAL_PADDING, HORIZONTAL_SPACING)
     component.add(textField, BorderLayout.CENTER)
     setEnabled(false)
     textField.isEnabled = false
