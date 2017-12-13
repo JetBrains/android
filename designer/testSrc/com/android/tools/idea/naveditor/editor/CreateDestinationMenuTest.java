@@ -13,11 +13,13 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.editor;
 
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
@@ -25,6 +27,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.mockito.Mockito;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -234,6 +238,7 @@ public class CreateDestinationMenuTest extends NavTestCase {
     NlComponent added = myModel.find("myId");
     assertEquals("activity", added.getTagName());
     assertEquals("myLabel", added.getAttribute(AUTO_URI, ATTR_LABEL));
+    assertEquals(ImmutableList.of(added), mySurface.getSelectionModel().getSelection());
   }
 
   public void testCreateInclude() {

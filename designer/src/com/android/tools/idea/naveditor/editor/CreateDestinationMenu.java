@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.utils.Pair;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
@@ -136,17 +137,24 @@ public class CreateDestinationMenu extends DropDownAction {
     }
     PsiClass psiClass = selected.getSecond();
     NlComponent parent = mySurface.getCurrentNavigation();
+    Destination result = null;
     // Should only be true for "include"
     if (psiClass == null) {
-      new Destination.IncludeDestination(mySourceField.getText(), parent).addToGraph();
+      result = new Destination.IncludeDestination(mySourceField.getText(), parent);
       // TODO: actually create the file
     }
     else {
       NavigationSchema.DestinationType type = mySchema.getTypeForNavigatorClass(psiClass);
       //noinspection ConstantConditions  At this point we know that there's a tag associated with this type
-      new Destination.RegularDestination(parent, mySchema.getDefaultTag(type), myLabelField.getText(), null, null, myIdField.getText())
-        .addToGraph();
+      result = new Destination.RegularDestination(parent, mySchema.getDefaultTag(type),
+                                                  myLabelField.getText(), null, null, myIdField.getText());
     }
+    result.addToGraph();
+    // explicitly update so the new SceneComponent is created
+    mySurface.getSceneManager().update();
+    NlComponent component = result.getComponent();
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(component));
+    mySurface.scrollToCenter(ImmutableList.of(component));
     closePopup();
   }
 
