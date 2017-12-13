@@ -98,7 +98,7 @@ public final class VectorAsset extends BaseAsset {
   }
 
   /**
-   * Parse the file specified by the {@link #path()} property, overriding its final width which is
+   * Parses the file specified by the {@link #path()} property, overriding its final width which is
    * useful for previewing this vector asset in some UI component of the same width.
    * @param previewWidth width of the display component
    * @param allowPropertyOverride true if this method can override some properties of the original file
@@ -234,7 +234,8 @@ public final class VectorAsset extends BaseAsset {
     finalWidth = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalWidth);
     finalHeight = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalHeight);
 
-    VdOverrideInfo overrideInfo = new VdOverrideInfo(finalWidth, finalHeight, color().get(), myOpacityPercent.get(), myAutoMirrored.get());
+    VdOverrideInfo overrideInfo =
+        new VdOverrideInfo(finalWidth, finalHeight, color().get(), myOpacityPercent.get() / 100.f, myAutoMirrored.get());
     return VdPreview.overrideXmlContent(document, overrideInfo, errorBuffer);
   }
 
