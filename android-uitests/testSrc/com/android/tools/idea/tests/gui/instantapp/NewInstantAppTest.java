@@ -98,6 +98,11 @@ public class NewInstantAppTest {
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
+
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(featureModuleName == null ? "feature" : featureModuleName);
   }
 
   @Test
