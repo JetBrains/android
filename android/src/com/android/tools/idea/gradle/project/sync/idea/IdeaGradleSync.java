@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.facet.ProjectFacetManager;
@@ -52,6 +53,7 @@ import static com.intellij.openapi.extensions.Extensions.findExtension;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
+import static java.lang.System.currentTimeMillis;
 
 public class IdeaGradleSync implements GradleSync {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -131,13 +133,11 @@ public class IdeaGradleSync implements GradleSync {
       }
     }
     if (androidProjectCandidatesPaths.isEmpty()) {
-      // try to discover the project in the IDE project base dir if there is no linked gradle projects at all
-      if (GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()) {
-        String externalProjectPath = toCanonicalPath(getBaseDirPath(myProject).getPath());
-        if (new File(externalProjectPath, SdkConstants.FN_BUILD_GRADLE).isFile() ||
-            new File(externalProjectPath, SdkConstants.FN_SETTINGS_GRADLE).isFile()) {
-          androidProjectCandidatesPaths.add(externalProjectPath);
-        }
+      // try to discover the project in the IDE project base dir.
+      String externalProjectPath = toCanonicalPath(getBaseDirPath(myProject).getPath());
+      if (new File(externalProjectPath, SdkConstants.FN_BUILD_GRADLE).isFile() ||
+          new File(externalProjectPath, SdkConstants.FN_SETTINGS_GRADLE).isFile()) {
+        androidProjectCandidatesPaths.add(externalProjectPath);
       }
     }
 
@@ -145,6 +145,7 @@ public class IdeaGradleSync implements GradleSync {
       if (listener != null) {
         listener.syncSkipped(myProject);
       }
+      GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis());
       return;
     }
 
