@@ -136,6 +136,28 @@ final class OverviewTabContent extends TabContent {
     }
 
     row++;
+    myFieldsPanel.add(new NoWrapBoldLabel("Initiating thread"), new TabularLayout.Constraint(row, 0));
+    JLabel initiatingThreadLabel = new JLabel(httpData.getJavaThreads().get(0).getName());
+    initiatingThreadLabel.setName(ID_INITIATING_THREAD);
+    myFieldsPanel.add(initiatingThreadLabel, new TabularLayout.Constraint(row, 2));
+
+    if (httpData.getJavaThreads().size() > 1) {
+      StringBuilder otherThreadsBuilder = new StringBuilder();
+      for (int i = 1; i < httpData.getJavaThreads().size(); ++i) {
+        if (otherThreadsBuilder.length() > 0) {
+          otherThreadsBuilder.append(", ");
+        }
+        otherThreadsBuilder.append(httpData.getJavaThreads().get(i).getName());
+      }
+
+      row++;
+      myFieldsPanel.add(new NoWrapBoldLabel("Other threads"), new TabularLayout.Constraint(row, 0));
+      JLabel otherThreadsLabel = new JLabel(otherThreadsBuilder.toString());
+      otherThreadsLabel.setName(ID_OTHER_THREADS);
+      myFieldsPanel.add(otherThreadsLabel, new TabularLayout.Constraint(row, 2));
+    }
+
+    row++;
     NoWrapBoldLabel urlLabel = new NoWrapBoldLabel("URL");
     urlLabel.setVerticalAlignment(SwingConstants.TOP);
     myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 0));
@@ -159,27 +181,6 @@ final class OverviewTabContent extends TabContent {
     timingBar.setName(ID_TIMING);
     myFieldsPanel.add(timingBar, new TabularLayout.Constraint(row, 2));
 
-    row++;
-    myFieldsPanel.add(new NoWrapBoldLabel("Initiating thread"), new TabularLayout.Constraint(row, 0));
-    JLabel initiatingThreadLabel = new JLabel(httpData.getJavaThreads().get(0).getName());
-    initiatingThreadLabel.setName(ID_INITIATING_THREAD);
-    myFieldsPanel.add(initiatingThreadLabel, new TabularLayout.Constraint(row, 2));
-
-    if (httpData.getJavaThreads().size() > 1) {
-      StringBuilder otherThreadsBuilder = new StringBuilder();
-      for (int i = 1; i < httpData.getJavaThreads().size(); ++i) {
-        if (otherThreadsBuilder.length() > 0) {
-          otherThreadsBuilder.append(", ");
-        }
-        otherThreadsBuilder.append(httpData.getJavaThreads().get(i).getName());
-      }
-
-      row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("Other threads"), new TabularLayout.Constraint(row, 0));
-      JLabel otherThreadsLabel = new JLabel(otherThreadsBuilder.toString());
-      otherThreadsLabel.setName(ID_OTHER_THREADS);
-      myFieldsPanel.add(otherThreadsLabel, new TabularLayout.Constraint(row, 2));
-    }
     new TreeWalker(myFieldsPanel).descendantStream().forEach(TabUiUtils::adjustFont);
 
     return myFieldsPanel;
