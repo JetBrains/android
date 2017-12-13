@@ -118,11 +118,11 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private static void waitForTreeToFinishLoading(@NotNull Robot robot,
                                                  @NotNull Container root,
-                                                 long secondsToWait) {
-    GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
+                                                 int secondsToWait) {
+    GuiTests.waitUntilGone(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
       @Override
       protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
-        return !component.isRunning();
+        return component.isRunning();
       }
     }, secondsToWait);
   }
