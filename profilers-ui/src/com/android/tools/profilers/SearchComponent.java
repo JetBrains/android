@@ -15,13 +15,22 @@
  */
 package com.android.tools.profilers;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
+
 public interface SearchComponent {
+  @NotNull String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
+  @NotNull String CLOSE_ACTION = "CloseSearchAction";
 
   @NotNull
   JComponent getComponent();
@@ -30,5 +39,66 @@ public interface SearchComponent {
 
   void setText(@NotNull String text);
 
-  default void requestFocusInWindow() {}
+  default void requestFocusInWindow() {
+  }
+
+  /**
+   * A helper method for configuring the default key bindings and focus behavior for a {@link SearchComponent}.
+   * Intended behavior:
+   * Cltr+F should make the SearchComponent visible and put focus on the filter textbox.
+   * Esc should hide the searchComponent and clear the filter.
+   * Clicking on the button should toggle the visibility of the SearchComponent, and in both caes, the filter textbox should be rest.
+   *
+   * @param containerComponent This is the component designated for handling the key events (Ctrl+F, Esc). It is expected that the key
+   *                           bindings only work if this component (or one of its descendants) have focus
+   *                           (See also JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT). Whenever the SearchComponent's visibility is
+   *                           toggled, the containerComponent is revalidated to make sure the layout is up to date.
+   * @param searchComponent    The SearchComponent instance that the containerComponent and showHideButton are associated with.
+   * @param showHideButton     The toggle button used for showing/hiding the SearchComponent.
+   */
+  static void configureKeybindingAndFocusBehaviors(@NotNull JComponent containerComponent,
+                                                   @NotNull SearchComponent searchComponent,
+                                                   @NotNull JToggleButton showHideButton) {
+    showHideButton.addActionListener(event -> {
+      searchComponent.getComponent().setVisible(showHideButton.isSelected());
+      // Reset the filter content.
+      searchComponent.setText("");
+      if (showHideButton.isSelected()) {
+        searchComponent.requestFocusInWindow();
+      }
+      containerComponent.revalidate();
+    });
+
+    InputMap inputMap = containerComponent.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    ActionMap actionMap = containerComponent.getActionMap();
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK), OPEN_AND_FOCUS_ACTION);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CLOSE_ACTION);
+    actionMap.put(OPEN_AND_FOCUS_ACTION, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!showHideButton.isSelected()) {
+          // Let the button's ActionListener handle the event.
+          showHideButton.doClick(0);
+        }
+        else {
+          // Otherwise, just reset the focus.
+          searchComponent.requestFocusInWindow();
+        }
+      }
+    });
+    actionMap.put(CLOSE_ACTION, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!showHideButton.isSelected()) {
+          // Do nothing since search component is not opened.
+          return;
+        }
+
+        // Let the button's ActionListener handle the event.
+        showHideButton.doClick(0);
+        // Put the focus back on the container, so the key bindings still work.
+        containerComponent.requestFocusInWindow();
+      }
+    });
+  }
 }
