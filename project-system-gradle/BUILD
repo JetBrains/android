@@ -42,6 +42,7 @@ iml_module(
         "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/adt/idea/adt-branding",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
