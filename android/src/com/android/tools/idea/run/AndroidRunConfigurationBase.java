@@ -202,7 +202,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public Collection<Module> getValidModules() {
-    final List<Module> result = new ArrayList<Module>();
+    final List<Module> result = new ArrayList<>();
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     for (Module module : modules) {
       if (AndroidFacet.getInstance(module) != null) {
@@ -466,7 +466,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private DeployTarget getDeployTarget(@NotNull Executor executor,
                                        @NotNull ExecutionEnvironment env,
                                        boolean debug,
-                                       @NotNull AndroidFacet facet) throws ExecutionException {
+                                       @NotNull AndroidFacet facet) {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
 
     DeployTarget deployTarget;
@@ -623,7 +623,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
-    readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
 
     myDeployTargetContext.readExternal(element);
