@@ -56,7 +56,10 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
     ],
     # do not sort: must match IML order
-    test_runtime_deps = ["//tools/idea/plugins/maven:maven2-server-impl"],
+    test_runtime_deps = [
+        "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/adt/idea/adt-branding",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
