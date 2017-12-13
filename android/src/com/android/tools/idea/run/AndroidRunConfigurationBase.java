@@ -637,7 +637,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     super.writeExternal(element);
-    writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
 
     myDeployTargetContext.writeExternal(element);
