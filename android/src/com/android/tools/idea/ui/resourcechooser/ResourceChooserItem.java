@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -84,7 +83,7 @@ abstract class ResourceChooserItem {
 
   @NotNull
   public ResourceValue getResourceValue() {
-    return new ResourceValue(ResourceUrl.create(getType(), getName(), isFramework()), getResourceUrl(), null);
+    return new ResourceValue(getType(), getName(), getResourceUrl(), isFramework());
   }
 
   @Override

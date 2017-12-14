@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
@@ -44,7 +45,7 @@ public class TestLocalResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @Override
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myResourceTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = ArrayListMultimap.create();
@@ -54,8 +55,9 @@ public class TestLocalResourceRepository extends LocalResourceRepository {
     return multimap;
   }
 
+  @NotNull
   @Override
-  public Set<String> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     return myResourceTable.rowKeySet();
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
@@ -33,7 +34,6 @@ import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -47,7 +47,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
-import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 
 /**
  * A {@link LocalResourceRepository} that provides sample data to be used within "tools" attributes. This provider
@@ -70,38 +69,38 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
    * List of predefined data sources that are always available within studio
    */
   private static final ImmutableList<SampleDataResourceItem> PREDEFINED_SOURCES = ImmutableList.of(
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "full_names", new CombinerDataSource(
+    SampleDataResourceItem.getFromStaticDataSource("full_names", new CombinerDataSource(
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "first_names", ResourceContent.fromInputStream(
+    SampleDataResourceItem.getFromStaticDataSource("first_names", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "last_names", ResourceContent.fromInputStream(
+    SampleDataResourceItem.getFromStaticDataSource("last_names", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
         .getResourceAsStream("sampleData/surnames.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "cities", ResourceContent.fromInputStream(
+    SampleDataResourceItem.getFromStaticDataSource("cities", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
         .getResourceAsStream("sampleData/cities.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_zipcodes",
+    SampleDataResourceItem.getFromStaticDataSource("us_zipcodes",
                                                    new NumberGenerator("%05d", 20000, 99999)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_phones",
+    SampleDataResourceItem.getFromStaticDataSource("us_phones",
                                                    new NumberGenerator("(800) 555-%04d", 0, 9999)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator(false)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem/random", new LoremIpsumGenerator(true)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "avatars",
+    SampleDataResourceItem.getFromStaticDataSource("lorem", new LoremIpsumGenerator(false)),
+    SampleDataResourceItem.getFromStaticDataSource("lorem/random", new LoremIpsumGenerator(true)),
+    SampleDataResourceItem.getFromStaticDataSource("avatars",
                                                    ResourceContent.fromDirectory("avatars")),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "backgrounds/scenic",
+    SampleDataResourceItem.getFromStaticDataSource("backgrounds/scenic",
                                                    ResourceContent.fromDirectory("backgrounds/scenic")),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/day_of_week",
+    SampleDataResourceItem.getFromStaticDataSource("date/day_of_week",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/ddmmyy",
+    SampleDataResourceItem.getFromStaticDataSource("date/ddmmyy",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/mmddyy",
+    SampleDataResourceItem.getFromStaticDataSource("date/mmddyy",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/hhmm",
+    SampleDataResourceItem.getFromStaticDataSource("date/hhmm",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/hhmmss",
+    SampleDataResourceItem.getFromStaticDataSource("date/hhmmss",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)));
 
 
@@ -197,6 +196,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
   }
 
   private static void addPredefinedItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items) {
+    // Predefined items are in the TOOLS namespace, but stored under RES_AUTO for now, with "tool:" prepended to the name.
+    // TODO(namespaces): fix this.
     PREDEFINED_SOURCES.forEach(source -> items.put(source.getName(), source));
   }
 
@@ -235,11 +236,11 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       unregisterPsiListener();
     }
     addPredefinedItems(projectItems);
-    myFullTable.put(null, ResourceType.SAMPLE_DATA, projectItems.build());
+    myFullTable.put(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA, projectItems.build());
 
     setModificationCount(ourModificationCounter.incrementAndGet());
 
-    invalidateParentCaches(null, ResourceType.SAMPLE_DATA);
+    invalidateParentCaches(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
   }
 
   /**
@@ -368,13 +369,13 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @Override
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
     return myFullTable.get(namespace, type);
   }
 
   @NonNull
   @Override
-  public Set<String> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     return Collections.emptySet();
   }
 

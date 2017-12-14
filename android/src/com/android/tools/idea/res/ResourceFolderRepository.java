@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -26,8 +27,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
@@ -98,7 +99,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private final AndroidFacet myFacet;
   private final PsiListener myListener;
   private final VirtualFile myResourceDir;
-  private final String myNamespace;
+  @NotNull private final ResourceNamespace myNamespace;
 
   @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
   private final ResourceTable myFullTable = new ResourceTable();
@@ -124,7 +125,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @VisibleForTesting
   static int ourFullRescans;
 
-  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @Nullable String namespace) {
+  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @NotNull ResourceNamespace namespace) {
     super(resourceDir.getName());
     myFacet = facet;
     myModule = facet.getModule();
@@ -166,7 +167,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
   // TODO: namespaces
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @Nullable String namespace) {
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
     return new ResourceFolderRepository(facet, dir, namespace);
   }
 
@@ -785,7 +786,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Override
   @Contract("_, _, true -> !null")
   @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = LinkedListMultimap.create(); // use LinkedListMultimap to preserve ordering for editors that show original order.
@@ -796,7 +797,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  public Set<String> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     return Collections.singleton(myNamespace);
   }
 
@@ -2456,7 +2457,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         return false;
       }
 
-      for (Table.Cell<String, ResourceType, ListMultimap<String, ResourceItem>> cell : myFullTable.cellSet()) {
+      for (Table.Cell<ResourceNamespace, ResourceType, ListMultimap<String, ResourceItem>> cell : myFullTable.cellSet()) {
         assert cell.getColumnKey() != null; // We don't store null as the ResourceType.
 
         ListMultimap<String, ResourceItem> ownEntries = cell.getValue();

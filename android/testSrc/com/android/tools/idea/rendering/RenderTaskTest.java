@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
@@ -32,14 +31,14 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
@@ -109,9 +108,7 @@ public class RenderTaskTest extends AndroidTestCase {
     RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
     // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
     task.render().get();
-    ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
-                                                    "@drawable/test",
-                                                    null);
+    ResourceValue resourceValue = new ResourceValue(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
     BufferedImage result = task.renderDrawable(resourceValue).get();
 
     assertNotNull(result);
@@ -263,9 +260,7 @@ public class RenderTaskTest extends AndroidTestCase {
     RenderLogger logger = mock(RenderLogger.class);
 
     RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
-    ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
-                                                    "@drawable/test",
-                                                    null);
+    ResourceValue resourceValue = new ResourceValue(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
     BufferedImage result = task.renderDrawable(resourceValue).get();
     assertNotNull(result);
 

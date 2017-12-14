@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -234,12 +235,12 @@ public class LayoutMetadata {
 
       if (header != null) {
         boolean isFramework = header.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addHeader(new ResourceReference(stripLayoutPrefix(header), isFramework));
+        binding.addHeader(new ResourceReference(ResourceType.LAYOUT, stripLayoutPrefix(header), isFramework));
       }
 
       if (footer != null) {
         boolean isFramework = footer.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addFooter(new ResourceReference(stripLayoutPrefix(footer), isFramework));
+        binding.addFooter(new ResourceReference(ResourceType.LAYOUT, stripLayoutPrefix(footer), isFramework));
       }
 
       if (layout != null) {

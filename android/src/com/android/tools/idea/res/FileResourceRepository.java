@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +62,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   @Nullable protected Map<String, Integer> myAarDeclaredIds;
 
   @NotNull private final File myFile;
-  @Nullable private final String myNamespace;
+  @NotNull ResourceNamespace myNamespace;
   @Nullable private final String myLibraryName;
 
   /** R.txt file associated with the repository. This is only available for aars. */
@@ -70,7 +70,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
 
-  private FileResourceRepository(@NotNull File file, @Nullable String namespace, @Nullable String libraryName) {
+  private FileResourceRepository(@NotNull File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
     super(file.getName());
     myFile = file;
     myNamespace = namespace;
@@ -82,7 +82,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   static synchronized FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
     FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
-      repository = create(file, null, libraryName);
+      repository = create(file, ResourceNamespace.TODO, libraryName);
       ourCache.put(file, repository);
     }
 
@@ -96,7 +96,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull final File file, @Nullable String namespace, @Nullable String libraryName) {
+  private static FileResourceRepository create(@NotNull final File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
     final FileResourceRepository repository = new FileResourceRepository(file, namespace, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(file, namespace, libraryName);
@@ -119,7 +119,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  public static FileResourceRepository createForTest(@NotNull final File file, @Nullable String namespace, @Nullable String libraryName) {
+  public static FileResourceRepository createForTest(@NotNull final File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     return create(file, namespace, libraryName);
   }
@@ -144,7 +144,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myLibraryName;
   }
 
-  private static ResourceMerger createResourceMerger(File file, String namespace, String libraryName) {
+  private static ResourceMerger createResourceMerger(File file, ResourceNamespace namespace, String libraryName) {
     ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
     ResourceMerger merger = new ResourceMerger(0);
 
@@ -173,7 +173,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = ArrayListMultimap.create();
@@ -184,7 +184,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  public Set<String> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     return myFullTable.rowKeySet();
   }
 

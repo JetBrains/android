@@ -347,8 +347,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {
     if (ResourceType.SAMPLE_DATA.getName().equals(type)) {
-      // Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across
-      // the resources stack
+      // TODO(namespaces): Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across the resources stack.
       List<String> sampleDataResource = Splitter.on(':')
         .trimResults()
         .omitEmptyStrings()

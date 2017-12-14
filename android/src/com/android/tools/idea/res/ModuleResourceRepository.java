@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
@@ -189,14 +190,14 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   @NotNull
   @VisibleForTesting
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, null, null);
+    return createForTest(facet, resourceDirectories, ResourceNamespace.TODO, null);
   }
 
   @NotNull
   @VisibleForTesting
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
-                                                       @Nullable String namespace,
+                                                       @NotNull ResourceNamespace namespace,
                                                        @Nullable DynamicResourceValueRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + 1);
@@ -228,17 +229,17 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
       return new ResourceTable();
     }
 
-    @com.android.annotations.Nullable
+    @Nullable
     @Override
-    protected ListMultimap<String, ResourceItem> getMap(@com.android.annotations.Nullable String namespace,
-                                                        @NonNull ResourceType type,
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
+                                                        @NotNull ResourceType type,
                                                         boolean create) {
       return create ? ArrayListMultimap.create() : null;
     }
 
     @NonNull
     @Override
-    public Set<String> getNamespaces() {
+    public Set<ResourceNamespace> getNamespaces() {
       return Collections.emptySet();
     }
   }

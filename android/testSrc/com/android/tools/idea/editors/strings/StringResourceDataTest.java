@@ -38,6 +38,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
   private StringResourceData data;
@@ -59,12 +61,12 @@ public class StringResourceDataTest extends AndroidTestCase {
     Mockito.when(field.getValue()).thenReturn("L\\'Étranger");
 
     DynamicResourceValueRepository dynamicResourceValueRepository =
-      DynamicResourceValueRepository.createForTest(myFacet, null, Collections.singletonMap("dynamic_key1", field));
+      DynamicResourceValueRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
 
     Disposer.register(myFacet, dynamicResourceValueRepository);
 
     LocalResourceRepository parent =
-      ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory), null, dynamicResourceValueRepository);
+      ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
 
     data = StringResourceRepository.create(parent).getData(myFacet);
   }

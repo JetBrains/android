@@ -25,7 +25,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -34,6 +33,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -44,7 +44,7 @@ class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
   private PsiFile myFile;
 
-  PsiResourceItem(@NonNull String name, @NonNull ResourceType type, @Nullable String namespace, @Nullable XmlTag tag, @NonNull PsiFile file) {
+  PsiResourceItem(@NonNull String name, @NonNull ResourceType type, @NotNull ResourceNamespace namespace, @Nullable XmlTag tag, @NonNull PsiFile file) {
     // TODO: Actually figure out the namespace.
     super(name, namespace, type, null, null);
     myTag = tag;
@@ -114,12 +114,12 @@ class PsiResourceItem extends ResourceItem {
         ResourceType type = getType();
         Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
         if (density != null) {
-          mResourceValue = new DensityBasedResourceValue(getResourceUrl(isFrameworks),
+          mResourceValue = new DensityBasedResourceValue(getReferenceToSelf(isFrameworks),
                                                          getSource().getFile().getAbsolutePath(),
                                                          density,
                                                          null);
         } else {
-          mResourceValue = new ResourceValue(getResourceUrl(isFrameworks),
+          mResourceValue = new ResourceValue(getReferenceToSelf(isFrameworks),
                                              getSource().getFile().getAbsolutePath(),
                                              null);
         }
@@ -151,23 +151,20 @@ class PsiResourceItem extends ResourceItem {
       return null;
     }
 
-    ResourceType type = getType();
-    String name = getName();
-
     ResourceValue value;
-    switch (type) {
+    switch (getType()) {
       case STYLE:
         String parent = getAttributeValue(myTag, ATTR_PARENT);
-        value = parseStyleValue(new StyleResourceValue(getResourceUrl(isFrameworks), parent, null));
+        value = parseStyleValue(new StyleResourceValue(getReferenceToSelf(isFrameworks), parent, null));
         break;
       case DECLARE_STYLEABLE:
-        value = parseDeclareStyleable(new DeclareStyleableResourceValue(getResourceUrl(isFrameworks), null, null));
+        value = parseDeclareStyleable(new DeclareStyleableResourceValue(getReferenceToSelf(isFrameworks), null, null));
         break;
       case ATTR:
-        value = parseAttrValue(new AttrResourceValue(getResourceUrl(isFrameworks), null));
+        value = parseAttrValue(new AttrResourceValue(getReferenceToSelf(isFrameworks), null));
         break;
       case ARRAY:
-          value = parseArrayValue(new ArrayResourceValue(getResourceUrl(isFrameworks), null) {
+          value = parseArrayValue(new ArrayResourceValue(getReferenceToSelf(isFrameworks), null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -180,7 +177,7 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(new PluralsResourceValue(getResourceUrl(isFrameworks), null, null) {
+        value = parsePluralsValue(new PluralsResourceValue(getReferenceToSelf(isFrameworks), null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -196,13 +193,15 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(new PsiTextResourceValue(getResourceUrl(isFrameworks), null, null, null));
+        value = parseTextValue(new PsiTextResourceValue(getReferenceToSelf(isFrameworks), null, null, null));
         break;
       default:
-        value = parseValue(new ResourceValue(getResourceUrl(isFrameworks), null));
+        value = parseValue(new ResourceValue(getReferenceToSelf(isFrameworks), null));
         break;
     }
 
+    // TODO(namespaces): precompute this?
+    value.setNamespaceLookup(prefix -> StringUtil.nullize(myTag.getNamespaceByPrefix(prefix)));
     return value;
   }
 
@@ -225,7 +224,7 @@ class PsiResourceItem extends ResourceItem {
         }
 
         AttrResourceValue attr = parseAttrValue(child,
-                                                new AttrResourceValue(ResourceUrl.create(ResourceType.ATTR, name, isFrameworkAttr),
+                                                new AttrResourceValue(new ResourceReference(ResourceType.ATTR, name, isFrameworkAttr),
                                                                       null));
         declareStyleable.addValue(attr);
       }
@@ -363,20 +362,15 @@ class PsiResourceItem extends ResourceItem {
   }
 
   private class PsiTextResourceValue extends TextResourceValue {
-    public PsiTextResourceValue(ResourceUrl url, String textValue, String rawXmlValue, String libraryName) {
-      super(url, textValue, rawXmlValue, libraryName);
+    public PsiTextResourceValue(ResourceReference reference, String textValue, String rawXmlValue, String libraryName) {
+      super(reference, textValue, rawXmlValue, libraryName);
     }
 
     @Override
     public String getRawXmlValue() {
       if (myTag != null && myTag.isValid()) {
         if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-          return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-            @Override
-            public String compute() {
-              return myTag.getValue().getText();
-            }
-          });
+          return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> myTag.getValue().getText());
         }
         return myTag.getValue().getText();
       }

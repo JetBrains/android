@@ -17,11 +17,11 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.ClassField;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.SourcelessResourceItem;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +33,12 @@ import org.jetbrains.annotations.Nullable;
  * file.
  */
 public class DynamicResourceValueItem extends SourcelessResourceItem {
-  public DynamicResourceValueItem(@Nullable String namespace,
+  public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
                                   @NonNull ResourceType type,
                                   @NonNull ClassField field) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
     super(field.getName(), namespace, type, null, null);
-    mResourceValue = new ResourceValue(ResourceUrl.create(namespace, type, field.getName()), field.getValue());
+    mResourceValue = new ResourceValue(namespace, type, field.getName(), field.getValue());
   }
 
   @NonNull

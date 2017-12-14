@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
@@ -214,7 +215,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  protected void invalidateParentCaches(@Nullable String namespace, @NotNull ResourceType... types) {
+  protected void invalidateParentCaches(@NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         for (MultiResourceRepository parent : myParents) {
@@ -226,7 +227,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   /** If this repository has not already been visited, merge its items of the given type into result. */
   protected final void merge(@NotNull Set<LocalResourceRepository> visited,
-                             @Nullable String namespace,
+                             @NotNull ResourceNamespace namespace,
                              @NotNull ResourceType type,
                              @NotNull SetMultimap<String, String> seenQualifiers,
                              @NotNull ListMultimap<String, ResourceItem> result) {
@@ -238,7 +239,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @Nullable String namespace,
+                         @NotNull ResourceNamespace namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {

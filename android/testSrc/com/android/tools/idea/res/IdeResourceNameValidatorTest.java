@@ -23,6 +23,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.junit.Test;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
@@ -87,7 +88,7 @@ public class IdeResourceNameValidatorTest {
     multimap.put("foo_5", new ResourceItem("foo_5", null, ResourceType.ID, null, null));
 
     LocalResourceRepository resources = new TestLocalResourceRepository();
-    resources.getItems().put(null, ResourceType.ID, multimap);
+    resources.getItems().put(RES_AUTO, ResourceType.ID, multimap);
 
     IdeResourceNameValidator validator = IdeResourceNameValidator.forResourceName(ResourceType.ID, resources);
     assertEquals("foo1 already exists", validator.getErrorText("foo1"));

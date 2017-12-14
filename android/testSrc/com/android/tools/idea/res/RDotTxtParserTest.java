@@ -16,6 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceUrl;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
@@ -26,9 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class RDotTxtParserTest {
   @Test
@@ -52,8 +52,8 @@ public class RDotTxtParserTest {
     FileUtil.writeToFile(rFile, content);
 
     List<AttrResourceValue> attributes = ImmutableList.of(
-      new AttrResourceValue(ResourceUrl.parse("@styleable/title"), null),
-      new AttrResourceValue(ResourceUrl.parse("@styleable/titleTextStyle"), null));
+      new AttrResourceValue(parse("@styleable/title"), null),
+      new AttrResourceValue(parse("@styleable/titleTextStyle"), null));
     Integer[] r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "ActionBar");
     assertEquals(0x7f010001, r[0].intValue());
     assertEquals(0x7f010003, r[1].intValue());
@@ -88,6 +88,11 @@ public class RDotTxtParserTest {
     assertEquals(0x7f09002, ids.get("id2").intValue());
   }
 
+  private static ResourceReference parse(String input) {
+    ResourceUrl url = ResourceUrl.parse(input);
+    return new ResourceReference(ResourceNamespace.RES_AUTO, url.type, url.name);
+  }
+
   // Regression test for http://b/62578429#comment66
   @Test
   public void testNameCollision() throws IOException {
@@ -106,16 +111,16 @@ public class RDotTxtParserTest {
       FileUtil.writeToFile(rFile, content);
 
       List<AttrResourceValue> attributes = ImmutableList.of(
-        new AttrResourceValue(ResourceUrl.parse("@styleable/layout_collapseMode"), null),
-        new AttrResourceValue(ResourceUrl.parse("@styleable/layout_collapseParallaxMultiplier"), null));
+        new AttrResourceValue(parse("@styleable/layout_collapseMode"), null),
+        new AttrResourceValue(parse("@styleable/layout_collapseParallaxMultiplier"), null));
       Integer[] r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "CollapsingToolbarLayout_Layout");
       assertEquals(0x7f0400b8, r[0].intValue());
       assertEquals(0x7f0400b9, r[1].intValue());
 
       attributes = ImmutableList.of(
-        new AttrResourceValue(ResourceUrl.parse("@styleable/collapsedTitleGravity"), null),
-        new AttrResourceValue(ResourceUrl.parse("@styleable/collapsedTitleTextAppearance"), null),
-        new AttrResourceValue(ResourceUrl.parse("@styleable/contentScrim"), null));
+        new AttrResourceValue(parse("@styleable/collapsedTitleGravity"), null),
+        new AttrResourceValue(parse("@styleable/collapsedTitleTextAppearance"), null),
+        new AttrResourceValue(parse("@styleable/contentScrim"), null));
       r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "CollapsingToolbarLayout");
       assertEquals(0x7f040052, r[0].intValue());
       assertEquals(0x7f040053, r[1].intValue());
@@ -128,8 +133,8 @@ public class RDotTxtParserTest {
     final String emptyRFile = "";
 
     List<AttrResourceValue> attributes = ImmutableList.of(
-      new AttrResourceValue(ResourceUrl.parse("@styleable/title"), null),
-      new AttrResourceValue(ResourceUrl.parse("@styleable/titleTextStyle"), null));
+      new AttrResourceValue(parse("@styleable/title"), null),
+      new AttrResourceValue(parse("@styleable/titleTextStyle"), null));
 
     File rFile = FileUtil.createTempFile("R", ".txt");
     FileUtil.writeToFile(rFile, emptyRFile);

@@ -19,13 +19,12 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.StarState;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.StarState;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -36,6 +35,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -202,9 +202,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     ResourceValueMap fonts = ResourceValueMap.create();
-    fonts.put("Lobster", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "Lobster"), "/very/long/filename/do/not/use"));
+    fonts.put("Lobster", new ResourceValue(RES_AUTO, ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use"));
     fonts.put("DancingScript",
-              new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
+              new ResourceValue(RES_AUTO, ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use"));
     ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
     assertThat(resolver).isNotNull();
     resolver.getProjectResources().put(ResourceType.FONT, fonts);

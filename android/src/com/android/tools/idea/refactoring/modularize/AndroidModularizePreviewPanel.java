@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceUrl;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -156,7 +156,7 @@ public class AndroidModularizePreviewPanel {
     Set<PsiElement> references = myGraph.getTargets(psiElement);
     List<CheckedTreeNode> childrenNodes = new ArrayList<>(references.size());
 
-    Map<ResourceUrl, Set<PsiElement>> resourceGroups = new HashMap<>();
+    Map<ResourceReference, Set<PsiElement>> resourceGroups = new HashMap<>();
 
     for (PsiElement reference : references) {
       if (parentElements.contains(reference)) {
@@ -166,8 +166,8 @@ public class AndroidModularizePreviewPanel {
       // We want to pre-process the resource items in order to group them by resource URLs.
       if (myLookupMap.get(reference) instanceof AndroidModularizeProcessor.ResourceXmlUsageInfo) {
         ResourceItem resourceItem = ((AndroidModularizeProcessor.ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
-        ResourceUrl resourceUrl = resourceItem.getResourceUrl(false);
-        Set<PsiElement> otherItems = resourceGroups.computeIfAbsent(resourceUrl, k -> new HashSet<>());
+        ResourceReference resourceReference = resourceItem.getReferenceToSelf(false);
+        Set<PsiElement> otherItems = resourceGroups.computeIfAbsent(resourceReference, k -> new HashSet<>());
         otherItems.add(reference);
         continue; // Postpone node creation until we have all resources mapped out.
       }
@@ -181,19 +181,19 @@ public class AndroidModularizePreviewPanel {
       parentElements.remove(reference);
     }
 
-    for (ResourceUrl resourceUrl : resourceGroups.keySet()) {
-      ResourceUrlTreeNode urlTreeNode = new ResourceUrlTreeNode(resourceUrl);
+    for (ResourceReference resourceReference : resourceGroups.keySet()) {
+      ResourceUrlTreeNode urlTreeNode = new ResourceUrlTreeNode(resourceReference.getResourceUrl()); // TODO: namespaces
       childrenNodes.add(urlTreeNode);
 
       boolean checked = true;
-      for (PsiElement reference : resourceGroups.get(resourceUrl)) {
+      for (PsiElement reference : resourceGroups.get(resourceReference)) {
         if (!myShouldSelectAllReferences && outsiders.contains(reference)) {
           checked = false;
           break;
         }
       }
 
-      for (PsiElement reference : resourceGroups.get(resourceUrl)) {
+      for (PsiElement reference : resourceGroups.get(resourceReference)) {
         UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
         childNode.setEnabled(false); // We don't allow selecting only a subset of resource items, either they all move or none of them move.
         childNode.setChecked(checked);

@@ -19,8 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.Variant;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceNamespaces;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -60,9 +60,9 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   implements BuildVariantView.BuildVariantSelectionChangeListener {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
-  private final String myNamespace;
+  @NotNull private final ResourceNamespace myNamespace;
 
-  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @Nullable String namespace) {
+  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     super("Gradle Dynamic");
     myFacet = facet;
     myNamespace = namespace;
@@ -93,13 +93,13 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   @NotNull
   // TODO: namespaces
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    return new DynamicResourceValueRepository(facet, null);
+    return new DynamicResourceValueRepository(facet, ResourceNamespace.TODO);
   }
 
   @NotNull
   @VisibleForTesting
   public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
-                                                             @Nullable String namespace,
+                                                             @NotNull ResourceNamespace namespace,
                                                              @NotNull Map<String, ClassField> values) {
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     repository.addValues(values);
@@ -163,8 +163,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
-    if (!ResourceNamespaces.isSameNamespace(namespace, myNamespace)) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+    if (!namespace.equals(myNamespace)) {
       return create ? ArrayListMultimap.create() : null;
     }
 
@@ -182,7 +182,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
   @Override
   @NotNull
-  public Set<String> getNamespaces() {
+  public Set<ResourceNamespace> getNamespaces() {
     return Collections.singleton(myNamespace);
   }
 
