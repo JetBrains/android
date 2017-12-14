@@ -69,9 +69,11 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
-    AndroidPluginInfo result = searchInBuildFilesOnly(project);
-    if (result != null && result.getPluginBuildFile() != null) {
-      hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
+    if (project.isInitialized()) {
+      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      if (result != null && result.getPluginBuildFile() != null) {
+        hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
+      }
     }
     return hyperlinks;
   }
