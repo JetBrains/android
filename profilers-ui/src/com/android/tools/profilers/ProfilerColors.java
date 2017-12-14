@@ -93,8 +93,6 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
-  public static final Color TOOLTIP_TIME_COLOR = new JBColor(0xACACAC, 0x838485);
-
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 
   public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
@@ -171,7 +169,7 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
-  public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x999999);
+  public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x565656);
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
@@ -214,4 +212,6 @@ public class ProfilerColors {
   public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
 
   public static final Color TOOLTIP_TEXT = new JBColor(0x545454, 0xCACACA);
+
+  public static final Color TOOLTIP_TIME_COLOR = new JBColor(0x888888, 0x838485);
 }
