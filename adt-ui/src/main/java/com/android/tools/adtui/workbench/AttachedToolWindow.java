@@ -353,7 +353,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 2 : 0;
+    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
     actionPanel.setBorder(JBUI.Borders.empty(border, 0));
