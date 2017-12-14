@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,9 +45,8 @@ public class IdePermissionTest {
    *   1. Code to check for location permissions should be found in MyActivity.java
    * </pre>
    */
-  @Ignore("b/68754578")
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68754578
   public void ideAddsPermissionChecks() throws Exception {
     String editorContents = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication")
       .getEditor()

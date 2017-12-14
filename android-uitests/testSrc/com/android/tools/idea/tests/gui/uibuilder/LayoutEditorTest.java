@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAs
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.MouseButton;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,8 +124,7 @@ public class LayoutEditorTest {
    *   For unsupported files, “Errors” dialog should display at the bottom of Configure vector asset window with appropriate message.
    *   </pre>
    */
-  @Ignore("b/68001739")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68001739
   @Test
   public void imageAssetErrorCheck() throws Exception {
     guiTest.importSimpleApplication();
@@ -172,8 +170,7 @@ public class LayoutEditorTest {
    *   Make sure the “preview” pane displays the layout with the drawable correctly.
    *   </pre>
    */
-  @Ignore("http://b/69420548")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/69420548
   @Test
   public void imageAssetGradleTest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();

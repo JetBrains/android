@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,9 +59,8 @@ public class CompileWithJava8Test {
    *   1. Verify if statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
    *   </pre>
    */
-  @Ignore("b/70227905")
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70227905
   public void compileWithJave8() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk24App");
