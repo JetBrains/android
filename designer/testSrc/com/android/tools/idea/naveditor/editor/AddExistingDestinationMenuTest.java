@@ -20,6 +20,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.SearchTextField;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -66,6 +67,25 @@ public class AddExistingDestinationMenuTest extends NavTestCase {
       (int)cell0Bounds.getCenterX(), (int)cell0Bounds.getCenterX(), 1, false));
     assertNotNull(destination.getComponent());
     assertEquals(ImmutableList.of(destination.getComponent()), mySurface.getSelectionModel().getSelection());
+  }
+
+  public void testFiltering() {
+    ASGallery<Destination> gallery = myMenu.myDestinationsGallery;
+    SearchTextField searchField = myMenu.mySearchField;
+
+    assertEquals(3, gallery.getItemsCount());
+    assertEquals("activity_main2", ((Destination)gallery.getModel().getElementAt(0)).getLabel());
+    assertEquals("BlankFragment", ((Destination)gallery.getModel().getElementAt(1)).getLabel());
+    assertEquals("navigation.xml", ((Destination)gallery.getModel().getElementAt(2)).getLabel());
+
+    searchField.setText("v");
+    assertEquals(2, gallery.getItemsCount());
+    assertEquals("activity_main2", ((Destination)gallery.getModel().getElementAt(0)).getLabel());
+    assertEquals("navigation.xml", ((Destination)gallery.getModel().getElementAt(1)).getLabel());
+
+    searchField.setText("vig");
+    assertEquals(1, gallery.getItemsCount());
+    assertEquals("navigation.xml", ((Destination)gallery.getModel().getElementAt(0)).getLabel());
   }
 
   public void testImageLoading() throws Exception {
