@@ -31,6 +31,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,6 +81,7 @@ public class GradleTasksTest {
       });
   }
 
+  @Ignore("b/70684215")
   @Test
   public void testTaskCancellation() throws Exception {
     // Main success scenario:
