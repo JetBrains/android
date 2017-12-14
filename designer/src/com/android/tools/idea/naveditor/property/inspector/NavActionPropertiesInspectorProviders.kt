@@ -15,8 +15,9 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
-// TODO
-// class NavActionTransitionInspectorProvider : NavigationPropertiesInspectorProvider(mapOf())
+class NavActionTransitionInspectorProvider : NavPropertiesInspectorProvider(mapOf(
+    NavigationSchema.ATTR_ENTER_ANIM to "Enter",
+    NavigationSchema.ATTR_EXIT_ANIM to "Exit"), "Transitions")
 
 class NavActionPopInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_POP_UP_TO to "Pop To",
