@@ -422,6 +422,12 @@ public class StudioIcons {
   }
 
   public static class NavEditor {
+    public static class ExistingDestinations {
+      public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
+      public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 146x188
+      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 146x188
+    }
+
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
     }
@@ -558,9 +564,11 @@ public class StudioIcons {
       public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.png"); // 13x13
       public static final Icon PROJECT = load("/studio/icons/shell/tool-windows/project.png"); // 13x13
       public static final Icon RUN = load("/studio/icons/shell/tool-windows/run.png"); // 13x13
+      public static final Icon SEARCH = load("/studio/icons/shell/tool-windows/search.png"); // 13x13
       public static final Icon STRUCTURE = load("/studio/icons/shell/tool-windows/structure.png"); // 13x13
       public static final Icon TERMINAL = load("/studio/icons/shell/tool-windows/terminal.png"); // 13x13
       public static final Icon TODO = load("/studio/icons/shell/tool-windows/todo.png"); // 13x13
+      public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/shell/tool-windows/toggle-properties.png"); // 13x13
       public static final Icon TOOL_WINDOW = load("/studio/icons/shell/tool-windows/tool-window.png"); // 13x13
       public static final Icon VERSION_CONTROL = load("/studio/icons/shell/tool-windows/version-control.png"); // 13x13
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.png"); // 16x16
