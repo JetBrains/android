@@ -109,6 +109,7 @@ public class NewKotlinProjectTest {
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
     ideFrameFixture.getEditor().open("app/src/main/cpp/" + C_FILE, EditorFixture.Tab.EDITOR);
     assertThat(C_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    ideFrameFixture.getEditor().close();
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
     ideFrameFixture.runApp(APP_NAME)
