@@ -195,6 +195,10 @@ public class InstantRunConfigurable
     boolean enabled = isGradle && isCurrentPlugin;
 
     myInstantRunCheckBox.setEnabled(isGradle); // allow turning off instant run even if the plugin is not the latest
+    if (!isGradle) {
+      myBuildConfiguration.INSTANT_RUN = false;
+      myInstantRunCheckBox.setSelected(false);
+    }
     enableIrOptions(enabled);
   }
 
