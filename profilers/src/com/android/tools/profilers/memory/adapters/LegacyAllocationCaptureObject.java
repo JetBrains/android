@@ -165,7 +165,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     for (LegacyAllocationEvent event : response.getEventsList()) {
       assert classEntryMap.containsKey(event.getClassId());
       assert callStacks.containsKey(event.getStackId());
-      myFakeHeapSet.addInstanceObject(
+      myFakeHeapSet.addDeltaInstanceObject(
         new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getClassId()), callStacks.get(event.getStackId())));
     }
     myIsDoneLoading = true;
@@ -191,7 +191,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @Override
   @NotNull
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOC_COUNT, ClassifierAttribute.SHALLOW_SIZE);
+    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOCATIONS, ClassifierAttribute.SHALLOW_SIZE);
   }
 
   @NotNull

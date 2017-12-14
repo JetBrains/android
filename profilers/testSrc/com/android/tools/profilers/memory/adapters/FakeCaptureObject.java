@@ -102,7 +102,7 @@ public final class FakeCaptureObject implements CaptureObject {
         String heapName = myHeapIdToName.containsKey(id) ? myHeapIdToName.get(id) : INVALID_HEAP_NAME;
         return new HeapSet(this, heapName, id);
       });
-      set.addInstanceObject(instanceObject);
+      set.addDeltaInstanceObject(instanceObject);
     }
   }
 
