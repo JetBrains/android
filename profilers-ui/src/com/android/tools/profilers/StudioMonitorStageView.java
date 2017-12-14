@@ -80,11 +80,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     TabularLayout layout = new TabularLayout("*");
     JPanel monitors = new JPanel(layout);
 
-
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
-    myTooltip = new JPanel(new BorderLayout());
-    myTooltip.setMinimumSize(new Dimension(100, 10));
+    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
+    myTooltip = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     RangeTooltipComponent
       tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip,
@@ -164,8 +163,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     if (tooltip != null) {
       myMonitorTooltipView = myTooltipBinder.build(this, tooltip);
       Component component = myMonitorTooltipView.createComponent();
-      myTooltip.add(component, BorderLayout.CENTER);
+      myTooltip.add(component);
     }
+    myTooltip.invalidate();
     myTooltip.repaint();
   }
 
