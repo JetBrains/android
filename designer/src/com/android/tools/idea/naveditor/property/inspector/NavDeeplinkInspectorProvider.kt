@@ -45,5 +45,5 @@ class NavDeeplinkInspectorProvider : NavListInspectorProvider<NavDeeplinkPropert
     }
   }
 
-  override fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?) = "Deeplinks"
+  override fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?) = "Deep Links"
 }
