@@ -21,6 +21,7 @@ import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.intellij.ProjectTopics.PROJECT_ROOTS;
 import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Java-Gradle facet.
@@ -93,8 +95,11 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
       public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!isDisposed()) {
-            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-            updateConfiguration();
+            Project project = getModule().getProject();
+            runWriteCommandAction(project, () -> {
+              PsiDocumentManager.getInstance(project).commitAllDocuments();
+              updateConfiguration();
+            });
           }
         });
       }
