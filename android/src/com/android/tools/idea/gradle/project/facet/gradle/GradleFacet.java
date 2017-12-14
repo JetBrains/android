@@ -21,17 +21,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.ProjectTopics.PROJECT_ROOTS;
 import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
 import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
 
@@ -93,8 +94,11 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
       public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!isDisposed()) {
-            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-            updateConfiguration();
+            Project project = getModule().getProject();
+            runWriteCommandAction(project, () -> {
+              PsiDocumentManager.getInstance(project).commitAllDocuments();
+              updateConfiguration();
+            });
           }
         });
       }
