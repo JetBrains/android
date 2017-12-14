@@ -29,7 +29,6 @@ import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -190,7 +189,7 @@ public class InstantRunTest {
    *   Verify that instant run cold swap is applied in Run tool window.
    */
   @Test
-  @Ignore("b/37506663: Please ask QA team for enabling this test.")
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/37506663
   public void activityRunningOnSeparateProcess() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
