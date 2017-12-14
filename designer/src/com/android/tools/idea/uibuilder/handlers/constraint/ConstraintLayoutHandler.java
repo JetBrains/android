@@ -35,14 +35,14 @@ import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -53,7 +53,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -64,11 +63,11 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
 
 /**
  * Handles interactions for the ConstraintLayout
@@ -108,27 +107,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   private ArrayList<ViewAction> myActions = new ArrayList<>();
-
-  /**
-   * Utility function to convert from an Icon to an Image
-   *
-   * @param icon
-   * @return
-   */
-  private static Image iconToImage(Icon icon) {
-    if (icon instanceof ImageIcon) {
-      return ((ImageIcon)icon).getImage();
-    }
-    else {
-      int w = icon.getIconWidth();
-      int h = icon.getIconHeight();
-      BufferedImage image = UIUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-      Graphics2D g = image.createGraphics();
-      icon.paintIcon(null, g, 0, 0);
-      g.dispose();
-      return image;
-    }
-  }
 
   /**
    * Base constructor
