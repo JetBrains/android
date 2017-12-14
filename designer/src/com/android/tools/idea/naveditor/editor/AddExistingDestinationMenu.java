@@ -21,15 +21,18 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.VerticalLayout;
+import com.intellij.ui.speedSearch.FilteringListModel;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -51,6 +54,10 @@ public class AddExistingDestinationMenu extends DropDownAction {
   private MediaTracker myMediaTracker;
   @VisibleForTesting
   JBLoadingPanel myLoadingPanel;
+
+  private FilteringListModel<Destination> myListModel;
+  @VisibleForTesting
+  SearchTextField mySearchField = new SearchTextField();
 
   AddExistingDestinationMenu(@NotNull NavDesignSurface surface, @NotNull List<Destination> destinations) {
     super("", "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING);
@@ -75,10 +82,11 @@ public class AddExistingDestinationMenu extends DropDownAction {
 
   @NotNull
   private JPanel createSelectionPanel() {
-    CollectionListModel<Destination> listModel = new CollectionListModel<>(myDestinations);
+    myListModel = new FilteringListModel<>(new CollectionListModel<>(myDestinations));
+    myListModel.setFilter(destination -> destination.getLabel().toLowerCase().contains(mySearchField.getText().toLowerCase()));
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
     myDestinationsGallery = new ASGallery<Destination>(
-      listModel, d -> null, Destination::getLabel, new Dimension(73, 94), null) {
+      myListModel, d -> null, Destination::getLabel, new Dimension(73, 94), null, true) {
       @Override
       @NotNull
       public Dimension getPreferredScrollableViewportSize() {
@@ -117,8 +125,13 @@ public class AddExistingDestinationMenu extends DropDownAction {
     });
 
     JPanel selectionPanel = new JPanel(new VerticalLayout(5));
-    // TODO: hook up search
-    selectionPanel.add(new SearchTextField());
+    selectionPanel.add(mySearchField);
+    mySearchField.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        myListModel.refilter();
+      }
+    });
 
     JBScrollPane scrollPane = new JBScrollPane(myDestinationsGallery);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
