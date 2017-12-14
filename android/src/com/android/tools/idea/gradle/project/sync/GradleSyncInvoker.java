@@ -189,10 +189,10 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
-    PreSyncCheckResult canSync = myPreSyncChecks.canSync(project);
-    if (!canSync.isSuccess()) {
+    PreSyncCheckResult checkResult = myPreSyncChecks.canSync(project);
+    if (!checkResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
-      String cause = nullToEmpty(canSync.getFailureCause());
+      String cause = nullToEmpty(checkResult.getFailureCause());
       handlePreSyncCheckFailure(project, cause, listener, request.trigger);
       return;
     }
