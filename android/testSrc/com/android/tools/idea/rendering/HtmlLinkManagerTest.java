@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.tools.idea.projectsystem.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.TestCase;
+import kotlin.sequences.Sequence;
+import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +64,12 @@ public class HtmlLinkManagerTest extends TestCase {
     List<GoogleMavenArtifactId> addedArtifacts = new ArrayList<>();
 
     AndroidModuleSystem moduleSystem = new AndroidModuleSystem() {
+      @NotNull
+      @Override
+      public Sequence<GoogleMavenArtifactId> getDependencies() {
+        return SequencesKt.emptySequence();
+      }
+
       @NotNull
       @Override
       public CapabilityStatus getInstantRunSupport() {

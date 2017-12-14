@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
-import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.*;
 
 public final class CastButtonHandler extends MenuHandler {
   static boolean handles(@NotNull NlAttributesHolder button) {
-    return Objects.equals(button.getAttribute(AUTO_URI, "actionProviderClass"), "android.support.v7.app.MediaRouteActionProvider");
+    return CLASS_MEDIA_ROUTE_ACTION_PROVIDER.isEquals(button.getAttribute(AUTO_URI, "actionProviderClass"));
   }
 
   @NotNull
   @Override
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return "com.android.support:mediarouter-v7";
+    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ?
+           AndroidxNameUtils.getCoordinateMapping(MEDIA_ROUTER_LIB_ARTIFACT) :
+           MEDIA_ROUTER_LIB_ARTIFACT;
   }
 }

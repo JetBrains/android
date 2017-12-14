@@ -179,6 +179,11 @@ public final class StudioFlags {
     "Enable experimental version of the Scout inference system",
     false);
 
+  public static final Flag<Boolean> NELE_USE_ANDROIDX_DEFAULT = Flag.create(
+    NELE, "androidx.default", "Use androidx. support lib by default",
+    "Enable the use of androidx dependencies by default when the old support library is not present",
+    true);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

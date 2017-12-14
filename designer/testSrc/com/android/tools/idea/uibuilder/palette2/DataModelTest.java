@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -30,17 +32,25 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.palette2.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DataModelTest extends AndroidTestCase {
   private DataModel myDataModel;
   private CategoryListModel myCategoryListModel;
   private ItemListModel myItemListModel;
   private DependencyManager myDependencyManager;
+  private boolean myHasAndroidxDeps;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
+    when(myDependencyManager.useAndroidxDependencies()).thenAnswer(new Answer<Boolean>() {
+      @Override
+      public Boolean answer(InvocationOnMock invocation) {
+        return myHasAndroidxDeps;
+      }
+    });
     myDataModel = new DataModel(myDependencyManager);
     myCategoryListModel = myDataModel.getCategoryListModel();
     myItemListModel = myDataModel.getItemListModel();
@@ -54,6 +64,7 @@ public class DataModelTest extends AndroidTestCase {
     myCategoryListModel = null;
     myItemListModel = null;
     myDependencyManager = null;
+    myHasAndroidxDeps = false;
   }
 
   public void testEmptyModelHoldsUsableListModels() {
@@ -129,6 +140,21 @@ public class DataModelTest extends AndroidTestCase {
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageView");
+
+    myDataModel.setFilterPattern("Floating");
+    assertThat(getElementsAsStrings(myCategoryListModel))
+      .containsExactly(DataModel.RESULTS.getName(), "Buttons").inOrder();
+    assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("android.support.design.widget.FloatingActionButton");
+
+    myHasAndroidxDeps = true;
+    myDataModel.setFilterPattern("Floating");
+    assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("androidx.widget.FloatingActionButton");
   }
 
   public void testMetaSearch() {
@@ -160,6 +186,25 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("Cast Button", "Menu Item", "Search Item", "Switch Item", "Menu", "Group").inOrder();
+  }
+
+  public void testUsingAndroidxDependencies() {
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+
+    myHasAndroidxDeps = true;
+    myDataModel.setFilterPattern("Floating");
+    assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("FloatingActionButton").inOrder();
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("androidx.widget.FloatingActionButton");
+
+    // Check meta-search
+    myDataModel.setFilterPattern("material");
+    assertThat(getElementsAsStrings(myCategoryListModel))
+      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
+    assertThat(getMatchCounts()).containsExactly(4, 1, 1, 2).inOrder();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
+    assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("androidx.widget.TextInputLayout");
   }
 
   @NotNull

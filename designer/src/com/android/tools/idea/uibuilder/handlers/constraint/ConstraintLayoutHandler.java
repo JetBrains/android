@@ -17,6 +17,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.api.DragType;

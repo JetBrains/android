@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.support.AndroidxNameUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -105,5 +107,9 @@ public class DependencyManager {
         }
       }
     }
+  }
+
+  public boolean useAndroidxDependencies() {
+    return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
   }
 }

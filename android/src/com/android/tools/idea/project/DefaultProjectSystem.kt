@@ -74,6 +74,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
+      override fun getDependencies(): Sequence<GoogleMavenArtifactId> = emptySequence()
+
       override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?,
                                             includePreview: Boolean) {}
 

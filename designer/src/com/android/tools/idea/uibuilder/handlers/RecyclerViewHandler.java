@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT;
@@ -48,7 +49,9 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return RECYCLER_VIEW_LIB_ARTIFACT;
+    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ?
+           AndroidxNameUtils.getCoordinateMapping(RECYCLER_VIEW_LIB_ARTIFACT) :
+           RECYCLER_VIEW_LIB_ARTIFACT;
   }
 
   @Nullable

@@ -23,22 +23,22 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A filter condition for implementing search in the palette.
  */
-public class ItemFilter implements Condition<Palette.Item> {
+public class PatternFilter implements Condition<Palette.Item> {
   private final SpeedSearchComparator myComparator;
   private String myPattern;
 
-  public ItemFilter() {
+  public PatternFilter() {
     myComparator = new SpeedSearchComparator(false);
     myPattern = "";
   }
 
-  @NotNull
-  public String getPattern() {
-    return myPattern;
-  }
+  public boolean setPattern(@NotNull String pattern) {
+    if (pattern.equals(myPattern)) {
+      return false;
+    }
 
-  public void setPattern(@NotNull String pattern) {
     myPattern = pattern;
+    return true;
   }
 
   @Override
@@ -47,5 +47,9 @@ public class ItemFilter implements Condition<Palette.Item> {
            myComparator.matchingFragments(myPattern, item.getTitle()) != null ||
            !item.getTitle().equals(item.getTagName()) && myComparator.matchingFragments(myPattern, item.getTagName()) != null ||
            item.getMetaTags().stream().anyMatch(meta -> myComparator.matchingFragments(myPattern, meta) != null);
+  }
+
+  public boolean hasPattern() {
+    return !myPattern.isEmpty();
   }
 }

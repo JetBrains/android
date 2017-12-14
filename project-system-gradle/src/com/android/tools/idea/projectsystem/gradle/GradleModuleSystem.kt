@@ -72,6 +72,17 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
         ?.let { GradleDependencyVersion(it.version) }
   }
 
+  override fun getDependencies(): Sequence<GoogleMavenArtifactId> {
+    val androidModuleModel = AndroidModuleModel.get(module) ?:
+        throw DependencyManagementException("Could not find android module model for module $module",
+            DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
+
+    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
+        .asSequence()
+        .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+        .mapNotNull { GoogleMavenArtifactId.forCoordinate(it) }
+  }
+
   override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
     // Check for compile dependencies from the gradle build file
     val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
