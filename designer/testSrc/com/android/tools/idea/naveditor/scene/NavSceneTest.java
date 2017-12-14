@@ -447,24 +447,24 @@ public class NavSceneTest extends NavTestCase {
     surface.setCurrentNavigation(model.find("subnav"));
     scene.layout(0, SceneContext.get(view));
     scene.buildDisplayList(list, 0, view);
-    assertEquals("Clip,0,0,-33,-72\n" +
-                 "DrawRectangle,-10x-100x76x128,ffa7a7a7,1,0\n" +
-                 "DrawFilledRectangle,-9x-99x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,-9x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawAction,NORMAL,-10x-100x76x128,-100x-100x76x128,NORMAL\n" +
-                 "DrawArrow,2,RIGHT,-110x-39x5x6,ffa7a7a7\n" +
-                 "DrawFilledCircle,6,68x-36,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,68x-36,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,fragment3,-10x-110x76x5,ff656565,Default:0:9,false\n" +
+    assertEquals("Clip,0,0,-246,-254\n" +
+                 "DrawRectangle,-122x-140x15x25,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-121x-139x13x23,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+                 "DrawAction,NORMAL,-122x-140x15x25,-140x-140x15x25,NORMAL\n" +
+                 "DrawArrow,2,RIGHT,-142x-128x1x1,ffa7a7a7\n" +
+                 "DrawFilledCircle,6,-107x-128,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-107x-128,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment3,-122x-142x15x1,ff656565,Default:0:2,false\n" +
                  "\n" +
-                 "DrawRectangle,-100x-100x76x128,ffa7a7a7,1,0\n" +
-                 "DrawFilledRectangle,-99x-99x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,-99x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawFilledCircle,6,-22x-36,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,-22x-36,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,fragment4,-100x-110x76x5,ff656565,Default:0:9,false\n" +
-                 "DrawLine,2,-23x-36,-16x-36,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,-16x-39x5x6,ffa7a7a7\n" +
+                 "DrawRectangle,-140x-140x15x25,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-139x-139x13x23,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-139x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+                 "DrawFilledCircle,6,-125x-128,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-125x-128,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment4,-140x-142x15x1,ff656565,Default:0:2,false\n" +
+                 "DrawLine,2,-125x-128,-124x-128,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-124x-128x1x1,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -773,41 +773,41 @@ public class NavSceneTest extends NavTestCase {
     scene.buildDisplayList(list, 0, view);
 
 
-    assertEquals("Clip,0,0,86,-72\n" +
-                 "DrawRectangle,-10x-100x76x128,ffa7a7a7,1,0\n" +
-                 "DrawFilledRectangle,-9x-99x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,-9x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawFilledCircle,6,68x-36,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,68x-36,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,fragment2,-10x-110x76x5,ff656565,Default:0:9,false\n" +
-                 "DrawLine,2,67x-36,74x-36,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,74x-39x5x6,ffa7a7a7\n" +
+    assertEquals("Clip,0,0,-222,-254\n" +
+                 "DrawRectangle,-122x-140x15x25,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-121x-139x13x23,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+                 "DrawFilledCircle,6,-107x-128,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-107x-128,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment2,-122x-142x15x1,ff656565,Default:0:2,false\n" +
+                 "DrawLine,2,-107x-128,-106x-128,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-106x-128x1x1,ffa7a7a7\n" +
                  "\n" +
-                 "DrawRectangle,110x-100x76x128,ffa7a7a7,1,0\n" +
-                 "DrawFilledRectangle,111x-99x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,111x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawFilledCircle,6,188x-36,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,188x-36,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,fragment3,110x-110x76x5,ff656565,Default:0:9,false\n" +
-                 "DrawLine,2,187x-45,194x-45,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,194x-48x5x6,ffa7a7a7\n" +
-                 "DrawLine,2,187x-36,194x-36,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,194x-39x5x6,ffa7a7a7\n" +
+                 "DrawRectangle,-98x-140x15x25,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-97x-139x13x23,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-97x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+                 "DrawFilledCircle,6,-83x-128,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-83x-128,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment3,-98x-142x15x1,ff656565,Default:0:2,false\n" +
+                 "DrawLine,2,-83x-130,-82x-130,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-82x-130x1x1,ffa7a7a7\n" +
+                 "DrawLine,2,-83x-128,-82x-128,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-82x-128x1x1,ffa7a7a7\n" +
                  "\n" +
-                 "DrawRectangle,-100x-100x76x128,ffa7a7a7,1,0\n" +
-                 "DrawFilledRectangle,-99x-99x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,-99x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawAction,NORMAL,-100x-100x76x128,-10x-100x76x128,NORMAL\n" +
-                 "DrawArrow,2,RIGHT,-20x-39x5x6,ffa7a7a7\n" +
-                 "DrawFilledCircle,6,-22x-36,fff5f5f5,0:0:0\n" +
-                 "DrawCircle,7,-22x-36,ffa7a7a7,2,0:0:0\n" +
-                 "DrawTruncatedText,3,fragment4,-100x-110x76x5,ff656565,Default:0:9,false\n" +
-                 "DrawLine,2,-23x-54,-16x-54,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,-16x-57x5x6,ffa7a7a7\n" +
-                 "DrawLine,2,-23x-45,-16x-45,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,-16x-48x5x6,ffa7a7a7\n" +
-                 "DrawLine,2,-23x-27,-16x-27,ffa7a7a7,3:0:1\n" +
-                 "DrawArrow,2,RIGHT,-16x-30x5x6,ffa7a7a7\n" +
+                 "DrawRectangle,-140x-140x15x25,ffa7a7a7,1,0\n" +
+                 "DrawFilledRectangle,-139x-139x13x23,fffafafa,0\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,-139x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+                 "DrawAction,NORMAL,-140x-140x15x25,-122x-140x15x25,NORMAL\n" +
+                 "DrawArrow,2,RIGHT,-124x-128x1x1,ffa7a7a7\n" +
+                 "DrawFilledCircle,6,-125x-128,fff5f5f5,0:0:0\n" +
+                 "DrawCircle,7,-125x-128,ffa7a7a7,2,0:0:0\n" +
+                 "DrawTruncatedText,3,fragment4,-140x-142x15x1,ff656565,Default:0:2,false\n" +
+                 "DrawLine,2,-125x-132,-124x-132,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-124x-132x1x1,ffa7a7a7\n" +
+                 "DrawLine,2,-125x-130,-124x-130,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-124x-130x1x1,ffa7a7a7\n" +
+                 "DrawLine,2,-125x-126,-124x-126,ffa7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,-124x-126x1x1,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
