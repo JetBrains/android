@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all dependencies such as
@@ -31,9 +33,13 @@ public abstract class DependencyModelImpl implements DependencyModel {
   @NotNull
   protected abstract GradleDslElement getDslElement();
 
-  @NotNull
   @Override
+  @NotNull
   public String configurationName() {
     return getDslElement().getName();
   }
+
+  @Override
+  @Nullable
+  public PsiElement getPsiElement() { return getDslElement().getPsiElement(); }
 }
