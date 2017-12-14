@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
-import com.android.tools.idea.actions.SaveScreenshotAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.editor.ActionManager;
@@ -167,8 +166,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
     group.add(myGotoComponentAction);
-    group.add(new SaveScreenshotAction(mySurface));
-
 
     return group;
   }
