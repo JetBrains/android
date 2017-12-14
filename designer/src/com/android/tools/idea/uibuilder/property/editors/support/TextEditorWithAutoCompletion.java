@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
+import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
@@ -78,6 +79,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     super.addNotify();
     EditorEx editor = (EditorEx)getEditor();
     assert editor != null;
+    removeAllMouseWheelListeners(editor);
     editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
     editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
     editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
@@ -99,6 +101,18 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     // The editor component is added in EditorTextField.addNotify but never removed by EditorTextField.
     // This is causing paint problems when this component is reused in a different panel.
     removeAll();
+  }
+
+  // Fix for b/70678297
+  // The editors used to edit property values are small and do not need to respond to mouse wheel changes.
+  // We would prefer that the properties panel itself is able to scroll instead.
+  // This can only happen if the editors scroll pane do not have mouse wheel listeners.
+  // See: JDK-4890196
+  private static void removeAllMouseWheelListeners(@NotNull EditorEx editor) {
+    JScrollPane scrollPane = editor.getScrollPane();
+    for (MouseWheelListener listener : scrollPane.getMouseWheelListeners()) {
+      scrollPane.removeMouseWheelListener(listener);
+    }
   }
 
   public void setTextColor(@NotNull Color color) {
