@@ -42,24 +42,26 @@ class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>
         realComponent.ensureId()
         realComponent.setAttribute(
             SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + addActionDialog.destination.id!!)
-        addActionDialog.popTo?.let { realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, it) }
-            ?: realComponent.removeAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO)
-        if (addActionDialog.isInclusive) {
-          realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "true")
-        }
-        if (addActionDialog.isSingleTop) {
-          realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP, "true")
-        }
-        if (addActionDialog.isDocument) {
-          realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT, "true")
-        }
-        if (addActionDialog.isClearTask) {
-          realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
-        }
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, addActionDialog.enterTransition)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_EXIT_ANIM, addActionDialog.exitTransition)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, addActionDialog.popTo)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE,
+            if (addActionDialog.isInclusive) "true" else null)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP,
+            if (addActionDialog.isSingleTop) "true" else null)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT,
+            if (addActionDialog.isDocument) "true" else null)
+        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK,
+            if (addActionDialog.isClearTask) "true" else null)
       })
     }
   }
 
   override fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?) =
-    if (components.size == 1 && components[0] == surface?.currentNavigation) { "Global Actions" } else { "Actions" }
+      if (components.size == 1 && components[0] == surface?.currentNavigation) {
+        "Global Actions"
+      }
+      else {
+        "Actions"
+      }
 }
