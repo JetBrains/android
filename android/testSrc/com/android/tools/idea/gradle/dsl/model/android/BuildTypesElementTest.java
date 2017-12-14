@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -167,5 +168,67 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     BuildTypeModel type2 = buildTypes.get(1);
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt", "proguard-android-4.txt"),
                  type2.proguardFiles());
+  }
+
+  public void testAddEmptyBuildType() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addBuildType("typeA");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+
+    BuildTypeModel buildType = buildTypes.get(0);
+    assertEquals("name", "typeA", buildType.name());
+    assertEquals("name", "typeA", buildType.name());
+    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertNull("buildConfigFields", buildType.buildConfigFields());
+    assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
+    assertNull("debuggable", buildType.debuggable());
+    assertNull("embedMicroApp", buildType.embedMicroApp());
+    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
+    assertNull("minifyEnabled", buildType.minifyEnabled());
+    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertNull("proguardFiles", buildType.proguardFiles());
+    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertNull("resValues", buildType.resValues());
+    assertNull("shrinkResources", buildType.shrinkResources());
+    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertNull("useJack", buildType.useJack());
+    assertNull("versionNameSuffix", buildType.versionNameSuffix());
+    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+  }
+
+  public void testAddBuildType() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addBuildType("typeA");
+    android.buildTypes().get(0).setApplicationIdSuffix("suffixA");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+
+    BuildTypeModel buildType = buildTypes.get(0);
+    assertEquals("name", "typeA", buildType.name());
+    assertEquals("applicationIdSuffix", "suffixA", buildType.applicationIdSuffix());
   }
 }

@@ -112,7 +112,7 @@ public final class GroovyDslUtil {
       return false;
     }
 
-    if (!element.isBlockElement()) {
+    if (!element.isBlockElement() || !element.isInsignificantIfEmpty()) {
       return false;
     }
 
