@@ -386,7 +386,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       gradleBuildInvoker.remove(task);
     }
 
-    latch.await();
+    latch.await(5, MINUTES);
     GradleInvocationResult result = resultRef.get();
     assert result != null;
     return result;
