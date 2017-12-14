@@ -136,6 +136,7 @@ public class NavDesignSurface extends DesignSurface {
     getSceneManager().update();
     getSelectionModel().clear();
     getSceneManager().layout(false);
+    zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
