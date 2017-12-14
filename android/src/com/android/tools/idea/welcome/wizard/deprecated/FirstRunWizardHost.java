@@ -35,6 +35,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +69,10 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private String myFrameTitle;
   private String myTitle;
   private Dimension myPreferredWindowSize = JBUI.size(800, 600);
+  /**
+   * Default minimum size is slightly less than 1366x768 at 200%
+   */
+  private final Dimension myMinimumWindowSize = JBUI.size(500, 350);
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
@@ -110,10 +115,15 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
       frame.setTitle(myTitle);
     }
     frame.setSize(myPreferredWindowSize);
-    Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (size.width - myPreferredWindowSize.width) / 2;
-    int y = (size.height - myPreferredWindowSize.height) / 2;
-    frame.setLocation(x, y);
+    frame.setMinimumSize(myMinimumWindowSize);
+
+    Rectangle screenBounds = frame.getGraphicsConfiguration() != null
+                             ? frame.getGraphicsConfiguration().getBounds()
+                             : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration()
+                               .getBounds();
+    int x = (screenBounds.width - myPreferredWindowSize.width) / 2;
+    int y = (screenBounds.height - myPreferredWindowSize.height) / 2;
+    frame.setLocation(screenBounds.x + x, screenBounds.y + y);
     JButton defaultButton = myActionToButtonMap.get(myFinishAction);
     if (!defaultButton.isEnabled()) {
       defaultButton = myActionToButtonMap.get(myNextAction);

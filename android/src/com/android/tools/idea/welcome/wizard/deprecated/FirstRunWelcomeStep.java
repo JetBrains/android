@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.npw.platform.FormFactorUtils;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -24,7 +25,7 @@ import javax.swing.*;
  * Welcome page for the first run wizard
  */
 public final class FirstRunWelcomeStep extends FirstRunWizardStep {
-  private JPanel myRoot;
+  private JBScrollPane myRoot;
   private JLabel myIcons;
   private JPanel myExistingSdkMessage;
   private JPanel myNewSdkMessage;

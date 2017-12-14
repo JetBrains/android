@@ -29,7 +29,7 @@ import java.awt.event.ItemListener;
 /**
  * Two-way binding for using dual radiobuttons to edit a boolean value.
  */
-public class TwoRadiosToBooleanBinding extends ScopedDataBinder.ComponentBinding<Boolean, JPanel> {
+public class TwoRadiosToBooleanBinding extends ScopedDataBinder.ComponentBinding<Boolean, JComponent> {
   @NotNull private final JRadioButton myButtonTrue;
   @NotNull private final JRadioButton myButtonFalse;
 
@@ -39,7 +39,7 @@ public class TwoRadiosToBooleanBinding extends ScopedDataBinder.ComponentBinding
   }
 
   @Override
-  public void setValue(@Nullable Boolean newValue, @NotNull JPanel component) {
+  public void setValue(@Nullable Boolean newValue, @NotNull JComponent component) {
     boolean customInstall = Objects.equal(Boolean.TRUE, newValue);
     myButtonTrue.setSelected(customInstall);
     myButtonFalse.setSelected(!customInstall);
@@ -47,12 +47,12 @@ public class TwoRadiosToBooleanBinding extends ScopedDataBinder.ComponentBinding
 
   @Nullable
   @Override
-  public Boolean getValue(@NotNull JPanel component) {
+  public Boolean getValue(@NotNull JComponent component) {
     return myButtonTrue.isSelected();
   }
 
   @Override
-  public void addActionListener(@NotNull final ActionListener listener, @NotNull final JPanel component) {
+  public void addActionListener(@NotNull final ActionListener listener, @NotNull final JComponent component) {
     ItemListener itemListener = (ItemEvent e) -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         String actionCommand = ((JRadioButton)e.getItem()).getActionCommand();
