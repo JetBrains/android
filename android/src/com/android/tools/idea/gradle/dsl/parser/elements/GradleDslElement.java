@@ -177,6 +177,13 @@ public abstract class GradleDslElement {
     return false;
   }
 
+  /**
+   * Returns {@code true} if this element represents an element which is insignificant if empty.
+   */
+  public boolean isInsignificantIfEmpty() {
+    return true;
+  }
+
   @NotNull
   public abstract Collection<GradleDslElement> getChildren();
 
