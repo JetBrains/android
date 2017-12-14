@@ -54,7 +54,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("NdkHelloJni");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
 
     ideFrame.getEditor()
       .open("app/src/main/java/com/example/hellojni/HelloJni.java")

@@ -68,7 +68,7 @@ public class CLionIntegrationTest {
   @Test
   public void cLionIntegration() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CLionNdkHelloJni");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/CLionNdkHelloJni");
 
     EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
 
