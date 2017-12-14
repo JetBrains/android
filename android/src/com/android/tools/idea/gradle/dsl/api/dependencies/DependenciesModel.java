@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,14 @@ public interface DependenciesModel {
   @NotNull
   DependenciesModel addArtifact(@NotNull String configurationName,
                                 @NotNull ArtifactDependencySpec dependency,
-                                @NotNull List<ArtifactDependencySpec> exculdes);
+                                @NotNull List<ArtifactDependencySpec> excludes);
+
+  /**
+   * Replaces the artifact dependency which contains the given {@link PsiElement} with a new dependency given by
+   * the {@link ArtifactDependencySpec}. If no dependency that contains the {@link PsiElement} exists nothing is
+   * changed. Returns {@code true} is a dependency was successfully replaced, {@code false} otherwise.
+   */
+  boolean replaceArtifactByPsiElement(@NotNull PsiElement oldPsiElement, ArtifactDependencySpec newArtifact);
 
   @NotNull
   List<ModuleDependencyModel> modules();

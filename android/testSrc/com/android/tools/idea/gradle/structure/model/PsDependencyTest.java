@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -123,20 +124,20 @@ public class PsDependencyTest {
       super(parent, parsedModel);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String toText(@NotNull TextType type) {
       return "";
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String getName() {
       return "";
     }
 
-    @Nullable
     @Override
+    @Nullable
     public Object getResolvedModel() {
       return null;
     }
@@ -155,10 +156,16 @@ public class PsDependencyTest {
       myName = name;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String configurationName() {
       return myName;
+    }
+
+    @Override
+    @Nullable
+    public PsiElement getPsiElement() {
+      return null;
     }
   }
 }
