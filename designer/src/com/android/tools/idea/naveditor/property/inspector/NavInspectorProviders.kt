@@ -36,6 +36,7 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
         NavActivityPropertiesInspectorProvider(),
         NavSetStartProvider(),
         NavDestinationArgumentsInspectorProvider(),
+        NavActionTransitionInspectorProvider(),
         NavActionArgumentsInspectorProvider(),
         NavActionPopInspectorProvider(),
         NavActionLaunchOptionsInspectorProvider(),

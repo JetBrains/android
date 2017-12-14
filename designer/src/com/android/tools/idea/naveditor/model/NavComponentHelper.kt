@@ -128,7 +128,7 @@ val NlComponent.actionType: ActionType
       return ActionType.GLOBAL
     }
 
-    if (parent?.id == actionDestination) {
+    if (parent?.id == actionDestinationId) {
       return ActionType.SELF
     }
 
@@ -136,12 +136,25 @@ val NlComponent.actionType: ActionType
 
     return if (containingNavigation.children
         .map { it.id }
-        .contains(actionDestination)) ActionType.REGULAR
+        .contains(actionDestinationId)) ActionType.REGULAR
     else ActionType.EXIT
   }
 
-val NlComponent.actionDestination
+val NlComponent.actionDestinationId: String?
   get() = NlComponent.stripId(getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION))
+
+val NlComponent.actionDestination: NlComponent?
+  get() {
+    assert(isAction)
+    var p: NlComponent = parent ?: return null
+    val targetId = actionDestinationId
+    while (true) {
+      p.children.firstOrNull { it.id == targetId }?.let { return it }
+      p = p.parent ?: break
+    }
+    // The above won't check the root itself
+    return model.components.firstOrNull { it.id == targetId }
+  }
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

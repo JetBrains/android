@@ -41,6 +41,7 @@ class NavPropertyEditors : PropertyEditors() {
       ATTR_NAME -> return DestinationClassEditor()
       ATTR_POP_UP_TO -> return AllDestinationsEditor()
       ATTR_GRAPH -> return SourceGraphEditor()
+      ATTR_ENTER_ANIM, ATTR_EXIT_ANIM -> return AnimationEditor()
     }
     if (property.definition?.formats?.contains(AttributeFormat.Boolean) == true) {
       return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
