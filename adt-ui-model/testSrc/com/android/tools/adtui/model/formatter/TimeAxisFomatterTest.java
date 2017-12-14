@@ -51,4 +51,16 @@ public class TimeAxisFomatterTest {
     // exact hours
     assertEquals("02:00:00.000", formatter.getClockFormattedString(7_200_000_000L));
   }
+
+  @Test
+  public void formatDuration() {
+    TimeAxisFormatter formatter = TimeAxisFormatter.DEFAULT;
+
+    assertEquals("1 h", formatter.getFormattedDuration(3_600_000_000L));
+    assertEquals("1 h", formatter.getFormattedDuration(4_500_000_000L));
+    assertEquals("1 m", formatter.getFormattedDuration(60000000));
+    assertEquals("1 s", formatter.getFormattedDuration(1000000));
+    assertEquals("1 ms", formatter.getFormattedDuration(1000));
+    assertEquals("100 μs", formatter.getFormattedDuration(100));
+  }
 }
