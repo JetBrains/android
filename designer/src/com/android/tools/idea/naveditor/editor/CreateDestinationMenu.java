@@ -37,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -266,7 +268,7 @@ public class CreateDestinationMenu extends DropDownAction {
       */
     }
 
-    myKindPopup.addItemListener(itemEvent -> {
+    ItemListener listener = itemEvent -> {
       //noinspection unchecked
       if (NavigationSchema.INCLUDE_GRAPH_LABEL.equals(((Pair<String, PsiClass>)itemEvent.getItem()).getFirst())) {
         myIdField.setVisible(false);
@@ -285,8 +287,10 @@ public class CreateDestinationMenu extends DropDownAction {
         myIdField.setVisible(true);
       }
       updateDefaultIdAndLabel();
-    });
-
+    };
+    myKindPopup.addItemListener(listener);
+    // Unset the type so that when it's reset below we can be sure the listener fires.
+    myKindPopup.setSelectedItem(null);
     myKindPopup.setSelectedItem(defaultSelection);
   }
 

@@ -39,7 +39,7 @@ sealed class Destination {
 
   @VisibleForTesting
   data class RegularDestination @JvmOverloads constructor(
-      val parent: NlComponent, val tag: String, val destinationLabel: String? = null, val className: String? = null,
+      val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val className: String? = null,
       val qualifiedName: String? = null, val idBase: String = className ?: tag, private val layoutFile: XmlFile? = null)
     : Destination() {
 
@@ -53,8 +53,7 @@ sealed class Destination {
       }
     }
 
-    override val label: String
-      get() = layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
+    override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
 
     override fun addToGraph() {
       val model = parent.model
@@ -70,7 +69,6 @@ sealed class Destination {
             val layoutId = "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
             newComponent.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, layoutId)
           }
-          newComponent.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LABEL, destinationLabel)
           component = newComponent
         }
       }.execute()

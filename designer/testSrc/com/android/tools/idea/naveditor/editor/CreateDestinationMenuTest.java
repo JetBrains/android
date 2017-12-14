@@ -13,7 +13,6 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.NavTestCase;
@@ -27,15 +26,12 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.mockito.Mockito;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.ATTR_LABEL;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 
 // TODO: testing with custom navigators
@@ -209,7 +205,7 @@ public class CreateDestinationMenuTest extends NavTestCase {
 
     NlComponent added = myModel.find("myId");
     assertEquals(TAG_NAVIGATION, added.getTagName());
-    assertEquals("myLabel", added.getAttribute(AUTO_URI, ATTR_LABEL));
+    assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL));
   }
 
   public void testCreateFragment() {
@@ -223,7 +219,7 @@ public class CreateDestinationMenuTest extends NavTestCase {
 
     NlComponent added = myModel.find("myId");
     assertEquals("fragment", added.getTagName());
-    assertEquals("myLabel", added.getAttribute(AUTO_URI, ATTR_LABEL));
+    assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL));
   }
 
   public void testCreateActivity() {
@@ -237,7 +233,7 @@ public class CreateDestinationMenuTest extends NavTestCase {
 
     NlComponent added = myModel.find("myId");
     assertEquals("activity", added.getTagName());
-    assertEquals("myLabel", added.getAttribute(AUTO_URI, ATTR_LABEL));
+    assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL));
     assertEquals(ImmutableList.of(added), mySurface.getSelectionModel().getSelection());
   }
 
