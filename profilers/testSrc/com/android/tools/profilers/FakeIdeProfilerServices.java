@@ -72,7 +72,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Toggle for faking memory snapshot support in tests.
    */
-  private boolean myMemorySnapshotEnabled = false;
+  private boolean myMemorySnapshotEnabled = true;
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.

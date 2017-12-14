@@ -72,10 +72,16 @@ public class ClassSet extends ClassifierSet {
   private static final class ClassClassifier extends Classifier {
     @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
 
-    @NotNull
+    @Nullable
     @Override
-    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
-      return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
+    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
+      ClassDb.ClassEntry classEntry = instance.getClassEntry();
+      ClassSet classSet = myClassMap.get(classEntry);
+      if (classSet == null && createIfAbsent) {
+        classSet = new ClassSet(classEntry);
+        myClassMap.put(classEntry, classSet);
+      }
+      return classSet;
     }
 
     @NotNull

@@ -237,7 +237,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       heap.getClasses().forEach(classObj -> {
         InstanceObject classObject = createClassObjectInstance(finalJavaLangClassObject, classObj);
         myInstanceIndex.put(classObj, classObject);
-        heapSet.addInstanceObject(classObject);
+        heapSet.addDeltaInstanceObject(classObject);
       });
     }
 
@@ -250,7 +250,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
           new HeapDumpInstanceObject(this, getClassObjectInstance(instance), instance,
                                      myClassDb.registerClass(classObj.getClassLoaderId(), classObj.getClassName()), null);
         myInstanceIndex.put(instance, instanceObject);
-        heapSet.addInstanceObject(instanceObject);
+        heapSet.addDeltaInstanceObject(instanceObject);
         return true;
       });
     }
@@ -277,8 +277,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return myHasNativeAllocations ? Arrays.asList(LABEL, ALLOC_COUNT, NATIVE_SIZE, SHALLOW_SIZE, RETAINED_SIZE)
-                                  : Arrays.asList(LABEL, ALLOC_COUNT, SHALLOW_SIZE, RETAINED_SIZE);
+    return myHasNativeAllocations ? Arrays.asList(LABEL, ALLOCATIONS, NATIVE_SIZE, SHALLOW_SIZE, RETAINED_SIZE)
+                                  : Arrays.asList(LABEL, ALLOCATIONS, SHALLOW_SIZE, RETAINED_SIZE);
   }
 
   @Override

@@ -76,28 +76,42 @@ public class MethodSet extends ClassifierSet {
       myDepth = depth;
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
       AllocationStack stack = instance.getAllocationCallStack();
       int stackDepth = instance.getCallStackDepth();
       if (stack != null && stackDepth > 0 && myDepth < stackDepth) {
+        MethodSetInfo methodInfo;
         switch (stack.getFrameCase()) {
           case FULL_STACK:
             AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
             AllocationStack.StackFrame stackFrame = fullStack.getFrames(fullStack.getFramesCount() - myDepth - 1);
-            MethodSetInfo fullMethodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
-            return myStackLineMap.computeIfAbsent(fullMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+            methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+            break;
           case SMALL_STACK:
             AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
             AllocationStack.SmallFrame smallFrame = smallStack.getFrames(smallStack.getFramesCount() - myDepth - 1);
-            MethodSetInfo lazyMethodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
-            return myStackLineMap.computeIfAbsent(lazyMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
-          default:
+            methodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
             break;
+          default:
+            throw new UnsupportedOperationException();
         }
+        MethodSet methodSet = myStackLineMap.get(methodInfo);
+        if (methodSet == null && createIfAbsent) {
+          methodSet = new MethodSet(myCaptureObject, methodInfo, myDepth + 1);
+          myStackLineMap.put(methodInfo, methodSet);
+        }
+        return methodSet;
       }
-      return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
+
+      ClassDb.ClassEntry classEntry = instance.getClassEntry();
+      ClassSet classSet = myClassMap.get(classEntry);
+      if (classSet == null && createIfAbsent) {
+        classSet = new ClassSet(classEntry);
+        myClassMap.put(classEntry, classSet);
+      }
+      return classSet;
     }
 
     @NotNull

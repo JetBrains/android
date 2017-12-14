@@ -117,31 +117,44 @@ final class MemoryClassifierView extends AspectObserver {
         "Class Name", this::getNameColumnRenderer, SwingConstants.LEFT, LABEL_COLUMN_WIDTH, SortOrder.ASCENDING,
         createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), Comparator.comparing(ClassSet::getName))));
     myAttributeColumns.put(
-      ClassifierAttribute.ALLOC_COUNT,
+      ClassifierAttribute.ALLOCATIONS,
       new AttributeColumn<>(
-        "Alloc Count",
+        "Allocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getAllocatedCount()),
+          value -> Integer.toString(value.getAdapter().getDeltaAllocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getAllocatedCount),
-                                 Comparator.comparingInt(ClassSet::getAllocatedCount))));
+        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaAllocationCount),
+                                 Comparator.comparingInt(ClassSet::getDeltaAllocationCount))));
     myAttributeColumns.put(
-      ClassifierAttribute.DEALLOC_COUNT,
+      ClassifierAttribute.DEALLOCATIONS,
       new AttributeColumn<>(
-        "Dealloc Count",
+        "Deallocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getDeallocatedCount()),
+          value -> Integer.toString(value.getAdapter().getDeltaDeallocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeallocatedCount),
-                                 Comparator.comparingInt(ClassSet::getDeallocatedCount))));
+        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaDeallocationCount),
+                                 Comparator.comparingInt(ClassSet::getDeltaDeallocationCount))));
+    myAttributeColumns.put(
+      ClassifierAttribute.TOTAL_COUNT,
+      new AttributeColumn<>(
+        "Total Count",
+        () -> new SimpleColumnRenderer<ClassifierSet>(
+          value -> Integer.toString(value.getAdapter().getTotalObjectCount()),
+          value -> null,
+          SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
+        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getTotalObjectCount),
+                                 Comparator.comparingInt(ClassSet::getTotalObjectCount))));
     myAttributeColumns.put(
       ClassifierAttribute.NATIVE_SIZE,
       new AttributeColumn<>(

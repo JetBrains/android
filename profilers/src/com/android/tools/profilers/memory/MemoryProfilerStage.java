@@ -462,6 +462,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     if (getSelectedHeapSet() != null) {
       getSelectedHeapSet().selectFilter(filter);
     }
+    // Clears the selected ClassSet if it's been filtered.
+    if (getSelectedClassSet() != null && getSelectedClassSet().getIsFiltered()) {
+      selectClassSet(ClassSet.EMPTY_SET);
+    }
     myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
   }
 
