@@ -18,11 +18,15 @@ import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.util.ColoredIconGenerator
+import com.android.tools.idea.common.util.iconToImage
+import com.android.tools.idea.naveditor.model.schema
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
+import icons.AndroidIcons
 import icons.StudioIcons
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Color
 import java.awt.Image
 
@@ -40,7 +44,14 @@ sealed class Destination {
     : Destination() {
 
     // TODO: render thumbnail with border
-    override val thumbnail = ACTIVITY_IMAGE
+    override val thumbnail: Image? by lazy {
+      if (parent.model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY) {
+        iconToImage(StudioIcons.NavEditor.ExistingDestinations.ACTIVITY)
+      }
+      else {
+        iconToImage(StudioIcons.NavEditor.ExistingDestinations.DESTINATION)
+      }
+    }
 
     override val label: String
       get() = layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
@@ -82,9 +93,7 @@ sealed class Destination {
 
     override val label = graph
 
-    override val thumbnail: Image?
-        // TODO: use the right icon once it exists
-      get() = ColoredIconGenerator.generateColoredImage(StudioIcons.NavEditor.Tree.INCLUDE_GRAPH, Color.BLACK.rgb)
+    override val thumbnail: Image? by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
 
   }
 }

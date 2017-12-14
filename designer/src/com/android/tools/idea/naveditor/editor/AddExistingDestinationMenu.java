@@ -78,7 +78,7 @@ public class AddExistingDestinationMenu extends DropDownAction {
     CollectionListModel<Destination> listModel = new CollectionListModel<>(myDestinations);
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
     myDestinationsGallery = new ASGallery<Destination>(
-      listModel, d -> null, Destination::getLabel, new Dimension(96, 96), null) {
+      listModel, d -> null, Destination::getLabel, new Dimension(73, 94), null) {
       @Override
       @NotNull
       public Dimension getPreferredScrollableViewportSize() {

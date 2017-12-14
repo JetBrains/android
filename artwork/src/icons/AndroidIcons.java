@@ -190,12 +190,6 @@ public class AndroidIcons {
     public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
   }
 
-  public static class NavEditorIcons {
-    public static final Icon Destination = load("/icons/naveditor/destination.png");
-    public static final Icon DestinationGroup = load("/icons/naveditor/destination-group.png");
-    public static final Icon DestinationInclude = load("/icons/naveditor/include.png");
-  }
-
   public static final class MenuIcons {
     public static final Icon item = load("/icons/nele/item.png");
     public static final Icon menu = load("/icons/nele/menu.png");
