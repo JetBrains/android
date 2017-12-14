@@ -10,7 +10,7 @@
            android:right="7dp"
            android:bottom="7dp"/>
   <corners android:radius="8dp"/>
-  <size android:width="2dp" android:dashWidth=<error>""</error>/>
+  <size android:width="2dp" android:dashWidth="<error descr="Missing value"></error>"/>
   <solid/>
   <stroke android:width="4dp"
           android:color="color"
