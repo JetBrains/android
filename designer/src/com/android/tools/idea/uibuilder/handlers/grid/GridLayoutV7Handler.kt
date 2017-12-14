@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid
 
-import com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
+import com.android.SdkConstants
+import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.grid.targets.GridDragTarget
 import com.google.common.collect.ImmutableList
@@ -25,7 +26,10 @@ import com.google.common.collect.ImmutableList
  */
 class GridLayoutV7Handler : GridLayoutHandler() {
 
-  override fun getGradleCoordinateId(viewTag: String) = GRID_LAYOUT_LIB_ARTIFACT
+  override fun getGradleCoordinateId(viewTag: String) = if (viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX))
+    AndroidxNameUtils.getCoordinateMapping(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT)
+  else
+    SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
 
   override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = true))
 }

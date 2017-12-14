@@ -346,7 +346,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     return new KeyAdapter() {
       @Override
       public void keyPressed(@NotNull KeyEvent event) {
-        if (!myDataModel.getFilterPattern().isEmpty() && event.getKeyCode() == KeyEvent.VK_ENTER && event.getModifiers() == 0 &&
+        if (myDataModel.hasFilterPattern() && event.getKeyCode() == KeyEvent.VK_ENTER && event.getModifiers() == 0 &&
             myItemList.getModel().getSize() == 1) {
           myItemList.requestFocus();
         }

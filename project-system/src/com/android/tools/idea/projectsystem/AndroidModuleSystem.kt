@@ -75,4 +75,9 @@ interface AndroidModuleSystem {
    * Determines whether or not the underlying build system supports instant run.
    */
   fun getInstantRunSupport(): CapabilityStatus
+
+  /**
+   * Lists all the transitive dependencies.
+   */
+  fun getDependencies(): Sequence<GoogleMavenArtifactId>
 }

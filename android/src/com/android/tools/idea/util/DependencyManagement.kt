@@ -17,7 +17,9 @@
 
 package com.android.tools.idea.util
 
+import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
+import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -42,6 +44,37 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
     Logger.getInstance(this.javaClass.name).warn(e.message)
   }
   return false
+}
+
+fun Module.getDependencies(): Sequence<GoogleMavenArtifactId> {
+  try {
+    return project.getProjectSystem().getModuleSystem(this).getDependencies()
+  }
+  catch (e: DependencyManagementException) {
+    Logger.getInstance(this.javaClass.name).warn(e.message)
+  }
+  return emptySequence()
+}
+
+/**
+ * Returns whether this module depends on the new support library artifacts (androidx)
+ */
+fun Module.dependsOnAndroidx(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
+
+/**
+ * Returns whether this module depends on the old support library artifacts (androidx)
+ */
+fun Module.dependsOnOldSupportLib(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
+
+fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
+  if (this.isDisposed || coordinate.isEmpty()) {
+    return coordinate
+  }
+
+  return if (this.dependsOnAndroidx()) {
+    AndroidxNameUtils.getCoordinateMapping(coordinate)
+  }
+  else coordinate
 }
 
 /**
