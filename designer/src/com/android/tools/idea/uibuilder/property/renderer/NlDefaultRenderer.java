@@ -17,16 +17,16 @@ package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
@@ -116,7 +116,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
-    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(type, property.getName(), false), value));
+    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(new ResourceReference(type, property.getName(), false), value));
     if (drawable == null) {
       return null;
     }
@@ -127,9 +127,9 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
-    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(ResourceType.COLOR,
-                                                                                                property.getName(),
-                                                                                                false),
+    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(new ResourceReference(ResourceType.COLOR,
+                                                                                                   property.getName(),
+                                                                                                   false),
                                                                              value));
     if (resourceValue == null) {
       return null;

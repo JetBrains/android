@@ -16,6 +16,7 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -218,10 +219,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         });
       }
 
-      Set<ResourceUrl> seenResourceUrls = new HashSet<>(myResourceRefSet.size());
+      Set<ResourceReference> seenResources = new HashSet<>(myResourceRefSet.size());
       for (ResourceItem item : myResourceRefSet) {
-        ResourceUrl url = item.getResourceUrl(false);
-        if (seenResourceUrls.add(url)) {
+        ResourceReference ref = item.getReferenceToSelf(false);
+        if (seenResources.add(ref)) {
           PsiField[] fields;
           PsiElement elm = getResourceDefinition(item);
           if (elm instanceof PsiFile) {

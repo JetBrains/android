@@ -23,7 +23,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
@@ -45,14 +44,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc(fileName, targetName, actualDoc -> assertEquals(expectedDoc, actualDoc));
   }
 
-  private void checkJavadocContains(String fileName, String targetName, @NotNull String docFragment) {
-    checkJavadoc(fileName, targetName, actualDoc -> {
-      boolean isContained = actualDoc.contains(docFragment);
-      assertTrue("\nExpected: " + docFragment + "\nContained By: " + actualDoc, isContained);
-    });
-  }
-
-    /**
+  /**
      * Test that the project can fetch documentation at the caret point (which is expected to be set
      * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
      * the actual documentation returned and will be responsible for asserting expected values.
@@ -358,8 +350,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testFrameworkStyleResolution() {
     // Checks that references in framework styles are always understood to point to framework resources,
     // even if the android: prefix is not explicitly written.
-    checkJavadocContains("/javadoc/styles/styles.xml", "res/values/styles.xml",
-                         "@android:style/Theme.Holo<BR/>");
+    checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml", actualDoc -> {
+      boolean isContained = actualDoc.contains("@android:style/Theme.Holo<BR/>");
+      assertTrue("\nExpected: " + "@android:style/Theme.Holo<BR/>" + "\nContained By: " + actualDoc, isContained);
+    });
   }
 
   public void testStyleName() {
@@ -367,7 +361,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "Default text typeface style.");
   }
 
-  public void testInjectExternalDocumentation() throws Exception {
+  public void testInjectExternalDocumentation() {
     assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first","second"));
     assertEquals("<html a=\"b\"><body b=\"c\">firstsecond</body></html>", AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\"><body b=\"c\">first</body></html>", "second"));
     assertEquals("<HTML a=\"b\"><BODY b=\"c\">firstsecond</BODY></HTML>", AndroidJavaDocRenderer.injectExternalDocumentation("<HTML a=\"b\"><BODY b=\"c\">first</BODY></HTML>", "second"));

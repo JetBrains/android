@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceRepository;
 import com.android.ide.common.res2.ResourceTable;
@@ -44,7 +45,7 @@ import static java.io.File.separatorChar;
 public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
 
-  public void test() throws Exception {
+  public void testResourceClassGenerator() throws Exception {
     final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
@@ -115,12 +116,12 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     }
     Field field1 = clz.getField("menu_wallpaper");
     Object value1 = field1.get(null);
-    assertEquals(Integer.TYPE, field1.getType());
+    assertSame(Integer.TYPE, field1.getType());
     assertNotNull(value1);
     assertEquals(2, clz.getFields().length);
     Field field2 = clz.getField("show_all_apps");
     assertNotNull(field2);
-    assertEquals(Integer.TYPE, field2.getType());
+    assertSame(Integer.TYPE, field2.getType());
     assertTrue(Modifier.isPublic(field2.getModifiers()));
     assertTrue(Modifier.isFinal(field2.getModifiers()));
     assertTrue(Modifier.isStatic(field2.getModifiers()));
@@ -305,13 +306,13 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
     @Nullable
     @Override
-    protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
       return myDelegate.getItems().get(namespace, type);
     }
 
     @NonNull
     @Override
-    public Set<String> getNamespaces() {
+    public Set<ResourceNamespace> getNamespaces() {
       return myDelegate.getNamespaces();
     }
 
@@ -362,7 +363,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(field2);
     assertNotNull(clz.getField("GridLayout_Layout_android_layout_width"));
     assertNotNull(clz.getField("GridLayout_Layout_layout_columnSpan"));
-    assertEquals(Integer.TYPE, field2.getType());
+    assertSame(Integer.TYPE, field2.getType());
     assertTrue(Modifier.isPublic(field2.getModifiers()));
     assertTrue(Modifier.isFinal(field2.getModifiers()));
     assertTrue(Modifier.isStatic(field2.getModifiers()));
@@ -415,7 +416,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(clz.newInstance());
     assertNotNull(clz.getDeclaredField("Styleable_with_dots"));
     Field styleable3 = clz.getDeclaredField("Styleable_with_underscore");
-    assertEquals(styleable3.getType(), (new int[0]).getClass());
+    assertSame(styleable3.getType(), (new int[0]).getClass());
     int[] array = (int[])styleable3.get(null);
     int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr1").get(null);
     assertEquals(0x01010125, array[idx]);

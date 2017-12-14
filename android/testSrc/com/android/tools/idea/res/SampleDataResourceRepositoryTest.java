@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
@@ -39,6 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
@@ -49,15 +50,15 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
   @NotNull
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
-    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).values().stream()
-      .filter(item -> item.getNamespace() == null)
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).values().stream()
+      .filter(item -> item.getNamespace() == RES_AUTO) // TODO(namespaces): See SampleDataResourceRepository.addPredefinedItems()
       .collect(Collectors.toList());
   }
 
   @Nullable
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
-    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).get(resName).stream()
-      .filter(item -> item.getNamespace() == null)
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName).stream()
+      .filter(item -> item.getNamespace() == RES_AUTO) // TODO(namespaces): See SampleDataResourceRepository.addPredefinedItems()
       .collect(Collectors.toList());
   }
 
@@ -151,10 +152,10 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
-      new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
+      new ResourceValue(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
     // @string/invalid does not exist so the sample data will just return the unresolved reference
     assertEquals("@string/invalid", resolver.resolveResValue(
-      new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
+      new ResourceValue(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
 
     // Check indexing (all calls should return the same)
     assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());

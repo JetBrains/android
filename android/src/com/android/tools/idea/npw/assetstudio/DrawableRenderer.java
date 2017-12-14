@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutlibCallback;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -98,9 +95,8 @@ class DrawableRenderer implements Disposable {
   @NotNull
   public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
     String xmlText = VectorDrawableTransformer.resizeAndCenter(xmlDrawableText, size, 1, null);
-    ResourceUrl url = ResourceUrl.create(null, ResourceType.DRAWABLE, "ic_image_preview");
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
-    ResourceValue value = new ResourceValue(url, resourceName);
+    ResourceValue value = new ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview", resourceName);
 
     RenderTask renderTask = getRenderTask();
     if (renderTask == null) {

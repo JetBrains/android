@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.res2.SourcelessResourceItem;
@@ -27,7 +28,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.HardcodedContent;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -53,11 +53,6 @@ import static com.android.SdkConstants.EXT_JSON;
 public class SampleDataResourceItem extends SourcelessResourceItem {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
 
-  private static final Splitter NAMESPACE_SPLITTER = Splitter.on(':')
-    .trimResults()
-    .omitEmptyStrings()
-    .limit(2);
-
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
     CacheBuilder.newBuilder()
       .expireAfterAccess(2, TimeUnit.MINUTES)
@@ -82,7 +77,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    *                      references to the content.
    */
   private SampleDataResourceItem(@NonNull String name,
-                                 @Nullable String namespace,
+                                 @NonNull ResourceNamespace namespace,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
                                  @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
@@ -109,18 +104,21 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
                                  @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
-    this(name, null, dataSource, dataSourceModificationStamp, sourceElement);
+    this(name, ResourceNamespace.TODO, dataSource, dataSourceModificationStamp, sourceElement);
   }
 
   /**
    * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
    * since the never change.
+   *
+   * <p>As a temporary workaround, the item is crated in the TOOLS namespace, but is stored under RES_AUTO namespace
+   * (SampleDataResourceRepository#addPredefinedItems) and has "tools:" prepended to the name, which is a convention followed by consuming
+   * code in ResourceReferenceConverter#referenceTo.
+   * TODO(namespaces): fix this.
    */
   @NonNull
-  public static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, Function<OutputStream, Exception> source) {
-    // Extract namespace
-    List<String> sampleDataResource = NAMESPACE_SPLITTER.splitToList(name);
-    return new SampleDataResourceItem(name, sampleDataResource.size() == 2 ? sampleDataResource.get(0) : null, source, () -> 1L, null);
+  static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, @NonNull Function<OutputStream, Exception> source) {
+    return new SampleDataResourceItem("tools:" + name, ResourceNamespace.TOOLS, source, () -> 1L, null);
   }
 
   /**
@@ -219,7 +217,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
     switch (extension) {
       case EXT_JSON: {
-        SampleDataJsonParser parser = null;
+        SampleDataJsonParser parser;
         try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(psiPointer.getVirtualFile()))) {
           parser = SampleDataJsonParser.parse(reader);
         }
@@ -237,7 +235,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       }
 
       case EXT_CSV: {
-        SampleDataCsvParser parser = null;
+        SampleDataCsvParser parser;
         VirtualFile vFile = sampleDataSource.getVirtualFile();
         try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(vFile))) {
           parser = SampleDataCsvParser.parse(reader);
@@ -312,7 +310,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   public ResourceValue getResourceValue(boolean isFrameworks) {
     byte[] content = getContent(this::wasTouched);
     if (mResourceValue == null) {
-      mResourceValue = new SampleDataResourceValue(getResourceUrl(isFrameworks), content);
+      mResourceValue = new SampleDataResourceValue(getReferenceToSelf(isFrameworks), content);
     }
     return mResourceValue;
   }

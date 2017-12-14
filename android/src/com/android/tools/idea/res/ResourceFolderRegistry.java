@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ProjectFacetManager;
@@ -29,7 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -61,13 +61,13 @@ public class ResourceFolderRegistry {
   @NotNull
   // TODO: namespaces
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
-    return get(facet, dir, null);
+    return get(facet, dir, ResourceNamespace.TODO);
   }
 
   @NotNull
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet,
                                              @NotNull final VirtualFile dir,
-                                             @Nullable String namespace) {
+                                             @NotNull ResourceNamespace namespace) {
     synchronized (DIR_MAP_LOCK) {
       ResourceFolderRepository repository = ourDirMap.get(dir);
       if (repository == null) {
@@ -212,7 +212,7 @@ public class ResourceFolderRegistry {
       @NotNull final BoundedTaskExecutor myParallelBuildExecutor,
       @NotNull final AndroidFacet facet,
       @NotNull final VirtualFile dir) {
-      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, null));
+      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, ResourceNamespace.TODO));
     }
   }
 

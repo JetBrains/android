@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceNamespaces;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
@@ -55,7 +55,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private ResourceTable myFullTable;
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Set<String> myCachedNamespaces;
+  private Set<ResourceNamespace> myCachedNamespaces;
 
   @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
@@ -173,7 +173,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @NotNull
   @Override
-  public synchronized Set<String> getNamespaces() {
+  public synchronized Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
       if (myCachedNamespaces == null) {
         if (myChildren.size() == 1) {
@@ -181,9 +181,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         } else {
           myCachedNamespaces = new SmartHashSet<>();
           for (LocalResourceRepository child : myChildren) {
-            for (String namespace : child.getNamespaces()) {
-              myCachedNamespaces.add(ResourceNamespaces.normalizeNamespace(namespace));
-            }
+            myCachedNamespaces.addAll(child.getNamespaces());
           }
         }
       }
@@ -202,7 +200,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         }
         else {
           myFullTable = new ResourceTable();
-          for (String namespace : getNamespaces()) {
+          for (ResourceNamespace namespace : getNamespaces()) {
             for (ResourceType type : ResourceType.values()) {
               ListMultimap<String, ResourceItem> map = getMap(namespace, type, false);
               if (map != null) {
@@ -219,7 +217,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @Override
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace,
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
                                                       @NonNull ResourceType type,
                                                       boolean create) {
     synchronized (ITEM_MAP_LOCK) {
@@ -251,7 +249,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @Nullable String namespace,
+                         @NotNull ResourceNamespace namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
@@ -328,7 +326,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
    * Notifies this delegating repository that the given dependent repository has invalidated
    * resources of the given types in the given namespace.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable String namespace, @NotNull ResourceType... types) {
+  public void invalidateCache(@NotNull LocalResourceRepository repository, @NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
     synchronized (ITEM_MAP_LOCK) {
       assert myChildren.contains(repository) : repository;
 
@@ -336,7 +334,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         myCachedNamespaces = null;
         myCachedMaps.remove(namespace, type);
 
-        if (ResourceNamespaces.isDefaultNamespace(namespace)) {
+        if (ResourceNamespace.TODO.equals(namespace)) {
           myCachedHasResourcesOfType.remove(type);
         }
       }

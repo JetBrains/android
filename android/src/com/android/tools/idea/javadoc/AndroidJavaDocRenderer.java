@@ -18,10 +18,7 @@ package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
-import com.android.ide.common.rendering.api.ArrayResourceValue;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
@@ -673,7 +670,7 @@ public class AndroidJavaDocRenderer {
         if (value != null) {
           ResourceUrl parsed = ResourceUrl.parse(value);
           if (parsed != null) {
-            ResourceValue v = new ResourceValue(url, null);
+            ResourceValue v = new ResourceValue(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
             if (resourceValue != null && resourceValue.getValue() != null) {
@@ -682,7 +679,7 @@ public class AndroidJavaDocRenderer {
           }
           return value;
         } else {
-          ResourceValue v = new ResourceValue(url, null);
+          ResourceValue v = new ResourceValue(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
           if (resourceValue != null && resourceValue.getValue() != null) {
@@ -720,7 +717,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValue(url, null);
+              ResourceValue resolved = new ResourceValue(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
@@ -731,7 +728,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValue(url, null);
+              ResourceValue resolved = new ResourceValue(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
@@ -750,7 +747,7 @@ public class AndroidJavaDocRenderer {
                     ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
-                      ResourceValue resolved = new ResourceValue(resourceUrl, null);
+                      ResourceValue resolved = new ResourceValue(urlToReference(resourceUrl), null);
                       resolved.setValue(value);
                       renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
                       builder.newline();
@@ -840,8 +837,7 @@ public class AndroidJavaDocRenderer {
               if (renderer != null && renderer.getClass() != this.getClass()) {
                 builder.newline();
                 renderer.setSmall(true);
-                ResourceValue resolved = new ResourceValue(url, null);
-                resolved.setValue(value);
+                ResourceValue resolved = new ResourceValue(urlToReference(url), value);
                 //noinspection ConstantConditions
                 renderer.renderToHtml(builder, item, url, false, resolved);
               }
@@ -873,6 +869,12 @@ public class AndroidJavaDocRenderer {
         }
       }
     }
+  }
+
+  @NotNull
+  private static ResourceReference urlToReference(ResourceUrl url) {
+    // TODO: namespaces.
+    return new ResourceReference(url.type, url.name, url.framework);
   }
 
   private static class ArrayRenderer extends ResourceValueRenderer {
