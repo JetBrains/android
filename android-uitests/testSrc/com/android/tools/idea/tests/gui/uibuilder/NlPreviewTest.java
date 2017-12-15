@@ -47,7 +47,7 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Has not failed in 50 consecutive runs. Leave in Unreliable until dahlstrom@ wants it in reliable.
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -158,7 +158,7 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 2 times in last 50 test runs)
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
@@ -217,7 +217,7 @@ public class NlPreviewTest {
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
   @Test
   public void testCopyAndPaste() throws Exception {
     guiTest.importSimpleLocalApplication();
@@ -239,14 +239,14 @@ public class NlPreviewTest {
     assertThat(layout.getSelection()).containsExactly(checkBox.getComponent());
     assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
 
-    ideFrame.invokeMenuPath("Edit", "Cut");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Cut");
     assertEquals(3, layout.getAllComponents().size());
 
     layout.findView("Button", 0).click();
-    ideFrame.invokeMenuPath("Edit", "Paste");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
     layout.findView("CheckBox", 0).click();
-    ideFrame.invokeMenuPath("Edit", "Copy");
-    ideFrame.invokeMenuPath("Edit", "Paste");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Copy");
+    ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
     assertEquals(5, layout.getAllComponents().size());
   }
 
@@ -274,7 +274,7 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -336,7 +336,7 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 1 time in last 50 runs)
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
@@ -355,7 +355,7 @@ public class NlPreviewTest {
 
     int updateCountBeforeClose = editor.getPreviewUpdateCount();
     activity.closeFile();
-    Wait.seconds(2).expecting("preview to update")
+    Wait.seconds(3).expecting("preview to update")
       .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
@@ -374,25 +374,25 @@ public class NlPreviewTest {
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
     first.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
     last.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
     first.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
     last.doubleClick();
-    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
