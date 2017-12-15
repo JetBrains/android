@@ -116,11 +116,6 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
-                               "    Android Lint: Correctness\n" +
-                               "        Obsolete Gradle Dependency\n" +
-                               "            build.gradle\n" +
-                               "                A newer version of com.android.support:appcompat-v7 than 26.0.2 is available: 26.1.0\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
@@ -135,15 +130,10 @@ public class NewInstantAppTest {
                                "            ExampleUnitTest\n" +
                                "                The declared exception 'Exception' is never thrown\n" +
                                "        Unnecessary module dependency\n" +
-                               "            app\n" +
-                               "                Module 'app' sources do not depend on module 'base' sources\n" +
-                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
                                "            feature\n" +
                                "                Module 'feature' sources do not depend on module 'base' sources\n" +
                                "    XML\n" +
                                "        Unused XML schema declaration\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Namespace declaration is never used\n" +
                                "            AndroidManifest.xml\n" +
                                "                Namespace declaration is never used\n" +
                                "        XML tag empty body\n" +
