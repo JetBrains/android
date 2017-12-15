@@ -130,6 +130,10 @@ public class NewInstantAppTest {
                                "            AndroidManifest.xml\n" +
                                "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
                                "    Declaration redundancy\n" +
+                               "        Redundant throws clause\n" +
+                               "            ExampleInstrumentedTest\n" +
+                               "            ExampleUnitTest\n" +
+                               "                The declared exception 'Exception' is never thrown\n" +
                                "        Unnecessary module dependency\n" +
                                "            app\n" +
                                "                Module 'app' sources do not depend on module 'base' sources\n" +
