@@ -391,7 +391,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
-        if (!sceneLayer.isShowOnHover()) {
+        if (sceneLayer.isShowOnHover()) {
           sceneLayer.setShowOnHover(false);
           repaint();
         }
