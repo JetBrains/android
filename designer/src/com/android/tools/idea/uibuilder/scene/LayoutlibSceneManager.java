@@ -340,6 +340,8 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       else {
         render(getTriggerFromChangeType(model.getLastChangeType()));
+        mySelectionChangeListener
+          .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
       }
     }
 
