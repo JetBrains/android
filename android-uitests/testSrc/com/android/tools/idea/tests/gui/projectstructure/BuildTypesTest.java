@@ -53,7 +53,7 @@ public class BuildTypesTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void addNewBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectBuildTypesTab()
@@ -86,7 +86,7 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void editBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectBuildTypesTab()

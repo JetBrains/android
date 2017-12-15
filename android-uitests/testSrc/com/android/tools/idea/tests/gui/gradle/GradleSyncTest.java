@@ -150,7 +150,7 @@ public class GradleSyncTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/70699846
   @Test
   public void jdkNodeModificationInProjectView() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     AndroidTreeStructureProvider treeStructureProvider = null;
@@ -209,7 +209,7 @@ public class GradleSyncTest {
     File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
     File gradleHomePath = getGradleHomePathOrSkipTest();
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
@@ -325,7 +325,7 @@ public class GradleSyncTest {
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
   @Test
   public void shouldClearJvmArgsOnSyncAndBuild() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
@@ -362,7 +362,7 @@ public class GradleSyncTest {
   public void withIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     File gradlePropertiesPath = new File(ideFrame.getProjectPath(), "gradle.properties");
@@ -406,7 +406,7 @@ public class GradleSyncTest {
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
@@ -444,7 +444,7 @@ public class GradleSyncTest {
   // See https://code.google.com/p/android/issues/detail?id=171370
   @Test
   public void editorNotificationsWhenSyncNeededAfterProjectImport() throws IOException {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
     // @formatter:off
     ideFrame.getEditor()
             .open("app/build.gradle")
@@ -473,7 +473,7 @@ public class GradleSyncTest {
   public void syncDuringOfflineMode() throws IOException {
     String hyperlinkText = "Disable offline mode and sync project";
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     File buildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
@@ -513,7 +513,7 @@ public class GradleSyncTest {
 
   @Test
   public void shouldUseLibrary() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
@@ -558,7 +558,7 @@ public class GradleSyncTest {
   // https://code.google.com/p/android/issues/detail?id=185313
   @Test
   public void sdkCreationForAddons() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
@@ -587,7 +587,7 @@ public class GradleSyncTest {
 
   @Test
   public void gradleModelCache() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     File projectPath = ideFrameFixture.getProjectPath();
@@ -635,7 +635,7 @@ public class GradleSyncTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
     // @formatter:off
     ideFrame.getEditor()
             .open("app/build.gradle")

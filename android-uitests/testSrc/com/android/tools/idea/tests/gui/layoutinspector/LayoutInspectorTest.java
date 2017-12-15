@@ -42,7 +42,7 @@ public class LayoutInspectorTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 

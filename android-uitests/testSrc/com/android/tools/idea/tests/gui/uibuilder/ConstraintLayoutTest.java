@@ -91,7 +91,7 @@ public class ConstraintLayoutTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/69269653
   @Test
   public void testSideConstraintHandling() throws Exception {
-    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
       .getEditor()
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
@@ -159,7 +159,7 @@ public class ConstraintLayoutTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/69269653
   @Test
   public void testBaselineConstraintHandling() throws Exception {
-    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
       .getEditor()
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
@@ -205,7 +205,7 @@ public class ConstraintLayoutTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70683493
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
@@ -360,7 +360,7 @@ public class ConstraintLayoutTest {
   @RunIn(TestGroup.QA)
   @Test
   public void themeEditor() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
