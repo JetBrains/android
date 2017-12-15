@@ -168,7 +168,12 @@ public class AndroidPluginVersionUpdater {
       }
       catch (Throwable e) {
         result.setPluginVersionUpdateError(e);
+        return result;
       }
+    }
+    else {
+      result.setPluginVersionUpdateError(new RuntimeException("Failed to find gradle build models to update."));
+      return result;
     }
 
     if (gradleVersion != null) {
