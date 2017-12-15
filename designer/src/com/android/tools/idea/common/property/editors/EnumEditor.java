@@ -32,6 +32,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -418,6 +419,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
     public CustomComboBox() {
       super(SMALL_WIDTH);
+      setBackground(JBColor.WHITE);
       setBorders();
     }
 
@@ -487,5 +489,29 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
         tf.setUI((TextUI)DarculaTextFieldUI.createUI(tf));
       }
     }
+
+    @Override
+    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+      if (!JBColor.isBright()) {
+        super.paintBorder(c, g, x, y, width, height);
+        return;
+      }
+
+      Color panelBefore = UIManager.getColor("Panel.background");
+      Color comboBefore = UIManager.getColor("ComboBox.background");
+      try {
+        // DarculaComboBoxUI picks up the background for the renderer from the combobox background, but for noneditable controls gets the
+        // overall background (exposed behind the edges of the renderer) comes from the default panel background.
+        // Temporarily set the panel background to be the same as the component background here.
+        UIManager.getLookAndFeelDefaults().put("Panel.background", c.getBackground());
+        UIManager.getLookAndFeelDefaults().put("ComboBox.background", c.getBackground());
+        super.paintBorder(c, g, x, y, width, height);
+      }
+      finally {
+        UIManager.getLookAndFeelDefaults().put("Panel.background", panelBefore);
+        UIManager.getLookAndFeelDefaults().put("ComboBox.background", comboBefore);
+      }
+    }
+
   }
 }
