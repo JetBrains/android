@@ -201,7 +201,7 @@ public class ConstraintLayoutTest {
    *   1. Verify the item displays in the xml view.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70683493
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
