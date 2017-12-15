@@ -342,12 +342,30 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return event.build();
   }
 
-  public BatchJNIGlobalRefEvent getJniReferencesAliveInRange(Common.Session session, long startTime, long endTime) {
+  public BatchJNIGlobalRefEvent getJniReferencesSnapshot(Common.Session session, long endTime) {
+    BatchJNIGlobalRefEvent.Builder resultBuilder = BatchJNIGlobalRefEvent.newBuilder();
+    long timestamp = 0;
+    try {
+      ResultSet allocResultset = executeQuery(QUERY_JNI_REF_CREATE_EVENTS, session.getSessionId(), 0, endTime, endTime, Long.MAX_VALUE);
+      while (allocResultset.next()) {
+        JNIGlobalReferenceEvent event = readJniEventFromResultSet(allocResultset, JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF);
+        timestamp = Math.max(timestamp, event.getTimestamp());
+        resultBuilder.addEvents(event);
+      }
+      resultBuilder.setTimestamp(timestamp);
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return resultBuilder.build();
+  }
+
+  public BatchJNIGlobalRefEvent getJniReferencesEventsFromRange(Common.Session session, long startTime, long endTime) {
     BatchJNIGlobalRefEvent.Builder resultBuilder = BatchJNIGlobalRefEvent.newBuilder();
     long timestamp = 0;
     try {
       ResultSet allocResultset =
-        executeQuery(QUERY_JNI_REF_CREATE_EVENTS, session.getSessionId(), 0, endTime - 1, startTime, Long.MAX_VALUE);
+        executeQuery(QUERY_JNI_REF_CREATE_EVENTS, session.getSessionId(), startTime, endTime - 1, startTime, Long.MAX_VALUE);
       while (allocResultset.next()) {
         JNIGlobalReferenceEvent event = readJniEventFromResultSet(allocResultset, JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF);
         timestamp = Math.max(timestamp, event.getTimestamp());

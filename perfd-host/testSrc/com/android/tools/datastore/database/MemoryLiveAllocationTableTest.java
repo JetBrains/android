@@ -160,7 +160,7 @@ public class MemoryLiveAllocationTableTest {
       myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
       BatchJNIGlobalRefEvent queryBatch =
-        myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, timestamp, Long.MAX_VALUE);
+        myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, timestamp, Long.MAX_VALUE);
       timestamp = queryBatch.getTimestamp() + 1;
       Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(insertBatch.getEventsCount());
       for (int i = 0; i < queryBatch.getEventsCount(); i++) {
@@ -203,7 +203,7 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
     // Query all events
-    BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 0, Long.MAX_VALUE);
+    BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 0, Long.MAX_VALUE);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(3);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
     Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
@@ -211,47 +211,43 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(dealloc1.getTimestamp());
 
     // Query events within [5,7]
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 5, 7);
-    Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(2);
-    Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
+    queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 5, 7);
+    Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(1);
+    Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc2);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
 
     // Query events within [0,10]
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 0, 10);
+    queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 0, 10);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(2);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
     Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
 
     // Query events within [7,100]
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 7, 100);
-    Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(3);
-    Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
-    Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
-    Truth.assertThat(queryBatch.getEvents(2)).isEqualTo(dealloc1);
+    queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 7, 100);
+    Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(1);
+    Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(dealloc1);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(dealloc1.getTimestamp());
 
     // Query references alive at t=2. only alloc1
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 2, 2);
+    queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 2);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(1);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc1.getTimestamp());
 
     // Query references alive at t=7. all of them
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 7, 7);
+    queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 7);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(2);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
     Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
 
     // Query references alive at t=100. only alloc2
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 100, 100);
+    queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 100);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(1);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc2);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
   }
-
   @Test
   public void testInsertAndQueryAllocationData() throws Exception {
     // A klass1 instance allocation event (t = 0)
@@ -419,7 +415,7 @@ public class MemoryLiveAllocationTableTest {
       .addEvents(alloc1).addEvents(alloc2).addEvents(alloc3).build();
     myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
-    BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 10, 10);
+    BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 10);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(3);
 
     JNIGlobalReferenceEvent dealloc2 = JNIGlobalReferenceEvent.newBuilder()
@@ -443,7 +439,7 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
 
     // At this time record about JNI_REF_VALUE3 should be pruned.
-    queryBatch = myAllocationTable.getJniReferencesAliveInRange(VALID_SESSION, 10, 10);
+    queryBatch = myAllocationTable.getJniReferencesSnapshot(VALID_SESSION, 10);
     Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(2);
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
     Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);

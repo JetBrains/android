@@ -297,8 +297,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
                                      StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
-    BatchJNIGlobalRefEvent result =
-      myAllocationsTable.getJniReferencesAliveInRange(request.getSession(), request.getStartTime(), request.getEndTime());
+    BatchJNIGlobalRefEvent result;
+    if (request.getLiveObjectsOnly()) {
+      result = myAllocationsTable.getJniReferencesSnapshot(request.getSession(), request.getEndTime());
+    }
+    else {
+      result = myAllocationsTable.getJniReferencesEventsFromRange(request.getSession(), request.getStartTime(), request.getEndTime());
+    }
+
     responseObserver.onNext(result);
     responseObserver.onCompleted();
   }
