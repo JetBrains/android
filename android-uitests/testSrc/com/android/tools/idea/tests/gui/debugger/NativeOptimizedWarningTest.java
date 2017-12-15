@@ -28,6 +28,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,7 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
    * <p>TT ID: TODO this test case needs a TT ID.
    *
    */
+  @Ignore("b/37140919")
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
