@@ -464,7 +464,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     }
     myToBeRemovedProperties.clear();
 
-    for (GradleDslElement element : myProperties.values()) {
+    for (GradleDslElement element : myVariables.values()) {
       if (element.isModified()) {
         element.applyChanges();
       }

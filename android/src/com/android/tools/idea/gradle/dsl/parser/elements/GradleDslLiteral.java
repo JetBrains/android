@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a literal element.
@@ -79,6 +82,19 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable
   public PsiElement getUnsavedValue() {
     return myUnsavedValue;
+  }
+
+  /**
+   * Overwritten to ensure dependencies of set value are correctly computed.
+   */
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    if (element == null) {
+      return Collections.emptyList();
+    }
+    return getDslFile().getParser().getInjections(this, element);
   }
 
   /**
