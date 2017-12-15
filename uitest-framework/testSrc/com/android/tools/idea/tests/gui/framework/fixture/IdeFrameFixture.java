@@ -721,4 +721,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     });
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
   }
+
+  @NotNull
+  public Dimension getIdeFrameSize() {
+    return target().getSize();
+  }
+
+  @NotNull
+  @SuppressWarnings("UnusedReturnValue")
+  public IdeFrameFixture setIdeFrameSize(@NotNull Dimension size) {
+    target().setSize(size);
+    return this;
+  }
 }
