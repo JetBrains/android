@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
@@ -125,25 +126,28 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     return component != null ? new NlPropertyFixture(robot(), (JPanel)component) : null;
   }
 
+  /**
+   * Sets the frame height such that we see only the requested number of properties
+   * in the property inspector.
+   *
+   * @param frameFixture the frame to set the size of
+   * @param visiblePropertyCount the wanted number of visible properties in the inspector
+   * @param propertyName use this property to estimate the height of each property
+   * @return this fixture
+   */
   @NotNull
-  public NlPropertyInspectorFixture adjustIdeFrameHeightFor(int visiblePropertyCount, @NotNull String propertyName) {
+  public NlPropertyInspectorFixture adjustIdeFrameHeightFor(@NotNull IdeFrameFixture frameFixture,
+                                                            int visiblePropertyCount,
+                                                            @NotNull String propertyName) {
     Component component = findPropertyComponent(propertyName, null);
     assertThat(component).isNotNull();
     int height = component.getHeight();
-    Container previousParent = null;
-    Container parent = component.getParent();
-    int adjustment = 0;
-    while (parent != null) {
-      if (adjustment == 0 && parent instanceof JScrollPane) {
-        adjustment = visiblePropertyCount * height - parent.getHeight();
-      }
-      previousParent = parent;
-      parent = parent.getParent();
-    }
-    assertThat(previousParent).isNotNull();
-    Dimension size = previousParent.getSize();
-    size.height += adjustment;
-    previousParent.setSize(size);
+    Container parent = SwingUtilities.getAncestorOfClass(JScrollPane.class, component);
+    int adjustment = visiblePropertyCount * height - parent.getHeight();
+
+    Dimension size = frameFixture.getIdeFrameSize();
+    Dimension newSize = new Dimension(size.width, size.height + adjustment);
+    frameFixture.setIdeFrameSize(newSize);
     return this;
   }
 

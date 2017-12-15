@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import org.fest.swing.core.Robot;
@@ -108,26 +109,26 @@ public class NlPropertyTableFixture extends AbstractJPopupMenuInvokerFixture<NlP
     });
   }
 
+  /**
+   * Sets the frame height such that we see only the requested number of properties
+   * in the property table.
+   *
+   * @param frameFixture the frame to set the size of
+   * @param rowCount the wanted number of visible properties in the inspector
+   * @return this fixture
+   */
   @NotNull
   @SuppressWarnings("UnusedReturnValue")
-  public NlPropertyTableFixture adjustIdeFrameHeightToShowNumberOfRow(int rowCount) {
+  public NlPropertyTableFixture adjustIdeFrameHeightToShowNumberOfRows(@NotNull IdeFrameFixture frameFixture, int rowCount) {
     Component table = target();
     assertThat(table).isNotNull();
     int height = target().getRowHeight();
-    Container previousParent = null;
-    Container parent = table.getParent();
-    int adjustment = 0;
-    while (parent != null) {
-      if (adjustment == 0 && parent instanceof JScrollPane) {
-        adjustment = rowCount * height - parent.getHeight();
-      }
-      previousParent = parent;
-      parent = parent.getParent();
-    }
-    assertThat(previousParent).isNotNull();
-    Dimension size = previousParent.getSize();
-    size.height += adjustment;
-    previousParent.setSize(size);
+    Container parent = SwingUtilities.getAncestorOfClass(JScrollPane.class, target());
+    int adjustment = rowCount * height - parent.getHeight();
+
+    Dimension size = frameFixture.getIdeFrameSize();
+    Dimension newSize = new Dimension(size.width, size.height + adjustment);
+    frameFixture.setIdeFrameSize(newSize);
     return this;
   }
 
