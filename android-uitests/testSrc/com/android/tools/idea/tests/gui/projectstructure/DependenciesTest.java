@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Proje
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,6 +64,7 @@ public class DependenciesTest {
   private static final String CLASS_NAME_1 = "ModuleA";
   private static final String CLASS_NAME_2 = "ModuleB";
 
+  @Ignore("b/70694098")
   @Test
   public void createNewFlavors() throws Exception {
     String projPath = guiTest.importSimpleApplication()
