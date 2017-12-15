@@ -217,6 +217,7 @@ public class NlPreviewTest {
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testCopyAndPaste() throws Exception {
     guiTest.importSimpleLocalApplication();
@@ -273,6 +274,7 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
