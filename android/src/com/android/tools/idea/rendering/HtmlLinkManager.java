@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.DependencyManagementException;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.*;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -201,10 +200,9 @@ public class HtmlLinkManager {
         linkRunnable.run();
       }
     }
-    else if (url.startsWith(URL_ADD_DEPENDENCY)) {
-      if (module != null) {
-        handleAddDependency(url, module);
-      }
+    else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
+      assert module.getModuleFile() != null;
+      handleAddDependency(url, ProjectSystemUtil.getModuleSystem(module));
     }
     else if (url.startsWith(URL_COMMAND)) {
       WriteCommandAction command = getLinkCommand(url);
@@ -932,13 +930,24 @@ public class HtmlLinkManager {
     return URL_ADD_DEPENDENCY + artifactId;
   }
 
-  private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
-    assert module.getModuleFile() != null;
+  @VisibleForTesting
+  static void handleAddDependency(@NotNull String url, @NotNull final AndroidModuleSystem moduleSystem) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.valueOf(url.substring(URL_ADD_DEPENDENCY.length()));
+    String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
+    if (coordinate == null) {
+      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
+      return;
+    }
+
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.forCoordinate(coordinate);
+    if (artifactId == null) {
+      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinate);
+      return;
+    }
 
     try {
-      ProjectSystemUtil.getModuleSystem(module).addDependency(artifactId, null);
+      moduleSystem.addDependency(artifactId, null);
     }
     catch (DependencyManagementException e) {
       Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());
