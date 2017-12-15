@@ -45,6 +45,7 @@ import static java.util.regex.Pattern.DOTALL;
 import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertTrue;
 
+@Ignore("b/70684215")
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleTasksTest {
@@ -81,7 +82,6 @@ public class GradleTasksTest {
       });
   }
 
-  @Ignore("b/70684215")
   @Test
   public void testTaskCancellation() throws Exception {
     // Main success scenario:
