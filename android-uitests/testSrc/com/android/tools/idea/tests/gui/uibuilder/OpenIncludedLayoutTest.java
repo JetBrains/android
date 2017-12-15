@@ -34,6 +34,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * UI test for the layout preview window
  */
+@RunIn(TestGroup.UNRELIABLE)  // b/62646766
 @RunWith(GuiTestRunner.class)
 public class OpenIncludedLayoutTest {
 
@@ -41,7 +42,6 @@ public class OpenIncludedLayoutTest {
   public static final String OUTER_XML = "app/src/main/res/layout/outer.xml";
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/62646766
   @Test
   public void testOpenIncludedLayoutFromComponentTree() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
