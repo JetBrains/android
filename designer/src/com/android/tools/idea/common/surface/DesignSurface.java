@@ -358,7 +358,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
    */
-  @VisibleForTesting
   public void startDragDropInteraction() {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
@@ -381,7 +380,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
    */
-  @VisibleForTesting
   public void stopDragDropInteraction() {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
