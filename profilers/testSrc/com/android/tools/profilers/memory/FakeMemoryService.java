@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -54,6 +55,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     "FooMethodB",
     "BarMethodB"
   );
+  // Difference between object tag and JNI reference value.
+  private static final long JNI_REF_BASE = 0x50000000;
+
+  private static final List<Long> NATIVE_ADDRESSES = Arrays.asList(0xBAADF00Dl, 0xCAFEBABEl, 0xDABBAD00l, 0xDEADBEEFl);
+
 
   @NotNull private Range myLastRequestedDataRange = new Range(0, 0);
   private Status myExplicitAllocationsStatus = null;
@@ -187,8 +193,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void getAllocations(AllocationSnapshotRequest request,
+                             StreamObserver<BatchAllocationSample> responseObserver) {
+    boolean liveObjectsOnly = request.getLiveObjectsOnly();
+    long startTime = Math.max(0, request.getStartTime());
+    startTime = (long)Math.ceil(startTime / (float)US_TO_NS) * US_TO_NS;
+    long endTime = request.getEndTime();
+    BatchAllocationSample sample = getAllocationSample(liveObjectsOnly, startTime, endTime);
+    responseObserver.onNext(sample);
+    responseObserver.onCompleted();
+  }
+
   /**
-   * This fake service call auto-generate a list of allocation event based on the request start + end time.
+   * Generates a list of allocation events based on the request start + end time.
    * For every microsecond, an allocation event is created and uniquely tagged with the timestamp. The event generation starts
    * at t = 0, and each is expected to be deallocated |ALLOC_EVENT_DURATION_NS| later. Each allocation also references a class and
    * stack, with ids that are cycled every |ALLOC_CONTEXT_NUM| allocations.
@@ -201,18 +219,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * {4,6}, tag = 4, class tag = 1, stack id = 1
    * {5,7}, tag = 5, class tag = 2, stack id = 2
    */
-  @Override
-  public void getAllocations(AllocationSnapshotRequest request,
-                             StreamObserver<BatchAllocationSample> responseObserver) {
-    long startTime = Math.max(0, request.getStartTime());
-    startTime = (long)Math.ceil(startTime / (float)US_TO_NS) * US_TO_NS;
-    long endTime = request.getEndTime();
+  @NotNull
+  private static BatchAllocationSample getAllocationSample(boolean liveObjectsOnly, long startTime, long endTime) {
     long timestamp = Long.MIN_VALUE;
 
     BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
     for (long i = startTime; i < endTime; i += US_TO_NS) {
       // Skip instance creation for snapshot mode
-      if (request.getLiveObjectsOnly() && i < endTime - ALLOC_EVENT_DURATION_NS) {
+      if (liveObjectsOnly && i < endTime - ALLOC_EVENT_DURATION_NS) {
         continue;
       }
 
@@ -229,7 +243,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
     for (long i = startTime; i < endTime; i += US_TO_NS) {
       // Skip instance creation for snapshot mode
-      if (request.getLiveObjectsOnly()) {
+      if (liveObjectsOnly) {
         break;
       }
 
@@ -249,7 +263,50 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     }
 
     sampleBuilder.setTimestamp(timestamp);
-    responseObserver.onNext(sampleBuilder.build());
+    return sampleBuilder.build();
+  }
+
+  private static NativeBacktrace createBacktrace(long seed) {
+    NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
+    for (long address : NATIVE_ADDRESSES) {
+      result.addAddresses(address + seed);
+    }
+    return result.build();
+  }
+
+  @Override
+  public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
+                                     StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
+    // Just add JNI references for all allocated object from the same interval.
+    boolean liveObjectsOnly = request.getLiveObjectsOnly();
+    BatchAllocationSample allocationSample = getAllocationSample(liveObjectsOnly, request.getStartTime(), request.getEndTime());
+    BatchJNIGlobalRefEvent.Builder result = BatchJNIGlobalRefEvent.newBuilder();
+    for (AllocationEvent allocEvent : allocationSample.getEventsList()) {
+      if (allocEvent.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+        AllocationEvent.Allocation allocation = allocEvent.getAllocData();
+        JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
+          .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+          .setObjectTag(allocation.getTag())
+          .setRefValue(allocation.getTag() + JNI_REF_BASE)
+          .setThreadId(allocation.getThreadId())
+          .setTimestamp(allocEvent.getTimestamp())
+          .setBacktrace(createBacktrace(allocation.getTag()));
+        result.addEvents(jniEvent);
+      }
+      else if (allocEvent.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
+        AllocationEvent.Deallocation deallocation = allocEvent.getFreeData();
+        JNIGlobalReferenceEvent.Builder jniEvent = JNIGlobalReferenceEvent.newBuilder()
+          .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
+          .setObjectTag(deallocation.getTag())
+          .setRefValue(deallocation.getTag() + JNI_REF_BASE)
+          .setThreadId(deallocation.getThreadId())
+          .setTimestamp(allocEvent.getTimestamp() - 1)
+          .setBacktrace(createBacktrace(deallocation.getTag()));
+        result.addEvents(jniEvent);
+      }
+    }
+    result.setTimestamp(allocationSample.getTimestamp());
+    responseObserver.onNext(result.build());
     responseObserver.onCompleted();
   }
 

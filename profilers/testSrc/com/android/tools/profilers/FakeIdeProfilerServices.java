@@ -63,6 +63,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myJvmtiAgentEnabled = false;
 
+  /**
+   * JNI references alloc/dealloc events are tracked and shown.
+   */
+  private boolean myIsJniReferenceTrackingEnabled = false;
 
   /**
    * Toggle for faking live allocation tracking support in tests.
@@ -170,7 +174,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() { return false; }
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
       public boolean isJvmtiAgentEnabled() {
@@ -280,6 +284,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableJvmtiAgent(boolean enabled) {
     myJvmtiAgentEnabled = enabled;
   }
+
+  public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
 
   public void enableLiveAllocationTracking(boolean enabled) {
     myLiveTrackingEnabled = enabled;
