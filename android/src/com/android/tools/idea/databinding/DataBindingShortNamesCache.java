@@ -278,7 +278,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
 
   private static class FacetNameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> {
     public FacetNameCacheProvider(AndroidFacet facet) {
-      super(facet);
+      super(facet, null);
     }
 
     @Override
