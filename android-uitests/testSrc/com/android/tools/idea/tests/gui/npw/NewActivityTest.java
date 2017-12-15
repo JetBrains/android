@@ -60,7 +60,7 @@ public class NewActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);

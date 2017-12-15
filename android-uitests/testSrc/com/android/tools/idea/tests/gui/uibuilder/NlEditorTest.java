@@ -53,7 +53,7 @@ public class NlEditorTest {
 
   @Test
   public void testSelectComponent() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -87,7 +87,7 @@ public class NlEditorTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void basicLayoutEdit() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
@@ -103,7 +103,7 @@ public class NlEditorTest {
 
   @Test
   public void testCopyAndPaste() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -134,7 +134,7 @@ public class NlEditorTest {
 
   @Test
   public void testZoomAndPanWithMouseShortcut() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -167,7 +167,7 @@ public class NlEditorTest {
 
   @Test
   public void testAddDesignLibrary() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
@@ -196,7 +196,7 @@ public class NlEditorTest {
 
     try {
       StudioFlags.NELE_CONVERT_VIEW.override(true);
-      guiTest.importSimpleApplication();
+      guiTest.importSimpleLocalApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -242,7 +242,7 @@ public class NlEditorTest {
 
     try {
       StudioFlags.NELE_CONVERT_VIEW.override(true);
-      guiTest.importSimpleApplication();
+      guiTest.importSimpleLocalApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
@@ -343,7 +343,7 @@ public class NlEditorTest {
       settings.setEditorTabPlacement(UISettings.TABS_NONE);
 
       // Open up 2 layout files in design and switch them both to text editor mode.
-      guiTest.importSimpleApplication();
+      guiTest.importSimpleLocalApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       editor.getLayoutEditor(true).waitForRenderToFinish();
@@ -369,7 +369,7 @@ public class NlEditorTest {
 
   @Test
   public void gotoAction() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -382,7 +382,7 @@ public class NlEditorTest {
 
   @Test
   public void scrollWhileZoomed() throws Exception {
-    NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+    NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
       .getEditor()
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);

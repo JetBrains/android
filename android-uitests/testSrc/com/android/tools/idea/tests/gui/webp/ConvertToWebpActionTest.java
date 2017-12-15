@@ -65,7 +65,7 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
@@ -100,7 +100,7 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 
     guiTest.ideFrame()
@@ -144,7 +144,7 @@ public class ConvertToWebpActionTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromPngToWebp() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
@@ -189,7 +189,7 @@ public class ConvertToWebpActionTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void testConvertFromWebPToPng() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp")
