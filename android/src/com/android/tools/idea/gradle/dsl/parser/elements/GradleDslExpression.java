@@ -73,6 +73,10 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
   public abstract void setValue(@NotNull Object value);
 
+  /**
+   * This should be overwritten by subclasses if they require different behaviour, such as getting the dependencies of
+   * un-applied expressions.
+   */
   @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
