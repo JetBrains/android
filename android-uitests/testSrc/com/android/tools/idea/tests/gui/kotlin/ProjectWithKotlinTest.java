@@ -85,7 +85,7 @@ public class ProjectWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.SANITY)
   public void linkNoKotlinSupportProjectWithKotlin() throws Exception {
     createKotlinFileAndClassAndVerify(PROJECT_DIR_NAME, PACKAGE_NAME, false);
   }
@@ -135,11 +135,12 @@ public class ProjectWithKotlinTest {
     if (!withKotlinSupport) {
       EditorNotificationPanelFixture editorNotificationPanelFixture =
         ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");
-      editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance(null);
+      editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
-      // As defaut, "All modules containing Kotlin files" option is selected for now.
+      // As default, "All modules containing Kotlin files" option is selected for now.
       ConfigureKotlinDialogFixture.find(ideFrameFixture)
         .clickOk();
+      ideFrameFixture.requestProjectSync();
     }
 
     ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish();
