@@ -7,6 +7,7 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:constraint-layout_latest",
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
     "//tools/adt/idea/adt-ui/lib/libwebp",
