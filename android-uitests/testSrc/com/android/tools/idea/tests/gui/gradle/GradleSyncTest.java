@@ -147,6 +147,7 @@ public class GradleSyncTest {
     fail("No dependency for library3 found");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70699846
   @Test
   public void jdkNodeModificationInProjectView() throws IOException {
     guiTest.importSimpleApplication();
