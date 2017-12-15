@@ -63,6 +63,7 @@ iml_module(
         "//prebuilts/studio/sdk:constraint-layout_latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:support_latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
