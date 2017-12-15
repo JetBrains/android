@@ -25,7 +25,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,10 +94,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!isDisposed()) {
             Project project = getModule().getProject();
-            runWriteCommandAction(project, () -> {
-              PsiDocumentManager.getInstance(project).commitAllDocuments();
-              updateConfiguration();
-            });
+            runWriteCommandAction(project, () -> updateConfiguration());
           }
         });
       }
