@@ -158,6 +158,38 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testAllocationTrackingStateOnTransition() throws Exception {
+    myStage.enter();
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
+    AllocationsInfo startInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true).setStatus(
+      AllocationsInfo.Status.COMPLETED).build();
+    AllocationsInfo endInfo = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
+      AllocationsInfo.Status.COMPLETED).build();
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(startInfo).build());
+    myStage.trackAllocations(true);
+
+    assertThat(myStage.isTrackingAllocations()).isTrue();
+    myStage.exit();
+    myStage.enter();
+    assertThat(myStage.isTrackingAllocations()).isTrue();
+
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.COMPLETED, infoStart, infoEnd, true);
+    myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(startInfo).addAllocationsInfo(endInfo).build());
+    myStage.trackAllocations(false);
+
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+    myStage.exit();
+    myStage.enter();
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+  }
+
+  @Test
   public void testRequestHeapDump() throws Exception {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
