@@ -152,28 +152,31 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return isJvmtiAgentEnabled;
-      }
-
-      @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return true;
-      }
-
-      @Override
-      public boolean isSimplePerfEnabled() {
-        return isSimplePerfEnabled;
-      }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return isLiveTrackingEnabled;
+      public boolean isAtraceEnabled() {
+        return isAtraceEnabled;
       }
 
       @Override
       public boolean isCpuCaptureFilterEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return false;
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+
+      @Override
+      public boolean isJvmtiAgentEnabled() {
+        return isJvmtiAgentEnabled;
+      }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return isLiveTrackingEnabled;
       }
 
       @Override
@@ -187,21 +190,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isAtraceEnabled() {
-        return isAtraceEnabled;
-      }
-
-      @Override
       public boolean isNetworkRequestPayloadEnabled() {
         return myIsRequestPayloadEnabled;
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+      public boolean isNetworkThreadViewEnabled() {
+        return true;
+      }
 
       @Override
-      public boolean isEnergyProfilerEnabled() {
-        return false;
+      public boolean isSimplePerfEnabled() {
+        return isSimplePerfEnabled;
       }
     };
   }
