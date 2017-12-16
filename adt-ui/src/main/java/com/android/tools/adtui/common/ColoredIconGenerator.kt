@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.util
+package com.android.tools.adtui.common
 
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -30,13 +30,13 @@ object ColoredIconGenerator {
     return generateColoredIcon(icon, Color.WHITE.rgb)
   }
 
-  fun generateColoredIcon(icon: Icon, color: Int): Icon {
+  private fun generateColoredIcon(icon: Icon, color: Int): Icon {
     //noinspection UndesirableClassUsage
     val image = generateColoredImage(icon, color)
     return ImageIcon(image)
   }
 
-  fun generateColoredImage(icon: Icon, color: Int): BufferedImage {
+  private fun generateColoredImage(icon: Icon, color: Int): BufferedImage {
     val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     val g2 = image.graphics
     icon.paintIcon(null, g2, 0, 0)
