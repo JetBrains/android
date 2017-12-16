@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -167,7 +168,12 @@ public class AndroidPluginVersionUpdater {
       }
       catch (Throwable e) {
         result.setPluginVersionUpdateError(e);
+        return result;
       }
+    }
+    else {
+      result.setPluginVersionUpdateError(new RuntimeException("Failed to find gradle build models to update."));
+      return result;
     }
 
     if (gradleVersion != null) {
@@ -255,10 +261,11 @@ public class AndroidPluginVersionUpdater {
     void execute() {
       String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
                    "Please click 'OK' to perform a textual search and then update the build files manually.";
-      Messages.showErrorDialog(myProject, msg, "Unexpected Error");
-
-      String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
-      searchInBuildFiles(textToFind, myProject);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        Messages.showErrorDialog(myProject, msg, "Unexpected Error");
+        String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
+        searchInBuildFiles(textToFind, myProject);
+      });
     }
   }
 }
