@@ -114,7 +114,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   private static Deque<String> getParentStack(@NotNull SceneComponent component) {
     Deque<String> stack = new LinkedList<>();
     NlComponent current = component.getNlComponent();
-    while (current != null) {
+    while (current != null && !current.isRoot()) {
       String id = current.getId();
       if (id == null) {
         NlModel model = current.getModel();
