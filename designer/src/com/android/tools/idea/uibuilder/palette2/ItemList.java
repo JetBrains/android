@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.common.util.ColoredIconGenerator;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.components.JBLabel;

@@ -22,7 +22,7 @@ import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.util.ColoredIconGenerator;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;

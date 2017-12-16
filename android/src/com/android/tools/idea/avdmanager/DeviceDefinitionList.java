@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.npw.FormFactor;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
@@ -166,8 +167,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
               return 1;
             }
             else {
-              return Double.valueOf(o1.getDefaultHardware().getScreen().getDiagonalLength()).
-                compareTo(o2.getDefaultHardware().getScreen().getDiagonalLength());
+              return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
+                                    o2.getDefaultHardware().getScreen().getDiagonalLength());
             }
           }
         };
@@ -201,7 +202,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
                 return 1;
               }
               else {
-                return Integer.valueOf(d1.width * d1.height).compareTo(d2.width * d2.height);
+                return Integer.compare(d1.width * d1.height, d2.width * d2.height);
               }
             }
           }
@@ -617,17 +618,23 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   private static class PlayStoreColumnInfo extends ColumnInfo<Device, Icon> {
 
+    public static final Icon highlightedPlayStoreIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(StudioIcons.Avd.DEVICE_PLAY_STORE);
+
     private static final TableCellRenderer ourIconRenderer = new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JBLabel label = new JBLabel((Icon)value);
-        if (value != null) {
+        Icon theIcon = (Icon)value;
+        JBLabel label = new JBLabel(theIcon);
+        if (theIcon != null) {
           AccessibleContextUtil.setName(label, "Play Store");
         }
         if (table.getSelectedRow() == row) {
           label.setBackground(table.getSelectionBackground());
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
+          if (theIcon != null) {
+            label.setIcon(highlightedPlayStoreIcon);
+          }
         }
         return label;
       }

@@ -17,7 +17,6 @@ import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.util.ColoredIconGenerator
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.intellij.openapi.application.Result
