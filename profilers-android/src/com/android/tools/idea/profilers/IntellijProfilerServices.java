@@ -153,28 +153,33 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get();
-      }
-
-      @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
-      }
-
-      @Override
-      public boolean isSimplePerfEnabled() {
-        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
-      }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+      public boolean isAtraceEnabled() {
+        return StudioFlags.PROFILER_USE_ATRACE.get();
       }
 
       @Override
       public boolean isCpuCaptureFilterEnabled() {
         return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
+      }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() {
+        return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
+      }
+
+      @Override
+      public boolean isJvmtiAgentEnabled() {
+        return StudioFlags.PROFILER_USE_JVMTI.get();
+      }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
       }
 
       @Override
@@ -188,23 +193,18 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isAtraceEnabled() {
-        return StudioFlags.PROFILER_USE_ATRACE.get();
-      }
-
-      @Override
       public boolean isNetworkRequestPayloadEnabled() {
         return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() {
-        return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
+      public boolean isNetworkThreadViewEnabled() {
+        return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
       }
 
       @Override
-      public boolean isEnergyProfilerEnabled() {
-        return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
+      public boolean isSimplePerfEnabled() {
+        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
     };
   }
