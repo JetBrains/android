@@ -235,6 +235,41 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("missing_attrs.xml");
   }
 
+  @Language("JAVA")
+  String recyclerView =
+    "package android.support.v7.widget;\n" +
+    "\n" +
+    "import android.widget.ViewGroup;\n" +
+    "\n" +
+    "public class RecyclerView extends ViewGroup {\n" +
+    "  public abstract static class LayoutManager {\n" +
+    "  }\n" +
+    "}\n" +
+    "\n" +
+    "public class GridLayoutManager extends RecyclerView.LayoutManager {\n" +
+    "}\n" +
+    "\n" +
+    "public class LinearLayoutManager extends RecyclerView.LayoutManager {\n" +
+    "}";
+
+  @Language("XML")
+  String recyclerViewAttrs =
+    "<resources>\n" +
+    "    <declare-styleable name=\"RecyclerView\">\n" +
+    "        <attr name=\"layoutManager\" format=\"string\" />\n" +
+    "    </declare-styleable>\n" +
+    "</resources>";
+
+  public void testLayoutManagerAttribute() throws Throwable {
+    // RecyclerView has a "layoutManager" attribute that should give completions that extend
+    // the RecyclerView.LayoutManager class.
+    myFixture.addClass(recyclerView);
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs);
+    doTestCompletionVariants("recycler_view.xml",
+                             "android.support.v7.widget.GridLayoutManager",
+                             "android.support.v7.widget.LinearLayoutManager");
+  }
+
   public void testDataBindingHighlighting1() throws Throwable {
     ModuleDataBinding.enable(myFacet);
     copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
