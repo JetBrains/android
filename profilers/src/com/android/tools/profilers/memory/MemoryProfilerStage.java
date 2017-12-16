@@ -183,7 +183,20 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
+    // TODO Optimize this to not include non-legacy allocation tracking information.
+    MemoryData data = myClient
+      .getData(MemoryRequest.newBuilder().setSession(mySessionData).setStartTime(Long.MIN_VALUE).setEndTime(Long.MAX_VALUE).build());
+    List<AllocationsInfo> allocationsInfos = data.getAllocationsInfoList();
+    AllocationsInfo lastInfo = allocationsInfos.isEmpty() ? null : allocationsInfos.get(allocationsInfos.size() - 1);
+    myTrackingAllocations = lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE);
+    if (myTrackingAllocations) {
+      myPendingCaptureStartTime = lastInfo.getStartTime();
+      myPendingLegacyAllocationStartTimeNs = lastInfo.getStartTime();
+    }
+    else {
+      myPendingCaptureStartTime = INVALID_START_TIME;
+      myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
+    }
   }
 
   @Override
