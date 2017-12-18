@@ -18,10 +18,12 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -214,10 +216,6 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * TT ID: 1eb26e7c-5127-49aa-83c9-32d9ff160315
    * <p>
-   * This test covers another test case as well. The second test ID is listed below.
-   * <p>
-   * TT ID: ae1223a3-b42d-4c8f-8837-5c6f7e8c583a
-   * <p>
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio
@@ -275,6 +273,52 @@ public class LaunchAndroidApplicationTest {
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
+  }
+
+  /**
+   * To verify that importing a sample project and deploying on test device.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: ae1223a3-b42d-4c8f-8837-5c6f7e8c583a
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import Background/Job Scheduler from sample projects
+   *   3. Create an emulator
+   *   4. Deploy the project on the emulator
+   *   Verify:
+   *   1. The sample project is built successfully and deployed on the emulator.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.SANITY)
+  @Test
+  public void importSampleProject() throws Exception {
+    BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
+      .importCodeSample();
+    samplesWizard.selectSample("Background/Job Scheduler")
+      .clickNext()
+      .clickFinish();
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    GuiTests.findAndClickButtonWhenEnabled(
+      ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
+      "Update");
+    guiTest.waitForBackgroundTasks();
+    ideFrameFixture.requestProjectSync(Wait.seconds(30));
+
+    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+
+    String appName = "Application";
+    ideFrameFixture
+      .runApp(appName)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    ideFrameFixture.getRunToolWindow().findContent(appName)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
   }
 
   /**
