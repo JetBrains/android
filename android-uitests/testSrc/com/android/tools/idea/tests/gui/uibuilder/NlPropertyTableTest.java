@@ -51,7 +51,7 @@ public class NlPropertyTableTest {
 
   @Before
   public void setUp() throws Exception {
-    myFrame = guiTest.importSimpleApplication();
+    myFrame = guiTest.importSimpleLocalApplication();
     myOriginalFrameSize = myFrame.getIdeFrameSize();
   }
 
@@ -244,7 +244,7 @@ public class NlPropertyTableTest {
     parentPanel.setFilter("");
 
     // Test another window size
-    final int newRowSize = 4;
+    int newRowSize = 4;
     table.adjustIdeFrameHeightToShowNumberOfRows(myFrame, newRowSize);
 
     Wait.seconds(10).expecting("The table to resize").until(
