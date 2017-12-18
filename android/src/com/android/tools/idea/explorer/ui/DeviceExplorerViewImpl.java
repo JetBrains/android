@@ -41,6 +41,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -149,7 +150,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @Override
   public void setup() {
-    myToolWindow.setIcon(AndroidIcons.DeviceExplorer.ToolWindow);
+    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
     myToolWindow.setAvailable(true, null);
     myToolWindow.setToHideOnEmptyContent(true);
     myToolWindow.setTitle(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
