@@ -16,8 +16,11 @@
 package com.android.tools.idea.resourceExplorer.importer
 
 import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.NightModeQualifier
+import com.android.ide.common.resources.configuration.ResourceQualifier
 
 import com.android.resources.Density
+import com.android.resources.NightMode
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -60,18 +63,27 @@ private fun createAsset(child: VirtualFile): Pair<String, DesignAsset> {
  *
  * from [the developer documentation](https://developer.android.com/guide/practices/screens_support.html#alternative_drawables)
  */
-private fun getQualifiers(file: VirtualFile): List<DensityQualifier> {
-  val dimension = file.nameWithoutExtension.split("@").getOrNull(1)
+private fun getQualifiers(file: VirtualFile): List<ResourceQualifier> {
+  // This implementation is for test only for now. It will be changed to a
+  // more complex parsing using user configuration
+  val textQualifiers = file.nameWithoutExtension.split("_", "@")
+  val dimension = textQualifiers.getOrNull(1)
+  val nightMode = textQualifiers.contains("dark")
   val density = when (dimension) {
     "2x" -> Density.XHIGH
     "3x" -> Density.XXHIGH
     "4x" -> Density.XXXHIGH
     else -> Density.MEDIUM
   }
-  return listOf(DensityQualifier(density))
+  val qualifiersList = mutableListOf<ResourceQualifier>(DensityQualifier(density))
+
+  if (nightMode) {
+    qualifiersList += NightModeQualifier(NightMode.NIGHT)
+  }
+  return qualifiersList.toList()
 }
 
 /**
  * Parse the file name and return just the base name
  */
-private fun getBaseName(file: VirtualFile) = file.nameWithoutExtension.split("@")[0]
+fun getBaseName(file: VirtualFile) = file.nameWithoutExtension.split("@","_")[0]

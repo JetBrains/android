@@ -16,35 +16,43 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.ResourceBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ExternalDesignAssetExplorer
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.fileChooser.impl.FileChooserUtil
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.*
 
 /**
- * File browser to display [DesignAssetSet].
+ * File browser to display Design assets outside the project.
  */
-class ExternalResourceBrowser(facet: AndroidFacet) : JPanel(BorderLayout()) {
+class ExternalResourceBrowser(
+    facet: AndroidFacet,
+    private val resourceBrowserViewModel: ExternalDesignAssetExplorer
+) : JPanel(BorderLayout()) {
 
-  private val resourceBrowserViewModel : ResourceBrowserViewModel
 
-  private val designAssetsList : DesignAssetsList
+  private val listItemSize = 120
+  private val listColumn = 4
+  private val designAssetsList: DesignAssetsList
 
   init {
     customizeUI()
     val preview = createPreviewPane()
-    resourceBrowserViewModel = ResourceBrowserViewModel(facet)
     designAssetsList = DesignAssetsList(resourceBrowserViewModel)
     designAssetsList.addListSelectionListener {
       updatePreview(preview)
     }
+    designAssetsList.fixedCellWidth = JBUI.scale(listItemSize)
+    designAssetsList.fixedCellHeight = JBUI.scale(listItemSize)
+    designAssetsList.background = UIUtil.getListBackground()
     add(createFileChooserPanel(facet), BorderLayout.NORTH)
     add(preview)
     add(createImportButton(), BorderLayout.SOUTH)
@@ -52,29 +60,36 @@ class ExternalResourceBrowser(facet: AndroidFacet) : JPanel(BorderLayout()) {
 
   private fun customizeUI() {
     border = JBUI.Borders.customLine(JBColor.border(), 0, 1, 0, 0)
-    preferredSize = JBUI.size(400, -1)
   }
 
   private fun createFileChooserPanel(facet: AndroidFacet): JPanel {
     val browser = JPanel(VerticalFlowLayout())
+    val scrollPane = createAssetListScrollPane()
     val browseButton = TextFieldWithBrowseButton(JTextField(), null)
+    val lastOpenedFile = FileChooserUtil.getLastOpenedFile(facet.module.project)
+    val updateDirectory: (VirtualFile) -> Unit = { file ->
+      browseButton.text = file.path
+      resourceBrowserViewModel.setDirectory(file)
+    }
+    browseButton.textField.columns = 10
     browseButton.addActionListener {
       FileChooser.chooseFile(
           FileChooserDescriptorFactory.createSingleFolderDescriptor(),
           facet.module.project,
-          null, { file ->
-        browseButton.text = file.path
-        resourceBrowserViewModel.setDirectory(file)
-      })
+          lastOpenedFile,
+          updateDirectory)
     }
     browser.add(browseButton)
-    browser.add(createAssetListScrollPane())
+    browser.add(scrollPane)
+    if (lastOpenedFile != null) {
+      updateDirectory(lastOpenedFile)
+    }
     return browser
   }
 
   private fun createAssetListScrollPane(): JScrollPane {
     return JScrollPane(designAssetsList).apply {
-      preferredSize = JBUI.size(-1, 400)
+      viewport.preferredSize = JBUI.size(listItemSize * listColumn - verticalScrollBar.size.width, 500)
     }
   }
 
