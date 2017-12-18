@@ -318,15 +318,15 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void addTargets(@NotNull SceneComponent component) {
     SceneComponent parent = component.getParent();
-    if (parent != null) {
-      component = parent;
+    if (parent == null) {
+      parent = getScene().getRoot();
     }
-    else {
-      component = getScene().getRoot();
+    if (parent == null) {
+      return;
     }
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
     if (handler instanceof ViewGroupHandler) {
-      component.setTargetProvider((ViewGroupHandler) handler);
+      parent.setTargetProvider((ViewGroupHandler) handler);
     }
   }
 
