@@ -16,7 +16,9 @@
 package com.android.tools.idea.resourceExplorer.importer
 
 import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
+import com.android.resources.NightMode
 import com.android.tools.idea.resourceExplorer.getExternalResourceDirectory
 import com.intellij.ide.IdeEventQueue
 import com.intellij.mock.MockApplication
@@ -56,7 +58,8 @@ class ImporterTest {
         "icon@2x.png",
         "icon@3x.jpg",
         "image.jpg",
-        "image@4x.jpg"
+        "image@4x.jpg",
+        "image@4x_dark.jpg"
     )
     val assetSets = getAssetSets(directory, supportedTypes)
     assertEquals(2, assetSets.size)
@@ -79,6 +82,10 @@ class ImporterTest {
     assertEquals(DensityQualifier(Density.MEDIUM), imageAssetList[0].qualifiers[0])
     assertEquals("image@4x.jpg", imageAssetList[1].file.name)
     assertEquals(DensityQualifier(Density.XXXHIGH), imageAssetList[1].qualifiers[0])
+
+    assertEquals("image@4x_dark.jpg", imageAssetList[2].file.name)
+    assertEquals(DensityQualifier(Density.XXXHIGH), imageAssetList[2].qualifiers[0])
+    assertEquals(NightModeQualifier(NightMode.NIGHT), imageAssetList[2].qualifiers[1])
   }
 
   @Test

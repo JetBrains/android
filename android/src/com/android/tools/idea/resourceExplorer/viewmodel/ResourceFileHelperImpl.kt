@@ -19,10 +19,13 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
 import java.io.IOException
+
+private val logger = Logger.getInstance(ResourceFileHelper::class.java)
 
 /**
  * Helper class to manipulate Resources related Virtual file
@@ -92,10 +95,10 @@ interface ResourceFileHelper {
         WriteAction.run<IOException> {
           asset.file.copy(this, folder, fileName)
         }
-        LOGGER.info("$fileName copied into ${folder.path}")
+        logger.info("$fileName copied into ${folder.path}")
       }
       else {
-        LOGGER.info("$fileName already exist in ${folder.path}")
+        logger.info("$fileName already exist in ${folder.path}")
       }
     }
   }

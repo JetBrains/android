@@ -35,7 +35,7 @@ data class DesignAsset(
  * Represents a set of design assets on disk grouped by base name.
  *
  * For example, fr/icon@2x.png, fr/icon.jpg  and en/icon.png will be
- * gatherd in the same DesignAssetSet under the name "icon"
+ * gathered in the same DesignAssetSet under the name "icon"
  */
 data class DesignAssetSet(
     val name: String,

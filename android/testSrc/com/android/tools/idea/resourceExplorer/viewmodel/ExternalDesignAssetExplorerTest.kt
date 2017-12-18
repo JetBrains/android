@@ -18,9 +18,14 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.getAssetSets
+import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationStatus
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.collect.testing.Helpers
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -29,12 +34,9 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 
-class ResourceBrowserViewModelTest {
+class ExternalDesignAssetExplorerTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
 
@@ -42,17 +44,24 @@ class ResourceBrowserViewModelTest {
   @Rule
   fun getChain() = chain
 
+  private val disposable = Disposer.newDisposable()
+
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
   }
 
+  @After
+  fun tearDown() {
+    Disposer.dispose(disposable)
+  }
+
   @Test
   fun setDirectory() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val resourceBrowserViewModel = ResourceBrowserViewModel(facet)
+    val resourceBrowserViewModel = createViewModel(facet)
     resourceBrowserViewModel.setDirectory(pathToVirtualFile(getAssetDir()))
-    Assert.assertEquals(2, resourceBrowserViewModel.designAssetListModel.size)
+    Assert.assertEquals(1, resourceBrowserViewModel.designAssetListModel.size)
   }
 
   @RunsInEdt
@@ -67,19 +76,48 @@ class ResourceBrowserViewModelTest {
     facet.refreshResources()
     assertFalse(repository is ModuleResourceRepository.EmptyRepository)
 
-    val resourceBrowserViewModel = ResourceBrowserViewModel(facet)
+    val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
     val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"))
     resourceBrowserViewModel.importDesignAssetSet(designAssetSet[0])
     val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.DRAWABLE, repository.resourceDirs)
-    assertEquals(2, resourceSubdirs.size)
-    assertEquals("drawable-mdpi", resourceSubdirs[0].name)
-    assertEquals("drawable-xhdpi", resourceSubdirs[1].name)
+    assertEquals(3, resourceSubdirs.size)
+    Helpers.assertContentsAnyOrder(resourceSubdirs.map { it.name }, "drawable-night-mdpi", "drawable-xhdpi", "drawable-night-xhdpi")
     assertEquals("add.png", resourceSubdirs[0].children[0].name)
     assertEquals("add.png", resourceSubdirs[1].children[0].name)
+    assertEquals("add.png", resourceSubdirs[2].children[0].name)
   }
+
+
+  @RunsInEdt
+  @Test
+  fun testSingleSynchronization() {
+    val module = projectRule.module
+    val facet = AndroidFacet.getInstance(module)!!
+    // Init the res folder with a dummy file
+    val res = projectRule.fixture.copyFileToProject(getTestDataDirectory() + "/res/values.xml", "res/values/values.xml").parent.parent
+    projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x.png", "res/drawable-xhdpi/add.png").parent.parent
+    projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x_dark.png", "res/drawable-night-xhdpi/add.png").parent.parent
+    projectRule.fixture.copyFileToProject(getAssetDir() + "/add_dark.png", "res/drawable-night-mdpi/add.png").parent.parent
+    ModuleResourceRepository.createForTest(facet, listOf(res))
+    facet.refreshResources()
+
+    val resourceBrowserViewModel = createViewModel(facet)
+    val virtualFile = pathToVirtualFile(getAssetDir())
+    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"))[0]
+    assertEquals(SynchronizationStatus.SYNCED, resourceBrowserViewModel.getSynchronizationStatus(designAssetSet))
+
+    val otherFile = pathToVirtualFile(getAlternateAssetDir())
+    val otherAssertSet = getAssetSets(otherFile, setOf("png", "jpg"))[0]
+    assertEquals(SynchronizationStatus.INEXISTENT, resourceBrowserViewModel.getSynchronizationStatus(otherAssertSet))
+  }
+
+  private fun createViewModel(facet: AndroidFacet) =
+      ExternalDesignAssetExplorer(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), SynchronizationManager(facet, disposable))
 
   private fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!
 
   private fun getAssetDir() = getTestDataDirectory() + "/designAssets"
+
+  private fun getAlternateAssetDir() = getTestDataDirectory() + "/success-icons"
 }

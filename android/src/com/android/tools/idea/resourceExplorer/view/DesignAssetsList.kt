@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.ResourceBrowserViewModel
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Image
@@ -25,20 +25,22 @@ import javax.swing.*
 /**
  * A JList that display [DesignAssetSet].
  */
-class DesignAssetsList(private val browserViewModel: ResourceBrowserViewModel)
-  : JList<DesignAssetSet>(browserViewModel.designAssetListModel)
-{
+class DesignAssetsList(private val browserViewModel: DesignAssetExplorer)
+  : JList<DesignAssetSet>(browserViewModel.designAssetListModel) {
+
+  var itemMargin = 16
+  private var itemBorderWidth = 1
 
   init {
     layoutOrientation = JList.HORIZONTAL_WRAP
     visibleRowCount = 0
-    fixedCellWidth = 100
     cellRenderer = ListCellRenderer<DesignAssetSet>
     { list, assetSet, index, isSelected, cellHasFocus ->
       getDesignAssetView(
-          browserViewModel.getSourcePreview(assetSet.getHighestDensityAsset()),
+          browserViewModel.getPreview(assetSet.getHighestDensityAsset()),
           assetSet.name,
-          isSelected
+          isSelected,
+          browserViewModel.getStatusLabel(assetSet)
       )
     }
   }
@@ -46,23 +48,37 @@ class DesignAssetsList(private val browserViewModel: ResourceBrowserViewModel)
   private fun getDesignAssetView(
       preview: Image,
       name: String,
-      selected: Boolean = false
-
+      selected: Boolean = false,
+      statusLabel: String
   ): JPanel {
     val panel = JPanel(BorderLayout())
     panel.border = if (selected) {
+      panel.isOpaque = true
+      panel.background = UIUtil.getListUnfocusedSelectionBackground()
+      val emptyBorderWidth = itemMargin - itemBorderWidth
       BorderFactory.createCompoundBorder(
-          BorderFactory.createEmptyBorder(2, 2, 2, 2),
-          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), 2, true))
+          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), itemBorderWidth, true),
+          BorderFactory.createEmptyBorder(emptyBorderWidth, emptyBorderWidth, emptyBorderWidth, emptyBorderWidth))
     }
     else {
-      BorderFactory.createEmptyBorder(4, 4, 4, 4)
+      panel.isOpaque = false
+      BorderFactory.createEmptyBorder(itemMargin, itemMargin, itemMargin, itemMargin)
     }
 
     val icon = JLabel(ImageIcon(preview))
     icon.border = BorderFactory.createEmptyBorder(18, 18, 18, 18)
     panel.add(icon)
     panel.add(JLabel(name, JLabel.CENTER), BorderLayout.SOUTH)
+    panel.add(JLabel(statusLabel), BorderLayout.NORTH)
     return panel
   }
+}
+
+/**
+ * Interface for classes that provide [DesignAsset] for [com.android.tools.idea.resourceExplorer.view.DesignAssetsList]
+ */
+interface DesignAssetExplorer {
+  fun getPreview(asset: DesignAsset): Image
+  fun getStatusLabel(assetSet: DesignAssetSet): String
+  val designAssetListModel: ListModel<DesignAssetSet>
 }

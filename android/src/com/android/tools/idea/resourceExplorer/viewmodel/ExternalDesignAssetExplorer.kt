@@ -20,25 +20,42 @@ import com.android.tools.idea.resourceExplorer.importer.getAssetSets
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationListener
+import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import java.awt.image.BufferedImage
 
-val LOGGER = Logger.getInstance(ResourceBrowserViewModel::class.java)
-val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
+private val LOGGER = Logger.getInstance(ExternalDesignAssetExplorer::class.java)
+private val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
 
 /**
- * ViewModel to manage external resources
+ * ViewModel for [com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser]
+ * to manage design resources outside the project
  */
-class ResourceBrowserViewModel(
+class ExternalDesignAssetExplorer(
     val facet: AndroidFacet,
-    private val fileHelper: ResourceFileHelper = ResourceFileHelper.ResourceFileHelperImpl(),
-    private val importersProvider: ImportersProvider = ImportersProvider()
-) {
+    private val fileHelper: ResourceFileHelper,
+    private val importersProvider: ImportersProvider,
+    private val synchronizationManager: SynchronizationManager
+) : DesignAssetExplorer {
 
-  val designAssetListModel = DesignAssetListModel()
+  override val designAssetListModel = DesignAssetListModel()
+
+  init {
+    synchronizationManager.addListener(object : SynchronizationListener {
+      override fun resourceAdded(file: VirtualFile) {
+        designAssetListModel.refresh()
+      }
+
+      override fun resourceRemoved(file: VirtualFile) {
+        designAssetListModel.refresh()
+      }
+    })
+  }
 
   /**
    * Set the directory to browse
@@ -51,6 +68,7 @@ class ResourceBrowserViewModel(
     }
     else {
       LOGGER.error("${directory.path} is not a valid directory")
+      return
     }
   }
 
@@ -61,10 +79,11 @@ class ResourceBrowserViewModel(
     selectedValue.designAssets.forEach { asset ->
       // TODO use plugin to convert the asset
       fileHelper.copyInProjectResources(asset, selectedValue.name, facet)
+
     }
   }
 
-  fun getSourcePreview(asset: DesignAsset): Image {
+  override fun getPreview(asset: DesignAsset): Image {
     val extension = asset.file.extension
     return if (!extension.isNullOrEmpty()) {
       importersProvider.getImportersForExtension(extension!!).firstOrNull()?.getSourcePreview(asset)
@@ -74,4 +93,10 @@ class ResourceBrowserViewModel(
       EMPTY_IMAGE
     }
   }
+
+  fun getSynchronizationStatus(assetSet: DesignAssetSet) =
+      synchronizationManager.getSynchronizationStatus(assetSet)
+
+  override fun getStatusLabel(assetSet: DesignAssetSet) = getSynchronizationStatus(assetSet).name
+
 }

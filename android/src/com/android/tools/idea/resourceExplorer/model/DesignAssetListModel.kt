@@ -56,4 +56,8 @@ class DesignAssetListModel : ListModel<DesignAssetSet> {
         filterIsInstance(ListDataListener::class.java)
         .forEach { listener: ListDataListener? -> listener?.contentsChanged(dataEvent) }
   }
+
+  fun refresh() {
+    fireListContentChangedEvent()
+  }
 }

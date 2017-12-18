@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer
 
+import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
+import com.android.tools.idea.resourceExplorer.view.InternalResourceBrowser
+import com.android.tools.idea.resourceExplorer.viewmodel.ExternalDesignAssetExplorer
+import com.android.tools.idea.resourceExplorer.viewmodel.InternalDesignAssetExplorer
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
@@ -24,17 +30,32 @@ import com.intellij.openapi.util.UserDataHolderBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
  * Editor to manage the resources of the project
  */
-class ResourceExplorerEditor(facet : AndroidFacet) : UserDataHolderBase(), FileEditor {
+class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEditor {
   private val root = JPanel(BorderLayout())
 
   init {
-    root.add(ExternalResourceBrowser(facet), BorderLayout.EAST)
+    val synchronizationManager = SynchronizationManager(facet, this)
+    val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
+    val importersProvider = ImportersProvider()
+    val externalResourceBrowserViewModel = ExternalDesignAssetExplorer(facet, fileHelper, importersProvider, synchronizationManager)
+    val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel)
+    val internalResourceBrowser = InternalResourceBrowser(InternalDesignAssetExplorer(facet, this, synchronizationManager))
+    val designAssetDetailView = DesignAssetDetailView()
+
+    internalResourceBrowser.addSelectionListener(designAssetDetailView)
+    root.add(externalResourceBrowser, BorderLayout.EAST)
+    val centerContainer = Box.createVerticalBox()
+    centerContainer.add(internalResourceBrowser)
+    centerContainer.add(designAssetDetailView)
+    root.add(centerContainer, BorderLayout.CENTER)
   }
 
   override fun getComponent(): JComponent = root
