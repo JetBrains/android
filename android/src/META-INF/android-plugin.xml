@@ -945,7 +945,7 @@
                       anchor="right"
                       secondary="true"
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
-                      icon="AndroidIcons.DeviceExplorer.ToolWindow"
+                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
