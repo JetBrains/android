@@ -104,7 +104,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     }
     if (showPid) {
       // Slightly different formatting if we show BOTH PID and package instead of one or the other
-      builder.append("%2$s").append(showPackage?'/':' ');
+      builder.append("%2$s").append(showPackage ? '/' : ' ');
     }
     if (showPackage) {
       builder.append("%3$s ");
@@ -114,7 +114,8 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
       builder.append("/%5$s");
     }
     builder.append(": %6$s");
-    return builder.toString();  }
+    return builder.toString();
+  }
 
   /**
    * Helper method useful for previewing what final output will look like given a custom formatter.
