@@ -702,7 +702,9 @@ public class SceneComponent {
   }
 
   private void remove(@NotNull SceneComponent component) {
-    myChildren.remove(component);
+    if (myChildren.remove(component)) {
+      component.myParent = null;
+    }
   }
 
   //endregion
