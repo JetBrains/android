@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.google.common.collect.ImmutableMap;
@@ -85,16 +85,23 @@ public abstract class GradleValueImpl<T> implements GradleValue<T> {
     }
 
     ImmutableMap.Builder<String, GradleNotNullValue<Object>> builder = ImmutableMap.builder();
-    for (GradleStringInjection injection : myDslElement.getResolvedVariables()) {
+    for (GradleReferenceInjection injection : myDslElement.getResolvedVariables()) {
       String variableName = injection.getName();
-      Object resolvedValue = injection.getToBeInjected().getValue();
+
+      // Skip any lists or maps that we might possibly get here.
+      GradleDslExpression expression = injection.getToBeInjectedExpression();
+      if (expression == null) {
+        continue;
+      }
+
+      Object resolvedValue = expression.getValue();
       // No values here should be null
       if (resolvedValue == null) {
         Logger.getInstance(GradleValueImpl.class).warn("Reference to a null value was found, variable: " + variableName);
         continue;
       }
-      GradleDslElement element = injection.getToBeInjected();
-      builder.put(variableName, new GradleNotNullValueImpl<>(element, resolvedValue));
+
+      builder.put(variableName, new GradleNotNullValueImpl<>(expression, resolvedValue));
     }
     return builder.build();
   }

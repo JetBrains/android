@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
@@ -187,26 +187,26 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     // Otherwise resolve the value and then return the resolved text.
-    Collection<GradleStringInjection> injections = getInjections(context, literal);
-    return ensureUnquotedText(GradleStringInjection.injectAll(literal, injections));
+    Collection<GradleReferenceInjection> injections = getInjections(context, literal);
+    return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
   }
 
   @Override
   @NotNull
-  public Collection<GradleStringInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+  public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
     if (!(psiElement instanceof GrString)) {
       return Collections.emptyList();
     }
 
-    List<GradleStringInjection> injections = Lists.newArrayList();
+    List<GradleReferenceInjection> injections = Lists.newArrayList();
     GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
     for (GrStringInjection injection : grStringInjections) {
       if (injection != null) {
         String name = getInjectionName(injection);
         if (name != null) {
           GradleDslElement referenceElement = context.resolveReference(name);
-          if (referenceElement instanceof GradleDslExpression) {
-            injections.add(new GradleStringInjection((GradleDslExpression)referenceElement, injection, name));
+          if (referenceElement != null) {
+            injections.add(new GradleReferenceInjection(referenceElement, injection, name));
           }
         }
       }

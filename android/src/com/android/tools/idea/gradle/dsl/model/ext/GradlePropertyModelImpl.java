@@ -15,10 +15,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -160,6 +157,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (element instanceof GradleDslExpressionList) {
       return LIST;
     }
+    else if (element instanceof GradleDslReference) {
+      return REFERENCE;
+    }
     else if (element instanceof GradleDslExpression) {
       GradleDslExpression expression = (GradleDslExpression)element;
       Object value = expression.getValue();
@@ -187,9 +187,17 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myValueType == MAP) {
       Object value = getMap();
       return typeReference.castTo(value);
-    } else if (myValueType == LIST) {
+    }
+    else if (myValueType == LIST) {
       Object value = getList();
       return typeReference.castTo(value);
+    }
+    else if (myValueType == REFERENCE) {
+      // For references only display the reference text for both resolved and unresolved values.
+      // Users should follow the reference to obtain the value.
+      GradleDslReference ref = (GradleDslReference)myElement;
+      String refText = ref.getReferenceText();
+      return refText == null ? null : typeReference.castTo(refText);
     }
 
     GradleDslExpression expression = (GradleDslExpression)myElement;
