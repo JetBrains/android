@@ -48,6 +48,7 @@ public class StudioIcons {
   public static class Common {
     public static final Icon ADD = load("/studio/icons/common/add.png"); // 16x16
     public static final Icon BACK_ARROW = load("/studio/icons/common/back-arrow.png"); // 16x16
+    public static final Icon CHECKED = load("/studio/icons/common/checked.png"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.png"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.png"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.png"); // 16x16
@@ -430,6 +431,7 @@ public class StudioIcons {
 
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
+      public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.png"); // 16x16
     }
 
     public static class Surface {
@@ -500,7 +502,13 @@ public class StudioIcons {
       public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 24x24
     }
 
+    public static class Sidebar {
+      public static final Icon FILE = load("/studio/icons/profiler/sidebar/file.png"); // 44x44
+      public static final Icon ISSUE = load("/studio/icons/profiler/sidebar/issue.png"); // 44x44
+    }
+
     public static class Toolbar {
+      public static final Icon CLOCK = load("/studio/icons/profiler/toolbar/clock.png"); // 16x16
       public static final Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.png"); // 16x16
       public static final Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.png"); // 16x16
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.png"); // 16x16
