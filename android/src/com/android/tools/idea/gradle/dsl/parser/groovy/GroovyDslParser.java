@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -71,6 +72,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.*;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
@@ -441,6 +444,7 @@ public class GroovyDslParser implements GradleDslParser {
         return false;
       }
 
+      variableElement.setElementType(VARIABLE);
       blockElement.setParsedVariable(variable.getName(), variableElement);
     }
     return true;
@@ -480,6 +484,7 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
     propertyElement.setUseAssignment(true);
+    propertyElement.setElementType(REGULAR);
 
     blockElement.setParsedElement(propertyName, propertyElement);
     return true;

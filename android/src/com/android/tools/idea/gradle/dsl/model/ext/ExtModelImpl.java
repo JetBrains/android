@@ -24,8 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.PropertyType;
-
 /**
  * Represents the extra user-defined properties defined in the Gradle file.
  * <p>
@@ -52,15 +50,11 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
   @Override
   @Nullable
   public GradlePropertyModel findProperty(@NotNull String name) {
-    PropertyType type;
     GradleDslElement element = myDslElement.getPropertyElement(name);
     if (element == null) {
       element = myDslElement.getVariableElement(name);
-      type = PropertyType.VARIABLE;
-    } else {
-      type = PropertyType.REGULAR;
     }
 
-    return element == null ? null : new GradlePropertyModelImpl(element, type);
+    return element == null ? null : new GradlePropertyModelImpl(element);
   }
 }
