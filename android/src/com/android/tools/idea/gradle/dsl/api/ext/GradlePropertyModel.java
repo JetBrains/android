@@ -46,6 +46,8 @@ public interface GradlePropertyModel {
    *   <li>{@code BOOLEAN} - Pass {@link BOOLEAN_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code MAP} - Pass {@link MAP_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code LIST} - Pass {@link LIST_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code REFERENCE} - Pass {@link STRING_TYPE} to {@link #getValue(TypeReference)} to get the name of the
+   *                           property or variable refereed to. Use {@link #getDependencies()} to get the value.</li>
    *   <li>{@code UNKNOWN} - No guarantees about the type of this element can be made}</li>
    * </ul>
    */
@@ -55,6 +57,7 @@ public interface GradlePropertyModel {
     BOOLEAN,
     MAP,
     LIST,
+    REFERENCE,
     UNKNOWN,
   }
 

@@ -22,8 +22,8 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * A parser for BUILD.gradle files. Used to build up a {@link GradleBuildModel} from the underlying file.
@@ -59,11 +59,11 @@ public interface GradleDslParser {
   Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
-   * Returns a list of {@link GradleStringInjection}s that were derived from {@code psiElement} .
+   * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
    * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
    */
   @NotNull
-  Collection<GradleStringInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
+  List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
 
   class Adapter implements GradleDslParser {
     @Override
@@ -83,7 +83,7 @@ public interface GradleDslParser {
 
     @Override
     @NotNull
-    public Collection<GradleStringInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
       return Collections.emptyList();
     }
   }

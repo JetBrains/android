@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a reference expression.
@@ -65,7 +66,7 @@ public final class GradleDslReference extends GradleDslExpression {
 
   @Override
   @NotNull
-  public Collection<GradleStringInjection> getResolvedVariables() {
+  public List<GradleReferenceInjection> getResolvedVariables() {
     String text = getReferenceText();
     if (text == null || myExpression == null) {
       return Collections.emptyList();
@@ -73,11 +74,11 @@ public final class GradleDslReference extends GradleDslExpression {
 
     // Resolve our reference
     GradleDslElement element = resolveReference(text);
-    if (element == null || !(element instanceof GradleDslExpression)) {
+    if (element == null) {
       return Collections.emptyList();
     }
 
-    return ImmutableList.of(new GradleStringInjection((GradleDslExpression)element, myExpression, text));
+    return ImmutableList.of(new GradleReferenceInjection(element, myExpression, text));
   }
 
   /**
