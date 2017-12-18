@@ -30,6 +30,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
@@ -97,6 +98,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   @Override
   public void mouseDown(@NavCoordinate int x, @NavCoordinate int y) {
+    myComponent.getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(getComponent().getNlComponent()));
     myIsDragging = true;
     myComponent.getScene().needsRebuildList();
     getComponent().setDragging(true);
@@ -142,6 +144,10 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     HandleState newState = calculateState();
 
+    if (newState == HandleState.INVISIBLE && myHandleState == HandleState.INVISIBLE) {
+      return;
+    }
+
     @SwingCoordinate Point center = new Point(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext));
     @SwingCoordinate int initialRadius = sceneContext.getSwingDimension(myHandleState.myOuterRadius);
     @SwingCoordinate int finalRadius = sceneContext.getSwingDimension(newState.myOuterRadius);
@@ -174,7 +180,12 @@ public class ActionHandleTarget extends NavBaseTarget {
     if (mIsOver) {
       return HandleState.LARGE;
     }
-    else if (getComponent().getDrawState() == SceneComponent.DrawState.HOVER || getComponent().isSelected()) {
+
+    if (getComponent().getDrawState() == SceneComponent.DrawState.HOVER) {
+      return HandleState.SMALL;
+    }
+
+    if (getComponent().isSelected() && myComponent.getScene().getSelection().size() == 1) {
       return HandleState.SMALL;
     }
 
