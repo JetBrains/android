@@ -2,16 +2,18 @@
 <!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest">
-        <Message>process_id: 1234
-session {
+        <Message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartMonitoringApp</functionCalled>
-        <message>process_id: 1234
-session {
+        <message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </message>
     </GrpcCall>
@@ -22,53 +24,59 @@ session {
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest</clazz>
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse">
         <Message>data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86400000000000
-  }
-  cpu_usage {
-    app_cpu_time_in_millisec: 1000
-    system_cpu_time_in_millisec: 2000
-    elapsed_time_in_millisec: 10000
-  }
+  end_timestamp: 86400000000000
+  app_cpu_time_in_millisec: 1000
+  system_cpu_time_in_millisec: 2000
+  elapsed_time_in_millisec: 10000
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse</clazz>
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message>data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86400000000000
-  }
-  cpu_usage {
-    app_cpu_time_in_millisec: 1000
-    system_cpu_time_in_millisec: 2000
-    elapsed_time_in_millisec: 10000
-  }
+  end_timestamp: 86400000000000
+  app_cpu_time_in_millisec: 1000
+  system_cpu_time_in_millisec: 2000
+  elapsed_time_in_millisec: 10000
 }
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetThreads" Class="class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest</clazz>
         <functionCalled>profiler.proto.CpuService/GetThreads</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </message>
@@ -166,16 +174,18 @@ trace: "Test Data"
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">
-        <Message>process_id: 1234
-session {
+        <Message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
-        <message>process_id: 1234
-session {
+        <message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </message>
     </GrpcCall>

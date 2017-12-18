@@ -16,7 +16,10 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.Nullable;
-import com.android.ddmlib.*;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
+import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
@@ -61,8 +64,9 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
   @Override
   public CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request) {
+    int pid = request.getSession().getPid();
     CpuProfilingAppStartResponse.Builder responseBuilder = CpuProfilingAppStartResponse.newBuilder();
-    String appPkgName = myDevice.getClientName(request.getProcessId());
+    String appPkgName = myDevice.getClientName(pid);
     Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
       return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
@@ -70,7 +74,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
     }
 
     synchronized (myLegacyProfilingLock) {
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
       if (record != null && client.getClientData().getMethodProfilingStatus() != ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
           .setErrorMessage("Start request ignored. The app has an on-going profiling session.").build();
@@ -82,7 +86,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       DdmPreferences.setProfilerBufferSizeMb(request.getBufferSizeInMb());
       long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
       record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
-      myLegacyProfilingRecord.put(request.getProcessId(), record);
+      myLegacyProfilingRecord.put(pid, record);
       try {
         if (request.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
           client.startSamplingProfiler(request.getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
@@ -96,8 +100,9 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         // we limit the waiting to 0.1 second which is usually sufficient for the error handling to complete.
         record.myStartLatch.await(100, TimeUnit.MILLISECONDS);
         if (record.myStartFailed) {
-          myLegacyProfilingRecord.remove(request.getProcessId());
-        } else {
+          myLegacyProfilingRecord.remove(pid);
+        }
+        else {
           responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
         }
       }
@@ -112,18 +117,19 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
   @Override
   public CpuProfilingAppStopResponse stopProfilingApp(CpuProfilingAppStopRequest request) {
+    int pid = request.getSession().getPid();
     CpuProfilingAppStopResponse.Builder responseBuilder = CpuProfilingAppStopResponse.newBuilder();
-    String appPkgName = myDevice.getClientName(request.getProcessId());
+    String appPkgName = myDevice.getClientName(pid);
     Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
 
     synchronized (myLegacyProfilingLock) {
       if (client == null) {
-        myLegacyProfilingRecord.remove(request.getProcessId());   // Remove the entry if there exists one.
+        myLegacyProfilingRecord.remove(pid);   // Remove the entry if there exists one.
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("App is not running.").build();
       }
 
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
       if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("The app is not being profiled.").build();
@@ -133,7 +139,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       try {
         if (record.myStartRequest.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
           client.stopSamplingProfiler();
-        } else {
+        }
+        else {
           client.stopMethodTracer();
         }
         record.myStopLatch.await();
@@ -143,23 +150,24 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         responseBuilder.setErrorMessage("Failed: " + e);
         getLogger().error("Exception while CpuServiceProxy stopProfilingApp: " + e);
       }
-      myLegacyProfilingRecord.remove(request.getProcessId());
+      myLegacyProfilingRecord.remove(pid);
     }
     return responseBuilder.build();
   }
 
   @Override
   public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
+    int pid = request.getSession().getPid();
     long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
     ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder();
-    String appPkgName = myDevice.getClientName(request.getProcessId());
+    String appPkgName = myDevice.getClientName(pid);
     Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
       return responseBuilder.setBeingProfiled(false).build();
     }
 
     synchronized (myLegacyProfilingLock) {
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
       if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setBeingProfiled(false).build();
       }
@@ -224,7 +232,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
      * The interface says this callback is "called when method tracing failed to start". It may be true
      * for API < 10 (not having FEATURE_PROFILING_STREAMING), but there appears no executing path trigger it
      * for API >= 10.
-     * @param client the client that was profiled.
+     *
+     * @param client  the client that was profiled.
      * @param message an optional (<code>null</code> ok) error message to be displayed.
      */
     @Override
@@ -236,7 +245,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
      * it is called when either start or end fails. Therefore, we rely on whether a field
      * (record.getStopResponseBuilder()) is set to distinguish it is a start or stop failure,
      *
-     * @param client the client that was profiled.
+     * @param client  the client that was profiled.
      * @param message an optional (<code>null</code> ok) error message to be displayed.
      */
     @Override
@@ -248,7 +257,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE);
           stopResponseBuilder.setErrorMessage("Failed to stop profiling: " + message);
           record.myStopLatch.countDown();
-        } else {
+        }
+        else {
           record.myStartFailed = true;
           record.myStartResponseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE);
           record.myStartResponseBuilder.setErrorMessage("Failed to start profiling: " + message);
@@ -301,7 +311,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       myStopResponseBuilder = builder;
     }
 
-    @Nullable public CpuProfilingAppStopResponse.Builder getStopResponseBuilder() {
+    @Nullable
+    public CpuProfilingAppStopResponse.Builder getStopResponseBuilder() {
       return myStopResponseBuilder;
     }
   }

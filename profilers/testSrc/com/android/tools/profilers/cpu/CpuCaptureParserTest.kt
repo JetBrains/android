@@ -16,9 +16,10 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilersTestData
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
 import java.util.concurrent.ExecutionException
@@ -26,14 +27,13 @@ import java.util.concurrent.ExecutionException
 class CpuCaptureParserTest {
 
   val ANY_TRACE_ID = 3039
-  val ANY_PID = 1
 
   @Test
   fun parsingAValidTraceShouldProduceCpuCapture() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("valid_trace.trace")
 
-    val futureCapture = parser.parse(ANY_TRACE_ID, ANY_PID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
 
     // Parsing should create a valid CpuCapture object
     checkValidCapture(futureCapture.get())
@@ -49,7 +49,7 @@ class CpuCaptureParserTest {
     // Decide not to parse long trace files
     fakeServices.setShouldParseLongTraces(false)
     val parser = CpuCaptureParser(fakeServices)
-    assertThat(parser.parse(ANY_TRACE_ID, ANY_PID, largeTraceFile, CpuProfiler.CpuProfilerType.ART)).isNull()
+    assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, CpuProfiler.CpuProfilerType.ART)).isNull()
   }
 
   @Test
@@ -59,7 +59,7 @@ class CpuCaptureParserTest {
     // Decide to parse long trace files
     fakeServices.setShouldParseLongTraces(true)
     val parser = CpuCaptureParser(fakeServices)
-    assertThat(parser.parse(ANY_TRACE_ID, ANY_PID, largeTraceFile, CpuProfiler.CpuProfilerType.ART)).isNotNull()
+    assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, CpuProfiler.CpuProfilerType.ART)).isNotNull()
   }
 
   @Test
@@ -68,7 +68,7 @@ class CpuCaptureParserTest {
     val corruptedTrace = CpuProfilerTestUtils.traceFileToByteString("corrupted_trace.trace") // Malformed trace file.
 
     // Parsing will fail because the trace is corrupted. However, the future capture should still be created properly (not null).
-    val futureCapture = parser.parse(ANY_TRACE_ID, ANY_PID, corruptedTrace, CpuProfiler.CpuProfilerType.ART)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, corruptedTrace, CpuProfiler.CpuProfilerType.ART)!!
 
     try {
       futureCapture.get()
@@ -86,8 +86,8 @@ class CpuCaptureParserTest {
   fun parsingShouldHappenOnlyOnce() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("valid_trace.trace")
-    val firstParsedCapture = parser.parse(ANY_TRACE_ID, ANY_PID,  traceBytes, CpuProfiler.CpuProfilerType.ART)!!
-    val secondParsedCapture = parser.parse(ANY_TRACE_ID, ANY_PID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
+    val firstParsedCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
+    val secondParsedCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
 
     // Second time we call parse(...) we just return the capture parsed the first time.
     assertThat(secondParsedCapture).isEqualTo(firstParsedCapture)
@@ -99,7 +99,7 @@ class CpuCaptureParserTest {
 
     // Create and parse a simpleperf trace
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
-    val futureCapture = parser.parse(ANY_TRACE_ID, ANY_PID, traceBytes, CpuProfiler.CpuProfilerType.SIMPLEPERF)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.SIMPLEPERF)!!
 
     // Parsing should create a valid CpuCapture object
     checkValidCapture(futureCapture.get())
@@ -114,7 +114,7 @@ class CpuCaptureParserTest {
 
     // Try to parse a simpleperf trace passing ART as profiler type
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
-    val futureCapture = parser.parse(ANY_TRACE_ID, ANY_PID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.ART)!!
 
     try {
       futureCapture.get()
@@ -130,7 +130,7 @@ class CpuCaptureParserTest {
   fun profilerTypeMustBeSpecified() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
-    val futureCapture = parser.parse(ANY_TRACE_ID, ANY_PID, traceBytes, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER)!!
+    val futureCapture = parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER)!!
 
     try {
       futureCapture.get()
