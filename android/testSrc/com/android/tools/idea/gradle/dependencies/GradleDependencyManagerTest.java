@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
@@ -81,18 +83,20 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
     // Setup:
     // 1. RecyclerView artifact should not be declared in build script.
-    // 2. RecyclerView should not be available from AppResourceRepository.
+    // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewAvailable());
+    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
 
     // If addDependencyAndSync worked correctly,
     // 1. findMissingDependencies with the added dependency should return empty.
-    // 2. RecyclerView should be avilable AppResourceRepository (because the required artifact has been synced)
+    // 2. RecyclerView should be declared and resolved (because the required artifact has been synced)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertTrue(isRecyclerViewAvailable());
+    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewResolved());
   }
 
   public void testAddDependencyWithoutSync() throws Exception {
@@ -102,18 +106,20 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
     // Setup:
     // 1. RecyclerView artifact should not be declared in build script.
-    // 2. RecyclerView should not be available from AppResourceRepository.
+    //    // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewAvailable());
+    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesWithoutSync(myModules.getAppModule(), dependencies);
 
     // If addDependencyWithoutSync worked correctly,
     // 1. findMissingDependencies with the added dependency should return empty.
-    // 2. RecyclerView should NOT be available AppResourceRepository because artifact is only available after sync.
+    // 2. RecyclerView should be declared but NOT yet resolved (because we didn't sync)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertFalse(isRecyclerViewAvailable());
+    assertTrue(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewResolved());
   }
 
   public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {
@@ -128,8 +134,13 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
   }
 
-  private boolean isRecyclerViewAvailable() {
-    return !AppResourceRepository.getOrCreateInstance(myAndroidFacet)
-      .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView").isEmpty();
+  private boolean isRecyclerViewDeclared() {
+    return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
+             .getDeclaredVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+  }
+
+  private boolean isRecyclerViewResolved() {
+    return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
+             .getResolvedVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
   }
 }
