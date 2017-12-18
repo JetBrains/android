@@ -37,6 +37,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 /**
@@ -61,7 +62,7 @@ public class SceneComponent {
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
-  private ArrayList<SceneComponent> myChildren = new ArrayList<>();
+  private CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
   private SceneComponent myParent = null;
 
   private boolean myIsToolLocked = false;
@@ -495,7 +496,7 @@ public class SceneComponent {
     return myScene;
   }
 
-  public ArrayList<SceneComponent> getChildren() {
+  public List<SceneComponent> getChildren() {
     return myChildren;
   }
 

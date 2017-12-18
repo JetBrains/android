@@ -187,7 +187,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                                    long time,
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
-    ArrayList<SceneComponent> children = component.getChildren();
+    List<SceneComponent> children = component.getChildren();
     if (!children.isEmpty()) {
       // Cache connections between children
       for (SceneComponent child : component.getChildren()) {
