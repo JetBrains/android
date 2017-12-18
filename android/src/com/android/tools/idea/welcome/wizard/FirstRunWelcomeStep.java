@@ -17,13 +17,17 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.npw.platform.FormFactorUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+/**
+ * Welcome page for the first run wizard
+ */
 public class FirstRunWelcomeStep extends ModelWizardStep.WithoutModel {
-  private JPanel myRoot;
+  private JBScrollPane myRoot;
   private JLabel myIcons;
   private JPanel myExistingSdkMessage;
   private JPanel myNewSdkMessage;
@@ -45,6 +49,7 @@ public class FirstRunWelcomeStep extends ModelWizardStep.WithoutModel {
   @Nullable
   @Override
   protected JComponent getPreferredFocusComponent() {
-    return myIcons;
+    // Doesn't matter
+    return null;
   }
 }
