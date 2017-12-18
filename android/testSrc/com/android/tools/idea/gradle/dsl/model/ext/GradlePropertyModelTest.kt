@@ -15,11 +15,10 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.PropertyType.*
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.testFramework.UsefulTestCase
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testProperties() {
@@ -250,7 +249,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("value", value.getValue(STRING_TYPE))
     assertEquals("value", value.getUnresolvedValue(STRING_TYPE))
     assertEquals(STRING, value.valueType)
-    assertEquals(DERIVED, value.propertyType) // TODO: This should be REGULAR!
+    assertEquals(REGULAR, value.propertyType)
   }
 
   fun testIntegerReferencePropertyDependency() {
@@ -274,7 +273,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(25, value.getValue(INTEGER_TYPE))
     assertEquals(25, value.getUnresolvedValue(INTEGER_TYPE))
     assertEquals(INTEGER, value.valueType)
-    assertEquals(DERIVED, value.propertyType) // TODO: This should be REGULAR!
+    assertEquals(REGULAR, value.propertyType)
   }
 
   fun testReferenceVariableDependency() {
@@ -298,7 +297,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("value", value.getValue(STRING_TYPE))
     assertEquals("value", value.getUnresolvedValue(STRING_TYPE))
     assertEquals(STRING, value.valueType)
-    assertEquals(DERIVED, value.propertyType) // TODO: This should be VARIABLE!
+    assertEquals(VARIABLE, value.propertyType)
   }
 
   fun testReferenceMapDependency() {
@@ -320,7 +319,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
     assertEquals(MAP, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: Should be REGULAR!
+    assertEquals(REGULAR, dep.propertyType)
 
     val map = dep.getValue(MAP_TYPE)!!
     assertSize(1, map.entries)
@@ -348,7 +347,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
     assertEquals(LIST, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: Should be REGULAR!
+    assertEquals(REGULAR, dep.propertyType)
 
     val list = dep.getValue(LIST_TYPE)!!
     assertSize(2, list)
@@ -356,12 +355,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     // Check the first list value
     val firstItem = list[0]
     assertEquals(INTEGER, firstItem.valueType)
-    assertEquals(DERIVED, firstItem.propertyType) // TODO: Should be REGULAR!
+    assertEquals(DERIVED, firstItem.propertyType)
     assertEquals(1, firstItem.getValue(INTEGER_TYPE))
 
     val secondItem = list[1]
     assertEquals(BOOLEAN, secondItem.valueType)
-    assertEquals(DERIVED, secondItem.propertyType) // TODO: Should be REGULAR!
+    assertEquals(DERIVED, secondItem.propertyType)
     assertEquals(true, secondItem.getValue(BOOLEAN_TYPE))
   }
 
@@ -385,7 +384,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, dependencies)
     val dep = dependencies[0]
     assertEquals(STRING, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: This should be REGULAR!
+    assertEquals(REGULAR, dep.propertyType)
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
@@ -409,7 +408,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, dependencies)
     val dep = dependencies[0]
     assertEquals(STRING, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: This should be VARIABLE!
+    assertEquals(VARIABLE, dep.propertyType)
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
@@ -433,7 +432,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, dependencies)
     val dep = dependencies[0]
     assertEquals(STRING, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: This should be VARIABLE!
+    assertEquals(VARIABLE, dep.propertyType)
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
@@ -457,7 +456,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, dependencies)
     val dep = dependencies[0]
     assertEquals(STRING, dep.valueType)
-    assertEquals(DERIVED, dep.propertyType) // TODO: This should be REGULAR!
+    assertEquals(REGULAR, dep.propertyType)
     assertEquals("hello", dep.getValue(STRING_TYPE))
   }
 
@@ -485,7 +484,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals("value2", value.getValue(STRING_TYPE))
       assertEquals("ext.prop1", value.fullyQualifiedName)
       assertEquals(STRING, value.valueType)
-      assertEquals(DERIVED, value.propertyType) // TODO: This should be VARIABLE!
+      assertEquals(VARIABLE, value.propertyType)
     }
 
     run {
@@ -494,7 +493,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals("value1", value.getValue(STRING_TYPE))
       assertEquals("ext.prop1", value.fullyQualifiedName)
       assertEquals(STRING, value.valueType)
-      assertEquals(DERIVED, value.propertyType) // TODO: This should be REGULAR!
+      assertEquals(REGULAR, value.propertyType)
     }
   }
 
@@ -522,7 +521,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals(true, value.getValue(BOOLEAN_TYPE))
       assertEquals("ext.prop1", value.fullyQualifiedName)
       assertEquals(BOOLEAN, value.valueType)
-      assertEquals(DERIVED, value.propertyType) // TODO: This should be VARIABLE!
+      assertEquals(VARIABLE, value.propertyType)
     }
 
     run {
@@ -531,7 +530,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals("value1", value.getValue(STRING_TYPE))
       assertEquals("ext.prop1", value.fullyQualifiedName)
       assertEquals(STRING, value.valueType)
-      assertEquals(DERIVED, value.propertyType) // TODO: This should be REGULAR!
+      assertEquals(REGULAR, value.propertyType)
     }
   }
 
@@ -600,7 +599,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[0]
       assertEquals("value1", value.getValue(STRING_TYPE))
       assertEquals(STRING, value.valueType)
-      assertEquals(DERIVED, value.propertyType) // TODO: This should be REGULAR!
+      assertEquals(REGULAR, value.propertyType)
     }
 
     run {
@@ -695,7 +694,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val depValue = valueDeps[0]
       assertContainsElements(deps as Collection<GradlePropertyModel>, depValue)
       assertEquals(INTEGER, depValue.valueType)
-      assertEquals(DERIVED, depValue.propertyType) // TODO: This should be REGULAR!
+      assertEquals(REGULAR, depValue.propertyType)
       assertEquals(25, depValue.getValue(INTEGER_TYPE))
       assertEquals("prop1", depValue.name)
       assertEquals("ext.prop1", depValue.fullyQualifiedName)
@@ -714,7 +713,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val depValue = valueDeps.get(0)
       assertContainsElements(deps as Collection<GradlePropertyModel>, depValue)
       assertEquals(BOOLEAN, depValue.valueType)
-      assertEquals(DERIVED, depValue.propertyType) // TODO: This should be REGULAR!
+      assertEquals(REGULAR, depValue.propertyType)
       assertEquals(false, depValue.getValue(BOOLEAN_TYPE))
       assertEquals("prop2", depValue.name)
       assertEquals("ext.prop2", depValue.fullyQualifiedName)

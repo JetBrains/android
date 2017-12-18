@@ -62,23 +62,6 @@ public interface GradlePropertyModel {
   }
 
   /**
-   * Represents the type of this property.
-   * <ul>
-   *   <li>{@code REGULAR} - this is a Gradle property, e.g "ext.prop1 = 'value'"</li>
-   *   <li>{@code VARIABLE} - this is a DSL variable, e.g "def prop1 = 'value'"</li>
-   *   <li>{@code DERIVED} - this is a internal property derived from values an a map of list, e.g property "key"
-   *                          in "prop1 = ["key" : 'value']"</li>
-   *   <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
-   * </ul>
-   */
-  enum PropertyType {
-    REGULAR,
-    VARIABLE,
-    DERIVED,
-    GLOBAL,
-  }
-
-  /**
    * @return the {@link ValueType} of the property. For references, this method returns the type of the referred to
    * property.
    */

@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
@@ -31,12 +32,10 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @NotNull private ValueType myValueType;
-  @NotNull private PropertyType myType;
   @NotNull private GradleDslElement myElement;
 
-  public GradlePropertyModelImpl(@NotNull GradleDslElement element, @NotNull PropertyType type) {
+  public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
-    myType = type;
 
     myValueType = extractAndGetValueType(myElement);
   }
@@ -50,7 +49,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Override
   @NotNull
   public PropertyType getPropertyType() {
-    return myType;
+    return myElement.getElementType();
   }
 
   @Override
@@ -72,7 +71,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslExpressionMap map = (GradleDslExpressionMap)myElement;
     return map.getPropertyElements().entrySet().stream()
-      .collect(Collectors.toMap(Map.Entry::getKey, e -> new GradlePropertyModelImpl(e.getValue(), PropertyType.DERIVED)));
+      .collect(Collectors.toMap(Map.Entry::getKey, e -> new GradlePropertyModelImpl(e.getValue())));
   }
 
   @NotNull
@@ -82,7 +81,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     GradleDslExpressionList list = (GradleDslExpressionList)myElement;
-    return list.getExpressions().stream().map(e -> new GradlePropertyModelImpl(e, PropertyType.DERIVED)).collect(Collectors.toList());
+    return list.getExpressions().stream().map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
   }
 
   @Override
@@ -95,7 +94,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @NotNull
   public List<GradlePropertyModel> getDependencies() {
     return myElement.getResolvedVariables().stream()
-      .map(injection -> new GradlePropertyModelImpl(injection.getToBeInjected(), PropertyType.DERIVED)).collect(
+      .map(injection -> new GradlePropertyModelImpl(injection.getToBeInjected())).collect(
         Collectors.toList());
   }
 
@@ -135,19 +134,18 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
     GradlePropertyModelImpl other = (GradlePropertyModelImpl)o;
     return Objects.equals(myElement, other.myElement) &&
-           Objects.equals(myValueType, other.myValueType) &&
-           Objects.equals(myType, other.myType);
+           Objects.equals(myValueType, other.myValueType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myElement, myValueType, myType);
+    return Objects.hash(myElement, myValueType);
   }
 
   @Override
   public String toString() {
     return String.format("[Element: %1$s, Type: %2$s, ValueType: %3$s]@%4$s",
-                         myElement.toString(), myType.toString(), myValueType.toString(), Integer.toHexString(hashCode()));
+                         myElement.toString(), myElement.getElementType(), myValueType.toString(), Integer.toHexString(hashCode()));
   }
 
   private static ValueType extractAndGetValueType(@NotNull GradleDslElement element) {
