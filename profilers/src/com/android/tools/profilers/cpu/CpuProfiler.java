@@ -36,16 +36,12 @@ public class CpuProfiler extends StudioProfiler {
   @Override
   public void startProfiling(Common.Session session, Common.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder()
-                                                                .setProcessId(process.getPid())
-                                                                .setSession(session).build());
+    myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
   public void stopProfiling(Common.Session session, Common.Process process) {
     // TODO: handle different status of the response
-    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder()
-                                                               .setProcessId(process.getPid())
-                                                               .setSession(session).build());
+    myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setSession(session).build());
   }
 }

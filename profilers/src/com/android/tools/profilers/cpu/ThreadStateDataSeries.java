@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -30,20 +31,19 @@ import java.util.concurrent.TimeUnit;
 
 public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
-  private final int myProcessId;
-  private final Common.Session myDeviceSerial;
+  @NotNull private final Common.Session mySession;
   private final int myThreadId;
-  private final CpuProfilerStage myStage;
+  @NotNull private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, int pid, Common.Session session, int tid) {
+  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, @NotNull Common.Session session, int tid) {
     myStage = stage;
-    myProcessId = pid;
-    myDeviceSerial = session;
+    mySession = session;
     myThreadId = tid;
   }
 
-  public int getProcessId() {
-    return myProcessId;
+  @VisibleForTesting
+  int getProcessId() {
+    return mySession.getPid();
   }
 
   @Override
@@ -55,15 +55,13 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
     GetThreadsResponse threads = client.getThreads(GetThreadsRequest.newBuilder()
-                                                     .setProcessId(myProcessId)
-                                                     .setSession(myDeviceSerial)
+                                                     .setSession(mySession)
                                                      .setStartTimestamp(min)
                                                      .setEndTimestamp(max)
                                                      .build());
 
     GetTraceInfoResponse traces = client.getTraceInfo(GetTraceInfoRequest.newBuilder()
-                                                        .setProcessId(myProcessId)
-                                                        .setSession(myDeviceSerial)
+                                                        .setSession(mySession)
                                                         .setFromTimestamp(min)
                                                         .setToTimestamp(max)
                                                         .build());

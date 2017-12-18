@@ -3,13 +3,17 @@
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.EventService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStartRequest">
         <Message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStartRequest</clazz>
         <functionCalled>profiler.proto.EventService/StartMonitoringApp</functionCalled>
         <message>session {
+  session_id: 4321
   device_id: 1234
+  pid: 5678
 }
 </message>
     </GrpcCall>

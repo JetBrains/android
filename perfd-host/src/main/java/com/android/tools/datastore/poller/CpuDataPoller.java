@@ -38,14 +38,11 @@ public class CpuDataPoller extends PollRunner {
   private final CpuTable myCpuTable;
   @NotNull
   private final Common.Session mySession;
-  private int myProcessId = -1;
 
-  public CpuDataPoller(int processId,
-                       @NotNull Common.Session session,
+  public CpuDataPoller(@NotNull Common.Session session,
                        @NotNull CpuTable table,
                        @NotNull CpuServiceGrpc.CpuServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
     myCpuTable = table;
     myPollingService = pollingService;
     mySession = session;
@@ -55,18 +52,18 @@ public class CpuDataPoller extends PollRunner {
   public void poll() throws StatusRuntimeException {
     long getDataStartNs = myDataRequestStartTimestampNs;
     CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(getDataStartNs)
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(request.build());
-    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      getDataStartNs = Math.max(getDataStartNs, data.getBasicInfo().getEndTimestamp());
+    for (CpuProfiler.CpuUsageData data : response.getDataList()) {
+      getDataStartNs = Math.max(getDataStartNs, data.getEndTimestamp());
       myCpuTable.insert(mySession, data);
     }
 
     long getThreadsStartNs = myDataRequestStartTimestampNs;
     CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(getThreadsStartNs)
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetThreadsResponse threadsResponse = myPollingService.getThreads(threadsRequest.build());
@@ -75,7 +72,7 @@ public class CpuDataPoller extends PollRunner {
       // Store the very first snapshot in the database.
       CpuProfiler.GetThreadsResponse.ThreadSnapshot snapshot = threadsResponse.getInitialSnapshot();
       getThreadsStartNs = Math.max(getThreadsStartNs, snapshot.getTimestamp());
-      myCpuTable.insertSnapshot(myProcessId, mySession, snapshot.getTimestamp(), snapshot.getThreadsList());
+      myCpuTable.insertSnapshot(mySession, snapshot.getTimestamp(), snapshot.getThreadsList());
     }
 
     // Store all the thread activities in the database.
@@ -87,7 +84,7 @@ public class CpuDataPoller extends PollRunner {
         getThreadsStartNs = Math.max(getThreadsStartNs, last.getTimestamp());
       }
 
-      myCpuTable.insertActivities(myProcessId, mySession, thread.getTid(), thread.getName(), activities);
+      myCpuTable.insertActivities(mySession, thread.getTid(), thread.getName(), activities);
     }
     myDataRequestStartTimestampNs = Math.max(Math.max(myDataRequestStartTimestampNs + 1, getDataStartNs), getThreadsStartNs);
   }

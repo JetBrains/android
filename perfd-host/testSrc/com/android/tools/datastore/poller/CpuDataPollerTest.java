@@ -43,7 +43,6 @@ import static org.mockito.Mockito.*;
 
 public class CpuDataPollerTest extends DataStorePollerTest {
 
-  private static final int TEST_APP_ID = 1234;
   private static final int THREAD_ID = 4321;
   private static final int THREAD_ID_2 = 2222;
   private static final String THREAD_NAME = "Thread1";
@@ -82,15 +81,11 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                      .build())
     .build();
 
-  private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
-    .setProcessId(TEST_APP_ID)
-    .setEndTimestamp(BASE_TIME_NS)
-    .build();
-
   private static final CpuUsageData CPU_USAGE_DATA = CpuUsageData.newBuilder()
     .setAppCpuTimeInMillisec(ONE_SECOND_MS)
     .setElapsedTimeInMillisec(TEN_SECONDS_MS)
     .setSystemCpuTimeInMillisec(ONE_SECOND_MS * 2)
+    .setEndTimestamp(BASE_TIME_NS)
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
@@ -117,14 +112,12 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   }
 
   private void startMonitoringApp() {
-    CpuStartRequest request = CpuStartRequest.newBuilder()
-      .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
+    CpuStartRequest request = CpuStartRequest.newBuilder().setSession(SESSION).build();
     myCpuService.startMonitoringApp(request, mock(StreamObserver.class));
   }
 
   private void stopMonitoringApp() {
-    CpuStopRequest request = CpuStopRequest.newBuilder()
-      .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
+    CpuStopRequest request = CpuStopRequest.newBuilder().setSession(SESSION).build();
     myCpuService.stopMonitoringApp(request, mock(StreamObserver.class));
   }
 
@@ -132,7 +125,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void testCheckAppProfilingStateWithNullClientShouldReturnDefaultInstance() {
     when(myDataStoreService.getCpuClient(any())).thenReturn(null);
     ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
-      .setProcessId(TEST_APP_ID).setTimestamp(BASE_TIME_NS).setSession(DataStorePollerTest.SESSION).build();
+      .setSession(SESSION).setTimestamp(BASE_TIME_NS).build();
 
     StreamObserver<ProfilingStateResponse> observer = mock(StreamObserver.class);
 
@@ -151,16 +144,12 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataInRange() {
     CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(0)
       .setEndTimestamp(delayFromBase(10))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     CpuDataResponse expectedResponse = CpuDataResponse.newBuilder()
-      .addData(CpuProfilerData.newBuilder()
-                 .setBasicInfo(STARTUP_BASIC_INFO)
-                 .setCpuUsage(CPU_USAGE_DATA)
-                 .build())
+      .addData(CPU_USAGE_DATA)
       .build();
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
     myCpuService.getData(request, observer);
@@ -172,10 +161,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
 
     CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     // Workaround to modify the expected response inside doAnswer.
     CpuDataResponse[] expectedResponse = new CpuDataResponse[1];
@@ -191,10 +179,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create a different request with the same arguments of the previous one.
     CpuDataRequest request2 = CpuDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a CpuDataResponse in its arguments.
@@ -208,10 +195,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create yet another request with some different arguments than the previous ones.
     CpuDataRequest request3 = CpuDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(21))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a CpuDataResponse in its arguments.
@@ -227,7 +213,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataExcludeStart() {
     CpuDataRequest request = CpuDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(delayFromBase(11))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -312,10 +298,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetThreadsInRange() {
     GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     GetThreadsResponse expectedResponse = GetThreadsResponse.newBuilder()
       // Threads are returned ordered by id
@@ -359,10 +344,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
 
     GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     // Workaround to modify the expected response inside doAnswer.
     GetThreadsResponse[] expectedResponse = new GetThreadsResponse[1];
@@ -378,10 +362,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create a different request with the same arguments of the previous one.
     GetThreadsRequest request2 = GetThreadsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetThreadsResponse in its arguments.
@@ -395,10 +378,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create yet another request with some different arguments than the previous ones.
     GetThreadsRequest request3 = GetThreadsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(21))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetThreadsResponse in its arguments.
@@ -415,10 +397,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void getDeadThreadBeforeRange() {
     long startTimestamp = delayFromBase(20);
     GetThreadsRequest request = GetThreadsRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(startTimestamp)
       .setEndTimestamp(delayFromBase(40))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     GetThreadsResponse expectedResponse = GetThreadsResponse.newBuilder()
       // THREAD_ID is not returned because it died before the requested range start
@@ -442,17 +423,15 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetTraceInfo() {
     SaveTraceInfoRequest saveRequest = SaveTraceInfoRequest.newBuilder()
+      .setSession(SESSION)
       .setTraceInfo(TraceInfo.newBuilder()
                       .setFromTimestamp(BASE_TIME_NS)
                       .setToTimestamp(BASE_TIME_NS)
                       .setTraceId(TRACE_ID))
-      .setProcessId(TEST_APP_ID)
-      .setSession(SESSION)
       .build();
     myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
 
     GetTraceInfoRequest request = GetTraceInfoRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
       .setSession(SESSION)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(Long.MAX_VALUE)
@@ -473,10 +452,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
 
     GetTraceInfoRequest request = GetTraceInfoRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     // Workaround to modify the expected response inside doAnswer.
     GetTraceInfoResponse[] expectedResponse = new GetTraceInfoResponse[1];
@@ -492,10 +470,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create a different request with the same arguments of the previous one.
     GetTraceInfoRequest request2 = GetTraceInfoRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(delayFromBase(20))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetTraceInfoResponse in its arguments.
@@ -509,10 +486,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     // Create yet another request with some different arguments than the previous ones.
     GetTraceInfoRequest request3 = GetTraceInfoRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(delayFromBase(21))
-      .setSession(DataStorePollerTest.SESSION)
       .build();
     doAnswer(invocation -> {
       // invocation.getArguments() should have just a GetTraceInfoResponse in its arguments.
@@ -545,11 +521,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     @Override
     public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> responseObserver) {
       CpuDataResponse response = CpuDataResponse.newBuilder()
-        .addData(CpuProfilerData.newBuilder()
-                   .setBasicInfo(STARTUP_BASIC_INFO)
-                   .setCpuUsage(CPU_USAGE_DATA)
-                   .build()
-        )
+        .addData(CPU_USAGE_DATA)
         .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();

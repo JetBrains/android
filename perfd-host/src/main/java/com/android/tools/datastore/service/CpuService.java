@@ -39,7 +39,7 @@ import java.util.function.Consumer;
  * The get data command will pull data locally cached from the connected service.
  */
 public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements ServicePassThrough {
-  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
 
   @NotNull
@@ -63,14 +63,13 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> observer) {
-    if (!myLastCpuResponse.matches(request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+    if (!myLastCpuResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       CpuDataResponse.Builder response = CpuDataResponse.newBuilder();
-      List<CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
-      for (CpuProfilerData data : cpuData) {
+      List<CpuUsageData> cpuData = myCpuTable.getCpuDataByRequest(request);
+      for (CpuUsageData data : cpuData) {
         response.addData(data);
       }
-      myLastCpuResponse = new ResponseData<>(request.getProcessId(),
-                                             request.getSession(),
+      myLastCpuResponse = new ResponseData<>(request.getSession(),
                                              request.getStartTimestamp(),
                                              request.getEndTimestamp(),
                                              response.build());
@@ -81,13 +80,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getThreads(GetThreadsRequest request, StreamObserver<GetThreadsResponse> observer) {
-    if (!myLastThreadsResponse.matches(
-      request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+    if (!myLastThreadsResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
       GetThreadsResponse.Builder response = GetThreadsResponse.newBuilder();
       // TODO: make it consistent with perfd and return the activities and the snapshot separately
       response.addAllThreads(myCpuTable.getThreadsDataByRequest(request));
-      myLastThreadsResponse = new ResponseData<>(request.getProcessId(),
-                                                 request.getSession(),
+      myLastThreadsResponse = new ResponseData<>(request.getSession(),
                                                  request.getStartTimestamp(),
                                                  request.getEndTimestamp(),
                                                  response.build());
@@ -99,13 +96,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
-    if (!myLastTraceInfoResponse.matches(
-      request.getProcessId(), request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
+    if (!myLastTraceInfoResponse.matches(request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
       GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
       List<TraceInfo> responses = myCpuTable.getTraceInfo(request);
       response.addAllTraceInfo(responses);
-      myLastTraceInfoResponse = new ResponseData<>(request.getProcessId(),
-                                                   request.getSession(),
+      myLastTraceInfoResponse = new ResponseData<>(request.getSession(),
                                                    request.getFromTimestamp(),
                                                    request.getToTimestamp(),
                                                    response.build());
@@ -117,7 +112,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void saveTraceInfo(SaveTraceInfoRequest request, StreamObserver<EmptyCpuReply> responseObserver) {
-    myCpuTable.insertTraceInfo(request.getProcessId(), request.getTraceInfo(), request.getSession());
+    myCpuTable.insertTraceInfo(request.getSession(), request.getTraceInfo());
     responseObserver.onNext(EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
@@ -130,12 +125,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
-      int processId = request.getProcessId();
+      long sessionId = request.getSession().getSessionId();
       myRunners
-        .put(processId,
-             new CpuDataPoller(processId, request.getSession(), myCpuTable,
-                               myService.getCpuClient(DeviceId.fromSession(request.getSession()))));
-      myFetchExecutor.accept(myRunners.get(processId));
+        .put(sessionId,
+             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(DeviceId.fromSession(request.getSession()))));
+      myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
       observer.onNext(CpuStartResponse.getDefaultInstance());
@@ -145,8 +139,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> observer) {
-    int processId = request.getProcessId();
-    PollRunner runner = myRunners.remove(processId);
+    long sessionId = request.getSession().getSessionId();
+    PollRunner runner = myRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }
@@ -166,7 +160,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void startProfilingApp(CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfilingAppStartResponse> observer) {
-    // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startProfilingApp(request));
@@ -186,8 +179,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       response = client.stopProfilingApp(request);
       // Only add successfully captured traces to the database
       if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
-        myCpuTable.insertTrace(
-          request.getProcessId(), response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
+        myCpuTable.insertTrace(request.getSession(), response.getTraceId(), request.getProfilerType(), response.getTrace());
       }
     }
     observer.onNext(response);
@@ -209,7 +201,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> observer) {
-    CpuTable.TraceData data = myCpuTable.getTraceData(request.getProcessId(), request.getTraceId(), request.getSession());
+    CpuTable.TraceData data = myCpuTable.getTraceData(request.getSession(), request.getTraceId());
     GetTraceResponse.Builder builder = GetTraceResponse.newBuilder();
     if (data == null) {
       builder.setStatus(GetTraceResponse.Status.FAILURE);
@@ -245,23 +237,21 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
    * @param <T> type of the response stored
    */
   private static class ResponseData<T> {
-    private int myProcessId;
     private Common.Session mySession;
     private long myStart;
     private long myEnd;
     private T myResponse;
 
-    private ResponseData(int processId, Common.Session session, long startTimestamp, long endTimestamp, T response) {
-      myProcessId = processId;
+    private ResponseData(Common.Session session, long startTimestamp, long endTimestamp, T response) {
       mySession = session;
       myStart = startTimestamp;
       myEnd = endTimestamp;
       myResponse = response;
     }
 
-    public boolean matches(int processId, Common.Session session, long startTimestamp, long endTimestamp) {
+    public boolean matches(Common.Session session, long startTimestamp, long endTimestamp) {
       boolean isSessionEquals = (mySession == null && session == null) || (mySession != null && mySession.equals(session));
-      return isSessionEquals && myProcessId == processId && myStart == startTimestamp && myEnd == endTimestamp;
+      return isSessionEquals && myStart == startTimestamp && myEnd == endTimestamp;
     }
 
     public T getResponse() {
@@ -270,7 +260,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
     @SuppressWarnings("unchecked")
     public static ResponseData createEmpty() {
-      return new ResponseData(0, null, 0, 0, null);
+      return new ResponseData(null, 0, 0, null);
     }
   }
 }

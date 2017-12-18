@@ -39,7 +39,7 @@ public class CpuThreadCountDataSeriesTest {
 
   @Before
   public void setUp() {
-    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), 1, ProfilersTestData.SESSION_DATA);
+    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA);
   }
 
   @Test

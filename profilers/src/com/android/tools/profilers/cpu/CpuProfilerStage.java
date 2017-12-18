@@ -184,7 +184,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
-    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getSession());
+    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getSession());
 
     myInProgressTraceSeries = new DefaultDataSeries<>();
     myInProgressTraceDuration = new DurationDataModel<>(new RangedSeries<>(viewRange, myInProgressTraceSeries));
@@ -339,7 +339,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingConfiguration config = myProfilerModel.getProfilingConfiguration();
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
-      .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setMode(config.getMode())
       .setProfilerType(config.getProfilerType())
@@ -380,7 +379,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void stopCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-      .setProcessId(getStudioProfilers().getProcessId())
       .setProfilerType(myProfilerModel.getActiveConfig().getProfilerType())
       .setSession(getStudioProfilers().getSession())
       .build();
@@ -422,7 +420,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
     long beforeParsingTime = System.currentTimeMillis();
     CompletableFuture<CpuCapture> capture =
-      myCaptureParser.parse(traceId, getStudioProfilers().getProcessId(), traceBytes, myProfilerModel.getActiveConfig().getProfilerType());
+      myCaptureParser.parse(getStudioProfilers().getSession(), traceId, traceBytes, myProfilerModel.getActiveConfig().getProfilerType());
     if (capture == null) {
       // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
       setCaptureState(CaptureState.IDLE);
@@ -500,7 +498,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
-      .setProcessId(getStudioProfilers().getProcessId())
       .setTraceInfo(traceInfo)
       .build();
 
@@ -516,7 +513,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void updateProfilingState() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
-      .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setTimestamp(currentTimeNs())
       .build();
@@ -714,7 +710,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Parser doesn't have any information regarding the capture. We need to request
       // trace data from CPU service and tell the parser to start parsing it.
       GetTraceRequest request = GetTraceRequest.newBuilder()
-        .setProcessId(getStudioProfilers().getProcessId())
         .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
         .build();
@@ -722,7 +717,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // TODO: investigate if this call can take too much time as it's blocking.
       GetTraceResponse trace = cpuService.getTrace(request);
       if (trace.getStatus() == GetTraceResponse.Status.SUCCESS) {
-        capture = myCaptureParser.parse(traceId, getStudioProfilers().getProcessId(), trace.getData(), trace.getProfilerType());
+        capture = myCaptureParser.parse(getStudioProfilers().getSession(), traceId, trace.getData(), trace.getProfilerType());
       }
     }
     return capture;
@@ -761,7 +756,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
       GetTraceInfoResponse response = cpuService.getTraceInfo(
         GetTraceInfoRequest.newBuilder().
-          setProcessId(getStudioProfilers().getProcessId()).
           setSession(getStudioProfilers().getSession()).
           setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 

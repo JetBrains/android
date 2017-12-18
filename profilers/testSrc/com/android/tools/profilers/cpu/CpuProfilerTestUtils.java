@@ -17,8 +17,9 @@ package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,7 +34,6 @@ import java.util.concurrent.ExecutionException;
 public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
-  private static final int ANY_PID = 1;
 
   private CpuProfilerTestUtils() {
   }
@@ -72,6 +72,6 @@ public class CpuProfilerTestUtils {
   public static CpuCapture getCapture(ByteString traceBytes, CpuProfilerType profilerType)
     throws IOException, ExecutionException, InterruptedException {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(FakeCpuService.FAKE_TRACE_ID, ANY_PID, traceBytes, profilerType).get();
+    return parser.parse(ProfilersTestData.SESSION_DATA, FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
   }
 }
