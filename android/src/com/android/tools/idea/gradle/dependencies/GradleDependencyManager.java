@@ -148,8 +148,8 @@ public class GradleDependencyManager {
 
   /**
    * Add all the specified dependencies to the module. Adding a dependency that already exists will result in a no-op.
-   * A sync will be triggered immediately after a successful addition (e.g. the list of dependencies didn't already exist);
-   * and caller may supply a callback to determine when the requested
+   * A sync will be triggered immediately after a successful addition (e.g. [dependencies] contains a dependency that
+   * doesn't already exist and is therefore added); and caller may supply a callback to determine when the requested
    * dependencies have been added (this make take several seconds).
    *
    * @param module       the module to add dependencies to
@@ -169,7 +169,7 @@ public class GradleDependencyManager {
    *
    * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest
-   * @return true if the dependencies were successfully added or were already present in the build script
+   * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
     return addDependenciesInTransaction(module, dependencies, false, null);
