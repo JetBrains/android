@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.HNode;
@@ -25,10 +26,10 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -40,7 +41,7 @@ class CpuChartTooltipView extends MouseAdapter {
   private final TooltipComponent myTooltipComponent;
 
   @NotNull
-  private final JLabel myContent;
+  private final JPanel myContent;
 
   @NotNull
   private final CpuProfilerStageView myStageView;
@@ -49,12 +50,9 @@ class CpuChartTooltipView extends MouseAdapter {
     myStageView = stageView;
     myChart = chart;
 
-    myContent = new JLabel();
-    myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    myContent = new JPanel(new TabularLayout("*", "*"));
     myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
     myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    myContent.setFont(myContent.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myContent.setOpaque(true);
 
     myTooltipComponent = new TooltipComponent(myContent, chart, ProfilerLayeredPane.class);
     myTooltipComponent.registerListenersOn(chart);
@@ -76,15 +74,18 @@ class CpuChartTooltipView extends MouseAdapter {
     long start = (long)(node.getStart() - dataRange.getMin());
     long end = (long)(node.getEnd() - dataRange.getMin());
 
-    String text = String.format("<html>" +
-                                "<p style='margin-bottom:5px;'>%s</p>" +
-                                "<p style='color:%s'>%s - %s</p>" +
-                                "</html>",
-                                node.getData().getFullName(),
-                                ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-                                TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
-                                TimeAxisFormatter.DEFAULT.getClockFormattedString(end));
-    myContent.setText(text);
+    myContent.removeAll();
+    JLabel nameLabel = new JLabel(node.getData().getFullName());
+    nameLabel.setFont(nameLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
+
+    JLabel durationLabel = new JLabel(String.format("%s - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
+                                                               TimeAxisFormatter.DEFAULT.getClockFormattedString(end)));
+    durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+    durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
+    myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
   }
 
   static void install(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
