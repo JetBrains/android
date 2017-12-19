@@ -112,7 +112,7 @@ public class IntegratedSdkManagerTest {
     DialogFixture downloadDialog =
       findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
-    Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
+    Wait.seconds(180).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
   }
 
