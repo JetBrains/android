@@ -729,9 +729,6 @@ public class SceneComponent {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
-    if (myDrawState == DrawState.HOVER) {
-      myDrawState = DrawState.NORMAL;
-    }
     picker.addRect(this, 0, sceneTransform.getSwingXDip(myCurrentLeft),
                    sceneTransform.getSwingYDip(myCurrentTop),
                    sceneTransform.getSwingXDip(myCurrentRight),

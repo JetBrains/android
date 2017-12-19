@@ -31,6 +31,7 @@ import java.awt.geom.GeneralPath;
 
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.HOVER;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 
 /**
@@ -45,7 +46,7 @@ public class DrawAction extends NavBaseDrawCommand {
 
   private final DrawMode myMode;
 
-  public enum DrawMode {NORMAL, SELECTED}
+  public enum DrawMode {NORMAL, SELECTED, HOVER}
 
   public DrawAction(@NotNull String s) {
     this(DrawCommandSerializationHelperKt.parse(s, 4));
@@ -100,7 +101,8 @@ public class DrawAction extends NavBaseDrawCommand {
                            @SwingCoordinate Rectangle dest,
                            @NotNull DrawMode mode,
                            @NotNull SceneContext sceneContext) {
-    Color actionColor = (mode == SELECTED) ? color.getSelectedActions() : color.getActions();
+    Color actionColor = (mode == SELECTED) ? color.getSelectedActions()
+                                           : (mode == HOVER) ? color.getHighlightedActions() : color.getActions();
     PATH.reset();
 
     switch (connectionType) {
