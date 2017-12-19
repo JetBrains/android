@@ -16,18 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -40,6 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getNativeAndroidProject;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 public class ProjectStructureCleanupStep extends ProjectCleanupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
@@ -76,13 +70,13 @@ public class ProjectStructureCleanupStep extends ProjectCleanupStep {
       rootModel.setSdk(jdk);
     }
 
-    for (Sdk sdk : androidSdks) {
-      ExternalSystemApiUtil.executeProjectChangeAction(new DisposeAwareProjectChange(project) {
-        @Override
-        public void execute() {
+    executeProjectChangeAction(new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        for (Sdk sdk : androidSdks) {
           myAndroidSdks.refreshLibrariesIn(sdk);
         }
-      });
-    }
+      }
+    });
   }
 }

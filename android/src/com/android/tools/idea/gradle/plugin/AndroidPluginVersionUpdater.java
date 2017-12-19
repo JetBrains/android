@@ -24,16 +24,17 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -151,7 +152,11 @@ public class AndroidPluginVersionUpdater {
    * @param result        result of the update operation.
    */
   private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @NotNull UpdateResult result) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
+
+    // Refresh the file system to avoid reading stale cached virtual files.
+    VirtualFileManager.getInstance().refreshWithoutFileWatcher(false /* synchronous */);
+
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
       for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
