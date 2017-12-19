@@ -545,6 +545,7 @@ public class NavSceneTest extends NavTestCase {
     ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
+        actionComponent("a1").withDestinationAttribute("fragment1"),
         fragmentComponent("fragment1"),
         navigationComponent("subnav"));
 
@@ -552,56 +553,81 @@ public class NavSceneTest extends NavTestCase {
     SyncNlModel model = modelBuilder.build();
     Scene scene = model.getSurface().getScene();
 
-    NlComponent fragment1 = model.find("fragment1");
-    NlComponent subnav = model.find("subnav");
-
-    // test single select
-    model.getSurface().getSelectionModel().setSelection(ImmutableList.of(fragment1));
+    // Selecting global nav brings it to the front
+    model.getSurface().getSelectionModel().setSelection(ImmutableList.of(model.find("a1")));
 
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
-    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
+    NavView view = new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager());
+    scene.buildDisplayList(list, 0, view);
+    SceneContext context = SceneContext.get(view);
 
-    assertEquals("Clip,0,0,960,928\n" +
-                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
+    assertEquals("Clip,0,0,990,928\n" +
+                 "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
+                 "DrawRectangle,519x399x72x21,ffa7a7a7,1,6\n" +
+                 "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
+                 "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+                 "\n" +
                  "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
+                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawLine,2,387x464,391x464,ff1886f7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,391x461x5x6,ff1886f7\n" +
                  "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-                 "DrawRectangle,398x398x80x132,ff1886f7,1,2\n" +
-                 "DrawFilledCircle,6,478x464,fff5f5f5,0:3:54\n" +
-                 "DrawCircle,7,478x464,ff1886f7,2,0:2:54\n" +
-                 "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "\n" +
-                 "DrawFilledRectangle,490x400x70x19,fffafafa,6\n" +
-                 "DrawRectangle,489x399x72x21,ffa7a7a7,1,6\n" +
-                 "DrawTruncatedText,3,Nested Graph,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-                 "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+                 "UNClip\n", list.generateSortedDisplayList(context));
+
+    // now "subnav" is in the front
+    NlComponent subnav = model.find("subnav");
+    model.getSurface().getSelectionModel().setSelection(ImmutableList.of(subnav));
+    list.clear();
+    scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
+    scene.buildDisplayList(list, 0, view);
+
+    assertEquals("Clip,0,0,990,928\n" +
+                 "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
+                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "\n" +
-                 "UNClip\n", list.serialize());
+                 "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
+                 "DrawRectangle,519x399x72x21,ff1886f7,1,6\n" +
+                 "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
+                 "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+                 "DrawFilledCircle,6,591x409,fff5f5f5,0:3:54\n" +
+                 "DrawCircle,7,591x409,ff1886f7,2,0:2:54\n" +
+                 "\n" +
+                 "UNClip\n", list.generateSortedDisplayList(context));
 
     // test multi select
-    model.getSurface().getSelectionModel().setSelection(ImmutableList.of(fragment1, subnav));
+    model.getSurface().getSelectionModel().setSelection(ImmutableList.of(model.find("fragment1"), subnav));
 
     list = new DisplayList();
     scene.layout(0, SceneContext.get(model.getSurface().getCurrentSceneView()));
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager()));
 
-    assertEquals("Clip,0,0,960,928\n" +
-                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
+    assertEquals("Clip,0,0,990,928\n" +
                  "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-                 "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
                  "DrawRectangle,398x398x80x132,ff1886f7,1,2\n" +
-                 "DrawFilledCircle,6,478x464,fff5f5f5,3:0:54\n" +
-                 "DrawCircle,7,478x464,ff1886f7,2,2:0:54\n" +
-                 "DrawIcon,400x389x7x7,START_DESTINATION\n" +
+                 "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
+                 "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
                  "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,400x389x7x7,START_DESTINATION\n" +
                  "\n" +
-                 "DrawFilledRectangle,490x400x70x19,fffafafa,6\n" +
-                 "DrawRectangle,489x399x72x21,ff1886f7,1,6\n" +
-                 "DrawTruncatedText,3,Nested Graph,490x400x70x19,ff1886f7,Default:1:9,true\n" +
-                 "DrawTruncatedText,3,subnav,490x390x70x5,ff656565,Default:0:9,false\n" +
+                 "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
+                 "DrawRectangle,519x399x72x21,ff1886f7,1,6\n" +
+                 "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
+                 "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+                 "DrawFilledCircle,6,591x409,fff5f5f5,3:0:54\n" +
+                 "DrawCircle,7,591x409,ff1886f7,2,2:0:54\n" +
                  "\n" +
-                 "UNClip\n", list.serialize());
+                 "UNClip\n", list.generateSortedDisplayList(context));
   }
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
