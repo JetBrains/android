@@ -47,7 +47,7 @@ public class NavColorSet extends ColorSet {
     mSelectedText = new JBColor(0x1886f7, 0x9ccdff);
     mSubduedText = new JBColor(0x656565, 0xbababb);
 
-    mActions = new JBColor(0xb2a7a7a7, 0xb2888888);
+    mActions = new JBColor(new Color(0xb2a7a7a7, true), new Color(0xb2888888, true));
     mHighlightedActions = new JBColor(0xa7a7a7, 0x888888);
     mSelectedActions = new JBColor(0x1886f7, 0x9ccdff);
   }
