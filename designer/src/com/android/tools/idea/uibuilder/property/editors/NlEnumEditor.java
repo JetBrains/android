@@ -359,7 +359,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         // 2) In the inspector we would like the reference editor and the combo boxes to have a similar width.
         //    This is very hard unless you can control the UI.
         // Note: forcing the Darcula UI does not imply dark colors.
-        ui = new CustomDarculaComboBoxUI(this);
+        ui = new CustomDarculaComboBoxUI();
       }
       super.setUI(ui);
       setBorders();
@@ -367,10 +367,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
-
-    public CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
-      super(comboBox);
-    }
 
     @Override
     protected Insets getInsets() {
