@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -49,7 +50,7 @@ public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPr
   }
 
   @Override
-  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+  public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     return super.isPreferredConfiguration(self, other)
            && shouldUseAndroidJUnitConfigurations(self, other);
   }
