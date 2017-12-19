@@ -100,7 +100,7 @@ fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand
   if (component.isDragging) {
     level = DrawCommand.TOP_LEVEL
   }
-  else if (component.isSelected) {
+  else if (component.flatten().anyMatch { it.isSelected }) {
     level = DrawCommand.COMPONENT_SELECTED_LEVEL
   }
 
