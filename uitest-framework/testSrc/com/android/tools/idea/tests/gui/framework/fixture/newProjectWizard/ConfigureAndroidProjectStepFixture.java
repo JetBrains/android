@@ -16,45 +16,46 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.LabelWithEditButton;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
-  protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureAndroidProjectStepFixture.class, robot, target);
+public class ConfigureAndroidProjectStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture, W> {
+
+  protected ConfigureAndroidProjectStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureAndroidProjectStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture enterApplicationName(@NotNull String text) {
+  public ConfigureAndroidProjectStepFixture<W> enterApplicationName(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Application name");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
+  public ConfigureAndroidProjectStepFixture<W> enterCompanyDomain(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Company domain");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture setCppSupport(boolean select) {
+  public ConfigureAndroidProjectStepFixture<W> setCppSupport(boolean select) {
     selectCheckBoxWithText("Include C++ support", select);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture setKotlinSupport(boolean select) {
+  public ConfigureAndroidProjectStepFixture<W> setKotlinSupport(boolean select) {
     selectCheckBoxWithText("Include Kotlin support", select);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
+  public ConfigureAndroidProjectStepFixture<W> enterPackageName(@NotNull String text) {
     LabelWithEditButton editLabel = robot().finder().findByType(target(), LabelWithEditButton.class);
 
     JButton editButton = robot().finder().findByType(editLabel, JButton.class);

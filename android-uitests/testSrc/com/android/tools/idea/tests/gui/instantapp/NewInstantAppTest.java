@@ -69,18 +69,16 @@ public class NewInstantAppTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-    configureAndroidProjectStep
-      .enterCompanyDomain("test.android.com")
-      .enterApplicationName(projectName);
-
     newProjectWizard
+      .getConfigureAndroidProjectStep()
+      .enterCompanyDomain("test.android.com")
+      .enterApplicationName(projectName)
+      .wizard()
       .clickNext() // Complete project configuration
       .getConfigureFormFactorStep()
       .selectMinimumSdkApi(MOBILE, "23")
-      .selectInstantAppSupport(MOBILE);
-
-    newProjectWizard
+      .selectInstantAppSupport(MOBILE)
+      .wizard()
       .clickNext(); // Complete form factor configuration
 
     if (featureModuleName != null) {

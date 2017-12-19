@@ -167,7 +167,7 @@ public class NewInstantAppModuleTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
-    ConfigureAndroidModuleStepFixture configureAndroidModuleStep = newModuleWizardFixture
+    ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
       .chooseModuleType("Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
@@ -192,9 +192,7 @@ public class NewInstantAppModuleTest {
     }
 
     newModuleWizardFixture
-      .clickFinish(); // Default parameters
-
-    ideFrame
+      .clickFinish() // Default parameters
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
   }

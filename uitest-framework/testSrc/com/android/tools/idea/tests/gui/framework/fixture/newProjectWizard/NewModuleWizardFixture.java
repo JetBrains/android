@@ -44,15 +44,15 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture getConfigureAndroidModuleStep() {
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
     JRootPane rootPane = findStepWithTitle("Configure the new module");
-    return new ConfigureAndroidModuleStepFixture(robot(), rootPane);
+    return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture getConfigureActivityStep() {
+  public ConfigureBasicActivityStepFixture<NewModuleWizardFixture> getConfigureActivityStep() {
     JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture(myIdeFrameFixture, rootPane, this);
+    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 
   public NewModuleWizardFixture chooseModuleType(@NotNull String activity) {
@@ -68,9 +68,8 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  @Override
-  public NewModuleWizardFixture clickFinish() {
-    super.clickFinish();
+  public IdeFrameFixture clickFinish() {
+    super.clickFinish(Wait.seconds(10));
 
     // Wait for gradle project importing to finish
     Wait.seconds(30).expecting("Modal Progress Indicator to finish")
@@ -78,6 +77,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
         robot().waitForIdle();
         return !ProgressManager.getInstance().hasModalProgressIndicator();
       });
-    return myself();
+    return myIdeFrameFixture;
   }
 }

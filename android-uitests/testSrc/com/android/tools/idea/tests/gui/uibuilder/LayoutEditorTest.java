@@ -224,21 +224,23 @@ public class LayoutEditorTest {
   @Test
   public void imageAssetRegressionTest() throws Exception {
     guiTest.importSimpleApplication();
-    AssetStudioWizardFixture wizard = guiTest.ideFrame()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
-    NewImageAssetStepFixture step = wizard.getImageAssetStep();
-    step.selectIconType("Launcher Icons (Legacy only)");
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
-    step.selectClipArt()
-      .setForeground(new Color(200, 0, 0, 200));
-    wizard.clickNext()
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset")
+      .getImageAssetStep()
+      .selectIconType("Launcher Icons (Legacy only)")
+      .selectClipArt()
+      .setForeground(new Color(200, 0, 0, 200))
+      .wizard()
+      .clickNext()
       .clickFinish();
+
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
     List<String> newFiles = NewImageAssetTest.getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
     assertThat(newFiles).containsExactly("app/src/main/ic_launcher-web.png",

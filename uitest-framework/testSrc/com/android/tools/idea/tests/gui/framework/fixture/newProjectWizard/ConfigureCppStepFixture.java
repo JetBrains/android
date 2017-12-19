@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureCppStepFixture extends AbstractWizardStepFixture<ConfigureCppStepFixture> {
-  protected ConfigureCppStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureCppStepFixture.class, robot, target);
+public class ConfigureCppStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureCppStepFixture, W> {
+  protected ConfigureCppStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureCppStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureCppStepFixture setExceptionsSupport(boolean select) {
+  public ConfigureCppStepFixture<W> setExceptionsSupport(boolean select) {
     selectCheckBoxWithText("Exceptions Support (-fexceptions)", select);
     return this;
   }
 
   @NotNull
-  public ConfigureCppStepFixture setRuntimeInformationSupport(boolean select) {
+  public ConfigureCppStepFixture<W> setRuntimeInformationSupport(boolean select) {
     selectCheckBoxWithText("Runtime Type Information Support (-frtti)", select);
     return this;
   }
