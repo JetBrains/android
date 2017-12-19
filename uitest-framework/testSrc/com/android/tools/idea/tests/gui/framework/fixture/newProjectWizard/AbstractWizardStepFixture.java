@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -31,9 +30,17 @@ import javax.swing.text.JTextComponent;
 
 import static org.fest.swing.edt.GuiTask.execute;
 
-public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, JRootPane> {
-  protected AbstractWizardStepFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JRootPane target) {
-    super(selfType, robot, target);
+public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixture> extends JComponentFixture<S, JRootPane> {
+  private final W myWizard;
+
+  protected AbstractWizardStepFixture(@NotNull Class<S> selfType, @NotNull W wizard, @NotNull JRootPane target) {
+    super(selfType, wizard.robot(), target);
+    myWizard = wizard;
+  }
+
+  @NotNull
+  public W wizard() {
+    return myWizard;
   }
 
   @NotNull
@@ -72,6 +79,7 @@ public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, 
     execute(() -> ((TransactionGuardImpl) TransactionGuard.getInstance()).performUserActivity(
       () -> textField.setText(text)
     ));
+    robot().waitForIdle();
   }
 
   public String getValidationText() {

@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-public class ConfigureAndroidModuleStepFixture extends AbstractWizardStepFixture<ConfigureAndroidModuleStepFixture> {
-  protected ConfigureAndroidModuleStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureAndroidModuleStepFixture.class, robot, target);
+public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureAndroidModuleStepFixture, W> {
+
+  protected ConfigureAndroidModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureAndroidModuleStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture enterModuleName(@NotNull String text) {
+  public ConfigureAndroidModuleStepFixture<W> enterModuleName(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Application/Library name");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture selectMinimumSdkApi(@NotNull String api) {
+  public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
     ApiLevelComboBoxFixture apiLevelComboBox = new ApiLevelComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
     apiLevelComboBox.selectApiLevel(api);
     return this;

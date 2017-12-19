@@ -39,18 +39,18 @@ public class HardwareProfileTest {
     guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-    ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
+    ChooseDeviceDefinitionStepFixture<AvdEditWizardFixture> step = avdEditWizard.selectHardware();
     if (step.deviceNames().contains(deviceName)) {
       step.deleteHardwareProfile(deviceName);
     }
 
     assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
 
-    HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
-    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
-    deviceOptionsStep.setDeviceName(deviceName);
-    guiTest.robot().waitForIdle();
-    hardwareProfileWizard.clickFinish();
+    step.newHardwareProfile()
+      .getConfigureDeviceOptionsStep()
+      .setDeviceName(deviceName)
+      .wizard()
+      .clickFinish();
     assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
 
     step.deleteHardwareProfile(deviceName);

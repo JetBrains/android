@@ -18,13 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 
 
 public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamplesWizardFixture> implements ContainerFixture<JDialog> {
@@ -47,17 +46,14 @@ public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamp
   }
 
   @NotNull
-  @Override
-  public BrowseSamplesWizardFixture clickFinish() {
-    findAndClickButton(this, "Finish");
-    // Parent implementation only waits a few seconds, but here we need to wait for the Sample to download
-    Wait.seconds(30).expecting("dialog to disappear").until(() -> !target().isShowing());
-    return myself();
+  public ConfigureAndroidProjectStepFixture<BrowseSamplesWizardFixture> getConfigureFormFactorStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Sample");
+    return new ConfigureAndroidProjectStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture getConfigureFormFactorStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Sample");
-    return new ConfigureAndroidProjectStepFixture(robot(), rootPane);
+  public BrowseSamplesWizardFixture clickFinish() {
+    super.clickFinish(Wait.seconds(30));
+    return this;
   }
 }

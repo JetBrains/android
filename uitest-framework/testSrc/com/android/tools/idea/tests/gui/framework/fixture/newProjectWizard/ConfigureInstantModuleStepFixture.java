@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-public class ConfigureInstantModuleStepFixture extends AbstractWizardStepFixture<ConfigureInstantModuleStepFixture> {
-  protected ConfigureInstantModuleStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureInstantModuleStepFixture.class, robot, target);
+public class ConfigureInstantModuleStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureInstantModuleStepFixture, W> {
+
+  protected ConfigureInstantModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureInstantModuleStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureInstantModuleStepFixture enterFeatureModuleName(@NotNull String text) {
+  public ConfigureInstantModuleStepFixture<W> enterFeatureModuleName(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Module Name");
     replaceText(textField, text);
     return this;

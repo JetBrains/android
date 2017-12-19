@@ -16,20 +16,18 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
 
-public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture> {
+public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture, W> {
 
   /**
    * This is the list of labels used to find the right text input field.
@@ -54,33 +52,26 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
     }
   }
 
-  private final AbstractWizardFixture myParent;
-
-  private final IdeFrameFixture myIdeFrameFixture;
-
-  public ConfigureBasicActivityStepFixture(
-    @NotNull IdeFrameFixture ideFrameFixture, @NotNull JRootPane target, @NotNull AbstractWizardFixture parent) {
-    super(ConfigureBasicActivityStepFixture.class, ideFrameFixture.robot(), target);
-    this.myIdeFrameFixture = ideFrameFixture;
-    this.myParent = parent;
+  public ConfigureBasicActivityStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureBasicActivityStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture selectLauncherActivity() {
+  public ConfigureBasicActivityStepFixture<W> selectLauncherActivity() {
     JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Launcher Activity"));
     new JCheckBoxFixture(robot(), checkBox).select();
     return this;
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture selectUseFragment() {
+  public ConfigureBasicActivityStepFixture<W> selectUseFragment() {
     JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Use a Fragment"));
     new JCheckBoxFixture(robot(), checkBox).select();
     return this;
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
+  public ConfigureBasicActivityStepFixture<W> enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     replaceText(textField, text);
 
@@ -93,7 +84,7 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture undoTextFieldValue(@NotNull ActivityTextField activityField) {
+  public ConfigureBasicActivityStepFixture<W> undoTextFieldValue(@NotNull ActivityTextField activityField) {
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     robot().rightClick(textField);
 
@@ -104,23 +95,16 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture setTargetSourceSet(@NotNull String targetSourceSet) {
+  public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSourceSet) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set", JComboBox.class, true))
       .selectItem(targetSourceSet);
     return this;
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture setSourceLanguage(@NotNull String sourceLanguage) {
+  public ConfigureBasicActivityStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language", JComboBox.class, true))
       .selectItem(sourceLanguage);
     return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture clickFinish() {
-    myParent.clickFinish();
-    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
-    return myIdeFrameFixture;
   }
 }

@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,8 +40,14 @@ public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityW
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture getConfigureActivityStep() {
+  public ConfigureBasicActivityStepFixture<NewActivityWizardFixture> getConfigureActivityStep() {
     JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture(myIdeFrameFixture, rootPane, this);
+    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinish() {
+    super.clickFinish(Wait.seconds(30));
+    return myIdeFrameFixture;
   }
 }
