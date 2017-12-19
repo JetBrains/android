@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
@@ -47,10 +48,12 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import java.util.Collection;
 
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the nav editor Scene.
@@ -775,5 +778,46 @@ public class NavSceneTest extends NavTestCase {
                  "DrawArrow,2,RIGHT,-124x-126x1x1,ffa7a7a7\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
+  }
+
+  public void testHoverMarksComponent() {
+    SyncNlModel model = model("nav.xml", rootComponent("root")
+      .unboundedChildren(
+        fragmentComponent("fragment1"),
+        fragmentComponent("fragment2"))).build();
+
+    Scene scene = model.getSurface().getScene();
+    SceneView view = model.getSurface().getCurrentSceneView();
+    when(view.getScale()).thenReturn(1.);
+    SceneContext transform = SceneContext.get(view);
+    SceneComponent fragment1 = scene.getSceneComponent("fragment1");
+    fragment1.setPosition(100, 100);
+    fragment1.setSize(100, 100, false);
+    fragment1.layout(transform, 0);
+    SceneComponent fragment2 = scene.getSceneComponent("fragment2");
+    fragment2.setPosition(1000, 1000);
+    fragment2.setSize(100, 100, false);
+    fragment2.layout(transform, 0);
+
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.getDrawState());
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.getDrawState());
+    long version = scene.getDisplayListVersion();
+
+    scene.mouseHover(transform, 150, 150);
+    assertEquals(SceneComponent.DrawState.HOVER, fragment1.getDrawState());
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.getDrawState());
+    assertTrue(version < scene.getDisplayListVersion());
+    version = scene.getDisplayListVersion();
+
+    scene.mouseHover(transform, 1050, 1050);
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.getDrawState());
+    assertEquals(SceneComponent.DrawState.HOVER, fragment2.getDrawState());
+    assertTrue(version < scene.getDisplayListVersion());
+    version = scene.getDisplayListVersion();
+
+    scene.mouseHover(transform, 0, 0);
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.getDrawState());
+    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.getDrawState());
+    assertTrue(version < scene.getDisplayListVersion());
   }
 }
