@@ -318,7 +318,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
    * for the children.
    *
-   * @param parentComponent Not be used here.
+   * @param parentComponent The parent LinearLayout
    * @param childComponent The component we'll add the targets on
    * @return The list of target to add
    */
@@ -327,40 +327,39 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
     listBuilder.add(new LinearDragTarget(this));
-    createResizeTarget(childComponent, listBuilder);
-    createSeparatorTargets(childComponent, listBuilder);
+    createResizeTarget(parentComponent, childComponent, listBuilder);
+    createSeparatorTargets(parentComponent, childComponent, listBuilder);
     return listBuilder.build();
   }
 
-  private void createSeparatorTargets(@NotNull SceneComponent sceneComponent, @NotNull ImmutableList.Builder<Target> listBuilder) {
-    SceneComponent parent = sceneComponent.getParent();
-    assert parent != null;
-    SceneComponent draggingComponent = myDraggingComponents.get(parent);
-    if (draggingComponent != null && draggingComponent != sceneComponent) {
+  private void createSeparatorTargets(@NotNull SceneComponent parentComponent,
+                                      @NotNull SceneComponent childComponent,
+                                      @NotNull ImmutableList.Builder<Target> listBuilder) {
+    SceneComponent draggingComponent = myDraggingComponents.get(parentComponent);
+    if (draggingComponent != null && draggingComponent != childComponent) {
 
-      boolean isLayoutOrientationVertical = isVertical(parent.getNlComponent());
-      if (canReceiveBefore(parent, sceneComponent, draggingComponent)) {
+      boolean isLayoutOrientationVertical = isVertical(parentComponent.getNlComponent());
+      if (canReceiveBefore(parentComponent, childComponent, draggingComponent)) {
         listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
       }
 
-      if (isLastChild(parent, sceneComponent)) {
+      if (isLastChild(parentComponent, childComponent)) {
         listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
       }
     }
   }
 
-  private static void createResizeTarget(@NotNull SceneComponent sceneComponent, @NotNull ImmutableList.Builder<Target> listBuilder) {
-    SceneComponent parent = sceneComponent.getParent();
-    assert parent != null;
-
-    String orientation = parent.getNlComponent().getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+  private static void createResizeTarget(@NotNull SceneComponent parentComponent,
+                                         @NotNull SceneComponent childComponent,
+                                         @NotNull ImmutableList.Builder<Target> listBuilder) {
+    String orientation = parentComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_ORIENTATION);
 
     boolean showLeft = true;
     boolean showTop = true;
     boolean showBottom = true;
     boolean showRight = true;
 
-    String gravityAttribute = sceneComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY);
+    String gravityAttribute = childComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY);
     if (gravityAttribute == null || gravityAttribute.contains(GRAVITY_VALUE_FILL)) {
       // LinearLayout works as default case.
       showLeft = false;
