@@ -581,6 +581,7 @@ public class Scene implements SelectionListener, Disposable {
         closestComponent.setDrawState(SceneComponent.DrawState.HOVER);
         myCurrentComponent = closestComponent;
       }
+      needsRebuildList();
     }
 
     setCursor(transform, x, y);
