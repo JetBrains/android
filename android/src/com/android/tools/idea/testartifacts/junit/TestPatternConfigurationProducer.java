@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   }
 
   @Override
-  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+  public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     return !other.isProducedBy(TestMethodConfigurationProducer.class)
            && shouldUseAndroidJUnitConfigurations(self, other);
   }

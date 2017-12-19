@@ -261,7 +261,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   @Override
-  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+  public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     if (!Projects.isBuildWithGradle(self.getConfiguration().getProject())) return false;
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
     // other test configurations, as they won't work anyway.
