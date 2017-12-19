@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.ImmutableList;
-import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -36,15 +35,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -140,8 +135,9 @@ public class RenderClassLoaderTest {
     public MyLoggerFactory() {
     }
 
+    @NotNull
     @Override
-    public Logger getLoggerInstance(String category) {
+    public Logger getLoggerInstance(@NotNull String category) {
       return ourLoggerInstance;
     }
   }
