@@ -43,6 +43,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
+import javax.swing.event.ListSelectionListener
 
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
@@ -51,7 +52,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   : InspectorProvider<NavPropertiesManager> {
 
   // If we decide to guarantee that each subclass only handles a single tag this map can be replaced with a single value
-  private val myInspectors = HashMap<String, InspectorComponent<NavPropertiesManager>>()
+  private val myInspectors = HashMap<String, NavListInspectorComponent<PropertyType>>()
 
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(icon)
 
@@ -74,7 +75,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
   override fun createCustomInspector(components: List<NlComponent>,
                                      properties: Map<String, NlProperty>,
-                                     propertiesManager: NavPropertiesManager): InspectorComponent<NavPropertiesManager> {
+                                     propertiesManager: NavPropertiesManager): NavListInspectorComponent<PropertyType> {
     val tagName = components[0].tagName
     val inspector = myInspectors[tagName]!!
     inspector.updateProperties(components, properties, propertiesManager)
@@ -97,6 +98,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     private val myMarkerProperties = mutableListOf<PropertyType>()
     private val myComponents = mutableListOf<NlComponent>()
     private var mySurface: NavDesignSurface? = null
+    private val myAttachListeners = mutableListOf<(JBList<NlProperty>) -> Unit>()
+    lateinit var list: JBList<NlProperty>
+
+    fun addAttachListener(listener: (JBList<NlProperty>) -> Unit) = myAttachListeners.add(listener)
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
@@ -117,7 +122,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      val list = JBList<NlProperty>(myDisplayProperties)
+      list = JBList<NlProperty>(myDisplayProperties)
       list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
       list.cellRenderer = object : DefaultListCellRenderer() {
@@ -158,6 +163,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           }
         }
       })
+      myAttachListeners.forEach { it.invoke(list) }
 
       panel.add(list, BorderLayout.CENTER)
       val plus = JLabel("+")
