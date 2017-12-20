@@ -53,7 +53,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
   private final NetworkConnectionsModel myConnectionsModel =
     new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
-                                   getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(),
+                                   getStudioProfilers().getClient().getNetworkClient(),
                                    getStudioProfilers().getSession());
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
@@ -72,7 +72,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     ProfilerTimeline timeline = profilers.getTimeline();
     NetworkRadioDataSeries radioDataSeries =
-      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
+      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), getStudioProfilers().getSession());
     myRadioState = new StateChartModel<>();
     myRadioState.addSeries(new RangedSeries<>(timeline.getViewRange(), radioDataSeries));
 

@@ -29,8 +29,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class NetworkTableTest {
-  private static final int PROCESS_ID = 1;
-  private static final int PROCESS_ID_INVALID = 2;
   private static final int VALID_CONN_ID = 3;
   private static final int INVALID_CONN_ID = -1;
   private static final int TEST_DATA = 10;
@@ -72,7 +70,7 @@ public class NetworkTableTest {
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
         .build();
-      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, request, null, null, null, threads, connection);
+      myTable.insertOrReplace(VALID_SESSION, request, null, null, null, threads, connection);
     }
   }
 
@@ -119,7 +117,6 @@ public class NetworkTableTest {
   public void testGetNetworkConnectionDataByRequest() throws Exception {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setSession(VALID_SESSION)
-      .setProcessId(PROCESS_ID)
       .setStartTimestamp(100)
       .setEndTimestamp(101)
       .build();
@@ -137,19 +134,6 @@ public class NetworkTableTest {
   public void testGetNetworkConnectionDataByRequestInvalidSession() throws Exception {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setSession(INVALID_SESSION)
-      .setProcessId(PROCESS_ID)
-      .setStartTimestamp(100)
-      .setEndTimestamp(101)
-      .build();
-    List<NetworkProfiler.HttpConnectionData> response = myTable.getNetworkConnectionDataByRequest(request);
-    assertEquals(0, response.size());
-  }
-
-  @Test
-  public void testGetNetworkConnectionDataByRequestInvalidProcess() throws Exception {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(VALID_SESSION)
-      .setProcessId(PROCESS_ID_INVALID)
       .setStartTimestamp(100)
       .setEndTimestamp(101)
       .build();
@@ -161,7 +145,6 @@ public class NetworkTableTest {
   public void testGetNetworkConnectionDataByRequestInvalidRange() throws Exception {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setSession(VALID_SESSION)
-      .setProcessId(PROCESS_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(10)
       .build();

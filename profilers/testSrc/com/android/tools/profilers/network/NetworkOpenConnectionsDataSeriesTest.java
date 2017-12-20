@@ -49,7 +49,7 @@ public class NetworkOpenConnectionsDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
+    mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA);
   }
 
   @Test
