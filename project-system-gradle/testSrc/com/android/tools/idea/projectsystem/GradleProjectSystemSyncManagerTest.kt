@@ -21,11 +21,8 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
@@ -95,7 +92,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
           gradleSyncState.syncFailed("")
         }
       }
-    }).`when`(syncInvoker).requestProjectSync(any(), any(), any())
+    }).`when`(syncInvoker).requestProjectSync(any(), any())
 
     return syncManager.syncProject(SyncReason.PROJECT_MODIFIED, requireSourceGeneration)
   }
@@ -121,7 +118,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 
     project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED, true)
-    verify(syncInvoker, never()).requestProjectSync(same(project), any(), any())
+    verify(syncInvoker, never()).requestProjectSync(same(project), any())
   }
 
   fun testSyncProject_noSourceGeneration() {

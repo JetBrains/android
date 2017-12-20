@@ -113,7 +113,7 @@ public class AndroidPluginVersionUpdater {
       // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
       request.cleanProject = true;
-      mySyncInvoker.requestProjectSync(myProject, request, null);
+      mySyncInvoker.requestProjectSync(myProject, request);
     }
   }
 

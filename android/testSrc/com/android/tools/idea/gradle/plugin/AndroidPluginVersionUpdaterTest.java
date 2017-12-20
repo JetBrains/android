@@ -115,7 +115,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     request.cleanProject = true;
 
     verify(mySyncState, verificationMode).syncEnded();
-    verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request, null);
+    verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request);
   }
 
   private void verifyTextSearch(@NotNull VerificationMode verificationMode) {

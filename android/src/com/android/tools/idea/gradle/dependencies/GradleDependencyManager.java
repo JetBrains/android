@@ -269,7 +269,7 @@ public class GradleDependencyManager {
     }
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.generateSourcesOnSuccess = true;
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,

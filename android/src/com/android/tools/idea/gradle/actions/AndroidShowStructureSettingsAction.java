@@ -72,7 +72,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
       projectStructure.showDialog();
       projectStructure.remove(changeListener);
       if (needsSync.get()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
       }
       return;
     }
