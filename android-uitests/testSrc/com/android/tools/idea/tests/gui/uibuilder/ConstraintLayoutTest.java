@@ -155,7 +155,7 @@ public class ConstraintLayoutTest {
    *      for "layout_constraintBaseline_toBaselineOf"
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70339492
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testBaselineConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
@@ -497,7 +497,7 @@ public class ConstraintLayoutTest {
    *   2. Constraints for that widget should get cleared.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634894
+  @RunIn(TestGroup.QA)
   @Test
   public void clearConstraint() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
