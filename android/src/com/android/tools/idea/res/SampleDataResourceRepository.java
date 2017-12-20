@@ -111,11 +111,12 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
    * Returns the "sampledata" directory from the project (if it exists) or null otherwise.
    * @param create when true, if the directory does not exist, it will be created
    */
-  @Contract("!null, true -> !null")
+  @Nullable
   public static VirtualFile getSampleDataDir(@NotNull AndroidFacet androidFacet, boolean create) throws IOException {
     VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
     if (contentRoot == null) {
-      throw new IOException("Unable to find content root");
+      LOG.warn("Unable to find content root");
+      return null;
     }
 
     VirtualFile sampleDataDir = contentRoot.findFileByRelativePath("/" + FD_SAMPLE_DATA);
