@@ -175,13 +175,6 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                              "android.widget.TextView");
   }
 
-  // Code completion in views inside a <layout> tag need to pick up default layout params
-  public void testDataBindingLayoutParamCompletion() throws Throwable {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=212690
-    toTestFirstCompletion("data_binding_completion.xml",
-                          "data_binding_completion_after.xml");
-  }
-
   // fontFamily attribute values are autocompleted
   public void testFontFamilyCompletion() throws Throwable {
     doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace");
@@ -272,13 +265,13 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testDataBindingHighlighting1() throws Throwable {
     ModuleDataBinding.enable(myFacet);
-    copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
-    doTestHighlighting("binding1.xml");
+    copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
+    doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
     ModuleDataBinding.enable(myFacet);
-    doTestHighlighting("binding5.xml");
+    doTestHighlighting("databinding_highlighting2.xml");
   }
 
   public void testDataBindingHighlighting3() throws Throwable {
@@ -288,16 +281,24 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testDataBindingCompletion1() throws Throwable {
-    doTestCompletionVariants("binding2.xml", "name", "type");
+    doTestCompletionVariants("databinding_completion1.xml", "name", "type");
   }
 
   public void testDataBindingCompletion2() throws Throwable {
-    toTestCompletion("binding3.xml", "binding3_after.xml");
+    toTestCompletion("databinding_completion2.xml", "databinding_completion2_after.xml");
   }
 
   public void testDataBindingCompletion3() throws Throwable {
-    toTestCompletion("binding4.xml", "binding4_after.xml");
-    //doTestCompletionVariants("binding4.xml", "safeUnbox", "superCool");
+    toTestCompletion("databinding_completion3.xml", "databinding_completion3_after.xml");
+    //doTestCompletionVariants("databinding_completion3.xml", "safeUnbox", "superCool");
+  }
+
+  /**
+   * Regression test for https://issuetracker.google.com/37104001.
+   * Code completion in views inside a <layout> tag need to pick up default layout parameters.
+   */
+  public void testDataBindingCompletion4() throws Throwable {
+    toTestFirstCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
   }
 
   public void testCustomTagCompletion() throws Throwable {
