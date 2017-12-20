@@ -17,10 +17,7 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.EventProfiler;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.StudioMonitorStageView;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -102,7 +99,7 @@ public class EventMonitorTooltipViewTest {
                                                                                          long contextHash) {
     com.android.tools.profiler.proto.EventProfiler.ActivityData.Builder builder =
       com.android.tools.profiler.proto.EventProfiler.ActivityData.newBuilder();
-    builder.setProcessId(FakeEventService.FAKE_APP_ID)
+    builder.setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setName(name)
       .setHash(name.hashCode())
       .setFragmentData(com.android.tools.profiler.proto.EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash));
@@ -126,6 +123,7 @@ public class EventMonitorTooltipViewTest {
       return myHeadingLabel.getText();
     }
   }
+
   private static final class ActivityStateData {
     public EventProfiler.ActivityStateData.ActivityState activityState;
     public long activityStateTime;

@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.EventService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -29,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
@@ -40,26 +40,25 @@ public class EventDataPollerTest extends DataStorePollerTest {
 
   private static final String ACTIVITY_NAME = "ActivityOne";
   private static final int ACTIVITY_HASH = ACTIVITY_NAME.hashCode();
-  private static final int TEST_APP_ID = 1234;
   private static final int ACTION_ID = 4321;
   private static final long START_TIME = TimeUnit.DAYS.toNanos(1);
   private static final long ONE_SECOND = TimeUnit.SECONDS.toNanos(1);
   private static final EventProfiler.SystemData NO_END_SYSTEM_DATA = EventProfiler.SystemData.newBuilder()
-    .setProcessId(TEST_APP_ID)
+    .setPid(TEST_APP_ID)
     .setActionId(ACTION_ID)
     .setStartTimestamp(START_TIME + ONE_SECOND)
     .setEndTimestamp(0)
     .setEventId(1)
     .build();
   private static final EventProfiler.SystemData LONG_SYSTEM_DATA = EventProfiler.SystemData.newBuilder()
-    .setProcessId(TEST_APP_ID)
+    .setPid(TEST_APP_ID)
     .setActionId(ACTION_ID)
     .setStartTimestamp(START_TIME - ONE_SECOND)
     .setEndTimestamp(START_TIME)
     .setEventId(2)
     .build();
   private static final EventProfiler.ActivityData SIMPLE_ACTIVITY_DATA = EventProfiler.ActivityData.newBuilder()
-    .setProcessId(TEST_APP_ID)
+    .setPid(TEST_APP_ID)
     .setName(ACTIVITY_NAME)
     .setHash(ACTIVITY_HASH)
     .addStateChanges(
@@ -69,7 +68,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
         .build()
     ).build();
   private static final EventProfiler.ActivityData ACTIVITY_DATA_UPDATE = EventProfiler.ActivityData.newBuilder()
-    .setProcessId(TEST_APP_ID)
+    .setPid(TEST_APP_ID)
     .setName(ACTIVITY_NAME)
     .setHash(ACTIVITY_HASH)
     .addStateChanges(
@@ -133,8 +132,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetSystemDataInRange() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
-      .setSession(DataStorePollerTest.SESSION)
+      .setSession(SESSION)
       .setStartTimestamp(START_TIME - ONE_SECOND)
       .setEndTimestamp(START_TIME)
       .build();
@@ -150,7 +148,6 @@ public class EventDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetSystemDataNoEnd() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
       .setSession(DataStorePollerTest.SESSION)
       .setStartTimestamp(START_TIME + ONE_SECOND * 2)
       .setEndTimestamp(START_TIME + ONE_SECOND * 5)
@@ -165,9 +162,9 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetSystemDataInvalidAppId() throws Exception {
+  public void testGetSystemDataInvalidSession() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(Long.MIN_VALUE)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -182,8 +179,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetActivityDataInRange() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
-      .setSession(DataStorePollerTest.SESSION)
+      .setSession(SESSION)
       .setStartTimestamp(START_TIME - ONE_SECOND)
       .setEndTimestamp(START_TIME)
       .build();
@@ -203,9 +199,9 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetActivityDataInvalidAppId() throws Exception {
+  public void testGetActivityDataInvalidSession() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(Long.MIN_VALUE)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
