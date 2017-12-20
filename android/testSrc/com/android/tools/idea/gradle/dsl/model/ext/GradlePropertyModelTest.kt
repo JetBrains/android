@@ -536,13 +536,71 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  // Currently not supported/broken
-  fun /*test*/ListDependency() {
+  fun testNestedListPropertyInjection() {
+    val text = """
+           ext {
+             prop1 = [1, 2, 3]
+             prop2 = [prop1, prop1, prop1]
+             prop3 = ['key' : prop2]
+             prop4 = "${'$'}{prop3.key[0][2]}"
+           }""".trimIndent()
+    writeToBuildFile(text)
+
+    val propertyModel = gradleBuildModel.ext().findProperty("prop4")!!
+    assertEquals("3", propertyModel.getValue(STRING_TYPE))
+    assertEquals("${'$'}{prop3.key[0][2]}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals(REGULAR, propertyModel.propertyType)
+    assertEquals(STRING, propertyModel.valueType)
+
+    val dependencies =  propertyModel.dependencies
+    assertSize(1, dependencies)
+    val depModel = dependencies[0]
+    assertEquals(INTEGER, depModel.valueType)
+    assertEquals(DERIVED, depModel.propertyType)
+    assertEquals(3, depModel.getValue(INTEGER_TYPE))
+    assertSize(0, depModel.dependencies)
+  }
+
+  fun testNestedMapVariableInjection() {
+    val text = """
+               ext {
+                 prop = true
+                 def prop1 = ['key1': "value${'$'}{prop}"]
+                 def prop2 = ["key2": prop1]
+                 def prop3 = "${'$'}{prop2["key2"]["key1"]}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val propertyModel = gradleBuildModel.ext().findProperty("prop3")!!
+    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(VARIABLE, propertyModel.propertyType)
+    assertEquals("valuetrue", propertyModel.getValue(STRING_TYPE))
+    assertEquals("${'$'}{prop2[\"key2\"][\"key1\"]}", propertyModel.getUnresolvedValue(STRING_TYPE))
+
+    val dependencies = propertyModel.dependencies
+    assertSize(1, dependencies)
+    val depModel = dependencies[0]
+    assertEquals(STRING, depModel.valueType)
+    assertEquals(DERIVED, depModel.propertyType)
+    assertEquals("valuetrue", depModel.getValue(STRING_TYPE))
+    assertEquals("value${'$'}{prop}", depModel.getUnresolvedValue(STRING_TYPE))
+
+    val dependencies2 = depModel.dependencies
+    assertSize(1, dependencies2)
+    val depModel2 = dependencies2[0]
+    assertEquals(BOOLEAN, depModel2.valueType)
+    assertEquals(REGULAR, depModel2.propertyType)
+    assertEquals(true, depModel2.getValue(BOOLEAN_TYPE))
+    assertEquals(true, depModel2.getUnresolvedValue(BOOLEAN_TYPE))
+    assertSize(0, depModel2.dependencies)
+  }
+
+  fun testListDependency() {
     val text = """
                ext {
                  prop1 = ['value']
                  prop2 = "${'$'}{prop1[0]}"
-               }"""
+               }""".trimIndent()
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
@@ -558,11 +616,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, value.valueType)
   }
 
-  // Currently not supported/broken
-  fun /*test*/MapDependency() {
+  fun testMapDependency() {
     val text = """
                ext {
-                 prop1 = ["key" 'value']
+                 prop1 = ["key": 'value']
                  prop2 = "${'$'}{prop1.key}"
                }""".trimIndent()
     writeToBuildFile(text)
@@ -579,8 +636,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, value.valueType)
   }
 
-  // Currently not supported/broken
-  fun /*test*/OutOfScopeMapAndListDependencies() {
+  fun testOutOfScopeMapAndListDependencies() {
     val text = """
                def prop1 = 'value1'
                def prop2 = ["key" : 'value2']
@@ -601,7 +657,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[0]
       assertEquals("value1", value.getValue(STRING_TYPE))
       assertEquals(STRING, value.valueType)
-      assertEquals(REGULAR, value.propertyType)
+      assertEquals(VARIABLE, value.propertyType)
     }
 
     run {
