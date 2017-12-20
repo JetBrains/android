@@ -79,7 +79,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
   private XmlFile myFile;
-  private boolean isActive = true;
+  private boolean isActive = false;
   private ActionsToolbar myActionsToolbar;
   private JComponent myContentPanel;
   @Nullable private AnimationToolbar myAnimationToolbar;
@@ -283,17 +283,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       // mySurface.setModel(null);
     }
 
-    if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
-      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
-        DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
-      }
-      else {
-        initPreviewForm();
-      }
+    if (isActive) {
+      initPreviewForm();
     }
-    else {
-      initNeleModel();
-    }
+
     return true;
   }
 
@@ -304,7 +297,23 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void initPreviewForm() {
-    UIUtil.invokeLaterIfNeeded(this::initPreviewFormOnEventDispatchThread);
+    if (myContentPanel == null) {
+      // First time: Make sure we have compiled the project at least once...
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewFormAfterBuild, this::buildError);
+      }
+      else {
+        initPreviewFormAfterBuild();
+      }
+    }
+    else {
+      // Subsequent times: Setup a Nele model in preparation for creating a preview image
+      initNeleModel();
+    }
+  }
+
+  private void initPreviewFormAfterBuild() {
+    UIUtil.invokeLaterIfNeeded(this::initPreviewFormAfterBuildOnEventDispatchThread);
   }
 
   // Build was either cancelled or there was an error
@@ -312,7 +321,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myWorkBench.loadingStopped("Preview is unavailable until a successful build");
   }
 
-  private void initPreviewFormOnEventDispatchThread() {
+  private void initPreviewFormAfterBuildOnEventDispatchThread() {
     if (Disposer.isDisposed(this)) {
       return;
     }
@@ -494,9 +503,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     isActive = true;
-    if (myContentPanel != null) {
-      initNeleModel();
-    }
+    initPreviewForm();
     mySurface.activate();
   }
 
@@ -512,7 +519,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
     mySurface.deactivate();
     isActive = false;
     if (myContentPanel != null) {
-      initNeleModel();
+      myPendingFile = null;
+      setActiveModel(null);
     }
   }
 }
