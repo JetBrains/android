@@ -125,7 +125,7 @@ public class TutorialStep extends JPanel {
             Image image = imageIcon.getImage();
             Image scaledImage = image.getScaledInstance(imageElement.getWidth(), imageElement.getHeight(), Image.SCALE_SMOOTH);
             imageIcon = new ImageIcon(scaledImage, imageElement.getDescription());
-            myContents.add(new JLabel(imageIcon));
+            myContents.add(new JLabel(imageIcon, SwingConstants.LEFT));
           }
           catch (IOException e) {
             getLog().error("Cannot load image: " + imageElement.getSource(), e);
