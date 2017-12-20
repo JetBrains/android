@@ -39,6 +39,7 @@ import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -164,7 +165,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
-      .waitForRenderToFinish()
+      .waitForRenderToFinish(Wait.seconds(30))
       .showOnlyDesignView()
       .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
