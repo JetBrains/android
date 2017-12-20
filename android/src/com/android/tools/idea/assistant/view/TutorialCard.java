@@ -74,6 +74,18 @@ public class TutorialCard extends CardViewPanel {
     myHideChooserAndNavigationBar = hideChooserAndNavigationalBar;
     myIsStepByStep = isStepByStep;
     myStepIndex = 0;
+
+    if (!myHideChooserAndNavigationBar) {
+      // TODO: Add a short label to the xml and use that here instead.
+      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
+    }
+
+    add(myContentsScroller, BorderLayout.CENTER);
+
+    // add nav for step by step tutorials
+    if (myIsStepByStep) {
+      add(new StepByStepFooter(), BorderLayout.SOUTH);
+    }
     redraw();
   }
 
@@ -91,11 +103,6 @@ public class TutorialCard extends CardViewPanel {
 
   // update the view
   private void redraw() {
-    if (!myHideChooserAndNavigationBar) {
-      // TODO: Add a short label to the xml and use that here instead.
-      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
-    }
-
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
     contents.setOpaque(false);
@@ -170,12 +177,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    add(myContentsScroller, BorderLayout.CENTER);
-
-    // add nav for step by step tutorials
-    if (myIsStepByStep) {
-      add(new StepByStepFooter(), BorderLayout.SOUTH);
-    }
   }
 
   private static class TutorialDescription extends JTextPane {
@@ -229,9 +230,9 @@ public class TutorialCard extends CardViewPanel {
 
     StepByStepFooter() {
       super(new BorderLayout());
-      myPrevButton = new StepButton("Previous Step", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
+      myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
       add(myPrevButton, BorderLayout.LINE_START);
-      myNextButton = new StepButton("Next Step", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
+      myNextButton = new StepButton("Next", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
       add(myNextButton, BorderLayout.LINE_END);
 
       updateVisibility();
