@@ -51,7 +51,7 @@ public class NetworkRadioDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
+    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA);
   }
 
   @Test

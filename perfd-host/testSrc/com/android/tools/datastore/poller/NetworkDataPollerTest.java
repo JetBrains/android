@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -40,27 +39,12 @@ import static org.mockito.Mockito.when;
 
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
-  private static final int TEST_APP_ID = 1234;
   private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
+  private static final long DELAY_TIME_NS = BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1);
   private static final long SENT_VALUE = 1024;
   private static final long RECEIVED_VALUE = 2048;
   private static final int CONNECTION_COUNT = 4;
   private static final int CONNECTION_ID = 1;
-
-  private static final Common.CommonData STARTUP_BASIC_INFO = Common.CommonData.newBuilder()
-    .setProcessId(TEST_APP_ID)
-    .setEndTimestamp(BASE_TIME_NS)
-    .build();
-
-  private static final Common.CommonData DELAY_BASIC_INFO = Common.CommonData.newBuilder()
-    .setProcessId(TEST_APP_ID)
-    .setEndTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
-    .build();
-
-  private static final Common.CommonData GLOBAL_APP_INFO = Common.CommonData.newBuilder()
-    .setProcessId(Common.AppId.ANY_VALUE)
-    .setEndTimestamp(BASE_TIME_NS)
-    .build();
 
   private static final NetworkProfiler.HttpRangeResponse HTTP_RANGE_RESPONSE = NetworkProfiler.HttpRangeResponse.newBuilder()
     .addData(NetworkProfiler.HttpConnectionData.newBuilder()
@@ -84,22 +68,21 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .build();
   private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse.newBuilder()
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setBasicInfo(GLOBAL_APP_INFO)
+               .setEndTimestamp(BASE_TIME_NS)
                .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
                .build())
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setBasicInfo(STARTUP_BASIC_INFO)
+               .setEndTimestamp(BASE_TIME_NS)
                .setSpeedData(NETWORK_SPEED_DATA)
                .build())
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setBasicInfo(DELAY_BASIC_INFO)
+               .setEndTimestamp(DELAY_TIME_NS)
                .setConnectionData(NETWORK_CONNECTION_DATA)
                .build())
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
   private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run);
-
 
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();
 
@@ -114,14 +97,14 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void setUp() throws Exception {
     when(myDataStoreService.getNetworkClient(any())).thenReturn(NetworkServiceGrpc.newBlockingStub(myService.getChannel()));
     myNetworkService
-      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setSession(SESSION).build(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     // Not strictly necessary to do this but it ensures we run all code paths
     myNetworkService
-      .stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+      .stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setSession(SESSION).build(), mock(StreamObserver.class));
   }
 
   @Test
@@ -155,9 +138,9 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetHttpRangeInvalidAppId() {
+  public void testGetHttpRangeInvalidSession() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -170,7 +153,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeInRange() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -183,7 +166,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeOutOfRange_StartTimeAfterLastRequest() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
@@ -196,7 +179,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetHttpRangeOutOfRange_EndTimeBeforeFirstRequest() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(Long.MIN_VALUE)
       .setEndTimestamp(Long.MIN_VALUE + 1)
       .build();
@@ -215,7 +198,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void testGetDataSpeed() {
     NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
       .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setBasicInfo(STARTUP_BASIC_INFO)
+                 .setEndTimestamp(BASE_TIME_NS)
                  .setSpeedData(NETWORK_SPEED_DATA)
                  .build())
       .build();
@@ -226,7 +209,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void testGetDataConnections() {
     NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
       .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setBasicInfo(DELAY_BASIC_INFO)
+                 .setEndTimestamp(DELAY_TIME_NS)
                  .setConnectionData(NETWORK_CONNECTION_DATA)
                  .build())
       .build();
@@ -238,7 +221,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   public void testGetDataConnectivity() {
     NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
       .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setBasicInfo(GLOBAL_APP_INFO)
+                 .setEndTimestamp(BASE_TIME_NS)
                  .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
                  .build())
       .build();
@@ -249,7 +232,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataOutOfRange() {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
@@ -260,35 +243,21 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetDataInvalidAppId() {
+  public void testGetDataInvalidSession() {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setProcessId(0)
+      .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
       .build();
-
-    // Connectivity data is global to the entire phone and will be returned always, regardless of
-    // app ID (even invalid ones).
-    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
-      .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setBasicInfo(GLOBAL_APP_INFO)
-                 .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
-                 .build())
-      .build();
-
     StreamObserver<NetworkProfiler.NetworkDataResponse> observer = mock(StreamObserver.class);
     myNetworkService.getData(request, observer);
-    validateResponse(observer, expected);
+    validateResponse(observer, NetworkProfiler.NetworkDataResponse.getDefaultInstance());
   }
 
   private void getData(NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
-    getData(TEST_APP_ID, type, expected);
-  }
-
-  private void getData(int appId, NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
     NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setProcessId(appId)
+      .setSession(SESSION)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(type)
@@ -301,6 +270,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private void getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type type,
                               NetworkProfiler.HttpDetailsResponse expectedResponse) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
+      .setSession(SESSION)
       .setConnId(CONNECTION_ID)
       .setType(type)
       .build();

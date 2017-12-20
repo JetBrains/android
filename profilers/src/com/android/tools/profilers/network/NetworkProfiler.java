@@ -35,17 +35,11 @@ public class NetworkProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Common.Session session, Common.Process process) {
-    myProfilers.getClient().getNetworkClient().startMonitoringApp(
-      NetworkStartRequest.newBuilder()
-        .setProcessId(process.getPid())
-        .setSession(session).build());
+    myProfilers.getClient().getNetworkClient().startMonitoringApp(NetworkStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
   public void stopProfiling(Common.Session session, Common.Process process) {
-    myProfilers.getClient().getNetworkClient().stopMonitoringApp(
-      NetworkStopRequest.newBuilder()
-        .setProcessId(process.getPid())
-        .setSession(session).build());
+    myProfilers.getClient().getNetworkClient().stopMonitoringApp(NetworkStopRequest.newBuilder().setSession(session).build());
   }
 }

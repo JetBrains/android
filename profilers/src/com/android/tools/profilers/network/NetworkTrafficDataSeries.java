@@ -66,13 +66,11 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
 
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
-  private final int myProcessId;
   private final Common.Session mySession;
   private final Type myType;
 
-  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session, Type type) {
+  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, Common.Session session, Type type) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
     myType = type;
   }
@@ -84,14 +82,13 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     NetworkProfiler.NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
-      long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
+      long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
       NetworkProfiler.SpeedData speedData = data.getSpeedData();
       seriesData.add(new SeriesData<>(xTimestamp, myType.getBytes(speedData)));
     }

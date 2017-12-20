@@ -30,12 +30,9 @@ import java.util.stream.Collectors;
 import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
-  public static final int FAKE_APP_ID = 1111;
-
-  private int myAppId;
-
   @NotNull private List<HttpData> myHttpDataList;
   @NotNull private List<NetworkProfilerData> myDataList;
+  private Common.Session mySession;
 
   private FakeNetworkService(@NotNull Builder builder) {
     myDataList = builder.myDataList;
@@ -45,7 +42,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void startMonitoringApp(NetworkStartRequest request,
                                  StreamObserver<NetworkStartResponse> responseObserver) {
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(NetworkStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -53,13 +50,13 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @Override
   public void stopMonitoringApp(NetworkStopRequest request,
                                 StreamObserver<NetworkStopResponse> responseObserver) {
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
     responseObserver.onNext(NetworkStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
-  public int getProcessId() {
-    return myAppId;
+  public Common.Session getSession() {
+    return mySession;
   }
 
   @Override
@@ -69,7 +66,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     long endTime = request.getEndTimestamp();
 
     for (NetworkProfilerData data : myDataList) {
-      long current = data.getBasicInfo().getEndTimestamp();
+      long current = data.getEndTimestamp();
       if (current > startTime && current <= endTime) {
         if ((request.getType() == NetworkDataRequest.Type.ALL) ||
             (request.getType() == NetworkDataRequest.Type.SPEED &&
@@ -165,9 +162,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                                                  long sent,
                                                  long received) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent));
     return builder.build();
   }
@@ -177,9 +172,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
                                                  @NotNull ConnectivityData.NetworkType networkType,
                                                  @NotNull ConnectivityData.RadioState radioState) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectivityData(ConnectivityData.newBuilder()
                                   .setDefaultNetworkType(networkType)
                                   .setRadioState(radioState));
@@ -189,16 +182,14 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   @NotNull
   public static NetworkProfilerData newConnectionData(long timestampSec, int value) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
-    builder.setBasicInfo(Common.CommonData.newBuilder()
-                           .setProcessId(FAKE_APP_ID)
-                           .setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec)));
+    builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectionData(ConnectionData.newBuilder().setConnectionNumber(value).build());
     return builder.build();
   }
 
   @Nullable
   private HttpData findHttpData(long id) {
-    for (HttpData data: myHttpDataList) {
+    for (HttpData data : myHttpDataList) {
       if (data.getId() == id) {
         return data;
       }

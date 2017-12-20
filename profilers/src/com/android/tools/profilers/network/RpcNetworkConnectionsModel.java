@@ -35,19 +35,15 @@ import java.util.stream.Collectors;
  * data queries may need change datastore.
  */
 public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
-  @NotNull
-  private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
-  private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
-
-  private final int myPid;
-  private final Common.Session mySession;
+  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
+  @NotNull private final Common.Session mySession;
 
   public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
                                     @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
-                                    int pid, Common.Session session) {
+                                    @NotNull Common.Session session) {
     myProfilerService = profilerService;
     myNetworkService = networkService;
-    myPid = pid;
     mySession = session;
   }
 
@@ -55,7 +51,6 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   @Override
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setProcessId(myPid)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();

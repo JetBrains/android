@@ -34,18 +34,13 @@ import java.util.concurrent.TimeUnit;
  * This class is a data series representing the number of connections open at any given time.
  *
  * It is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
- *
- * TODO: This class needs tests.
  */
 public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
-  @NotNull
-  private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
-  private final int myProcessId;
+  @NotNull private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final Common.Session mySession;
 
-  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session) {
+  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, @NotNull Common.Session session) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
   }
 
@@ -56,14 +51,13 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setType(NetworkDataRequest.Type.CONNECTIONS)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     NetworkDataResponse response = myClient.getData(dataRequestBuilder.build());
     for (NetworkProfilerData data : response.getDataList()) {
-      long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
+      long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
       ConnectionData connectionData = data.getConnectionData();
       seriesData.add(new SeriesData<>(xTimestamp, (long)connectionData.getConnectionNumber()));
     }

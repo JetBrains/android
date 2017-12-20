@@ -27,18 +27,15 @@ public class NetworkDataPoller extends PollRunner {
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private long myHttpRangeRequestStartTimeNs = Long.MIN_VALUE;
-  private int myProcessId = -1;
-  // TODO: Key data off device session.
   private Common.Session mySession;
   private NetworkTable myNetworkTable;
   NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
 
-  public NetworkDataPoller(int processId,
-                           Common.Session session,
+  public NetworkDataPoller(Common.Session session,
                            NetworkTable table,
                            NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
+    mySession = session;
     myNetworkTable = table;
     mySession = session;
     myPollingService = pollingService;
@@ -46,26 +43,23 @@ public class NetworkDataPoller extends PollRunner {
 
   @Override
   public void poll() {
-    if (myProcessId == -1) {
-      return;
-    }
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkDataRequest.Type.ALL);
     NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
     for (NetworkProfilerData data : response.getDataList()) {
-      myDataRequestStartTimestampNs = Math.max(myDataRequestStartTimestampNs, data.getBasicInfo().getEndTimestamp());
-      myNetworkTable.insert(data.getBasicInfo().getProcessId(), data);
+      myDataRequestStartTimestampNs = Math.max(myDataRequestStartTimestampNs, data.getEndTimestamp());
+      myNetworkTable.insert(mySession, data);
     }
     pollHttpRange();
   }
 
   private void pollHttpRange() {
     HttpRangeRequest.Builder requestBuilder = HttpRangeRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(myHttpRangeRequestStartTimeNs)
       .setEndTimestamp(Long.MAX_VALUE);
     HttpRangeResponse httpRange = myPollingService.getHttpRange(requestBuilder.build());
@@ -94,7 +88,7 @@ public class NetworkDataPoller extends PollRunner {
         responseBody = pollHttpDetails(connection.getConnId(), HttpDetailsRequest.Type.RESPONSE_BODY);
       }
       threads = pollHttpDetails(connection.getConnId(), HttpDetailsRequest.Type.ACCESSING_THREADS);
-      myNetworkTable.insertOrReplace(myProcessId, mySession, request, response, requestBody, responseBody, threads, connection);
+      myNetworkTable.insertOrReplace(mySession, request, response, requestBody, responseBody, threads, connection);
     }
   }
 
