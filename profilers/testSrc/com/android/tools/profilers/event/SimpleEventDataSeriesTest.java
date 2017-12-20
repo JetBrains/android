@@ -43,7 +43,7 @@ public class SimpleEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
+    mySeries = new SimpleEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA);
   }
 
   @Test
@@ -111,7 +111,7 @@ public class SimpleEventDataSeriesTest {
   private SystemData buildTouchEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setProcessId(FakeEventService.FAKE_APP_ID)
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_END_TIME_NS)
       .setType(SystemData.SystemEventType.TOUCH)
@@ -121,7 +121,7 @@ public class SimpleEventDataSeriesTest {
   private SystemData buildRotationEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setProcessId(FakeEventService.FAKE_APP_ID)
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
       .setType(SystemData.SystemEventType.ROTATION)
@@ -131,7 +131,7 @@ public class SimpleEventDataSeriesTest {
   private SystemData buildKeyEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setProcessId(FakeEventService.FAKE_APP_ID)
+      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
       .setType(SystemData.SystemEventType.KEY)

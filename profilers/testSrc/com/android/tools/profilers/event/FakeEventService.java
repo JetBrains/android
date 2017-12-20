@@ -23,7 +23,6 @@ import io.grpc.stub.StreamObserver;
 import java.util.Map;
 
 public final class FakeEventService extends EventServiceGrpc.EventServiceImplBase {
-  public static final int FAKE_APP_ID = 1111;
   Map<Long, SystemData> myEventData = new HashMap<>();
   Map<Long, ActivityData> myActivityData = new HashMap<>();
 

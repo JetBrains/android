@@ -41,18 +41,15 @@ public class EventMonitor extends ProfilerMonitor {
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
-                                                             myProfilers.getProcessId(),
                                                              myProfilers.getSession());
     mySimpleEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
     ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getProcessId(),
                                                                      myProfilers.getSession(),
                                                                      false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
 
     ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getProcessId(),
                                                                      myProfilers.getSession(),
                                                                     true);
     myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
