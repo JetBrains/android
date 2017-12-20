@@ -16,12 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.suggestions.AndroidModuleSuggestionsConfigurable
+import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.components.JBLabel
 import org.fest.swing.core.matcher.JButtonMatcher
+import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.timing.Wait
@@ -44,16 +46,13 @@ open class SuggestionConfigurableFixture(
   fun noSuggestionsLabel(): JLabelFixture =
       JLabelFixture(robot(), finder().findByType(container, JBLabel::class.java, false))
 
-  fun analyzeProjectButton(): JButtonFixture =
-      JButtonFixture(robot(), finder().find(container, JButtonMatcher.withText("Analyze Project")))
-
-  fun checkForUpdatesButton(): JButtonFixture =
-      JButtonFixture(robot(), finder().find(container, JButtonMatcher.withText("Check for Updates")))
+  fun loadingLabel(): JLabelFixture =
+      JLabelFixture(robot(), finder().find<JBLabel>(container, requireShowing = false) { it.text == "Loading... " })
 
   fun waitAnalysesCompleted(timeout: Wait) {
     timeout
-        .expecting("Analyses completed and buttons available")
-        .until { analyzeProjectButton().isEnabled && checkForUpdatesButton().isEnabled }
+        .expecting("Analyses completed and no 'Loading...' message visible")
+        .until { GuiQuery.get { !loadingLabel().target().isVisible }!! }
   }
 
   fun groups(): List<String> = suggestionGroups().map { it.title() }.filter { it != null }.map { it!! }

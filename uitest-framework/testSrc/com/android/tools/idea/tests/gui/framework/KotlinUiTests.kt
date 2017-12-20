@@ -30,8 +30,8 @@ interface IdeFrameContainerFixture {
 fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
 fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
 
-inline fun <reified T : JComponent> matcher(crossinline predicate: (T) -> Boolean): GenericTypeMatcher<T> =
-    object : GenericTypeMatcher<T>(T::class.java, true) {
+inline fun <reified T : JComponent> matcher(requireShowing: Boolean = true, crossinline predicate: (T) -> Boolean): GenericTypeMatcher<T> =
+    object : GenericTypeMatcher<T>(T::class.java, requireShowing) {
       override fun isMatching(component: T): Boolean = predicate(component)
     }
 
@@ -39,9 +39,16 @@ inline fun <reified T : JComponent> ComponentFinder.findByType(root: Container) 
 inline fun <reified T : JComponent> ComponentFinder.findByLabel(root: Container, label: String) =
     findByLabel(root, label, T::class.java, true)
 
+inline fun <reified T : JComponent> ComponentFinder.find(
+    root: Container, requireShowing: Boolean = true,
+    crossinline predicate: (T) -> Boolean
+) =
+    find(root, matcher<T>(requireShowing, predicate))
+
 fun <T> tryFind(finder: () -> T): T? = try {
   finder()
 }
 catch (_: ComponentLookupException) {
   null
 }
+
