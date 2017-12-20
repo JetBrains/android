@@ -16,14 +16,14 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
-import com.android.tools.idea.gradle.project.sync.projectsystem.SyncWithSourceGenerationListener
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -48,27 +48,27 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   private fun requestSync(project: Project, reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
     val trigger = convertReasonToTrigger(reason)
     val syncResult = SettableFuture.create<SyncResult>()
+    val connection = project.messageBus.connect(project)
 
-    val listener = object: SyncWithSourceGenerationListener() {
-      val connection = if (requireSourceGeneration) GradleBuildState.subscribe(project, this) else null
-
-      override fun syncFinished(sourceGenerationRequested: Boolean, result: SyncResult) {
-        if (connection != null) {
-          Disposer.dispose(connection)
-        }
-
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+      override fun syncEnded(result: SyncResult) {
+        Disposer.dispose(connection)
         syncResult.set(result)
       }
-    }
+    })
 
     val request = GradleSyncInvoker.Request(trigger)
     request.generateSourcesOnSuccess = requireSourceGeneration
     request.runInBackground = true
 
     try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, null)
     }
     catch (t: Throwable) {
+      if (!Disposer.isDisposed(connection)) {
+        Disposer.dispose(connection)
+      }
+
       syncResult.setException(t)
     }
 
