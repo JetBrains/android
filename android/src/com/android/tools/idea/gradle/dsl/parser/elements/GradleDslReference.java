@@ -67,18 +67,27 @@ public final class GradleDslReference extends GradleDslExpression {
   @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
+    GradleReferenceInjection injection = getReferenceInjection();
+    if (injection == null) {
+      return Collections.emptyList();
+    }
+    return ImmutableList.of(injection);
+  }
+
+  @Nullable
+  public GradleReferenceInjection getReferenceInjection() {
     String text = getReferenceText();
     if (text == null || myExpression == null) {
-      return Collections.emptyList();
+      return null;
     }
 
     // Resolve our reference
     GradleDslElement element = resolveReference(text);
     if (element == null) {
-      return Collections.emptyList();
+      return null;
     }
 
-    return ImmutableList.of(new GradleReferenceInjection(element, myExpression, text));
+    return new GradleReferenceInjection(element, myExpression, text);
   }
 
   /**
