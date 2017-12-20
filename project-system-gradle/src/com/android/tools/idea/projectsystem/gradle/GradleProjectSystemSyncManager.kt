@@ -62,7 +62,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     request.runInBackground = true
 
     try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, null)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request)
     }
     catch (t: Throwable) {
       if (!Disposer.isDisposed(connection)) {

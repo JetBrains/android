@@ -134,7 +134,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           }
         }.execute();
       }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
     }
   }
 

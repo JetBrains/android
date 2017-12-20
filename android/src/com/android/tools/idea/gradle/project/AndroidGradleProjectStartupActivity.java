@@ -36,7 +36,7 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
       request.useCachedGradleModels = true;
 
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request);
     }
   }
 }

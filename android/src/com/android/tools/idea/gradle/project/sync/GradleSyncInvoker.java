@@ -95,10 +95,19 @@ public class GradleSyncInvoker {
   }
 
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
+                                                    @NotNull GradleSyncStats.Trigger trigger) {
+    requestProjectSyncAndSourceGeneration(project, trigger, null);
+  }
+
+  public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
                                                     @NotNull GradleSyncStats.Trigger trigger,
                                                     @Nullable GradleSyncListener listener) {
     Request request = new Request(trigger);
     requestProjectSync(project, request, listener);
+  }
+
+  public void requestProjectSync(@NotNull Project project, @NotNull Request request) {
+    requestProjectSync(project, request, null);
   }
 
   public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
@@ -216,6 +225,10 @@ public class GradleSyncInvoker {
       return;
     }
 
+    if (listener != null) {
+      listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+    }
+
     boolean useNewGradleSync = NewGradleSync.isEnabled();
     if (!useNewGradleSync) {
       removeAndroidModels(project);
@@ -231,6 +244,9 @@ public class GradleSyncInvoker {
                                          @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (syncState.syncStarted(true, request)) {
+      if (syncListener != null) {
+        syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+      }
       mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {

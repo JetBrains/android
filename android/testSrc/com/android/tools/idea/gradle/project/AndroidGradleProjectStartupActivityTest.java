@@ -58,7 +58,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
   }
 
   public void testRunActivityWithExistingGradleProject() {
@@ -70,7 +70,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
     request.useCachedGradleModels = true;
 
-    verify(mySyncInvoker, times(1)).requestProjectSync(project, request, null);
+    verify(mySyncInvoker, times(1)).requestProjectSync(project, request);
   }
 
 
@@ -80,6 +80,6 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
   }
 }
