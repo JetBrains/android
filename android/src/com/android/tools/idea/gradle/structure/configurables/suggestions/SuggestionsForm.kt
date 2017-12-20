@@ -24,12 +24,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 
 class SuggestionsForm(
-    private val context: PsContext
+    private val context: PsContext,
+    suggestionsViewIssueRenderer: SuggestionsViewIssueRenderer
 ) : SuggestionsFormUi(), Disposable {
 
   val panel = myMainPanel!!
 
-  private val issuesViewer = SuggestionsViewer(context, SuggestionsViewIssueRenderer(context))
+  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer)
 
   init {
     setViewComponent(issuesViewer.panel)

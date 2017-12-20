@@ -22,9 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.components.JBLabel
-import org.fest.swing.core.matcher.JButtonMatcher
 import org.fest.swing.edt.GuiQuery
-import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container

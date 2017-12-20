@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssueRendere
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 
-class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
+class SuggestionsViewIssueRenderer(val context: PsContext, val showParentPath: Boolean) : IssueRenderer {
 
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue) {
     val issuePath = issue.path
@@ -36,7 +36,7 @@ class SuggestionsViewIssueRenderer(val context: PsContext) : IssueRenderer {
     buffer.append("</td><td valign='top'>")
     buffer.append("<b>")
     buffer.append(issuePathText)
-    if (parentPath != null) {
+    if (showParentPath && parentPath != null) {
       buffer.append(" (<a href=\"$parentPathHref\">$parentPathText</a>)")
     }
     buffer.append(" : ")
