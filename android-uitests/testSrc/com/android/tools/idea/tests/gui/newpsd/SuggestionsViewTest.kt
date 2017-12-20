@@ -125,18 +125,18 @@ class SuggestionsViewTest {
     moduleSelector.selectModule("app")
     suggestionsConfigurable.waitForGroups("Information", "Updates")
     informationGroup = suggestionsConfigurable.findGroup("Information")
-    assertNotNull(informationGroup.findMessageMatching(("support-compat:26.0.0 \\(app\\) : Gradle promoted library version from 26.0.0 to")))
+    assertNotNull(informationGroup.findMessageMatching(("support-compat:26.0.0 : Gradle promoted library version from 26.0.0 to")))
     updatesGroup = suggestionsConfigurable.findGroup("Updates")
-    assertNotNull(updatesGroup.findMessageMatching("appcompat-v7:26.0.1 \\(app\\) : Newer version available:"))
-    assertNotNull(updatesGroup.findMessageMatching("proguard-base:4.9 \\(app\\) : Newer version available:"))
-    assertNotNull(updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:"))
+    assertNotNull(updatesGroup.findMessageMatching("appcompat-v7:26.0.1 : Newer version available:"))
+    assertNotNull(updatesGroup.findMessageMatching("proguard-base:4.9 : Newer version available:"))
+    assertNotNull(updatesGroup.findMessageMatching("support-compat:26.0.0 : Newer version available:"))
 
     assertThat(suggestionsConfigurable.isModuleSelectorMinimized()).isFalse()
     moduleSelector = suggestionsConfigurable.findModuleSelector()
     moduleSelector.selectModule("mylibrary")
     suggestionsConfigurable.waitForGroups("Updates")
     updatesGroup = suggestionsConfigurable.findGroup("Updates")
-    assertNotNull(updatesGroup.findMessageMatching(("appcompat-v7:26.0.1 \\(mylibrary\\) : Newer version available:")))
+    assertNotNull(updatesGroup.findMessageMatching(("appcompat-v7:26.0.1 : Newer version available:")))
 
     psd.clickCancel()
   }
