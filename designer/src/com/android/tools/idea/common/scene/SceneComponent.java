@@ -242,6 +242,22 @@ public class SceneComponent {
   }
 
   /**
+   * Returns the index of the first instance of the given class in the list of targets
+   *
+   * @param aClass
+   * @return
+   */
+  public int findTarget(Class aClass) {
+    int count = myTargets.size();
+    for (int i = 0; i < count; i++) {
+      if (aClass.isInstance(myTargets.get(i))) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
    * Returns true if the given candidate is an ancestor of this component
    *
    * @param candidate

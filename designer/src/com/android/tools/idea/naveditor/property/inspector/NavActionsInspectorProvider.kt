@@ -18,11 +18,21 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.property.NavActionsProperty
+import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.Multimap
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.ui.components.JBList
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.awt.event.HierarchyListener
+import javax.swing.event.ListSelectionListener
 
 // Open for testing only
 open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(NavActionsProperty::class.java,
@@ -65,4 +75,38 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
       else {
         "Actions"
       }
+
+  override fun createCustomInspector(components: List<NlComponent>,
+                                     properties: Map<String, NlProperty>,
+                                     propertiesManager: NavPropertiesManager): NavListInspectorComponent<NavActionsProperty> {
+    val inspector: NavListInspectorComponent<NavActionsProperty>  = super.createCustomInspector(components, properties, propertiesManager)
+    val scene = propertiesManager.designSurface?.scene
+    if (scene != null) {
+      inspector.addAttachListener { list ->
+        list.addListSelectionListener {
+          updateSelection(scene, list)
+        }
+        list.addHierarchyListener {
+          updateSelection(scene, list)
+        }
+      }
+    }
+    return inspector
+  }
+
+  private fun updateSelection(scene: Scene, list: JBList<NlProperty>) {
+    val selected: Multimap<NlComponent, String> = HashMultimap.create()
+    list.selectedValuesList
+        .flatMap { it.components }
+        .forEach { selected.put(it.parent, it.id) }
+    for (component: SceneComponent in scene.sceneComponents) {
+      component.targets
+          .filterIsInstance(ActionTarget::class.java)
+          .forEach {
+            it.isHighlighted = selected.containsEntry(it.component.nlComponent, it.id)
+          }
+    }
+    scene.needsRebuildList()
+    scene.repaint()
+  }
 }

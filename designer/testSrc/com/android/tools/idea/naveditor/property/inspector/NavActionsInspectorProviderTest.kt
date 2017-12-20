@@ -21,6 +21,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -150,6 +151,37 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     assertEquals(3, group.getChildren(null).size)
     assertArrayEquals(intArrayOf(0), actionsList.selectedIndices)
+  }
+
+  fun testSelectionHighlighted() {
+    val model = model("nav.xml",
+        rootComponent("root").unboundedChildren(
+            fragmentComponent("f1")
+                .unboundedChildren(
+                    actionComponent("a1").withDestinationAttribute("f2"),
+                    actionComponent("a2").withDestinationAttribute("activity")),
+            fragmentComponent("f2"),
+            activityComponent("activity")))
+        .build()
+
+    val manager = mock(NavPropertiesManager::class.java)
+    val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
+    `when`(navInspectorProviders.providers).thenReturn(listOf(NavActionsInspectorProvider()))
+    `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
+    `when`(manager.facet).thenReturn(myFacet)
+    `when`(manager.designSurface).thenReturn(model.surface)
+
+    val panel = NavInspectorPanel(myRootDisposable)
+    val f1 = model.find("f1")!!
+    panel.setComponent(listOf(f1), HashBasedTable.create<String, String, NlProperty>(), manager)
+
+    @Suppress("UNCHECKED_CAST")
+    val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
+    actionsList.addSelectionInterval(1, 1)
+
+    val highlightedTargets = model.surface.scene!!.getSceneComponent("f1")!!.targets!!.filter { it is ActionTarget && it.isHighlighted }
+    assertEquals(1, highlightedTargets.size)
+    assertEquals("a1", (highlightedTargets[0] as ActionTarget).id)
   }
 }
 
