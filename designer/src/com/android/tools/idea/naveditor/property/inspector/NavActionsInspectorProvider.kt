@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants
+import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
@@ -27,12 +28,13 @@ import com.android.tools.idea.naveditor.scene.targets.ActionTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.awt.event.HierarchyListener
-import javax.swing.event.ListSelectionListener
+import java.awt.Component
+import java.awt.event.MouseEvent
 
 // Open for testing only
 open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(NavActionsProperty::class.java,
@@ -40,8 +42,11 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
   override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
     assert(parents.size == 1)
+    addItem(existing, parents[0], resourceResolver, AddActionDialog.Defaults.NORMAL)
+  }
 
-    val addActionDialog = AddActionDialog(existing, parents[0], resourceResolver)
+  fun addItem(existing: NlComponent?, parent: NlComponent, resourceResolver: ResourceResolver?, defaultsType: AddActionDialog.Defaults) {
+    val addActionDialog = AddActionDialog(defaultsType, existing, parent, resourceResolver)
 
     if (addActionDialog.showAndGet()) {
       WriteCommandAction.runWriteCommandAction(null, {
@@ -52,7 +57,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
         }
         realComponent.ensureId()
         realComponent.setAttribute(
-            SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + addActionDialog.destination.id!!)
+            SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, addActionDialog.destination?.let { SdkConstants.ID_PREFIX + it.id })
         realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, addActionDialog.enterTransition)
         realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_EXIT_ANIM, addActionDialog.exitTransition)
         realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, addActionDialog.popTo)
@@ -108,5 +113,40 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
     }
     scene.needsRebuildList()
     scene.repaint()
+  }
+
+  override fun plusClicked(event: MouseEvent, parents: List<NlComponent>, resourceResolver: ResourceResolver?, surface: NavDesignSurface) {
+    val actions: MutableList<AnAction> = getPopupActions(parents, resourceResolver, surface)
+
+    val actionManager = ActionManager.getInstance()
+    val popupMenu = actionManager.createActionPopupMenu("NavListInspector", DefaultActionGroup(actions))
+    val invoker: Component = event.source as? Component ?: return
+    popupMenu.component.show(invoker, event.x, event.y)
+  }
+
+  @VisibleForTesting
+  fun getPopupActions(parents: List<NlComponent>, resourceResolver: ResourceResolver?, surface: NavDesignSurface): MutableList<AnAction> {
+    assert(parents.size == 1)
+    val parent = parents[0]
+    val actions: MutableList<AnAction> = mutableListOf(
+        object : AnAction("Add Action...") {
+          override fun actionPerformed(e: AnActionEvent?) {
+            addItem(null, parent, resourceResolver, AddActionDialog.Defaults.NORMAL)
+          }
+        },
+        object : AnAction("Return to Source...") {
+          override fun actionPerformed(e: AnActionEvent?) {
+            addItem(null, parent, resourceResolver, AddActionDialog.Defaults.RETURN_TO_SOURCE)
+          }
+        })
+    if (parent != surface.currentNavigation) {
+      actions.add(Separator.getInstance())
+      actions.add(object : AnAction("Add Global...") {
+        override fun actionPerformed(e: AnActionEvent?) {
+          addItem(null, parent, resourceResolver, AddActionDialog.Defaults.GLOBAL)
+        }
+      })
+    }
+    return actions
   }
 }
