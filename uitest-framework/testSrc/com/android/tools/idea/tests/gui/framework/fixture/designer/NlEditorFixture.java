@@ -166,7 +166,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlPaletteFixture getPalette() {
     if (myPaletteFixture == null) {
-      Wait.seconds(3).expecting("WorkBench is showing").until(() -> myDesignSurfaceFixture.target().isShowing());
+      Wait.seconds(10).expecting("WorkBench is showing").until(() -> myDesignSurfaceFixture.target().isShowing());
       Container workBench = SwingUtilities.getAncestorOfClass(WorkBench.class, myDesignSurfaceFixture.target());
       myPaletteFixture = NlPaletteFixture.create(robot(), workBench);
     }
