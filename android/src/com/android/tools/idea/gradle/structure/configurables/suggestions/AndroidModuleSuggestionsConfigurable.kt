@@ -87,6 +87,10 @@ class AndroidModuleSuggestionsConfigurable(
     panel?.run { Disposer.dispose(this) }
     uiDisposed = true
   }
+
+  companion object {
+    const val SUGGESTIONS_VIEW = "SuggestionsView"
+  }
 }
 
 internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> {
