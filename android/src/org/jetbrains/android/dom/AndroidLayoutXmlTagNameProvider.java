@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -111,7 +113,9 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
 
       // Using insert handler is required for, e.g. automatic insertion of required fields in Android layout XMLs
       if (xmlExtension.useXmlTagInsertHandler()) {
-        lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE);
+        InsertHandler<LookupElement> insertHandler =
+          isInnerViewClass(descriptor.getDeclaration()) ? XmlTagInnerClassInsertHandler.INSTANCE : XmlTagInsertHandler.INSTANCE;
+        lookupElement = lookupElement.withInsertHandler(insertHandler);
       }
 
       // Deprecated tag names are supposed to be shown below non-deprecated tags
@@ -129,6 +133,25 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
 
       elements.add(PrioritizedLookupElement.withPriority(lookupElement, priority));
     }
+  }
+
+  private static boolean isInnerViewClass(@Nullable PsiElement declaration) {
+    if (!(declaration instanceof PsiClass)) {
+      return false;
+    }
+
+    PsiClass aClass = (PsiClass)declaration;
+    if (aClass.getContainingClass() == null) {
+      return false;
+    }
+    Set<PsiClass> visited = new HashSet<>();
+    while (aClass != null && visited.add(aClass)) {
+      if ("android.view.View".equals(aClass.getQualifiedName())) {
+        return true;
+      }
+      aClass = aClass.getSuperClass();
+    }
+    return false;
   }
 
   private static boolean isDeclarationDeprecated(@Nullable PsiElement declaration) {

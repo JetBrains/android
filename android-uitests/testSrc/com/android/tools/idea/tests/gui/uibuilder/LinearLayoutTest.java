@@ -107,6 +107,7 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */

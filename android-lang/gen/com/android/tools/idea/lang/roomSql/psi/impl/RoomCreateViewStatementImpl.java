@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomCreateViewStatementImpl extends RoomStatementImpl implements RoomCreateViewStatement {
+public class RoomCreateViewStatementImpl extends ASTWrapperPsiElement implements RoomCreateViewStatement {
 
   public RoomCreateViewStatementImpl(ASTNode node) {
     super(node);
@@ -50,14 +51,14 @@ public class RoomCreateViewStatementImpl extends RoomStatementImpl implements Ro
 
   @Override
   @NotNull
-  public RoomSelectStatement getSelectStatement() {
-    return findNotNullChildByClass(RoomSelectStatement.class);
+  public RoomViewName getViewName() {
+    return findNotNullChildByClass(RoomViewName.class);
   }
 
   @Override
   @NotNull
-  public RoomViewName getViewName() {
-    return findNotNullChildByClass(RoomViewName.class);
+  public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
+    return findNotNullChildByClass(RoomWithClauseSelectStatement.class);
   }
 
 }

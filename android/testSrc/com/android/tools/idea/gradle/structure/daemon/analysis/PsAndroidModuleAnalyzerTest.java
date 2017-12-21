@@ -39,7 +39,7 @@ public class PsAndroidModuleAnalyzerTest {
     when(syncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
     PsPath path = mock(PsPath.class);
 
-    PsIssue issue = PsAndroidModuleAnalyzer.createIssueFrom(syncIssue, path, null);
+    PsIssue issue = PsAndroidModuleAnalyzer.createIssueFrom(syncIssue, path);
     assertThat(issue.getText()).isEqualTo("Conflict with dependency 'com.google.guava:guava'. Resolved versions for app (16.0) " +
                                           "and test app (16.0.1) differ. See " +
                                           "<a href='http://g.co/androidstudio/app-test-app-conflict'>http://g.co/androidstudio/app-test-app-conflict</a> " +

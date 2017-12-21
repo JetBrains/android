@@ -25,7 +25,6 @@ import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionManager;
@@ -220,7 +219,7 @@ public class LayoutTestUtilities {
 
   public static InteractionManager createManager(DesignSurface surface) {
     InteractionManager manager = new InteractionManager(surface);
-    manager.registerListeners();
+    manager.startListening();
     return manager;
   }
 

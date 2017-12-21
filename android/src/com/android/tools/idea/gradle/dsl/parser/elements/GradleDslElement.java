@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}.
@@ -46,6 +50,8 @@ public abstract class GradleDslElement {
   // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
   // the information to make this distinction. GradleDslElement will set this to a default of false.
   protected boolean myUseAssignment;
+
+  @NotNull private PropertyType myElementType;
 
   /**
    * Creates an in stance of a {@link GradleDslElement}
@@ -77,6 +83,8 @@ public abstract class GradleDslElement {
     }
 
     myUseAssignment = false;
+    // Default to DERIVED, this is overwritten in the parser if required for the given element type.
+    myElementType = DERIVED;
   }
 
   public void setParsedClosureElement(@NotNull GradleDslClosure closureElement) {
@@ -116,6 +124,15 @@ public abstract class GradleDslElement {
   }
 
   @NotNull
+  public PropertyType getElementType() {
+    return myElementType;
+  }
+
+  public void setElementType(@NotNull PropertyType propertyType) {
+    myElementType = propertyType;
+  }
+
+  @NotNull
   public String getQualifiedName() {
     return myQualifiedName;
   }
@@ -126,8 +143,8 @@ public abstract class GradleDslElement {
   }
 
   @NotNull
-  public Collection<GradleStringInjection> getResolvedVariables() {
-    ImmutableList.Builder<GradleStringInjection> resultBuilder = ImmutableList.builder();
+  public Collection<GradleReferenceInjection> getResolvedVariables() {
+    ImmutableList.Builder<GradleReferenceInjection> resultBuilder = ImmutableList.builder();
     for (GradleDslElement child : getChildren()) {
       resultBuilder.addAll(child.getResolvedVariables());
     }
@@ -175,6 +192,13 @@ public abstract class GradleDslElement {
    */
   public boolean isBlockElement() {
     return false;
+  }
+
+  /**
+   * Returns {@code true} if this element represents an element which is insignificant if empty.
+   */
+  public boolean isInsignificantIfEmpty() {
+    return true;
   }
 
   @NotNull

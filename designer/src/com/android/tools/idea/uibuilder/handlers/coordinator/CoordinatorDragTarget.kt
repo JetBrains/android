@@ -25,16 +25,17 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.model.viewHandler
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
 import java.util.*
+
+private const val DEBUG: Boolean = false
 
 /**
  * Drag target for CoordinatorLayout
  */
 class CoordinatorDragTarget : DragBaseTarget() {
-  private val DEBUG: Boolean = false
-
   private var mySnapTarget: CoordinatorSnapTarget? = null
 
   override fun getPreferenceLevel(): Int = Target.DRAG_LEVEL
@@ -67,6 +68,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
+    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) Color.yellow else Color.green)
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red)
@@ -93,9 +95,9 @@ class CoordinatorDragTarget : DragBaseTarget() {
   }
 
   private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
-    val provider = myComponent.parent?.targetProvider
-    if (provider is CoordinatorLayoutHandler) {
-      provider.interactionState = interactionState
+    val handler = myComponent.parent?.nlComponent?.viewHandler ?: return
+    if (handler is CoordinatorLayoutHandler) {
+      handler.interactionState = interactionState
       myComponent.parent?.updateTargets()
     }
   }
@@ -115,7 +117,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     }
     mySnapTarget?.setMouseHovered(false)
     mySnapTarget = null
-    val snapTarget : Target? = closestTarget?.filter { it is CoordinatorSnapTarget }?.firstOrNull()
+    val snapTarget : Target? = closestTarget?.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
       snapTarget.setMouseHovered(true)

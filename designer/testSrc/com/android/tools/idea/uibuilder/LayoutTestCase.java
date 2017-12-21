@@ -40,15 +40,12 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
-
-  private final List<ScreenFixture> myScreenFixtures = new ArrayList<>();
 
   public LayoutTestCase() {
   }
@@ -62,7 +59,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      myScreenFixtures.clear();
       RenderTestUtil.afterRenderTestCase();
     }
     finally {
@@ -113,9 +109,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   protected ScreenFixture screen(@NotNull SyncNlModel model) {
-    ScreenFixture fixture = new ScreenFixture(model);
-    myScreenFixtures.add(fixture);
-    return fixture;
+    return new ScreenFixture(model);
   }
 
   // Format the XML using AndroidStudio formatting

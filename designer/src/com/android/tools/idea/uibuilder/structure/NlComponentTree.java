@@ -21,7 +21,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
@@ -75,7 +77,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
 
-  private Scene myScene;
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
@@ -138,18 +139,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       mySurface.getActionManager().registerActionsShortcuts(this);
       mySurface.getActionManager().registerActionsShortcuts(this);
     }
-    setScene(designSurface != null ? designSurface.getScene() : null);
+    setModel(designSurface != null ? designSurface.getModel() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
-  }
-
-  private void setScene(@Nullable Scene scene) {
-    myScene = scene;
-    setModel(scene == null ? null : scene.getSceneManager().getModel());
   }
 
   @Nullable
   public Scene getScene() {
-    return myScene;
+    return mySurface != null ? mySurface.getScene() : null;
   }
 
   private void setModel(@Nullable NlModel model) {
@@ -472,8 +468,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
-    setScene(scene);
+  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    setModel(model);
   }
 
   @Override
@@ -530,7 +526,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (!(component instanceof NlComponent)) {
         return;
       }
-      mySurface.notifyComponentActivate((NlComponent)component);
+
+      ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
+      if (handler != null) {
+        handler.onActivateInComponentTree((NlComponent)component);
+      }
     }
   }
 
@@ -570,15 +570,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implements DataProvider ----
   @Override
   public Object getData(@NonNls String dataId) {
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
-        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      if (mySurface != null) {
-        return new DesignSurfaceActionHandler(mySurface);
-      }
-    }
-    return null;
+    return mySurface == null ? null : mySurface.getData(dataId);
   }
 
   /**

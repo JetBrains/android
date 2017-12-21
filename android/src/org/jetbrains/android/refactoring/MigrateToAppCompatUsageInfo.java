@@ -15,10 +15,8 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.annotations.NonNull;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.usageView.UsageInfo;
@@ -27,7 +25,7 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueM
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-
+import org.jetbrains.annotations.Nullable;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
@@ -39,7 +37,14 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     super(element);
   }
 
-  public abstract void applyChange(@NonNull PsiMigration migration);
+  /**
+   * Migrate the current reference to the new usage.
+   *
+   * @param migration PsiMigration to lookup classes and packages.
+   * @return the modified reference after a migration or null.
+   */
+  @Nullable
+  public abstract PsiElement applyChange(@NotNull PsiMigration migration);
 
   /**
    * UsageInfo specific for changing a method usage
@@ -54,15 +59,15 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       PsiElement element = getElement();
       if (element instanceof PsiReference && isValid()) {
         PsiReference reference = (PsiReference)element;
         String newName = myEntry.myNewMethodName;
         // Handle direct method references example getSupportActionBar()
-        PsiElement newRef = reference.handleElementRename(newName);
-        JavaCodeStyleManager.getInstance(reference.getElement().getProject()).shortenClassReferences(newRef);
+        return reference.handleElementRename(newName);
       }
+      return null;
     }
   }
 
@@ -79,23 +84,19 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration psiMigration) {
+    public PsiElement applyChange(@NotNull PsiMigration psiMigration) {
       // Here we need to either find or create the class so that imports/class names can be resolved.
       PsiClass aClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), psiMigration, mapEntry.myNewName);
 
       PsiElement element = getElement();
       if (element == null || !element.isValid()) {
-        return;
+        return element;
       }
       if (element instanceof PsiJavaCodeReferenceElement) {
         PsiJavaCodeReferenceElement referenceElement = (PsiJavaCodeReferenceElement)element;
-        PsiElement updatedReference = referenceElement.bindToElement(aClass);
-        if (!(updatedReference.getParent() instanceof PsiImportStatement)) {
-          // Shortening imports does not work if the shortName is the same as the one that is already imported.
-          JavaCodeStyleManager.getInstance(updatedReference.getProject())
-            .shortenClassReferences(updatedReference);
-        }
+        return referenceElement.bindToElement(aClass);
       }
+      return null;
     }
   }
 
@@ -106,20 +107,20 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     protected final String myFromValue;
     protected final String myToValue;
 
-    ChangeStyleUsageInfo(@NotNull PsiElement element, @NonNull String fromValue, @NonNull String toValue) {
+    ChangeStyleUsageInfo(@NotNull PsiElement element, @NotNull String fromValue, @NotNull String toValue) {
       super(element);
       myFromValue = fromValue;
       myToValue = toValue;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       // This can either be an attribute <item name="android:windowNoTitle" ..
       // or the body text of the item such as <item ..>?android:itemSelectableBackground</item>
       PsiElement element = getElement();
       XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class, false);
       if (tag == null) {
-        return;
+        return null;
       }
 
       XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
@@ -131,27 +132,29 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         XmlTagValue tagValue = tag.getValue();
         tagValue.setText(myToValue);
       }
+      return null;
     }
   }
 
   static class ChangeThemeUsageInfo extends ChangeStyleUsageInfo {
 
-    ChangeThemeUsageInfo(@NonNull XmlAttributeValue element, @NonNull String fromValue, @NonNull String toValue) {
+    ChangeThemeUsageInfo(@NotNull XmlAttributeValue element, @NotNull String fromValue, @NotNull String toValue) {
       super(element, fromValue, toValue);
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       XmlAttributeValue attributeValue = PsiTreeUtil.getParentOfType(getElement(), XmlAttributeValue.class, false);
       if (attributeValue == null) {
-        return;
+        return null;
       }
       String value = attributeValue.getValue();
 
       XmlAttribute attribute = PsiTreeUtil.getParentOfType(getElement(), XmlAttribute.class, true);
-      if (attribute != null && value.equals(myFromValue)) {
+      if (attribute != null && value != null && value.equals(myFromValue)) {
         attribute.setValue(myToValue);
       }
+      return null;
     }
   }
 
@@ -159,43 +162,41 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     private final String mySuggestedSuperClass;
 
-    public ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NonNull String suggestedSuperClass) {
+    public ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NotNull String suggestedSuperClass) {
       super(element);
       mySuggestedSuperClass = suggestedSuperClass;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       PsiClass psiClass = MigrateToAppCompatUtil.findOrCreateClass(getProject(), migration, mySuggestedSuperClass);
 
       PsiElement element = getElement();
       assert element != null;
       if (!element.isValid()) {
-        return;
+        return null;
       }
       PsiReference reference = element.getReference();
       if (reference != null) {
-        PsiElement updatedReference = reference.bindToElement(psiClass);
-        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(getProject());
-        styleManager.shortenClassReferences(updatedReference);
-        styleManager.optimizeImports(updatedReference.getContainingFile());
+        return reference.bindToElement(psiClass);
       }
+      return null;
     }
   }
 
   static class ReplaceMethodUsageInfo extends MigrateToAppCompatUsageInfo {
     private final ReplaceMethodCallMigrationEntry myEntry;
 
-    public ReplaceMethodUsageInfo(@NonNull PsiReference element, @NonNull ReplaceMethodCallMigrationEntry entry) {
+    public ReplaceMethodUsageInfo(@NotNull PsiReference element, @NotNull ReplaceMethodCallMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration psiMigration) {
+    public PsiElement applyChange(@NotNull PsiMigration psiMigration) {
       PsiElement element = getElement();
       if (!(element instanceof PsiReference) || !isValid()) {
-        return;
+        return null;
       }
       PsiReference reference = (PsiReference)element;
 
@@ -204,11 +205,11 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
       if (!(element instanceof PsiReferenceExpression)
           || ((PsiReferenceExpression)element).getQualifierExpression() == null) {
-        return;
+        return null;
       }
       PsiMethodCallExpression oldMethodCall = PsiTreeUtil.getParentOfType(reference.getElement(), PsiMethodCallExpression.class);
       if (oldMethodCall == null) {
-        return;
+        return null;
       }
       // Get the argument list of the old call.
       PsiExpressionList argList = oldMethodCall.getArgumentList();
@@ -236,7 +237,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       //noinspection ConstantConditions
       ((PsiReferenceExpression)call.getMethodExpression().getQualifierExpression()).bindToElement(psiClass);
 
-      oldMethodCall.replace(call);
+      return oldMethodCall.replace(call);
     }
   }
 
@@ -244,17 +245,17 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     private final AppCompatMigrationEntry.XmlTagMigrationEntry myEntry;
 
     public ChangeXmlTagUsageInfo(@NotNull PsiElement element,
-                                 @NonNull AppCompatMigrationEntry.XmlTagMigrationEntry entry) {
+                                 @NotNull AppCompatMigrationEntry.XmlTagMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       PsiElement element = getElement();
       XmlTag xmlTag = PsiTreeUtil.getParentOfType(element, XmlTag.class, false);
       if (xmlTag == null || !xmlTag.getLocalName().equals(myEntry.myOldTagName)) {
-        return;
+        return element;
       }
       PsiFile file = element.getContainingFile();
       assert file instanceof XmlFile;
@@ -265,23 +266,24 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       else {
         xmlTag.setName(myEntry.myNewTagName);
       }
+      return null;
     }
   }
 
   static class ChangeXmlAttrUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeMigrationEntry myEntry;
 
-    public ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NonNull AttributeMigrationEntry entry) {
+    public ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NotNull AttributeMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       PsiElement element = getElement();
       XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
       if (currentAttr == null || !currentAttr.getLocalName().equals(myEntry.myOldAttributeName)) {
-        return;
+        return element;
       }
       PsiFile file = element.getContainingFile();
       assert file instanceof XmlFile;
@@ -292,28 +294,30 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         String prefixUsed = AndroidResourceUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
         currentAttr.setName(prefixUsed + ":" + myEntry.myNewAttributeName);
       }
+      return null;
     }
   }
 
   static class ChangeXmlAttrValueUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeValueMigrationEntry myEntry;
 
-    public ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NonNull AttributeValueMigrationEntry entry) {
+    public ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NotNull AttributeValueMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
 
     @Override
-    public void applyChange(@NonNull PsiMigration migration) {
+    public PsiElement applyChange(@NotNull PsiMigration migration) {
       // TODO: does it matter when this is done? after or before an XmlAttribute is changed?
       PsiElement element = getElement();
       XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
       if (currentAttr == null) {
-        return;
+        return null;
       }
       PsiFile file = element.getContainingFile();
       assert file instanceof XmlFile;
       currentAttr.setValue(myEntry.myNewAttrValue);
+      return null;
     }
   }
 }

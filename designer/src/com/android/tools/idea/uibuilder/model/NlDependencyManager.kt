@@ -42,7 +42,7 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
   }
 
   /**
-   * Make sure the dependencies of the components being added are present in the module.
+   * Make sure the dependencies of the components being added are present and resolved in the module.
    * If they are not: ask the user if they can be added now.
    * Return true if the dependencies are present now (they may have just been added).
    */
@@ -112,7 +112,7 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
-    component.children?.flatMap { getDependencies(it) }?.toCollection(artifacts)
+    component.children.flatMap { getDependencies(it) }.toCollection(artifacts)
 
     return artifacts.toSet()
   }
@@ -138,7 +138,7 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
     }
 
     override fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Boolean {
-      return GradleDependencyManager.getInstance(module.project).addDependencies(module, dependencies, null)
+      return GradleDependencyManager.getInstance(module.project).addDependenciesAndSync(module, dependencies, null)
     }
   }
 }

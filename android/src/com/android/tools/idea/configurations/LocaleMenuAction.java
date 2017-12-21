@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -42,6 +43,12 @@ import java.util.List;
 import java.util.Set;
 
 public class LocaleMenuAction extends DropDownAction {
+
+  /**
+   * The default locale label which displays on Language button by default.
+   */
+  private static final String DEFAULT_LOCALE_LABEL = "Default (en-us)";
+
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
@@ -60,23 +67,27 @@ public class LocaleMenuAction extends DropDownAction {
     // other advantages: fitting in with the overall IDE look and feel (e.g. dark colors),
     // allowing typing to filter, etc.
 
+    Configuration conf = myRenderContext.getConfiguration();
+    String currentLocalLabel = getLocaleLabel(conf == null ? Locale.ANY : conf.getLocale(), false);
+
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && !locales.isEmpty()) {
-      add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
+      String title = getLocaleLabel(Locale.ANY, false);
+      add(new SetLocaleAction(myRenderContext, title, Locale.ANY, currentLocalLabel.equals(title)));
       addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
-        String title = getLocaleLabel(locale, false);
+        title = getLocaleLabel(locale, false);
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
           title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
-        add(new SetLocaleAction(myRenderContext, title, locale));
+        add(new SetLocaleAction(myRenderContext, title, locale, currentLocalLabel.equals(title)));
       }
 
       addSeparator();
@@ -179,7 +190,8 @@ public class LocaleMenuAction extends DropDownAction {
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
-      String brief = getLocaleLabel(locale, true);
+      // TODO: remove the tail space after we fix the offset of Dropdown arrow in DropDownAction.
+      String brief = getLocaleLabel(locale, true) + " ";
       presentation.setText(brief);
     }
     else {
@@ -199,12 +211,8 @@ public class LocaleMenuAction extends DropDownAction {
    * @return the label
    */
   public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    if (locale == null) {
-      return "Language";
-    }
-
-    if (!locale.hasLanguage()) {
-      return "Language";
+    if (locale == null || !locale.hasLanguage()) {
+      return DEFAULT_LOCALE_LABEL;
     }
 
     String languageCode = locale.qualifier.getLanguage();
@@ -218,7 +226,7 @@ public class LocaleMenuAction extends DropDownAction {
       //} else {
       //    return String.format("%1$s / Any", language);
       //}
-      if (!brief && languageName != null) {
+      if (languageName != null) {
         return String.format("%1$s (%2$s)", languageName, languageCode);
       }
       else {
@@ -235,18 +243,27 @@ public class LocaleMenuAction extends DropDownAction {
         }
         return String.format("%1$s (%2$s) in %3$s", languageName, languageCode, regionCode);
       }
-      return String.format("%1$s / %2$s", languageCode, regionCode);
+      return String.format("%1$s (%2$s / %3$s)", languageName, languageCode, regionCode);
     }
   }
 
-  private static class SetLocaleAction extends ConfigurationAction {
+  private class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
 
-    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale) {
+    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
-      super(renderContext, title, locale.getFlagImage());
+      super(renderContext, title);
       myLocale = locale;
+      if (isCurrentLocale) {
+        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      }
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      super.actionPerformed(e);
+      updateActions();
     }
 
     @Override

@@ -200,8 +200,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectNetworkDetailsResponse() {
-    track(AndroidProfilerEvent.Type.SELECT_DETAILS_RESPONSE);
+  public void trackSelectNetworkDetailsOverview() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_OVERVIEW);
   }
 
   @Override
@@ -210,8 +210,23 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectNetworkDetailsResponse() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_RESPONSE);
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsRequest() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_REQUEST);
+  }
+
+  @Override
   public void trackSelectNetworkDetailsStack() {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_STACK);
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsError() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_ERROR);
   }
 
   @Override

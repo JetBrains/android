@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceType
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
@@ -61,26 +56,28 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
                           parent: NlComponent?,
                           newSelection: List<NlComponent>,
                           toolbar: Boolean) {
-    group.add(AddMenuWrapper(mySurface, destinations))
+    group.add(CreateDestinationMenu(mySurface))
+    group.add(AddExistingDestinationMenu(mySurface, destinations))
   }
 
   @VisibleForTesting
   val destinations: List<Destination>
     get() {
       val model = mySurface.model!!
-      val result = LinkedHashMap<PsiClass, Destination>()
+      val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
       val schema = mySurface.schema
 
       val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
       val project = model.project
+      val parent = mySurface.currentNavigation
       for (superClassName in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE.keys) {
         val psiSuperClass = JavaPsiFacade.getInstance(project).findClass(superClassName, GlobalSearchScope.allScope(project)) ?: continue
         val tag = schema.getTagForComponentSuperclass(superClassName) ?: continue
         val query = ClassInheritorsSearch.search(psiSuperClass, scope, true)
         for (psiClass in query) {
-          val destination = Destination.create(null, psiClass, tag, ACTIVITY_IMAGE) ?: continue
-          result.put(psiClass, destination)
+          val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName)
+          classToDestination.put(psiClass, destination)
         }
       }
 
@@ -95,59 +92,26 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
           for (item in itemComputable?.compute() ?: continue) {
             val element = item.element as? PsiClass ?: continue
             val tag = schema.findTagForComponent(element) ?: continue
-            val destination = Destination.create(resourceFile, element, tag, ACTIVITY_IMAGE) ?: continue
-            result.put(element, destination)
+            val destination =
+                Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
+            classToDestination.put(element, destination)
           }
         }
       }
+      val result = classToDestination.values.toMutableList()
 
-      return ArrayList(result.values)
-    }
-
-  @VisibleForTesting
-  data class Destination(val layoutFile: XmlFile?, val className: String, val qualifiedName: String,
-                                            val tag: String, val thumbnail: Image?) {
-
-    companion object {
-      fun create(layout: XmlFile?, psiClass: PsiClass, tag: String, thumbnail: Image): Destination? {
-        val className = psiClass.name ?: return null
-        val qualifiedName = psiClass.qualifiedName ?: return null
-        return Destination(layout, className, qualifiedName, tag, thumbnail)
-      }
-    }
-  }
-
-  companion object {
-
-    fun addElement(destination: Destination?, surface: NavDesignSurface) {
-      object : WriteCommandAction<Unit>(surface.project, "Create Fragment", surface.model!!.file) {
-        @Throws(Throwable::class)
-        override fun run(result: Result<Unit>) {
-          var tagName = surface.schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)
-          if (destination != null) {
-            tagName = destination.tag
-          }
-          val parent = surface.currentNavigation
-          val tag = parent.tag.createChildTag(tagName, null, null, true)
-          var idBase = tagName
-          if (destination != null) {
-            idBase = destination.qualifiedName
-          }
-          val newComponent = surface.model!!.createComponent(tag, parent, null)
-          newComponent.assignId(idBase!!)
-          if (destination != null) {
-            newComponent.setAttribute(ANDROID_URI, ATTR_NAME, destination.qualifiedName)
-            val layout = destination.layoutFile
-            if (layout != null) {
-              // TODO: do this the right way
-              val layoutId = "@" + ResourceType.LAYOUT.getName() + "/" + FileUtil.getNameWithoutExtension(layout.name)
-              newComponent.setAttribute(TOOLS_URI, ATTR_LAYOUT, layoutId)
-            }
-          }
+      for (navPsi in resourceManager!!.findResourceFiles(ResourceFolderType.NAVIGATION)) {
+        if (mySurface.model!!.file == navPsi) {
+          continue
         }
-      }.execute()
+        if (navPsi is XmlFile) {
+          result.add(Destination.IncludeDestination(navPsi.name, parent))
+        }
+      }
+
+      return result
     }
-  }
+
 }
 
 // TODO: replace with an appropriate dynamically-determined icon

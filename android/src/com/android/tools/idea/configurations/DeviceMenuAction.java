@@ -173,6 +173,9 @@ public class DeviceMenuAction extends DropDownAction {
     if (!deviceList.isEmpty()) {
       Map<String, List<Device>> manufacturers = new TreeMap<>();
       for (Device device : deviceList) {
+        if (Configuration.CUSTOM_DEVICE_ID.equals(device.getId())) {
+          continue;
+        }
         List<Device> devices;
         if (manufacturers.containsKey(device.getManufacturer())) {
           devices = manufacturers.get(device.getManufacturer());
@@ -208,6 +211,9 @@ public class DeviceMenuAction extends DropDownAction {
       addDeviceSection(this, current, deviceMap, false, FormFactor.WEAR);
       addSeparator();
       addDeviceSection(this, current, deviceMap, false, FormFactor.TV);
+      addSeparator();
+
+      add(new SetCustomDeviceAction(myRenderContext, current));
       addSeparator();
 
       AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
@@ -368,6 +374,34 @@ public class DeviceMenuAction extends DropDownAction {
       else {
         configuration.setDevice(myDevice, true);
       }
+    }
+  }
+
+  private class SetCustomDeviceAction extends ConfigurationAction {
+    private final Device myDevice;
+
+    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable final Device device) {
+      super(renderContext, "Custom");
+      myDevice = device;
+      if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
+        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      }
+    }
+
+    @Override
+    protected void updatePresentation(@NotNull Presentation presentation) {
+      DeviceMenuAction.this.updatePresentation(presentation);
+    }
+
+    @Override
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      Device.Builder customBuilder = new Device.Builder(myDevice);
+      customBuilder.setTagId(myDevice.getTagId());
+      customBuilder.setName("Custom");
+      customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
+      Device custom = customBuilder.build();
+      configuration.getConfigurationManager().getDevices().add(custom);
+      configuration.setEffectiveDevice(custom, myDevice.getDefaultState());
     }
   }
 }

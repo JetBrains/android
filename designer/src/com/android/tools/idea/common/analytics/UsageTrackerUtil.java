@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
@@ -168,19 +167,6 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  static LayoutPaletteEvent.ViewType convertPaletteMode(@NotNull PaletteMode paletteMode) {
-    switch (paletteMode) {
-      case LARGE_ICONS:
-        return LayoutPaletteEvent.ViewType.LARGE_IONS;
-      case SMALL_ICONS:
-        return LayoutPaletteEvent.ViewType.SMALL_ICONS;
-      case ICON_AND_NAME:
-      default:
-        return LayoutPaletteEvent.ViewType.ICON_AND_NAME;
-    }
-  }
-
-  @NotNull
   static LayoutAttributeChangeEvent.ViewType convertPropertiesMode(@NotNull PropertiesViewMode propertiesMode) {
     switch (propertiesMode) {
       case TABLE:
@@ -277,7 +263,6 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  @VisibleForTesting
   static AndroidView convertTagName(@NotNull String tagName) {
     tagName = acceptedGoogleTagNamespace(tagName) ? StringUtil.getShortName(tagName, '.') : CUSTOM_NAME;
     return AndroidView.newBuilder()

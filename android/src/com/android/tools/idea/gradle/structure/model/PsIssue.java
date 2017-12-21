@@ -33,7 +33,6 @@ public final class PsIssue {
   @NotNull private final Severity mySeverity;
 
   @Nullable private final String myDescription;
-  @Nullable private PsPath myExtraPath;
   @Nullable private PsPath myQuickFixPath;
 
   public PsIssue(@NotNull String text, @NotNull PsPath path, @NotNull PsIssueType type, @NotNull Severity severity) {
@@ -74,15 +73,6 @@ public final class PsIssue {
   @NotNull
   public PsPath getPath() {
     return myPath;
-  }
-
-  @Nullable
-  public PsPath getExtraPath() {
-    return myExtraPath;
-  }
-
-  public void setExtraPath(@Nullable PsPath extraPath) {
-    myExtraPath = extraPath;
   }
 
   @Nullable

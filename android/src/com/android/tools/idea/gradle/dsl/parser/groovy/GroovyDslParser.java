@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
@@ -71,6 +72,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.*;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
@@ -187,26 +190,26 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     // Otherwise resolve the value and then return the resolved text.
-    Collection<GradleStringInjection> injections = getInjections(context, literal);
-    return ensureUnquotedText(GradleStringInjection.injectAll(literal, injections));
+    Collection<GradleReferenceInjection> injections = getInjections(context, literal);
+    return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
   }
 
   @Override
   @NotNull
-  public Collection<GradleStringInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+  public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
     if (!(psiElement instanceof GrString)) {
       return Collections.emptyList();
     }
 
-    List<GradleStringInjection> injections = Lists.newArrayList();
+    List<GradleReferenceInjection> injections = Lists.newArrayList();
     GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
     for (GrStringInjection injection : grStringInjections) {
       if (injection != null) {
         String name = getInjectionName(injection);
         if (name != null) {
           GradleDslElement referenceElement = context.resolveReference(name);
-          if (referenceElement instanceof GradleDslExpression) {
-            injections.add(new GradleStringInjection((GradleDslExpression)referenceElement, injection, name));
+          if (referenceElement != null) {
+            injections.add(new GradleReferenceInjection(referenceElement, injection, name));
           }
         }
       }
@@ -441,6 +444,7 @@ public class GroovyDslParser implements GradleDslParser {
         return false;
       }
 
+      variableElement.setElementType(VARIABLE);
       blockElement.setParsedVariable(variable.getName(), variableElement);
     }
     return true;
@@ -480,6 +484,7 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
     propertyElement.setUseAssignment(true);
+    propertyElement.setElementType(REGULAR);
 
     blockElement.setParsedElement(propertyName, propertyElement);
     return true;

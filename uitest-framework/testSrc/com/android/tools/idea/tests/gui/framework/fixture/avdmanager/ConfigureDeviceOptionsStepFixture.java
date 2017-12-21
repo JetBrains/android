@@ -15,38 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureDeviceOptionsStepFixture extends AbstractWizardStepFixture<ConfigureDeviceOptionsStepFixture> {
-  protected ConfigureDeviceOptionsStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureDeviceOptionsStepFixture.class, robot, target);
+public class ConfigureDeviceOptionsStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureDeviceOptionsStepFixture, W> {
+
+  protected ConfigureDeviceOptionsStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureDeviceOptionsStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureDeviceOptionsStepFixture setDeviceName(@NotNull String deviceName) {
+  public ConfigureDeviceOptionsStepFixture<W> setDeviceName(@NotNull String deviceName) {
     replaceText(findTextFieldWithLabel("Device Name"), deviceName);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture setScreenSize(String screenSize) {
-    replaceText(findTextFieldWithLabel("Screen size:"), screenSize);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture setScreenResolutionX(String width) {
-    replaceText(findTextFieldWithLabel("Resolution:"), width);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture setScreenResolutionY(String height) {
-    replaceText(findTextFieldWithLabel("x"), height);
     return this;
   }
 }

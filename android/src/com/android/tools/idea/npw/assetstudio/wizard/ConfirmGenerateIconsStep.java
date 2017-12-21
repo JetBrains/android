@@ -21,11 +21,10 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
@@ -33,10 +32,12 @@ import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.primitives.Ints;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,6 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -55,29 +55,32 @@ import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
+public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel>
+    implements PersistentStateComponent<PersistentState> {
+  /** Limit the size of icons in the preview tree so that the tree doesn't look unnatural. */
+  private static final int MAX_ICON_HEIGHT = 24;
 
-  /**
-   * In our tree of icon previews, we keep row height to a reasonable maximum to prevent super
-   * large icons from taking up the whole page.
-   */
-  private static final int MAX_TREE_ROW_HEIGHT = 200;
+  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
+  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
 
+  private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
 
   private JPanel myRootPanel;
-  private JComboBox myPathsComboBox;
+  private JComboBox<NamedModuleTemplate> myPathsComboBox;
   private Tree myOutputPreviewTree;
 
-  private ObservableValue<NamedModuleTemplate> mySelectedTemplate;
+  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
   public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
+    Preconditions.checkArgument(!templates.isEmpty());
+    myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    DefaultComboBoxModel moduleTemplatesModel = new DefaultComboBoxModel();
+    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
@@ -98,24 +101,53 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");
 
     String alreadyExistsError = WizardUtils.toHtmlString(
-      "Some existing files will be overwritten by this operation.<br>" +
-      "Files which replace existing files are marked red in the preview above.");
+        "Some existing files will be overwritten by this operation.<br>" +
+        "Files which replace existing files are marked red in the preview above.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected JComponent getComponent() {
     return myValidatorPanel;
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedTemplate = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+
+    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
   }
 
-  @NotNull
   @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
+  }
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
+    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
+    if (templateName != null) {
+      for (NamedModuleTemplate template : myTemplates) {
+        if (template.getName().equals(templateName)) {
+          mySelectedTemplate.set(template);
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  @NotNull
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
   }
@@ -135,7 +167,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         return;
       }
 
-      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(template.getPaths());
+      Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
       int minHeight = Integer.MAX_VALUE;
@@ -145,27 +177,24 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         maxHeight = Math.max(maxHeight, image.getHeight());
       }
 
-      ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy(new Comparator<File>() {
-        @Override
-        public int compare(File file1, File file2) {
-          String path1 = file1.getAbsolutePath();
-          String path2 = file2.getAbsolutePath();
-          Density density1 = pathToDensity(path1);
-          Density density2 = pathToDensity(path2);
+      ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy((file1, file2) -> {
+        String path1 = file1.getAbsolutePath();
+        String path2 = file2.getAbsolutePath();
+        Density density1 = pathToDensity(path1);
+        Density density2 = pathToDensity(path2);
 
-          if (density1 != null && density2 != null && density1 != density2) {
-            // Sort least dense to most dense
-            return Ints.compare(density2.ordinal(), density1.ordinal());
-          }
-          else {
-            BufferedImage image1 = pathIconMap.get(file1);
-            BufferedImage image2 = pathIconMap.get(file2);
-            int compareValue = Ints.compare(image2.getHeight(), image1.getHeight());
-            // If heights are the same, use path as a tie breaker
-            return (compareValue != 0) ? compareValue : path2.compareTo(path1);
-          }
-
+        if (density1 != null && density2 != null && density1 != density2) {
+          // Sort least dense to most dense
+          return Integer.compare(density2.ordinal(), density1.ordinal());
         }
+        else {
+          BufferedImage image1 = pathIconMap.get(file1);
+          BufferedImage image2 = pathIconMap.get(file2);
+          int compareValue = Integer.compare(image2.getHeight(), image1.getHeight());
+          // If heights are the same, use path as a tie breaker.
+          return compareValue != 0 ? compareValue : path2.compareTo(path1);
+        }
+
       });
       sortedPaths.addAll(pathIconMap.keySet());
 
@@ -181,26 +210,25 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         // By default, icons grow exponentially, and if presented at scale, may take up way too
         // much real estate. Instead, let's scale down all icons proportionally so the largest
         // one fits in our maximum allowed space.
-        if (maxHeight > MAX_TREE_ROW_HEIGHT) {
-          int hCurr = image.getHeight(null);
-          int wCurr = image.getWidth(null);
+        if (maxHeight > MAX_ICON_HEIGHT) {
+          int height = image.getHeight(null);
+          int width = image.getWidth(null);
 
           double hScale;
           if (maxHeight != minHeight) {
-            // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_TREE_ROW_HEIGHT
-            double hCurrPercent = (double)(hCurr - minHeight) / (double)(maxHeight - minHeight);
-            double scaledDeltaH = hCurrPercent * (MAX_TREE_ROW_HEIGHT - minHeight);
+            // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_ICON_HEIGHT
+            double hCurrPercent = (double)(height - minHeight) / (double)(maxHeight - minHeight);
+            double scaledDeltaH = hCurrPercent * (MAX_ICON_HEIGHT - minHeight);
             double hCurrScaled = minHeight + scaledDeltaH;
-            hScale = hCurrScaled / hCurr;
+            hScale = hCurrScaled / height;
           }
           else {
-            // This happens if there's only one entry in the list and it's larger than
-            // MAX_TREE_ROW_HEIGHT
-            hScale = MAX_TREE_ROW_HEIGHT / (double)hCurr;
+            // This happens if there's only one entry in the list and it's larger than MAX_TREE_ROW_HEIGHT.
+            hScale = MAX_ICON_HEIGHT / (double)height;
           }
 
-          int hFinal = (int)(hCurr * hScale);
-          int wFinal = (int)(wCurr * hScale);
+          int hFinal = (int)JBUI.scale((float)(height * hScale));
+          int wFinal = (int)JBUI.scale((float)(width * hScale));
           image = image.getScaledInstance(wFinal, hFinal, Image.SCALE_SMOOTH);
         }
 

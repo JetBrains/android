@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDropIndexStatement extends RoomStatement {
+public interface RoomDropIndexStatement extends PsiElement {
 
   @Nullable
   RoomDatabaseName getDatabaseName();

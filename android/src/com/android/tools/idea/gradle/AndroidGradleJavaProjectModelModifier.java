@@ -245,14 +245,15 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (version == null) {
       GoogleMavenArtifactId library = GoogleMavenArtifactId.Companion.find(libraryGroupId, libraryArtifactId);
       if (library != null) {
-        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, false);
+        Predicate<GradleVersion> filter =
+          descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
+
+        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);
         if (gc == null) {
           AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
           if (sdk == null) {
             return null;
           }
-          Predicate<GradleVersion> filter =
-            descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
 
           gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
                                                              filter, false,

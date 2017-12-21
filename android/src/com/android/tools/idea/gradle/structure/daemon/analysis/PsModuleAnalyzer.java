@@ -37,7 +37,6 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
   }
 
   protected void analyzeDeclaredDependency(@NotNull PsLibraryDependency dependency,
-                                           @NotNull PsModulePath modulePath,
                                            @NotNull PsIssueCollection issueCollection) {
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
     PsPath path = new PsLibraryDependencyNavigationPath(dependency);
@@ -48,7 +47,6 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
       PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
-      issue.setExtraPath(modulePath);
 
       PsPath quickFix =
         new PsLibraryDependencyVersionQuickFixPath(dependency, PsLibraryDependencyVersionQuickFixPath.DEFAULT_QUICK_FIX_TEXT);
@@ -63,7 +61,6 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
                            "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
                            "documentation</a>";
       PsIssue issue = new PsIssue(message, description, path, PROJECT_ANALYSIS, INFO);
-      issue.setExtraPath(modulePath);
       issueCollection.add(issue);
     }
   }

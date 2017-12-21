@@ -18,12 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureJavaLibraryStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
+public class NewModuleDialogFixture extends AbstractWizardFixture<NewModuleDialogFixture> {
 
   public static NewModuleDialogFixture find(IdeFrameFixture ideFrameFixture) {
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Create New Module"));
@@ -39,13 +38,10 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   }
 
   private final IdeFrameFixture myIdeFrameFixture;
-  private final JDialog myDialog;
-  private final Robot myRobot;
 
   private NewModuleDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
+    super(NewModuleDialogFixture.class, ideFrameFixture.robot(), dialog);
     myIdeFrameFixture = ideFrameFixture;
-    myDialog = dialog;
-    myRobot = ideFrameFixture.robot();
   }
 
   @NotNull
@@ -98,25 +94,12 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
 
   @NotNull
   public ConfigureJavaLibraryStepFixture<NewModuleDialogFixture> getConfigureJavaLibaryStepFixture() {
-    return new ConfigureJavaLibraryStepFixture(this);
+    return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public IdeFrameFixture clickFinish() {
-    GuiTests.findAndClickButton(this, "Finish");
-    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    super.clickFinish(Wait.seconds(5));
     return myIdeFrameFixture;
-  }
-
-  @NotNull
-  @Override
-  public JDialog target() {
-    return myDialog;
-  }
-
-  @NotNull
-  @Override
-  public Robot robot() {
-    return myRobot;
   }
 }

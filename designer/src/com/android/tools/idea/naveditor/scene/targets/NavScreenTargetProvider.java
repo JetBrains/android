@@ -59,7 +59,8 @@ public class NavScreenTargetProvider implements TargetProvider {
     Map<String, SceneComponent> groupMap = new HashMap<>();
     for (SceneComponent sibling : parent.getChildren()) {
       sibling.flatten().forEach(
-        component -> groupMap.put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
+        component -> groupMap
+          .put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
     }
     nlComponent.flatten()
       .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))

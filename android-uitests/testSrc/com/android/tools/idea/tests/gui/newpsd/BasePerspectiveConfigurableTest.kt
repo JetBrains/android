@@ -40,7 +40,7 @@ class BasePerspectiveConfigurableTest {
   }
 
   @Test
-  fun `Ensure Modules list is hidden and restored correctly`() {
+  fun testModulesListIsHiddenAndRestored() {
     guiTest
         .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
         .openFromMenu({ ProjectStructureDialogFixture.find(it) }, "File", "Project Structure...") {

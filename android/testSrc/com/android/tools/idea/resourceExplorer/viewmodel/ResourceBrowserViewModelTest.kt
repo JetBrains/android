@@ -69,7 +69,7 @@ class ResourceBrowserViewModelTest {
 
     val resourceBrowserViewModel = ResourceBrowserViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
-    val designAssetSet = getAssetSets(virtualFile)
+    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"))
     resourceBrowserViewModel.importDesignAssetSet(designAssetSet[0])
     val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.DRAWABLE, repository.resourceDirs)
     assertEquals(2, resourceSubdirs.size)

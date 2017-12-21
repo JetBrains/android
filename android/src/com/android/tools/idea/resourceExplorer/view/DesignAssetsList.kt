@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceBrowserViewModel
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Image
 import javax.swing.*
 
 /**
- * A Jlist that display [DesignAssetSet].
+ * A JList that display [DesignAssetSet].
  */
-class DesignAssetsList(listModel: DesignAssetListModel) : JList<DesignAssetSet>(listModel) {
+class DesignAssetsList(private val browserViewModel: ResourceBrowserViewModel)
+  : JList<DesignAssetSet>(browserViewModel.designAssetListModel)
+{
 
   init {
     layoutOrientation = JList.HORIZONTAL_WRAP
@@ -33,7 +36,7 @@ class DesignAssetsList(listModel: DesignAssetListModel) : JList<DesignAssetSet>(
     cellRenderer = ListCellRenderer<DesignAssetSet>
     { list, assetSet, index, isSelected, cellHasFocus ->
       getDesignAssetView(
-          assetSet.getHighestDensityAsset().file.path,
+          browserViewModel.getSourcePreview(assetSet.getHighestDensityAsset()),
           assetSet.name,
           isSelected
       )
@@ -41,25 +44,25 @@ class DesignAssetsList(listModel: DesignAssetListModel) : JList<DesignAssetSet>(
   }
 
   private fun getDesignAssetView(
-      iconPath: String,
+      preview: Image,
       name: String,
       selected: Boolean = false
 
   ): JPanel {
     val panel = JPanel(BorderLayout())
     panel.border = if (selected) {
-        BorderFactory.createCompoundBorder(
-            BorderFactory.createEmptyBorder(2, 2, 2, 2),
-            BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), 2, true))
-      }
-      else {
-        BorderFactory.createEmptyBorder(4, 4, 4, 4)
-      }
-
-      val icon = JLabel(ImageIcon(iconPath))
-      icon.border = BorderFactory.createEmptyBorder(18, 18, 18, 18)
-      panel.add(icon)
-      panel.add(JLabel(name, JLabel.CENTER), BorderLayout.SOUTH)
-      return panel
+      BorderFactory.createCompoundBorder(
+          BorderFactory.createEmptyBorder(2, 2, 2, 2),
+          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), 2, true))
     }
+    else {
+      BorderFactory.createEmptyBorder(4, 4, 4, 4)
+    }
+
+    val icon = JLabel(ImageIcon(preview))
+    icon.border = BorderFactory.createEmptyBorder(18, 18, 18, 18)
+    panel.add(icon)
+    panel.add(JLabel(name, JLabel.CENTER), BorderLayout.SOUTH)
+    return panel
   }
+}

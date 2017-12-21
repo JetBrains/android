@@ -163,7 +163,7 @@ public class AndroidImportProjectAction extends AnAction {
     return createImportWizard(file);
   }
 
-  private boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
+  private static boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
     ProjectImportPathValidator validator = new ProjectImportPathValidator("project file");
     Validator.Result result = validator.validate(file.getPath());
     if (result.getSeverity() != Validator.Severity.OK) {

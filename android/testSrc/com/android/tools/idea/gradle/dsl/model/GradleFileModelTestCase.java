@@ -118,6 +118,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(myBuildFile, text);
   }
 
+  @NotNull
+  protected String loadBuildFile() throws IOException {
+    return loadFile(myBuildFile);
+  }
+
   protected void writeToPropertiesFile(@NotNull String text) throws IOException {
     writeToFile(myPropertiesFile, text);
   }

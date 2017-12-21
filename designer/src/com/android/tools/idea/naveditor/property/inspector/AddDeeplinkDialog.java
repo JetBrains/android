@@ -41,11 +41,11 @@ public class AddDeeplinkDialog extends DialogWrapper {
     init();
     if (existing == null) {
       myOKAction.putValue(Action.NAME, "Add");
-      setTitle("Add Deeplink");
+      setTitle("Add Deep Link");
     }
     else {
       myOKAction.putValue(Action.NAME, "Update");
-      setTitle("Update Deeplink");
+      setTitle("Update Deep Link");
     }
   }
 

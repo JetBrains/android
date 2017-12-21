@@ -33,7 +33,7 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,6 +117,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CAPTURING,
     // A capture is being parsed
     PARSING,
+    // A capture parsing has failed
+    PARSING_FAILURE,
     // Waiting for the service to respond a start capturing call
     STARTING,
     // Waiting for the service to respond a stop capturing call
@@ -457,9 +459,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
 
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
-      // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
-      myCaptureState = CaptureState.IDLE;
       if (parsedCapture != null) {
+        setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         saveTraceInfo(traceId, parsedCapture);
@@ -472,6 +473,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
+        setCaptureState(CaptureState.PARSING_FAILURE);
+        // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+        setCaptureState(CaptureState.IDLE);
         setCapture(null);
       }
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
@@ -580,7 +584,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Didn't find anything, so set it to null.
     setCapture(null);
-    myAspect.changed(CpuProfilerAspect.CAPTURE_SELECTION);
   }
 
   private long currentTimeNs() {

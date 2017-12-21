@@ -15,9 +15,19 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.tools.idea.projectsystem.*;
+import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class HtmlLinkManagerTest extends TestCase {
   public void testRunnable() {
@@ -46,5 +56,64 @@ public class HtmlLinkManagerTest extends TestCase {
     manager.handleUrl(url2, null, null, null, null);
     assertFalse(result1.get());
     assertTrue(result2.get());
+  }
+
+  public void testHandleAddDependency() {
+    List<GoogleMavenArtifactId> addedArtifacts = new ArrayList<>();
+
+    AndroidModuleSystem moduleSystem = new AndroidModuleSystem() {
+      @NotNull
+      @Override
+      public CapabilityStatus getInstantRunSupport() {
+        return new CapabilityNotSupported();
+      }
+
+      @NotNull
+      @Override
+      public CapabilityStatus canGeneratePngFromVectorGraphics() {
+        return new CapabilityNotSupported();
+      }
+
+      @Override
+      public void addDependencyWithoutSync(@NotNull GoogleMavenArtifactId artifactId, @Nullable GoogleMavenArtifactVersion version)
+        throws DependencyManagementException {
+        assertNull(version);
+        addedArtifacts.add(artifactId);
+      }
+
+      @Nullable
+      @Override
+      public GoogleMavenArtifactVersion getDeclaredVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public GoogleMavenArtifactVersion getResolvedVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
+        return Collections.emptyList();
+      }
+    };
+
+    // try multiple invalid links
+    HtmlLinkManager.handleAddDependency("addDependency:", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", moduleSystem);
+    assertEquals(0, addedArtifacts.size());
+
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", moduleSystem);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", moduleSystem);
+    assertThat(addedArtifacts.stream().map(Object::toString).collect(Collectors.toList()))
+      .containsExactly("com.android.support:palette-v7",
+                       "com.google.android.gms:play-services",
+                       "com.android.support.constraint:constraint-layout");
   }
 }

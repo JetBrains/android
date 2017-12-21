@@ -36,19 +36,17 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   @Nullable private MemoryProfilerStage myStage;
 
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                   @Nullable Common.Session session,
-                                   int processId,
+                                   @NotNull Common.Session session,
                                    @NotNull RelativeTimeConverter converter,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {
-    super(client, session, processId, converter, featureTracker);
+    super(client, session, converter, featureTracker);
     myStage = stage;
   }
 
   @NotNull
   private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTime(rangeMinNs)
       .setEndTime(rangeMaxNs);
@@ -76,10 +74,10 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
             info,
             () -> {
               if (info.getLegacy()) {
-                return new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter, myFeatureTracker);
+                return new LegacyAllocationCaptureObject(myClient, mySession, info, myConverter, myFeatureTracker);
               }
               else {
-                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, null, myStage);
+                return new LiveAllocationCaptureObject(myClient, mySession, startTimeNs, null, myStage);
               }
             }))));
     }

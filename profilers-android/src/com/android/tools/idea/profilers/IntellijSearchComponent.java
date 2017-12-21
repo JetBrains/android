@@ -168,4 +168,9 @@ public class IntellijSearchComponent implements SearchComponent {
   public void setText(@NotNull String text) {
     myFilterComponent.setFilter(text);
   }
+
+  @Override
+  public void requestFocusInWindow() {
+    myFilterComponent.requestFocusInWindow();
+  }
 }

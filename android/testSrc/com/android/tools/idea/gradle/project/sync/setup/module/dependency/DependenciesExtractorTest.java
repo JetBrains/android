@@ -22,8 +22,8 @@ import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
+import com.android.tools.idea.gradle.stubs.android.TestVariant;
 import com.android.tools.idea.testing.Facets;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
@@ -47,8 +47,8 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
  * Tests for {@link DependenciesExtractor}.
  */
 public class DependenciesExtractorTest extends IdeaTestCase {
-  private AndroidProjectStub myAndroidProject;
-  private VariantStub myVariant;
+  private TestAndroidProject myAndroidProject;
+  private TestVariant myVariant;
   private ModulesByGradlePath myModulesByGradlePath;
   private DependenciesExtractor myDependenciesExtractor;
 
@@ -99,7 +99,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
   }
 
   public void testExtractFromAndroidLibraryWithLocalJar() {
-    String rootDirPath = myAndroidProject.getRootDir().getPath();
+    String rootDirPath = myAndroidProject.getRootFolderPath().getPath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");

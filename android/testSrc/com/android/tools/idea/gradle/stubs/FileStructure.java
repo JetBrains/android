@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.stubs;
 
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+
+import static com.intellij.openapi.util.io.FileUtil.createDirectory;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Structure, in the file system, of an Android-Gradle project.
@@ -44,7 +47,7 @@ public class FileStructure {
    * @param rootDirName      name of the root directory.
    */
   public FileStructure(@NotNull File parentFolderPath, @NotNull String rootDirName) {
-    this(createDirectory(parentFolderPath, rootDirName));
+    this(createFolder(parentFolderPath, rootDirName));
   }
 
   /**
@@ -58,20 +61,20 @@ public class FileStructure {
   }
 
   private void setUpStructure() {
-    createProjectDir("build/apk");
-    createProjectDir("build/assets");
-    createProjectDir("build/classes");
-    createProjectDir("build/dependency-cache");
-    createProjectDir("build/incremental");
-    createProjectDir("build/libs");
-    createProjectDir("build/manifests");
-    createProjectDir("build/res");
-    createProjectDir("build/source");
-    createProjectDir("build/symbols");
-    createProjectDir("src/main/assets");
-    createProjectDir("src/main/java");
-    createProjectDir("src/main/res");
-    createProjectDir("src/instrumentTest/java");
+    createProjectFolder("build/apk");
+    createProjectFolder("build/assets");
+    createProjectFolder("build/classes");
+    createProjectFolder("build/dependency-cache");
+    createProjectFolder("build/incremental");
+    createProjectFolder("build/libs");
+    createProjectFolder("build/manifests");
+    createProjectFolder("build/res");
+    createProjectFolder("build/source");
+    createProjectFolder("build/symbols");
+    createProjectFolder("src/main/assets");
+    createProjectFolder("src/main/java");
+    createProjectFolder("src/main/res");
+    createProjectFolder("src/instrumentTest/java");
   }
 
   /**
@@ -81,17 +84,17 @@ public class FileStructure {
    * @return the created directory.
    */
   @NotNull
-  public File createProjectDir(@NotNull String path) {
-    File dir = createDirectory(myRootFolderPath, path);
+  public File createProjectFolder(@NotNull String path) {
+    File dir = createFolder(myRootFolderPath, path);
     String msg = String.format("Directory '%s' should exist", path);
-    Assert.assertTrue(msg, dir.isDirectory());
+    assertTrue(msg, dir.isDirectory());
     return dir;
   }
 
   @NotNull
-  private static File createDirectory(@NotNull File parent, @NotNull String name) {
-    File dir = new File(parent, name);
-    FileUtil.createDirectory(dir);
+  private static File createFolder(@NotNull File parent, @NotNull String name) {
+    File dir = new File(parent, toSystemIndependentName(name));
+    createDirectory(dir);
     return dir;
   }
 

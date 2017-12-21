@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -86,7 +87,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Common.Device myDevice;
 
-  @Nullable
+  @NotNull
   private Common.Session mySessionData;
 
   @NotNull
@@ -116,11 +117,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.enter();
 
     myUpdater = new Updater(timer);
-    myProfilers = ImmutableList.of(
-      new EventProfiler(this),
-      new CpuProfiler(this),
-      new MemoryProfiler(this),
-      new NetworkProfiler(this));
+    ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
+    profilersBuilder.add(new EventProfiler(this));
+    profilersBuilder.add(new CpuProfiler(this));
+    profilersBuilder.add(new MemoryProfiler(this));
+    profilersBuilder.add(new NetworkProfiler(this));
+    if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
+      profilersBuilder.add(new EnergyProfiler(this));
+    }
+    myProfilers = profilersBuilder.build();
 
     myRelativeTimeConverter = new RelativeTimeConverter(0);
     myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
@@ -305,7 +310,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         endSession();
       }
 
-      mySessionData = null;
+      mySessionData = Common.Session.getDefaultInstance();
 
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
@@ -393,7 +398,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         setStage(new NullMonitorStage(this));
       }
       else if (myProcess.getState() == Common.Process.State.ALIVE) {
-        assert mySessionData != null;
         setStage(new StudioMonitorStage(this));
       }
 
@@ -415,13 +419,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private void endSession() {
-    assert mySessionData != null;
     EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
                                                                             .setDeviceId(myDevice.getDeviceId())
                                                                             .setSessionId(mySessionData.getSessionId())
                                                                             .build());
     myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
-    mySessionData = null;
+    mySessionData = Common.Session.getDefaultInstance();
   }
 
   /**
@@ -497,7 +500,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
-  @Nullable
+  @NotNull
   public Common.Session getSession() {
     return mySessionData;
   }

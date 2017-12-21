@@ -19,9 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
-import com.android.tools.idea.common.actions.IssueNotificationAction;
-import com.android.tools.idea.common.actions.SetZoomAction;
-import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.idea.common.actions.*;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.*;
@@ -31,6 +29,8 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.*;
 
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
@@ -43,21 +43,15 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    DropDownAction designSurfaceMenu = new DropDownAction("", "Select Design Surface",
-                                                          StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addSeparator();
-    designSurfaceMenu.addAction(new RefreshRenderAction(mySurface));
-    group.add(designSurfaceMenu);
-
+    group.add(DESIGN_MODE.registerForAction(createDesignModeAction(),
+                                            new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface));
     group.addSeparator();
 
-    group.add(new OrientationMenuAction(mySurface::getConfiguration, mySurface));
+    group.add(SWITCH_ORIENTATION.registerForAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
+                                                   new ToggleDeviceOrientationAction(mySurface), mySurface));
     group.addSeparator();
-
-    group.add(new DeviceMenuAction(mySurface::getConfiguration));
+    group.add(NEXT_DEVICE.registerForAction(new DeviceMenuAction(mySurface::getConfiguration),
+                                            new SwitchDeviceAction(mySurface), mySurface));
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
 
@@ -68,16 +62,29 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   }
 
   @NotNull
+  private DropDownAction createDesignModeAction() {
+    DropDownAction designSurfaceMenu = new DropDownAction(
+      "", "Select Design Surface",
+      StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
+    designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addSeparator();
+    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface));
+    return designSurfaceMenu;
+  }
+
+  @NotNull
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new SetZoomAction(mySurface, ZoomType.OUT));
+    group.add(ZOOM_OUT.registerForAction(new SetZoomAction(mySurface, ZoomType.OUT), mySurface));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(new SetZoomAction(mySurface, ZoomType.IN));
-    group.add(new SetZoomAction(mySurface, ZoomType.FIT));
+    group.add(ZOOM_IN.registerForAction(new SetZoomAction(mySurface, ZoomType.IN), mySurface));
+    group.add(ZOOM_FIT.registerForAction(new SetZoomAction(mySurface, ZoomType.FIT), mySurface));
     group.addSeparator();
-    group.add(new IssueNotificationAction(mySurface));
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface));
 
     return group;
   }

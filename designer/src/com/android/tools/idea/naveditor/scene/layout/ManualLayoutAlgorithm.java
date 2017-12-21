@@ -85,7 +85,12 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     Deque<String> stack = getParentStack(component);
 
     LayoutPositions positions = getStorage().getState();
-    positions = positions.get(getFileName(component));
+    String name = getFileName(component);
+    if (name == null) {
+      // should only happen in tests.
+      return;
+    }
+    positions = positions.get(name);
     while (!stack.isEmpty()) {
       if (positions == null) {
         break;
@@ -109,7 +114,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   private static Deque<String> getParentStack(@NotNull SceneComponent component) {
     Deque<String> stack = new LinkedList<>();
     NlComponent current = component.getNlComponent();
-    while (current != null) {
+    while (current != null && !current.isRoot()) {
       String id = current.getId();
       if (id == null) {
         NlModel model = current.getModel();
@@ -151,7 +156,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
 
   @NotNull
   private static String getFileName(@NotNull SceneComponent component) {
-    return component.getNlComponent().getModel().getFile().getName();
+    return component.getNlComponent().getModel().getVirtualFile().getName();
   }
 
   @NotNull

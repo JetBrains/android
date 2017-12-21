@@ -29,6 +29,6 @@ public final class ShowStudioFlagsDialogAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    new StudioFlagsDialog().show();
+    new StudioFlagsDialog(e.getProject()).show();
   }
 }

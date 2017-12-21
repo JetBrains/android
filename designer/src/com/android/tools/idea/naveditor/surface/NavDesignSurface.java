@@ -23,9 +23,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneInteraction;
-import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
@@ -45,6 +43,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.JBColor;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -53,16 +52,25 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.annotations.VisibleForTesting.Visibility;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 
 /**
  * {@link DesignSurface} for the navigation editor.
  */
 public class NavDesignSurface extends DesignSurface {
+  private static final int SCROLL_DURATION_MS = 300;
+
   private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
+  @VisibleForTesting
+  AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
@@ -83,6 +91,10 @@ public class NavDesignSurface extends DesignSurface {
       mySchema = NavigationSchema.getOrCreateSchema(model.getFacet());
     }
     return mySchema;
+  }
+
+  @Override
+  public void forceUserRequestedRefresh() {
   }
 
   @NotNull
@@ -124,6 +136,7 @@ public class NavDesignSurface extends DesignSurface {
     getSceneManager().update();
     getSelectionModel().clear();
     getSceneManager().layout(false);
+    zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
@@ -151,6 +164,7 @@ public class NavDesignSurface extends DesignSurface {
     return new Dimension(0, 0);
   }
 
+  @NavCoordinate
   @Override
   @NotNull
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
@@ -165,7 +179,7 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
-    return new Dimension(boundingBox.width, boundingBox.height);
+    return boundingBox.getSize();
   }
 
   @Override
@@ -287,5 +301,59 @@ public class NavDesignSurface extends DesignSurface {
   @SwingCoordinate
   public Dimension getExtentSize() {
     return getScrollPane().getViewport().getExtentSize();
+  }
+
+  public void scrollToCenter(@NotNull List<NlComponent> list) {
+    Scene scene = getScene();
+    SceneView view = getCurrentSceneView();
+    if (list.isEmpty() || scene == null || view == null) {
+      return;
+    }
+
+    @NavCoordinate Rectangle selectionBounds =
+      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent)).collect(Collectors.toList()));
+    @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
+
+    @SwingCoordinate int swingStartCenterXInViewport = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getScrollPosition().x;
+    @SwingCoordinate int swingStartCenterYInViewport = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
+
+    @SwingCoordinate LerpValue xLerp = new LerpValue(swingStartCenterXInViewport, swingViewportSize.width / 2, getScrollDurationMs());
+    @SwingCoordinate LerpValue yLerp = new LerpValue(swingStartCenterYInViewport, swingViewportSize.height / 2, getScrollDurationMs());
+    LerpValue zoomLerp = new LerpValue((int)(view.getScale() * 100), (int)(getFitScale(selectionBounds.getSize(), true) * 100),
+                                       getScrollDurationMs());
+
+    if (getScheduleRef().get() != null) {
+      getScheduleRef().get().cancel(false);
+    }
+
+    Runnable action = () -> {
+      UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+        long time = System.currentTimeMillis();
+        @SwingCoordinate int xSwingValue = xLerp.getValue(time);
+        @SwingCoordinate int ySwingValue = yLerp.getValue(time);
+        @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
+        @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
+
+        setScrollPosition(targetSwingX - xSwingValue, targetSwingY - ySwingValue);
+        setScale(zoomLerp.getValue(time) / 100., targetSwingX, targetSwingY);
+        if (xSwingValue == xLerp.getEnd() && ySwingValue == yLerp.getEnd()) {
+          getScheduleRef().get().cancel(false);
+          getScheduleRef().set(null);
+        }
+      });
+    };
+
+    getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
+  }
+
+  @VisibleForTesting
+  @NotNull
+  AtomicReference<Future<?>> getScheduleRef() {
+    return myScheduleRef;
+  }
+
+  @VisibleForTesting
+  int getScrollDurationMs() {
+    return SCROLL_DURATION_MS;
   }
 }

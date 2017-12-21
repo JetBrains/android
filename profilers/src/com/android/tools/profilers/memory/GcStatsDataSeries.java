@@ -28,16 +28,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
-  @NotNull
-  private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  @NotNull private final Common.Session mySession;
 
-  private final int myProcessId;
-
-  private final Common.Session mySession;
-
-  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session) {
+  public GcStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, @NotNull Common.Session session) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
   }
 
@@ -46,7 +41,6 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

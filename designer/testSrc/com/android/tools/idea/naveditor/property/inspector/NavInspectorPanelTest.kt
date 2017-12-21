@@ -100,7 +100,7 @@ class NavInspectorPanelTest : NavTestCase() {
   }
 
   fun testNested() {
-    val components = listOf(model.find("f2")!!)
+    val components = listOf(model.find("subnav")!!)
     val properties = NlProperties.getInstance().getProperties(myFacet, manager, components)
     panel.setComponent(components, properties, manager)
     @Suppress("UNCHECKED_CAST")
@@ -162,7 +162,7 @@ private fun createPropertyMap(): Multimap<String, String> {
   val map: Multimap<String, String> = HashMultimap.create()
   map.putAll("activity", listOf("name", "action", "data", "dataPattern"))
   map.putAll("fragment", listOf("name"))
-  map.putAll("graph", listOf("startDestination"))
+  map.putAll("navigation", listOf("startDestination"))
   map.putAll("include", listOf("graph"))
   map.keySet().forEach { map.putAll(it, listOf("id", "label"))}
 
@@ -173,6 +173,6 @@ private fun createPropertyMap(): Multimap<String, String> {
 
 private fun validateProperties(type: String, properties: Set<String>) {
   assertContainsElements(properties, typeToProperty[type])
-  val others = typeToProperty.values().removeAll(typeToProperty[type])
+  val others = typeToProperty.values() - typeToProperty[type]
   assertDoesntContain(properties, others)
 }

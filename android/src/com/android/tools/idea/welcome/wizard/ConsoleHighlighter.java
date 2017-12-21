@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -51,10 +52,22 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
   private List<HighlightRange> myRanges = Lists.newArrayListWithCapacity(1024);
   private boolean myIsUpdatePending = false;
   private StringBuilder myPendingStrings = new StringBuilder(4096);
+  private String myLastString = null;
   private HighlighterClient myEditor;
   private ModalityState myModalityState = ModalityState.defaultModalityState();
 
   public synchronized void print(String string, @Nullable TextAttributes attributes) {
+    // Don't display the same string multiple times. This happens, for example,
+    // when downloading a .zip file, as we get called multiple times with the same
+    // zip file name.
+    // Note the reason we need this de-duplication is because we add lines to
+    // a log, whereas the progress indicator API (see ProgressIndicator.setText
+    // and setText2) assumes the text is stored in some sort of JLabel, where it
+    // does not matter if the same value is set multiple times.
+    if (Objects.equals(myLastString, string)) {
+      return;
+    }
+    myLastString = string;
     Application application = ApplicationManager.getApplication();
     myPendingStrings.append(string);
     if (!myIsUpdatePending && application != null && !application.isUnitTestMode()) {

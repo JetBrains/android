@@ -47,7 +47,7 @@ class DependencyManagerTest : AndroidTestCase() {
     super.setUp()
 
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-        TestProjectSystem(), testRootDisposable)
+        TestProjectSystem(project), testRootDisposable)
 
     myPanel = mock(JComponent::class.java)
     myDisposable = mock(Disposable::class.java)

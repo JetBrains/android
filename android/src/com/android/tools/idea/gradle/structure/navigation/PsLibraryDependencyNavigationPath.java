@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspec
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
@@ -37,6 +38,7 @@ public final class PsLibraryDependencyNavigationPath extends PsPath {
   @NotNull private final String myNavigationText;
 
   public PsLibraryDependencyNavigationPath(@NotNull PsLibraryDependency dependency) {
+    super(new PsModulePath(dependency.getParent()));
     myModuleName = dependency.getParent().getName();
     PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
     if (spec == null) {
@@ -81,20 +83,17 @@ public final class PsLibraryDependencyNavigationPath extends PsPath {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PsLibraryDependencyNavigationPath that = (PsLibraryDependencyNavigationPath)o;
-    return Objects.equal(myModuleName, that.myModuleName) &&
-           Objects.equal(myDependency, that.myDependency) &&
-           Objects.equal(myNavigationText, that.myNavigationText);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    PsLibraryDependencyNavigationPath path = (PsLibraryDependencyNavigationPath)o;
+    return Objects.equal(myModuleName, path.myModuleName) &&
+           Objects.equal(myDependency, path.myDependency) &&
+           Objects.equal(myNavigationText, path.myNavigationText);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName, myDependency, myNavigationText);
+    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myNavigationText);
   }
 }

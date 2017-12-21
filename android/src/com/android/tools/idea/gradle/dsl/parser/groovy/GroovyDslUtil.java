@@ -112,7 +112,7 @@ public final class GroovyDslUtil {
       return false;
     }
 
-    if (!element.isBlockElement()) {
+    if (!element.isBlockElement() || !element.isInsignificantIfEmpty()) {
       return false;
     }
 
@@ -197,6 +197,12 @@ public final class GroovyDslUtil {
         listOrMap.delete();
       }
     }
+    else if (element instanceof GrNamedArgument) {
+      GrNamedArgument namedArgument = (GrNamedArgument)element;
+      if (namedArgument.getExpression() == null) {
+        namedArgument.delete();
+      }
+    }
 
     if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
       deleteIfEmpty(parent);
@@ -217,7 +223,13 @@ public final class GroovyDslUtil {
   static GrLiteral createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
-      unsavedValueText = GrStringUtil.getLiteralTextByValue((String)unsavedValue);
+      // If the string begins and ends with speech marks then make sure its correctly parsed as a non-raw string.
+      String stringValue = (String)unsavedValue;
+      if (stringValue.startsWith(GrStringUtil.DOUBLE_QUOTES) && stringValue.endsWith(GrStringUtil.DOUBLE_QUOTES)) {
+        unsavedValueText = (String)unsavedValue;
+      } else {
+        unsavedValueText = GrStringUtil.getLiteralTextByValue((String)unsavedValue);
+      }
     }
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
       unsavedValueText = unsavedValue.toString();

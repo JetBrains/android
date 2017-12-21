@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
@@ -74,9 +73,6 @@ public class IdeaGradleSync implements GradleSync {
 
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
-    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
-
     if (myProjectInfo.isNewProject()) {
       registerAsNewProject(myProject);
     }

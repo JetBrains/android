@@ -95,7 +95,6 @@
   ]
 
   extends(".*_expression")=expression
-  extends(".*_statement")=statement
 
   implements(".*_name")="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
   mixin(".*_name")="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
@@ -105,9 +104,15 @@
 
 root ::= statement ';'?
 
-statement ::=
+private statement ::=
   ( EXPLAIN ( QUERY PLAN )? )?
-  ( alter_table_statement
+  (
+  select_statement
+  | update_statement
+  | insert_statement
+  | delete_statement
+  | with_clause_statement
+  | alter_table_statement
   | analyze_statement
   | attach_statement
   | begin_statement
@@ -117,22 +122,33 @@ statement ::=
   | create_trigger_statement
   | create_view_statement
   | create_virtual_table_statement
-  | delete_statement
   | detach_statement
   | drop_index_statement
   | drop_table_statement
   | drop_trigger_statement
   | drop_view_statement
-  | insert_statement
   | pragma_statement
   | reindex_statement
   | release_statement
   | rollback_statement
   | savepoint_statement
-  | select_statement
-  | update_statement
   | vacuum_statement
-  )
+  ) { name="statement" }
+
+with_clause_statement ::= with_clause (delete_statement | insert_statement | update_statement | select_statement) {
+  implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+}
+
+with_clause_select_statement ::= with_clause? select_statement {
+  implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
+}
+
+// Variant of with_clause_select_statement that is inside parens and consumes all input until the matching paren.
+private subquery_greedy ::= with_clause_select_statement {
+  recoverWhile=subquery_recover
+}
+
+private subquery_recover ::= !')'
 
 alter_table_statement ::= ALTER TABLE ( database_name '.' )? defined_table_name ( RENAME TO table_definition_name | ADD ( COLUMN )? column_definition )
 
@@ -195,7 +211,7 @@ collation_name ::= name
 create_table_statement ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   ( database_name '.' )? table_definition_name
-  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS select_statement )
+  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS with_clause_select_statement )
 
 column_definition ::= column_definition_name ( type_name )? ( column_constraint )*
 
@@ -232,13 +248,13 @@ create_trigger_statement ::=
   ( database_name '.' )? trigger_name ( BEFORE | AFTER | INSTEAD OF )?
   ( DELETE | INSERT | UPDATE ( OF column_name ( ',' column_name )* )? ) ON defined_table_name
   ( FOR EACH ROW )? ( WHEN expression )?
-  BEGIN ( update_statement | insert_statement | delete_statement | select_statement ) ';' END
+  BEGIN with_clause? ( update_statement | insert_statement | delete_statement | select_statement ) ';' END
 
 trigger_name ::= name
 
 create_view_statement ::=
   CREATE ( TEMP | TEMPORARY )? VIEW ( IF NOT EXISTS )?
-  ( database_name '.' )? view_name AS select_statement
+  ( database_name '.' )? view_name AS with_clause_select_statement
 
 view_name ::= name
 
@@ -250,20 +266,26 @@ create_virtual_table_statement ::=
 module_name ::= name
 module_argument ::= name
 
-with_clause ::= WITH ( RECURSIVE )? with_clause_table ( ',' with_clause_table )*
+with_clause ::= &WITH with_clause_greedy
 
-with_clause_table ::= with_clause_table_def AS '(' select_statement ')'  {
+private with_clause_greedy ::= WITH ( RECURSIVE )? with_clause_table ( ',' with_clause_table )* {
+  recoverWhile=with_clause_recover
+  pin=1
+}
+
+private with_clause_recover ::= !(DELETE | INSERT | REPLACE | SELECT | UPDATE | VALUES | ')')
+
+with_clause_table ::= with_clause_table_def AS with_clause_table_def_subquery  {
   methods=[getTableDefinition]
 }
+private with_clause_table_def_subquery ::= '(' &(SELECT|VALUES|WITH) subquery_greedy ')' { pin=2 }
 
 with_clause_table_def ::= table_definition_name ( '(' column_definition_name ( ',' column_definition_name )* ')' )?
 
 delete_statement ::=
-  ( with_clause )?
   DELETE FROM single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   where_clause?
   ( order_clause? LIMIT expression ( ( OFFSET | ',' ) expression )? )? {
-    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
   }
 
 detach_statement ::= DETACH ( DATABASE )? database_name
@@ -345,9 +367,11 @@ cast_expression ::= CAST '(' expression AS type_name ')'
 case_expression ::= CASE expression? ( WHEN expression THEN expression )+ ( ELSE expression )? END
 like_expression ::= expression NOT? ( LIKE | GLOB | REGEXP | MATCH ) expression ( ESCAPE expression )?
 isnull_expression ::= expression ( ISNULL | NOTNULL | NOT NULL )
-in_expression ::=  expression ( NOT )? IN ( '(' ( select_statement | expression ( ',' expression )* )? ')' | ( database_name '.' )? defined_table_name )
-exists_expression ::= ( ( NOT )? EXISTS )? '(' select_statement ')'
+in_expression ::=  expression ( NOT )? IN ( '(' ( expression_subquery | expression ( ',' expression )* )? ')' | ( database_name '.' )? defined_table_name )
+exists_expression ::= ( ( NOT )? EXISTS )? '(' expression_subquery ')'
 function_call_expression ::= function_name '(' ( ( DISTINCT )? expression ( ',' expression )* | '*' )? ')'
+
+private expression_subquery ::= &(WITH|SELECT|VALUES) subquery_greedy {pin=1}
 
 column_ref_expression ::=
   database_name '.' selected_table_name '.' column_name
@@ -377,12 +401,9 @@ private literal_value ::=
   | CURRENT_TIMESTAMP
 
 insert_statement ::=
-  ( with_clause )?
   ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
   single_table_statement_table insert_columns?
-  ( select_core_values | select_statement | DEFAULT VALUES ) {
-    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
-}
+  ( select_core_values | with_clause_select_statement | DEFAULT VALUES )
 
 insert_columns ::= '(' column_name ( ',' column_name )* ')'
 
@@ -396,9 +417,7 @@ pragma_value ::= signed_number | name | string_literal | ON | NO | FULL | DELETE
 
 reindex_statement ::= REINDEX ( collation_name | ( database_name '.' )? ( defined_table_name | index_name ) )?
 
-select_statement ::= with_clause? select_core (compound_operator select_core)* order_clause? limit_clause? {
-    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
-}
+select_statement ::= select_core (compound_operator select_core)* order_clause? limit_clause?
 
 limit_clause ::= LIMIT expression ( ( OFFSET | ',' ) expression )?
 
@@ -412,26 +431,23 @@ group_by_clause ::= GROUP BY expression ( ',' expression )* ( HAVING expression 
 
 where_clause ::= WHERE expression
 
-from_clause ::= FROM (from_clause_aux | '(' from_clause_aux ')')
-
-private from_clause_aux ::= join_clause | table_or_subquery
+from_clause ::= FROM table_or_subquery ( join_operator table_or_subquery join_constraint? )*
 
 result_columns ::= result_column ( ',' result_column )*
 
 select_core_values ::= VALUES '(' expression ( ',' expression )* ')' ( ',' '(' expression ( ',' expression )* ')' )*
 
-join_clause ::= table_or_subquery ( join_operator table_or_subquery join_constraint? )+
-
-table_or_subquery ::= from_table | subquery
+table_or_subquery ::= from_table | select_subquery | '(' table_or_subquery ')'
 
 from_table ::= ( database_name '.' )? defined_table_name ( ( AS )? table_alias_name )? ( INDEXED BY index_name | NOT INDEXED )? {
   implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
   methods=[getSqlTable]
 }
 
-subquery ::= '(' select_statement ')' ( ( AS )? table_alias_name )? {
+select_subquery ::= '(' &(SELECT|VALUES|WITH) subquery_greedy ')' ( ( AS )? table_alias_name )? {
   implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
   methods=[getSqlTable]
+  pin=2
 }
 
 table_alias_name ::= name {
@@ -458,12 +474,9 @@ ordering_term ::= expression ( COLLATE collation_name )? ( ASC | DESC )?
 compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
 
 update_statement ::=
-  ( with_clause )?
   UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   SET column_name '=' expression ( ',' column_name '=' expression )*
-  where_clause? {
-    implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
-}
+  where_clause?
 
 single_table_statement_table ::= ( database_name '.' )? defined_table_name {
   implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"

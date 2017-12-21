@@ -25,13 +25,13 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
 public interface RoomWithClauseTable extends PsiElement {
 
-  @NotNull
-  RoomSelectStatement getSelectStatement();
+  @Nullable
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
   @NotNull
   RoomWithClauseTableDef getWithClauseTableDef();
 
-  @NotNull
+  @Nullable
   SqlTable getTableDefinition();
 
 }

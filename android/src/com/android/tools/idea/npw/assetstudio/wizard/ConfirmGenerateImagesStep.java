@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -65,6 +64,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
@@ -74,7 +74,7 @@ import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateImageIconsModel>
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel>
     implements PersistentStateComponent<PersistentState> {
   private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
   private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
@@ -125,7 +125,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIma
   private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateImagesStep(@NotNull GenerateImageIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
+  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
@@ -318,8 +318,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIma
         && (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER)) {
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
       // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
-      Rectangle rectangle =
-          AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
+      Rectangle rectangle = scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
       ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
       try {
         return imageFuture.get();
@@ -396,7 +395,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIma
       Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
-      // Create a FileTreeModel containing all generated files
+      // Create a FileTreeModel containing all generated files.
       FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
       for (Map.Entry<File, GeneratedIcon> entry : pathIconMap.entrySet()) {
         File path = entry.getKey();

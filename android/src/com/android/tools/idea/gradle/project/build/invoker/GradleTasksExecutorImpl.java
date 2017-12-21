@@ -62,6 +62,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
@@ -83,7 +85,6 @@ import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.ExceptionUtil.getMessage;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -329,8 +330,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
           if (taskListener != null) {
             if (buildError != null) {
-              Throwable rootCause = getRootCause(buildError);
-              taskListener.onFailure(id, new ExternalSystemException(getMessage(rootCause)));
+              GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
+              ExternalSystemException userFriendlyError =
+                projectResolverChain.getUserFriendlyError(buildError, myRequest.getBuildFilePath().getPath(), null);
+              taskListener.onFailure(id, userFriendlyError);
             }
             else {
               taskListener.onSuccess(id);

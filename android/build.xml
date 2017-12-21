@@ -28,7 +28,8 @@
 
     <target name="preBuild" depends="profiler, android-plugin">
     </target>
-    <target name="profiler">
+
+    <target name="profiler" unless="${skip.bazel.dependencies}">
         <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />
             <arg value="//tools/adt/idea/android:profiler-artifacts" />

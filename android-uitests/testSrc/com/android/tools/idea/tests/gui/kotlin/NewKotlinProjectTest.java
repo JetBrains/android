@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,6 +109,7 @@ public class NewKotlinProjectTest {
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
     ideFrameFixture.getEditor().open("app/src/main/cpp/" + C_FILE, EditorFixture.Tab.EDITOR);
     assertThat(C_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    ideFrameFixture.getEditor().close();
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
     ideFrameFixture.runApp(APP_NAME)
@@ -138,5 +141,8 @@ public class NewKotlinProjectTest {
     newProjectWizard.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    // Build project after Gradle sync finished.
+    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60));
   }
 }

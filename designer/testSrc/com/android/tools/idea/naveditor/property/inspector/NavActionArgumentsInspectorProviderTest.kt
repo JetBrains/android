@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
@@ -105,8 +104,8 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     assertEquals("foo",
         model.find("a1")!!
             .children
-            .first { it.getAttribute(AUTO_URI, ATTR_NAME) == "arg2" }
-            .getAttribute(AUTO_URI, ATTR_DEFAULT_VALUE))
+            .first { it.getAttribute(ANDROID_URI, ATTR_NAME) == "arg2" }
+            .getAttribute(ANDROID_URI, ATTR_DEFAULT_VALUE))
 
     // Now delete the first one
     setValue("", 0, 1, argumentsTable)

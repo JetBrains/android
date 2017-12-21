@@ -78,6 +78,11 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
   }
 
   public void testMigrateFragmentActivity() throws Exception {
+    myFixture.addClass("" +
+                       "package android.support.v4.app;\n" +
+                       "import android.app.Activity;\n" +
+                       "public class FragmentActivity extends Activity {\n" +
+                       "}\n");
     new MigrationBuilder()
       .withFileInProject("BaseFragmentActivity.java", "src/p1/p2/BaseFragmentActivity.java")
       .withEntry(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY))

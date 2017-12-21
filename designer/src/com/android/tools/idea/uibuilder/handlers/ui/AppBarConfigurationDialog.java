@@ -16,17 +16,21 @@
 package com.android.tools.idea.uibuilder.handlers.ui;
 
 import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -56,11 +60,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
@@ -295,9 +295,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open() {
     NlModel model = myEditor.getModel();
     Project project = model.getProject();
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
     boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN);
-    if (!hasDesignLib && !addDesignLibrary(manager)) {
+    if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
 
@@ -329,22 +328,54 @@ public class AppBarConfigurationDialog extends JDialog {
     return myWasAccepted;
   }
 
-  private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
+  private boolean addDesignLibrary() {
     myLoadingPanel.startLoading();
+
     Module module = myEditor.getModel().getModule();
-    List<GradleCoordinate> toAdd = Collections.singletonList(GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+"));
-    List<GradleCoordinate> missing = manager.findMissingDependencies(module, toAdd);
-    if (missing.isEmpty()) {
-      return true;
-    }
-    if (!GradleDependencyManager.userWantToAddDependencies(module, missing)) {
+
+    boolean designAdded = DependencyManagementUtil
+      .addDependencies(module, Collections.singletonList(GoogleMavenArtifactId.DESIGN), true, false)
+      .isEmpty();
+
+    if (!designAdded) {
       return false;
     }
-    return manager.addDependencies(myEditor.getModel().getModule(), missing, () -> {
-      if (isVisible()) {
-        ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+
+    ListenableFuture<SyncResult> syncResult = ProjectSystemUtil.getSyncManager(module.getProject())
+      .syncProject(SyncReason.PROJECT_MODIFIED, true);
+
+    Futures.addCallback(syncResult, new FutureCallback<SyncResult>() {
+      @Override
+      public void onSuccess(@Nullable SyncResult result) {
+        if (result != null && result.isSuccessful()) {
+          onDesignSourcesGenerated();
+        }
+        else {
+          onBuildError();
+        }
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        onBuildError();
       }
     });
+
+    return true;
+  }
+
+  private void onDesignSourcesGenerated() {
+    if (isVisible()) {
+      ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+    }
+  }
+
+  private void onBuildError() {
+    myPreview.setText("Preview is unavailable until after a successful build");
+    myPreview.setIcon(AllIcons.General.Warning);
+    myCollapsedLabel.setVisible(false);
+    myExpandedLabel.setVisible(false);
+    myLoadingPanel.stopLoading();
   }
 
   private void onOK() {

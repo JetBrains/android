@@ -22,22 +22,20 @@ import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
 abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<CaptureDurationData<T>> {
   @NotNull protected final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-  @Nullable protected final Common.Session mySession;
-  protected final int myProcessId;
+  @NotNull protected final Common.Session mySession;
   @NotNull protected final RelativeTimeConverter myConverter;
   @NotNull protected final FeatureTracker myFeatureTracker;
 
   protected CaptureDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                              @Nullable Common.Session session, int processId,
-                              @NotNull RelativeTimeConverter converter, @NotNull FeatureTracker featureTracker) {
+                              @NotNull Common.Session session,
+                              @NotNull RelativeTimeConverter converter,
+                              @NotNull FeatureTracker featureTracker) {
     myClient = client;
-    myProcessId = processId;
     myConverter = converter;
     mySession = session;
     myFeatureTracker = featureTracker;

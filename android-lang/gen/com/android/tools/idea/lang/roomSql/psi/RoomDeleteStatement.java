@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDeleteStatement extends RoomStatement, HasWithClause {
+public interface RoomDeleteStatement extends PsiElement {
 
   @NotNull
   List<RoomExpression> getExpressionList();
@@ -35,9 +35,6 @@ public interface RoomDeleteStatement extends RoomStatement, HasWithClause {
 
   @Nullable
   RoomWhereClause getWhereClause();
-
-  @Nullable
-  RoomWithClause getWithClause();
 
   @Nullable
   PsiElement getBacktickLiteral();

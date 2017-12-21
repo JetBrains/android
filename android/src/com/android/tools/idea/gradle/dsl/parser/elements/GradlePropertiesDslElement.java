@@ -180,7 +180,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   @Nullable
-  public GradleDslElement resolveVariableElement(@NotNull String property) {
+  public GradleDslElement getVariableElement(@NotNull String property) {
     if (!isPropertyNested(property)) {
       if (myToBeRemovedProperties.contains(property)) {
         return null;
@@ -236,6 +236,27 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
 
+  private static <T> GradleNullableValue<T> createAndWrapDslValue(@Nullable GradleDslElement element, @NotNull Class<T> clazz) {
+    if (element == null) {
+      return new GradleNullableValueImpl<>(null, null);
+    }
+
+    T resultValue = null;
+    if (clazz.isInstance(element)) {
+      resultValue = clazz.cast(element);
+    }
+    else if (element instanceof GradleDslExpression) {
+      resultValue = ((GradleDslExpression)element).getValue(clazz);
+    }
+
+    if (resultValue != null) {
+      return new GradleNotNullValueImpl<>(element, resultValue);
+    }
+    else {
+      return new GradleNullableValueImpl<>(element, null);
+    }
+  }
+
   /**
    * Returns the literal value of the given {@code property} of the type {@code clazz} along with the variable resolution history.
    *
@@ -246,25 +267,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   public <T> GradleNullableValue<T> getLiteralProperty(@NotNull String property, @NotNull Class<T> clazz) {
     Preconditions.checkArgument(clazz == String.class || clazz == Integer.class || clazz == Boolean.class);
 
-    GradleDslElement propertyElement = getPropertyElement(property);
-    if (propertyElement == null) {
-      return new GradleNullableValueImpl<>(this, null);
-    }
-
-    T resultValue = null;
-    if (clazz.isInstance(propertyElement)) {
-      resultValue = clazz.cast(propertyElement);
-    }
-    else if (propertyElement instanceof GradleDslExpression) {
-      resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
-    }
-
-    if (resultValue != null) {
-      return new GradleNotNullValueImpl<>(propertyElement, resultValue);
-    }
-    else {
-      return new GradleNullableValueImpl<>(propertyElement, null);
-    }
+    return createAndWrapDslValue(getPropertyElement(property), clazz);
   }
 
   /**
@@ -461,7 +464,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     }
     myToBeRemovedProperties.clear();
 
-    for (GradleDslElement element : myProperties.values()) {
+    for (GradleDslElement element : myVariables.values()) {
       if (element.isModified()) {
         element.applyChanges();
       }

@@ -22,7 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
@@ -40,57 +39,23 @@ public class HardwareProfileTest {
     guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-    ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
+    ChooseDeviceDefinitionStepFixture<AvdEditWizardFixture> step = avdEditWizard.selectHardware();
     if (step.deviceNames().contains(deviceName)) {
       step.deleteHardwareProfile(deviceName);
     }
 
     assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
 
-    HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
-    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
-    deviceOptionsStep.setDeviceName(deviceName);
-    guiTest.robot().waitForIdle();
-    hardwareProfileWizard.clickFinish();
+    step.newHardwareProfile()
+      .getConfigureDeviceOptionsStep()
+      .setDeviceName(deviceName)
+      .wizard()
+      .clickFinish();
     assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
 
     step.deleteHardwareProfile(deviceName);
     assertWithMessage("after deleting").that(step.deviceNames()).doesNotContain(deviceName);
 
-    avdEditWizard.clickCancel();
-    avdManagerDialog.close();
-  }
-
-  @Test
-  public void testCreateHardwareProfileErrors() throws Exception {
-    guiTest.importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.selectHardware();
-
-    HardwareProfileWizardFixture hardwareProfileWizard = chooseDeviceDefinitionStep.newHardwareProfile();
-    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
-
-    deviceOptionsStep.setDeviceName("\b");
-    assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please write a name for the new device.");
-
-    deviceOptionsStep.setDeviceName("My Device Test")
-      .setScreenSize("5.2x");
-    assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please enter a non-zero positive floating point value for the screen size.");
-
-    deviceOptionsStep.setScreenSize("5.2")
-      .setScreenResolutionX("0");
-    assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please enter a valid value for the screen width.");
-
-    deviceOptionsStep.setScreenResolutionX("1280")
-      .setScreenResolutionY("0");
-    assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please enter a valid value for the screen height.");
-
-    hardwareProfileWizard.clickCancel();
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
   }

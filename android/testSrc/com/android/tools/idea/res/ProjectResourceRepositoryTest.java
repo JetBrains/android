@@ -16,14 +16,15 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.stubs.DependenciesStub;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidLibrary;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
+import com.android.tools.idea.gradle.stubs.android.TestVariant;
 import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,7 +46,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
+import static org.jetbrains.android.util.AndroidUtils.getAllAndroidDependencies;
 
 public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -125,7 +126,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   // Regression test for https://code.google.com/p/android/issues/detail?id=57090
   public void testParents() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
-    List<AndroidFacet> libraries = AndroidUtils.getAllAndroidDependencies(myModule, true);
+    List<AndroidFacet> libraries = getAllAndroidDependencies(myModule, true);
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
@@ -233,18 +234,19 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private void addArchiveLibraries() {
     // Add in some Android projects too
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false; // make it a Gradle project
-    AndroidProjectStub androidProject = TestProjects.createFlavorsProject();
-    VariantStub variant = androidProject.getFirstVariant();
+    TestAndroidProject androidProject = TestProjects.createFlavorsProject();
+    TestVariant variant = androidProject.getFirstVariant();
     assertNotNull(variant);
-    File rootDir = androidProject.getRootDir();
+    File rootDir = androidProject.getRootFolderPath();
     AndroidModuleModel androidModel =
       new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
     myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
-    variant.getMainArtifact().getDependencies().addLibrary(library);
+    TestAndroidLibrary library = new TestAndroidLibrary(bundle, libJar);
+    DependenciesStub dependencies = (DependenciesStub)variant.getMainArtifact().getDependencies();
+    dependencies.addLibrary(library);
 
     // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
     Collection<File> resourceDirs =
@@ -324,13 +326,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Note that these are currently direct dependencies only, so app.isDependsOn(sharedLib) is false
 
     // Test AndroidUtils#getallAndroidDependencies
-    List<AndroidFacet> appDependsOn = AndroidUtils.getAllAndroidDependencies(app, true);
+    List<AndroidFacet> appDependsOn = getAllAndroidDependencies(app, true);
     assertTrue(appDependsOn.contains(lib1Facet));
     assertTrue(appDependsOn.contains(lib2Facet));
     assertTrue(appDependsOn.contains(sharedLibFacet));
     assertFalse(appDependsOn.contains(appFacet));
 
-    List<AndroidFacet> lib1DependsOn = AndroidUtils.getAllAndroidDependencies(lib1, true);
+    List<AndroidFacet> lib1DependsOn = getAllAndroidDependencies(lib1, true);
     assertTrue(lib1DependsOn.contains(sharedLibFacet));
     assertFalse(lib1DependsOn.contains(appFacet));
     assertFalse(lib1DependsOn.contains(lib1Facet));

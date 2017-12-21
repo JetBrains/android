@@ -17,15 +17,19 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.collect.HashMultimap
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 
 /**
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
+class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
   data class Artifact(val id: GoogleMavenArtifactId, val version: GoogleMavenArtifactVersion)
 
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion
@@ -48,7 +52,7 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+      override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
         val versionToAdd = version ?: TEST_VERSION_LATEST
         dependenciesByModule.put(module, Artifact(artifactId, versionToAdd))
       }
@@ -75,6 +79,21 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
     }
   }
 
+  override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
+    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+      AppUIUtil.invokeLaterIfProjectAlive(project, {
+        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      })
+      return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    }
+
+    override fun isSyncInProgress() = false
+
+    override fun isSyncNeeded() = false
+
+    override fun getLastSyncResult() = ProjectSystemSyncManager.SyncResult.SUCCESS
+  }
+
   override fun getDefaultApkFile(): VirtualFile? {
     TODO("not implemented")
   }
@@ -96,10 +115,6 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
   }
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    TODO("not implemented")
-  }
-
-  override fun getSyncManager(): ProjectSystemSyncManager {
     TODO("not implemented")
   }
 }

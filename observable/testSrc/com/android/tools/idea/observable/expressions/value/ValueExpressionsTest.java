@@ -23,7 +23,6 @@ import org.junit.Test;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class ValueExpressionsTest {
-
   @Test
   public void testFromOptionalExpression() {
 
@@ -41,17 +40,5 @@ public final class ValueExpressionsTest {
 
     intProperty.clear();
     assertThat(toStringExpr.get()).isEqualTo("(null int)");
-  }
-
-  @Test
-  public void testAsValueExpression() {
-    OptionalProperty<Integer> optionalIntProperty = OptionalValueProperty.of(42);
-
-    AsValueExpression<Integer> intExpr = new AsValueExpression<>(optionalIntProperty);
-
-    assertThat(intExpr.get()).isEqualTo(42);
-
-    optionalIntProperty.setValue(-42);
-    assertThat(intExpr.get()).isEqualTo(-42);
   }
 }

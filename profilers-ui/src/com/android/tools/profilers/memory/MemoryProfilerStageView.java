@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
@@ -58,8 +58,11 @@ import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEF
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
+import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+
+
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassifierView myClassifierView = new MemoryClassifierView(getStage(), getIdeComponents());
@@ -471,6 +474,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @NotNull
   private JPanel buildCaptureUi() {
+    JPanel capturePanel = new JPanel(new BorderLayout());
+
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
@@ -481,35 +486,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
       FlatToggleButton button = new FlatToggleButton("", StudioIcons.Common.FILTER);
-      headingPanel.add(button, BorderLayout.EAST);
+
+      JPanel buttonToolbar = new JPanel(TOOLBAR_LAYOUT);
+      buttonToolbar.add(button);
+      headingPanel.add(buttonToolbar, BorderLayout.EAST);
       SearchComponent searchTextArea = getIdeComponents()
-        .createProfilerSearchTextArea(getClass().getName(), ProfilerLayout.FILTER_TEXT_FIELD_WIDTH,
-                                      ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+        .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
       searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
       headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
       searchTextArea.getComponent().setVisible(false);
-      button.addActionListener(event -> {
-        searchTextArea.getComponent().setVisible(button.isSelected());
-        if (button.isSelected()) {
-          searchTextArea.setText("");
-        }
-        else {
-          getStage().selectCaptureFilter(null);
-        }
-        headingPanel.revalidate();
-      });
-
-      headingPanel.registerKeyboardAction(event -> {
-                                            button.setSelected(!button.isSelected());
-                                            for (ActionListener listener : button.getActionListeners()) {
-                                              listener.actionPerformed(event);
-                                            }
-                                          },
-                                          KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK),
-                                          JComponent.WHEN_IN_FOCUSED_WINDOW);
+      searchTextArea.getComponent().setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
+      SearchComponent.configureKeybindingAndFocusBehaviors(capturePanel, searchTextArea, button);
     }
 
-    JPanel capturePanel = new JPanel(new BorderLayout());
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);
     return capturePanel;

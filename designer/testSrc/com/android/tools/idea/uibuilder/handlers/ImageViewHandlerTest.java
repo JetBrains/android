@@ -44,7 +44,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
     myModel = createModel();
 
-    myTestProjectSystem = new TestProjectSystem();
+    myTestProjectSystem = new TestProjectSystem(getProject());
     PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
 

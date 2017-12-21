@@ -74,6 +74,10 @@ public final class StudioFlags {
     "This unlocks even more profiling features for these devices.",
     true);
 
+  public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
+    PROFILER, "energy", "Enable Energy profiling",
+    "Enable the new energy profiler. It monitors battery usage of the selected app.", false);
+
   public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
     "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
@@ -113,6 +117,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
     PROFILER, "atrace", "Show the atrace option in CPU profiler",
     "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
+    false);
+
+  public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
+    PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
+    "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
     false);
 
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
@@ -161,11 +170,6 @@ public final class StudioFlags {
     "Enable the new Target architecture in relative layout",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_PALETTE = Flag.create(
-    NELE, "new.palette", "Enable the new Palette",
-    "Enable the new Palette with advanced Search",
-    true);
-
   private static final FlagGroup RUNDEBUG_GROUP = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
@@ -206,7 +210,7 @@ public final class StudioFlags {
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "enabled", "Enable the Migrate to AppCompat refactoring feature",
+    REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring feature",
     "If enabled, show the action in the refactoring menu", true);
 
   private StudioFlags() {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +27,7 @@ import javax.swing.*;
  */
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
-  private JPanel myContents;
+  private JBScrollPane myContents;
   private JRadioButton myStandardRadioButton;
   private JRadioButton myCustomRadioButton;
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -61,7 +62,7 @@ public class TextEditorFixture {
       FileEditorManagerImpl manager = (FileEditorManagerImpl)FileEditorManager.getInstance(myEditor.getEditor().getProject());
       WindowAndTab windowAndTab = getWindowAndTab(manager);
       VirtualFile file = FileDocumentManager.getInstance().getFile(myEditor.getEditor().getDocument());
-      manager.closeFile(file, windowAndTab.window);
+      TransactionGuard.submitTransaction(manager.getProject(), () -> manager.closeFile(file, windowAndTab.window));
     });
   }
 

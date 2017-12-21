@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
-import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
@@ -28,10 +26,8 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +35,6 @@ import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
@@ -111,36 +106,6 @@ public abstract class SceneView {
 
   @NotNull
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
-
-  public void switchDevice() {
-    List<Device> devices = ConfigurationManager.getOrCreateInstance(getSceneManager().getModel().getFacet()).getDevices();
-    List<Device> applicable = Lists.newArrayList();
-    for (Device device : devices) {
-      if (HardwareConfigHelper.isNexus(device)) {
-        applicable.add(device);
-      }
-    }
-    Configuration configuration = getConfiguration();
-    Device currentDevice = configuration.getDevice();
-    for (int i = 0, n = applicable.size(); i < n; i++) {
-      if (applicable.get(i) == currentDevice) {
-        Device newDevice = applicable.get((i + 1) % applicable.size());
-        configuration.setDevice(newDevice, true);
-        break;
-      }
-    }
-  }
-
-  public void toggleOrientation() {
-    Configuration configuration = getConfiguration();
-    configuration.getDeviceState();
-
-    State current = configuration.getDeviceState();
-    State flip = configuration.getNextDeviceState(current);
-    if (flip != null) {
-      configuration.setDeviceState(flip);
-    }
-  }
 
   @NotNull
   public Configuration getConfiguration() {

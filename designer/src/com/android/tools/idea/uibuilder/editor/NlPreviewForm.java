@@ -20,7 +20,10 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
@@ -31,7 +34,6 @@ import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
-import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -317,12 +319,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     if (myContentPanel == null) {
       createContentPanel();
       List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-      if (StudioFlags.NELE_NEW_PALETTE.get()) {
-        tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
-      }
-      else {
-        tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
-      }
+      tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
       myWorkBench.init(myContentPanel, mySurface, tools);
     }
     initNeleModel();

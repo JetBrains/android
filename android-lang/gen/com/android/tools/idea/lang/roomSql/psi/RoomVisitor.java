@@ -30,11 +30,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitAlterTableStatement(@NotNull RoomAlterTableStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitAnalyzeStatement(@NotNull RoomAnalyzeStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitAndExpression(@NotNull RoomAndExpression o) {
@@ -42,11 +42,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitAttachStatement(@NotNull RoomAttachStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitBeginStatement(@NotNull RoomBeginStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitBetweenExpression(@NotNull RoomBetweenExpression o) {
@@ -104,7 +104,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitCommitStatement(@NotNull RoomCommitStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitComparisonExpression(@NotNull RoomComparisonExpression o) {
@@ -124,23 +124,23 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitCreateIndexStatement(@NotNull RoomCreateIndexStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitCreateTableStatement(@NotNull RoomCreateTableStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitCreateTriggerStatement(@NotNull RoomCreateTriggerStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitCreateViewStatement(@NotNull RoomCreateViewStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitCreateVirtualTableStatement(@NotNull RoomCreateVirtualTableStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitDatabaseName(@NotNull RoomDatabaseName o) {
@@ -152,28 +152,27 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitDeleteStatement(@NotNull RoomDeleteStatement o) {
-    visitStatement(o);
-    // visitHasWithClause(o);
+    visitPsiElement(o);
   }
 
   public void visitDetachStatement(@NotNull RoomDetachStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitDropIndexStatement(@NotNull RoomDropIndexStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitDropTableStatement(@NotNull RoomDropTableStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitDropTriggerStatement(@NotNull RoomDropTriggerStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitDropViewStatement(@NotNull RoomDropViewStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitEquivalenceExpression(@NotNull RoomEquivalenceExpression o) {
@@ -233,16 +232,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitInsertStatement(@NotNull RoomInsertStatement o) {
-    visitStatement(o);
-    // visitHasWithClause(o);
+    visitPsiElement(o);
   }
 
   public void visitIsnullExpression(@NotNull RoomIsnullExpression o) {
     visitExpression(o);
-  }
-
-  public void visitJoinClause(@NotNull RoomJoinClause o) {
-    visitPsiElement(o);
   }
 
   public void visitJoinConstraint(@NotNull RoomJoinConstraint o) {
@@ -298,7 +292,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitPragmaStatement(@NotNull RoomPragmaStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitPragmaValue(@NotNull RoomPragmaValue o) {
@@ -310,11 +304,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitReindexStatement(@NotNull RoomReindexStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitReleaseStatement(@NotNull RoomReleaseStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitResultColumn(@NotNull RoomResultColumn o) {
@@ -326,7 +320,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitRollbackStatement(@NotNull RoomRollbackStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitSavepointName(@NotNull RoomSavepointName o) {
@@ -334,7 +328,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitSavepointStatement(@NotNull RoomSavepointStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitSelectCore(@NotNull RoomSelectCore o) {
@@ -350,8 +344,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitSelectStatement(@NotNull RoomSelectStatement o) {
-    visitStatement(o);
-    // visitHasWithClause(o);
+    visitPsiElement(o);
+  }
+
+  public void visitSelectSubquery(@NotNull RoomSelectSubquery o) {
+    visitSqlTableElement(o);
   }
 
   public void visitSelectedTableName(@NotNull RoomSelectedTableName o) {
@@ -363,14 +360,6 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitSingleTableStatementTable(@NotNull RoomSingleTableStatementTable o) {
-    visitSqlTableElement(o);
-  }
-
-  public void visitStatement(@NotNull RoomStatement o) {
-    visitPsiElement(o);
-  }
-
-  public void visitSubquery(@NotNull RoomSubquery o) {
     visitSqlTableElement(o);
   }
 
@@ -409,12 +398,11 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitUpdateStatement(@NotNull RoomUpdateStatement o) {
-    visitStatement(o);
-    // visitHasWithClause(o);
+    visitPsiElement(o);
   }
 
   public void visitVacuumStatement(@NotNull RoomVacuumStatement o) {
-    visitStatement(o);
+    visitPsiElement(o);
   }
 
   public void visitViewName(@NotNull RoomViewName o) {
@@ -429,12 +417,24 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitWithClauseSelectStatement(@NotNull RoomWithClauseSelectStatement o) {
+    visitHasWithClause(o);
+  }
+
+  public void visitWithClauseStatement(@NotNull RoomWithClauseStatement o) {
+    visitHasWithClause(o);
+  }
+
   public void visitWithClauseTable(@NotNull RoomWithClauseTable o) {
     visitPsiElement(o);
   }
 
   public void visitWithClauseTableDef(@NotNull RoomWithClauseTableDef o) {
     visitPsiElement(o);
+  }
+
+  public void visitHasWithClause(@NotNull HasWithClause o) {
+    visitElement(o);
   }
 
   public void visitPsiNamedElement(@NotNull PsiNamedElement o) {

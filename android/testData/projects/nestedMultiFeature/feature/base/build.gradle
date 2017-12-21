@@ -31,5 +31,5 @@ dependencies {
     feature project(':feature:feature1')
     feature project(':feature:feature2')
 
-    compile("com.android.support:appcompat-v7:26.0.2")
+    compile("com.android.support:appcompat-v7:26.1.0")
 }

@@ -17,9 +17,13 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Generates icons for the vector drawable.
@@ -61,6 +65,19 @@ public class VectorIconGenerator extends IconGenerator {
       image = AssetStudioUtils.createDummyImage();
     }
     return image;
+  }
+
+  @Override
+  @NotNull
+  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+    VectorAsset vectorAsset = (VectorAsset)sourceAsset().getValue();
+    VectorAsset.ParseResult result = vectorAsset.parse();
+    if (!result.isValid()) {
+      return Collections.emptySet();
+    }
+    String xmlContent = result.getXmlContent();
+    GeneratedIcon icon = new GeneratedXmlResource(name, Paths.get(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
+    return Collections.singleton(icon);
   }
 
   public static class VectorIconOptions extends Options {

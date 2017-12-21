@@ -29,5 +29,5 @@ android {
 }
 
 dependencies {
-    androidTestCompile 'com.android.support:appcompat-v7:26.0.2'
+    androidTestCompile 'com.android.support:appcompat-v7:26.1.0'
 }

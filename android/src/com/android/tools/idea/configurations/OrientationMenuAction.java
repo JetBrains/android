@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -36,12 +34,10 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
@@ -67,11 +63,6 @@ public class OrientationMenuAction extends DropDownAction {
     mySurface = surface;
   }
 
-  @NotNull
-  private static String getPresentationDescription(@NotNull State state) {
-    return String.format("Switch to %1$s", state.getName());
-  }
-
   @Override
   protected boolean updateActions() {
     removeAll();
@@ -79,10 +70,11 @@ public class OrientationMenuAction extends DropDownAction {
     if (configuration != null) {
       Device device = configuration.getDevice();
       if (device != null) {
-        List<State> states = device.getAllStates();
+        State currentDeviceState = configuration.getDeviceState();
 
-        for (State config : states) {
-          String stateName = config.getName();
+        List<State> states = device.getAllStates();
+        for (State state : states) {
+          String stateName = state.getName();
           String title = stateName;
 
           VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
@@ -90,9 +82,8 @@ public class OrientationMenuAction extends DropDownAction {
             title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
           }
 
-          add(new SetDeviceStateAction(myRenderContext, title, config, false));
+          add(new SetDeviceStateAction(myRenderContext, title, state, state == currentDeviceState));
         }
-        addSeparator();
       }
 
       addSeparator();
@@ -144,7 +135,7 @@ public class OrientationMenuAction extends DropDownAction {
       ResourceFolderType folderType = ResourceHelper.getFolderType(configuration.getFile());
       if (folderType == ResourceFolderType.LAYOUT) {
         boolean haveLandscape = false;
-        boolean haveLarge = false;
+        boolean haveTablet = false;
         for (VirtualFile file : variations) {
           String name = file.getParent().getName();
           if (name.startsWith(FD_RES_LAYOUT)) {
@@ -153,13 +144,13 @@ public class OrientationMenuAction extends DropDownAction {
               ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
               if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
                 haveLandscape = true;
-                if (haveLarge) {
+                if (haveTablet) {
                   break;
                 }
               }
-              ScreenSizeQualifier size = config.getScreenSizeQualifier();
-              if (size != null && size.getValue() == ScreenSize.XLARGE) {
-                haveLarge = true;
+              SmallestScreenWidthQualifier size = config.getSmallestScreenWidthQualifier();
+              if (size != null && size.getValue() >= 600) {
+                haveTablet = true;
                 if (haveLandscape) {
                   break;
                 }
@@ -169,32 +160,19 @@ public class OrientationMenuAction extends DropDownAction {
         }
 
         // Create actions for creating "common" versions of a layout (that don't exist),
-        // e.g. Create Landscape Version, Create RTL Version, Create XLarge version
+        // e.g. Create Landscape Version, Create RTL Version, Create tablet version
         // Do statistics on what is needed!
         if (!haveLandscape) {
           add(new CreateVariationAction(surface, "Create Landscape Variation", "layout-land"));
         }
-        if (!haveLarge) {
-          add(new CreateVariationAction(surface, "Create layout-xlarge Variation", "layout-xlarge"));
+        if (!haveTablet) {
+          add(new CreateVariationAction(surface, "Create Tablet Variation", "layout-sw600dp"));
         }
         add(new CreateVariationAction(surface, "Create Other...", null));
       }
       else {
         add(new CreateVariationAction(surface, "Create Alternative...", null));
       }
-    }
-  }
-
-  @NotNull
-  public static Icon getOrientationIcon(@NotNull ScreenOrientation orientation, boolean flip) {
-    switch (orientation) {
-      case LANDSCAPE:
-        return flip ? AndroidIcons.FlipLandscape : AndroidIcons.Landscape;
-      case SQUARE:
-        return AndroidIcons.Square;
-      case PORTRAIT:
-      default:
-        return flip ? AndroidIcons.FlipPortrait : AndroidIcons.Portrait;
     }
   }
 
@@ -213,18 +191,19 @@ public class OrientationMenuAction extends DropDownAction {
     return orientation;
   }
 
-
-  private static class SetDeviceStateAction extends ConfigurationAction {
+  @VisibleForTesting
+  static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
     private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
                                  @NotNull String title,
                                  @NotNull State state,
-                                 boolean flip) {
+                                 boolean isCurrentState) {
       super(renderContext, title);
       myState = state;
-      ScreenOrientation orientation = getOrientation(state);
-      getTemplatePresentation().setIcon(getOrientationIcon(orientation, flip));
+      if (isCurrentState) {
+        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      }
     }
 
     @Override
@@ -270,7 +249,8 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static class SwitchToVariationAction extends AnAction {
+  @VisibleForTesting
+  static class SwitchToVariationAction extends AnAction {
     private final Project myProject;
     private final VirtualFile myFile;
 
@@ -292,7 +272,8 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static class CreateVariationAction extends AnAction {
+  @VisibleForTesting
+  static class CreateVariationAction extends AnAction {
     @NotNull private EditorDesignSurface mySurface;
     @Nullable private String myNewFolder;
 

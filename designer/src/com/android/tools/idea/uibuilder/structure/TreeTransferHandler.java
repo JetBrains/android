@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
+import com.intellij.openapi.application.TransactionGuard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public final class TreeTransferHandler extends TransferHandler {
       NlComponentTree tree = (NlComponentTree)c;
       NlModel model = tree.getDesignerModel();
       assert model != null;
-      model.delete(tree.getSelectedComponents());
+      TransactionGuard.submitTransaction(model, () -> model.delete(tree.getSelectedComponents()));
     }
   }
 

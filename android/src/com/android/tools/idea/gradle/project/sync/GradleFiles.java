@@ -29,6 +29,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,13 @@ public class GradleFiles {
   GradleSyncListener getSyncListener() {
     //noinspection ReturnOfInnerClass
     return mySyncListener;
+  }
+
+  @VisibleForTesting
+  boolean hasHashForFile(@NotNull VirtualFile file) {
+    synchronized (myLock) {
+      return myFileHashes.containsKey(file);
+    }
   }
 
   private void removeChangedFiles() {
@@ -174,8 +182,7 @@ public class GradleFiles {
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
     Integer oldHash = getStoredHashForFile(file);
-
-    return oldHash != null ? oldHash.equals(computeHash(file)) : false;
+    return oldHash != null && oldHash.equals(computeHash(file));
   }
 
   /**
@@ -234,16 +241,21 @@ public class GradleFiles {
     jobLauncher.invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
-        putHashForFile(fileHashes, buildFile);
+        File path = VfsUtilCore.virtualToIoFile(buildFile);
+        if (path.isFile()) {
+          putHashForFile(fileHashes, buildFile);
+        }
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
       if (ndkModuleModel != null) {
         for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
-          // TODO find a better way to find a VirtualFile without refreshing the file systerm. It is expensive.
-          VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
-          externalBuildFiles.add(virtualFile);
-          if (virtualFile != null) {
-            putHashForFile(fileHashes, virtualFile);
+          if (externalBuildFile.isFile()) {
+            // TODO find a better way to find a VirtualFile without refreshing the file systerm. It is expensive.
+            VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
+            externalBuildFiles.add(virtualFile);
+            if (virtualFile != null) {
+              putHashForFile(fileHashes, virtualFile);
+            }
           }
         }
       }
@@ -321,7 +333,7 @@ public class GradleFiles {
    */
   private class SyncListener extends GradleSyncListener.Adapter {
     @Override
-    public void syncStarted(@NotNull Project project, boolean skipped) {
+    public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
     }
 

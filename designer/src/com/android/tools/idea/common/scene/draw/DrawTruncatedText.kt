@@ -78,6 +78,7 @@ class DrawTruncatedText(private var myLevel: Int,
     g2.dispose()
   }
 
+  // TODO: use AdtUiUtils.getFittedString
   private fun truncateText(metrics: FontMetrics): String {
     if (metrics.stringWidth(myText) <= myRectangle.width) {
       return myText

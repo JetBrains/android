@@ -115,6 +115,7 @@ public class ChooseResourceDialogTest {
     stateListCell.stopEditing();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70699703
   @Test
   public void testEditColorReference() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");

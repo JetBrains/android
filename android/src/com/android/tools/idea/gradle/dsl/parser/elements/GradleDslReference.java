@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleStringInjection;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a reference expression.
@@ -53,21 +54,40 @@ public final class GradleDslReference extends GradleDslExpression {
     return valueLiteral != null ? valueLiteral.getValue() : getValue(String.class);
   }
 
+  /**
+   * Returns the same as getReferenceText if you need to get the unresolved version of what this
+   * reference refers to then use getResolvedVariables and call getUnresolvedValue on the result.
+   */
+  @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    return getReferenceText();
+  }
+
   @Override
   @NotNull
-  public Collection<GradleStringInjection> getResolvedVariables() {
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    GradleReferenceInjection injection = getReferenceInjection();
+    if (injection == null) {
+      return Collections.emptyList();
+    }
+    return ImmutableList.of(injection);
+  }
+
+  @Nullable
+  public GradleReferenceInjection getReferenceInjection() {
     String text = getReferenceText();
     if (text == null || myExpression == null) {
-      return Collections.emptyList();
+      return null;
     }
 
     // Resolve our reference
     GradleDslElement element = resolveReference(text);
-    if (element == null || !(element instanceof GradleDslExpression)) {
-      return Collections.emptyList();
+    if (element == null) {
+      return null;
     }
 
-    return ImmutableList.of(new GradleStringInjection((GradleDslExpression)element, myExpression, text));
+    return new GradleReferenceInjection(element, myExpression, text);
   }
 
   /**
@@ -82,6 +102,16 @@ public final class GradleDslReference extends GradleDslExpression {
       return null;
     }
     return resolveReference(referenceText, clazz);
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
+    if (value != null && clazz.isAssignableFrom(value.getClass())) {
+      return clazz.cast(value);
+    }
+    return null;
   }
 
   @Override

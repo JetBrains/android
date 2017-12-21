@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -36,7 +37,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -46,9 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 
@@ -131,6 +128,10 @@ public class NlDesignSurface extends DesignSurface {
         manager.updateSceneView();
         manager.requestLayoutAndRender(false);
       }
+      if (!contentResizeSkipped()) {
+        zoomToFit();
+      }
+      updateScrolledAreaSize();
       repaint();
     }
   }
@@ -260,7 +261,11 @@ public class NlDesignSurface extends DesignSurface {
    */
   @Override
   public float getSceneScalingFactor() {
-    return getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+    Configuration configuration = getConfiguration();
+    if (configuration != null) {
+      return configuration.getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+    }
+    return 1f;
   }
 
   @NotNull
@@ -304,7 +309,7 @@ public class NlDesignSurface extends DesignSurface {
         if (mySceneMode == SceneMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
-          }
+        }
         myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
@@ -331,6 +336,8 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     manager.getScene().needsRebuildList();
+    revalidate();
+    repaint();
   }
 
   @Override
@@ -392,7 +399,7 @@ public class NlDesignSurface extends DesignSurface {
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
     SceneManager manager = getSceneManager();
     SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    if(primarySceneView == null) {
+    if (primarySceneView == null) {
       return JBUI.emptySize();
     }
     Dimension preferredSize = primarySceneView.getPreferredSize();
@@ -412,17 +419,6 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     return new Dimension(requiredWidth, requiredHeight);
-  }
-
-  @Override
-  public void notifyComponentActivate(@NotNull NlComponent component) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
-
-    if (handler != null) {
-      handler.onActivateInComponentTree(component);
-    }
-
-    super.notifyComponentActivate(component);
   }
 
   @Override
@@ -502,6 +498,14 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
+  public void forceUserRequestedRefresh() {
+    LayoutlibSceneManager sceneManager = getSceneManager();
+    if (sceneManager != null) {
+      sceneManager.requestUserInitatedRender();
+    }
+  }
+
+  @Override
   protected boolean useSmallProgressIcon() {
     if (getCurrentSceneView() == null) {
       return false;
@@ -523,6 +527,15 @@ public class NlDesignSurface extends DesignSurface {
     return 10;
   }
 
+  public boolean hasCustomDevice() {
+    Configuration configuration = getConfiguration();
+    if (configuration == null) {
+      return false;
+    }
+    Device device = configuration.getDevice();
+    return device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
+  }
+
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   @Nullable
   @Override
@@ -531,7 +544,7 @@ public class NlDesignSurface extends DesignSurface {
     Dimension size = screenView.getSize();
     Rectangle resizeZone =
       new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(mouseX, mouseY)) {
+    if (resizeZone.contains(mouseX, mouseY) && hasCustomDevice()) {
       Configuration configuration = getConfiguration();
       assert configuration != null;
       return new CanvasResizeInteraction(this, screenView, configuration);

@@ -32,6 +32,7 @@ import org.junit.Test
 class ImporterTest {
 
   lateinit var disposable: Disposable
+  private val supportedTypes = setOf("png", "jpg")
 
   @Before
   fun setUp() {
@@ -57,7 +58,7 @@ class ImporterTest {
         "image.jpg",
         "image@4x.jpg"
     )
-    val assetSets = getAssetSets(directory)
+    val assetSets = getAssetSets(directory, supportedTypes)
     assertEquals(2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")
@@ -94,7 +95,7 @@ class ImporterTest {
       createChildData(this, "icon@3x.jpg")
     }
 
-    val assetSets = getAssetSets(directory)
+    val assetSets = getAssetSets(directory, supportedTypes)
     assertEquals(2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")

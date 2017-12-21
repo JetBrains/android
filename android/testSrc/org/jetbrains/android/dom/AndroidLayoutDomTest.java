@@ -175,13 +175,6 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                              "android.widget.TextView");
   }
 
-  // Code completion in views inside a <layout> tag need to pick up default layout params
-  public void testDataBindingLayoutParamCompletion() throws Throwable {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=212690
-    toTestFirstCompletion("data_binding_completion.xml",
-                          "data_binding_completion_after.xml");
-  }
-
   // fontFamily attribute values are autocompleted
   public void testFontFamilyCompletion() throws Throwable {
     doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace");
@@ -235,28 +228,77 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("missing_attrs.xml");
   }
 
+  @Language("JAVA")
+  String recyclerView =
+    "package android.support.v7.widget;\n" +
+    "\n" +
+    "import android.widget.ViewGroup;\n" +
+    "\n" +
+    "public class RecyclerView extends ViewGroup {\n" +
+    "  public abstract static class LayoutManager {\n" +
+    "  }\n" +
+    "}\n" +
+    "\n" +
+    "public class GridLayoutManager extends RecyclerView.LayoutManager {\n" +
+    "}\n" +
+    "\n" +
+    "public class LinearLayoutManager extends RecyclerView.LayoutManager {\n" +
+    "}";
+
+  @Language("XML")
+  String recyclerViewAttrs =
+    "<resources>\n" +
+    "    <declare-styleable name=\"RecyclerView\">\n" +
+    "        <attr name=\"layoutManager\" format=\"string\" />\n" +
+    "    </declare-styleable>\n" +
+    "</resources>";
+
+  public void testLayoutManagerAttribute() throws Throwable {
+    // RecyclerView has a "layoutManager" attribute that should give completions that extend
+    // the RecyclerView.LayoutManager class.
+    myFixture.addClass(recyclerView);
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs);
+    doTestCompletionVariants("recycler_view.xml",
+                             "android.support.v7.widget.GridLayoutManager",
+                             "android.support.v7.widget.LinearLayoutManager");
+  }
+
   public void testDataBindingHighlighting1() throws Throwable {
     ModuleDataBinding.enable(myFacet);
-    copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
-    doTestHighlighting("binding1.xml");
+    copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
+    doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
     ModuleDataBinding.enable(myFacet);
-    doTestHighlighting("binding5.xml");
+    doTestHighlighting("databinding_highlighting2.xml");
+  }
+
+  public void testDataBindingHighlighting3() throws Throwable {
+    ModuleDataBinding.enable(myFacet);
+    copyFileToProject("DataBindingHighlighting3.java", "src/p1/p2/DataBindingHighlighting3.java");
+    doTestHighlighting("databinding_highlighting3.xml");
   }
 
   public void testDataBindingCompletion1() throws Throwable {
-    doTestCompletionVariants("binding2.xml", "name", "type");
+    doTestCompletionVariants("databinding_completion1.xml", "name", "type");
   }
 
   public void testDataBindingCompletion2() throws Throwable {
-    toTestCompletion("binding3.xml", "binding3_after.xml");
+    toTestCompletion("databinding_completion2.xml", "databinding_completion2_after.xml");
   }
 
   public void testDataBindingCompletion3() throws Throwable {
-    toTestCompletion("binding4.xml", "binding4_after.xml");
-    //doTestCompletionVariants("binding4.xml", "safeUnbox", "superCool");
+    toTestCompletion("databinding_completion3.xml", "databinding_completion3_after.xml");
+    //doTestCompletionVariants("databinding_completion3.xml", "safeUnbox", "superCool");
+  }
+
+  /**
+   * Regression test for https://issuetracker.google.com/37104001.
+   * Code completion in views inside a <layout> tag need to pick up default layout parameters.
+   */
+  public void testDataBindingCompletion4() throws Throwable {
+    toTestFirstCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
   }
 
   public void testCustomTagCompletion() throws Throwable {
@@ -1428,6 +1470,52 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.addClass(view);
 
     toTestCompletion("restricted.xml", "restricted_after.xml");
+  }
+
+  @Language("JAVA")
+  String innerClass =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.widget.ImageView;\n" +
+    "import android.widget.LinearLayout;\n" +
+    "import android.widget.TextView;\n" +
+    "\n" +
+    "public class MyImageView extends ImageView {\n" +
+    "    public MyImageView(Context context) {\n" +
+    "        super(context);\n" +
+    "    }\n" +
+    "    public static class MyTextView extends TextView {\n" +
+    "        public MyTextView(Context context) {\n" +
+    "            super(context);\n" +
+    "        }\n" +
+    "    }\n" +
+    "    public static class MyLinearLayout extends LinearLayout {\n" +
+    "        public MyLinearLayout(Context context) {\n" +
+    "            super(context);\n" +
+    "        }\n" +
+    "    }\n" +
+    "}";
+
+  public void testTagCompletionUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    toTestCompletion("innerClass1.xml", "innerClass1_after.xml");
+  }
+
+  public void testTagReplacementUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("innerClass2.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("\t");
+    myFixture.checkResultByFile(myTestFolder + "/innerClass2_after.xml");
+  }
+
+  public void testTagLayoutCompletionUsingInnerClass() throws Throwable {
+    myFixture.addClass(innerClass);
+
+    toTestCompletion("innerClass3.xml", "innerClass3_after.xml");
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

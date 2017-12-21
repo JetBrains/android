@@ -18,8 +18,10 @@ package com.android.tools.idea.testartifacts.junit;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.util.SystemInfo;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 
 
 /**
@@ -36,22 +38,41 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadSimpleApplication();
   }
 
   public void testCanCreateJUnitConfigurationFromJUnitTestClass() throws Exception {
+    loadSimpleApplication();
     assertNotNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"));
   }
 
   public void testCannotCreateJUnitConfigurationFromAndroidTestClass() throws Exception {
+    loadSimpleApplication();
     assertNull(createJUnitConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest"));
   }
 
   public void testCanCreateJUnitConfigurationFromJUnitTestDirectory() throws Exception {
+    loadSimpleApplication();
     assertNotNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 
   public void testCannotCreateJUnitConfigurationFromAndroidTestDirectory() throws Exception {
+    loadSimpleApplication();
+    assertNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
+  }
+
+  public void testCannotCreateJUnitConfigurationFromAndroidTestClassKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromFile(
+      getProject(), "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"));
+  }
+
+  public void testCanCreateJUnitConfigurationFromJUnitTestDirectoryKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNotNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
+  public void testCannotCreateJUnitConfigurationFromAndroidTestDirectoryKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
     assertNull(createJUnitConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
   }
 }

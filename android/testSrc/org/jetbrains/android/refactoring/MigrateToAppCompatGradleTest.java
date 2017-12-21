@@ -242,6 +242,8 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
   }
 
   private static String getAppCompatGradleCoordinate() {
-    return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7, false);
+    return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7,
+                                                                  v -> v.getMajor() == GradleImport.CURRENT_COMPILE_VERSION,
+                                                                  false);
   }
 }

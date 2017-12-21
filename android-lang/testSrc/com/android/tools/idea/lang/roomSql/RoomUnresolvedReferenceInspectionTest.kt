@@ -61,6 +61,26 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
     myFixture.checkHighlighting()
   }
 
+  fun testInvalidColumnWithClause() {
+    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (VALUES(17, 42)) SELECT * FROM user WHERE <error descr="Cannot resolve symbol 'age'">age</error> in ids")
+          List<User> getAdults();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
   fun testInvalidTable() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")
 

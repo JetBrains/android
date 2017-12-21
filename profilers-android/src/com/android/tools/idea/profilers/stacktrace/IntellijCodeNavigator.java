@@ -116,7 +116,8 @@ public final class IntellijCodeNavigator extends CodeNavigator {
         return true; // Method name does not match. Continue the processing.
       }
       OCQualifiedName qualifier = function.getQualifiedName().getQualifier();
-      if (qualifier == null || qualifier.getName() == null || !qualifier.getName().equals(location.getClassName())) {
+      String qualifierName = (qualifier == null || qualifier.getName() == null) ? "" : qualifier.getName();
+      if (!qualifierName.equals(location.getClassName())) {
         return true; // Class name does not match. Continue the processing.
       }
 

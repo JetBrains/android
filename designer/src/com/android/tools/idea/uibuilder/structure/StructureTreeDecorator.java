@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.util.WhiteIconGenerator;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
@@ -45,8 +44,8 @@ public class StructureTreeDecorator {
   static void decorate(@NotNull ColoredTextContainer container, @NotNull NlComponent component, boolean hasFocus) {
     append(container, component);
     Icon icon = getViewHandler(component).getIcon(component);
-    if (hasFocus && StudioFlags.NELE_NEW_PALETTE.get()) {
-      icon = WhiteIconGenerator.INSTANCE.generateWhiteIcon(icon);
+    if (hasFocus) {
+      icon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon);
     }
     container.setIcon(icon);
   }

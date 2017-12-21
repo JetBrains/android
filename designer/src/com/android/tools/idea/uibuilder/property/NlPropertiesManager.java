@@ -186,11 +186,6 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
-    getComponentAssistant().sceneChanged(surface, scene);
-  }
-
-  @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
     getComponentAssistant().modelChanged(surface, model);
   }

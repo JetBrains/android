@@ -86,6 +86,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(CpuService.class);
     expectedServices.add(NetworkService.class);
     expectedServices.add(MemoryService.class);
+    expectedServices.add(EnergyService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {

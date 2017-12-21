@@ -22,8 +22,9 @@ import com.android.tools.idea.common.property.NlProperty
 /**
  * Basic property with simple implementations for some methods.
  */
-open class SimpleProperty(val myName: String, val myComponents: List<NlComponent>) : NlProperty {
-  override fun getNamespace() = null
+open class SimpleProperty(val myName: String, val myComponents: List<NlComponent>, private val myNamespace: String? = null,
+                          val myValue: String? = null) : NlProperty {
+  override fun getNamespace() = myNamespace
 
   override fun getResolvedValue() = null
 
@@ -31,7 +32,7 @@ open class SimpleProperty(val myName: String, val myComponents: List<NlComponent
 
   override fun getName() = myName
 
-  override fun getValue(): String? = null
+  override fun getValue(): String? = myValue
 
   override fun setValue(value: Any?) {}
 

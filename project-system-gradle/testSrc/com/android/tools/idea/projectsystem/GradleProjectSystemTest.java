@@ -95,19 +95,4 @@ public class GradleProjectSystemTest extends IdeaTestCase {
     ProjectSystemUtil.getProjectSystem(getProject()).buildProject();
     verify(GradleProjectBuilder.getInstance(myProject)).compileJava();
   }
-
-  public void testGetLastSyncResult_unknownIfNeverSynced() {
-    assertThat(mySyncManager.getLastSyncResult()).isSameAs(SyncResult.UNKNOWN);
-  }
-
-  public void testGetLastSyncResult_sameAsSyncResult() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    myProject.getMessageBus().connect(myProject).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> latch.countDown());
-
-    // Emulate the completion of a successful sync.
-    myProject.getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS);
-
-    latch.await();
-    assertThat(mySyncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS);
-  }
 }

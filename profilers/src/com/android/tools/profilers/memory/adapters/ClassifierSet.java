@@ -405,10 +405,10 @@ public abstract class ClassifierSet implements MemoryObject {
       if (!isTerminalClassifier()) {
         instances.forEach(instance -> {
           if (instance.hasTimeData()) {
-            if (instance.hasAllocData()) {
+            if (instance.hasAllocTime()) {
               getOrCreateClassifierSet(instance).addInstanceObject(instance);
             }
-            if (instance.hasDeallocData()) {
+            if (instance.hasDeallocTime()) {
               getOrCreateClassifierSet(instance).freeInstanceObject(instance);
             }
             partitionedInstances.add(instance);

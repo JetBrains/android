@@ -66,6 +66,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -146,6 +147,7 @@ public class GradleSyncTest {
     fail("No dependency for library3 found");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/70699846
   @Test
   public void jdkNodeModificationInProjectView() throws IOException {
     guiTest.importSimpleApplication();
@@ -517,7 +519,8 @@ public class GradleSyncTest {
 
     // Make sure the library was added.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
+    // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
+    String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
 
     // Verify that the library has the right j

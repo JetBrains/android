@@ -722,7 +722,6 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testCaptureChangedListener() {
-    final int appId = 1;
     final int captureStartTime = 0;
     // String containing data used for validating against each TreeNode.
     // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
@@ -730,7 +729,6 @@ public class MemoryClassifierViewTest {
 
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          appId,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
@@ -853,7 +851,6 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testCaptureFilter() {
-    final int appId = 1;
     final int captureStartTime = 0;
     // String containing data used for validating against each TreeNode.
     // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
@@ -861,7 +858,6 @@ public class MemoryClassifierViewTest {
 
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          appId,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
@@ -981,7 +977,6 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testSelectedClassSetAndInstance() {
-    final int appId = 1;
     final int captureStartTime = 0;
     // String containing data used for validating against each TreeNode.
     // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
@@ -992,7 +987,6 @@ public class MemoryClassifierViewTest {
 
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          appId,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);

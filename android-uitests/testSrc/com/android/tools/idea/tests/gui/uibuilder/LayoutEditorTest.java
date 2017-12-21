@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAs
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.MouseButton;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,8 +124,7 @@ public class LayoutEditorTest {
    *   For unsupported files, “Errors” dialog should display at the bottom of Configure vector asset window with appropriate message.
    *   </pre>
    */
-  @Ignore("b/68001739")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68001739
   @Test
   public void imageAssetErrorCheck() throws Exception {
     guiTest.importSimpleApplication();
@@ -172,8 +170,7 @@ public class LayoutEditorTest {
    *   Make sure the “preview” pane displays the layout with the drawable correctly.
    *   </pre>
    */
-  @Ignore("http://b/69420548")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/69420548
   @Test
   public void imageAssetGradleTest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -227,21 +224,23 @@ public class LayoutEditorTest {
   @Test
   public void imageAssetRegressionTest() throws Exception {
     guiTest.importSimpleApplication();
-    AssetStudioWizardFixture wizard = guiTest.ideFrame()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
-    NewImageAssetStepFixture step = wizard.getImageAssetStep();
-    step.selectIconType("Launcher Icons (Legacy only)");
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
-    step.selectClipArt()
-      .setForeground(new Color(200, 0, 0, 200));
-    wizard.clickNext()
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset")
+      .getImageAssetStep()
+      .selectIconType("Launcher Icons (Legacy only)")
+      .selectClipArt()
+      .setForeground(new Color(200, 0, 0, 200))
+      .wizard()
+      .clickNext()
       .clickFinish();
+
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
     List<String> newFiles = NewImageAssetTest.getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
     assertThat(newFiles).containsExactly("app/src/main/ic_launcher-web.png",

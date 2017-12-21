@@ -257,7 +257,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
     myIdeComponents = new IdeComponents(null);
-    myIdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
+    myIdeComponents.replaceService(RepositoryUrlManager.class,
+                                   new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override
@@ -326,7 +327,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_KOTLIN_SUPPORT, true);
-    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.KOTLIN_VERSION_FOR_TESTS);
+    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.getKotlinVersionForTests());
     projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
     templateMap.put(ATTR_KOTLIN_SUPPORT, true);
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
@@ -1519,7 +1520,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
         if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
-          iconGenerator.generateImageIconsIntoPath(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
+          iconGenerator.generateIconsToDisk(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
         }
         projectState.updateParameters();
 

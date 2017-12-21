@@ -18,6 +18,5 @@
     <orderEntry type="module" module-name="uast-java" scope="RUNTIME" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="module" module-name="android" scope="TEST" />
-    <orderEntry type="module" module-name="xslt-debugger" scope="RUNTIME" />
   </component>
 </module>

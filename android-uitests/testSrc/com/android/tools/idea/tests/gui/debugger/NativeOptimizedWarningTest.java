@@ -21,24 +21,23 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class NativeOptimizedWarningTest {
+public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
@@ -47,7 +46,7 @@ public class NativeOptimizedWarningTest {
 
   private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<JLabel>(JLabel.class) {
     @Override
-    protected boolean isMatching(JLabel component) {
+    protected boolean isMatching(@NotNull JLabel component) {
       String text = component.getText();
       if (text == null)
         return false;
@@ -59,6 +58,7 @@ public class NativeOptimizedWarningTest {
    * <p>TT ID: TODO this test case needs a TT ID.
    *
    */
+  @Ignore("b/37140919")
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
@@ -67,17 +67,12 @@ public class NativeOptimizedWarningTest {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
-    final String[] breakPoints = { "return 1+c;" };
-    openAndToggleBreakPoints("app/src/main/cpp/hello-jni.c", breakPoints);
+    openAndToggleBreakPoints(projectFrame, "app/src/main/cpp/hello-jni.c", "return 1+c;");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
 
-    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    {
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 70);
-    }
+    waitForSessionStart(debugToolWindowFixture);
 
     Wait.seconds(5).expecting("Frame list populated").until(
       () -> debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesListFixture().selection().length > 0);
@@ -100,17 +95,6 @@ public class NativeOptimizedWarningTest {
       final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
       contentFixture.stop();
       contentFixture.waitForExecutionToFinish();
-    }
-  }
-
-  /**
-   * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
-   */
-  private void openAndToggleBreakPoints(String fileName, String[] lines) {
-    EditorFixture editor = guiTest.ideFrame().getEditor().open(fileName);
-    for (String line : lines) {
-      editor.moveBetween("", line);
-      editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
     }
   }
 }

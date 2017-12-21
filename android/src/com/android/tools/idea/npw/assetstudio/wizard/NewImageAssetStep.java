@@ -28,13 +28,13 @@ import java.util.Collections;
 /**
  * Step for generating Android icons from some image asset source.
  */
-public final class NewImageAssetStep extends ModelWizardStep<GenerateImageIconsModel> {
+public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
   private static final String IMAGE_ASSET_PANEL_PROPERTY = "imageAssetPanel";
 
   @NotNull private final GenerateImageAssetPanel myGenerateImageAssetPanel;
   @NotNull private final AndroidFacet myFacet;
 
-  public NewImageAssetStep(@NotNull GenerateImageIconsModel model, @NotNull AndroidFacet facet) {
+  public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
     myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, facet, model.getPaths());
     myFacet = facet;

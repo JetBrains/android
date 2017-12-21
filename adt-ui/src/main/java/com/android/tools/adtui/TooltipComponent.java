@@ -26,6 +26,8 @@ import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
 public final class TooltipComponent extends AnimatedComponent {
+  private static final int TOOLTIP_BORDER_SIZE = 10;
+
   @NotNull
   private final Component myContent;
 
@@ -61,10 +63,6 @@ public final class TooltipComponent extends AnimatedComponent {
                           @NotNull Component owner,
                           @Nullable Class<? extends JLayeredPane> preferredParentClass) {
     this(content, owner, preferredParentClass, owner::isDisplayable);
-  }
-
-  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
-    this(content, owner, null);
   }
 
   @VisibleForTesting
@@ -178,6 +176,11 @@ public final class TooltipComponent extends AnimatedComponent {
 
       private void handleMove(MouseEvent e) {
         if (!isVisible()) {
+          // Recalculate the dimensions of the content prior to recomputing the parent, as recomputing the parent will cause a relayout.
+          Rectangle oldBounds = myContent.getBounds();
+          Dimension preferredSize = getPreferredSize();
+          myContent.setBounds(oldBounds.x, oldBounds.y, preferredSize.width, preferredSize.height);
+
           recomputeParent();
         }
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
@@ -189,22 +192,25 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   @Override
+  public Dimension getPreferredSize() {
+    Dimension preferredSize = myContent.getPreferredSize();
+    Dimension minSize = myContent.getMinimumSize();
+    return new Dimension(Math.max(preferredSize.width, minSize.width), Math.max(preferredSize.height, minSize.height));
+  }
+
+  @Override
   protected void draw(Graphics2D g, Dimension dim) {
     assert myLastPoint != null; // If we're visible, myLastPoint is not null
 
-    Dimension size = myContent.getPreferredSize();
-    Dimension minSize = myContent.getMinimumSize();
-    size = new Dimension(Math.max(size.width, minSize.width), Math.max(size.height, minSize.height));
+    // Translate the bounds to clamp it wholly within the parent's drawable region.
+    Dimension preferredSize = getPreferredSize();
+    // TODO Investigate if this works for multiple monitors, especially on Macs?
+    int x = Math.max(Math.min(myLastPoint.x + TOOLTIP_BORDER_SIZE, dim.width - preferredSize.width - TOOLTIP_BORDER_SIZE), TOOLTIP_BORDER_SIZE);
+    int y = Math.max(Math.min(myLastPoint.y + TOOLTIP_BORDER_SIZE, dim.height - preferredSize.height - TOOLTIP_BORDER_SIZE), TOOLTIP_BORDER_SIZE);
+    myContent.setBounds(x, y, preferredSize.width, preferredSize.height);
 
     g.setColor(Color.WHITE);
-    int gap = 10;
-    int x1 = Math.max(Math.min((myLastPoint.x + gap), dim.width - size.width - gap), 0);
-    int y1 = Math.max(Math.min(myLastPoint.y + gap, dim.height - size.height - gap), gap);
-    int width = size.width;
-    int height = size.height;
-
-    g.fillRect(x1, y1, width, height);
-
+    g.fillRect(x, y, preferredSize.width, preferredSize.height);
     g.setStroke(new BasicStroke(1.0f));
 
     int lines = 4;
@@ -212,10 +218,9 @@ public final class TooltipComponent extends AnimatedComponent {
     RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
     for (int i = 0; i < lines; i++) {
       g.setColor(new Color(0, 0, 0, alphas[i]));
-      rect.setRoundRect(x1 - 1 - i, y1 - 1 - i, width + 1 + i * 2, height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
+      rect.setRoundRect(x - 1 - i, y - 1 - i, preferredSize.width + 1 + i * 2, preferredSize.height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
       g.draw(rect);
     }
-    myContent.setBounds(x1, y1, width, height);
     myContent.repaint();
   }
 }

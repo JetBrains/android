@@ -45,7 +45,7 @@ public class DependencyViewIssueRendererTest {
 
   @NotNull
   private PsPath createPath(final String text) {
-    return new PsPath() {
+    return new PsPath(null) {
       @NotNull
       @Override
       public String toText(@NotNull TexType type) {

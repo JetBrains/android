@@ -161,7 +161,7 @@ public class NewModuleTest {
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .setCreateGitIgnore(true)
-      .getWizard()
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyClass.java")).isFile();
@@ -179,7 +179,7 @@ public class NewModuleTest {
       .enterPackageName("my.test")
       .enterClassName("MyJavaClass")
       .setCreateGitIgnore(false)
-      .getWizard()
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyJavaClass.java")).isFile();

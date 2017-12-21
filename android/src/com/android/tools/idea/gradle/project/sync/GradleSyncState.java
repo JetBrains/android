@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -46,8 +47,6 @@ import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.*;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
@@ -154,25 +153,27 @@ public class GradleSyncState {
    * uses the models cached in disk.
    *
    * @param notifyUser indicates whether the user should be notified.
+   * @param request    the request which initiated the sync.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean skippedSyncStarted(boolean notifyUser, @NotNull GradleSyncStats.Trigger trigger) {
-    return syncStarted(true, notifyUser, trigger);
+  public boolean skippedSyncStarted(boolean notifyUser,  @NotNull GradleSyncInvoker.Request request) {
+    return syncStarted(true, notifyUser, request);
   }
 
   /**
    * Notification that a sync has started.
    *
    * @param notifyUser indicates whether the user should be notified.
+   * @param request    the request which initiated the sync.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean syncStarted(boolean notifyUser, @NotNull GradleSyncStats.Trigger trigger) {
-    return syncStarted(false, notifyUser, trigger);
+  public boolean syncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
+    return syncStarted(false, notifyUser, request);
   }
 
-  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, @NotNull GradleSyncStats.Trigger trigger) {
+  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
@@ -184,15 +185,21 @@ public class GradleSyncState {
 
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
-    setSyncStartedTimeStamp(System.currentTimeMillis(), trigger);
+    setSyncStartedTimeStamp(System.currentTimeMillis(), request.trigger);
     addInfoToEventLog("Gradle sync started");
 
     if (notifyUser) {
       notifyStateChanged();
     }
 
+    if (mySummary.getSyncTimestamp() < 0) {
+      // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
+      // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
+      GradleSyncResultPublisher.getInstance(myProject);
+    }
+
     mySummary.reset();
-    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped));
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
     UsageTracker.getInstance().log(event);
@@ -234,7 +241,6 @@ public class GradleSyncState {
     stopSyncInProgress();
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
-    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SKIPPED));
 
     enableNotifications();
 
@@ -275,7 +281,6 @@ public class GradleSyncState {
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
-    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(FAILURE));
 
     mySummary.setSyncErrorsFound(true);
   }
@@ -308,7 +313,6 @@ public class GradleSyncState {
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
-    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SUCCESS));
   }
 
   private long getSyncDurationMS(long syncEndTimestamp) {

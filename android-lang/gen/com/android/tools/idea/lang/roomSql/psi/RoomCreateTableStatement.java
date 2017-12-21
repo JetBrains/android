@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateTableStatement extends RoomStatement {
+public interface RoomCreateTableStatement extends PsiElement {
 
   @NotNull
   List<RoomColumnDefinition> getColumnDefinitionList();
@@ -30,13 +30,13 @@ public interface RoomCreateTableStatement extends RoomStatement {
   @Nullable
   RoomDatabaseName getDatabaseName();
 
-  @Nullable
-  RoomSelectStatement getSelectStatement();
-
   @NotNull
   List<RoomTableConstraint> getTableConstraintList();
 
   @NotNull
   RoomTableDefinitionName getTableDefinitionName();
+
+  @Nullable
+  RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

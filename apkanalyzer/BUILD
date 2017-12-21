@@ -7,19 +7,20 @@ iml_module(
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:execution-impl",
-        "//tools/idea:external-system-impl",
+        "//tools/idea/java/execution/impl:execution-impl",
+        "//tools/idea/platform/external-system-impl",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea:lvcs-impl",
-        "//tools/idea:credential-store",
-        "//tools/idea:configuration-store-impl",
-        "//tools/idea:tasks-platform-impl",
-        "//tools/idea:json",
-        "//tools/idea:relaxng",
+        "//tools/idea/platform/lvcs-impl",
+        "//tools/idea/platform/credential-store",
+        "//tools/idea/platform/configuration-store-impl",
+        "//tools/idea/platform/tasks-platform-impl",
+        "//tools/idea/json",
+        "//tools/idea/xml/relaxng",
+        "//tools/adt/idea/adt-branding",
         "//tools/idea/java/compiler/instrumentation-util-8",
     ],
     # do not sort: must match IML order
@@ -27,7 +28,7 @@ iml_module(
         "//tools/idea/platform/editor-ui-api[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea:platform-impl[module]",
+        "//tools/idea/platform/platform-impl[module]",
         "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/base/common:studio.common[module]",
         "//tools/base/apkparser:studio.binary-resources[module]",

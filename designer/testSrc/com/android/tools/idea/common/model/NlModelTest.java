@@ -359,7 +359,7 @@ public class NlModelTest extends LayoutTestCase {
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.addDependencies(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
@@ -370,10 +370,10 @@ public class NlModelTest extends LayoutTestCase {
       ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
-    when(gradleDependencyManager.addDependencies(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
       .thenReturn(true);
 
-    verify(gradleDependencyManager, atLeastOnce()).addDependencies(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    verify(gradleDependencyManager, atLeastOnce()).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -402,7 +402,7 @@ public class NlModelTest extends LayoutTestCase {
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.addDependencies(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
       .thenReturn(true);
 
     XmlTag recyclerViewTag =
@@ -411,7 +411,7 @@ public class NlModelTest extends LayoutTestCase {
       NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
 
-    verify(gradleDependencyManager).addDependencies(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    verify(gradleDependencyManager).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +

@@ -48,7 +48,7 @@ public class AvdWizardUtilsTest {
   public TemporaryFolder myFolder = new TemporaryFolder();
 
   @Test
-  public void testResolveSkins() throws IOException {
+  public void testConvertWebpSkinToPng() throws IOException {
     WebpMetadata.ensureWebpRegistered();
     if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
       System.out.println("Can't run skin conversion test without native webp library");
@@ -83,7 +83,7 @@ public class AvdWizardUtilsTest {
   }
 
   @Test
-  public void testPngFallthrough() throws IOException {
+  public void testConvertWebpSkinToPngFallthrough() throws IOException {
     // Make sure that we correctly copy png assets
     WebpMetadata.ensureWebpRegistered();
     if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
@@ -134,6 +134,78 @@ public class AvdWizardUtilsTest {
     assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_TOOLS))).isTrue();
 
     assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", "irrelevant"))).isFalse();
+  }
+
+  @Test
+  public void testEnsureSkinsAreCurrent() throws IOException {
+    WebpMetadata.ensureWebpRegistered();
+    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
+      System.out.println("Can't run skin conversion test without native webp library");
+      return;
+    }
+    DeviceArtDescriptor pixel = null;
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if ("pixel".equals(spec.getId())) {
+        pixel = spec;
+        break;
+      }
+    }
+    assertThat(pixel).isNotNull();
+    File skinResource = pixel.getBaseFolder();
+
+    FileOp fileOp = FileOpUtils.create();
+    File resourceLayout = new File(skinResource, "layout");
+    assertThat(fileOp.exists(resourceLayout)).isTrue();
+    assertThat(fileOp.exists(new File(skinResource, "port_back.webp"))).isTrue();
+
+    String deviceName = skinResource.getName();
+    File deviceFile = new File(deviceName);
+    File skinDestinationBase = new File(myFolder.getRoot(), "skins");
+    File skinDestination = new File(skinDestinationBase, deviceName);
+
+    // No SDK skin: create new
+    File resultFile = AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
+    assertThat(resultFile).isEqualTo(skinDestination);
+
+    File destLayout = new File(skinDestination, "layout");
+    File destPortBack = new File(skinDestination, "port_back.webp");
+
+    assertThat(fileOp.exists(destLayout)).isTrue();
+    assertThat(fileOp.exists(destPortBack)).isTrue();
+
+    // SDK up to date: do nothing
+    fileOp.delete(destPortBack);
+    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
+    assertThat(fileOp.exists(destLayout)).isTrue();
+    assertThat(fileOp.exists(destPortBack)).isFalse(); // Did not get re-copied
+
+    // SDK is old: re-create
+    fileOp.setLastModified(destLayout, resourceLayout.lastModified() - 10); // SDK is older
+
+    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, true, fileOp);
+    assertThat(fileOp.exists(destLayout)).isTrue();
+    assertThat(fileOp.exists(destPortBack)).isTrue(); // Did get re-copied
+
+    // Create for non-WebP emulator
+    fileOp.setLastModified(destLayout, resourceLayout.lastModified() - 10); // SDK is older
+
+    AvdWizardUtils.ensureSkinsAreCurrent(skinResource, skinDestination, deviceFile, false, fileOp);
+    assertThat(fileOp.exists(destLayout)).isTrue();
+    assertThat(fileOp.exists(destPortBack)).isFalse(); // No WebP
+    assertThat(fileOp.exists(new File(skinDestination, "port_back.png"))).isTrue(); // Got copied as PNG
+
+    // No Studio resource
+    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(null, skinDestination, deviceFile, true, fileOp);
+    assertThat(resultFile).isEqualTo(skinDestination);
+
+    // No destination path
+    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(skinResource, null, deviceFile, true, fileOp);
+    assertThat(resultFile).isEqualTo(skinResource);
+
+    // No Studio resource, no destination path
+    resultFile = AvdWizardUtils.ensureSkinsAreCurrent(null, null, deviceFile, true, fileOp);
+    assertThat(resultFile).isEqualTo(deviceFile);
   }
 
   @NotNull

@@ -64,7 +64,7 @@ public class ScreenDragTargetTest extends NavTestCase {
     SceneComponent component = scene.getSceneComponent("fragment1");
     InteractionManager interactionManager = new InteractionManager(surface);
     try {
-      interactionManager.registerListeners();
+      interactionManager.startListening();
 
       @NavCoordinate int x = component.getDrawX();
       @NavCoordinate int y = component.getDrawY();
@@ -80,7 +80,7 @@ public class ScreenDragTargetTest extends NavTestCase {
       assertEquals(y + 30, component.getDrawY());
     }
     finally {
-      interactionManager.unregisterListeners();
+      interactionManager.stopListening();
     }
   }
 }

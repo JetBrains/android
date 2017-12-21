@@ -80,7 +80,7 @@ public class PackageUpgradeTest extends DebuggerTestBase {
    *      Android Studio.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70536208
   @Test
   public void testWithOlderLldb() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest

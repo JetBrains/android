@@ -56,7 +56,7 @@ public class NewActivityTest {
 
   private EditorFixture myEditor;
   private NewActivityWizardFixture myDialog;
-  private ConfigureBasicActivityStepFixture myConfigActivity;
+  private ConfigureBasicActivityStepFixture<NewActivityWizardFixture> myConfigActivity;
 
   @Before
   public void setUp() throws IOException {

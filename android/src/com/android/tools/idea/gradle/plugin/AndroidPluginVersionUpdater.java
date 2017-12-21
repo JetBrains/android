@@ -24,17 +24,17 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -134,7 +134,28 @@ public class AndroidPluginVersionUpdater {
    */
   @NotNull
   public UpdateResult updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    UpdateResult result = new UpdateResult();
+    runWriteCommandAction(myProject, () -> updateAndroidPluginVersion(pluginVersion, result));
+
+    // Update Gradle version only if plugin is successful updated, to avoid leaving the project
+    // in a inconsistent state.
+    if (result.isPluginVersionUpdated() && gradleVersion != null) {
+      runWriteCommandAction(myProject, () -> updateGradleWrapperVersion(gradleVersion, result));
+    }
+    return result;
+  }
+
+  /**
+   * Updates android plugin version.
+   *
+   * @param pluginVersion the plugin version to update to.
+   * @param result        result of the update operation.
+   */
+  private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @NotNull UpdateResult result) {
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
+
+    // Refresh the file system to avoid reading stale cached virtual files.
+    VirtualFileManager.getInstance().refreshWithoutFileWatcher(false /* synchronous */);
 
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
@@ -153,51 +174,49 @@ public class AndroidPluginVersionUpdater {
       return true;
     });
 
-    UpdateResult result = new UpdateResult();
-
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
       try {
-        runWriteCommandAction(myProject, (ThrowableComputable<Void, RuntimeException>)() -> {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
-          result.pluginVersionUpdated();
-          return null;
-        });
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
+        }
+        result.pluginVersionUpdated();
       }
       catch (Throwable e) {
         result.setPluginVersionUpdateError(e);
-        return result;
       }
     }
     else {
       result.setPluginVersionUpdateError(new RuntimeException("Failed to find gradle build models to update."));
-      return result;
     }
+  }
 
-    if (gradleVersion != null) {
-      String basePath = myProject.getBasePath();
-      if (basePath != null) {
-        try {
-          File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(new File(basePath));
-          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
-          String current = gradleWrapper.getGradleVersion();
-          GradleVersion parsedCurrent = null;
-          if (current != null) {
-            parsedCurrent = GradleVersion.tryParse(current);
-          }
-          if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
-            gradleWrapper.updateDistributionUrl(gradleVersion.toString());
-            result.gradleVersionUpdated();
-          }
+  /**
+   * Updates Gradle version in wrapper.
+   *
+   * @param gradleVersion the gradle version to update to.
+   * @param result        the result of the update operation.
+   */
+  private void updateGradleWrapperVersion(@NotNull GradleVersion gradleVersion, @NotNull UpdateResult result) {
+    String basePath = myProject.getBasePath();
+    if (basePath != null) {
+      try {
+        File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(new File(basePath));
+        GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
+        String current = gradleWrapper.getGradleVersion();
+        GradleVersion parsedCurrent = null;
+        if (current != null) {
+          parsedCurrent = GradleVersion.tryParse(current);
         }
-        catch (Throwable e) {
-          result.setGradleVersionUpdateError(e);
+        if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
+          gradleWrapper.updateDistributionUrl(gradleVersion.toString());
+          result.gradleVersionUpdated();
         }
       }
+      catch (Throwable e) {
+        result.setGradleVersionUpdateError(e);
+      }
     }
-    return result;
   }
 
   public static class UpdateResult {

@@ -18,16 +18,13 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -38,7 +35,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class GradleSyncStateTest extends IdeaTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
-  @Mock private ProjectSystemSyncManager.SyncResultListener mySyncResultListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
@@ -57,41 +53,42 @@ public class GradleSyncStateTest extends IdeaTestCase {
                                       myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
-    when(messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)).thenReturn(mySyncResultListener);
   }
 
   public void testSyncStartedWithSyncSkipped() {
-    mySyncState.skippedSyncStarted(false /* no user notification */, TRIGGER_PROJECT_LOADED);
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true);
+    mySyncState.skippedSyncStarted(false /* no user notification */, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true, true);
   }
 
   public void testSyncStartedWithoutUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
     // TODO Add trigger for testing?
-    boolean syncStarted = mySyncState.syncStarted(false /* no user notification */, TRIGGER_PROJECT_MODIFIED);
+    boolean syncStarted = mySyncState.syncStarted(false /* no user notification */,
+                                                  new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
     // Trying to start a sync again should not work.
-    assertFalse(mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED));
+    assertFalse(mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED)));
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncStartedWithUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
     // TODO Add trigger for testing?
-    boolean syncStarted = mySyncState.syncStarted(true /* user notification */, TRIGGER_PROJECT_MODIFIED);
+    boolean syncStarted = mySyncState.syncStarted(true /* user notification */,
+                                                  new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncSkipped() {
@@ -102,14 +99,13 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(timestamp);
     verify(myGradleSyncListener, times(1)).syncSkipped(myProject);
-    verify(mySyncResultListener, times(1)).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED);
   }
 
   public void testSyncSkippedAfterSyncStarted() {
     long timestamp = -1231231231299L; // Some random number
 
     // TODO Add trigger for testing?
-    mySyncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
     mySyncState.syncSkipped(timestamp);
     assertFalse(mySyncState.isSyncInProgress());
   }
@@ -123,7 +119,6 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySummary, times(1)).setSyncErrorsFound(true);
     verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
-    verify(mySyncResultListener, times(1)).syncEnded(ProjectSystemSyncManager.SyncResult.FAILURE);
     verify(myProjectStructure, times(1)).clearData();
   }
 
@@ -133,7 +128,6 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.syncFailed(msg);
     verify(mySummary, never()).setSyncErrorsFound(true);
     verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
-    verify(mySyncResultListener, never()).syncEnded(any());
   }
 
   public void testSyncEnded() {
@@ -142,14 +136,12 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(myGradleSyncListener, times(1)).syncSucceeded(myProject);
-    verify(mySyncResultListener, times(1)).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
   }
 
   public void testSyncEndedWithoutSyncStarted() {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncEnded();
     verify(myGradleSyncListener, never()).syncSucceeded(myProject);
-    verify(mySyncResultListener, never()).syncEnded(any());
   }
 
   public void testSetupStarted() {

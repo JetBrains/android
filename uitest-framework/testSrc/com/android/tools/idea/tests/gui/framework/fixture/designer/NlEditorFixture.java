@@ -80,6 +80,12 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
+  public NlEditorFixture waitForRenderToFinish(@NotNull Wait wait) {
+    myDesignSurfaceFixture.waitForRenderToFinish(wait);
+    return this;
+  }
+
+  @NotNull
   public NlComponentFixture findView(@NotNull String tag, int occurrence) {
     return ((NlDesignSurfaceFixture)myDesignSurfaceFixture).findView(tag, occurrence);
   }

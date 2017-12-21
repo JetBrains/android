@@ -16,19 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixture<ChooseOptionsForNewFileStepFixture> {
-  protected ChooseOptionsForNewFileStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ChooseOptionsForNewFileStepFixture.class, robot, target);
+public class ChooseOptionsForNewFileStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ChooseOptionsForNewFileStepFixture, W> {
+
+  protected ChooseOptionsForNewFileStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ChooseOptionsForNewFileStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ChooseOptionsForNewFileStepFixture enterActivityName(@NotNull String name) {
+  public ChooseOptionsForNewFileStepFixture<W> enterActivityName(@NotNull String name) {
     JTextField textField = robot().finder().findByLabel(target(), "Activity Name", JTextField.class, true);
     replaceText(textField, name);
     return this;

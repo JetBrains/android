@@ -299,7 +299,6 @@ public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestC
     FileUtil.copyDir(fromDir, projectRoot);
     vfsProjectRoot.refresh(false, true);
     // Make sure intellij contains no changes that the file system doesn't.
-    // This is a temporary fix for b/69607390
     PsiDocumentManager.getInstance(project).commitAllDocuments();
   }
 

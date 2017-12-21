@@ -213,7 +213,7 @@ public final class RenderTemplateModel extends WizardModel {
         protected void run(@NotNull Result<Boolean> result) throws Throwable {
           boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
           if (success && myIconGenerator != null) {
-            myIconGenerator.generateImageIconsIntoPath(paths);
+            myIconGenerator.generateIconsToDisk(paths);
           }
 
           result.setResult(success);
@@ -222,7 +222,7 @@ public final class RenderTemplateModel extends WizardModel {
 
       if (success) {
         if (isKotlinTemplate()) {
-          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, myIsNewProject, () -> {
+          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, () -> {
             // replace .java w/ .kt files
             for (int i = 0; i < filesToOpen.size(); i++) {
               File file = filesToOpen.get(i);

@@ -51,8 +51,14 @@ public class RoomTableOrSubqueryImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
-  public RoomSubquery getSubquery() {
-    return findChildByClass(RoomSubquery.class);
+  public RoomSelectSubquery getSelectSubquery() {
+    return findChildByClass(RoomSelectSubquery.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomTableOrSubquery getTableOrSubquery() {
+    return findChildByClass(RoomTableOrSubquery.class);
   }
 
 }

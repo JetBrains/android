@@ -64,6 +64,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final AndroidFacet myFacet;
   private static Lexer ourJavaLexer;
   private PsiFile myVirtualPsiFile;
+  private final Object myLock = new Object();
 
   protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
     super(psiManager);
@@ -74,7 +75,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
     myAliasCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet, myLock) {
         @Override
         Map<String, String> doCompute() {
           Map<String, String> result = new HashMap<>();
@@ -94,7 +95,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       }, false);
 
     myPsiMethodsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet, myLock) {
         @Override
         PsiMethod[] doCompute() {
           List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
@@ -127,7 +128,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       }, false);
 
     myPsiFieldsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet, myLock) {
         @Override
         PsiField[] doCompute() {
           if (myInfo.getMergedInfo() != null) {

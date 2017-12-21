@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.property.NlProperty
@@ -47,7 +46,7 @@ class NavActionArgumentsProperty(components: List<NlComponent>, propertiesManage
     val localArguments: Map<String, NlComponent> =
         components.flatMap { it.children }
             .filter { it.tagName == NavigationSchema.TAG_ARGUMENT }
-            .associateBy { it.getAttribute(AUTO_URI, ATTR_NAME) ?: "" }
+            .associateBy { it.getAttribute(ANDROID_URI, ATTR_NAME) ?: "" }
 
     val destinationToLocal: Map<NlComponent, NlComponent?> =
         components.mapNotNull { component ->
@@ -56,8 +55,8 @@ class NavActionArgumentsProperty(components: List<NlComponent>, propertiesManage
           }
         }
             .flatMap { it.children }
-            .filter { it.tagName == TAG_ARGUMENT && !it.getAttribute(AUTO_URI, ATTR_NAME).isNullOrEmpty() }
-            .associate { it to localArguments[it.getAttribute(AUTO_URI, ATTR_NAME)] }
+            .filter { it.tagName == TAG_ARGUMENT && !it.getAttribute(ANDROID_URI, ATTR_NAME).isNullOrEmpty() }
+            .associate { it to localArguments[it.getAttribute(ANDROID_URI, ATTR_NAME)] }
 
     destinationToLocal.mapTo(properties) { (dest, local) -> NavActionArgumentProperty(dest, local, components, attrDefs, this) }
   }
@@ -68,24 +67,25 @@ class NavActionArgumentProperty(destinationArgument: NlComponent,
                                 private val parents: List<NlComponent>,
                                 attrDefs: AttributeDefinitions,
                                 private val navArgumentsProperty: NavActionArgumentsProperty) :
-    NlPropertyItem(XmlName(ATTR_NAME, AUTO_URI),
+    NlPropertyItem(XmlName(ATTR_NAME, ANDROID_URI),
         attrDefs.getAttrDefByName(ATTR_NAME),
         listOf(destinationArgument),
         navArgumentsProperty.propertiesManager), NavArgumentProperty {
 
   override val defaultValueProperty: NlProperty =
       actionArgument?.let { ActionArgumentPropertyItem(attrDefs) } ?:
-          object : NewElementProperty(parents[0], TAG_ARGUMENT, ATTR_DEFAULT_VALUE, AUTO_URI, attrDefs, navArgumentsProperty.propertiesManager) {
+          object : NewElementProperty(parents[0], TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs,
+              navArgumentsProperty.propertiesManager) {
             override fun setValue(value: Any?) {
               super.setValue(value)
               WriteCommandAction.runWriteCommandAction(null) {
-                tag?.setAttribute(ATTR_NAME, AUTO_URI, this@NavActionArgumentProperty.value)
+                tag?.setAttribute(ATTR_NAME, ANDROID_URI, this@NavActionArgumentProperty.value)
               }
             }
           }
 
   private inner class ActionArgumentPropertyItem(attrDefs: AttributeDefinitions)
-    : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, AUTO_URI), attrDefs.getAttrDefByName(ATTR_DEFAULT_VALUE),
+    : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, ANDROID_URI), attrDefs.getAttrDefByName(ATTR_DEFAULT_VALUE),
       listOf(actionArgument), myPropertiesManager) {
     override fun setValue(value: Any?) {
       super.setValue(value)

@@ -179,7 +179,7 @@ public class AndroidAppPropertiesEditor {
   private String validateActivityName() {
     String candidate = myActivityNameField.getText().trim();
     if (!AndroidUtils.isIdentifier(candidate)) {
-      return AndroidBundle.message("not.valid.acvitiy.name.error", candidate);
+      return AndroidBundle.message("not.valid.activity.name.error", candidate);
     }
     return "";
   }

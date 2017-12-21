@@ -414,7 +414,7 @@ public final class AvdDeviceData {
 
   public void updateSkinFromDeviceAndSystemImage(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     Hardware defaultHardware = device.getDefaultHardware();
-    File skinFile = AvdWizardUtils.resolveSkinPath(defaultHardware.getSkinFile(), systemImage, FileOpUtils.create());
+    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardware.getSkinFile(), systemImage, FileOpUtils.create());
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
   }
 
