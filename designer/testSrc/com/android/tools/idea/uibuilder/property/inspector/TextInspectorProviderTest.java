@@ -80,7 +80,7 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     Map<String, NlProperty> properties = getPropertyMap(components);
 
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    for (String propertyName : TextInspectorProvider.TEXT_PROPERTIES) {
+    for (String propertyName : TextInspectorProvider.REQUIRED_TEXT_PROPERTIES) {
       Map<String, NlProperty> props = new HashMap<>(properties);
       props.remove(propertyName);
       assertThat(myProvider.isApplicable(components, props, myPropertiesManager)).isFalse();

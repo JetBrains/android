@@ -18,9 +18,10 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.lint.checks.ApiLookup;
 import com.android.utils.Pair;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -41,6 +42,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -48,8 +50,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -84,6 +87,7 @@ public class NlProperties {
   private Table<String, String, NlPropertyItem> getPropertiesImpl(@NotNull AndroidFacet facet,
                                                                   @NotNull PropertiesManager propertiesManager,
                                                                   @NotNull List<NlComponent> components) {
+    assert !components.isEmpty();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
     ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
@@ -96,6 +100,12 @@ public class NlProperties {
     AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
 
     Table<String, String, NlPropertyItem> combinedProperties = null;
+    Project project = facet.getModule().getProject();
+    ApiLookup apiLookup = LintIdeClient.getApiLookup(project);
+    int minApi = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
+    NlModel model = components.get(0).getModel();
+    boolean appCompatUsed = NlModelHelperKt.moduleDependsOnAppCompat(model) &&
+                            NlModelHelperKt.currentActivityIsDerivedFromAppCompatActivity(model);
 
     for (NlComponent component : components) {
       XmlTag tag = component.getTag();
@@ -113,10 +123,29 @@ public class NlProperties {
 
       for (XmlAttributeDescriptor desc : descriptors) {
         XmlName name = getXmlName(desc, tag);
+        if (NS_RESOURCES.equals(name.getNamespaceKey()) && apiLookup != null &&
+            apiLookup.getFieldVersion("android/R$attr", name.getLocalName()) > minApi) {
+          continue;
+        }
         AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
         NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
         properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
+      }
+
+      if (appCompatUsed && localAttrDefs != null && tag.getLocalName().indexOf('.') < 0) {
+        StyleableDefinition styleable = localAttrDefs.getStyleableByName("AppCompat" + tag.getLocalName());
+        if (styleable != null) {
+          for (AttributeDefinition attrDef : styleable.getAttributes()) {
+            if (properties.contains(NS_RESOURCES, attrDef.getName())) {
+              // If the corresponding framework attribute is supported, prefer the framework attribute.
+              continue;
+            }
+            XmlName name = getXmlName(attrDef.getName(), AUTO_URI);
+            NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
+            properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
+          }
+        }
       }
 
       // Exceptions:
@@ -142,7 +171,6 @@ public class NlProperties {
     combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
     setUpDesignProperties(combinedProperties);
-    setUpSrcCompat(combinedProperties, facet, components, propertiesManager);
 
     initStarState(combinedProperties);
 
@@ -228,6 +256,14 @@ public class NlProperties {
     return new XmlName(descriptor.getName(), namespace);
   }
 
+  @NotNull
+  private static XmlName getXmlName(@NotNull String qualifiedName, @NotNull String defaultNamespace) {
+    if (qualifiedName.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      return new XmlName(ANDROID_URI, StringUtil.trimStart(qualifiedName, ANDROID_NS_NAME_PREFIX));
+    }
+    return new XmlName(qualifiedName, defaultNamespace);
+  }
+
   private static Table<String, String, NlPropertyItem> combine(@NotNull Table<String, String, NlPropertyItem> properties,
                                                                @Nullable Table<String, String, NlPropertyItem> combinedProperties) {
     if (combinedProperties == null) {
@@ -264,51 +300,5 @@ public class NlProperties {
         properties.put(TOOLS_URI, propertyName, designItem);
       }
     }
-  }
-
-  // If the src property is available and AppCompat is used then fabricate another property: srcCompat.
-  // This is how appCompat is supporting vector drawables in older versions of Android.
-  private static void setUpSrcCompat(@NotNull Table<String, String, NlPropertyItem> properties,
-                                     @NotNull AndroidFacet facet,
-                                     @NotNull List<NlComponent> components,
-                                     @NotNull PropertiesManager propertiesManager) {
-    NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
-    if (srcProperty != null && shouldAddSrcCompat(facet, components)) {
-      AttributeDefinition srcDefinition = srcProperty.getDefinition();
-      assert srcDefinition != null;
-      AttributeDefinition srcCompatDefinition =
-        new AttributeDefinition(ATTR_SRC_COMPAT, SUPPORT_LIB_ARTIFACT, null, srcDefinition.getFormats());
-      srcCompatDefinition.getParentStyleables().addAll(srcDefinition.getParentStyleables());
-      NlPropertyItem srcCompatProperty =
-        NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, propertiesManager);
-      properties.put(AUTO_URI, ATTR_SRC_COMPAT, srcCompatProperty);
-    }
-  }
-
-  private static boolean shouldAddSrcCompat(@NotNull AndroidFacet facet,
-                                            @NotNull List<NlComponent> components) {
-
-    return !components.isEmpty() &&
-           allComponentsNeedSrcCompat(facet, components);
-  }
-
-  private static boolean allComponentsNeedSrcCompat(@NotNull AndroidFacet facet, @NotNull List<NlComponent> components) {
-    NlModel model = components.get(0).getModel();
-
-    ViewHandlerManager manager = ViewHandlerManager.get(facet);
-    Set<String> knownTagNames = new HashSet<>();
-    for (NlComponent component : components) {
-      String tagName = component.getTagName();
-      if (knownTagNames.add(tagName)) {
-        ViewHandler handler = manager.getHandler(component.getTagName());
-        if (!(handler instanceof ImageViewHandler)) {
-          return false;
-        }
-        if (!ImageViewHandler.shouldUseSrcCompat(model)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
