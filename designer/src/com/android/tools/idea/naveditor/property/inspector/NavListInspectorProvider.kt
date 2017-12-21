@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
@@ -26,14 +27,18 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.actionSystem.*
 import com.intellij.ui.JBColor
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
+import java.awt.Point
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
@@ -84,10 +89,11 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
   abstract protected fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?): String
 
-  private class NavListInspectorComponent<PropertyType : ListProperty>(val provider: NavListInspectorProvider<PropertyType>):
+  @VisibleForTesting
+  class NavListInspectorComponent<PropertyType : ListProperty>(val provider: NavListInspectorProvider<PropertyType>) :
       InspectorComponent<NavPropertiesManager> {
 
-    private val myDisplayProperties = SortedListModel<NlProperty>(compareBy { it.name } )
+    private val myDisplayProperties = SortedListModel<NlProperty>(compareBy { it.name })
     private val myMarkerProperties = mutableListOf<PropertyType>()
     private val myComponents = mutableListOf<NlComponent>()
     private var mySurface: NavDesignSurface? = null
@@ -127,8 +133,16 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
         }
       }
       list.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
-          if (e?.clickCount == 2 && list.selectedValuesList.size == 1) {
+        override fun mouseReleased(e: MouseEvent) {
+          maybeShowPopup(e)
+        }
+
+        override fun mousePressed(e: MouseEvent) {
+          maybeShowPopup(e)
+        }
+
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount == 2 && list.selectedValuesList.size == 1) {
             provider.addItem(list.selectedValue.components[0], myComponents, myMarkerProperties[0].resolver)
             refresh()
           }
@@ -138,7 +152,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
         override fun keyReleased(e: KeyEvent?) {
           when (e?.keyCode) {
             KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE -> {
-              list.selectedValue.components.let { it[0].model.delete(it)}
+              list.selectedValue.model.delete(list.selectedValuesList.flatMap { it.components })
               refresh()
             }
           }
@@ -161,6 +175,59 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       val title = provider.getTitle(myComponents, mySurface)
       inspector.addExpandableComponent(title, null, plusPanel, plusPanel)
       inspector.addPanel(panel)
+    }
+
+    @VisibleForTesting
+    fun createPopupContent(e: MouseEvent): ActionGroup? {
+      return if (e.isPopupTrigger) {
+        @Suppress("UNCHECKED_CAST")
+        val list = e.source as JBList<NlProperty>
+        val clicked = list.model.getElementAt(list.locationToIndex(Point(e.x, e.y)))
+        if (clicked !in list.selectedValuesList) {
+          list.setSelectedValue(clicked, false)
+        }
+        createPopupMenu(list.selectedValuesList.flatMap { it.components })
+      }
+      else {
+        null
+      }
+    }
+
+    private fun maybeShowPopup(e: MouseEvent) {
+      val group = createPopupContent(e) ?: return
+      val actionManager = ActionManager.getInstance()
+      val popupMenu = actionManager.createActionPopupMenu("NavListInspector", group)
+      val invoker: Component = e.source as? Component ?: mySurface!!
+      popupMenu.component.show(invoker, e.x, e.y)
+    }
+
+    private fun createPopupMenu(items: List<NlComponent>): ActionGroup {
+      val actions = mutableListOf<AnAction>()
+      if (items.size == 1) {
+        actions.add(object : AnAction("Edit") {
+          init {
+            shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_ENTER, 0))
+          }
+
+          override fun actionPerformed(e: AnActionEvent?) {
+            provider.addItem(items[0], myComponents, myMarkerProperties[0].resolver)
+            refresh()
+          }
+        })
+        actions.add(Separator.getInstance())
+      }
+      val deleteAction: AnAction = object : AnAction("Delete") {
+        init {
+          shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(VK_BACK_SPACE, 0))
+        }
+
+        override fun actionPerformed(e: AnActionEvent?) {
+          items[0].model.delete(items)
+          refresh()
+        }
+      }
+      actions.add(deleteAction)
+      return DefaultActionGroup(actions)
     }
 
     override fun refresh() {
