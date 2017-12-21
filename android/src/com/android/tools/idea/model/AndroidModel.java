@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -157,4 +157,7 @@ public interface AndroidModel {
    * @return Whether the class specified by fqcn is out of date and needs to be rebuilt.
    */
   boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile);
+
+  @NotNull
+  AaptOptions.Namespacing getNamespacing();
 }

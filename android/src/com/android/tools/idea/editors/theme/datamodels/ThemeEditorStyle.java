@@ -31,7 +31,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.res.ResourceRepositories;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -373,7 +373,7 @@ public class ThemeEditorStyle {
           // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
-            ResourceRepositories.getOrCreateInstance(facet).resetAllCaches();
+            ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
             FileDocumentManager.getInstance().saveAllDocuments();
           }
@@ -450,7 +450,7 @@ public class ThemeEditorStyle {
           // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
-            ResourceRepositories.getOrCreateInstance(facet).resetAllCaches();
+            ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
             FileDocumentManager.getInstance().saveAllDocuments();
           }

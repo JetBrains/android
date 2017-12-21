@@ -59,8 +59,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
   @Contract("_, true -> !null")
   @Nullable
   private static ProjectResourceRepository findProjectResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
-    return repositories.getProjectResources(createIfNecessary);
+    return ResourceRepositoryManager.getOrCreateInstance(facet).getProjectResources(createIfNecessary);
   }
 
   private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {

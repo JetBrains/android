@@ -16,25 +16,34 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.builder.model.AaptOptions;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceRepositories implements Disposable {
-  private static final Key<ResourceRepositories> KEY = Key.create(ResourceRepositories.class.getName());
+public class ResourceRepositoryManager implements Disposable {
+  private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
 
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
 
-  private AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
+  private final CachedValue<ResourceNamespace> myNamespace;
 
   @GuardedBy("APP_RESOURCES_LOCK")
   private AppResourceRepository myAppResources;
@@ -46,27 +55,40 @@ public class ResourceRepositories implements Disposable {
   private LocalResourceRepository myModuleResources;
 
   @NotNull
-  public static ResourceRepositories getOrCreateInstance(@NotNull AndroidFacet facet) {
-    ResourceRepositories repositories = facet.getUserData(KEY);
-    if (repositories == null) {
-      repositories = facet.putUserDataIfAbsent(KEY, new ResourceRepositories(facet));
+  public static ResourceRepositoryManager getOrCreateInstance(@NotNull AndroidFacet facet) {
+    ResourceRepositoryManager instance = facet.getUserData(KEY);
+    if (instance == null) {
+      instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet));
     }
-    return repositories;
+    return instance;
   }
 
-  private ResourceRepositories(@NotNull AndroidFacet facet) {
+  private ResourceRepositoryManager(@NotNull AndroidFacet facet) {
     myFacet = facet;
     Disposer.register(facet, this);
+
+    myNamespace = CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(() -> {
+      // TODO(namespaces): read the merged manifest.
+      Manifest manifest = myFacet.getManifest();
+      if (manifest != null) {
+        String packageName = manifest.getPackage().getValue();
+        if (!StringUtil.isEmptyOrSpaces(packageName)) {
+          ResourceNamespace namespace = ResourceNamespace.fromPackageName(packageName);
+          // Provide the PSI element as a dependency, so we recompute on every change to the manifest.
+          return CachedValueProvider.Result.create(namespace, manifest.getXmlTag());
+        }
+      }
+      return null;
+    }, false);
   }
 
   @Contract("true -> !null")
   @Nullable
   AppResourceRepository getAppResources(boolean createIfNecessary) {
-    AndroidFacet facet = myFacet;
     return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null && createIfNecessary) {
-          myAppResources = AppResourceRepository.create(facet);
+          myAppResources = AppResourceRepository.create(myFacet);
           Disposer.register(this, myAppResources);
         }
         return myAppResources;
@@ -77,11 +99,10 @@ public class ResourceRepositories implements Disposable {
   @Contract("true -> !null")
   @Nullable
   ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
-    AndroidFacet facet = myFacet;
     return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null && createIfNecessary) {
-          myProjectResources = ProjectResourceRepository.create(facet);
+          myProjectResources = ProjectResourceRepository.create(myFacet);
           Disposer.register(this, myProjectResources);
         }
         return myProjectResources;
@@ -92,11 +113,10 @@ public class ResourceRepositories implements Disposable {
   @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
-    AndroidFacet facet = myFacet;
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (MODULE_RESOURCES_LOCK) {
         if (myModuleResources == null && createIfNecessary) {
-          myModuleResources = ModuleResourceRepository.create(facet);
+          myModuleResources = ModuleResourceRepository.create(myFacet);
           Disposer.register(this, myModuleResources);
         }
         return myModuleResources;
@@ -138,5 +158,22 @@ public class ResourceRepositories implements Disposable {
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
+  }
+
+  public AaptOptions.Namespacing getNamespacing() {
+    AndroidModel model = myFacet.getConfiguration().getModel();
+    if (model != null) {
+      return model.getNamespacing();
+    } else {
+      return AaptOptions.Namespacing.DISABLED;
+    }
+  }
+
+  public ResourceNamespace getNamespace() {
+    if (getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    return myNamespace.getValue();
   }
 }

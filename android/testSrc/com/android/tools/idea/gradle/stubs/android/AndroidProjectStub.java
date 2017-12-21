@@ -240,7 +240,42 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    return mock(AaptOptions.class);
+    return new AaptOptions() {
+      @Nullable
+      @Override
+      public String getIgnoreAssets() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Collection<String> getNoCompress() {
+        return null;
+      }
+
+      @Override
+      public boolean getFailOnMissingConfigEntry() {
+        return false;
+      }
+
+      @NotNull
+      @Override
+      public List<String> getAdditionalParameters() {
+        return Collections.emptyList();
+      }
+
+      @NotNull
+      @Override
+      public Namespacing getNamespacing() {
+        return Namespacing.DISABLED;
+      }
+
+      @Nullable
+      @Override
+      public String getPrivateRDotJavaPackage() {
+        return null;
+      }
+    };
   }
 
   @Override
