@@ -50,7 +50,7 @@ public class IdeaContentRootStub implements IdeaContentRoot {
    */
   @NotNull
   public IdeaSourceDirectoryStub addSourceDir(@NotNull String path) {
-    File dir = myFileStructure.createProjectFolder(path);
+    File dir = myFileStructure.createProjectDir(path);
     IdeaSourceDirectoryStub sourceDir = new IdeaSourceDirectoryStub(dir);
     mySourceDirs.add(sourceDir);
     return sourceDir;
@@ -63,7 +63,7 @@ public class IdeaContentRootStub implements IdeaContentRoot {
    */
   @NotNull
   public IdeaSourceDirectoryStub addTestDir(@NotNull String path) {
-    File dir = myFileStructure.createProjectFolder(path);
+    File dir = myFileStructure.createProjectDir(path);
     IdeaSourceDirectoryStub testDir = new IdeaSourceDirectoryStub(dir);
     myTestDirs.add(testDir);
     return testDir;
@@ -76,7 +76,7 @@ public class IdeaContentRootStub implements IdeaContentRoot {
    */
   @NotNull
   public File addExcludedDir(@NotNull String path) {
-    File dir = myFileStructure.createProjectFolder(path);
+    File dir = myFileStructure.createProjectDir(path);
     myExcludedDirs.add(dir);
     return dir;
   }
