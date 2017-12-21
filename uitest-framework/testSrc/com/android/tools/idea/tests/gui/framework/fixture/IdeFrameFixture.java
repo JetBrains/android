@@ -240,7 +240,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findRunApplicationButton() {
-    return findActionButtonByActionId("Run");
+    return findActionButtonByActionId("Run", 30);
   }
 
   @NotNull
