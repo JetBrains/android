@@ -30,6 +30,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.java.JdkVersionDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +66,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
     boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
 
     boolean isJdk7 = false;
-    String jdkVersion = null;
+    JdkVersionDetector.JdkVersionInfo jdkVersion = null;
     if (unitTestMode) {
       isJdk7 = true;
     }
@@ -74,7 +75,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (jdk != null) {
         String jdkHomePath = jdk.getHomePath();
         if (jdkHomePath != null) {
-          jdkVersion = SdkVersionUtil.detectJdkVersion(jdkHomePath);
+          jdkVersion = SdkVersionUtil.getJdkVersionInfo(jdkHomePath);
         }
         JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
         isJdk7 = version == JDK_1_7;
@@ -85,7 +86,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
     if (isJdk7) {
       jdk7Hint = "<li>";
       if (jdkVersion != null) {
-        jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion);
+        jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion.version);
       }
       jdk7Hint += "Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle.\n" +
                   "Please update to a newer version (e.g. 1.7.0_67).";
