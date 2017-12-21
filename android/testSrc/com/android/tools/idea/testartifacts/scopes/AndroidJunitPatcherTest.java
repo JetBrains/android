@@ -18,12 +18,12 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.ide.common.gradle.model.stubs.JavaArtifactStub;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.TestAndroidArtifact;
-import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
-import com.android.tools.idea.gradle.stubs.android.TestVariant;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
@@ -66,9 +66,9 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
   private AndroidJunitPatcher myPatcher;
   private JavaParameters myJavaParameters;
-  private TestAndroidProject myAndroidProject;
+  private AndroidProjectStub myAndroidProject;
   private String myRoot;
-  private TestVariant mySelectedVariant;
+  private VariantStub mySelectedVariant;
 
   @Override
   public void setUp() throws Exception {
@@ -85,7 +85,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
   @NotNull
   private List<String> getExampleClasspath() {
-    myRoot = normalize(myAndroidProject.getRootFolderPath().getPath());
+    myRoot = normalize(myAndroidProject.getRootDir().getPath());
     List<String> exampleClassPath =
       Lists.newArrayList(myRoot + "/build/intermediates/classes/debug", myRoot + "/build/intermediates/classes/test/debug",
                          myRoot + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar",
@@ -190,13 +190,12 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
     assert model != null;
 
-    TestAndroidArtifact artifact = mySelectedVariant.getMainArtifact();
-    Set<File> additionalClassesFolders = artifact.getAdditionalClassesFolders();
-    additionalClassesFolders.add(new File(myKotlinClasses));
+    AndroidArtifactStub artifact = mySelectedVariant.getMainArtifact();
+    artifact.addAdditionalClassesFolder(new File(myKotlinClasses));
     JavaArtifactStub testArtifact = getUnitTestArtifact();
     assert testArtifact != null;
     File testKotlinClassesDir = new File(myTestKotlinClasses);
-    additionalClassesFolders.add(testKotlinClassesDir);
+    testArtifact.addAdditionalClassesFolder(testKotlinClassesDir);
     createAndSetAndroidModel();
 
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
@@ -227,7 +226,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private void createAndSetAndroidModel() {
     mySelectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(mySelectedVariant);
-    AndroidModuleModel model = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootFolderPath(), myAndroidProject,
+    AndroidModuleModel model = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
                                                       mySelectedVariant.getName(), new IdeDependenciesFactory());
     myFacet.setAndroidModel(model);
   }

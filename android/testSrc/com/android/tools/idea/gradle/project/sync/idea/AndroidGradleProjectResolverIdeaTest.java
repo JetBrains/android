@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -87,7 +87,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory = new IdeaJavaModuleModelFactory();
     myProjectModel = new IdeaProjectStub("multiProject");
-    TestAndroidProject androidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
+    AndroidProjectStub androidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
 
     when(myNativeAndroidProject.getName()).thenReturn("app");
     when(myNativeAndroidProjectFactory.create(myNativeAndroidProject)).thenReturn(myIdeNativeAndroidProject);

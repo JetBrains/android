@@ -12,34 +12,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-package com.android.tools.idea.gradle.stubs.android;
+ */package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.JavaCompileOptions;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-public class JavaCompileOptionsStubOld implements JavaCompileOptions {
-  @NotNull private String myEncoding = "UTF-8";
+public class SourceProviderContainerStub implements SourceProviderContainer {
+  @NotNull private final String myArtifactName;
+  @NotNull private final SourceProviderStub mySourceProvider;
 
-  @Override
-  @NotNull
-  public String getEncoding() {
-    return myEncoding;
+  SourceProviderContainerStub(@NotNull String artifactName, @NotNull SourceProviderStub sourceProvider) {
+    myArtifactName = artifactName;
+    mySourceProvider = sourceProvider;
   }
 
   @Override
   @NotNull
-  public String getSourceCompatibility() {
-    return "1.6";
+  public String getArtifactName() {
+    return myArtifactName;
   }
 
   @Override
   @NotNull
-  public String getTargetCompatibility() {
-    return "1.6";
-  }
-
-  public void setEncoding(@NotNull String encoding) {
-    myEncoding = encoding;
+  public SourceProvider getSourceProvider() {
+    return mySourceProvider;
   }
 }
