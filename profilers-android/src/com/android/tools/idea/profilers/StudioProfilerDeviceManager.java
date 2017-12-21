@@ -38,6 +38,7 @@ import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -182,6 +183,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
     @Override
     public void run() {
+      if (!AndroidProfilerDownloader.makeSureProfilerIsInPlace()) return;
       try {
         // Waits to make sure the device has completed boot sequence.
         if (!waitForBootComplete()) {
@@ -245,6 +247,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       if (!dir.exists()) {
         // Development mode
         dir = new File(PathManager.getHomePath(), hostDevDir);
+        if (!dir.exists()) {
+          // IDEA development mode
+          dir = AndroidProfilerDownloader.getHostDir(hostReleaseDir);
+        }
       }
 
       File file = null;
