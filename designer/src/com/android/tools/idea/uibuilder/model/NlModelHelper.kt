@@ -31,14 +31,19 @@ import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.util.dependsOn
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.*
@@ -260,6 +265,29 @@ fun NlModel.createComponents(scene: Scene,
     components.add(component)
   }
   return components
+}
+
+fun NlModel.moduleDependsOnAppCompat(): Boolean {
+  return this.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)
+}
+
+fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
+  val configuration = this.configuration
+  var activityClassName: String? = configuration.activity ?: // The activity is not specified in the XML file.
+      // We cannot know if the activity is derived from AppCompatActivity.
+      // Assume we are since this is how the default activities are created.
+      return true
+  if (activityClassName!!.startsWith(".")) {
+    val manifest = MergedManifest.get(this.module)
+    val pkg = StringUtil.notNullize(manifest.`package`)
+    activityClassName = pkg + activityClassName
+  }
+  val facade = JavaPsiFacade.getInstance(this.project)
+  var activityClass = facade.findClass(activityClassName, this.module.moduleScope)
+  while (activityClass != null && CLASS_APP_COMPAT_ACTIVITY != activityClass.qualifiedName) {
+    activityClass = activityClass.superClass
+  }
+  return activityClass != null
 }
 
 object NlModelHelper {
