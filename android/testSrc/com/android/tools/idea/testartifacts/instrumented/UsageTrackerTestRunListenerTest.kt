@@ -21,7 +21,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
+import com.android.tools.idea.gradle.stubs.android.TestAndroidArtifact
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -37,7 +37,7 @@ class UsageTrackerTestRunListenerTest {
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
     val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
     val listener = UsageTrackerTestRunListener(
-        AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+        TestAndroidArtifact("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         },
