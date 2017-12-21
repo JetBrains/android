@@ -271,7 +271,7 @@ public class MemoryInstanceDetailsViewTest {
 
     JTree tree = myDetailsView.getReferenceTree();
     assertNotNull(tree);
-    JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree().getComponent(0);
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Size");
