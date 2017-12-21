@@ -22,11 +22,8 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jdom.Element;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidNativeLibData;
@@ -101,14 +98,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
       return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
     }
     return NO_EDITOR_TABS;
-  }
-
-  @Override
-  public void readExternal(Element element) throws InvalidDataException {
-  }
-
-  @Override
-  public void writeExternal(Element element) throws WriteExternalException {
   }
 
   @NotNull
