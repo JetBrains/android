@@ -183,6 +183,29 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     assertEquals(1, highlightedTargets.size)
     assertEquals("a1", (highlightedTargets[0] as ActionTarget).id)
   }
+
+  fun testPlusContents() {
+    val model = model("nav.xml",
+        rootComponent("root").unboundedChildren(
+            fragmentComponent("f1"),
+            navigationComponent("subnav")))
+        .build()
+
+    val provider = NavActionsInspectorProvider()
+    val surface = model.surface as NavDesignSurface
+    val actions = provider.getPopupActions(listOf(model.find("f1")!!), null, surface)
+    assertEquals(4, actions.size)
+    assertEquals("Add Action...", actions[0].templatePresentation.text)
+    assertEquals("Return to Source...", actions[1].templatePresentation.text)
+    assertInstanceOf(actions[2], Separator::class.java)
+    assertEquals("Add Global...", actions[3].templatePresentation.text)
+
+    `when`(surface.currentNavigation).thenReturn(model.find("subnav"))
+    val rootActions = provider.getPopupActions(listOf(model.find("subnav")!!), null, surface)
+    assertEquals(2, rootActions.size)
+    assertEquals("Add Action...", rootActions[0].templatePresentation.text)
+    assertEquals("Return to Source...", rootActions[1].templatePresentation.text)
+  }
 }
 
 private fun <T> any(): T {
