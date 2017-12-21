@@ -16,19 +16,19 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
+import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import java.awt.Container
 
-class IdeSdksLocationConfigureableFixture(
+class IdeSdksLocationConfigurableFixture(
     override val ideFrameFixture: IdeFrameFixture,
     override val container: Container
 ) : IdeFrameContainerFixture {
 }
 
-fun ProjectStructureDialogFixture.selectIdeSdksLocationConfigurable(block: TestBlock<IdeSdksLocationConfigureableFixture> = null) {
+fun ProjectStructureDialogFixture.selectIdeSdksLocationConfigurable(): IdeSdksLocationConfigurableFixture {
   selectConfigurable("SDK Location")
-  block.runTestOn(
-      IdeSdksLocationConfigureableFixture(
+  return IdeSdksLocationConfigurableFixture(
           ideFrameFixture,
-          findConfigurable(IdeSdksConfigurable.IDE_SDKS_LOCATION_VIEW)))
+          findConfigurable(IdeSdksConfigurable.IDE_SDKS_LOCATION_VIEW))
 }
