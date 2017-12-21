@@ -66,6 +66,8 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   protected void tearDown() throws Exception {
     try {
       myIdeComponents.restore();
+      myIdeComponents = null;
+      mySyncMessagesStub = null;
     }
     finally {
       super.tearDown();
