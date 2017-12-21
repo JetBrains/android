@@ -687,7 +687,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Native Size", "Shallow Size", "Retained Size");
@@ -743,7 +743,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 
@@ -872,7 +872,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 
@@ -1001,7 +1001,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 

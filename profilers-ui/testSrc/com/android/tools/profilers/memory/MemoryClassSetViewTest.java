@@ -149,7 +149,7 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
-    JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
     treeInfo.verifyColumnHeaders("Instance", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Size");

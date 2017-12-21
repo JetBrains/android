@@ -136,7 +136,7 @@ public class ColumnTreeBuilderTest {
                    .setHeaderBorder(headerBorder)
                    .setRenderer(cellRenderer));
 
-    JScrollPane columnTreePane = (JScrollPane)builder.build();
+    JScrollPane columnTreePane = (JScrollPane)builder.build().getComponent(0);
     columnTreePane.setPreferredSize(new Dimension(100, 100));
     ColumnTreeTestInfo info = new ColumnTreeTestInfo(tree, columnTreePane);
     info.simulateLayout(new Dimension(100, 100));
