@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.idea.res.ResourceRepositories
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.densityMapper
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
@@ -78,7 +78,7 @@ class ExternalDesignAssetExplorerTest {
     val res = projectRule.fixture.copyFileToProject(getTestDataDirectory() + "/res/values.xml", "res/values/values.xml").parent.parent
     ModuleResourceRepository.createForTest(facet, listOf(res))
     val repository = ModuleResourceRepository.getOrCreateInstance(facet)
-    ResourceRepositories.getOrCreateInstance(facet).resetAllCaches();
+    ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
     assertFalse(repository is ModuleResourceRepository.EmptyRepository)
 
     val resourceBrowserViewModel = createViewModel(facet)
@@ -104,7 +104,7 @@ class ExternalDesignAssetExplorerTest {
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x_dark.png", "res/drawable-night-xhdpi/add.png").parent.parent
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add_dark.png", "res/drawable-night-mdpi/add.png").parent.parent
     ModuleResourceRepository.createForTest(facet, listOf(res))
-    ResourceRepositories.getOrCreateInstance(facet).resetAllCaches();
+    ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())

@@ -113,8 +113,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Contract("_, true -> !null")
   @Nullable
   private static AppResourceRepository findAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
-    return repositories.getAppResources(createIfNecessary);
+    return ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(createIfNecessary);
   }
 
   @NotNull

@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultL
 import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.res.ResourceClassRegistry
-import com.android.tools.idea.res.ResourceRepositories
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -95,7 +95,7 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
       ResourceClassRegistry.get(myProject).clearCache()
 
       AndroidUtils.getApplicationFacets(myProject).forEach { facet ->
-        ResourceRepositories.getOrCreateInstance(facet).resetAllCaches()
+        ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }
     }

@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.*;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
@@ -870,5 +873,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       lastBuildTimestamp = projectBuildTimestamp;
     }
     return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
+  }
+
+  @NotNull
+  @Override
+  public AaptOptions.Namespacing getNamespacing() {
+    // TODO(b/72488141): Read this from the model once IdeAaptOptions exists.
+    return AaptOptions.Namespacing.DISABLED;
   }
 }

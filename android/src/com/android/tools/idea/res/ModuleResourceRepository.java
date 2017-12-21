@@ -69,7 +69,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   @Contract("_, true -> !null")
   @Nullable
   private static LocalResourceRepository findModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
+    ResourceRepositoryManager repositories = ResourceRepositoryManager.getOrCreateInstance(facet);
     return repositories.getModuleResources(createIfNecessary);
   }
 
