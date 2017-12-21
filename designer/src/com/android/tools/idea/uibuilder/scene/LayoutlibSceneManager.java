@@ -512,14 +512,10 @@ public class LayoutlibSceneManager extends SceneManager {
       public void run() {
         NlModel model = getModel();
         Project project = model.getModule().getProject();
-        if (project.isOpen()) {
-          DumbService dumbService = DumbService.getInstance(project);
-          if (dumbService.isDumb()) {
-            // During unit testing, the rendering queue runs on the Event Thread. Calling waitForSmartMode will throw an exception
-            // when called on the Event Thread.
-            // For now, we just check if we are in dumb mode (for testing we won't be) and when call waitForSmartMode.
-            dumbService.waitForSmartMode();
-          }
+        if (!project.isOpen()) {
+          return;
+        }
+        DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             try {
               updateModel();
@@ -528,14 +524,14 @@ public class LayoutlibSceneManager extends SceneManager {
               Logger.getInstance(NlModel.class).error(e);
             }
           }
-        }
 
-        synchronized (myProgressLock) {
-          if (myCurrentIndicator != null) {
-            myCurrentIndicator.stop();
-            myCurrentIndicator = null;
+          synchronized (myProgressLock) {
+            if (myCurrentIndicator != null) {
+              myCurrentIndicator.stop();
+              myCurrentIndicator = null;
+            }
           }
-        }
+        });
       }
 
       @Override
