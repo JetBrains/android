@@ -431,8 +431,10 @@ public class LayoutlibSceneManager extends SceneManager {
       public void run() {
         NlModel model = getModel();
         Project project = model.getModule().getProject();
-        if (project.isOpen()) {
-          DumbService.getInstance(project).waitForSmartMode();
+        if (!project.isOpen()) {
+          return;
+        }
+        DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getFile().isValid() && !model.getFacet().isDisposed()) {
             try {
               updateModel();
@@ -441,14 +443,14 @@ public class LayoutlibSceneManager extends SceneManager {
               Logger.getInstance(NlModel.class).error(e);
             }
           }
-        }
 
-        synchronized (PROGRESS_LOCK) {
-          if (myCurrentIndicator != null) {
-            myCurrentIndicator.stop();
-            myCurrentIndicator = null;
+          synchronized (PROGRESS_LOCK) {
+            if (myCurrentIndicator != null) {
+              myCurrentIndicator.stop();
+              myCurrentIndicator = null;
+            }
           }
-        }
+        });
       }
 
       @Override
