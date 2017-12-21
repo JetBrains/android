@@ -51,6 +51,9 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
   protected void tearDown() throws Exception {
     try {
       myIdeComponents.restore();
+      myIdeComponents = null;
+      myAndroidSdks = null;
+      mySyncMessagesStub = null;
     }
     finally {
       super.tearDown();
