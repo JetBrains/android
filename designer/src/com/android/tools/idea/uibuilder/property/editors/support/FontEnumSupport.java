@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.FONT_PREFIX;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
@@ -50,7 +51,7 @@ public class FontEnumSupport extends EnumSupport {
     List<ValueWithDisplayString> values = new ArrayList<>();
     List<FontFamily> fonts = myProjectFonts.getFonts();
     for (FontFamily font : fonts) {
-      values.add(new ValueWithDisplayString(font.getName(), "@font/" + font.getName()));
+      values.add(new ValueWithDisplayString(font.getName(), FONT_PREFIX + font.getName()));
     }
     if (!values.isEmpty()) {
       values.add(ValueWithDisplayString.SEPARATOR);
@@ -104,6 +105,9 @@ public class FontEnumSupport extends EnumSupport {
   @NotNull
   @Override
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
+    if (value != null && !value.startsWith(FONT_PREFIX) && !AndroidDomUtil.AVAILABLE_FAMILIES.contains(value)) {
+      value = FONT_PREFIX + value;
+    }
     return new ValueWithDisplayString(resolvedValue, value);
   }
 
@@ -125,7 +129,7 @@ public class FontEnumSupport extends EnumSupport {
       if (font == null) {
         return null;
       }
-      return new ValueWithDisplayString(StringUtil.trimStart(font, "@font/"), font);
+      return new ValueWithDisplayString(StringUtil.trimStart(font, FONT_PREFIX), font);
     }
   }
 }

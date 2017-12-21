@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="test-recorder" scope="TEST" />
     <orderEntry type="module" module-name="flags" scope="TEST" />
     <orderEntry type="module" module-name="android-common" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
   </component>
 </module>

@@ -17,11 +17,9 @@ package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
@@ -57,21 +55,22 @@ public class EmulatorTestRule extends ExternalResource {
                         String tab,
                         ChooseSystemImageStepFixture.SystemImage image,
                         String avdName) {
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
+    avdManagerDialog.createNew()
+      .selectHardware()
+      .selectHardwareProfile("Nexus 5")
+      .wizard()
+      .clickNext()
+      .getChooseSystemImageStep()
       .selectTab(tab)
-      .selectSystemImage(image);
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
+      .selectSystemImage(image)
+      .wizard()
+      .clickNext()
+      .getConfigureAvdOptionsStep()
       .setAvdName(avdName)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish(Wait.seconds(30));
+      .selectGraphicsSoftware()
+      .wizard()
+      .clickFinish();
+
     avdManagerDialog.close();
   }
 

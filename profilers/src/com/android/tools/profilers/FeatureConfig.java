@@ -20,13 +20,17 @@ package com.android.tools.profilers;
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
-  boolean isJvmtiAgentEnabled();
-  boolean isNetworkThreadViewEnabled();
-  boolean isSimplePerfEnabled();
-  boolean isLiveAllocationsEnabled();
+  boolean isAtraceEnabled();
   boolean isCpuCaptureFilterEnabled();
+  boolean isEnergyProfilerEnabled();
+  boolean isJniReferenceTrackingEnabled();
+  boolean isJvmtiAgentEnabled();
+  boolean isLiveAllocationsEnabled();
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
-  boolean isAtraceEnabled();
   boolean isNetworkRequestPayloadEnabled();
+  boolean isNetworkThreadViewEnabled();
+  boolean isSimplePerfEnabled();
+  // Add new features alphabetically instead of at the end of the list
+  // This reduces the chance of having to deal with an annoying merge conflict.
 }

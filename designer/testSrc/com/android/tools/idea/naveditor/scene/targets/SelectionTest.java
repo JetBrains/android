@@ -64,7 +64,7 @@ public class SelectionTest extends NavTestCase {
     scene.layout(0, SceneContext.get());
 
     myInteractionManager = new InteractionManager(surface);
-    myInteractionManager.registerListeners();
+    myInteractionManager.startListening();
 
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
@@ -74,14 +74,16 @@ public class SelectionTest extends NavTestCase {
     @NavCoordinate int x2 = component2.getDrawX() + component2.getDrawWidth() / 2;
     @NavCoordinate int y2 = component2.getDrawY() + component2.getDrawHeight() / 2;
 
-    checkSelection(x1, y1, x2, y2, component1, component2);
+    checkSelection(x1, y1, x2, y2, component1, component2, true);
 
     x1 = component1.getDrawX() + component1.getDrawWidth();
     x2 = component2.getDrawX() + component2.getDrawWidth();
 
-    checkSelection(x1, y1, x2, y2, component1, component2);
+    // clicking on the action handle selects the underlying destination
+    // and clears all other selection
+    checkSelection(x1, y1, x2, y2, component1, component2, false);
 
-    myInteractionManager.unregisterListeners();
+    myInteractionManager.stopListening();
   }
 
   private void checkSelection(@NavCoordinate int x1,
@@ -89,7 +91,8 @@ public class SelectionTest extends NavTestCase {
                               @NavCoordinate int x2,
                               @NavCoordinate int y2,
                               SceneComponent component1,
-                              SceneComponent component2) {
+                              SceneComponent component2,
+                              boolean allowsMultiSelect) {
     select(x1, y1, false);
     assertTrue(component1.isSelected());
     assertFalse(component2.isSelected());
@@ -100,11 +103,11 @@ public class SelectionTest extends NavTestCase {
 
     select(x1, y1, true);
     assertTrue(component1.isSelected());
-    assertTrue(component2.isSelected());
+    assertEquals(component2.isSelected(), allowsMultiSelect);
 
     select(x1, y1, true);
-    assertFalse(component1.isSelected());
-    assertTrue(component2.isSelected());
+    assertEquals(component1.isSelected(), !allowsMultiSelect);
+    assertEquals(component2.isSelected(), allowsMultiSelect);
   }
 
   private void select(@NavCoordinate int x, @NavCoordinate int y, boolean shiftKey) {

@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LABEL
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.`when`
@@ -39,6 +42,18 @@ class NavPropertyEditorsTest : AndroidTestCase() {
 
     editor = navPropertyEditors.create(SimpleProperty(NavigationSchema.ATTR_DESTINATION, listOf(component)))
     assertInstanceOf(editor, VisibleDestinationsEditor::class.java)
+
+    val propertyItem = mock(NlPropertyItem::class.java)
+    `when`(propertyItem.name).thenReturn(ATTR_LABEL)
+    `when`(propertyItem.namespace).thenReturn(ANDROID_URI)
+    `when`(propertyItem.model).thenReturn(model)
+    editor = navPropertyEditors.create(propertyItem)
+    assertInstanceOf(editor, TextEditor::class.java)
+
+    // normal SimpleProperties should be non-editable
+    val simpleProperty = SimpleProperty(ATTR_LABEL, listOf(component), ANDROID_URI, "foo")
+    editor = navPropertyEditors.create(simpleProperty)
+    assertInstanceOf(editor, NonEditableEditor::class.java)
 
     // Try something else just to make sure it doesn't blow up
     editor = navPropertyEditors.create(SimpleProperty("foo", listOf(component)))

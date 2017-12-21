@@ -41,8 +41,20 @@ public class GradleDslGlobalValue extends GradleDslExpression {
 
   @Override
   @Nullable
+  public Object getUnresolvedValue() {
+    return getValue();
+  }
+
+  @Override
+  @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     return clazz.isAssignableFrom(myFakeValue.getClass()) ? clazz.cast(myFakeValue) : null;
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    return getValue(clazz);
   }
 
   @Override

@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.google.common.base.Charsets;
-import com.google.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
@@ -142,18 +142,18 @@ public class AtraceDecompressor implements BufferProducer {
 
       // Create a string from our decompressed buffer, and split it into the lines for that string.
       myLastPartialLine += new String(myOutputBuffer, 0, bytesInOutputBuffer);
-      String[] lines = myLastPartialLine.split("\n");
+      // By default string split gets passed 0, this indicates that the string should return minimum number of split lines. -1 indicates
+      // that we want to return the actual number of splits. Allowing the split to handle the case of the last char of \n instead of
+      // dropping it we get an additional line. So foo\nbar\n ends up returning 3 lines ("foo", "bar", "") which works with our
+      // lastIndexOf('\n') substring below.
+      String[] lines = myLastPartialLine.split("\n", -1);
 
       // Add each line to our queue and keep track of our partial line for the next time we decompress more info.
       for (int i = 0; i < lines.length - 1; i++) {
         myLineQueue.add(lines[i]);
       }
 
-      myLastPartialLine = lines[lines.length - 1];
-      if (myLastPartialLine.endsWith("\n")) {
-        myLineQueue.add(myLastPartialLine);
-        myLastPartialLine = "";
-      }
+      myLastPartialLine = myLastPartialLine.substring(myLastPartialLine.lastIndexOf('\n') + 1);
     }
     return myLineQueue.remove();
   }

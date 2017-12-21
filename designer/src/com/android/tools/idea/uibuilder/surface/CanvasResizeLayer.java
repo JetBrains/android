@@ -50,4 +50,9 @@ public class CanvasResizeLayer extends Layer {
     graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 12, x + size.width + 12, y + size.height + BOUNDS_RECT_DELTA);
     graphics.dispose();
   }
+
+  @Override
+  public boolean isHidden() {
+    return !myDesignSurface.hasCustomDevice();
+  }
 }

@@ -31,10 +31,12 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.HyperlinkAdapter;
-import com.intellij.ui.HyperlinkLabel;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
@@ -43,16 +45,23 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 public final class StudioFlagsDialog extends DialogWrapper {
+  /**
+   * Identifier used to store the dialog location and size across invocation. See {@link #getDimensionServiceKey()}
+   */
+  private static final String DIMENSION_KEY = StudioFlagsDialog.class.getSimpleName();
   public static final String TITLE = "Edit Studio Flags";
   private final FlagOverrides myBackupOverrides = new DefaultFlagOverrides();
 
@@ -62,24 +71,94 @@ public final class StudioFlagsDialog extends DialogWrapper {
   private JPanel myRootPanel;
   private JPanel myContentPanel;
   private JBScrollPane myScrollPane;
+  private SearchTextField mySearchTextField;
 
-  public StudioFlagsDialog() {
-    super(null);
+  public StudioFlagsDialog(@Nullable Project project) {
+    super(project);
     setTitle(TITLE);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    myRootPanel.setPreferredSize(new Dimension((int)(screenSize.width * 0.5), (int)(screenSize.height * 0.8)));
-
+    setPreferredBounds(project);
     myGroupedFlags = collectAllFlags();
 
     replaceOverrides(myBackupOverrides, StudioFlagSettings.getInstance());
 
+    updateFlagsComponents(null);
+
+    mySearchTextField.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        searchTextChanged(getText(e));
+      }
+
+      @NotNull
+      private String getText(DocumentEvent e) {
+        try {
+          return e.getDocument().getText(0, e.getDocument().getLength());
+        }
+        catch (BadLocationException e1) {
+          return "";
+        }
+      }
+    });
+
+    init();
+
+    // The vscrollpane doesn't start exactly at the top for some reason. This forcefully corrects it.
+    ApplicationManager.getApplication().invokeLater(() -> myScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
+  }
+
+  private void setPreferredBounds(@Nullable Project project) {
+    Window window = WindowManager.getInstance().suggestParentWindow(project);
+    if (window != null) {
+      Rectangle bounds = window.getBounds();
+
+      // Window initially shows centered inside parent window, 1/2 width and 2/3rd height
+      bounds.grow(-(bounds.width / 4), -(bounds.height / 6));
+
+      // Location is set on a callback, size is set using preferred size
+      // Note that these values are ignored if the window bounds have been persisted
+      // in a previous invocation (see getDimensionServiceKey)
+      setInitialLocationCallback(() -> bounds.getLocation());
+      myRootPanel.setPreferredSize(bounds.getSize());
+    }
+  }
+
+  @Nullable
+  @Override
+  public Point getInitialLocation() {
+    return super.getInitialLocation();
+  }
+
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return mySearchTextField;
+  }
+
+  @Nullable
+  @Override
+  protected String getDimensionServiceKey() {
+    return DIMENSION_KEY;
+  }
+
+  private void searchTextChanged(@NotNull String text) {
+    updateFlagsComponents(text);
+    myContentPanel.revalidate();
+    myContentPanel.repaint();
+  }
+
+  private void updateFlagsComponents(@Nullable String searchText) {
+    // Clear panel and set default layout
+    myContentPanel.removeAll();
+    myContentPanel.setLayout(getFlagsPanelDefaultLayout());
+
+    // Add flags components (by group)
     myGroupedFlags.asMap().entrySet().stream()
       .sorted(Comparator.comparing(entry -> entry.getKey().getDisplayName()))
       .forEach(entry -> {
         FlagGroup group = entry.getKey();
-        Collection<Flag<?>> flags = entry.getValue();
-        if (flags.isEmpty()) {
+        List<Flag<?>> flagMatches = entry.getValue().stream().filter(flag -> showFlag(flag, searchText)).collect(Collectors.toList());
+        if (flagMatches.isEmpty()) {
           return;
         }
 
@@ -89,7 +168,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
         groupPanel.setBorder(titledBorder);
 
         boolean firstFlag = true;
-        for (Flag<?> flag : flags) {
+        for (Flag<?> flag : flagMatches) {
           JPanel flagPanel = new JPanel(new VerticalFlowLayout(5, 0));
           if (!firstFlag) {
             flagPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
@@ -133,10 +212,23 @@ public final class StudioFlagsDialog extends DialogWrapper {
         myContentPanel.add(groupPanel);
       });
 
-    init();
+    // If search had no result, make search box red, and display "Nothing to show" (centered)
+    boolean emptySearchResult = !StringUtil.isEmptyOrSpaces(searchText) && myContentPanel.getComponentCount() == 0;
+    mySearchTextField.getTextEditor().setBackground(emptySearchResult ? LightColors.RED : UIUtil.getTextFieldBackground());
+    if (emptySearchResult) {
+      JLabel label = new JLabel();
+      label.setText(UIBundle.message("message.nothingToShow"));
+      label.setHorizontalAlignment(SwingConstants.CENTER);
 
-    // The vscrollpane doesn't start exactly at the top for some reason. This forcefully corrects it.
-    ApplicationManager.getApplication().invokeLater(() -> myScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
+      myContentPanel.setLayout(new BorderLayout());
+      myContentPanel.add(label, BorderLayout.CENTER);
+    }
+  }
+
+  private static boolean showFlag(@NotNull Flag<?> flag, @Nullable String searchText) {
+    return StringUtil.isEmptyOrSpaces(searchText) ||
+           StringUtil.containsIgnoreCase(flag.getDisplayName(), searchText) ||
+           StringUtil.containsIgnoreCase(flag.getDescription(), searchText);
   }
 
   private void replaceOverrides(FlagOverrides overridesDest, ImmutableFlagOverrides overridesSrc) {
@@ -222,8 +314,8 @@ public final class StudioFlagsDialog extends DialogWrapper {
   @Override
   protected Action[] createActions() {
     return new Action[]{
-      getCancelAction(),
-      getOKAction()
+      getOKAction(),
+      getCancelAction()
     };
   }
 
@@ -234,7 +326,12 @@ public final class StudioFlagsDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    myContentPanel = new JPanel(new VerticalFlowLayout(5, 15));
+    myContentPanel = new JPanel(getFlagsPanelDefaultLayout());
+  }
+
+  @NotNull
+  private static VerticalFlowLayout getFlagsPanelDefaultLayout() {
+    return new VerticalFlowLayout(5, 15);
   }
 
   private interface FlagEditor<T> {

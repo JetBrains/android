@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+
 /**
  * Generates icons for the action bar.
  */
@@ -101,8 +103,8 @@ public class ActionBarIconGenerator extends IconGenerator {
         ? new Rectangle(0, 0, 32, 32)
         : new Rectangle(4, 4, 24, 24);
     final float scaleFactor = getMdpiScaleFactor(options.density);
-    Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
-    Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
+    Rectangle imageRect = scaleRectangle(iconSizeMdpi, scaleFactor);
+    Rectangle targetRect = scaleRectangle(targetRectMdpi, scaleFactor);
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D g = (Graphics2D) outImage.getGraphics();
 

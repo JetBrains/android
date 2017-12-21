@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -26,7 +27,7 @@ import javax.swing.*;
 
 public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFixture> {
   public static AvdEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Virtual Device Configuration"));
+    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, "Virtual Device Configuration"), 30);
     return new AvdEditWizardFixture(robot, dialog);
   }
 
@@ -35,22 +36,28 @@ public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFix
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture selectHardware() {
+  public ChooseDeviceDefinitionStepFixture<AvdEditWizardFixture> selectHardware() {
     JRootPane rootPane = findStepWithTitle("Select Hardware");
-    return new ChooseDeviceDefinitionStepFixture(robot(), rootPane);
+    return new ChooseDeviceDefinitionStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ChooseSystemImageStepFixture getChooseSystemImageStep() {
+  public ChooseSystemImageStepFixture<AvdEditWizardFixture> getChooseSystemImageStep() {
     // Can't search for "System Image" because that appears as a label in the system image
     // description panel on the right
     JRootPane rootPane = findStepWithTitle("Select a system image");
-    return new ChooseSystemImageStepFixture(robot(), rootPane);
+    return new ChooseSystemImageStepFixture<>(this, rootPane);
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture getConfigureAvdOptionsStep() {
+  public ConfigureAvdOptionsStepFixture<AvdEditWizardFixture> getConfigureAvdOptionsStep() {
     JRootPane rootPane = findStepWithTitle("Verify Configuration");
-    return new ConfigureAvdOptionsStepFixture(robot(), rootPane);
+    return new ConfigureAvdOptionsStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public AvdEditWizardFixture clickFinish() {
+    super.clickFinish(Wait.seconds(30));
+    return this;
   }
 }

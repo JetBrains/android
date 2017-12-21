@@ -19,6 +19,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * @deprecated by {@link com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog}
+ */
 public class ConfirmFirstRunWizardCloseDialog extends JDialog {
   private boolean myWasCanceled;
 

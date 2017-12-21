@@ -36,7 +36,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
@@ -553,7 +553,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public File getCacheDir(@Nullable String name, boolean create) {
     if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return GoogleMavenVersionLookup.INSTANCE.getCacheDir();
+      return IdeGoogleMavenRepository.INSTANCE.getCacheDir();
     }
 
     final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));

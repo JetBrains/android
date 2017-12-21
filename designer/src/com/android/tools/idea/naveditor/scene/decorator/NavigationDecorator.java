@@ -90,6 +90,22 @@ public class NavigationDecorator extends SceneDecorator {
     list.add(createDrawCommand(displayList, component));
   }
 
+  @Override
+  protected void buildListChildren(@NotNull DisplayList list,
+                                   long time,
+                                   @NotNull SceneContext sceneContext,
+                                   @NotNull SceneComponent component) {
+    if (isDisplayRoot(sceneContext, component)) {
+      super.buildListChildren(list, time, sceneContext, component);
+      return;
+    }
+
+    // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
+    for (SceneComponent child : component.getChildren()) {
+      child.buildDisplayList(time, list, sceneContext);
+    }
+  }
+
   private static boolean isDisplayRoot(@NotNull SceneContext sceneContext, @NotNull SceneComponent sceneComponent) {
     NavDesignSurface navSurface = (NavDesignSurface)sceneContext.getSurface();
     return navSurface != null && sceneComponent.getNlComponent() == navSurface.getCurrentNavigation();

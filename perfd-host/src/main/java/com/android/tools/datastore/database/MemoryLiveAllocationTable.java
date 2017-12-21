@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.google.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,50 +28,80 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
 
 public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocationTable.MemoryStatements> {
   public enum MemoryStatements {
-    // O+ Allocation Tracking
-    INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_ALLOC(
-      "INSERT OR IGNORE INTO Memory_AllocationEvents " +
-      "(Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId) " +
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
-    INSERT_METHOD("INSERT OR IGNORE INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_ENCODED_STACK("INSERT OR IGNORE INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, StackData) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_THREAD_INFO("INSERT OR IGNORE INTO Memory_ThreadInfos (Pid, Session, ThreadId, AllocTime, ThreadName) VALUES (?, ?, ?, ?, ?)"),
-    UPDATE_ALLOC(
-      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
-    QUERY_CLASS(
-      "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
-    QUERY_LATEST_ALLOC_TIME("SELECT MAX(AllocTime) FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ?"),
-    QUERY_LATEST_FREE_TIME("SELECT MAX(FreeTime) FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime < ?"),
+    INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?)"),
+    INSERT_ALLOC("INSERT OR IGNORE INTO Memory_AllocationEvents " +
+                 "(Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId) " +
+                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+    INSERT_METHOD("INSERT OR IGNORE INTO Memory_MethodInfos (Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?)"),
+    INSERT_ENCODED_STACK("INSERT OR IGNORE INTO Memory_StackInfos (Session, StackId, AllocTime, StackData) VALUES (?, ?, ?, ?)"),
+    INSERT_THREAD_INFO("INSERT OR IGNORE INTO Memory_ThreadInfos (Session, ThreadId, AllocTime, ThreadName) VALUES (?, ?, ?, ?)"),
+    UPDATE_ALLOC("UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Session = ? AND Tag = ?"),
+    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_LATEST_ALLOC_TIME("SELECT MAX(AllocTime) FROM Memory_AllocationEvents WHERE Session = ?"),
+    QUERY_LATEST_FREE_TIME("SELECT MAX(FreeTime) FROM Memory_AllocationEvents WHERE Session = ? AND FreeTime < ?"),
     QUERY_SNAPSHOT(
       "SELECT Tag, ClassTag, AllocTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
-      "WHERE Pid = ? AND Session = ? AND AllocTime < ? AND FreeTime > ?"),
+      "WHERE Session = ? AND AllocTime < ? AND FreeTime > ?"),
     QUERY_ALLOC_BY_ALLOC_TIME(
       "SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
-      "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+      "WHERE Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_ALLOC_BY_FREE_TIME(
       "SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
-      "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
-    QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
+      "WHERE Session = ? AND FreeTime >= ? AND FreeTime < ?"),
+    QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Session = ? AND MethodId = ?"),
     QUERY_ENCODED_STACK_INFO_BY_TIME(
-      "Select StackData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+      "Select StackData FROM Memory_StackInfos WHERE Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_THREAD_INFO_BY_TIME(
-      "Select ThreadId, ThreadName FROM Memory_ThreadInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+      "Select ThreadId, ThreadName FROM Memory_ThreadInfos WHERE Session = ? AND AllocTime >= ? AND AllocTime < ?"),
 
     COUNT_ALLOC("SELECT count(*) FROM Memory_AllocationEvents"),
-    PRUNE_ALLOC("DELETE FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime <= (" +
+    PRUNE_ALLOC("DELETE FROM Memory_AllocationEvents WHERE Session = ? AND FreeTime <= (" +
                 " SELECT MAX(FreeTime)" +
                 " FROM Memory_AllocationEvents" +
-                " WHERE Pid = ? AND Session = ? AND FreeTime < " + Long.MAX_VALUE +
+                " WHERE Session = ? AND FreeTime < " + Long.MAX_VALUE +
                 " ORDER BY FreeTime" +
                 " LIMIT ?" +
-                ")"),;
+                ")"),
+    INSERT_JNI_REF(
+      "INSERT OR IGNORE INTO Memory_JniGlobalReferences " +
+      "(Session, Tag, RefValue, AllocTime, AllocThreadId, AllocStackHash, FreeThreadId, FreeStackHash, FreeTime) " +
+      "VALUES (?, ?, ?, ?, ?, ?, 0, '', " + Long.MAX_VALUE + ")"),
+
+    UPDATE_JNI_REF(
+      "UPDATE Memory_JniGlobalReferences " +
+      "SET FreeTime = ?, FreeStackHash = ?, FreeThreadId = ?" +
+      "WHERE Session = ? AND Tag = ? AND RefValue = ?"),
+
+    COUNT_JNI_REF_RECORDS("SELECT COUNT(1) FROM Memory_JniGlobalReferences"),
+    PRUNE_JNI_REF_RECORDS("DELETE FROM Memory_JniGlobalReferences WHERE Session = ? AND FreeTime <= (" +
+                          " SELECT MAX(FreeTime)" +
+                          " FROM Memory_JniGlobalReferences" +
+                          " WHERE Session = ? AND FreeTime < " + Long.MAX_VALUE +
+                          " ORDER BY FreeTime" +
+                          " LIMIT ?" +
+                          ")"),
+
+    QUERY_JNI_REF_CREATE_EVENTS(
+      "SELECT Refs.Tag, Refs.RefValue, Refs.AllocTime AS Timestamp, Refs.AllocThreadId AS ThreadId, AllockStack.Backtrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences AS Refs " +
+      "LEFT JOIN Memory_NativeStackInfos AS AllockStack ON Refs.Session = AllockStack.Session AND Refs.AllocStackHash = AllockStack.StackHash " +
+      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
+      "ORDER BY Refs.AllocTime"),
+
+    QUERY_JNI_REF_DELETE_EVENTS(
+      "SELECT Refs.Tag, Refs.RefValue, Refs.FreeTime AS Timestamp, Refs.FreeThreadId AS ThreadId, FreeStack.Backtrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences AS Refs " +
+      "LEFT JOIN Memory_NativeStackInfos AS FreeStack ON Refs.Session = FreeStack.Session AND Refs.FreeStackHash = FreeStack.StackHash " +
+      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
+      "ORDER BY Refs.FreeTime"),
+
+    INSERT_NATIVE_STACK("INSERT OR IGNORE INTO Memory_NativeStackInfos (Session, StackHash, Backtrace) VALUES (?, ?, ?)");
+
 
     @NotNull private final String mySqlStatement;
 
@@ -98,22 +128,31 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     super.initialize(connection);
     try {
       // O+ Allocation Tracking
-      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
-                  "AllocTime INTEGER", "Name TEXT", "PRIMARY KEY(Pid, Session, Tag)");
-      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
+      createTable("Memory_AllocatedClass", "Session INTEGER NOT NULL", "Tag INTEGER",
+                  "AllocTime INTEGER", "Name TEXT", "PRIMARY KEY(Session, Tag)");
+      createTable("Memory_AllocationEvents", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "Size INTEGER", "Length INTEGER", "ThreadId INTEGER",
-                  "StackId INTEGER", "HeapId INTEGER", "PRIMARY KEY(Pid, Session, Tag)");
-      createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
-                  "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
-      createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "AllocTime INTEGER",
-                  "StackData BLOB", "PRIMARY KEY(Pid, Session, StackId)");
-      createTable("Memory_ThreadInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "ThreadId INTEGER", "AllocTime INTEGER",
-                  "ThreadName TEXT", "PRIMARY KEY(Pid, Session, ThreadId)");
-      createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "AllocTime");
-      createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "FreeTime");
-      createIndex("Memory_AllocatedClass", 0, "Pid", "Session", "AllocTime");
-      createIndex("Memory_StackInfos", 0, "Pid", "Session", "AllocTime");
-      createIndex("Memory_ThreadInfos", 0, "Pid", "Session", "AllocTime");
+                  "StackId INTEGER", "HeapId INTEGER", "PRIMARY KEY(Session, Tag)");
+      createTable("Memory_MethodInfos", "Session INTEGER NOT NULL", "MethodId INTEGER",
+                  "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Session, MethodId)");
+      createTable("Memory_StackInfos", "Session INTEGER NOT NULL", "StackId INTEGER", "AllocTime INTEGER",
+                  "StackData BLOB", "PRIMARY KEY(Session, StackId)");
+      createTable("Memory_ThreadInfos", "Session INTEGER NOT NULL", "ThreadId INTEGER", "AllocTime INTEGER",
+                  "ThreadName TEXT", "PRIMARY KEY(Session, ThreadId)");
+      createTable("Memory_NativeStackInfos", "Session INTEGER NOT NULL", "StackHash TEXT",
+                  "Backtrace BLOB", "PRIMARY KEY(Session, StackHash)");
+      createTable("Memory_JniGlobalReferences", "Session INTEGER NOT NULL", "Tag INTEGER",
+                  "RefValue INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "AllocThreadId INTEGER", "FreeThreadId INTEGER",
+                  "AllocStackHash INTEGER", "FreeStackHash INTEGER", "PRIMARY KEY(Session, Tag, RefValue)");
+
+      createIndex("Memory_AllocationEvents", 0, "Session", "AllocTime");
+      createIndex("Memory_AllocationEvents", 1, "Session", "FreeTime");
+      createIndex("Memory_AllocatedClass", 0, "Session", "AllocTime");
+      createIndex("Memory_StackInfos", 0, "Session", "AllocTime");
+      createIndex("Memory_ThreadInfos", 0, "Session", "AllocTime");
+      createIndex("Memory_NativeStackInfos", 0, "Session", "StackHash");
+      createIndex("Memory_JniGlobalReferences", 0, "Session", "AllocTime");
+      createIndex("Memory_JniGlobalReferences", 1, "Session", "FreeTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -137,10 +176,10 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  public MemoryProfiler.BatchAllocationSample getSnapshot(int pid, Common.Session session, long endTime) {
+  public MemoryProfiler.BatchAllocationSample getSnapshot(Common.Session session, long endTime) {
     MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
     try {
-      ResultSet allocResult = executeQuery(QUERY_SNAPSHOT, pid, session, endTime, endTime);
+      ResultSet allocResult = executeQuery(QUERY_SNAPSHOT, session, endTime, endTime);
       long timestamp = Long.MIN_VALUE;
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
@@ -162,11 +201,11 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return sampleBuilder.build();
   }
 
-  public MemoryProfiler.BatchAllocationSample getAllocations(int pid, Common.Session session, long startTime, long endTime) {
+  public MemoryProfiler.BatchAllocationSample getAllocations(Common.Session session, long startTime, long endTime) {
     MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
     try {
       // Then get all allocation events that are valid for requestTime.
-      ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, pid, session, startTime, endTime);
+      ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, session, startTime, endTime);
       long timestamp = Long.MIN_VALUE;
 
       while (allocResult.next()) {
@@ -181,7 +220,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         timestamp = Math.max(timestamp, allocTime);
       }
 
-      ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, pid, session, startTime, endTime);
+      ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, session, startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
         MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
@@ -203,15 +242,15 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   @NotNull
-  public LatestAllocationTimeResponse getLatestDataTimestamp(int pid, Common.Session session) {
+  public LatestAllocationTimeResponse getLatestDataTimestamp(Common.Session session) {
     LatestAllocationTimeResponse.Builder builder = LatestAllocationTimeResponse.newBuilder();
     try {
       long latest = 0;
-      ResultSet result = executeQuery(QUERY_LATEST_ALLOC_TIME, pid, session);
+      ResultSet result = executeQuery(QUERY_LATEST_ALLOC_TIME, session);
       if (result.next()) {
         latest = Math.max(latest, result.getLong(1));
       }
-      result = executeQuery(QUERY_LATEST_FREE_TIME, pid, session, Long.MAX_VALUE);
+      result = executeQuery(QUERY_LATEST_FREE_TIME, session, Long.MAX_VALUE);
       if (result.next()) {
         latest = Math.max(latest, result.getLong(1));
       }
@@ -224,12 +263,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   @NotNull
-  public AllocationContextsResponse getAllocationContexts(int pid, Common.Session session, long startTime, long endTime) {
+  public AllocationContextsResponse getAllocationContexts(Common.Session session, long startTime, long endTime) {
     AllocationContextsResponse.Builder resultBuilder = AllocationContextsResponse.newBuilder();
     try {
       // Query all the classes
       // TODO: only return classes that are valid for current snapshot?
-      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session, startTime, endTime);
+      ResultSet klassResult = executeQuery(QUERY_CLASS, session, startTime, endTime);
       long timestamp = Long.MIN_VALUE;
 
       while (klassResult.next()) {
@@ -240,7 +279,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         timestamp = Math.max(timestamp, allocTime);
       }
 
-      ResultSet stackResult = executeQuery(QUERY_ENCODED_STACK_INFO_BY_TIME, pid, session, startTime, endTime);
+      ResultSet stackResult = executeQuery(QUERY_ENCODED_STACK_INFO_BY_TIME, session, startTime, endTime);
       while (stackResult.next()) {
         AllocationStack.Builder stackBuilder = AllocationStack.newBuilder();
 
@@ -263,7 +302,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         resultBuilder.addAllocationStacks(stackBuilder);
       }
 
-      ResultSet threadResult = executeQuery(QUERY_THREAD_INFO_BY_TIME, pid, session, startTime, endTime);
+      ResultSet threadResult = executeQuery(QUERY_THREAD_INFO_BY_TIME, session, startTime, endTime);
       while (threadResult.next()) {
         ThreadInfo thread =
           ThreadInfo.newBuilder().setThreadId(threadResult.getInt(1)).setThreadName(threadResult.getString(2)).build();
@@ -279,7 +318,114 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return resultBuilder.build();
   }
 
-  public void insertAllocationData(int pid, Common.Session session, MemoryProfiler.BatchAllocationSample sample) {
+  private JNIGlobalReferenceEvent readJniEventFromResultSet(ResultSet resultset, JNIGlobalReferenceEvent.Type type) throws SQLException {
+    int objectTag = resultset.getInt("Tag");
+    long refValue = resultset.getLong("RefValue");
+    long timestamp = resultset.getLong("Timestamp");
+    int threadId = resultset.getInt("ThreadId");
+    byte[] backtrace = resultset.getBytes("Backtrace");
+
+    JNIGlobalReferenceEvent.Builder event = JNIGlobalReferenceEvent.newBuilder();
+    event.setEventType(type);
+    event.setObjectTag(objectTag);
+    event.setRefValue(refValue);
+    event.setTimestamp(timestamp);
+    event.setThreadId(threadId);
+    if (backtrace != null) {
+      try {
+        event.setBacktrace(NativeBacktrace.parseFrom(backtrace));
+      }
+      catch (InvalidProtocolBufferException ex) {
+        getLogger().error(ex);
+      }
+    }
+    return event.build();
+  }
+
+  public BatchJNIGlobalRefEvent getJniReferencesAliveInRange(Common.Session session, long startTime, long endTime) {
+    BatchJNIGlobalRefEvent.Builder resultBuilder = BatchJNIGlobalRefEvent.newBuilder();
+    long timestamp = 0;
+    try {
+      ResultSet allocResultset = executeQuery(QUERY_JNI_REF_CREATE_EVENTS, session, 0, endTime - 1, startTime, Long.MAX_VALUE);
+      while (allocResultset.next()) {
+        JNIGlobalReferenceEvent event = readJniEventFromResultSet(allocResultset, JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF);
+        timestamp = Math.max(timestamp, event.getTimestamp());
+        resultBuilder.addEvents(event);
+      }
+
+      ResultSet freeResultset = executeQuery(QUERY_JNI_REF_DELETE_EVENTS, session, 0, endTime - 1, startTime, endTime - 1);
+      while (freeResultset.next()) {
+        JNIGlobalReferenceEvent event = readJniEventFromResultSet(freeResultset, JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF);
+        timestamp = Math.max(timestamp, event.getTimestamp());
+        resultBuilder.addEvents(event);
+      }
+      resultBuilder.setTimestamp(timestamp);
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return resultBuilder.build();
+  }
+
+  public void insertJniReferenceData(@NotNull Common.Session session, @NotNull BatchJNIGlobalRefEvent batch) {
+    PreparedStatement insertRefStatement = null;
+    PreparedStatement updateRefStatement = null;
+    PreparedStatement insertStackStatement = null;
+    try {
+      for (JNIGlobalReferenceEvent event : batch.getEventsList()) {
+        long refValue = event.getRefValue();
+        int objectTag = event.getObjectTag();
+        long timestamp = event.getTimestamp();
+        int threadId = event.getThreadId();
+        String stackHash = "";
+        if (event.hasBacktrace()) {
+          byte[] backtrace = event.getBacktrace().toByteArray();
+          stackHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(backtrace);
+          if (insertStackStatement == null) {
+            insertStackStatement = getStatementMap().get(INSERT_NATIVE_STACK);
+          }
+          applyParams(insertStackStatement, session, stackHash, backtrace);
+          insertStackStatement.addBatch();
+        }
+        switch (event.getEventType()) {
+          case CREATE_GLOBAL_REF:
+            if (insertRefStatement == null) {
+              insertRefStatement = getStatementMap().get(INSERT_JNI_REF);
+            }
+            applyParams(insertRefStatement, session, objectTag, refValue, timestamp, threadId, stackHash);
+            insertRefStatement.addBatch();
+            break;
+          case DELETE_GLOBAL_REF:
+            if (updateRefStatement == null) {
+              updateRefStatement = getStatementMap().get(UPDATE_JNI_REF);
+            }
+            applyParams(updateRefStatement, timestamp, stackHash, threadId, session, objectTag, refValue);
+            updateRefStatement.addBatch();
+            break;
+          default:
+            assert false;
+        }
+      }
+
+      if (insertStackStatement != null) {
+        insertStackStatement.executeBatch();
+      }
+      if (insertRefStatement != null) {
+        insertRefStatement.executeBatch();
+      }
+      if (updateRefStatement != null) {
+        updateRefStatement.executeBatch();
+      }
+      if (batch.getEventsCount() > 0) {
+        pruneJniRefRecords(session);
+      }
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+  }
+
+  public void insertAllocationData(Common.Session session, MemoryProfiler.BatchAllocationSample sample) {
     MemoryProfiler.AllocationEvent.EventCase currentCase = null;
     PreparedStatement currentStatement = null;
     int allocAndFreeCount = 0;
@@ -310,13 +456,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
           case CLASS_DATA:
             assert currentStatement != null;
             AllocatedClass klass = event.getClassData();
-            applyParams(currentStatement, pid, session, klass.getClassId(), event.getTimestamp(), jniToJavaName(klass.getClassName()));
+            applyParams(currentStatement, session, klass.getClassId(), event.getTimestamp(), jniToJavaName(klass.getClassName()));
             break;
           case ALLOC_DATA:
             assert currentStatement != null;
             allocAndFreeCount++;
             AllocationEvent.Allocation allocation = event.getAllocData();
-            applyParams(currentStatement, pid, session, allocation.getTag(), allocation.getClassTag(),
+            applyParams(currentStatement, session, allocation.getTag(), allocation.getClassTag(),
                         event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), allocation.getThreadId(),
                         allocation.getStackId(), allocation.getHeapId());
             break;
@@ -324,7 +470,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
             assert currentStatement != null;
             allocAndFreeCount++;
             AllocationEvent.Deallocation free = event.getFreeData();
-            applyParams(currentStatement, event.getTimestamp(), pid, session, free.getTag());
+            applyParams(currentStatement, event.getTimestamp(), session, free.getTag());
             break;
           default:
             assert false;
@@ -336,7 +482,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       currentStatement.executeBatch();
 
       if (allocAndFreeCount > 0) {
-        pruneAllocations(pid, session);
+        pruneAllocations(session);
       }
     }
     catch (SQLException ex) {
@@ -344,12 +490,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  public void insertMethodInfo(int pid, Common.Session session, List<AllocationStack.StackFrame> methods) {
+  public void insertMethodInfo(Common.Session session, List<AllocationStack.StackFrame> methods) {
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_METHOD);
       assert statement != null;
       for (AllocationStack.StackFrame method : methods) {
-        applyParams(statement, pid, session, method.getMethodId(), method.getMethodName(), jniToJavaName(method.getClassName()));
+        applyParams(statement, session, method.getMethodId(), method.getMethodName(), jniToJavaName(method.getClassName()));
         statement.addBatch();
       }
       statement.executeBatch();
@@ -360,10 +506,10 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   @NotNull
-  public StackFrameInfoResponse getStackFrameInfo(int pid, Common.Session session, long methodId) {
+  public StackFrameInfoResponse getStackFrameInfo(Common.Session session, long methodId) {
     StackFrameInfoResponse.Builder methodBuilder = StackFrameInfoResponse.newBuilder();
     try {
-      ResultSet result = executeQuery(QUERY_METHOD_INFO, pid, session, methodId);
+      ResultSet result = executeQuery(QUERY_METHOD_INFO, session, methodId);
       if (result.next()) {
         methodBuilder.setMethodName(result.getString(1)).setClassName(result.getString(2));
       }
@@ -375,12 +521,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return methodBuilder.build();
   }
 
-  public void insertStackInfo(int pid, Common.Session session, List<EncodedAllocationStack> stacks) {
+  public void insertStackInfo(Common.Session session, List<EncodedAllocationStack> stacks) {
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_ENCODED_STACK);
       assert statement != null;
       for (EncodedAllocationStack stack : stacks) {
-        applyParams(statement, pid, session, stack.getStackId(), stack.getTimestamp(), stack.toByteArray());
+        applyParams(statement, session, stack.getStackId(), stack.getTimestamp(), stack.toByteArray());
         statement.addBatch();
       }
       statement.executeBatch();
@@ -390,12 +536,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  public void insertThreadInfo(int pid, Common.Session session, List<ThreadInfo> threads) {
+  public void insertThreadInfo(Common.Session session, List<ThreadInfo> threads) {
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_THREAD_INFO);
       assert statement != null;
       for (ThreadInfo thread : threads) {
-        applyParams(statement, pid, session, thread.getThreadId(), thread.getTimestamp(), thread.getThreadName());
+        applyParams(statement, session, thread.getThreadId(), thread.getTimestamp(), thread.getThreadName());
         statement.addBatch();
       }
       statement.executeBatch();
@@ -408,7 +554,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   /**
    * Removes entries from the allocations table so the process (in-memory DB) doesn't run out of memory.
    */
-  private void pruneAllocations(int pid, @NotNull Common.Session session) {
+  private void pruneAllocations(@NotNull Common.Session session) {
     try {
       // TODO save data to disk
       ResultSet result = executeQuery(COUNT_ALLOC);
@@ -416,8 +562,26 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       int rowCount = result.getInt(1);
       if (rowCount > myAllocationCountLimit) {
         int pruneCount = rowCount - myAllocationCountLimit;
-        execute(PRUNE_ALLOC, pid, session, pid, session, pruneCount);
+        execute(PRUNE_ALLOC, session, session, pruneCount);
         getLogger().info(String.format("Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
+      }
+    }
+    catch (SQLException e) {
+      getLogger().error(e);
+    }
+  }
+
+  private void pruneJniRefRecords(@NotNull Common.Session session) {
+    try {
+      // TODO save data to disk
+      ResultSet result = executeQuery(COUNT_JNI_REF_RECORDS);
+      result.next();
+      int rowCount = result.getInt(1);
+      if (rowCount > myAllocationCountLimit) {
+        int pruneCount = rowCount - myAllocationCountLimit;
+        execute(PRUNE_JNI_REF_RECORDS, session, session, pruneCount);
+        getLogger()
+          .info(String.format("JNI ref records have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
       }
     }
     catch (SQLException e) {

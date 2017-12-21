@@ -35,6 +35,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -208,6 +210,14 @@ public class EnumEditorFixture extends EditorFixtureBase {
       dumpDifference(model, choices);
     }
     return this;
+  }
+
+  public List<ValueWithDisplayString> getChoices() {
+    List<ValueWithDisplayString> result = new ArrayList<>();
+    for (int i = 0; i < myCombo.getModel().getSize(); i++) {
+      result.add((ValueWithDisplayString)myCombo.getModel().getElementAt(i));
+    }
+    return result;
   }
 
   public EnumEditorFixture expectFirstChoices(int count, @NotNull String... choices) {

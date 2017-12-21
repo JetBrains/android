@@ -170,17 +170,21 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs) {
     return new SearchComponent() {
+      private final JPanel myComponent = new JPanel();
+
       @NotNull
       @Override
       public JComponent getComponent() {
-        return null;
+        return myComponent;
       }
 
       @Override
-      public void addOnFilterChange(@NotNull com.intellij.util.Consumer<Pattern> callback) {}
+      public void addOnFilterChange(@NotNull com.intellij.util.Consumer<Pattern> callback) {
+      }
 
       @Override
-      public void setText(@NotNull String text) {}
+      public void setText(@NotNull String text) {
+      }
     };
   }
 

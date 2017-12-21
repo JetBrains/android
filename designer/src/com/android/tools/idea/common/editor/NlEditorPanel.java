@@ -29,7 +29,6 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
-import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
@@ -127,12 +126,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
-      if (StudioFlags.NELE_NEW_PALETTE.get()) {
-        tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      }
-      else {
-        tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      }
+      tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {

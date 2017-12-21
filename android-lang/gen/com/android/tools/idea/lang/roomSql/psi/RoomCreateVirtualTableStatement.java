@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateVirtualTableStatement extends RoomStatement {
+public interface RoomCreateVirtualTableStatement extends PsiElement {
 
   @Nullable
   RoomDatabaseName getDatabaseName();

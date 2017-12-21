@@ -44,6 +44,8 @@ public class ProfilerColors {
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
 
+  public static final Color ENERGY_USAGE = new JBColor(0x966EC3, 0x8D6FC2);
+
   /**
    * Represents pair of colors of non-selected and selected states of a thread.
    * The first color is for a non-selected thread, the second one is for a selected thread.
@@ -101,9 +103,9 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_BACKGROUND = new JBColor(0xECF2FA, 0x323940);
 
-  public static final Color CPU_CAPTURE_SPARKLINE = new JBColor(0xC1D6F6, 0x5A6E7D);
+  public static final Color CPU_CAPTURE_SPARKLINE = new JBColor(0xC2D6F6, 0x455563);
 
-  public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0xC1D6F6, 0xC1D6F6);
+  public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
 
   public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
 

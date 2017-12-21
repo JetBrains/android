@@ -189,11 +189,11 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
-    PreSyncCheckResult canSync = myPreSyncChecks.canSync(project);
-    if (!canSync.isSuccess()) {
+    PreSyncCheckResult checkResult = myPreSyncChecks.canSync(project);
+    if (!checkResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
-      String cause = nullToEmpty(canSync.getFailureCause());
-      handlePreSyncCheckFailure(project, cause, listener, request.trigger);
+      String cause = nullToEmpty(checkResult.getFailureCause());
+      handlePreSyncCheckFailure(project, cause, listener, request);
       return;
     }
 
@@ -207,10 +207,10 @@ public class GradleSyncInvoker {
     boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
     boolean started;
     if (request.useCachedGradleModels) {
-      started = GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, request.trigger);
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, request);
     }
     else {
-      started = GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request.trigger);
+      started = GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request);
     }
     if (!started) {
       return;
@@ -228,9 +228,9 @@ public class GradleSyncInvoker {
   private void handlePreSyncCheckFailure(@NotNull Project project,
                                          @NotNull String failureCause,
                                          @Nullable GradleSyncListener syncListener,
-                                         @NotNull GradleSyncStats.Trigger trigger) {
+                                         @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (syncState.syncStarted(true, trigger)) {
+    if (syncState.syncStarted(true, request)) {
       mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {

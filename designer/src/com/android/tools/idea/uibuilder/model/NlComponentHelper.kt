@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -188,11 +189,11 @@ val NlComponent.margins: Insets
           // Doesn't look like we need to read startMargin and endMargin here;
           // ViewGroup.MarginLayoutParams#doResolveMargins resolves and assigns values to the others
 
-          if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-            result = Insets.NONE
+          result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+            Insets.NONE
           }
           else {
-            result = Insets(left, top, right, bottom)
+            Insets(left, top, right, bottom)
           }
         }
         catch (e: Throwable) {
@@ -222,11 +223,11 @@ fun NlComponent.getPadding(force: Boolean): Insets {
       val top = fixDefault(layoutClass.getMethod("getPaddingTop").invoke(layoutParams) as Int)
       val right = fixDefault(layoutClass.getMethod("getPaddingRight").invoke(layoutParams) as Int)
       val bottom = fixDefault(layoutClass.getMethod("getPaddingBottom").invoke(layoutParams) as Int)
-      if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-        result = Insets.NONE
+      result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+        Insets.NONE
       }
       else {
-        result = Insets(left, top, right, bottom)
+        Insets(left, top, right, bottom)
       }
     }
     catch (e: Throwable) {
@@ -242,13 +243,13 @@ fun NlComponent.isGroup(): Boolean {
     return true
   }
 
-  when (tagName) {
+  return when (tagName) {
     PreferenceTags.PREFERENCE_CATEGORY,
     PreferenceTags.PREFERENCE_SCREEN,
     TAG_GROUP,
     TAG_MENU,
-    TAG_SELECTOR -> return true
-    else -> return false
+    TAG_SELECTOR -> true
+    else -> false
   }
 }
 
@@ -296,10 +297,14 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 
 val NlComponent.viewHandler: ViewHandler?
   get() {
-    if (!tag.isValid) {
-      return null
-    }
-    return ViewHandlerManager.get(tag.project).getHandler(this)
+    return ApplicationManager.getApplication().runReadAction(Computable{
+      if (!tag.isValid) {
+        null
+      }
+      else {
+        ViewHandlerManager.get(tag.project).getHandler(this)
+      }
+    })
   }
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
@@ -359,8 +364,8 @@ val NlComponent.componentClassName: String?
 private val NlComponent.nlComponentData: NlComponentData
   get() {
     val mixin = this.mixin
-    when (mixin) {
-      is NlComponentMixin -> return mixin.data
+    return when (mixin) {
+      is NlComponentMixin -> mixin.data
       else -> throw IllegalArgumentException("${this} is not registered!")
     }
   }

@@ -117,9 +117,34 @@ class NavComponentHelperTest2 : NavTestCase() {
                                 fragmentComponent("f5")))))
         .build()
 
-
     assertEquals(model.components[0].getChild(0), model.find("activity1")!!.findVisibleDestination("f1"))
     assertEquals(model.components[0].getChild(0), model.find("f3")!!.findVisibleDestination("f1"))
     assertEquals(model.find("subnav2")!!.getChild(0), model.find("f5")!!.findVisibleDestination("f1"))
+  }
+
+  fun testActionDestination() {
+    val model = model("nav.xml",
+        rootComponent("root")
+            .unboundedChildren(
+                fragmentComponent("f1").withAttribute("test2", "val2"),
+                activityComponent("activity1"),
+                navigationComponent("subnav1")
+                    .unboundedChildren(
+                        fragmentComponent("f3")
+                            .unboundedChildren(
+                                actionComponent("a2").withDestinationAttribute("f1")
+                            )),
+                navigationComponent("subnav2")
+                    .unboundedChildren(
+                        fragmentComponent("f1").withAttribute("test1", "val1"),
+                        navigationComponent("subsubnav")
+                            .unboundedChildren(
+                                fragmentComponent("f5")
+                                    .unboundedChildren(
+                                        actionComponent("a1").withDestinationAttribute("f1"))))))
+        .build()
+
+    assertEquals("val1", model.find("a1")?.actionDestination?.getAttribute(null, "test1"))
+    assertEquals("val2", model.find("a2")?.actionDestination?.getAttribute(null, "test2"))
   }
 }

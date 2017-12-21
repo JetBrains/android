@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,8 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JListFixture;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,20 +41,10 @@ public class NlPaletteTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @Before
-  public void setUp() {
-    StudioFlags.NELE_NEW_PALETTE.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_NEW_PALETTE.clearOverride();
-  }
-
   @RunIn(TestGroup.UNRELIABLE)  // b/66905952
   @Test
   public void testTypingKeepsCategorySelectionIfMatchesFound() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -83,7 +70,7 @@ public class NlPaletteTest {
 
   @Test
   public void testTypingSwitchesCategorySelectionIfNoMatchesFound() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -109,7 +96,7 @@ public class NlPaletteTest {
 
   @Test
   public void testEnterInSearchBoxCausesItemListToGainFocus() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -137,7 +124,7 @@ public class NlPaletteTest {
 
   @Test
   public void clickToDownloadMissingDependency() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -158,7 +145,7 @@ public class NlPaletteTest {
   @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddFragmentWithoutCustomFragmentsAvailable() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();

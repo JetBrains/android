@@ -21,6 +21,7 @@ import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +47,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private final int myRecommendedMemorySize;
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
-  private JPanel myRoot;
+  private JBScrollPane myRoot;
   private HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
   private JSpinner myMemorySize;

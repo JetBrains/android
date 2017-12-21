@@ -64,6 +64,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
+  public static final String TEST_ARTIFACTS_KOTLIN = "projects/testArtifacts/kotlin";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_OLD_TESTS = "projects/testArtifacts/oldTests";

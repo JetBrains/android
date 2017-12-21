@@ -687,7 +687,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(android, AndroidModelImpl.class);
   }
 
-  public void testAddAndApplyEmptyBuildTypeBlock() throws Exception {
+  public void testAddAndRemoveBuildTypeBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
@@ -699,18 +699,22 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     android.addBuildType("type");
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
+    buildTypes.get(0).setApplicationIdSuffix("suffix");
     assertEquals("buildTypes", "type", buildTypes.get(0).name());
 
-    applyChanges(buildModel);
-    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).contains("buildTypes");
 
-    buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
+    assertThat(android.buildTypes()).hasSize(1);
+    android.removeBuildType("type");
+    assertThat(android.buildTypes()).isEmpty();
+
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).doesNotContain("buildTypes");
   }
 
-  public void testAddAndApplyEmptyProductFlavorBlock() throws Exception {
+  public void testAddAndRemoveProductFlavorBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
@@ -721,16 +725,20 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     android.addProductFlavor("flavor");
     List<ProductFlavorModel> productFlavors = android.productFlavors();
+    productFlavors.get(0).setApplicationId("appid");
     assertThat(productFlavors).hasSize(1);
     assertEquals("productFlavors", "flavor", productFlavors.get(0).name());
 
-    applyChanges(buildModel);
-    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).contains("productFlavors");
 
-    buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
+    assertThat(android.productFlavors()).hasSize(1);
+    android.removeProductFlavor("flavor");
+    assertThat(android.productFlavors()).isEmpty();
+
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).doesNotContain("productFlavors");
   }
 
   public void testAddAndApplyEmptySigningConfigBlock() throws Exception {

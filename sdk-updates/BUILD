@@ -8,16 +8,17 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea:credential-store",
-        "//tools/idea:tasks-platform-impl",
-        "//tools/idea:json",
-        "//tools/idea:relaxng",
+        "//tools/idea/platform/credential-store",
+        "//tools/idea/platform/tasks-platform-impl",
+        "//tools/idea/json",
+        "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/adt/idea/adt-branding",
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea:platform-impl[module]",
+        "//tools/idea/platform/platform-impl[module]",
         "//tools/adt/idea/android[module]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
@@ -42,18 +43,19 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:json",
-        "//tools/idea:tasks-platform-impl",
-        "//tools/idea:credential-store",
+        "//tools/idea/json",
+        "//tools/idea/platform/tasks-platform-impl",
+        "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/adt/idea/adt-branding",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/sdk-updates[module, test]",
-        "//tools/idea:testFramework[module, test]",
+        "//tools/idea/platform/testFramework[module, test]",
         "//tools/base/repository:studio.repository[module, test]",
         "//tools/base/sdklib:studio.sdklib[module, test]",
         "//tools/adt/idea/android[module, test]",

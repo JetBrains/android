@@ -20,7 +20,7 @@ import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -110,7 +110,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     assertThat(facet).isNotNull();
 
     File root = Projects.getBaseDirPath(myProject);
-    AndroidProjectStub androidProject = TestProjects.createBasicProject();
+    TestAndroidProject androidProject = TestProjects.createBasicProject();
 
     // The problematic plugin version.
     // https://code.google.com/p/android/issues/detail?id=170841

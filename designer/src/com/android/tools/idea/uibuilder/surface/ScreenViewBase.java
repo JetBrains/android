@@ -81,7 +81,7 @@ abstract class ScreenViewBase extends SceneView {
   public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     Rectangle resizeZone =
       new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(x, y)) {
+    if (resizeZone.contains(x, y) && getSurface().hasCustomDevice()) {
       return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
     }
     return super.getCursor(x, y);

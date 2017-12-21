@@ -69,18 +69,16 @@ public class NewInstantAppTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-    configureAndroidProjectStep
-      .enterCompanyDomain("test.android.com")
-      .enterApplicationName(projectName);
-
     newProjectWizard
+      .getConfigureAndroidProjectStep()
+      .enterCompanyDomain("test.android.com")
+      .enterApplicationName(projectName)
+      .wizard()
       .clickNext() // Complete project configuration
       .getConfigureFormFactorStep()
       .selectMinimumSdkApi(MOBILE, "23")
-      .selectInstantAppSupport(MOBILE);
-
-    newProjectWizard
+      .selectInstantAppSupport(MOBILE)
+      .wizard()
       .clickNext(); // Complete form factor configuration
 
     if (featureModuleName != null) {
@@ -98,6 +96,11 @@ public class NewInstantAppTest {
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
+
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(featureModuleName == null ? "feature" : featureModuleName);
   }
 
   @Test
@@ -111,11 +114,6 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
-                               "    Android Lint: Correctness\n" +
-                               "        Obsolete Gradle Dependency\n" +
-                               "            build.gradle\n" +
-                               "                A newer version of com.android.support:appcompat-v7 than 26.0.2 is available: 26.1.0\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
@@ -125,16 +123,15 @@ public class NewInstantAppTest {
                                "            AndroidManifest.xml\n" +
                                "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
                                "    Declaration redundancy\n" +
+                               "        Redundant throws clause\n" +
+                               "            ExampleInstrumentedTest\n" +
+                               "            ExampleUnitTest\n" +
+                               "                The declared exception 'Exception' is never thrown\n" +
                                "        Unnecessary module dependency\n" +
-                               "            app\n" +
-                               "                Module 'app' sources do not depend on module 'base' sources\n" +
-                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
                                "            feature\n" +
                                "                Module 'feature' sources do not depend on module 'base' sources\n" +
                                "    XML\n" +
                                "        Unused XML schema declaration\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Namespace declaration is never used\n" +
                                "            AndroidManifest.xml\n" +
                                "                Namespace declaration is never used\n" +
                                "        XML tag empty body\n" +

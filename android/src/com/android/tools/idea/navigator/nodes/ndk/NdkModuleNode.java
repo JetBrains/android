@@ -19,11 +19,11 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -40,7 +40,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.intellij.openapi.util.text.StringUtil.trimEnd;
 import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
-public class NdkModuleNode extends ProjectViewModuleNode {
+public class NdkModuleNode extends AndroidViewModuleNode {
   public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
     super(project, value, settings);
   }
@@ -133,11 +133,5 @@ public class NdkModuleNode extends ProjectViewModuleNode {
     Module module = getValue();
     if (module != null)
       presentation.setIcon(getModuleIcon(module));
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
-    return super.equals(o);
   }
 }

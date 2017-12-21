@@ -94,6 +94,7 @@ public class FlavorsExecutionTest {
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.LAYOUT, "activity_f1_main")
       .selectLauncherActivity()
       .setTargetSourceSet("flavor1")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     guiTest.ideFrame()
@@ -106,6 +107,7 @@ public class FlavorsExecutionTest {
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.LAYOUT, "activity_f2_main")
       .selectLauncherActivity()
       .setTargetSourceSet("flavor2")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 

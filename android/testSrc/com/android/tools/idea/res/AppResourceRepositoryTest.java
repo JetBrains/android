@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.gradle.model.stubs.ClassFieldStub;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
@@ -22,7 +23,6 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -320,11 +320,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     BiFunction<String, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
-      ClassFieldStub field = new ClassFieldStub("string",
-                                                "model_value",
-                                                value,
-                                                "value from model",
-                                                Collections.emptySet());
+      ClassFieldStub field = new ClassFieldStub("model_value",
+                                                "string",
+                                                value);
       return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
     };
 

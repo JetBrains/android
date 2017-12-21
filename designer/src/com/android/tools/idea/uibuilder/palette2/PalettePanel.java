@@ -35,7 +35,6 @@ import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
@@ -51,6 +50,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SideBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -133,6 +134,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
     myCategoryList.addKeyListener(keyListener);
+    myCategoryList.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1));
 
     PreviewProvider provider = new PreviewProvider(() -> myDesignSurface, myDependencyManager);
     Disposer.register(this, provider);
@@ -154,13 +156,6 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   AnAction getAddToDesignAction() {
     //noinspection ReturnOfInnerClass
     return myAddToDesignAction;
-  }
-
-  @NotNull
-  @TestOnly
-  AnAction getFavoriteAction() {
-    //noinspection ReturnOfInnerClass
-    return myFavoriteAction;
   }
 
   @NotNull
@@ -472,7 +467,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return;
       }
       NlUsageTrackerManager.getInstance(myDesignSurface).logDropFromPalette(
-        component.getTag(), component.getRepresentation(), PaletteMode.ICON_AND_NAME, getGroupName(), myDataModel.getMatchCount());
+        component.getTag(), component.getRepresentation(), getGroupName(), myDataModel.getMatchCount());
     }
 
     @NotNull

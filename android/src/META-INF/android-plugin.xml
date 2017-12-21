@@ -27,6 +27,7 @@
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 
@@ -944,7 +945,7 @@
                       anchor="right"
                       secondary="true"
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
-                      icon="AndroidIcons.DeviceExplorer.ToolWindow"
+                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
@@ -964,6 +965,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
@@ -1013,7 +1015,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
-    <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel$StateStorage" />
+    <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>

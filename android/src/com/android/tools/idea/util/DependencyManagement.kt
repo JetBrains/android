@@ -25,7 +25,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
-import java.util.*
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this [module].
@@ -46,18 +45,27 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
 }
 
 /**
- * Add artifacts with given artifact ids as dependencies; the method will show a dialog prompting the user for confirmation
- * if promptUserBeforeAdding is set to true; and return with no-op if user chooses to not add the dependencies.
+ * Add artifacts with given artifact ids as dependencies; this method will show a dialog prompting the user for confirmation if
+ * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
+ * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
+ * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
+ *
  * This method shows no confirmation dialog and performs a no-op if the list of artifacts is the empty list.
+ * This method does not trigger a sync if none of the artifacts were added successfully or if [requestSync] is false.
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
-fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean): List<GoogleMavenArtifactId> {
+@JvmOverloads
+fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true)
+    : List<GoogleMavenArtifactId> {
+
   if (artifactIds.isEmpty()) {
     return listOf()
   }
 
-  if (promptUserBeforeAdding && !userWantsToAdd(project, artifactIds)) {
-    return artifactIds
+  val distinctArtifactIds = artifactIds.distinct()
+
+  if (promptUserBeforeAdding && !userWantsToAdd(project, distinctArtifactIds)) {
+    return distinctArtifactIds
   }
 
   val moduleSystem = getModuleSystem()
@@ -65,18 +73,17 @@ fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserB
   val platformSupportLibVersion: GoogleMavenArtifactVersion? by lazy {
     GoogleMavenArtifactId.values()
         .filter { it.isPlatformSupportLibrary }
-        .map { id -> moduleSystem.getDeclaredVersion(id) }
-        .filterNotNull()
+        .mapNotNull { moduleSystem.getDeclaredVersion(it) }
         .firstOrNull()
   }
 
-  for (id in artifactIds) {
+  for (id in distinctArtifactIds) {
     try {
       if (id.isPlatformSupportLibrary) {
-        moduleSystem.addDependency(id, platformSupportLibVersion)
+        moduleSystem.addDependencyWithoutSync(id, platformSupportLibVersion)
       }
       else {
-        moduleSystem.addDependency(id, null)
+        moduleSystem.addDependencyWithoutSync(id, null)
       }
     }
     catch (e: DependencyManagementException) {
@@ -84,6 +91,11 @@ fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserB
       artifactsNotAdded.add(id)
     }
   }
+
+  if (requestSync && distinctArtifactIds.size != artifactsNotAdded.size) {
+    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+  }
+
   return artifactsNotAdded
 }
 

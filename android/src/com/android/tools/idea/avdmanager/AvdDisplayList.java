@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -347,16 +348,43 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
   }
 
+  private static class HighlightableIconPair {
+    private Icon baseIcon;
+    private Icon highlightedIcon;
+
+    public HighlightableIconPair(@Nullable Icon theBaseIcon) {
+      baseIcon = theBaseIcon;
+      if (theBaseIcon != null) {
+        highlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(theBaseIcon);
+      }
+    }
+
+    @Nullable
+    public Icon getBaseIcon() {
+      return baseIcon;
+    }
+
+    @Nullable
+    public Icon getHighlightedIcon() {
+      return highlightedIcon;
+    }
+  }
+
   /**
    * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
    * the cell value in that column for a given row item.
    */
   private final ColumnInfo[] myColumnInfos = new ColumnInfo[] {
     new AvdIconColumnInfo("Type") {
-      @Nullable
+      HighlightableIconPair myIconPair;
+
+      @NotNull
       @Override
-      public Icon valueOf(AvdInfo avdInfo) {
-        return AvdDisplayList.getIcon(avdInfo);
+      public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+        if (myIconPair == null) {
+          myIconPair = new HighlightableIconPair(AvdDisplayList.getIcon(avdInfo));
+        }
+        return myIconPair;
       }
     },
     new AvdColumnInfo("Name") {
@@ -367,11 +395,15 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
     },
     new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
-      @Nullable
+      private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
+      private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
+
+      @NotNull
       @Override
-      public Icon valueOf(AvdInfo avdInfo) {
-        return avdInfo.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : null;
+      public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+        return avdInfo.hasPlayStore() ? playStoreIconPair : emptyIconPair;
       }
+
       @NotNull
       @Override
       public Comparator<AvdInfo> getComparator() {
@@ -480,7 +512,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * It uses the icon field renderer ({@link #ourIconRenderer}) and does not sort by default. An explicit width may be used
    * by calling the overloaded constructor, otherwise the column will be 50px wide.
    */
-  private static abstract class AvdIconColumnInfo extends ColumnInfo<AvdInfo, Icon> {
+  private static abstract class AvdIconColumnInfo extends ColumnInfo<AvdInfo, HighlightableIconPair> {
     private final int myWidth;
 
     /**
@@ -489,7 +521,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     private static final TableCellRenderer ourIconRenderer = new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JBLabel label = new JBLabel((Icon)value);
+        HighlightableIconPair iconPair = (HighlightableIconPair)value;
+        JBLabel label = new JBLabel(iconPair.getBaseIcon());
         if (value == StudioIcons.Avd.DEVICE_PLAY_STORE) {
           // (No accessible name for the Device Type column)
           AccessibleContextUtil.setName(label, "Play Store");
@@ -498,6 +531,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
           label.setBackground(table.getSelectionBackground());
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
+          Icon theIcon = label.getIcon();
+          if (theIcon != null) {
+            Icon highlightedIcon = iconPair.getHighlightedIcon();
+            if (highlightedIcon != null) {
+              label.setIcon(highlightedIcon);
+            }
+          }
         }
         return label;
       }
@@ -577,9 +617,11 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       if (table.getSelectedRow() == row) {
         myComponent.setBackground(table.getSelectionBackground());
         myComponent.setForeground(table.getSelectionForeground());
+        myComponent.setHighlighted(true);
       } else {
         myComponent.setBackground(table.getBackground());
         myComponent.setForeground(table.getForeground());
+        myComponent.setHighlighted(false);
       }
       myComponent.setFocused(table.getSelectedRow() == row && table.getSelectedColumn() == column);
       return myComponent;

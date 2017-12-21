@@ -553,6 +553,15 @@ public final class GuiTests {
   }
 
   /**
+   * Waits for a single AWT or Swing {@link Component} showing, enabled and matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowingAndEnabled(
+    @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher, long secondsToWait) {
+    return waitUntilShowing(robot, root, FluentMatcher.wrap(matcher).andIsEnabled(), secondsToWait);
+  }
+
+  /**
    * Waits for a single AWT or Swing {@link Component} matched by {@code matcher}.
    */
   @NotNull

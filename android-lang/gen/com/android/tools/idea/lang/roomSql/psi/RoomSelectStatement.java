@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomSelectStatement extends RoomStatement, HasWithClause {
+public interface RoomSelectStatement extends PsiElement {
 
   @NotNull
   List<RoomCompoundOperator> getCompoundOperatorList();
@@ -35,8 +35,5 @@ public interface RoomSelectStatement extends RoomStatement, HasWithClause {
 
   @NotNull
   List<RoomSelectCore> getSelectCoreList();
-
-  @Nullable
-  RoomWithClause getWithClause();
 
 }

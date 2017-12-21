@@ -16,10 +16,13 @@
 package com.android.tools.idea.naveditor.property.editors;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
+import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -30,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -51,7 +55,8 @@ public class TextEditor extends BaseComponentEditor {
   public TextEditor(@NotNull Project project,
                     @NotNull NlEditingListener listener) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout());
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
+    myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0));
 
     myLabel = new JBLabel();
     myPanel.add(myLabel, BorderLayout.LINE_START);
@@ -61,7 +66,33 @@ public class TextEditor extends BaseComponentEditor {
     myProject = project;
 
     //noinspection UseDPIAwareInsets
-    myTextEditor = new EditorTextField();
+    myTextEditor = new EditorTextField() {
+        @Override
+        public void addNotify() {
+          super.addNotify();
+          getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
+          getEditor().setBorder(new DarculaEditorTextFieldBorder() {
+            @Override
+            public Insets getBorderInsets(Component component) {
+              Insets myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+                                               HORIZONTAL_PADDING,
+                                               VERTICAL_SPACING + VERTICAL_PADDING,
+                                               HORIZONTAL_PADDING);
+              return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
+            }
+          });
+        }
+
+        @Override
+        public void removeNotify() {
+          super.removeNotify();
+
+          // Remove the editor from the component tree.
+          // The editor component is added in EditorTextField.addNotify but never removed by EditorTextField.
+          // This is causing paint problems when this component is reused in a different panel.
+          removeAll();
+        }
+      };
 
     myPanel.add(myTextEditor, BorderLayout.CENTER);
     myTextEditor.registerKeyboardAction(event -> stopEditing(getText()),

@@ -21,12 +21,13 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.google.profiler.protobuf3jarjar.ByteString;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -872,6 +873,37 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+  }
+
+  @Test
+  public void parsingFailureIsNotifiedToUi() throws InterruptedException, IOException {
+    // Start an ART capturing successfully
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myStage.setProfilingConfiguration(config);
+    startCapturingSuccess();
+
+    // Sequence of states that should happen after stopping a capture that failures to parse the trace
+    ImmutableList<CpuProfilerStage.CaptureState> captureStates = ImmutableList.of(CpuProfilerStage.CaptureState.STOPPING,
+                                                                                  CpuProfilerStage.CaptureState.PARSING,
+                                                                                  CpuProfilerStage.CaptureState.PARSING_FAILURE,
+                                                                                  CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.iterator().next()));
+
+    // Force the return of a simpleperf. As we started an ART capture, the capture parsing should fail.
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myCpuService.setValidTrace(true);
+    stopCapturing();
+
+    // As parsing has failed, capture should be null.
+    assertThat(myStage.getCapture()).isNull();
   }
 
   @Test

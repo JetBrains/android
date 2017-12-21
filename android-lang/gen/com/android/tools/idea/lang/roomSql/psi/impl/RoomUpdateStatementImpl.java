@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomUpdateStatementImpl extends RoomStatementImpl implements RoomUpdateStatement {
+public class RoomUpdateStatementImpl extends ASTWrapperPsiElement implements RoomUpdateStatement {
 
   public RoomUpdateStatementImpl(ASTNode node) {
     super(node);
@@ -64,12 +65,6 @@ public class RoomUpdateStatementImpl extends RoomStatementImpl implements RoomUp
   @Nullable
   public RoomWhereClause getWhereClause() {
     return findChildByClass(RoomWhereClause.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomWithClause getWithClause() {
-    return findChildByClass(RoomWithClause.class);
   }
 
   @Override

@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,14 +38,20 @@ public class HardwareProfileWizardFixture extends AbstractWizardFixture<Hardware
   }
 
   @NotNull
-  public ConfigureDeviceOptionsStepFixture getConfigureDeviceOptionsStep() {
+  public ConfigureDeviceOptionsStepFixture<HardwareProfileWizardFixture> getConfigureDeviceOptionsStep() {
     JRootPane rootPane = findStepWithTitle("Configure Hardware Profile");
-    return new ConfigureDeviceOptionsStepFixture(robot(), rootPane);
+    return new ConfigureDeviceOptionsStepFixture<>(this, rootPane);
   }
 
   @NotNull
   public HardwareProfileWizardFixture clickOk() {
     findAndClickOkButton(this);
+    return this;
+  }
+
+  @NotNull
+  public HardwareProfileWizardFixture clickFinish() {
+    super.clickFinish(Wait.seconds(10));
     return this;
   }
 }

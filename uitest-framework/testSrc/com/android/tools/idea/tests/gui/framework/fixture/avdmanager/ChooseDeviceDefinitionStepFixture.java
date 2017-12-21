@@ -16,12 +16,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -33,24 +33,25 @@ import javax.swing.*;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 
-public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture> {
+public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture, W> {
 
   /** The index of the Name column in the device-definition table. */
   private static final int NAME_COLUMN = 0;
 
-  public ChooseDeviceDefinitionStepFixture(@NotNull Robot robot, @NotNull JRootPane rootPane) {
-    super(ChooseDeviceDefinitionStepFixture.class, robot, rootPane);
+  public ChooseDeviceDefinitionStepFixture(@NotNull W wizard, @NotNull JRootPane rootPane) {
+    super(ChooseDeviceDefinitionStepFixture.class, wizard, rootPane);
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture enterSearchTerm(@NotNull String searchTerm) {
+  public ChooseDeviceDefinitionStepFixture<W> enterSearchTerm(@NotNull String searchTerm) {
     SearchTextField searchField = robot().finder().findByType(target(), SearchTextField.class);
     replaceText(searchField.getTextEditor(), searchTerm);
     return this;
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture selectHardwareProfile(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture<W> selectHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
     JTableCellFixture cell = deviceListFixture.cell(deviceName);
     cell.select();
@@ -58,7 +59,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture deleteHardwareProfile(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture<W> deleteHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
 
     deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);

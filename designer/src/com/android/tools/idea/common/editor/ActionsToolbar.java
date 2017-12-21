@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
@@ -109,7 +108,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
     northToolbarComponent.setName("NlConfigToolbar");
-    northToolbarComponent.setBorder(JBUI.Borders.empty());
 
     myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
 
@@ -121,13 +119,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent centerToolbarComponent = centerToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
-    centerToolbarComponent.setBorder(JBUI.Borders.empty());
 
     ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
     JComponent eastToolbarComponent = eastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
-    eastToolbarComponent.setBorder(JBUI.Borders.empty());
 
     JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
     northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
@@ -225,19 +221,12 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void sceneChanged(@NotNull DesignSurface surface, @NotNull Scene scene) {
-    // The toolbar depends on the current ScreenView for its content,
-    // so reload when the ScreenView changes.
-    myNorthToolbar.updateActionsImmediately();
-    updateActions();
-  }
-
-  @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    myNorthToolbar.updateActionsImmediately();
     if (myDynamicGroup.getChildrenCount() == 0) {
       myModel = model;
-      updateActions();
     }
+    updateActions();
   }
 
   @Override

@@ -1132,4 +1132,22 @@ class ColumnReferencesTest : RoomLightTestCase() {
         }
     """.trimIndent())
   }
+
+  fun testParserRecovery() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.<caret>name IS NOT NULL") List<User> getUsers();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
+  }
 }

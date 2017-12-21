@@ -25,7 +25,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.regex.Matcher;
@@ -56,7 +55,6 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
       issuesByData.put(data, syncIssue);
     }
 
-    PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
       if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
@@ -66,18 +64,18 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
         String issueKey = resolvedSpec.getGroup() + GRADLE_PATH_SEPARATOR + resolvedSpec.getName();
         Collection<SyncIssue> librarySyncIssues = issuesByData.get(issueKey);
         for (SyncIssue syncIssue : librarySyncIssues) {
-          PsIssue issue = createIssueFrom(syncIssue, path, modulePath);
+          PsIssue issue = createIssueFrom(syncIssue, path);
           issueCollection.add(issue);
         }
 
-        analyzeDeclaredDependency(libraryDependency, modulePath, issueCollection);
+        analyzeDeclaredDependency(libraryDependency, issueCollection);
       }
     });
   }
 
   @VisibleForTesting
   @NotNull
-  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsPath path, @Nullable PsPath extraPath) {
+  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsPath path) {
     String message = escapeString(syncIssue.getMessage());
     Matcher matcher = URL_PATTERN.matcher(message);
     boolean result = matcher.find();
@@ -88,7 +86,6 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
       result = matcher.find();
     }
     PsIssue issue = new PsIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue));
-    issue.setExtraPath(extraPath);
     return issue;
   }
 

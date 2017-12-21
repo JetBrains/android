@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomCreateTableStatementImpl extends RoomStatementImpl implements RoomCreateTableStatement {
+public class RoomCreateTableStatementImpl extends ASTWrapperPsiElement implements RoomCreateTableStatement {
 
   public RoomCreateTableStatementImpl(ASTNode node) {
     super(node);
@@ -55,12 +56,6 @@ public class RoomCreateTableStatementImpl extends RoomStatementImpl implements R
   }
 
   @Override
-  @Nullable
-  public RoomSelectStatement getSelectStatement() {
-    return findChildByClass(RoomSelectStatement.class);
-  }
-
-  @Override
   @NotNull
   public List<RoomTableConstraint> getTableConstraintList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableConstraint.class);
@@ -70,6 +65,12 @@ public class RoomCreateTableStatementImpl extends RoomStatementImpl implements R
   @NotNull
   public RoomTableDefinitionName getTableDefinitionName() {
     return findNotNullChildByClass(RoomTableDefinitionName.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
+    return findChildByClass(RoomWithClauseSelectStatement.class);
   }
 
 }

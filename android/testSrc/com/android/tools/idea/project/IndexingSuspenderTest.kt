@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.IdeComponents
@@ -208,7 +209,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     setUpIndexingSpecificExpectations(dumbModeCount = 1, batchUpdateCount = 1)
     val dumbService = DumbService.getInstance(project)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST)
+    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
     assertFalse(dumbService.isDumb)
     // Sentinel dumb mode is expected only during project setup
     syncState.setupStarted()
@@ -243,7 +244,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     val dumbService = DumbService.getInstance(project)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST)
+    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
     // Sentinel dumb mode is expected only during project setup
     assertFalse(dumbService.isDumb)
     syncState.setupStarted()

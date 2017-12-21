@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a literal element.
@@ -66,9 +69,32 @@ public final class GradleDslLiteral extends GradleDslExpression {
     return getDslFile().getParser().extractValue(this, element, true);
   }
 
+  @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    if (element == null) {
+      return null;
+    }
+    return getDslFile().getParser().extractValue(this, element, false);
+  }
+
   @Nullable
   public PsiElement getUnsavedValue() {
     return myUnsavedValue;
+  }
+
+  /**
+   * Overwritten to ensure dependencies of set value are correctly computed.
+   */
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    if (element == null) {
+      return Collections.emptyList();
+    }
+    return getDslFile().getParser().getInjections(this, element);
   }
 
   /**
@@ -79,6 +105,16 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     Object value = getValue();
+    if (value != null && clazz.isInstance(value)) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
     if (value != null && clazz.isInstance(value)) {
       return clazz.cast(value);
     }

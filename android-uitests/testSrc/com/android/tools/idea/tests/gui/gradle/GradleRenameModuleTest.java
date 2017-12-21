@@ -42,7 +42,6 @@ public class GradleRenameModuleTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
-  @Ignore("b/70293507")
   @Test
   public void testRenameModule() throws IOException {
     guiTest.importSimpleApplication()
@@ -60,7 +59,6 @@ public class GradleRenameModuleTest {
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }
 
-  @Ignore("b/70293507")
   @Test
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
     guiTest.importMultiModule()

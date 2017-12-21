@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette2.PalettePanel;
 import com.intellij.ui.SearchTextField;
@@ -39,34 +35,21 @@ import java.util.List;
 
 public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
   private final PalettePanel myNewPalette;
-  private final NlPalettePanel myOldPalette;
   private SearchTextFieldFixture mySearchField;
 
   @NotNull
   public static NlPaletteFixture create(@NotNull Robot robot, @NotNull Container root) {
-    if (StudioFlags.NELE_NEW_PALETTE.get()) {
-      return new NlPaletteFixture(robot, robot.finder().findByType(root, PalettePanel.class, true));
-    }
-    else {
-      return new NlPaletteFixture(robot, robot.finder().findByType(root, NlPalettePanel.class, true));
-    }
+    return new NlPaletteFixture(robot, robot.finder().findByType(root, PalettePanel.class, true));
   }
 
   private NlPaletteFixture(@NotNull Robot robot, @Nullable PalettePanel palette) {
     super(NlPaletteFixture.class, robot, palette);
     myNewPalette = palette;
-    myOldPalette = null;
-  }
-
-  private NlPaletteFixture(@NotNull Robot robot, @Nullable NlPalettePanel palette) {
-    super(NlPaletteFixture.class, robot, palette);
-    myNewPalette = null;
-    myOldPalette = palette;
   }
 
   @NotNull
   public JListFixture getCategoryList() {
-    return new JListFixture(robot(), myNewPalette != null ? myNewPalette.getCategoryList() : myOldPalette.getTreeGrid().getCategoryList());
+    return new JListFixture(robot(), myNewPalette.getCategoryList());
   }
 
   /**
@@ -81,18 +64,7 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
       getCategoryList().selectItem(group);
     }
 
-    JList itemList;
-    if (myNewPalette != null) {
-      itemList = myNewPalette.getItemList();
-    }
-    else {
-      if (group.isEmpty()) {
-        group = "All";
-      }
-
-      // Wait until the list has been expanded in UI (eliminating flakiness).
-      itemList = GuiTests.waitUntilShowing(robot(), myOldPalette.getTreeGrid(), Matchers.byName(JList.class, group));
-    }
+    JList itemList = myNewPalette.getItemList();
     Wait.seconds(1).expecting("the items to be populated").until(() -> itemList.getModel().getSize() > 0);
     return new JListFixture(robot(), itemList);
   }
@@ -137,6 +109,6 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
 
   @NotNull
   private JPanel getMyPanel() {
-    return myNewPalette != null ? myNewPalette : myOldPalette;
+    return myNewPalette;
   }
 }

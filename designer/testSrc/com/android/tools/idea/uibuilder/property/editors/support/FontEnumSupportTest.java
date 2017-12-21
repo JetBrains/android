@@ -105,6 +105,11 @@ public class FontEnumSupportTest extends AndroidTestCase {
       .isEqualTo(new ValueWithDisplayString("customfont", "@font/customfont"));
   }
 
+  public void testCreateNonSystemValueWithoutPrefix() {
+    assertThat(mySupport.createValue("customfont"))
+      .isEqualTo(new ValueWithDisplayString("customfont", "@font/customfont"));
+  }
+
   public void testCreateValueWithoutPrefix() {
     assertThat(mySupport.createValue("serif"))
       .isEqualTo(new ValueWithDisplayString("serif", "serif"));

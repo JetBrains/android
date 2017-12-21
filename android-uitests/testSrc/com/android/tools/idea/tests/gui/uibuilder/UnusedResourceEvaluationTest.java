@@ -46,7 +46,7 @@ public class UnusedResourceEvaluationTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70635124
   public void removeUnusedResources() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoUnusedResourceApp");
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");

@@ -1,135 +1,159 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.welcome.wizard.deprecated.HaxmInstallSettingsStep">
-  <grid id="27dc6" binding="myRoot" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-    <margin top="0" left="0" bottom="0" right="0"/>
+  <scrollpane id="d8103" class="com.intellij.ui.components.JBScrollPane" binding="myRoot">
     <constraints>
-      <xy x="20" y="20" width="785" height="400"/>
+      <xy x="0" y="0" width="805" height="453"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <component id="9f1c9" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="&lt;html&gt;We have detected that your system can run the Android emulator in an accelerated performance mode.&lt;/html&gt;"/>
-        </properties>
-      </component>
-      <vspacer id="8ddf2">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
-          </grid>
-        </constraints>
-      </vspacer>
-      <component id="7d0bd" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="700" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <text value="&lt;html&gt;Set the maximum amount of RAM available for the Intel® Hardware Accelerated Execution Manager (HAXM) to use for all x86 emulator instances. You can change these settings at any time by running the Intel® HAXM installer.&lt;/html&gt;"/>
-        </properties>
-      </component>
-      <vspacer id="c5fff">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
-          </grid>
-        </constraints>
-      </vspacer>
-      <grid id="657a6" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="1">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="a0b51" class="javax.swing.JLabel">
-            <constraints/>
-            <properties>
-              <text value="Refer to the "/>
-            </properties>
-          </component>
-          <component id="7fc0f" class="com.intellij.ui.HyperlinkLabel" binding="myIntelHAXMDocumentationButton" default-binding="true">
-            <constraints/>
-            <properties/>
-          </component>
-          <component id="b15eb" class="javax.swing.JLabel">
-            <constraints/>
-            <properties>
-              <text value=" for more information."/>
-            </properties>
-          </component>
-        </children>
-      </grid>
-      <component id="da255" class="javax.swing.JSlider" binding="myMemorySlider">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-            <maximum-size width="750" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <majorTickSpacing value="32"/>
-          <maximum value="512"/>
-          <minorTickSpacing value="0"/>
-          <paintLabels value="true"/>
-          <paintTicks value="false"/>
-          <paintTrack value="true"/>
-          <snapToTicks value="true"/>
-          <valueIsAdjusting value="false"/>
-        </properties>
-      </component>
-      <grid id="f0dd9" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="27dc6" layout-manager="GridLayoutManager" row-count="11" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="4" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
+        <constraints/>
         <properties/>
         <border type="none"/>
         <children>
-          <component id="c2c28" class="javax.swing.JLabel">
+          <component id="9f1c9" class="javax.swing.JLabel">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <labelFor value="49d2b"/>
-              <text value="RAM allocation: "/>
-            </properties>
-          </component>
-          <component id="49d2b" class="javax.swing.JSpinner" binding="myMemorySize">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                <preferred-size width="100" height="-1"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="10" height="-1"/>
               </grid>
             </constraints>
+            <properties>
+              <text value="&lt;html&gt;We have detected that your system can run the Android emulator in an accelerated performance mode.&lt;/html&gt;"/>
+            </properties>
+          </component>
+          <vspacer id="8ddf2">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                <preferred-size width="-1" height="16"/>
+              </grid>
+            </constraints>
+          </vspacer>
+          <component id="7d0bd" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="10" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="&lt;html&gt;Set the maximum amount of RAM available for the Intel® Hardware Accelerated Execution Manager (HAXM) to use for all x86 emulator instances. You can change these settings at any time by running the Intel® HAXM installer.&lt;/html&gt;"/>
+            </properties>
+          </component>
+          <vspacer id="c5fff">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                <preferred-size width="-1" height="16"/>
+              </grid>
+            </constraints>
+          </vspacer>
+          <grid id="657a6" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="1">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
             <properties/>
-          </component>
-          <component id="733ab" class="javax.swing.JLabel" binding="myUnitLabel">
+            <border type="none"/>
+            <children>
+              <component id="a0b51" class="javax.swing.JLabel">
+                <constraints/>
+                <properties>
+                  <text value="Refer to the "/>
+                </properties>
+              </component>
+              <component id="7fc0f" class="com.intellij.ui.HyperlinkLabel" binding="myIntelHAXMDocumentationButton" default-binding="true">
+                <constraints/>
+                <properties/>
+              </component>
+              <component id="b15eb" class="javax.swing.JLabel">
+                <constraints/>
+                <properties>
+                  <text value=" for more information."/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <component id="da255" class="javax.swing.JSlider" binding="myMemorySlider">
             <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="200" height="-1"/>
+                <preferred-size width="750" height="-1"/>
+              </grid>
             </constraints>
             <properties>
-              <text value="MiB"/>
+              <majorTickSpacing value="32"/>
+              <maximum value="512"/>
+              <minorTickSpacing value="0"/>
+              <paintLabels value="true"/>
+              <paintTicks value="false"/>
+              <paintTrack value="true"/>
+              <snapToTicks value="true"/>
+              <valueIsAdjusting value="false"/>
             </properties>
           </component>
-          <component id="b64a4" class="javax.swing.JButton" binding="myRecommended">
+          <grid id="f0dd9" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="4" fill="2" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties>
-              <text value="Use recommended size"/>
-            </properties>
-          </component>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="c2c28" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <labelFor value="49d2b"/>
+                  <text value="RAM allocation: "/>
+                </properties>
+              </component>
+              <component id="49d2b" class="javax.swing.JSpinner" binding="myMemorySize">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="100" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="733ab" class="javax.swing.JLabel" binding="myUnitLabel">
+                <constraints>
+                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="MiB"/>
+                </properties>
+              </component>
+              <component id="b64a4" class="javax.swing.JButton" binding="myRecommended">
+                <constraints>
+                  <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Use recommended size"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <vspacer id="5edfa">
+            <constraints>
+              <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
+          <vspacer id="dfe34">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                <preferred-size width="-1" height="16"/>
+              </grid>
+            </constraints>
+          </vspacer>
+          <vspacer id="527bf">
+            <constraints>
+              <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                <preferred-size width="-1" height="16"/>
+              </grid>
+            </constraints>
+          </vspacer>
         </children>
       </grid>
-      <vspacer id="5edfa">
-        <constraints>
-          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </vspacer>
     </children>
-  </grid>
+  </scrollpane>
 </form>

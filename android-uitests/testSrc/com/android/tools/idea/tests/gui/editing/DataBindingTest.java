@@ -49,7 +49,7 @@ public class DataBindingTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70642301
   public void resolvesSymbols() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("DatabindingMethodsTest");
 

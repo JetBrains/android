@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
@@ -27,14 +27,15 @@ import javax.swing.text.JTextComponent;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture> {
+public class ConfigureAvdOptionsStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture, W> {
 
-  protected ConfigureAvdOptionsStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureAvdOptionsStepFixture.class, robot, target);
+  protected ConfigureAvdOptionsStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureAvdOptionsStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture showAdvancedSettings() {
+  public ConfigureAvdOptionsStepFixture<W> showAdvancedSettings() {
     try {
       JButton showAdvancedSettingsButton = robot().finder().find(target(), Matchers.byText(JButton.class, "Show Advanced Settings"));
       robot().click(showAdvancedSettingsButton);
@@ -45,34 +46,34 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture requireAvdName(@NotNull String name) {
+  public ConfigureAvdOptionsStepFixture<W> requireAvdName(@NotNull String name) {
     String text = findTextFieldWithLabel("AVD Name").getText();
     assertThat(text).named("AVD name").isEqualTo(name);
     return this;
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture setAvdName(@NotNull String name) {
+  public ConfigureAvdOptionsStepFixture<W> setAvdName(@NotNull String name) {
     JTextComponent textFieldWithLabel = findTextFieldWithLabel("AVD Name");
     replaceText(textFieldWithLabel, name);
     return this;
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture setFrontCamera(@NotNull String selection) {
+  public ConfigureAvdOptionsStepFixture<W> setFrontCamera(@NotNull String selection) {
     JComboBoxFixture frontCameraFixture = findComboBoxWithLabel("Front:");
     frontCameraFixture.selectItem(selection);
     return this;
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture selectGraphicsHardware() {
+  public ConfigureAvdOptionsStepFixture<W> selectGraphicsHardware() {
     findComboBoxWithLabel("Graphics:").selectItem("Hardware - GLES .*");
     return this;
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture selectGraphicsSoftware() {
+  public ConfigureAvdOptionsStepFixture<W> selectGraphicsSoftware() {
     findComboBoxWithLabel("Graphics:").selectItem("Software - GLES .*");
     return this;
   }

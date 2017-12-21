@@ -27,7 +27,7 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen (0)", StudioIcons.Common.RESET_ZOOM),
+  FIT("Zoom to Fit Screen", StudioIcons.Common.RESET_ZOOM),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
@@ -37,17 +37,17 @@ public enum ZoomType {
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100% (1)", null),
+  ACTUAL("100%", null),
 
   /**
    * Zoom in
    */
-  IN("Zoom In (+)", StudioIcons.Common.ZOOM_IN),
+  IN("Zoom In", StudioIcons.Common.ZOOM_IN),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out (-)", StudioIcons.Common.ZOOM_OUT),
+  OUT("Zoom Out", StudioIcons.Common.ZOOM_OUT),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)

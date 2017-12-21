@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.adtui.ImageComponent;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ColorPicker;
 import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -36,15 +36,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImageAssetStepFixture> {
+public class NewImageAssetStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<NewImageAssetStepFixture, W> {
 
-  protected NewImageAssetStepFixture(@NotNull Robot robot,
-                                     @NotNull JRootPane target) {
-    super(NewImageAssetStepFixture.class, robot, target);
+  protected NewImageAssetStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(NewImageAssetStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public NewImageAssetStepFixture selectIconType(@NotNull String iconType) {
+  public NewImageAssetStepFixture<W> selectIconType(@NotNull String iconType) {
     JComboBox comp = robot().finder().findByLabel(target(), "Icon Type:", JComboBox.class, true);
     JComboBoxFixture combo = new JComboBoxFixture(robot(), comp);
     combo.selectItem(iconType);
@@ -76,7 +76,7 @@ public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImage
   }
 
   @NotNull
-  public NewImageAssetStepFixture selectClipArt() {
+  public NewImageAssetStepFixture<W> selectClipArt() {
     JRadioButton button = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Clip Art"));
     if (!button.isSelected())
       new JRadioButtonFixture(robot(), button).select();
@@ -84,7 +84,7 @@ public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImage
   }
 
   @NotNull
-  public NewImageAssetStepFixture setForeground(@NotNull Color color) {
+  public NewImageAssetStepFixture<W> setForeground(@NotNull Color color) {
     robot().click(robot().finder().findByLabel("Foreground:"));
     ColorPicker colorPicker = GuiTests.waitUntilShowing(robot(), Matchers.byType(ColorPicker.class));
     Collection<JTextField> all = robot().finder().findAll(colorPicker, Matchers.byType(JTextField.class));

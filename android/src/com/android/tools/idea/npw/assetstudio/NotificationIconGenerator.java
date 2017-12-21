@@ -27,6 +27,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+
 /**
  * Generates icons for the notifications bar.
  */
@@ -82,8 +84,8 @@ public class NotificationIconGenerator extends IconGenerator {
     }
 
     float scaleFactor = getMdpiScaleFactor(options.density);
-    Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
-    Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
+    Rectangle imageRect = scaleRectangle(iconSizeMdpi, scaleFactor);
+    Rectangle targetRect = scaleRectangle(targetRectMdpi, scaleFactor);
 
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D g = (Graphics2D) outImage.getGraphics();

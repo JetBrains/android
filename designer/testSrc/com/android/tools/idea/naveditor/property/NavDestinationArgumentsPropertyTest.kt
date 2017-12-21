@@ -53,7 +53,7 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
   fun testModify() {
     val fragment = model.find("f3")!!
     val property = NavDestinationArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
-    val argument = model.find { it.getAttribute(AUTO_URI, SdkConstants.ATTR_NAME) == "arg1" }!!
+    val argument = model.find { it.getAndroidAttribute(SdkConstants.ATTR_NAME) == "arg1" }!!
     fragment.addChild(argument)
     property.refreshList()
     assertEquals(argument, property.properties[0].components[0])

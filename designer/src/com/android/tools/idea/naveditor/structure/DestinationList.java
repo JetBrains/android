@@ -22,11 +22,12 @@ import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -35,7 +36,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +50,8 @@ import java.awt.event.MouseListener;
 import java.util.*;
 import java.util.List;
 
+import static icons.StudioIcons.NavEditor.Tree.*;
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
@@ -85,6 +87,12 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
 
+  private static final Map<Icon, Icon> WHITE_ICONS = ImmutableMap.of(
+    FRAGMENT, ColoredIconGenerator.INSTANCE.generateWhiteIcon(FRAGMENT),
+    INCLUDE_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(INCLUDE_GRAPH),
+    ACTIVITY, ColoredIconGenerator.INSTANCE.generateWhiteIcon(ACTIVITY),
+    NESTED_GRAPH, ColoredIconGenerator.INSTANCE.generateWhiteIcon(NESTED_GRAPH));
+
   private DestinationList() {
     setLayout(new BorderLayout());
     myList = new JBList<>(myListModel);
@@ -100,15 +108,18 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
         if (NavComponentHelperKt.isStartDestination(component)) {
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
-        Icon icon = StudioIcons.NavEditor.Tree.FRAGMENT;
-        if (component.getTagName().equals(NavigationSchema.TAG_INCLUDE)) {
-          icon = StudioIcons.NavEditor.Tree.INCLUDE_GRAPH;
+        Icon icon = FRAGMENT;
+        if (component.getTagName().equals(TAG_INCLUDE)) {
+          icon = INCLUDE_GRAPH;
         }
         else if (NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.ACTIVITY) {
-          icon = StudioIcons.NavEditor.Tree.ACTIVITY;
+          icon = ACTIVITY;
         }
         else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
-          icon = StudioIcons.NavEditor.Tree.NESTED_GRAPH;
+          icon = NESTED_GRAPH;
+        }
+        if (isSelected) {
+          icon = WHITE_ICONS.get(icon);
         }
         setIcon(icon);
       }
@@ -187,12 +198,13 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       mySelectionModel.addListener(mySelectionModelListener);
       myListSelectionListener = e -> {
-        if (mySelectionUpdating) {
+        if (mySelectionUpdating || e.getValueIsAdjusting()) {
           return;
         }
         try {
           mySelectionUpdating = true;
           mySelectionModel.setSelection(myList.getSelectedValuesList());
+          myDesignSurface.scrollToCenter(myList.getSelectedValuesList());
         }
         finally {
           mySelectionUpdating = false;

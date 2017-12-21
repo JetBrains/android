@@ -1,12 +1,37 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+COMMON_DATA = [
+    "//tools/adt/idea/android:test_deps.zip",
+    "//prebuilts/studio/jdk",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:constraint-layout_latest",
+    "//prebuilts/studio/sdk:platforms/latest",
+    "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+    "//tools/adt/idea/android/annotations",
+    "//tools/adt/idea/artwork:device-art-resources",
+    "//tools/adt/idea/adt-ui/lib/libwebp",
+    "//tools/base/build-system:studio_repo.zip",
+    "//tools/base/build-system:gradle-distrib",
+    "//tools/base/templates",
+    "//tools/idea/java/jdkAnnotations",
+    "//tools/idea:config",
+    "//tools/vendor/google/testing/display:xvfb",
+]
+
+COMMON_TAGS = [
+    "block-network",
+    "no_mac",
+    "no_windows",
+]
+
 iml_module(
     name = "android-uitests",
     iml_files = ["android-uitests.iml"],
     tags = ["managed"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea:credential-store",
+        "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
         "//tools/vendor/intellij/cidr:doxygen",
@@ -35,8 +60,8 @@ iml_module(
         "//tools/idea/plugins/gradle[module, test]",
         "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
         "//tools/idea:java-impl[module, test]",
-        "//tools/idea:dom-openapi[module, test]",
-        "//tools/idea:xdebugger-impl[module, test]",
+        "//tools/idea/xml/dom-openapi[module, test]",
+        "//tools/idea/platform/xdebugger-impl[module, test]",
         "//tools/adt/idea/designer[module, test]",
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
@@ -51,63 +76,29 @@ iml_module(
 
 java_test(
     name = "GuiTestRuleTest",
-    data = [
-        "//tools/adt/idea/android:test_deps.zip",
-        "//tools/adt/idea/android:android-gradle-1.5.0_repo.zip",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:constraint-layout_latest",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
-        "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/templates",
-        "//tools/idea/java/jdkAnnotations",
-        "//tools/idea:config",
-        "//tools/vendor/google/testing/display:xvfb",
-    ] + glob(["testData/SimpleLocalApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
-    tags = [
-        "block-network",
-        "no_mac",
-        "no_windows",
-    ],
+    tags = COMMON_TAGS + ["manual"],  # b/70675392
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
 
 java_test(
     name = "DataBindingTest",
-    data = [
-        "//tools/adt/idea/android:test_deps.zip",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:constraint-layout_latest",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
-        "//tools/base/build-system/gradle:offline_plugin.zip",
-        "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/templates",
-        "//tools/idea/java/jdkAnnotations",
-        "//tools/idea:config",
-        "//tools/vendor/google/testing/display:xvfb",
-    ] + glob(["testData/DatabindingMethodsTest/**"]),
+    data = COMMON_DATA + ["//tools/data-binding:data_binding_runtime.zip"] + glob([
+        "testData/DatabindingMethodsTest/**",
+    ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
-    tags = [
-        "block-network",
-        "manual",  # Breaks after IJ2017.3 merge
-        "no_mac",
-        "no_windows",
-    ],
+    tags = COMMON_TAGS,
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "ApkViewerTest",
+    data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
+    tags = COMMON_TAGS + ["manual"],  # testFileHandleRelease fails after 2017.3.1 merge
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )

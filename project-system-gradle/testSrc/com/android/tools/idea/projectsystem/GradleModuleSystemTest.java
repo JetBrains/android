@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion;
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
-import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mockito;
@@ -57,10 +57,10 @@ public class GradleModuleSystemTest extends IdeaTestCase {
   public void testAddDependency() {
     GoogleMavenArtifactId toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
 
-    myGradleModuleSystem.addDependency(toAdd, null);
+    myGradleModuleSystem.addDependencyWithoutSync(toAdd, null);
 
     Mockito.verify(myGradleDependencyManager, times(1))
-      .addDependencies(myModule, Collections.singletonList(getLatestCoordinateForArtifactId(toAdd)), null);
+      .addDependenciesWithoutSync(myModule, Collections.singletonList(getLatestCoordinateForArtifactId(toAdd)));
   }
 
   public void testAddDependencyWithBadVersion() {
@@ -68,8 +68,8 @@ public class GradleModuleSystemTest extends IdeaTestCase {
     GoogleMavenArtifactVersion version = new GradleDependencyVersion(null);
 
     try {
-      myGradleModuleSystem.addDependency(toAdd, version);
-      fail("addDependencies should have thrown an exception.");
+      myGradleModuleSystem.addDependencyWithoutSync(toAdd, version);
+      fail("addDependenciesAndSync should have thrown an exception.");
     }
     catch (DependencyManagementException e) {
       assertThat(e.getErrorCode()).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT);
@@ -78,7 +78,7 @@ public class GradleModuleSystemTest extends IdeaTestCase {
 
   private GradleCoordinate getLatestCoordinateForArtifactId(GoogleMavenArtifactId id) {
     GradleCoordinate wildCardCoordinate = GradleCoordinate.parseCoordinateString(id.toString() + ":+");
-    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(wildCardCoordinate, null, false);
+    GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(wildCardCoordinate, null, false);
     return GradleCoordinate.parseCoordinateString(id.toString() + ":" + version);
   }
 }

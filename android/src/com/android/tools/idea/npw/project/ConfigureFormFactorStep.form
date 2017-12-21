@@ -14,7 +14,7 @@
         </constraints>
         <properties>
           <font/>
-          <text value="Some devices require additional SDKs. Low API levels target more devices, but offer fewer API features."/>
+          <text value="&lt;html&gt;Some devices require additional SDKs. Low API levels target more devices, but offer fewer API features.&lt;/html&gt;"/>
         </properties>
       </component>
       <vspacer id="145f4">

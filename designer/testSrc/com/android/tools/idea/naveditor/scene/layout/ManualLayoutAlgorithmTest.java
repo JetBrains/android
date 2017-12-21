@@ -38,7 +38,7 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
 
   public void testSimple() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent("root")
+                              rootComponent(null)
                                 .unboundedChildren(
                                   fragmentComponent("fragment1"),
                                   fragmentComponent("fragment2"))).build();
@@ -47,10 +47,6 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
     rootPositions.put("nav.xml", positions);
 
     ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.put("root", newPositions);
-    positions = newPositions;
-
-    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
     newPositions.myPosition = new ManualLayoutAlgorithm.Point(123, 456);
     positions.put("fragment1", newPositions);
 
@@ -72,12 +68,12 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
 
   public void testDifferentFiles() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent("root")
+                              rootComponent(null)
                                 .unboundedChildren(
                                   fragmentComponent("fragment1"))).build();
 
     SyncNlModel model2 = model("nav2.xml",
-                               rootComponent("root")
+                               rootComponent(null)
                                  .unboundedChildren(
                                    fragmentComponent("fragment1"))).build();
 
@@ -86,19 +82,11 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
     rootPositions.put("nav.xml", positions);
 
     ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.put("root", newPositions);
-    positions = newPositions;
-
-    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
     newPositions.myPosition = new ManualLayoutAlgorithm.Point(123, 456);
     positions.put("fragment1", newPositions);
 
     positions = new ManualLayoutAlgorithm.LayoutPositions();
     rootPositions.put("nav2.xml", positions);
-
-    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.put("root", newPositions);
-    positions = newPositions;
 
     newPositions = new ManualLayoutAlgorithm.LayoutPositions();
     newPositions.myPosition = new ManualLayoutAlgorithm.Point(456, 789);
@@ -132,10 +120,6 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
     rootPositions.put("nav.xml", positions);
 
     ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.put("root", newPositions);
-    positions = newPositions;
-
-    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
     newPositions.myPosition = new ManualLayoutAlgorithm.Point(60, 60);
     positions.put("fragment1", newPositions);
 

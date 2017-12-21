@@ -25,6 +25,7 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,8 +45,8 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   private final Key<Boolean> myKeyCustomInstall;
   private final Key<String> myKeySdkInstallLocation;
   private final Supplier<? extends Collection<RemotePackage>> myPackagesProvider;
-  private JPanel myPanel;
   private JTextPane mySummaryText;
+  private JPanel myRoot;
 
   public InstallSummaryStep(Key<Boolean> keyCustomInstall,
                             Key<String> keySdkInstallLocation,
@@ -58,7 +59,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     // There is no need to add whitespace on the top
     mySummaryText.setBorder(new EmptyBorder(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                             WizardConstants.STUDIO_WIZARD_INSET_SIZE));
-    setComponent(myPanel);
+    setComponent(myRoot);
   }
 
   private static Section getPackagesSection(@NotNull Collection<RemotePackage> remotePackages) {

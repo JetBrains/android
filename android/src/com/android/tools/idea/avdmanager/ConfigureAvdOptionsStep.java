@@ -443,8 +443,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public void run() {
         if (getModel().systemImage().get().isPresent() && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
           File skin =
-            AvdWizardUtils.resolveSkinPath(getModel().getAvdDeviceData().customSkinFile().getValue(), getModel().systemImage().getValue(),
-                                           FileOpUtils.create());
+            AvdWizardUtils.pathToUpdatedSkins(getModel().getAvdDeviceData().customSkinFile().getValue(), getModel().systemImage().getValue(),
+                                              FileOpUtils.create());
           if (skin != null) {
             getModel().getAvdDeviceData().customSkinFile().setValue(skin);
             if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
@@ -954,8 +954,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (IsDevicePresent && getModel().systemImage().get().isPresent()) {
 
       hardwareSkin =
-        AvdWizardUtils.resolveSkinPath(deviceDefaultHardware.getSkinFile(), getModel().systemImage().getValue(),
-                                       FileOpUtils.create());
+        AvdWizardUtils.pathToUpdatedSkins(deviceDefaultHardware.getSkinFile(), getModel().systemImage().getValue(),
+                                          FileOpUtils.create());
 
       myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
       myDeviceName.setText(getModel().device().getValue().getDisplayName());

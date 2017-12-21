@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.builder.model.ProductFlavor;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
@@ -199,5 +202,65 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.proguardFiles());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
                  flavor2.testInstrumentationRunnerArguments());
+  }
+  public void testAddEmptyProductFlavor() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addProductFlavor("flavorA");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+
+    ProductFlavorModel productFlavor = productFlavors.get(0);
+    assertEquals("name", "flavorA", productFlavor.name());
+    assertNull("applicationId", productFlavor.applicationId());
+    assertNull("consumerProguardFiles", productFlavor.consumerProguardFiles());
+    assertNull("dimension", productFlavor.dimension());
+    assertNull("manifestPlaceholders", productFlavor.manifestPlaceholders());
+    assertNull("maxSdkVersion", productFlavor.maxSdkVersion());
+    assertNull("minSdkVersion", productFlavor.minSdkVersion());
+    assertNull("multiDexEnabled", productFlavor.multiDexEnabled());
+    assertNull("proguardFiles", productFlavor.proguardFiles());
+    assertNull("resConfigs", productFlavor.resConfigs());
+    assertNull("resValues", productFlavor.resValues());
+    assertNull("targetSdkVersion", productFlavor.targetSdkVersion());
+    assertNull("testApplicationId", productFlavor.testApplicationId());
+    assertNull("testFunctionalTest", productFlavor.testFunctionalTest());
+    assertNull("testHandleProfiling", productFlavor.testHandleProfiling());
+    assertNull("testInstrumentationRunner", productFlavor.testInstrumentationRunner());
+    assertNull("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
+    assertNull("useJack", productFlavor.useJack());
+    assertNull("versionCode", productFlavor.versionCode());
+    assertNull("versionName", productFlavor.versionName());
+  }
+
+  public void testAddProductFlavor() throws Exception {
+    String text = "android {}\n";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    android.addProductFlavor("flavorA");
+    android.productFlavors().get(0).setApplicationId("appid");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+
+    ProductFlavorModel productFlavor = productFlavors.get(0);
+    assertEquals("name", "flavorA", productFlavor.name());
+    assertEquals("applicationId", "appid", productFlavor.applicationId());
   }
 }

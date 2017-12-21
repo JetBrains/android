@@ -367,6 +367,7 @@ public class ColumnTreeBuilder {
    */
   private static class ColumnTreeUI extends WideSelectionTreeUI {
     private int myWidth = -1;
+    private int myTreeColumnWidth = -1;
 
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
@@ -388,9 +389,10 @@ public class ColumnTreeBuilder {
 
     @Override
     public void paint(Graphics g, JComponent c) {
-      if (myWidth != c.getWidth()) {
+      if (myWidth != c.getWidth() || myTreeColumnWidth != getTreeColumnWidth()) {
         treeState.invalidateSizes();
         myWidth = c.getWidth();
+        myTreeColumnWidth = getTreeColumnWidth();
       }
       if (myTable != null && myTable.getShowVerticalLines()) {
         g.setColor(myTable.getGridColor());
@@ -406,6 +408,13 @@ public class ColumnTreeBuilder {
         public Rectangle getNodeDimensions(Object value, int row, int depth, boolean expanded, Rectangle size) {
           Rectangle dimensions = super.getNodeDimensions(value, row, depth, expanded, size);
           dimensions.width = tree.getWidth() - getRowX(row, depth);
+          int secondColumnStart = getTreeColumnWidth() - tree.getInsets().left;
+          // If the second column start point is less that the current x, we should use that.
+          // This means the second column was resized to the left of the start of the node
+          if (secondColumnStart < dimensions.x) {
+            dimensions.width += dimensions.x - secondColumnStart;
+            dimensions.x = secondColumnStart;
+          }
           return dimensions;
         }
       };
@@ -439,6 +448,23 @@ public class ColumnTreeBuilder {
         g.setColor(gridColor);
         getColumnX().forEach((Integer x) -> g.drawLine(x, bounds.y, x, bounds.y + bounds.height - 1));
       }
+    }
+
+    @Override
+    protected void paintExpandControl(Graphics g, Rectangle clipBounds, Insets insets, Rectangle bounds, TreePath path,
+                                      int row, boolean isExpanded, boolean hasBeenExpanded, boolean isLeaf) {
+      // Because the bounds move with the column, we need to stop rendering the handle
+      // one unit before the row starts moving left, or the handle will move with it.
+      if (bounds.x < getTreeColumnWidth() - 1) {
+        super.paintExpandControl(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+      }
+    }
+
+    private int getTreeColumnWidth() {
+      if (myTable == null || myTable.getColumnModel().getColumnCount() == 0) {
+        return tree.getWidth();
+      }
+      return myTable.getColumnModel().getColumn(0).getWidth();
     }
 
     private List<Integer> getColumnX() {

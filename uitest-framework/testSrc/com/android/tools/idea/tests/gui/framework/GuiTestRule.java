@@ -100,15 +100,21 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return RuleChain.emptyRuleChain()
+    RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
       .around(new BlockReloading())
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure())
-      .around(myTimeout)
-      .apply(base, description);
+      .around(myTimeout);
+
+    // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
+    if (TestUtils.runningFromBazel()) {
+      chain = chain.around(new GuiPerfLogger(description));
+    }
+
+    return chain.apply(base, description);
   }
 
   private class IdeHandling implements TestRule {

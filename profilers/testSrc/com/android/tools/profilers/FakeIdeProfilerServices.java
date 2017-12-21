@@ -89,6 +89,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsRequestPayloadEnabled = false;
 
   /**
+   * JNI references alloc/dealloc events are tracked and shown.
+   */
+  private boolean myIsJniReferenceTrackingEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -147,28 +152,31 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return isJvmtiAgentEnabled;
-      }
-
-      @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return true;
-      }
-
-      @Override
-      public boolean isSimplePerfEnabled() {
-        return isSimplePerfEnabled;
-      }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return isLiveTrackingEnabled;
+      public boolean isAtraceEnabled() {
+        return isAtraceEnabled;
       }
 
       @Override
       public boolean isCpuCaptureFilterEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return false;
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+
+      @Override
+      public boolean isJvmtiAgentEnabled() {
+        return isJvmtiAgentEnabled;
+      }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return isLiveTrackingEnabled;
       }
 
       @Override
@@ -182,13 +190,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isAtraceEnabled() {
-        return isAtraceEnabled;
+      public boolean isNetworkRequestPayloadEnabled() {
+        return myIsRequestPayloadEnabled;
       }
 
       @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return myIsRequestPayloadEnabled;
+      public boolean isNetworkThreadViewEnabled() {
+        return true;
+      }
+
+      @Override
+      public boolean isSimplePerfEnabled() {
+        return isSimplePerfEnabled;
       }
     };
   }
@@ -270,4 +283,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableRequestPayload(boolean enabled) {
     myIsRequestPayloadEnabled = enabled;
   }
+
+  public void setJniReferenceTrackingEnabled(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
 }

@@ -15,14 +15,12 @@
  */
 package com.android.tools.adtui.validation;
 
+import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.adtui.validation.validators.TrueValidator;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
@@ -30,7 +28,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A panel that wraps some inner content and allows registering {@link Validator}s, which, if any
@@ -38,17 +37,15 @@ import java.util.Iterator;
  * panel.
  */
 public final class ValidatorPanel extends JPanel implements Disposable {
-
-  /**
-   * Used to set empty text on a label. If completely empty, the height calculations are off.
-   */
+  /** Used to set empty text on a label. If completely empty, the height calculations are off. */
   private static final String BLANK = " ";
 
   private final ListenerManager myListeners = new ListenerManager();
-  private final Table<Validator.Severity, ObservableValue<?>, String> myMessages = HashBasedTable.create();
+  private final List<Validator.Result> myResults = new ArrayList<>();
   private final BoolProperty myHasErrors = new BoolValueProperty();
 
   private JPanel myRootPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel mySouthPanel;
   private JBLabel myValidationLabel;
 
@@ -68,33 +65,31 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * Register a {@link Validator} linked to a target property. Whenever the target property
    * changes, the validator will be tested with its value.
    *
-   * Registration order of validators doesn't matter - if multiple errors happen at the same time
-   * (or warnings, etc.), the one which shows up is random. However, a message of higher severity
-   * will always trump a message of lower severity.
+   * If multiple validators produce non-OK results, the maximum severity wins. If there are
+   * multiple messages with the same severity, the message produced by the validator that
+   * was registered first wins.
    *
    * See also {@link #hasErrors()}, which will be true if any validator has returned an
    * {@link Validator.Severity#ERROR} result.
    */
-  public <T> void registerValidator(@NotNull final ObservableValue<T> value,
-                                    @NotNull final Validator<T> validator) {
+  public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<T> validator) {
+    int index = myResults.size();
+    myResults.add(Validator.Result.OK);
     myListeners.listenAndFire(value, sender -> {
-      Validator.Result result = validator.validate(value.get());
-      myMessages.column(value).clear();
-      if (result.getSeverity() != Validator.Severity.OK) {
-        myMessages.put(result.getSeverity(), value, result.getMessage());
+      Validator.Result oldValue = myResults.get(index);
+      Validator.Result newValue = validator.validate(value.get());
+      if (!newValue.equals(oldValue)) {
+        myResults.set(index, newValue);
+        updateValidationLabel();
       }
-
-      updateValidationLabel();
     });
   }
 
   /**
-   * Registers a target observable boolean as a simple test which, if {@code true}, means the
-   * {@code message} should be shown with the specified {@code severity}.
+   * Registers a target observable boolean as a simple test which, if {@code true}, means
+   * the {@code message} should be shown with the specified {@code severity}.
    */
-  public void registerTest(@NotNull ObservableValue<Boolean> value,
-                           @NotNull Validator.Severity severity,
-                           @NotNull String message) {
+  public void registerTest(@NotNull ObservableValue<Boolean> value, @NotNull Validator.Severity severity, @NotNull String message) {
     registerValidator(value, new TrueValidator(severity, message));
   }
 
@@ -102,8 +97,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * Calls {@link #registerTest(ObservableValue, Validator.Severity, String)} with an error
    * severity.
    */
-  public void registerTest(@NotNull ObservableValue<Boolean> value,
-                           @NotNull String message) {
+  public void registerTest(@NotNull ObservableValue<Boolean> value, @NotNull String message) {
     registerTest(value, Validator.Severity.ERROR, message);
   }
 
@@ -131,8 +125,8 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   /**
    * Returns a property which indicates if any of the components in this panel are invalid.
    *
-   * This is a useful property for UIs to listen to, as they can bind various components (such as a
-   * next button) as appropriate, disabling functionality until all errors are resolved.
+   * This is a useful property for UIs to listen to, as they can bind various components (such as
+   * a next button) as appropriate, disabling functionality until all errors are resolved.
    */
   @NotNull
   public ObservableBool hasErrors() {
@@ -140,24 +134,25 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   private void updateValidationLabel() {
-    myValidationLabel.setIcon(null);
-    myValidationLabel.setText(BLANK);
-
-    boolean hasErrors = false;
-    // The loop assumes that less serious issues are visited first (ie more serious problems are displayed first)
-    for (Validator.Severity severity : Validator.Severity.values()) {
-      Iterator<String> messages = myMessages.row(severity).values().iterator();
-      if (messages.hasNext()) {
-        myValidationLabel.setText(messages.next());
-        myValidationLabel.setIcon(severity.getIcon());
-
-        if (severity == Validator.Severity.ERROR) {
-          hasErrors = true;
+    Validator.Result mostSevereResult = Validator.Result.OK;
+    for (Validator.Result result : myResults) {
+      if (result.getSeverity().compareTo(mostSevereResult.getSeverity()) > 0) {
+        mostSevereResult = result;
+        if (mostSevereResult.getSeverity() == Validator.Severity.ERROR) {
           break;
         }
       }
     }
-    myHasErrors.set(hasErrors);
+    if (mostSevereResult.getSeverity() == Validator.Severity.OK) {
+      myValidationLabel.setIcon(null);
+      myValidationLabel.setText(BLANK);
+    }
+    else {
+      myValidationLabel.setIcon(mostSevereResult.getSeverity().getIcon());
+      myValidationLabel.setText(mostSevereResult.getMessage());
+    }
+
+    myHasErrors.set(mostSevereResult.getSeverity() == Validator.Severity.ERROR);
   }
 
   @Override

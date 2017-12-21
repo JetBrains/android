@@ -16,34 +16,26 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.LabelWithEditButton;
-import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureJavaLibraryStepFixture<T extends ContainerFixture<JDialog>> extends AbstractWizardStepFixture<ConfigureJavaLibraryStepFixture> {
-  @NotNull private T myWizard;
+public class ConfigureJavaLibraryStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureJavaLibraryStepFixture, W> {
 
-  public ConfigureJavaLibraryStepFixture(@NotNull T wizard) {
-    super(ConfigureJavaLibraryStepFixture.class, wizard.robot(), wizard.target().getRootPane());
-    myWizard = wizard;
+  public ConfigureJavaLibraryStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureJavaLibraryStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public T getWizard() {
-    return myWizard;
-  }
-
-  @NotNull
-  public ConfigureJavaLibraryStepFixture<T> enterLibraryName(@NotNull String name) {
+  public ConfigureJavaLibraryStepFixture<W> enterLibraryName(@NotNull String name) {
     JTextField textField = robot().finder().findByLabel(target(), "Library name:", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<T> enterPackageName(@NotNull String name) {
+  public ConfigureJavaLibraryStepFixture<W> enterPackageName(@NotNull String name) {
     LabelWithEditButton editLabelContainer = robot().finder().findByType(target(), LabelWithEditButton.class);
     JButtonFixture editButton = new JButtonFixture(robot(), robot().finder().findByType(editLabelContainer, JButton.class));
     editButton.click();
@@ -55,14 +47,14 @@ public class ConfigureJavaLibraryStepFixture<T extends ContainerFixture<JDialog>
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<T> enterClassName(@NotNull String name) {
+  public ConfigureJavaLibraryStepFixture<W> enterClassName(@NotNull String name) {
     JTextField textField = robot().finder().findByLabel(target(), "Java class name:", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<T> setCreateGitIgnore(boolean select) {
+  public ConfigureJavaLibraryStepFixture<W> setCreateGitIgnore(boolean select) {
     selectCheckBoxWithText("Create .gitignore file", select);
     return this;
   }

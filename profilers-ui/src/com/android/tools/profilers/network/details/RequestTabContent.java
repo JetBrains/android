@@ -135,7 +135,7 @@ final class RequestTabContent extends TabContent {
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
-    // TODO(b/69739486): Add missing tracking for "Request" tab
+    featureTracker.trackSelectNetworkDetailsRequest();
   }
 
   @Nullable

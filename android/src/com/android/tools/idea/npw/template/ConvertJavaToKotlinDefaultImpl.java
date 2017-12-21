@@ -38,7 +38,11 @@ public class ConvertJavaToKotlinDefaultImpl implements ConvertJavaToKotlinProvid
   @NonNull
   @Override
   public String getKotlinVersion() {
-    return "1.1.51";
+    IdeaPluginDescriptor kotlinPlugin = PluginManager.getPlugin(PluginId.findId(("org.jetbrains.kotlin")));
+    if (kotlinPlugin == null) {
+      throw new IllegalStateException("Kotlin plugin not found");
+    }
+    return kotlinPlugin.getVersion().split("-")[0];
   }
 
   @Override

@@ -21,13 +21,13 @@ import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -123,7 +123,7 @@ public class DataModel {
       return;
     }
     myFavoriteItems.add(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, myFavoriteItems.toArray(new String[myFavoriteItems.size()]));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
     update();
   }
 
@@ -132,7 +132,7 @@ public class DataModel {
       return;
     }
     myFavoriteItems.remove(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, myFavoriteItems.toArray(new String[myFavoriteItems.size()]));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
     update();
     if (myCurrentSelectedGroup == COMMON) {
       createUnFilteredItems(COMMON);
@@ -149,7 +149,7 @@ public class DataModel {
   private static List<String> readFavoriteItems() {
     String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW};
+      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW, VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
     }
     return Lists.newArrayList(favorites);
   }

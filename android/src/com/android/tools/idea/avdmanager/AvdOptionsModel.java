@@ -27,7 +27,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -782,8 +781,8 @@ public final class AvdOptionsModel extends WizardModel {
 
     File skinFile = (myAvdDeviceData.customSkinFile().get().isPresent())
                     ? myAvdDeviceData.customSkinFile().getValue()
-                    : AvdWizardUtils.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage,
-                                                     FileOpUtils.create());
+                    : AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile(), systemImage,
+                                                        FileOpUtils.create());
 
     if (myBackupSkinFile.get().isPresent()) {
       hardwareProperties.put(AvdManager.AVD_INI_BACKUP_SKIN_PATH, myBackupSkinFile.getValue().getPath());

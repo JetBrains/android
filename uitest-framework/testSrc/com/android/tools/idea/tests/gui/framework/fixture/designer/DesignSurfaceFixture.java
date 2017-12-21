@@ -45,7 +45,11 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   }
 
   public void waitForRenderToFinish() {
-    Wait.seconds(10).expecting("render to finish").until(() -> !myProgressPanel.isVisible());
+    waitForRenderToFinish(Wait.seconds(10));
+  }
+
+  public void waitForRenderToFinish(@NotNull Wait wait) {
+    wait.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
   }
 
   public boolean hasRenderErrors() {

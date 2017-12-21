@@ -73,7 +73,6 @@ abstract public class SceneManager implements Disposable {
     mySceneView = doCreateSceneView();
 
     myDesignSurface.addLayers(getLayers());
-    myDesignSurface.notifySceneChanged(myScene);
   }
 
   /**
@@ -185,6 +184,10 @@ abstract public class SceneManager implements Disposable {
       }
     }
     for (SceneComponent child : oldChildren) {
+      if (child instanceof TemporarySceneComponent && child.getParent() == sceneComponent) {
+        // ignore TemporarySceneComponent since its associated NlComponent has not added to the hierarchy.
+        continue;
+      }
       if (child.getParent() == sceneComponent) {
         child.removeFromParent();
       }

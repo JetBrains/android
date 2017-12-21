@@ -48,11 +48,13 @@ public class StudioIcons {
   public static class Common {
     public static final Icon ADD = load("/studio/icons/common/add.png"); // 16x16
     public static final Icon BACK_ARROW = load("/studio/icons/common/back-arrow.png"); // 16x16
+    public static final Icon CHECKED = load("/studio/icons/common/checked.png"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.png"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.png"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.png"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.png"); // 16x16
     public static final Icon ERROR = load("/studio/icons/common/error.png"); // 16x16
+    public static final Icon EXPORT = load("/studio/icons/common/export.png"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.png"); // 16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.png"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.png"); // 16x16
@@ -152,6 +154,7 @@ public class StudioIcons {
       public static final Icon GRID_VIEW_LARGE = load("/studio/icons/layout-editor/palette/grid-view_large.png"); // 24x24
       public static final Icon GROUP = load("/studio/icons/layout-editor/palette/group.png"); // 16x16
       public static final Icon GROUP_LARGE = load("/studio/icons/layout-editor/palette/group_large.png"); // 24x24
+      public static final Icon HORIZONTAL_GUIDE = load("/studio/icons/layout-editor/palette/horizontal-guide.png"); // 16x16
       public static final Icon HORIZONTAL_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/horizontal-scroll-view.png"); // 16x16
       public static final Icon HORIZONTAL_SCROLL_VIEW_LARGE = load("/studio/icons/layout-editor/palette/horizontal-scroll-view_large.png"); // 24x24
       public static final Icon IMAGE_BUTTON = load("/studio/icons/layout-editor/palette/image-button.png"); // 16x16
@@ -272,6 +275,7 @@ public class StudioIcons {
       public static final Icon TOOLBAR_LARGE = load("/studio/icons/layout-editor/palette/toolbar_large.png"); // 24x24
       public static final Icon UNKNOWN_VIEW = load("/studio/icons/layout-editor/palette/unknown-view.png"); // 16x16
       public static final Icon UNKNOWN_VIEW_LARGE = load("/studio/icons/layout-editor/palette/unknown-view_large.png"); // 24x24
+      public static final Icon VERTICAL_GUIDE = load("/studio/icons/layout-editor/palette/vertical-guide.png"); // 16x16
       public static final Icon VIDEO_VIEW = load("/studio/icons/layout-editor/palette/video-view.png"); // 16x16
       public static final Icon VIDEO_VIEW_LARGE = load("/studio/icons/layout-editor/palette/video-view_large.png"); // 24x24
       public static final Icon VIEW_ANIMATOR = load("/studio/icons/layout-editor/palette/view-animator.png"); // 16x16
@@ -334,6 +338,7 @@ public class StudioIcons {
       public static final Icon CENTER_VERTICAL_PARENT_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/center-vertical-parent-constraint.png"); // 16x16
       public static final Icon CENTER_VERTICAL_PARENT = load("/studio/icons/layout-editor/toolbar/center-vertical-parent.png"); // 16x16
       public static final Icon CENTER_VERTICAL = load("/studio/icons/layout-editor/toolbar/center-vertical.png"); // 16x16
+      public static final Icon CLEAR_CONSTRAINTS_WHITE = load("/studio/icons/layout-editor/toolbar/clear-constraints-white.png"); // 16x16
       public static final Icon CLEAR_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/clear-constraints.png"); // 16x16
       public static final Icon CLEAR_WEIGHT = load("/studio/icons/layout-editor/toolbar/clear-weight.png"); // 16x16
       public static final Icon CREATE_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/create-horiz-chain.png"); // 16x16
@@ -418,8 +423,15 @@ public class StudioIcons {
   }
 
   public static class NavEditor {
+    public static class ExistingDestinations {
+      public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
+      public static final Icon DESTINATION = load("/studio/icons/nav-editor/existing-destinations/destination.png"); // 146x188
+      public static final Icon NESTED = load("/studio/icons/nav-editor/existing-destinations/nested.png"); // 146x188
+    }
+
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
+      public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.png"); // 16x16
     }
 
     public static class Surface {
@@ -490,7 +502,13 @@ public class StudioIcons {
       public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 24x24
     }
 
+    public static class Sidebar {
+      public static final Icon FILE = load("/studio/icons/profiler/sidebar/file.png"); // 44x44
+      public static final Icon ISSUE = load("/studio/icons/profiler/sidebar/issue.png"); // 44x44
+    }
+
     public static class Toolbar {
+      public static final Icon CLOCK = load("/studio/icons/profiler/toolbar/clock.png"); // 16x16
       public static final Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.png"); // 16x16
       public static final Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.png"); // 16x16
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.png"); // 16x16
@@ -538,9 +556,11 @@ public class StudioIcons {
       public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/tool-windows/android-preview.png"); // 13x13
       public static final Icon ANDROID_PROFILER = load("/studio/icons/shell/tool-windows/android-profiler.png"); // 13x13
       public static final Icon ASSISTANT = load("/studio/icons/shell/tool-windows/assistant.png"); // 13x13
+      public static final Icon ATTRIBUTES = load("/studio/icons/shell/tool-windows/attributes.png"); // 13x13
       public static final Icon BUILD_VARIANTS = load("/studio/icons/shell/tool-windows/build-variants.png"); // 13x13
       public static final Icon BUILD = load("/studio/icons/shell/tool-windows/build.png"); // 13x13
       public static final Icon CAPTURES = load("/studio/icons/shell/tool-windows/captures.png"); // 13x13
+      public static final Icon COMPONENT_TREE = load("/studio/icons/shell/tool-windows/component-tree.png"); // 13x13
       public static final Icon DEBUG = load("/studio/icons/shell/tool-windows/debug.png"); // 13x13
       public static final Icon DEVICE_EXPLORER = load("/studio/icons/shell/tool-windows/device-explorer.png"); // 13x13
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.png"); // 13x13
@@ -549,11 +569,14 @@ public class StudioIcons {
       public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.png"); // 16x16
       public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.png"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.png"); // 13x13
+      public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.png"); // 13x13
       public static final Icon PROJECT = load("/studio/icons/shell/tool-windows/project.png"); // 13x13
       public static final Icon RUN = load("/studio/icons/shell/tool-windows/run.png"); // 13x13
+      public static final Icon SEARCH = load("/studio/icons/shell/tool-windows/search.png"); // 13x13
       public static final Icon STRUCTURE = load("/studio/icons/shell/tool-windows/structure.png"); // 13x13
       public static final Icon TERMINAL = load("/studio/icons/shell/tool-windows/terminal.png"); // 13x13
       public static final Icon TODO = load("/studio/icons/shell/tool-windows/todo.png"); // 13x13
+      public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/shell/tool-windows/toggle-properties.png"); // 13x13
       public static final Icon TOOL_WINDOW = load("/studio/icons/shell/tool-windows/tool-window.png"); // 13x13
       public static final Icon VERSION_CONTROL = load("/studio/icons/shell/tool-windows/version-control.png"); // 13x13
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.png"); // 16x16

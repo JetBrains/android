@@ -20,7 +20,7 @@ import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
@@ -138,7 +138,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
-    AndroidProjectStub androidProject = TestProjects.createBasicProject();
+    TestAndroidProject androidProject = TestProjects.createBasicProject();
     myFacet.setAndroidModel(
       new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;

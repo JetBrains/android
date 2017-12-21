@@ -25,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomCreateTriggerStatementImpl extends RoomStatementImpl implements RoomCreateTriggerStatement {
+public class RoomCreateTriggerStatementImpl extends ASTWrapperPsiElement implements RoomCreateTriggerStatement {
 
   public RoomCreateTriggerStatementImpl(ASTNode node) {
     super(node);
@@ -62,14 +63,44 @@ public class RoomCreateTriggerStatementImpl extends RoomStatementImpl implements
 
   @Override
   @Nullable
+  public RoomDeleteStatement getDeleteStatement() {
+    return findChildByClass(RoomDeleteStatement.class);
+  }
+
+  @Override
+  @Nullable
   public RoomExpression getExpression() {
     return findChildByClass(RoomExpression.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomInsertStatement getInsertStatement() {
+    return findChildByClass(RoomInsertStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
   }
 
   @Override
   @NotNull
   public RoomTriggerName getTriggerName() {
     return findNotNullChildByClass(RoomTriggerName.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomUpdateStatement getUpdateStatement() {
+    return findChildByClass(RoomUpdateStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomWithClause getWithClause() {
+    return findChildByClass(RoomWithClause.class);
   }
 
 }

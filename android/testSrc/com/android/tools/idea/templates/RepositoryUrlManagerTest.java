@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -30,6 +31,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.mockito.Mockito;
@@ -37,6 +39,7 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -51,11 +54,45 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   private AndroidSdkHandler mySdkHandler;
   private AndroidSdkData mySdk;
 
+  private static final String MASTER_INDEX =
+    "<?xml version='1.0' encoding='UTF-8'?>\n" +
+    "<metadata>\n" +
+    "  <com.android.support.constraint/>\n" +
+    "  <com.android.support/>\n" +
+    "  <com.google.android.gms/>\n" +
+    "</metadata>";
+
+  private static final String SUPPORT_GROUP =
+   "<?xml version='1.0' encoding='UTF-8'?>\n"+
+    "<com.android.support>\n"+
+    "  <support-v4 versions=\"26.0.2,26.0.2\"/>\n"+
+    "</com.android.support>\n";
+
+  private static final String CONTRAINT_GROUP =
+    "<?xml version='1.0' encoding='UTF-8'?>\n" +
+    "<com.android.support.constraint>\n" +
+    "  <constraint-layout-solver versions=\"1.0.2,1.1.0-beta1\"/>\n" +
+    "  <constraint-layout versions=\"1.0.2,1.1.0-beta1\"/>\n" +
+    "</com.android.support.constraint>";
+
+  private static final String PLAY_SERVICES_GROUP =
+    "<?xml version='1.0' encoding='UTF-8'?>\n" +
+    "<com.google.android.gms>\n" +
+    "  <play-services versions=\"11.1.0,11.2.0-beta1\"/>\n" +
+    "  <play-services-ads versions=\"11.1.0,11.2.0-beta1\"/>\n" +
+    "</com.google.android.gms>\n";
+
+  private static final Map<String, String> OFFLINE_CACHE =
+    ImmutableMap.of("master-index.xml", MASTER_INDEX,
+                    "com/google/android/gms/group-index.xml", PLAY_SERVICES_GROUP,
+                    "com/android/support/group-index.xml", SUPPORT_GROUP,
+                    "com/android/support/constraint/group-index.xml", CONTRAINT_GROUP);
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFileOp = new MockFileOp();
-    myRepositoryUrlManager = new RepositoryUrlManager(true /* force repository checks */);
+    myRepositoryUrlManager = new RepositoryUrlManager(new StubGoogleMavenRepository(OFFLINE_CACHE), true /* force repository checks */);
     mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp);
     mySdk = Mockito.mock(AndroidSdkData.class);
     Mockito.when(mySdk.getLocation()).thenReturn(SDK_DIR);
@@ -170,8 +207,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
    */
   public void testgetLibraryRevision_playServices_preview() throws Exception {
     // Check without metadata file.
-    assertEquals("11.2.0", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES, false));
-    assertEquals("11.2.0", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES, true));
+    assertEquals("11.1.0", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES_ADS, false));
+    assertEquals("11.2.0-beta1", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES_ADS, true));
   }
 
   public void testGetArchiveForCoordinate() throws Exception {

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.util.xml.XmlName
@@ -48,19 +47,19 @@ class NavDestinationArgumentsProperty(components: List<NlComponent>, propertiesM
 }
 
 private class NewNavElementProperty(parent: NlComponent, attrDefs: AttributeDefinitions, propertiesManager: NavPropertiesManager)
-  : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, AUTO_URI, attrDefs, propertiesManager), NavArgumentProperty {
+  : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, ANDROID_URI, attrDefs, propertiesManager), NavArgumentProperty {
 
   override val defaultValueProperty =
-      NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, AUTO_URI, attrDefs, propertiesManager)
+      NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs, propertiesManager)
 }
 
 private class NavDestinationArgumentPropertyImpl(components: List<NlComponent>,
                                                  attrDefs: AttributeDefinitions,
                                                  private val navArgumentsProperty: NavDestinationArgumentsProperty) :
-    NlPropertyItem(XmlName(ATTR_NAME, AUTO_URI), attrDefs.getAttrDefByName(ATTR_NAME), components, navArgumentsProperty.propertiesManager),
+    NlPropertyItem(XmlName(ATTR_NAME, ANDROID_URI), attrDefs.getAttrDefByName(ATTR_NAME), components, navArgumentsProperty.propertiesManager),
     NavArgumentProperty {
 
-  override val defaultValueProperty: NlPropertyItem = object : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, AUTO_URI),
+  override val defaultValueProperty: NlPropertyItem = object : NlPropertyItem(XmlName(ATTR_DEFAULT_VALUE, ANDROID_URI),
       attrDefs.getAttrDefByName(ATTR_DEFAULT_VALUE), components, navArgumentsProperty.propertiesManager) {
     override fun setValue(value: Any?) {
       super.setValue(value)

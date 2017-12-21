@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
@@ -30,13 +29,11 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -50,7 +47,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -62,7 +58,6 @@ import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
@@ -107,6 +102,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
 
+  /**
+   * Flag to indicate if the surface should resize its content when
+   * it's being resized.
+   */
+  private boolean mySkipResizeContent;
+
+  /**
+   * Flag to indicate that the surface should not resize its content
+   * on the next resize event.
+   */
+  private boolean mySkipResizeContentOnce;
+
   private final ConfigurationListener myConfigurationListener = flags -> {
     if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
       zoom(ZoomType.FIT_INTO);
@@ -114,6 +121,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     return true;
   };
+  private ZoomType myCurrentZoomType;
 
   public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -155,13 +163,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        if (isShowing() && getWidth() > 0 && getHeight() > 0 && getFitScale(false) > myScale) {
-          // Only rescale if the user did not set the zoom
-          // to something else than fit
+        if (isShowing() && getWidth() > 0 && getHeight() > 0
+            && (!contentResizeSkipped() || getFitScale(false) > myScale)) {
+          // We skip the resize only if the flag is set to true
+          // and the content size will be increased.
+          // Like this, when the issue panel is opened, the content size stays the
+          // same but if the user clicked "zoom to fit" while the issue panel was open,
+          // we zoom to fit when the panel is closed so the content retake the optimal
+          // space.
           zoomToFit();
         }
         else {
           layoutContent();
+          updateScrolledAreaSize();
         }
       }
 
@@ -178,7 +192,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     });
 
-    myInteractionManager.registerListeners();
+    myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = createActionManager();
     myActionManager.registerActionsShortcuts(myLayeredPane);
@@ -261,13 +275,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     mySceneManager = createSceneManager(model);
     mySceneManager.addRenderListener(myRenderListener);
 
-    if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
-      myInteractionManager.unregisterListeners();
+    if (getLayoutType().isSupportedByDesigner()) {
+      myInteractionManager.startListening();
     }
-    else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
-      myInteractionManager.registerListeners();
+    else {
+      myInteractionManager.stopListening();
     }
 
+    layoutContent();
     repaint();
 
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
@@ -278,7 +293,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
-    myInteractionManager.unregisterListeners();
+    myInteractionManager.stopListening();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
       myModel.removeListener(myModelListener);
@@ -376,7 +391,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
-        if (!sceneLayer.isShowOnHover()) {
+        if (sceneLayer.isShowOnHover()) {
           sceneLayer.setShowOnHover(false);
           repaint();
         }
@@ -433,6 +448,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
     }
+    myCurrentZoomType = type;
     switch (type) {
       case IN: {
         double currentScale = myScale;
@@ -487,10 +503,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   */
+  protected double getFitScale(boolean fitInto) {
+    int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
+    int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
+    return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
+  }
+
+  /**
+   * @param size dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  protected double getFitScale(boolean fitInto) {
+  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
@@ -498,9 +523,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     availableWidth -= padding.width;
     availableHeight -= padding.height;
 
-    Dimension preferredSize = getPreferredContentSize(availableWidth, availableHeight);
-    double scaleX = preferredSize.width == 0 ? 1 : (double)availableWidth / preferredSize.width;
-    double scaleY = preferredSize.height == 0 ? 1 : (double)availableHeight / preferredSize.height;
+    double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
+    double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
     double scale = Math.min(scaleX, scaleY);
     if (fitInto) {
       double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
@@ -553,6 +577,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.getViewport().setViewPosition(p);
   }
 
+  @SwingCoordinate
   public Point getScrollPosition() {
     return myScrollPane.getViewport().getViewPosition();
   }
@@ -582,7 +607,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    */
-  private void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
+  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  public void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
 
     if (scale < 0) {
       // We wait for component resized to be fired
@@ -661,14 +687,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
       listener.componentSelectionChanged(this, newSelection);
-    }
-  }
-
-  public void notifySceneChanged(@NotNull Scene scene) {
-    layoutContent();
-    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-    for (DesignSurfaceListener listener : listeners) {
-      listener.sceneChanged(this, scene);
     }
   }
 
@@ -785,6 +803,39 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   public SceneManager getSceneManager() {
     return mySceneManager;
+  }
+
+  /**
+   * Set to true if the content should automatically
+   * resize when its surface is resized.
+   * <p>
+   * If once is set to true, the skip flag will be reset to false after the first
+   * skip. The once flag is ignored if skipLayout is false.
+   */
+  public void setSkipResizeContent(boolean skipLayout) {
+    mySkipResizeContent = skipLayout;
+  }
+
+  public void skipContentResizeOnce() {
+    mySkipResizeContentOnce = true;
+  }
+
+  /**
+   * Return true if the content resize should be skipped
+   */
+  public boolean isSkipContentResize() {
+    return mySkipResizeContent || mySkipResizeContentOnce
+           || myCurrentZoomType != ZoomType.FIT;
+  }
+
+  /**
+   * Return true if the content resize step should skipped and reset mySkipResizeContentOnce to
+   * false
+   */
+  protected boolean contentResizeSkipped() {
+    boolean skip = isSkipContentResize();
+    mySkipResizeContentOnce = false;
+    return skip;
   }
 
   private static class MyScrollPane extends JBScrollPane {
@@ -1108,14 +1159,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  @Override
-  public void forceUserRequestedRefresh() {
-    SceneManager sceneManager = getSceneManager();
-    if (sceneManager instanceof LayoutlibSceneManager) {
-      ((LayoutlibSceneManager)sceneManager).requestUserInitatedRender();
-    }
-  }
-
   /**
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
@@ -1149,7 +1192,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
       return new DesignSurfaceActionHandler(this);
     }
-    return null;
+    return myLayeredPane.getData(dataId);
   }
 
   /**

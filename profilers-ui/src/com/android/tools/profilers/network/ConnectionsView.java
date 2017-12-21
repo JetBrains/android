@@ -287,13 +287,6 @@ final class ConnectionsView {
     }
   }
 
-  private static class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
-    @Override
-    public void setBorder(Border border) {
-      super.setBorder(new EmptyBorder(ProfilerLayout.TABLE_COLUMN_CELL_INSETS));
-    }
-  }
-
   private static final class SizeRenderer extends BorderlessTableCellRenderer {
     @Override
     protected void setValue(Object value) {

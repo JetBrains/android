@@ -135,6 +135,7 @@ public class DataStoreService {
     registerService(new CpuService(this, myFetchExecutor));
     registerService(new MemoryService(this, myFetchExecutor));
     registerService(new NetworkService(this, myFetchExecutor));
+    registerService(new EnergyService(this, myFetchExecutor));
   }
 
   @VisibleForTesting

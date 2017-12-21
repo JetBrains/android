@@ -30,9 +30,7 @@ import org.fest.swing.fixture.AbstractComponentFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.swing.text.JTextComponent;
@@ -46,21 +44,32 @@ import static java.awt.event.KeyEvent.*;
  */
 @RunWith(GuiTestRunner.class)
 public class NlPropertyTableTest {
+  private IdeFrameFixture myFrame;
+  private Dimension myOriginalFrameSize;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Before
+  public void setUp() throws Exception {
+    myFrame = guiTest.importSimpleLocalApplication();
+    myOriginalFrameSize = myFrame.getIdeFrameSize();
+  }
+
+  @After
+  public void tearDown() {
+    myFrame.setIdeFrameSize(myOriginalFrameSize);
+  }
+
   @Test
   public void testScrollInViewDuringKeyboardNavigation() throws Exception {
-    NlEditorFixture layout = guiTest.importSimpleApplication()
-      .getEditor()
+    NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
       .waitForRenderToFinish();
 
     layout.findView("TextView", 0).click();
-    layout.getPropertiesPanel()
-      .openAsInspector()
-      .adjustIdeFrameHeightFor(4, "ID")
+    layout.getPropertiesPanel().openAsInspector()
+      .adjustIdeFrameHeightFor(myFrame, 4, "ID")
       .focusAndWaitForFocusGainInProperty("ID", null)
       .assertPropertyShowing("ID", null)
       .assertPropertyNotShowing("visibility", null)
@@ -124,9 +133,7 @@ public class NlPropertyTableTest {
     //  - Press arrow down to commit the changes and navigate to the next property: accessibilityLiveRegion
     // Verify that the text value is now "ab" and the selected row is indeed "accessibilityLiveRegion"
 
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    NlEditorFixture layout = frame
-      .getEditor()
+    NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
       .waitForRenderToFinish();
@@ -137,7 +144,7 @@ public class NlPropertyTableTest {
     table.waitForMinimumRowCount(10);
     table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
-    CompletionFixture completions = new CompletionFixture(frame);
+    CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
     type(textEditor, "b");
@@ -160,9 +167,7 @@ public class NlPropertyTableTest {
     //  - Press ENTER to accept the completion suggestion
     // Verify that the text value is now the chosen value and the focus is back on the table (we are not editing anymore).
 
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    NlEditorFixture layout = frame
-      .getEditor()
+    NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
       .waitForRenderToFinish();
@@ -173,7 +178,7 @@ public class NlPropertyTableTest {
       .selectRows(7)
       .type('s');
 
-    CompletionFixture completions = new CompletionFixture(frame);
+    CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
     type(textEditor, "tring/copy");
@@ -187,8 +192,7 @@ public class NlPropertyTableTest {
   @Test
   @Ignore // Need to sort the groups and items before this test can be reliable
   public void testKeyboardNavigationInSliceEditor() throws Exception {
-    NlEditorFixture layout = guiTest.importSimpleApplication()
-      .getEditor()
+    NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
       .waitForRenderToFinish();
@@ -217,9 +221,7 @@ public class NlPropertyTableTest {
 
   @Test
   public void testSimpleKeyboardNavigationInTable() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    NlEditorFixture layout = frame
-      .getEditor()
+    NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
       .waitForRenderToFinish();
@@ -242,8 +244,9 @@ public class NlPropertyTableTest {
     parentPanel.setFilter("");
 
     // Test another window size
-    final int newRowSize = 4;
-    table.adjustIdeFrameHeightToShowNumberOfRow(newRowSize);
+    int newRowSize = 4;
+    table.adjustIdeFrameHeightToShowNumberOfRows(myFrame, newRowSize);
+
     Wait.seconds(10).expecting("The table to resize").until(
       () -> Math.abs(table.target().getVisibleRect().getHeight() - table.target().getRowHeight() * newRowSize) < 0.001
     );

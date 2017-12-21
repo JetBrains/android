@@ -32,6 +32,8 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+
 /**
  * Generator of legacy Android launcher icons.
  *
@@ -208,7 +210,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     Rectangle targetRect = TARGET_RECTS.get(Pair.of(shape, density));
     if (targetRect == null) {
       // Scale up from MDPI if no density-specific target rectangle is defined.
-      targetRect = AssetUtil.scaleRectangle(TARGET_RECTS.get(Pair.of(shape, Density.MEDIUM)), getMdpiScaleFactor(density));
+      targetRect = scaleRectangle(TARGET_RECTS.get(Pair.of(shape, Density.MEDIUM)), getMdpiScaleFactor(density));
     }
     return targetRect;
   }
@@ -242,7 +244,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
     Rectangle imageRect = IMAGE_SIZE_WEB;
     if (!launcherOptions.generateWebIcon) {
-      imageRect = AssetUtil.scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
+      imageRect = scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
     }
 
     Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);

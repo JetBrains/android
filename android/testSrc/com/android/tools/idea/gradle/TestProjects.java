@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidArtifact;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
+import com.android.tools.idea.gradle.stubs.android.TestVariant;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,36 +33,36 @@ public final class TestProjects {
   }
 
   @NotNull
-  public static AndroidProjectStub createBasicProject() {
-    AndroidProjectStub androidProject = new AndroidProjectStub(BASIC_PROJECT_NAME);
+  public static TestAndroidProject createBasicProject() {
+    TestAndroidProject androidProject = new TestAndroidProject(BASIC_PROJECT_NAME);
     createBasicProject(androidProject);
     return androidProject;
   }
 
   @NotNull
-  public static AndroidProjectStub createBasicProject(@NotNull File parentDir) {
-    return createBasicProject(parentDir, BASIC_PROJECT_NAME);
+  public static TestAndroidProject createBasicProject(@NotNull File parentFolderPath) {
+    return createBasicProject(parentFolderPath, BASIC_PROJECT_NAME);
   }
 
   @NotNull
-  public static AndroidProjectStub createBasicProject(@NotNull File parentDir, @NotNull String name) {
-    AndroidProjectStub androidProject = new AndroidProjectStub(parentDir, name);
+  public static TestAndroidProject createBasicProject(@NotNull File parentFolderPath, @NotNull String name) {
+    TestAndroidProject androidProject = new TestAndroidProject(parentFolderPath, name);
     createBasicProject(androidProject);
     return androidProject;
   }
 
-  private static void createBasicProject(@NotNull AndroidProjectStub androidProject) {
+  private static void createBasicProject(@NotNull TestAndroidProject androidProject) {
     androidProject.addBuildType("debug");
-    VariantStub debugVariant = androidProject.addVariant("debug");
+    TestVariant debugVariant = androidProject.addVariant("debug");
 
-    AndroidArtifactStub mainArtifactInfo = debugVariant.getMainArtifact();
+    TestAndroidArtifact mainArtifactInfo = debugVariant.getMainArtifact();
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/debug");
     mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/debug");
 
-    AndroidArtifactStub testArtifactInfo = debugVariant.getInstrumentTestArtifact();
+    TestAndroidArtifact testArtifactInfo = debugVariant.getInstrumentTestArtifact();
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/test");
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/test");
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/test");
@@ -71,20 +71,20 @@ public final class TestProjects {
   }
 
   @NotNull
-  public static AndroidProjectStub createFlavorsProject() {
-    AndroidProjectStub project = new AndroidProjectStub("flavors");
+  public static TestAndroidProject createFlavorsProject() {
+    TestAndroidProject androidProject = new TestAndroidProject("flavors");
 
-    project.addBuildType("debug");
-    VariantStub f1faDebugVariant = project.addVariant("f1fa-debug", "debug");
+    androidProject.addBuildType("debug");
+    TestVariant f1faDebugVariant = androidProject.addVariant("f1fa-debug", "debug");
 
-    AndroidArtifactStub mainArtifactInfo = f1faDebugVariant.getMainArtifact();
+    TestAndroidArtifact mainArtifactInfo = f1faDebugVariant.getMainArtifact();
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/f1fa/debug");
     mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/f1fa/debug");
 
-    AndroidArtifactStub testArtifactInfo = f1faDebugVariant.getInstrumentTestArtifact();
+    TestAndroidArtifact testArtifactInfo = f1faDebugVariant.getInstrumentTestArtifact();
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/test");
@@ -93,9 +93,9 @@ public final class TestProjects {
 
     f1faDebugVariant.addProductFlavors("f1", "fa");
 
-    project.addProductFlavor("f1");
-    project.addProductFlavor("fa");
+    androidProject.addProductFlavor("f1", "dim1");
+    androidProject.addProductFlavor("fa", "dim2");
 
-    return project;
+    return androidProject;
   }
 }

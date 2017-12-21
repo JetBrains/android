@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.TestActionEvent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -106,12 +107,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    selectDropDownActionButtonItem("Device in Editor", new DeviceNamePredicate(label));
+    selectDropDownActionButtonItem("Device in Editor (D)", new DeviceNamePredicate(label));
     return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
-    selectDropDownActionButtonItem("Orientation in Editor", Predicate.isEqual(layoutVariant));
+    selectDropDownActionButtonItem("Orientation in Editor (O)", Predicate.isEqual(layoutVariant));
   }
 
   /**
@@ -155,7 +156,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   public ThemeSelectionDialogFixture openThemeSelectionDialog() {
     // We directly perform the action here because ActionButton of Theme may be collapsed and cannot be found by finder.
     AnAction themeMenuAction = myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
-    ApplicationManager.getApplication().invokeLater(() -> themeMenuAction.actionPerformed(null));
+    ApplicationManager.getApplication().invokeLater(() -> themeMenuAction.actionPerformed(new TestActionEvent()));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 
@@ -176,24 +177,24 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   }
 
   public void selectDesign() {
-    selectDropDownActionButtonItem("Select Design Surface", Predicate.isEqual("Design"));
+    selectDropDownActionButtonItem("Select Design Surface (B)", Predicate.isEqual("Design"));
   }
 
   public void selectBlueprint() {
-    selectDropDownActionButtonItem("Select Design Surface", Predicate.isEqual("Blueprint"));
+    selectDropDownActionButtonItem("Select Design Surface (B)", Predicate.isEqual("Blueprint"));
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsLandscape() {
     // If there is any Landscape variation, the text of Action Button will become "Landscape -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor", item -> item.startsWith("Landscape"));
+    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Landscape"));
     return this;
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsPortrait() {
     // If there is any Portrait variation, the text of Action Button will become "Portrait -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor", item -> item.startsWith("Portrait"));
+    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Portrait"));
     return this;
   }
 
@@ -222,6 +223,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
       }
       else if (item.contains("(")) {
         return deviceName.equals(item.substring(item.lastIndexOf('(') + 1, item.lastIndexOf(')')));
+      }
+      else if (item.equals("Custom")) {
+        return deviceName.equals(item);
       }
       return false;
     }

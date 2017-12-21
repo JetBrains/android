@@ -37,6 +37,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 /**
@@ -61,7 +62,7 @@ public class SceneComponent {
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
-  private ArrayList<SceneComponent> myChildren = new ArrayList<>();
+  private CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
   private SceneComponent myParent = null;
 
   private boolean myIsToolLocked = false;
@@ -223,11 +224,11 @@ public class SceneComponent {
     return myParent;
   }
 
-  public void setParent(@NotNull SceneComponent parent) {
+  private void setParent(@NotNull SceneComponent parent) {
     myParent = parent;
   }
 
-  public TargetProvider getTargetProvider() {
+  private TargetProvider getTargetProvider() {
     return myTargetProvider;
   }
 
@@ -241,28 +242,12 @@ public class SceneComponent {
   }
 
   /**
-   * Returns the index of the first instance of the given class in the list of targets
-   *
-   * @param aClass
-   * @return
-   */
-  public int findTarget(Class aClass) {
-    int count = myTargets.size();
-    for (int i = 0; i < count; i++) {
-      if (aClass.isInstance(myTargets.get(i))) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
    * Returns true if the given candidate is an ancestor of this component
    *
    * @param candidate
    * @return
    */
-  public boolean hasAncestor(SceneComponent candidate) {
+  boolean hasAncestor(SceneComponent candidate) {
     SceneComponent parent = getParent();
     while (parent != null) {
       if (parent == candidate) {
@@ -301,28 +286,6 @@ public class SceneComponent {
    */
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
-  }
-
-  /**
-   * @return the x offset of this component relative to its parent or the relative to the
-   * {@link Scene} if it has no parent.
-   */
-  public int getOffsetParentX() {
-    if (myParent != null) {
-      return getDrawX() - myParent.getDrawX();
-    }
-    return getDrawX();
-  }
-
-  /**
-   * @return the y offset of this component relative to its parent or the relative to the
-   * {@link Scene} if it has no parent.
-   */
-  public int getOffsetParentY() {
-    if (myParent != null) {
-      return getDrawY() - myParent.getDrawY();
-    }
-    return getDrawY();
   }
 
   /**
@@ -495,7 +458,7 @@ public class SceneComponent {
     return myScene;
   }
 
-  public ArrayList<SceneComponent> getChildren() {
+  public List<SceneComponent> getChildren() {
     return myChildren;
   }
 
@@ -702,7 +665,9 @@ public class SceneComponent {
   }
 
   private void remove(@NotNull SceneComponent component) {
-    myChildren.remove(component);
+    if (myChildren.remove(component)) {
+      component.myParent = null;
+    }
   }
 
   //endregion

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
-import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JTableFixture;
@@ -25,18 +25,19 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.Component;
+import java.awt.*;
 
 import static org.fest.swing.data.TableCellInRowByValue.rowWithValue;
 
-public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<ChooseSystemImageStepFixture> {
+public class ChooseSystemImageStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ChooseSystemImageStepFixture, W> {
 
-  protected ChooseSystemImageStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ChooseSystemImageStepFixture.class, robot, target);
+  protected ChooseSystemImageStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ChooseSystemImageStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ChooseSystemImageStepFixture selectSystemImage(@NotNull SystemImage image) {
+  public ChooseSystemImageStepFixture<W> selectSystemImage(@NotNull SystemImage image) {
     final TableView systemImageList = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture systemImageListFixture = new JTableFixture(robot(), systemImageList);
 
@@ -55,7 +56,7 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
   }
 
   @NotNull
-  public ChooseSystemImageStepFixture selectTab(@NotNull final String tabName) {
+  public ChooseSystemImageStepFixture<W> selectTab(@NotNull final String tabName) {
     Component tabLabel = robot().finder().find(target(), JLabelMatcher.withText(tabName));
     robot().click(tabLabel);
 

@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
+import gnu.trove.TLongObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   private final int myHeapId;
   @Nullable private AllocationStack myCallstack;
   @Nullable private final ThreadId myThreadId;
+  @Nullable private TLongObjectHashMap<JniReferenceInstanceObject> myJniRefs = null;
 
   public LiveAllocationInstanceObject(@NotNull LiveAllocationCaptureObject captureObject,
                                       @NotNull ClassDb.ClassEntry classEntry,
@@ -85,16 +87,16 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   @Override
   public boolean hasTimeData() {
-    return hasAllocData() || hasDeallocData();
+    return hasAllocTime() || hasDeallocTime();
   }
 
   @Override
-  public boolean hasAllocData() {
+  public boolean hasAllocTime() {
     return myAllocTime != Long.MIN_VALUE;
   }
 
   @Override
-  public boolean hasDeallocData() {
+  public boolean hasDeallocTime() {
     return myDeallocTime != Long.MAX_VALUE;
   }
 
@@ -117,7 +119,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   @Nullable
   @Override
-  public AllocationStack getCallStack() {
+  public AllocationStack getAllocationCallStack() {
     return myCallstack;
   }
 
@@ -129,7 +131,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
       AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();
       for (AllocationStack.SmallFrame frame : smallFrames.getFramesList()) {
         StackFrameInfoResponse frameInfo =
-          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId())
+          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder()
                                                           .setSession(myCaptureObject.getSession())
                                                           .setMethodId(frame.getMethodId()).build());
         CodeLocation.Builder builder = new CodeLocation.Builder(frameInfo.getClassName())
@@ -170,5 +172,18 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public String getValueText() {
     return myClassEntry.getSimpleClassName();
+  }
+
+  @Nullable
+  public JniReferenceInstanceObject getJniRefByValue(long refValue) {
+    if (myJniRefs == null) return null;
+    return myJniRefs.get(refValue);
+  }
+
+  public void addJniRef(@NotNull JniReferenceInstanceObject ref) {
+    if (myJniRefs == null) {
+      myJniRefs = new TLongObjectHashMap<>();
+    }
+    myJniRefs.put(ref.getRefValue(), ref);
   }
 }

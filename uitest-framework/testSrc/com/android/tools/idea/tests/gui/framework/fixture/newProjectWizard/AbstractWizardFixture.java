@@ -45,23 +45,22 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   }
 
   @NotNull
+  protected JRootPane findStepWithTitle(@NotNull final String title,
+                                        long secondsToWait) {
+    JRootPane rootPane = target().getRootPane();
+    waitUntilShowing(robot(), rootPane, JLabelMatcher.withText(title), secondsToWait);
+    return rootPane;
+  }
+
+  @NotNull
   public S clickNext() {
     findAndClickButtonWhenEnabled(this, "Next");
     return myself();
   }
 
-  @NotNull
-  public S clickFinish() {
-    findAndClickButtonWhenEnabled(this, "Finish");
-    Wait.seconds(10).expecting("dialog to disappear").until(() -> !target().isShowing());
-    return myself();
-  }
-
-  @NotNull
-  public S clickFinish(@NotNull Wait waitForDialogDisappear) {
+  protected void clickFinish(@NotNull Wait waitForDialogDisappear) {
     findAndClickButtonWhenEnabled(this, "Finish");
     waitForDialogDisappear.expecting("dialog to disappear").until(() -> !target().isShowing());
-    return myself();
   }
 
   @NotNull

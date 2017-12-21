@@ -51,7 +51,7 @@ public class NewImageAssetTest {
       .clickPath("app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
-    NewImageAssetStepFixture step = wizard.getImageAssetStep();
+    NewImageAssetStepFixture<AssetStudioWizardFixture> step = wizard.getImageAssetStep();
     step.selectIconType("Launcher Icons (Adaptive and Legacy)");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
     assertThat(step.getPreviewPanelIconNames(0)).containsExactly(
@@ -62,21 +62,22 @@ public class NewImageAssetTest {
 
   @Test
   public void testNotificationImageCount() throws Exception {
-    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
+    NewImageAssetStepFixture<AssetStudioWizardFixture> step = guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset")
+      .getImageAssetStep();
 
-    NewImageAssetStepFixture step = wizard.getImageAssetStep();
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
     step.selectIconType("Notification Icons");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
     assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
-    wizard.clickNext();
-    wizard.clickFinish();
+    step.wizard()
+      .clickNext()
+      .clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
 
@@ -100,6 +101,9 @@ public class NewImageAssetTest {
       .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .moveBetween("minSdkVersion ", "4")
+      .getIdeFrame()
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
     Path projectDir = guiTest.getProjectPath().toPath();

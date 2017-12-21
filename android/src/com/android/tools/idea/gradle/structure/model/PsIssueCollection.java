@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByType
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,11 +45,10 @@ public class PsIssueCollection {
 
   public void add(@NotNull PsIssue issue) {
     PsPath path = issue.getPath();
-    PsPath extraPath = issue.getExtraPath();
     synchronized (myLock) {
-      myIssues.put(path, issue);
-      if (extraPath != null) {
-        myIssues.put(extraPath, issue);
+      while (path != null) {
+        myIssues.put(path, issue);
+        path = path.getParent();
       }
     }
   }

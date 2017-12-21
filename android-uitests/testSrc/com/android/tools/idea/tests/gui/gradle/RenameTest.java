@@ -33,7 +33,6 @@ import com.intellij.refactoring.rename.RenameHandler;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +45,6 @@ public class RenameTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("b/70305505")
   @Test
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();

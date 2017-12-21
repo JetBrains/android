@@ -29,15 +29,18 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import icons.StudioIcons;
@@ -62,10 +65,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 class CpuCaptureView {
   // Note the order of the values in the map defines the order of the tabs in UI.
@@ -93,7 +95,7 @@ class CpuCaptureView {
   private final JTabbedPane myTabsPanel;
 
   @NotNull
-  private final JPanel mySearchPanel;
+  private SearchComponent mySearchComponent;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
   // Previously, we were creating a CaptureDetailsView temporarily and grabbing its UI
@@ -128,27 +130,17 @@ class CpuCaptureView {
     myTabsPanel.setOpaque(false);
 
     myPanel = new JPanel(new TabularLayout("*,Fit,Fit", "Fit,*"));
-    mySearchPanel = new JPanel(new BorderLayout());
-    mySearchPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
-    mySearchPanel.setVisible(false);
+    mySearchComponent = myView.getIdeComponents()
+      .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
 
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
       FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
       myPanel.add(filterButton, new TabularLayout.Constraint(0, 2));
 
-      SearchComponent searchComponent = myView.getIdeComponents()
-        .createProfilerSearchTextArea(getClass().getName(), ProfilerLayout.FILTER_TEXT_FIELD_WIDTH,
-                                      ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-      searchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
-
-      mySearchPanel.add(searchComponent.getComponent(), BorderLayout.CENTER);
-
-      filterButton.addActionListener(event -> {
-        mySearchPanel.setVisible(filterButton.isSelected());
-        if (!filterButton.isSelected()) {
-          searchComponent.setText("");
-        }
-      });
+      mySearchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
+      mySearchComponent.getComponent().setVisible(false);
+      mySearchComponent.getComponent().setBorder(DEFAULT_BOTTOM_BORDER);
+      SearchComponent.configureKeybindingAndFocusBehaviors(myPanel, mySearchComponent, filterButton);
     }
 
     myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
@@ -169,8 +161,10 @@ class CpuCaptureView {
       assert tab instanceof JPanel;
       ((JPanel)tab).removeAll();
     }
-    if (mySearchPanel.getParent() != null) {
-      mySearchPanel.getParent().remove(mySearchPanel);
+    JComponent searchComponent = mySearchComponent.getComponent();
+    boolean searchHasFocus = searchComponent.isAncestorOf(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
+    if (searchComponent.getParent() != null) {
+      searchComponent.getParent().remove(searchComponent);
     }
 
     CaptureModel.Details details = myView.getStage().getCaptureDetails();
@@ -195,11 +189,16 @@ class CpuCaptureView {
     // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
     JPanel selectedTab = (JPanel)myTabsPanel.getSelectedComponent();
     myDetailsView = myBinder.build(myView, details);
-    selectedTab.add(mySearchPanel, BorderLayout.NORTH);
+    selectedTab.add(searchComponent, BorderLayout.NORTH);
     selectedTab.add(myDetailsView.getComponent(), BorderLayout.CENTER);
     // We're replacing the content by removing and adding a new component.
     // JComponent#removeAll doc says that we should revalidate if it is already visible.
     selectedTab.revalidate();
+
+    // the searchComponent gets re-added to the selected tab component after filtering changes, so reset the focus here.
+    if (searchHasFocus) {
+      mySearchComponent.requestFocusInWindow();
+    }
   }
 
   private void setCaptureDetailToTab(ChangeEvent event) {

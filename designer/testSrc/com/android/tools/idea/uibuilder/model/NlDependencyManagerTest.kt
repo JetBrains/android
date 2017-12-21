@@ -38,7 +38,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem()
+    projectSystem = TestProjectSystem(project)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
         projectSystem, testRootDisposable)
     dummyDependenciesManager = DummyDependenciesManager()

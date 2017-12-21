@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.xml.XmlBuilder;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +27,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+
 public class CustomViewHandler extends DelegatingViewHandler {
   private final Icon myIcon16;
   private final Icon myIcon24;
   private final String myTagName;
+  private final String myClassName;
   @Language("XML")
   private final String myXml;
   @Language("XML")
@@ -42,6 +46,7 @@ public class CustomViewHandler extends DelegatingViewHandler {
                            @Nullable Icon icon16,
                            @Nullable Icon icon24,
                            @NotNull String tagName,
+                           @NotNull String className,
                            @Nullable @Language("XML") String xml,
                            @Nullable @Language("XML") String previewXml,
                            @NotNull String libraryCoordinate,
@@ -51,6 +56,7 @@ public class CustomViewHandler extends DelegatingViewHandler {
     myIcon16 = icon16;
     myIcon24 = icon24;
     myTagName = tagName;
+    myClassName = className;
     myXml = xml;
     myPreviewXml = previewXml;
     myLibraryCoordinate = libraryCoordinate;
@@ -82,11 +88,23 @@ public class CustomViewHandler extends DelegatingViewHandler {
   @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    if (xmlType == XmlType.COMPONENT_CREATION) {
-      return tagName.equals(myTagName) && !StringUtil.isEmpty(myXml) ? myXml : super.getXml(tagName, xmlType);
+    if (xmlType != XmlType.COMPONENT_CREATION) {
+      return tagName.equals(myTagName) && !StringUtil.isEmpty(myPreviewXml) ? myPreviewXml : NO_PREVIEW;
+    }
+    else if (tagName.equals(myTagName) && !StringUtil.isEmpty(myXml)) {
+      return myXml;
+    }
+    else if (myClassName.equals(myTagName)) {
+      return super.getXml(tagName, xmlType);
     }
     else {
-      return tagName.equals(myTagName) && !StringUtil.isEmpty(myPreviewXml) ? myPreviewXml : NO_PREVIEW;
+      return new XmlBuilder()
+        .startTag(VIEW_TAG)
+        .attribute(ATTR_CLASS, myClassName)
+        .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+        .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+        .endTag(VIEW_TAG)
+        .toString();
     }
   }
 

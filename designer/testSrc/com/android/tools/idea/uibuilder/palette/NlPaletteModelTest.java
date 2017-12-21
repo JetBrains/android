@@ -67,7 +67,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
 
   public void testAddIllegalThirdPartyComponent() {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
-    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, null, LINEAR_LAYOUT, null, null,
+    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, null, LINEAR_LAYOUT, LINEAR_LAYOUT, null, null,
                                                  SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
     assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
@@ -82,7 +82,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     String tag = "com.example.FakeCustomView";
     boolean added = model
-      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24, tag,
+      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24, tag, tag,
                               getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
                               "family", ImmutableList.of("family", "size"), Collections.emptyList());
     Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);

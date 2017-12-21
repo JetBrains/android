@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.ide.common.internal.WaitableExecutor;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
@@ -51,6 +52,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.*;
 
 /**
  * Generator of Android launcher icons.
@@ -727,9 +730,15 @@ public class LauncherIconGenerator extends IconGenerator {
     return legacyImage;
   }
 
-  /** See {@link AssetUtil#getRectangleInsideScale(Rectangle, Rectangle)}. */
-  private static float getRectangleInsideScale(@NotNull Rectangle source, @NotNull Rectangle destination) {
-    return AssetUtil.getRectangleInsideScale(source, destination);
+  /**
+   * Returns the scaling factor to apply to the <code>source</code> rectangle so that its width or
+   * height is equal to the width or height of <code>destination</code> rectangle, while remaining
+   * contained within <code>destination</code>.
+   */
+  public static float getRectangleInsideScale(@NonNull Rectangle source, @NonNull Rectangle destination) {
+    float scaleWidth = (float) destination.width / (float) source.width;
+    float scaleHeight = (float) destination.height / (float) source.height;
+    return Math.min(scaleWidth, scaleHeight);
   }
 
   /** Scale an image given a scale factor. */
@@ -886,7 +895,7 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.generateWebIcon) {
       return IMAGE_SIZE_FULL_BLEED_WEB_PX;
     }
-    return AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(options.density));
+    return scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(options.density));
   }
 
   @NotNull
@@ -894,7 +903,7 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.generateWebIcon) {
       return IMAGE_SIZE_VIEW_PORT_WEB_PX;
     }
-    return AssetUtil.scaleRectangle(IMAGE_SIZE_VIEWPORT_DP, getMdpiScaleFactor(options.density));
+    return scaleRectangle(IMAGE_SIZE_VIEWPORT_DP, getMdpiScaleFactor(options.density));
   }
 
   @NotNull
@@ -902,7 +911,7 @@ public class LauncherIconGenerator extends IconGenerator {
     if (options.generateWebIcon) {
       return IMAGE_SIZE_VIEW_PORT_WEB_PX;
     }
-    return AssetUtil.scaleRectangle(IMAGE_SIZE_LEGACY_DP, getMdpiScaleFactor(options.density));
+    return scaleRectangle(IMAGE_SIZE_LEGACY_DP, getMdpiScaleFactor(options.density));
   }
 
   @NotNull
@@ -1015,7 +1024,7 @@ public class LauncherIconGenerator extends IconGenerator {
       // Scale the image.
       BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
       Graphics2D gIcon = (Graphics2D)iconImage.getGraphics();
-      Rectangle rect = scaleRectangleAroundCenter(imageRect, (float)scaleFactor);
+      Rectangle rect = scaleRectangleAroundCenter(imageRect, scaleFactor);
       AssetUtil.drawCenterInside(gIcon, sourceImage, rect);
       gIcon.dispose();
 
@@ -1069,27 +1078,6 @@ public class LauncherIconGenerator extends IconGenerator {
     CacheKey cacheKey = new CacheKey(sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
     ListenableFuture<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
     return Futures.getUnchecked(imageFuture);
-  }
-
-  /**
-   * Scales the given rectangle by the given scale factor preserving the location of its center.
-   *
-   * @param rect        The rectangle to scale
-   * @param scaleFactor The factor to scale by
-   * @return The scaled rectangle
-   */
-  private static Rectangle scaleRectangleAroundCenter(Rectangle rect, double scaleFactor) {
-    int width = roundToInt(rect.width * scaleFactor);
-    int height = roundToInt(rect.height * scaleFactor);
-    return new Rectangle(
-        roundToInt(rect.x * scaleFactor - (width - rect.width) / 2.),
-        roundToInt(rect.y * scaleFactor - (width - rect.width) / 2.),
-        width,
-        height);
-  }
-
-  private static int roundToInt(double f) {
-    return Math.round((float)f);
   }
 
   private static void drawGrid(@NotNull LauncherIconOptions launcherIconOptions, @NotNull BufferedImage image) {

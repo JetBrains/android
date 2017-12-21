@@ -26,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 
 /**
@@ -60,6 +62,24 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
 
   public void testCannotCreateAndroidTestConfigurationFromJUnitTestDirectory() throws Exception {
     loadSimpleApplication();
+    assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
+  public void testCannotCreateAndroidTestConfigurationFromJUnitTestClassWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    assertNull(createAndroidTestConfigurationFromFile(
+      getProject(), "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"));
+  }
+
+  public void testCanCreateAndroidTestConfigurationFromAndroidTestDirectoryWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+  }
+
+  public void testCannotCreateAndroidTestConfigurationFromJUnitTestDirectoryWithKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
   }
 

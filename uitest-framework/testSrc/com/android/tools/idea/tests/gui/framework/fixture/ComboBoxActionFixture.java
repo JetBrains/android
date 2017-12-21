@@ -87,8 +87,18 @@ public class ComboBoxActionFixture {
     comboBoxButtonFixture.click();
   }
 
+  @NotNull
+  private JBList getList() {
+    return GuiTests.waitUntilShowingAndEnabled(myRobot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBList list) {
+        return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
+      }
+    });
+  }
+
   private void selectItemByText(@NotNull final String text) {
-    JList list = GuiTests.waitUntilShowingAndEnabled(myRobot, null, Matchers.byType(JBList.class));
+    JList list = getList();
     Wait.seconds(1).expecting("the list to be populated")
       .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.google.common.base.Preconditions;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Disposer;
@@ -40,8 +41,10 @@ import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_
 public abstract class NavTestCase extends AndroidTestCase {
 
   protected static final String TAG_NAVIGATION = "navigation";
-  private static final String PREBUILT_AAR_PATH =
-    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
+  private static final String[] PREBUILT_AAR_PATHS = {
+    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar",
+    "../../prebuilts/tools/common/m2/repository/com/android/support/support-fragment/27.0.2/support-fragment-27.0.2.aar"
+  };
   private CodeStyleSettings mySettings;
   private boolean myUseCustomSettings;
 
@@ -55,19 +58,29 @@ public abstract class NavTestCase extends AndroidTestCase {
     //noinspection Convert2Lambda
     myRootDisposable = new Disposable() {
       @Override
-      public void dispose() {}
+      public void dispose() {
+      }
     };
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/java", "src");
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/res", "res");
-    File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
+    myFixture.copyFileToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/AndroidManifest.xml", "AndroidManifest.xml");
     File tempDir = FileUtil.createTempDirectory("NavigationTest", null);
-    ZipUtil.extract(aar, tempDir, null);
+    int i = 0;
+    File classesDir = FileUtil.createTempDirectory("NavigationTestClasses", null);
+    for (String prebuilt : PREBUILT_AAR_PATHS) {
+      File aar = new File(PathManager.getHomePath(), prebuilt);
+      ZipUtil.extract(aar, tempDir, null);
+      File classes = new File(classesDir, "classes" + i + ".jar");
+      Preconditions.checkState(new File(tempDir, "classes.jar").renameTo(classes));
+      PsiTestUtil.addLibrary(myFixture.getModule(), classes.getPath());
 
-    PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
-    myFixture.setTestDataPath(tempDir.getPath());
-    myFixture.copyDirectoryToProject("res", "res");
+      myFixture.setTestDataPath(tempDir.getPath());
+      myFixture.copyDirectoryToProject("res", "res");
 
-    myFixture.setTestDataPath(getTestDataPath());
+      myFixture.setTestDataPath(getTestDataPath());
+      i++;
+    }
+
 
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);

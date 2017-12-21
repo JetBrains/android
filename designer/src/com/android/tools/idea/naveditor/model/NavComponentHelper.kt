@@ -16,8 +16,7 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.SdkConstants.ATTR_GRAPH
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
@@ -33,6 +32,23 @@ import java.io.File
 /*
  * Extensions to NlComponent used by the navigation editor
  */
+
+/**
+ * This is an enumeration indicating the type of action represented by the specified NlComponent.
+ * GLOBAL: The parent of this action element is a navigation element.
+ * EXIT: The destination attribute of this action element refers to a destination that is not in the current root navigation
+ * SELF: The destination attribute of this action element refers to its own parent.
+ * REGULAR: The destination attribute of this action element refers to a destination that is in the current root navigation
+ * NONE: This tag is either not an action or is invalid.
+ */
+// TODO: Add support for global exit and global self actions
+enum class ActionType {
+  GLOBAL,
+  EXIT,
+  SELF,
+  REGULAR,
+  NONE
+}
 
 fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
   val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
@@ -90,6 +106,56 @@ val NlComponent.isStartDestination: Boolean
     return actualStart != null && actualStart == id
   }
 
+val NlComponent.isDestination: Boolean
+  get() = destinationType != null
+
+val NlComponent.isAction: Boolean
+  get() = tagName == NavigationSchema.TAG_ACTION
+
+val NlComponent.isNavigation: Boolean
+  get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
+
+val NlComponent.isRegularAction: Boolean
+  get() = actionType == ActionType.REGULAR
+
+val NlComponent.actionType: ActionType
+  get() {
+    if (!isAction) {
+      return ActionType.NONE
+    }
+
+    if (parent?.isNavigation == true) {
+      return ActionType.GLOBAL
+    }
+
+    if (parent?.id == actionDestinationId) {
+      return ActionType.SELF
+    }
+
+    val containingNavigation = parent?.parent ?: return ActionType.NONE
+
+    return if (containingNavigation.children
+        .map { it.id }
+        .contains(actionDestinationId)) ActionType.REGULAR
+    else ActionType.EXIT
+  }
+
+val NlComponent.actionDestinationId: String?
+  get() = NlComponent.stripId(getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION))
+
+val NlComponent.actionDestination: NlComponent?
+  get() {
+    assert(isAction)
+    var p: NlComponent = parent ?: return null
+    val targetId = actionDestinationId
+    while (true) {
+      p.children.firstOrNull { it.id == targetId }?.let { return it }
+      p = p.parent ?: break
+    }
+    // The above won't check the root itself
+    return model.components.firstOrNull { it.id == targetId }
+  }
+
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
@@ -102,7 +168,7 @@ class NavComponentMixin(component: NlComponent)
   })
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    if (component.tagName == NavigationSchema.TAG_INCLUDE) {
+    if (component.tagName == TAG_INCLUDE) {
       if (attribute == NavigationSchema.ATTR_GRAPH) {
         // To avoid recursion
         return null

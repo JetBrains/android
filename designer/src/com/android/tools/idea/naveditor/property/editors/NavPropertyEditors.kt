@@ -21,6 +21,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.common.property.editors.PropertyEditors
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.intellij.openapi.project.Project
@@ -40,9 +41,14 @@ class NavPropertyEditors : PropertyEditors() {
       ATTR_NAME -> return DestinationClassEditor()
       ATTR_POP_UP_TO -> return AllDestinationsEditor()
       ATTR_GRAPH -> return SourceGraphEditor()
+      ATTR_ENTER_ANIM, ATTR_EXIT_ANIM -> return AnimationEditor()
     }
     if (property.definition?.formats?.contains(AttributeFormat.Boolean) == true) {
       return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
+    }
+    if (property is SimpleProperty) {
+      // SimpleProperty doesn't allow editing
+      return NonEditableEditor()
     }
     // TODO: handle other types
     return TextEditor(property.model.project, DEFAULT_LISTENER)

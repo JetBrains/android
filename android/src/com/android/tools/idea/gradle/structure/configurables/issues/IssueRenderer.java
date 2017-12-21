@@ -19,4 +19,10 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 
 public interface IssueRenderer {
   void renderIssue(StringBuilder buffer, PsIssue issue);
+
+  default String renderIssue(PsIssue issue) {
+    StringBuilder sb = new StringBuilder();
+    renderIssue(sb, issue);
+    return sb.toString();
+  }
 }

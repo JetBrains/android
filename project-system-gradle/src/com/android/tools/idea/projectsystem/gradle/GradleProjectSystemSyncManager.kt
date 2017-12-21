@@ -17,8 +17,8 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -29,20 +29,12 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ThreeState
 import org.jetbrains.annotations.Contract
 
 class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncManager {
-  private var lastSyncResult: SyncResult = SyncResult.UNKNOWN
-
-  init {
-    // Listen for syncs to finish and update lastSyncResult accordingly.
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        lastSyncResult = result
-      }
-    })
-  }
+  private val syncResultPublisher = GradleSyncResultPublisher.getInstance(project)
 
   @Contract(pure = true)
   private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger {
@@ -56,29 +48,27 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   private fun requestSync(project: Project, reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
     val trigger = convertReasonToTrigger(reason)
     val syncResult = SettableFuture.create<SyncResult>()
+    val connection = project.messageBus.connect(project)
 
-    val listener = object : GradleSyncListener.Adapter() {
-      override fun syncSucceeded(project: Project) {
-        syncResult.set(SyncResult.SUCCESS)
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+      override fun syncEnded(result: SyncResult) {
+        Disposer.dispose(connection)
+        syncResult.set(result)
       }
-
-      override fun syncFailed(project: Project, errorMessage: String) {
-        syncResult.set(SyncResult.FAILURE)
-      }
-
-      override fun syncSkipped(project: Project) {
-        syncResult.set(SyncResult.SKIPPED)
-      }
-    }
+    })
 
     val request = GradleSyncInvoker.Request(trigger)
     request.generateSourcesOnSuccess = requireSourceGeneration
     request.runInBackground = true
 
     try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, null)
     }
     catch (t: Throwable) {
+      if (!Disposer.isDisposed(connection)) {
+        Disposer.dispose(connection)
+      }
+
       syncResult.setException(t)
     }
 
@@ -88,16 +78,13 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
     val syncResult = SettableFuture.create<SyncResult>()
 
-    if (GradleSyncState.getInstance(project).isSyncInProgress) {
-      syncResult.setException(RuntimeException("A sync was requested while one is already in progress. Use"
-          + "ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
-    }
-    else if (project.isInitialized) {
-      syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
+    when {
+      isSyncInProgress() -> syncResult.setException(RuntimeException("A sync was requested while one is"
+          + " already in progress. Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
 
-    }
-    else {
-      StartupManager.getInstance(project).runWhenProjectIsInitialized {
+      project.isInitialized -> syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
+
+      else -> StartupManager.getInstance(project).runWhenProjectIsInitialized {
         if (!GradleProjectInfo.getInstance(project).isImportedProject) {
           // http://b/62543184
           // If the project was created with the "New Project" wizard, there is no need to sync again.
@@ -112,7 +99,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress
+  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress || syncResultPublisher.sourceGenerationExpected
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded != ThreeState.NO
-  override fun getLastSyncResult() = lastSyncResult
+  override fun getLastSyncResult() = syncResultPublisher.lastSyncResult
 }

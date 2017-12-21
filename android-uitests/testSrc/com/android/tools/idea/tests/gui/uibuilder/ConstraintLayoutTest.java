@@ -39,6 +39,7 @@ import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -164,7 +165,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
-      .waitForRenderToFinish()
+      .waitForRenderToFinish(Wait.seconds(30))
       .showOnlyDesignView()
       .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
@@ -201,7 +202,7 @@ public class ConstraintLayoutTest {
    *   1. Verify the item displays in the xml view.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70683493
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -259,7 +260,7 @@ public class ConstraintLayoutTest {
    *   5. Preview layout is rendered for the selected activity.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/69792022
   @Test
   public void layoutPreviewRendering() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");

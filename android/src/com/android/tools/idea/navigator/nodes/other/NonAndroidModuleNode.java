@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.other;
 
+import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -28,9 +28,12 @@ import com.intellij.openapi.ui.Queryable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-public class NonAndroidModuleNode extends ProjectViewModuleNode {
+public class NonAndroidModuleNode extends AndroidViewModuleNode {
   public NonAndroidModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
     super(project, value, settings);
   }
@@ -94,13 +97,5 @@ public class NonAndroidModuleNode extends ProjectViewModuleNode {
     Module module = getValue();
     assert module != null;
     return module;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    return super.equals(o);
   }
 }

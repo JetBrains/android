@@ -13,12 +13,18 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.quickfix;
 
+import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.model.TestPath;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 public final class PsLibraryDependencyVersionQuickFixPathTest {
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(PsLibraryDependencyVersionQuickFixPath.class).verify();
+    EqualsVerifier
+      .forClass(PsLibraryDependencyVersionQuickFixPath.class)
+      .withPrefabValues(PsPath.class, new TestPath("a"), new TestPath("b"))
+      .withRedefinedSuperclass()
+      .verify();
   }
 }

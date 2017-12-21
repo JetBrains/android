@@ -26,6 +26,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -35,6 +36,48 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
  * Utility methods helpful for working with and generating Android assets.
  */
 public final class AssetStudioUtils {
+  /**
+   * Scales the given rectangle by the given scale factor.
+   *
+   * @param rect        the rectangle to scale
+   * @param scaleFactor the factor to scale by
+   * @return the scaled rectangle
+   */
+  public static Rectangle scaleRectangle(Rectangle rect, double scaleFactor) {
+    return new Rectangle(
+        roundToInt(rect.x * scaleFactor),
+        roundToInt(rect.y * scaleFactor),
+        roundToInt(rect.width * scaleFactor),
+        roundToInt(rect.height * scaleFactor));
+  }
+
+  /**
+   * Scales the given rectangle by the given scale factor preserving the location of its center.
+   *
+   * @param rect        the rectangle to scale
+   * @param scaleFactor the factor to scale by
+   * @return the scaled rectangle
+   */
+  public static Rectangle scaleRectangleAroundCenter(Rectangle rect, double scaleFactor) {
+    int width = roundToInt(rect.width * scaleFactor);
+    int height = roundToInt(rect.height * scaleFactor);
+    return new Rectangle(
+        roundToInt(rect.x * scaleFactor - (width - rect.width) / 2.),
+        roundToInt(rect.y * scaleFactor - (width - rect.width) / 2.),
+        width,
+        height);
+  }
+
+  /**
+   * Similar to Math.round(float) but takes a double argument.
+   *
+   * @param f a floating point number to be rounded to an integer
+   * @return the value of the argument rounded to the nearest integer
+   */
+  public static int roundToInt(double f) {
+    return Math.round((float)f);
+  }
+
   /**
    * Create a tiny dummy image, so that we can always return a {@link NotNull} result if an image
    * we were looking for isn't found.

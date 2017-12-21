@@ -493,7 +493,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   @Override
-  public void syncStarted(@NotNull Project project, boolean skipped) {
+  public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
     if (myUiInitialized) {
       myNotificationPanel.removeAll();
       EditorNotificationPanel notification = new EditorNotificationPanel();

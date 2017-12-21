@@ -31,27 +31,28 @@ import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.ui.EnabledProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
-import com.android.tools.idea.observable.ui.SliderValueProperty;
-import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
-import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.ui.ColorPanel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,55 +64,90 @@ import java.util.Collections;
 import java.util.Locale;
 
 /**
- * Step for generating Android icons from some vector source.
+ * A wizard step for generating Android vector drawable icons.
  */
 @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI.
-public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> {
+public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> implements PersistentStateComponent<PersistentState> {
   private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
-  private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
+  private static final String DEFAULT_OUTPUT_NAME = "ic_vector_name";
+  // Start with the Clip Art radio button selected, because the clip art icons are easy to browse
+  // and play around with right away.
+  private static final AssetSourceType DEFAULT_ASSET_SOURCE_TYPE = AssetSourceType.CLIP_ART;
+  @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons.
+  private static final Color DEFAULT_COLOR = Color.BLACK;
 
-  private final VectorIconGenerator myIconGenerator;
+  private static final String VECTOR_ASSET_STEP_PROPERTY = "vectorAssetStep";
+  private static final String OUTPUT_NAME_PROPERTY = "outputName";
+  private static final String ASSET_SOURCE_TYPE_PROPERTY = "assetSourceType";
+  private static final String CLIPART_ASSET_PROPERTY = "clipartAsset";
+  private static final String SOURCE_FILE_PROPERTY = "sourceFile";
+  private static final String OVERRIDE_SIZE_PROPERTY = "overrideSize";
+  private static final String WIDTH_PROPERTY = "width";
+  private static final String HEIGHT_PROPERTY = "height";
+  private static final String COLOR_PROPERTY = "color";
+  private static final String OPACITY_PERCENT_PROPERTY = "opacityPercent";
+  private static final String AUTO_MIRRORED_PROPERTY = "autoMirrored";
+
+  private final ObjectProperty<AssetSourceType> myAssetSourceType;
   private final ObjectProperty<VectorAsset> myActiveAsset;
   private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
+  private final StringProperty myOutputName;
+  private final BoolProperty myOverrideSize;
+  private final IntProperty myWidth = new IntValueProperty();
+  private final IntProperty myHeight = new IntValueProperty();
+  private final ObjectProperty<Color> myColor;
+  private final IntProperty myOpacityPercent;
+  private final BoolProperty myAutoMirrored;
 
-  private final BoolProperty isValidAsset = new BoolValueProperty();
-  private final VectorPreviewUpdater myPreviewUpdater = new VectorPreviewUpdater();
+  private final ObjectValueProperty<Validator.Result> myAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
   private final BindingsManager myGeneralBindings = new BindingsManager();
   private final BindingsManager myActiveAssetBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
+
+  @NotNull private final VectorIconGenerator myIconGenerator;
   @NotNull private final AndroidFacet myFacet;
 
   private final ValidatorPanel myValidatorPanel;
 
   private JPanel myPanel;
+  private JPanel myImagePreviewPanel;
   private VectorImageComponent myImagePreview;
-  private JLabel myImageFileLabel;
-  private JTextField myOutputNameField;
-  private JPanel myErrorPanel;
-  private JPanel myBrowserPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myResourceNamePanel;
+  private JTextField myOutputNameTextField;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel mySourceAssetTypePanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel mySourceAssetRadioButtons;
+  private JRadioButton myClipartRadioButton;
+  private JRadioButton myLocalFileRadioButton;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myIconPickerPanel;
+  private VectorIconButton myClipartAssetButton;
+  private JPanel myFileBrowserPanel;
+  private VectorAssetBrowser myFileBrowser;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myResizePanel;
   private JTextField myWidthTextField;
   private JTextField myHeightTextField;
-  private JCheckBox myEnableAutoMirroredCheckBox;
-  private JPanel myPreviewPanel;
-  private JSlider myOpacitySlider;
-  private JPanel myResizePanel;
-  private JLabel mySizeLabel;
-  private JPanel myResourceNamePanel;
-  private JRadioButton myMaterialIconRadioButton;
-  private JRadioButton myLocalFileRadioButton;
-  private JPanel myOpacityPanel;
-  private JPanel myIconPickerPanel;
   private JCheckBox myOverrideSizeCheckBox;
+  private JPanel myColorRowPanel;
+  private ColorPanel myColorPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myOpacityPanel;
+  private JSlider myOpacitySlider;
   private JBLabel myOpacityValueLabel;
+  private JCheckBox myEnableAutoMirroredCheckBox;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myPreviewPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myLeftPanel;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myRightPanel;
-  private JPanel mySourceAssetRadioButtons;
-  private JPanel mySourceAssetTypePanel;
-  private VectorAssetBrowser myBrowser;
-  private VectorIconButton myIconButton;
+  private JPanel myErrorPanel;
   private JBScrollPane myErrorsScrollPane;
   private JTextArea myErrorsTextArea;
 
@@ -123,114 +159,105 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myIconGenerator = new VectorIconGenerator(minSdkVersion);
     Disposer.register(this, myIconGenerator);
 
-    // Start with the icon radio button selected, because icons are easy to browse and play around
-    // with right away.
-    myMaterialIconRadioButton.setSelected(true);
-    myActiveAsset = new ObjectValueProperty<>(myIconButton.getAsset());
+    myImagePreviewPanel.setBorder(JBUI.Borders.customLine(JBColor.border()));
+
+    myAssetSourceType = new SelectedRadioButtonProperty<>(DEFAULT_ASSET_SOURCE_TYPE, AssetSourceType.values(),
+                                                          myClipartRadioButton, myLocalFileRadioButton);
+    myActiveAsset = new ObjectValueProperty<>(myClipartAssetButton.getAsset());
+    myOutputName = new TextProperty(myOutputNameTextField);
+    myOverrideSize = new SelectedProperty(myOverrideSizeCheckBox);
+    myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
+    myOpacityPercent = new SliderValueProperty(myOpacitySlider);
+    myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
+
+    ActionListener assetListener = actionEvent -> renderPreviews();
+    myClipartAssetButton.addAssetListener(assetListener);
+    myFileBrowser.addAssetListener(assetListener);
+
+    myListeners.receiveAndFire(myAssetSourceType, sourceType -> {
+      myIconPickerPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
+      myColorRowPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
+      myFileBrowserPanel.setVisible(sourceType == AssetSourceType.FILE);
+      myActiveAsset.set(sourceType == AssetSourceType.CLIP_ART ? myClipartAssetButton.getAsset() : myFileBrowser.getAsset());
+    });
+
+    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myWidthTextField)), myWidth);
+    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myHeightTextField)), myHeight);
+    myGeneralBindings.bind(new EnabledProperty(myWidthTextField), myOverrideSize);
+    myGeneralBindings.bind(new EnabledProperty(myHeightTextField), myOverrideSize);
+    myListeners.listenAll(myOverrideSize, myOriginalSize).withAndFire(() -> {
+      if (!myOverrideSize.get() || !myOriginalSize.get().isPresent()) {
+        myWidth.set(DEFAULT_MATERIAL_ICON_SIZE);
+        myHeight.set(DEFAULT_MATERIAL_ICON_SIZE);
+      }
+      else {
+        myWidth.set(myOriginalSize.getValue().width);
+        myHeight.set(myOriginalSize.getValue().height);
+      }
+    });
+
+    myGeneralBindings.bind(new TextProperty(myOpacityValueLabel), new FormatExpression("%d %%", myOpacityPercent));
+
+    myListeners.listenAll(myActiveAsset, myOverrideSize, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
+        .with(this::renderPreviews);
+
+    myListeners.listenAndFire(myActiveAsset, sender -> {
+      myActiveAssetBindings.releaseAll();
+
+      myActiveAssetBindings.bind(myOutputName, new Expression<String>(myActiveAsset.get().path()) {
+        @Override
+        @NotNull
+        public String get() {
+          File file = myActiveAsset.get().path().get();
+          if (!file.exists() || file.isDirectory()) {
+            return DEFAULT_OUTPUT_NAME;
+          }
+
+          String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
+          if (!name.startsWith(ICON_PREFIX)) {
+            name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
+          }
+          return AndroidResourceUtil.getValidResourceFileName(name);
+        }
+      });
+
+      myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
+      myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
+
+      if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
+        myActiveAssetBindings.bind(myActiveAsset.get().color(), myColor);
+      }
+      myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
+      myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);
+      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), myWidth);
+      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), myHeight);
+    });
+
+    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
+    myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
+
+    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(VECTOR_ASSET_STEP_PROPERTY));
+
+    // Refresh the asset preview.
+    renderPreviews();
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
   }
 
   @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    final Runnable onAssetModified = myPreviewUpdater::enqueueUpdate;
-
-    loadAssetPath();
-
-    SelectedProperty iconSelected = new SelectedProperty(myMaterialIconRadioButton);
-    myListeners.receiveAndFire(iconSelected, isIconActive -> {
-      myIconPickerPanel.setVisible(isIconActive);
-      myBrowserPanel.setVisible(!isIconActive);
-      myActiveAsset.set(isIconActive ? myIconButton.getAsset() : myBrowser.getAsset());
-    });
-    ActionListener assetListener = actionEvent -> {
-      onAssetModified.run();
-      saveAssetPath();
-    };
-    myIconButton.addAssetListener(assetListener);
-    myBrowser.addAssetListener(assetListener);
-    Disposer.register(this, myIconButton);
-    Disposer.register(this, myBrowser);
-
-    final BoolProperty overrideSize = new SelectedProperty(myOverrideSizeCheckBox);
-    final IntProperty width = new IntValueProperty();
-    final IntProperty height = new IntValueProperty();
-    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myWidthTextField)), width);
-    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myHeightTextField)), height);
-    myGeneralBindings.bind(new EnabledProperty(myWidthTextField), overrideSize);
-    myGeneralBindings.bind(new EnabledProperty(myHeightTextField), overrideSize);
-    myListeners.listenAll(overrideSize, myOriginalSize).withAndFire(() -> {
-      if (!overrideSize.get() || !myOriginalSize.get().isPresent()) {
-        width.set(DEFAULT_MATERIAL_ICON_SIZE);
-        height.set(DEFAULT_MATERIAL_ICON_SIZE);
-      }
-      else {
-        width.set(myOriginalSize.getValue().width);
-        height.set(myOriginalSize.getValue().height);
-      }
-    });
-
-    final IntProperty opacityValue = new SliderValueProperty(myOpacitySlider);
-    myGeneralBindings.bind(new TextProperty(myOpacityValueLabel), new FormatExpression("%d %%", opacityValue));
-
-    final BoolProperty autoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
-
-    myListeners.listenAll(myActiveAsset, overrideSize, width, height, opacityValue, autoMirrored).with(onAssetModified);
-
-    final StringProperty name = new TextProperty(myOutputNameField);
-    myListeners.listenAndFire(myActiveAsset, sender -> {
-      myActiveAssetBindings.releaseAll();
-
-      myActiveAssetBindings.bind(name, new Expression<String>(myActiveAsset.get().path()) {
-        @NotNull
-        @Override
-        public String get() {
-          File path = myActiveAsset.get().path().get();
-          if (path.exists() && !path.isDirectory()) {
-            String name1 = FileUtil.getNameWithoutExtension(path).toLowerCase(Locale.getDefault());
-            if (!name1.startsWith(ICON_PREFIX)) {
-              name1 = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name1);
-            }
-            return AndroidResourceUtil.getValidResourceFileName(name1);
-          }
-          else {
-            return "ic_vector_name";
-          }
-        }
-      });
-
-      myValidatorPanel.registerValidator(name, value -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(value)));
-      myValidatorPanel.registerTest(isValidAsset, "The specified asset could not be parsed. Please choose another asset.");
-
-      myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
-      myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), width);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), height);
-    });
-
-    // Refresh the asset preview, but fire using invokeLater, as this lets the UI lay itself out,
-    // which should happen before the "generate preview" logic runs.
-    ApplicationManager.getApplication().invokeLater(onAssetModified, ModalityState.any());
-
-    // Cast VectorAsset -> BaseAsset
-    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
-    myGeneralBindings.bind(myIconGenerator.outputName(), name);
-  }
-
   @NotNull
-  @Override
   protected JComponent getComponent() {
     return myValidatorPanel;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
   }
@@ -241,33 +268,78 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   }
 
   @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(VECTOR_ASSET_STEP_PROPERTY, getState());
+  }
+
+  @Override
   public void dispose() {
     myGeneralBindings.releaseAll();
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
   }
 
-  private void saveAssetPath() {
-    PropertiesComponent properties = PropertiesComponent.getInstance(myFacet.getModule().getProject());
-    File path = myBrowser.getAsset().path().get();
-    properties.setValue(VECTOR_ASSET_PATH_PROPERTY, path.getParent());
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), DEFAULT_OUTPUT_NAME);
+    state.set(ASSET_SOURCE_TYPE_PROPERTY, myAssetSourceType.get(), DEFAULT_ASSET_SOURCE_TYPE);
+    state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
+    File file = myFileBrowser.getAsset().path().get();
+    state.set(SOURCE_FILE_PROPERTY, file.getPath(), getProjectPath());
+    state.set(OVERRIDE_SIZE_PROPERTY, myOverrideSize.get(), false);
+    state.set(WIDTH_PROPERTY, myWidth.get(), DEFAULT_MATERIAL_ICON_SIZE);
+    state.set(HEIGHT_PROPERTY, myHeight.get(), DEFAULT_MATERIAL_ICON_SIZE);
+    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
+    state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
+    state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
+    return state;
   }
 
-  private void loadAssetPath() {
-    Project project = myFacet.getModule().getProject();
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    String lastPath = properties.getValue(VECTOR_ASSET_PATH_PROPERTY);
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    // Load persistent state of controls after dust settles.
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
+        myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
+        myAssetSourceType.set(state.get(ASSET_SOURCE_TYPE_PROPERTY, DEFAULT_ASSET_SOURCE_TYPE));
+        PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
+        String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
+        myFileBrowser.getAsset().path().set(new File(path));
+        myOverrideSize.set(state.get(OVERRIDE_SIZE_PROPERTY, false));
+        myWidth.set(state.get(WIDTH_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
+        myHeight.set(state.get(HEIGHT_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
+        myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
+        myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
+        myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
+      },
+      ModalityState.any());
+  }
 
-    if (lastPath != null) {
-      String defaultPath = FileUtil.toSystemDependentName(lastPath);
-      myBrowser.getAsset().path().set(new File(defaultPath));
-    } else {
-      String projectPath = project.getBasePath();
-      if (projectPath != null) {
-        String defaultPath = FileUtil.toSystemDependentName(projectPath);
-        myBrowser.getAsset().path().set(new File(defaultPath));
-      }
-    }
+  @SystemIndependent
+  @NotNull
+  private String getProjectPath() {
+    String projectPath = myFacet.getModule().getProject().getBasePath();
+    assert projectPath != null;
+    return projectPath;
+  }
+
+  private void renderPreviews() {
+    // This method is often called as the result of a UI property changing which may also cause
+    // some other properties to change. Due to asynchronous nature of some property changes, it
+    // is necessary to use two invokeLater calls to make sure that everything settles before
+    // icons generation is attempted.
+    VectorPreviewUpdater previewUpdater = new VectorPreviewUpdater();
+    invokeVeryLate(previewUpdater::enqueueUpdate, ModalityState.any(), o -> Disposer.isDisposed(this));
+  }
+
+  /**
+   * Executes the given runnable after a double 'invokeLater' delay.
+   */
+  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition expired) {
+    Application application = ApplicationManager.getApplication();
+    application.invokeLater(() -> application.invokeLater(runnable, state, expired), state, expired);
   }
 
   /**
@@ -276,21 +348,21 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    * enqueue the request to run on a background thread. If several requests are made in a row while
    * an existing worker is still in progress, they will only generate a single update, run as soon
    * as the current update finishes.
-   *
-   * Call {@link #enqueueUpdate()} in order to kickstart the generation of a new preview.
+   * <p>
+   * Call {@link #enqueueUpdate()} in order to kick-start the generation of a new preview.
    */
   private final class VectorPreviewUpdater {
     @Nullable private SwingWorker<Void, Void> myCurrentWorker;
     @Nullable private SwingWorker<Void, Void> myEnqueuedWorker;
 
     /**
-     * Begin parsing the current file in {@link #myActiveAsset} and, if it's valid, update the UI
+     * Starts parsing the current file in {@link #myActiveAsset} and, if it's valid, updates the UI
      * (particularly, the image preview and errors area). If an update is already in process, then
      * this will enqueue another request to run as soon as the current one is over.
-     *
+     * <p>
      * The width of {@link #myImagePreview} is used when calculating a preview image, so be sure
      * the layout manager has finished laying out your UI before calling this method.
-     *
+     * <p>
      * This method must be called on the dispatch thread.
      */
     public void enqueueUpdate() {
@@ -323,8 +395,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         @Override
         protected void done() {
           assert myParseResult != null;
-          // it IS possible to have invalid asset, but no error, in fact that is the initial state before a file is chosen.
-          isValidAsset.set(myParseResult.isValid());
+          myAssetValidityState.set(myParseResult.getValidityState());
           if (myParseResult.isValid()) {
             BufferedImage image = myParseResult.getImage();
             myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
@@ -335,9 +406,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             myOriginalSize.clear();
           }
 
-          String error = myParseResult.getErrors();
-          myErrorPanel.setVisible(!error.isEmpty());
-          myErrorsTextArea.setText(error);
+          String message = myAssetValidityState.get().getMessage();
+          myErrorPanel.setVisible(!message.isEmpty());
+          myErrorsTextArea.setText(message);
           ApplicationManager.getApplication().invokeLater(() -> myErrorsScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
 
           myCurrentWorker = null;
@@ -349,5 +420,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         }
       };
     }
+  }
+
+  private enum AssetSourceType {
+    CLIP_ART,
+    FILE,
   }
 }

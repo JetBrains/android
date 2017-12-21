@@ -170,7 +170,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
 
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.openProject(file);
+        gradleImporter.importProject(file);
         return true;
       }
     }

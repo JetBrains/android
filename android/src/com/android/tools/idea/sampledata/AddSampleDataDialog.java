@@ -162,6 +162,12 @@ public class AddSampleDataDialog extends DialogWrapper {
       LOG.error("Unable to find sample data directory", e);
       return;
     }
+
+    if (sampleDataDir == null) {
+      LOG.error("Unable to find sample data directory");
+      return;
+    }
+
     myCreatedFile =
       WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), (Computable<VirtualFile>)() -> {
         VirtualFile newFile = null;

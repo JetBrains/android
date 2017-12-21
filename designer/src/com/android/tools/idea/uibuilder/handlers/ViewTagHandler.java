@@ -79,7 +79,7 @@ public class ViewTagHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+    if (insertType == InsertType.CREATE && newChild.getAttribute(null, ATTR_CLASS) == null) {
       String src = browseClasses(editor, null);
       if (src != null) {
         newChild.setAttribute(null, ATTR_CLASS, src);

@@ -179,22 +179,22 @@ class SceneHitListener implements ScenePicker.HitElementListener {
     if (inSelection) {
       return candidate;
     }
-
-    for (int i = count - 2; i >= 0; i--) {
-      SceneComponent target = myHitComponents.get(i);
-      if (selection.contains(target.getNlComponent())) {
-        candidate = target;
-        break;
-      }
-    }
-    // We now have the first element in the selection. Let's try again this time...
     for (int i = count - 1; i >= 0; i--) {
       SceneComponent target = myHitComponents.get(i);
-      if (target.hasAncestor(candidate)) {
-        candidate = target;
-        break;
+      if (parentInSelection(target, selection)) {
+        return target;
       }
     }
     return candidate;
+  }
+
+  private static boolean parentInSelection(@NotNull SceneComponent component, @NotNull List<NlComponent> selection) {
+    while (component != null) {
+      if (selection.contains(component.getNlComponent())) {
+        return true;
+      }
+      component = component.getParent();
+    }
+    return false;
   }
 }

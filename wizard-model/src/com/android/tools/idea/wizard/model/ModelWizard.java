@@ -31,6 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 /**
  * A wizard that owns a series of {@link ModelWizardStep}s. When finished, it iterates through its
@@ -66,6 +67,8 @@ public final class ModelWizard implements Disposable {
 
   private final List<WizardListener> myWizardListeners = new ArrayList<>(1);
 
+  @NotNull
+  private BooleanSupplier myCancelInterceptor = () -> false; // By default don't intercept cancel
   private int myCurrIndex = -1;
 
   /**
@@ -185,6 +188,15 @@ public final class ModelWizard implements Disposable {
   @NotNull
   public TitleHeader getTitleHeader() {
     return myTitleHeader;
+  }
+
+  /**
+   * Set a Cancel interceptor. The interceptor will be query when the wizard is about to be cancelled. If the
+   * callback returns {@code true}, we prevent the cancelling from happening, leaving the wizard open. Otherwise,
+   * we cancel the wizard as normal.
+   */
+  public void setCancelInterceptor(@NotNull BooleanSupplier cancelInterceptor) {
+    myCancelInterceptor = cancelInterceptor;
   }
 
   /**
@@ -355,8 +367,9 @@ public final class ModelWizard implements Disposable {
    */
   public void cancel() {
     ensureWizardIsRunning();
-
-    handleFinished(WizardResult.CANCELLED);
+    if (!myCancelInterceptor.getAsBoolean()) {
+      handleFinished(WizardResult.CANCELLED);
+    }
   }
 
   /**

@@ -110,9 +110,7 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
   private LegacyAllocationConverter parseDump(@NotNull byte[] dumpData) {
     myConverter.prepare();
 
-    // TODO fix allocation file overflow bug
     AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
-
     for (AllocationInfo info : rawInfos) {
       List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
       LegacyAllocationConverter.CallStack callStack = myConverter.addCallStack(stackTraceElements);

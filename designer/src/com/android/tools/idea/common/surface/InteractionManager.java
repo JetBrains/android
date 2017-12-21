@@ -18,16 +18,17 @@ package com.android.tools.idea.common.surface;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
-import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
@@ -124,7 +125,7 @@ public class InteractionManager {
   /**
    * Listener for mouse motion, click and keyboard events.
    */
-  private Listener myListener;
+  private final Listener myListener;
 
   /**
    * Drop target installed by this manager
@@ -137,6 +138,11 @@ public class InteractionManager {
   private boolean myIsListening;
 
   /**
+   * Flag to indicate that the user is panning the surface
+   */
+  private boolean myIsPanning;
+
+  /**
    * Constructs a new {@link InteractionManager} for the given
    * {@link NlDesignSurface}.
    *
@@ -144,6 +150,8 @@ public class InteractionManager {
    */
   public InteractionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
+
+    myListener = new Listener();
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
     myHoverTimer.setRepeats(false);
@@ -172,11 +180,13 @@ public class InteractionManager {
   }
 
   /**
-   * Registers all the listeners needed by the {@link InteractionManager}.
+   * This will registers all the listeners to {@link DesignSurface} needed by the {@link InteractionManager}.<br>
+   * Do nothing if it is listening already.
+   * @see #stopListening()
    */
-  public void registerListeners() {
-    if (myListener == null) {
-      myListener = new Listener();
+  public void startListening() {
+    if (myIsListening) {
+      return;
     }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
@@ -192,10 +202,14 @@ public class InteractionManager {
   }
 
   /**
-   * Unregisters all the listeners previously registered by
-   * {@link #registerListeners}.
+   * This will unregister all the listeners previously registered by from {@link DesignSurface}.<br>
+   * Do nothing if it is not listening.
+   * @see #startListening()
    */
-  public void unregisterListeners() {
+  public void stopListening() {
+    if (!myIsListening) {
+      return;
+    }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.removeMouseMotionListener(myListener);
     layeredPane.removeMouseWheelListener(myListener);
@@ -206,14 +220,6 @@ public class InteractionManager {
     }
     myHoverTimer.removeActionListener(myListener);
     myHoverTimer.stop();
-    myIsListening = false;
-  }
-
-  /**
-   * Returns whether this is currently listening to interactions with a {@link Listener}
-   */
-  public boolean isListening() {
-    return myIsListening;
   }
 
   /**
@@ -362,7 +368,8 @@ public class InteractionManager {
 
     /**
      * Warp to the text editor and show the corresponding XML for the clicked widget.
-     * @param component the target we need to navigate to
+     *
+     * @param component       the target we need to navigate to
      * @param needFocusEditor true for focusing the editor after navigation. false otherwise.
      */
     private void navigateEditor(@NotNull NlComponent component, boolean needFocusEditor) {
@@ -416,6 +423,11 @@ public class InteractionManager {
       int x = event.getX();
       int y = event.getY();
       int modifiers = event.getModifiers();
+
+      if (interceptPanInteraction(event, x, y)) {
+        return;
+      }
+
       if (myCurrentInteraction == null) {
         boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
         selectComponentAt(x, y, allowToggle, false);
@@ -597,6 +609,10 @@ public class InteractionManager {
       int y = event.getY();
       myLastMouseX = x;
       myLastMouseY = y;
+
+      if (interceptPanInteraction(event, x, y)) {
+        return;
+      }
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = event.getModifiers();
 
@@ -626,7 +642,6 @@ public class InteractionManager {
     public void keyPressed(KeyEvent event) {
       int modifiers = event.getModifiers();
       int keyCode = event.getKeyCode();
-      char keyChar = event.getKeyChar();
 
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = modifiers;
@@ -644,11 +659,9 @@ public class InteractionManager {
         }
       }
 
-      if (keyChar == '+') {
-        mySurface.zoomIn();
-      }
-      else if (keyChar == '-') {
-        mySurface.zoomOut();
+      if (keyCode == DesignSurfaceShortcut.PAN.getKeyCode()) {
+        setPanning(true);
+        return;
       }
 
       // The below shortcuts only apply without modifier keys.
@@ -658,43 +671,7 @@ public class InteractionManager {
         return;
       }
 
-      // Fall back to canvas actions for the key press
-      //mySurface.handleKeyPressed(e);
-
-      if (keyChar == '1') {
-        mySurface.zoomActual();
-      }
-      else if (keyChar == 'r') {
-        // Refresh layout
-        RefreshRenderAction.clearCache(mySurface.getConfiguration());
-      }
-      else if (keyChar == 'b') {
-        // TODO: find a way to move layout-specific logic elsewhere.
-        if (mySurface instanceof NlDesignSurface) {
-          SceneMode nextMode = ((NlDesignSurface)mySurface).getSceneMode().next();
-          ((NlDesignSurface)mySurface).setScreenMode(nextMode, true);
-        }
-      }
-      else if (keyChar == '0') {
-        mySurface.zoomToFit();
-      }
-      else if (keyChar == 'd') {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          sceneView.switchDevice();
-        }
-      }
-      else if (keyChar == 'o') {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          sceneView.toggleOrientation();
-        }
-      }
-      else if (keyChar == 'e') {
-        IssuePanel panel = mySurface.getIssuePanel();
-        panel.setMinimized(!panel.isMinimized());
-      }
-      else if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
+      if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
         SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
         if (sceneView != null) {
           SelectionModel model = sceneView.getSelectionModel();
@@ -713,6 +690,11 @@ public class InteractionManager {
 
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
+      }
+
+      if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
+        setPanning(false);
+        updateCursor(myLastMouseX, myLastMouseY);
       }
     }
 
@@ -968,6 +950,14 @@ public class InteractionManager {
     }
   }
 
+  private void setPanning(boolean panning) {
+    if (panning != myIsPanning) {
+      myIsPanning = panning;
+      mySurface.setCursor(panning ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                                  : Cursor.getDefaultCursor());
+    }
+  }
+
   /**
    * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key and scroll the {@link DesignSurface}
    * by the same amount as the drag distance.
@@ -981,12 +971,14 @@ public class InteractionManager {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
-    if ((event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
+    if (myIsPanning
+        || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
         || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
       DesignSurface surface = getSurface();
       Point position = surface.getScrollPosition();
       position.translate(myLastMouseX - x, myLastMouseY - y);
       surface.setScrollPosition(position);
+      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       return true;
     }
     return false;

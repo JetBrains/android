@@ -31,7 +31,10 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
-import org.jetbrains.android.dom.attrs.*;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
@@ -58,12 +61,12 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
 public class AndroidDomUtil {
-
-
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
   // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+  private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
+    new PackageClassConverter(false, true, CLASS_RECYCLER_VIEW_LAYOUT_MANAGER);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
@@ -182,10 +185,6 @@ public class AndroidDomUtil {
       return null;
     }
 
-    if (!NS_RESOURCES.equals(attrName.getNamespaceKey())) {
-      return null;
-    }
-
     final XmlTag xmlTag = context.getXmlTag();
     if (xmlTag == null) {
       return null;
@@ -194,19 +193,29 @@ public class AndroidDomUtil {
     final String localName = attrName.getLocalName();
     final String tagName = xmlTag.getName();
 
-    if (context instanceof XmlResourceElement) {
-      if ("configure".equals(localName) && "appwidget-provider".equals(tagName)) {
-        return ACTIVITY_CONVERTER;
+    if (NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+      // Framework attributes:
+      if (context instanceof XmlResourceElement) {
+        if ("configure".equals(localName) && "appwidget-provider".equals(tagName)) {
+          return ACTIVITY_CONVERTER;
+        }
+        else if (VIEW_FRAGMENT.equals(localName)) {
+          return FRAGMENT_CLASS_CONVERTER;
+        }
       }
-      else if (VIEW_FRAGMENT.equals(localName)) {
-        return FRAGMENT_CLASS_CONVERTER;
+      else if (context instanceof LayoutViewElement || context instanceof MenuItem) {
+        if (ATTR_ON_CLICK.equals(localName)) {
+          return context instanceof LayoutViewElement
+                 ? OnClickConverter.CONVERTER_FOR_LAYOUT
+                 : OnClickConverter.CONVERTER_FOR_MENU;
+        }
       }
     }
-    else if (context instanceof LayoutViewElement || context instanceof MenuItem) {
-      if (ATTR_ON_CLICK.equals(localName)) {
-        return context instanceof LayoutViewElement
-               ? OnClickConverter.CONVERTER_FOR_LAYOUT
-               : OnClickConverter.CONVERTER_FOR_MENU;
+    else {
+      // TODO: This should be duplicated to handle the similar classes from the new support packages
+      // RecyclerView:
+      if (localName.equals(ATTR_LAYOUT_MANAGER) && tagName.equals(RECYCLER_VIEW)) {
+        return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
       }
     }
 
