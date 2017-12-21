@@ -31,7 +31,7 @@ fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
 fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
 
 inline fun <reified T : JComponent> matcher(crossinline predicate: (T) -> Boolean): GenericTypeMatcher<T> =
-    object : GenericTypeMatcher<T>(T::class.java) {
+    object : GenericTypeMatcher<T>(T::class.java, true) {
       override fun isMatching(component: T): Boolean = predicate(component)
     }
 
