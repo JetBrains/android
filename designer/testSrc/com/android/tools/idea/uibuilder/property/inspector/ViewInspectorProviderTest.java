@@ -82,7 +82,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     List<NlComponentEditor> editors = inspector.getEditors();
-    assertThat(editors.size()).isEqualTo(14);
+    assertThat(editors.size()).isEqualTo(13);
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(editors.size() + 1);
 
     Set<String> inspectorProperties = new HashSet<>(new SwitchHandler().getInspectorProperties());
@@ -109,7 +109,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
         assertThat(inspectorProperties.remove(property.getName())).named(property.getName()).isTrue();
       }
     }
-    assertThat(inspectorProperties).isEmpty();
+    assertThat(inspectorProperties).contains("trackTint"); // trackTint was added in API 23 / default minAPI is 22
   }
 
   public void testUpdateProperties() {

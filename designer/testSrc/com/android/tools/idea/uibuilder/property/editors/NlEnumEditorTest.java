@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.common.property.editors.EnumEditor;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture;
 
@@ -215,12 +214,12 @@ public class NlEnumEditorTest extends PropertyTestCase {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
-      .expectText("Small")
+      .expectText("Material.Small")
       .gainFocus()
       .expectText("")
       .showPopup()
       .expectFirstChoices(5,
-                          "Small", null,
+                          "Material.Small", null,
                           "TextAppearance", "@android:style/TextAppearance",
                           "AutoCorrectionSuggestion", "@android:style/TextAppearance.AutoCorrectionSuggestion",
                           "DeviceDefault", "@android:style/TextAppearance.DeviceDefault",
@@ -238,23 +237,23 @@ public class NlEnumEditorTest extends PropertyTestCase {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
-      .expectText("Small")
+      .expectText("Material.Small")
       .gainFocus()
       .expectText("")
-      .type("Material.Small")
+      .type("Small")
       .key(VK_ENTER)
-      .expectText("@android:style/TextAppearance.Material.Small")
-      .expectValue("@android:style/TextAppearance.Material.Small")
+      .expectText("@android:style/TextAppearance.Small")
+      .expectValue("@android:style/TextAppearance.Small")
       .loseFocus()
-      .expectText("Material.Small")
-      .expectValue("@android:style/TextAppearance.Material.Small");
+      .expectText("Small")
+      .expectValue("@android:style/TextAppearance.Small");
   }
 
   public void testEnterTextAppearanceNotFoundInModel() {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
-      .expectText("Small")
+      .expectText("Material.Small")
       .gainFocus()
       .expectText("")
       .type("Widget.ActionButton")
@@ -343,11 +342,11 @@ public class NlEnumEditorTest extends PropertyTestCase {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
-      .expectText("Widget.CompoundButton.Switch")
+      .expectText("Widget.Material.Light.CompoundButton.Switch")
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectChoices("Widget.CompoundButton.Switch", null,
+      .expectChoices("Widget.Material.Light.CompoundButton.Switch", null,
                      "Widget.CompoundButton.Switch", "@android:style/Widget.CompoundButton.Switch",
                      "Widget.Holo.Light.CompoundButton.Switch", "@android:style/Widget.Holo.Light.CompoundButton.Switch")
       .key(VK_DOWN)
@@ -363,7 +362,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
-      .expectText("Widget.CompoundButton.Switch")
+      .expectText("Widget.Material.Light.CompoundButton.Switch")
       .gainFocus()
       .type("Widget.Holo.Light.CompoundButton.Switch")
       .key(VK_ENTER)
@@ -378,7 +377,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
     myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
-      .expectText("Widget.CompoundButton.Switch")
+      .expectText("Widget.Material.Light.CompoundButton.Switch")
       .gainFocus()
       .type("Widget.ActionButton")
       .key(VK_ENTER)
