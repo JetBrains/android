@@ -22,13 +22,13 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JdkUtil;
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JdkVersionDetector;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,14 +73,8 @@ public class JdkDetection {
   }
 
   private static boolean isJdk7(@NotNull File path) {
-    String jdkVersion = SdkVersionUtil.detectJdkVersion(path.getAbsolutePath());
-    if (jdkVersion != null) {
-      JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdkVersion);
-      if (version != null && !version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
-        return false;
-      }
-    }
-    return true;
+    JdkVersionDetector.JdkVersionInfo jdkInfo = SdkVersionUtil.getJdkVersionInfo(path.getAbsolutePath());
+    return jdkInfo == null || jdkInfo.version.feature >= 7;
   }
 
   private static class DetectJdkTask extends Task.Modal {
