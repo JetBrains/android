@@ -26,11 +26,16 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
 
 class EnergyMonitorTest {
+  private val service = FakeEnergyService(
+      listOf(
+          EnergyProfiler.EnergyDataResponse.EnergySample.newBuilder().
+              setTimestamp(2000).
+              setNetworkUsage(20).
+              setCpuUsage(30).build()
+      ))
 
-  private val service = FakeEnergyService()
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyMonitorTest", service)
 
@@ -40,16 +45,7 @@ class EnergyMonitorTest {
   @Before
   fun setUp() {
     timer = FakeTimer()
-    val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
-    monitor = EnergyMonitor(profilers)
-    val sampleDataList = ArrayList<EnergyProfiler.EnergyDataResponse.EnergySample>()
-    sampleDataList.add(
-        EnergyProfiler.EnergyDataResponse.EnergySample.newBuilder().
-            setTimestamp(2000).
-            setNetworkUsage(20).
-            setCpuUsage(30).
-            build())
-    service.dataList = sampleDataList
+    monitor = EnergyMonitor(StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer))
   }
 
   @Test

@@ -26,7 +26,15 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 class EnergyUsageDataSeriesTest {
 
-  private val service = FakeEnergyService()
+  private val service = FakeEnergyService(
+      listOf(
+          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(5)).setCpuUsage(20).setNetworkUsage(30).build(),
+          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(10)).setCpuUsage(20).setNetworkUsage(40).build(),
+          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(15)).setCpuUsage(20).setNetworkUsage(50).build(),
+          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(20)).setNetworkUsage(10).build()
+      )
+  )
+
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyUsageDataSeriesTest", service)
 
@@ -35,12 +43,6 @@ class EnergyUsageDataSeriesTest {
   @Before
   fun setup() {
     dataSeries = EnergyUsageDataSeries(grpcChannel.client, ProfilersTestData.SESSION_DATA)
-    val list = ArrayList<EnergySample>()
-    list.add(EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(5)).setCpuUsage(20).setNetworkUsage(30).build())
-    list.add(EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(10)).setCpuUsage(20).setNetworkUsage(40).build())
-    list.add(EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(15)).setCpuUsage(20).setNetworkUsage(50).build())
-    list.add(EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(20)).setNetworkUsage(10).build())
-    service.dataList = list
   }
 
   @Test
