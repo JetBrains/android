@@ -20,7 +20,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.*;
@@ -36,7 +36,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     // http://b/35788105
   }
 
-  private AndroidProjectStub myAndroidProject;
+  private TestAndroidProject myAndroidProject;
   private AndroidModuleModel myAndroidModel;
 
   @Override

@@ -17,58 +17,75 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
+import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-public class OutputFileStub implements OutputFile {
+public class AndroidArtifactOutputStubOld implements AndroidArtifactOutput {
+  @NotNull
+  private final Collection<OutputFile> myOutputs;
 
-  private final File myOutputFile;
+  public AndroidArtifactOutputStubOld(@NotNull OutputFile output) {
+    this(Collections.singletonList(output));
+  }
 
-  public OutputFileStub(File outputFile) {
-    myOutputFile = outputFile;
+  public AndroidArtifactOutputStubOld(@NotNull Collection<OutputFile> outputs) {
+    myOutputs = outputs;
+  }
+
+  @Override
+  @NotNull
+  public String getAssembleTaskName() {
+    return "assemble";
+  }
+
+  @Override
+  @NotNull
+  public File getGeneratedManifest() {
+    return new File("test");
   }
 
   @Override
   @NotNull
   public String getOutputType() {
-    return "test";
+    return getMainOutputFile().getOutputType();
   }
 
   @Override
   @NotNull
   public Collection<String> getFilterTypes() {
-    return Collections.emptyList();
+    return getMainOutputFile().getFilterTypes();
   }
 
   @Override
   @NotNull
   public Collection<FilterData> getFilters() {
-    return Collections.emptyList();
+    return getMainOutputFile().getFilters();
   }
 
   @Override
   @NotNull
   public OutputFile getMainOutputFile() {
-    return this;
+    return myOutputs.iterator().next();
   }
 
   @Override
   @NotNull
   public Collection<? extends OutputFile> getOutputs() {
-    return Collections.emptyList();
+    return myOutputs;
   }
 
   @Override
   public int getVersionCode() {
-    return 0;
+    return getMainOutputFile().getVersionCode();
   }
 
   @Override
   @NotNull
   public File getOutputFile() {
-    return myOutputFile;
+    return getMainOutputFile().getOutputFile();
   }
 }
