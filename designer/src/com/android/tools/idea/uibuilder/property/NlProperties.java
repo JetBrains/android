@@ -304,8 +304,7 @@ public class NlProperties {
         if (!(handler instanceof ImageViewHandler)) {
           return false;
         }
-        ImageViewHandler imageViewHandler = (ImageViewHandler)handler;
-        if (!imageViewHandler.shouldUseSrcCompat(model)) {
+        if (!ImageViewHandler.shouldUseSrcCompat(model)) {
           return false;
         }
       }
