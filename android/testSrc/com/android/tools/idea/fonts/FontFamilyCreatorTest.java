@@ -42,6 +42,12 @@ public class FontFamilyCreatorTest extends FontTestCase {
   }
 
   @Override
+  protected void tearDown() throws Exception {
+    myCreator = null;
+    super.tearDown();
+  }
+
+  @Override
   protected boolean providesCustomManifest() {
     return true;
   }
