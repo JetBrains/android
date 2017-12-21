@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,7 +34,6 @@ import static org.mockito.Mockito.*;
 public class NlInspectorProvidersTest extends PropertyTestCase {
   private NlInspectorProviders myProviders;
   private NlPropertiesManager myPropertiesManager;
-  private Disposable myDisposable;
 
   @Override
   public void setUp() throws Exception {
@@ -44,18 +41,14 @@ public class NlInspectorProvidersTest extends PropertyTestCase {
     myPropertiesManager = mock(NlPropertiesManager.class);
     when(myPropertiesManager.getProject()).thenReturn(getProject());
     when(myPropertiesManager.getPropertyEditors()).thenReturn(NlPropertyEditors.getInstance(getProject()));
-    myDisposable = Disposer.newDisposable();
-    myProviders = new NlInspectorProviders(myPropertiesManager, myDisposable);
+    myProviders = new NlInspectorProviders(myPropertiesManager, getTestRootDisposable());
   }
 
   @Override
   public void tearDown() throws Exception {
-    try {
-      Disposer.dispose(myDisposable);
-    }
-    finally {
-      super.tearDown();
-    }
+    super.tearDown();
+    myPropertiesManager = null;
+    myProviders = null;
   }
 
 
