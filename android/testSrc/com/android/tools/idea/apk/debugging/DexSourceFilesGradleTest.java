@@ -25,8 +25,6 @@ import java.util.List;
 import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.getMyActivityApkClass;
 import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.getMyActivityFile;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DexSourceFiles}.
@@ -39,6 +37,12 @@ public class DexSourceFilesGradleTest extends AndroidGradleTestCase {
     super.setUp();
     loadSimpleApplication();
     myDexSourceFiles = new DexSourceFiles(getProject());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    myDexSourceFiles = null;
+    super.tearDown();
   }
 
   public void testFindClass() throws Exception {
