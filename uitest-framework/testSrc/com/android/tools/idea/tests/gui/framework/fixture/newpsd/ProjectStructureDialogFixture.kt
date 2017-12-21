@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.structure.dialog.SidePanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
+import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.ui.navigation.Place

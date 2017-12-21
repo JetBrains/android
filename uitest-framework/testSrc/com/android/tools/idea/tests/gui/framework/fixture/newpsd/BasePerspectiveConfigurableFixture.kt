@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
+import com.android.tools.idea.tests.gui.framework.*
+import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.InplaceButton
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.TimedDeadzone
 import org.fest.swing.core.MouseButton
+import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.JTreeFixture
 import org.fest.swing.timing.Pause
 import java.awt.Container
 import java.awt.Point
+import java.awt.event.KeyEvent
 import javax.swing.JButton
 import javax.swing.JLabel
 
@@ -30,19 +37,12 @@ open class BasePerspectiveConfigurableFixture protected constructor(
     override val ideFrameFixture: IdeFrameFixture,
     override val container: Container
 ) : IdeFrameContainerFixture {
-  fun requireMinimizedModuleSelector() =
-      finder().findByLabel(container, "Module: ", JButton::class.java)
 
-  fun requireVisibleModuleSelector() =
-      finder().find(container, matcher<JLabel> { it.text == "Modules" })
-
-
-  fun minizeModulesList() {
+  fun minimizeModulesList() {
     val hideButton = finder().find(container, matcher<InplaceButton> { it.toolTipText == "Hide" })
     robot().pressMouse(hideButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     Pause.pause(TimedDeadzone.DEFAULT.length.toLong())
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
-    robot().waitForIdle()
   }
 
   fun restoreModulesList() {
@@ -50,8 +50,79 @@ open class BasePerspectiveConfigurableFixture protected constructor(
     robot().pressMouse(restoreButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     Pause.pause(TimedDeadzone.DEFAULT.length.toLong())
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
-    robot().waitForIdle()
   }
+
+  fun isModuleSelectorMinimized() = tryFind { doFindModuleSelector() } == null
+
+  fun findModuleSelector(): ModuleSelectorFixture =
+      if (isModuleSelectorMinimized()) findMinimizedModuleSelector() else findVisibleModuleSelectorFixture()
+
+  private fun findVisibleModuleSelectorFixture(): ModuleSelectorFixture {
+
+    return object : ModuleSelectorFixture {
+
+      override fun modules(): List<String> {
+        val tree = findModuleTree()
+        return GuiQuery.get {
+          val treeModel = tree.target().model
+          val count = treeModel.getChildCount(treeModel.root)
+          (0 until count).map { tree.valueAt(it).orEmpty() }
+        }!!
+      }
+
+      override fun selectedModule(): String {
+        val tree = findModuleTree()
+        return GuiQuery.get { tree.target().selectionPath.lastPathComponent.toString() }!!
+      }
+
+      override fun selectModule(moduleName: String) {
+        findModuleTree().selectPath(moduleName)
+      }
+
+      private fun findModuleTree() =
+          JTreeFixture(
+              robot(),
+              finder()
+                  .findByType<Tree>(
+                      root = finder()
+                          .find(
+                              container,
+                              matcher<ToolWindowHeader> { it.components.any { it is JLabel && it.text == "Modules" } })
+                          .parent))
+    }
+  }
+
+  private fun findMinimizedModuleSelector(): ModuleSelectorFixture {
+    return object : ModuleSelectorFixture {
+      override fun modules(): List<String> {
+        val comboBox = findModuleComboBox()
+        return comboBox.items()
+      }
+
+      override fun selectedModule(): String {
+        val comboBox = findModuleComboBox()
+        return comboBox.selectedItemText
+      }
+
+      override fun selectModule(moduleName: String) {
+        val comboBox = findModuleComboBox()
+        comboBox.selectItem(moduleName)
+        robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
+      }
+
+      private fun findModuleComboBox() =
+          ComboBoxActionFixture(
+              robot(),
+              finder().findByLabel<JButton>(container, "Module: "))
+    }
+  }
+
+  private fun doFindModuleSelector() = finder().find(container, matcher<JLabel> { it.text == "Modules" })
 }
 
 
+interface ModuleSelectorFixture {
+  fun modules(): List<String>
+  fun selectedModule(): String
+  fun selectModule(moduleName: String)
+}

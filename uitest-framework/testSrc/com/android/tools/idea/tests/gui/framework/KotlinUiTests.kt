@@ -13,29 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newpsd
+package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.ComponentFinder
 import org.fest.swing.core.GenericTypeMatcher
+import org.fest.swing.exception.ComponentLookupException
 import java.awt.Container
 import javax.swing.JComponent
-
-typealias TestBlock<T> = (T.() -> Unit)?
 
 interface IdeFrameContainerFixture {
   val ideFrameFixture: IdeFrameFixture
   val container: Container
 }
 
-fun <T> TestBlock<T>.runTestOn(target: T) = this?.let { target.this() }
-
-fun <T> IdeFrameFixture.openFromMenu(finder: (IdeFrameFixture) -> T, vararg path: String, block: TestBlock<T>) =
-    block.runTestOn(openFromMenu(finder, path))
+fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
+fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
 
 inline fun <reified T : JComponent> matcher(crossinline predicate: (T) -> Boolean): GenericTypeMatcher<T> =
     object : GenericTypeMatcher<T>(T::class.java) {
       override fun isMatching(component: T): Boolean = predicate(component)
     }
 
-fun IdeFrameContainerFixture.robot() = ideFrameFixture.robot()
-fun IdeFrameContainerFixture.finder() = ideFrameFixture.robot().finder()
+inline fun <reified T : JComponent> ComponentFinder.findByType(root: Container) = findByType(root, T::class.java, true)
+inline fun <reified T : JComponent> ComponentFinder.findByLabel(root: Container, label: String) =
+    findByLabel(root, label, T::class.java, true)
+
+fun <T> tryFind(finder: () -> T): T? = try {
+  finder()
+}
+catch (_: ComponentLookupException) {
+  null
+}

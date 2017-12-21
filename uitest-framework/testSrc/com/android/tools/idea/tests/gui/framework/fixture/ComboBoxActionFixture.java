@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -26,9 +27,11 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import javax.swing.*;
 import java.awt.*;
 
@@ -73,6 +76,15 @@ public class ComboBoxActionFixture {
   public void selectItem(@NotNull String itemName) {
     click();
     selectItemByText(itemName);
+  }
+
+  public List<String> items() {
+    click();
+    JBList list = getList();
+    final JListFixture listFixture = new JListFixture(myRobot, list);
+    final ImmutableList<String> result = ImmutableList.copyOf(listFixture.contents());
+    click();
+    return result;
   }
 
   @NotNull
