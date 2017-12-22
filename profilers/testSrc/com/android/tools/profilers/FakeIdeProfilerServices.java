@@ -49,34 +49,25 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   Runnable myPrePoolExecute;
 
   /**
-   * Toggle for faking jvmti agent support in tests.
-   */
-  private boolean isJvmtiAgentEnabled = false;
-
-  /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean isSimplePerfEnabled = false;
-
-  /**
    * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
    */
-  private boolean isAtraceEnabled = false;
+  private boolean myAtraceEnabled = false;
+
+  /**
+   * Toggle for faking jvmti agent support in tests.
+   */
+  private boolean myJvmtiAgentEnabled = false;
+
 
   /**
    * Toggle for faking live allocation tracking support in tests.
    */
-  private boolean isLiveTrackingEnabled = false;
+  private boolean myLiveTrackingEnabled = false;
 
   /**
    * Toggle for faking memory snapshot support in tests.
    */
   private boolean isMemorySnapshotEnabled = false;
-
-  /**
-   * Whether long trace files should be parsed.
-   */
-  private boolean myShouldParseLongTraces = false;
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
@@ -86,12 +77,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether network request payload is tracked and shown.
    */
-  private boolean myIsRequestPayloadEnabled = false;
+  private boolean myRequestPayloadEnabled = false;
 
   /**
-   * JNI references alloc/dealloc events are tracked and shown.
+   * Whether long trace files should be parsed.
    */
-  private boolean myIsJniReferenceTrackingEnabled = false;
+  private boolean myShouldParseLongTraces = false;
+
+  /**
+   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean mySimplePerfEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -153,7 +149,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return new FeatureConfig() {
       @Override
       public boolean isAtraceEnabled() {
-        return isAtraceEnabled;
+        return myAtraceEnabled;
       }
 
       @Override
@@ -167,16 +163,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+      public boolean isJniReferenceTrackingEnabled() { return false; }
 
       @Override
       public boolean isJvmtiAgentEnabled() {
-        return isJvmtiAgentEnabled;
+        return myJvmtiAgentEnabled;
       }
 
       @Override
       public boolean isLiveAllocationsEnabled() {
-        return isLiveTrackingEnabled;
+        return myLiveTrackingEnabled;
       }
 
       @Override
@@ -191,7 +187,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isNetworkRequestPayloadEnabled() {
-        return myIsRequestPayloadEnabled;
+        return myRequestPayloadEnabled;
       }
 
       @Override
@@ -201,7 +197,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isSimplePerfEnabled() {
-        return isSimplePerfEnabled;
+        return mySimplePerfEnabled;
       }
     };
   }
@@ -260,20 +256,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myPrePoolExecute = prePoolExecute;
   }
 
-  public void enableJvmtiAgent(boolean enabled) {
-    isJvmtiAgentEnabled = enabled;
-  }
-
-  public void enableSimplePerf(boolean enabled) {
-    isSimplePerfEnabled = enabled;
-  }
-
   public void enableAtrace(boolean enabled) {
-    isAtraceEnabled = enabled;
+    myAtraceEnabled = enabled;
+  }
+
+  public void enableJvmtiAgent(boolean enabled) {
+    myJvmtiAgentEnabled = enabled;
   }
 
   public void enableLiveAllocationTracking(boolean enabled) {
-    isLiveTrackingEnabled = enabled;
+    myLiveTrackingEnabled = enabled;
   }
 
   public void enableMemorySnapshot(boolean enabled) {
@@ -281,8 +273,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableRequestPayload(boolean enabled) {
-    myIsRequestPayloadEnabled = enabled;
+    myRequestPayloadEnabled = enabled;
   }
 
-  public void setJniReferenceTrackingEnabled(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
+  public void enableSimplePerf(boolean enabled) {
+    mySimplePerfEnabled = enabled;
+  }
 }
