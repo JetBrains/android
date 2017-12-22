@@ -93,7 +93,7 @@ public class NewActivityTest {
    *   Activity class and layout.xml files are created. The activity previews correctly in layout editor.
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70716383
   @Test
   public void createDefaultActivity() {
     myDialog.clickFinish();
