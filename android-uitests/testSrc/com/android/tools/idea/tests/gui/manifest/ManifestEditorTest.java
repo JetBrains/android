@@ -147,21 +147,4 @@ public class ManifestEditorTest {
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     assertThat(editor.getCurrentFileContents()).contains(addedText);
   }
-
-  @Test
-  public void testNavigationSource() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
-    IdeFrameFixture projectFrame = guiTest.ideFrame();
-    EditorFixture editor = projectFrame.getEditor();
-
-    editor.open("app/src/main/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
-
-    // row 22 is the first row of the intent-filter element generated from the nav-graph element
-    mergedManifestFixture.getTree().clickRow(22);
-
-    mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
-    assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
-  }
 }
