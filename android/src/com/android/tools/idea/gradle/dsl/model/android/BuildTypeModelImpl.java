@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -50,22 +50,13 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
 
   @Override
   @NotNull
-  public GradleNullableValue<String> applicationIdSuffix() {
-    return myDslElement.getLiteralProperty(APPLICATION_ID_SUFFIX, String.class);
+  public ResolvedPropertyModel applicationIdSuffix() {
+    return getModelForProperty(APPLICATION_ID_SUFFIX);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setApplicationIdSuffix(@NotNull String applicationIdSuffix) {
-    myDslElement.setNewLiteral(APPLICATION_ID_SUFFIX, applicationIdSuffix);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeApplicationIdSuffix() {
+  public void removeApplicationIdSuffix() {
     myDslElement.removeProperty(APPLICATION_ID_SUFFIX);
-    return this;
   }
 
   @Override
@@ -89,379 +80,146 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel addBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    return (BuildTypeModelImpl)addTypeNameValueElement(buildConfigField);
+  public void addBuildConfigField(@NotNull BuildConfigField buildConfigField) {
+    addTypeNameValueElement(buildConfigField);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel removeBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    return (BuildTypeModelImpl)removeTypeNameValueElement(buildConfigField);
+  public void removeBuildConfigField(@NotNull BuildConfigField buildConfigField) {
+    removeTypeNameValueElement(buildConfigField);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel removeAllBuildConfigFields() {
+  public void removeAllBuildConfigFields() {
     myDslElement.removeProperty(BUILD_CONFIG_FIELD);
-    return this;
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField,
+  public void replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField,
                                                 @NotNull BuildConfigField newBuildConfigField) {
-    return (BuildTypeModelImpl)replaceTypeNameValueElement(oldBuildConfigField, newBuildConfigField);
+    replaceTypeNameValueElement(oldBuildConfigField, newBuildConfigField);
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> debuggable() {
-    return myDslElement.getLiteralProperty(DEBUGGABLE, Boolean.class);
+  public ResolvedPropertyModel debuggable() {
+    return getModelForProperty(DEBUGGABLE);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setDebuggable(@NotNull Boolean debuggable) {
-    myDslElement.setNewLiteral(DEBUGGABLE, debuggable);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeDebuggable() {
+  public void removeDebuggable() {
     myDslElement.removeProperty(DEBUGGABLE);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> embedMicroApp() {
-    return myDslElement.getLiteralProperty(EMBED_MICRO_APP, Boolean.class);
+  public ResolvedPropertyModel embedMicroApp() {
+    return getModelForProperty(EMBED_MICRO_APP);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setEmbedMicroApp(@NotNull Boolean embedMicroApp) {
-    myDslElement.setNewLiteral(EMBED_MICRO_APP, embedMicroApp);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeEmbedMicroApp() {
+  public void removeEmbedMicroApp() {
     myDslElement.removeProperty(EMBED_MICRO_APP);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> jniDebuggable() {
-    return myDslElement.getLiteralProperty(JNI_DEBUGGABLE, Boolean.class);
+  public ResolvedPropertyModel jniDebuggable() {
+    return getModelForProperty(JNI_DEBUGGABLE);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setJniDebuggable(@NotNull Boolean jniDebuggable) {
-    myDslElement.setNewLiteral(JNI_DEBUGGABLE, jniDebuggable);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeJniDebuggable() {
+  public void removeJniDebuggable() {
     myDslElement.removeProperty(JNI_DEBUGGABLE);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> minifyEnabled() {
-    return myDslElement.getLiteralProperty(MINIFY_ENABLED, Boolean.class);
+  public ResolvedPropertyModel minifyEnabled() {
+    return getModelForProperty(MINIFY_ENABLED);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setMinifyEnabled(@NotNull Boolean minifyEnabled) {
-    myDslElement.setNewLiteral(MINIFY_ENABLED, minifyEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeMinifyEnabled() {
+  public void removeMinifyEnabled() {
     myDslElement.removeProperty(MINIFY_ENABLED);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> pseudoLocalesEnabled() {
-    return myDslElement.getLiteralProperty(PSEUDO_LOCALES_ENABLED, Boolean.class);
+  public ResolvedPropertyModel pseudoLocalesEnabled() {
+    return getModelForProperty(PSEUDO_LOCALES_ENABLED);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setPseudoLocalesEnabled(@NotNull Boolean pseudoLocalesEnabled) {
-    myDslElement.setNewLiteral(PSEUDO_LOCALES_ENABLED, pseudoLocalesEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removePseudoLocalesEnabled() {
+  public void removePseudoLocalesEnabled() {
     myDslElement.removeProperty(PSEUDO_LOCALES_ENABLED);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> renderscriptDebuggable() {
-    return myDslElement.getLiteralProperty(RENDERSCRIPT_DEBUGGABLE, Boolean.class);
+  public ResolvedPropertyModel renderscriptDebuggable() {
+    return getModelForProperty(RENDERSCRIPT_DEBUGGABLE);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setRenderscriptDebuggable(@NotNull Boolean renderscriptDebuggable) {
-    myDslElement.setNewLiteral(RENDERSCRIPT_DEBUGGABLE, renderscriptDebuggable);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeRenderscriptDebuggable() {
+  public void removeRenderscriptDebuggable() {
     myDslElement.removeProperty(RENDERSCRIPT_DEBUGGABLE);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Integer> renderscriptOptimLevel() {
-    return myDslElement.getLiteralProperty(RENDERSCRIPT_OPTIM_LEVEL, Integer.class);
+  public ResolvedPropertyModel renderscriptOptimLevel() {
+    return getModelForProperty(RENDERSCRIPT_OPTIM_LEVEL);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setRenderscriptOptimLevel(@NotNull Integer renderscriptOptimLevel) {
-    myDslElement.setNewLiteral(RENDERSCRIPT_OPTIM_LEVEL, renderscriptOptimLevel);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeRenderscriptOptimLevel() {
+  public void removeRenderscriptOptimLevel() {
     myDslElement.removeProperty(RENDERSCRIPT_OPTIM_LEVEL);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> shrinkResources() {
-    return myDslElement.getLiteralProperty(SHRINK_RESOURCES, Boolean.class);
+  public ResolvedPropertyModel shrinkResources() {
+    return getModelForProperty(SHRINK_RESOURCES);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setShrinkResources(@NotNull Boolean shrinkResources) {
-    myDslElement.setNewLiteral(SHRINK_RESOURCES, shrinkResources);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeShrinkResources() {
+  public void removeShrinkResources() {
     myDslElement.removeProperty(SHRINK_RESOURCES);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> testCoverageEnabled() {
-    return myDslElement.getLiteralProperty(TEST_COVERAGE_ENABLED, Boolean.class);
+  public ResolvedPropertyModel testCoverageEnabled() {
+    return getModelForProperty(TEST_COVERAGE_ENABLED);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setTestCoverageEnabled(@NotNull Boolean testCoverageEnabled) {
-    myDslElement.setNewLiteral(TEST_COVERAGE_ENABLED, testCoverageEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeTestCoverageEnabled() {
+  public void removeTestCoverageEnabled() {
     myDslElement.removeProperty(TEST_COVERAGE_ENABLED);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<String> versionNameSuffix() {
-    return myDslElement.getLiteralProperty(VERSION_NAME_SUFFIX, String.class);
+  public ResolvedPropertyModel versionNameSuffix() {
+    return getModelForProperty(VERSION_NAME_SUFFIX);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setVersionNameSuffix(@NotNull String versionNameSuffix) {
-    myDslElement.setNewLiteral(VERSION_NAME_SUFFIX, versionNameSuffix);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeVersionNameSuffix() {
+  public void removeVersionNameSuffix() {
     myDslElement.removeProperty(VERSION_NAME_SUFFIX);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> zipAlignEnabled() {
-    return myDslElement.getLiteralProperty(ZIP_ALIGN_ENABLED, Boolean.class);
+  public ResolvedPropertyModel zipAlignEnabled() {
+    return getModelForProperty(ZIP_ALIGN_ENABLED);
   }
 
   @Override
-  @NotNull
-  public BuildTypeModel setZipAlignEnabled(@NotNull Boolean zipAlignEnabled) {
-    myDslElement.setNewLiteral(ZIP_ALIGN_ENABLED, zipAlignEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeZipAlignEnabled() {
+  public void removeZipAlignEnabled() {
     myDslElement.removeProperty(ZIP_ALIGN_ENABLED);
-    return this;
   }
-
-  // Overriding the super class method to make them chainable along with the other methods in this class.
-
-  @Override
-  @NotNull
-  public BuildTypeModel addConsumerProguardFile(@NotNull String consumerProguardFile) {
-    return (BuildTypeModelImpl)super.addConsumerProguardFile(consumerProguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeConsumerProguardFile(@NotNull String consumerProguardFile) {
-    return (BuildTypeModelImpl)super.removeConsumerProguardFile(consumerProguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeAllConsumerProguardFiles() {
-    return (BuildTypeModelImpl)super.removeAllConsumerProguardFiles();
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile, @NotNull String newConsumerProguardFile) {
-    return (BuildTypeModelImpl)super.replaceConsumerProguardFile(oldConsumerProguardFile, newConsumerProguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel setManifestPlaceholder(@NotNull String name, @NotNull String value) {
-    return (BuildTypeModelImpl)super.setManifestPlaceholder(name, value);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel setManifestPlaceholder(@NotNull String name, int value) {
-    return (BuildTypeModelImpl)super.setManifestPlaceholder(name, value);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel setManifestPlaceholder(@NotNull String name, boolean value) {
-    return (BuildTypeModelImpl)super.setManifestPlaceholder(name, value);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeManifestPlaceholder(@NotNull String name) {
-    return (BuildTypeModelImpl)super.removeManifestPlaceholder(name);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeAllManifestPlaceholders() {
-    return (BuildTypeModelImpl)super.removeAllManifestPlaceholders();
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel setMultiDexEnabled(boolean multiDexEnabled) {
-    return (BuildTypeModelImpl)super.setMultiDexEnabled(multiDexEnabled);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeMultiDexEnabled() {
-    return (BuildTypeModelImpl)super.removeMultiDexEnabled();
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel addProguardFile(@NotNull String proguardFile) {
-    return (BuildTypeModelImpl)super.addProguardFile(proguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeProguardFile(@NotNull String proguardFile) {
-    return (BuildTypeModelImpl)super.removeProguardFile(proguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeAllProguardFiles() {
-    return (BuildTypeModelImpl)super.removeAllProguardFiles();
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
-    return (BuildTypeModelImpl)super.replaceProguardFile(oldProguardFile, newProguardFile);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel addResValue(@NotNull ResValue resValue) {
-    return (BuildTypeModelImpl)super.addResValue(resValue);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeResValue(@NotNull ResValue resValue) {
-    return (BuildTypeModelImpl)super.removeResValue(resValue);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeAllResValues() {
-    return (BuildTypeModelImpl)super.removeAllResValues();
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
-    return (BuildTypeModelImpl)super.replaceResValue(oldResValue, newResValue);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel setUseJack(boolean useJack) {
-    return (BuildTypeModelImpl)super.setUseJack(useJack);
-  }
-
-  @Override
-  @NotNull
-  public BuildTypeModel removeUseJack() {
-    return (BuildTypeModelImpl)super.removeUseJack();
-  }
-
 
   /**
    * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.

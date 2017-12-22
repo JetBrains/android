@@ -29,7 +29,7 @@ import java.util.Map;
  * of the projects Gradle build. It allows access to the properties name, values and dependencies.
  */
 public interface GradlePropertyModel {
-  // The following are TypeReferences used in calls to getValue and getUnresolvedValue.
+  // The following are TypeReferences used in calls to getValue and getRawValue.
   TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
   TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
   TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
@@ -100,7 +100,7 @@ public interface GradlePropertyModel {
    * as {@link #getValue(Class)}.
    */
   @Nullable
-  <T> T getUnresolvedValue(@NotNull TypeReference<T> clazz);
+  <T> T getRawValue(@NotNull TypeReference<T> typeReference);
 
   /**
    * Returns a list of all immediate dependencies for the property. This includes references and string injections within

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 
@@ -36,18 +36,20 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
  * there values set. Once an {@link EmptyPropertyModel} has its value set it created a {@link GradlePropertyModelImpl} with the
  * resulting {@link GradleDslElement} all subsequent calls are delegated to this new model.
  */
-public class EmptyPropertyModel implements GradlePropertyModel {
-  @Nullable private GradlePropertyModelImpl myRealElement;
+public class EmptyPropertyModel implements ResolvedPropertyModel {
+  @Nullable private GradlePropertyModel myRealElement;
 
   @NotNull private final GradlePropertiesDslElement myPropertyHolder;
   @NotNull private final PropertyType myPropertyType;
   @NotNull private final String myPropertyName;
+  private final boolean myShouldBecomeResolved;
 
 
-  public EmptyPropertyModel(@NotNull GradlePropertiesDslElement propertyHolder, @NotNull PropertyType type, @NotNull String propertyName) {
+  public EmptyPropertyModel(@NotNull GradlePropertiesDslElement propertyHolder, @NotNull PropertyType type, @NotNull String propertyName, boolean shouldBecomeResolved) {
     myPropertyHolder = propertyHolder;
     myPropertyType = type;
     myPropertyName = propertyName;
+    myShouldBecomeResolved = shouldBecomeResolved;
   }
 
   @NotNull
@@ -79,9 +81,9 @@ public class EmptyPropertyModel implements GradlePropertyModel {
 
   @Nullable
   @Override
-  public <T> T getUnresolvedValue(@NotNull TypeReference<T> typeReference) {
+  public <T> T getRawValue(@NotNull TypeReference<T> typeReference) {
     if (myRealElement != null) {
-      return myRealElement.getUnresolvedValue(typeReference);
+      return myRealElement.getRawValue(typeReference);
     }
     return null;
   }
@@ -130,7 +132,7 @@ public class EmptyPropertyModel implements GradlePropertyModel {
     GradleDslElement element = myPropertyHolder.setNewLiteral(myPropertyName, value);
     // Set the property type of the created DslElement
     element.setElementType(myPropertyType);
-    myRealElement = new GradlePropertyModelImpl(element);
+    myRealElement = myShouldBecomeResolved ? new ResolvedPropertyModelImpl(element) : new GradlePropertyModelImpl(element);
   }
 
   @Override
@@ -141,5 +143,14 @@ public class EmptyPropertyModel implements GradlePropertyModel {
 
     return String.format("[Name: %1$s, Property Type: %2$s, Holder: %3$s, Value: Empty]@%4$s",
                          myPropertyName, myPropertyType, myPropertyHolder, Integer.toHexString(hashCode()));
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel getUnresolvedModel() {
+    if (myRealElement != null) {
+      return myRealElement;
+    }
+    return this;
   }
 }

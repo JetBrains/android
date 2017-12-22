@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.EmptyPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -31,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
@@ -60,32 +64,24 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel addConsumerProguardFile(@NotNull String consumerProguardFile) {
+  public void addConsumerProguardFile(@NotNull String consumerProguardFile) {
     myDslElement.addToNewLiteralList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeConsumerProguardFile(@NotNull String consumerProguardFile) {
+  public void removeConsumerProguardFile(@NotNull String consumerProguardFile) {
     myDslElement.removeFromExpressionList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeAllConsumerProguardFiles() {
+  public void removeAllConsumerProguardFiles() {
     myDslElement.removeProperty(CONSUMER_PROGUARD_FILES);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
+  public void replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
                                                      @NotNull String newConsumerProguardFile) {
     myDslElement.replaceInExpressionList(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
-    return this;
   }
 
   @Override
@@ -95,58 +91,39 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel setManifestPlaceholder(@NotNull String name, @NotNull String value) {
+  public void setManifestPlaceholder(@NotNull String name, @NotNull String value) {
     myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel setManifestPlaceholder(@NotNull String name, int value) {
+  public void setManifestPlaceholder(@NotNull String name, int value) {
     myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel setManifestPlaceholder(@NotNull String name, boolean value) {
+  public void setManifestPlaceholder(@NotNull String name, boolean value) {
     myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeManifestPlaceholder(@NotNull String name) {
+  public void removeManifestPlaceholder(@NotNull String name) {
     myDslElement.removeFromExpressionMap(MANIFEST_PLACEHOLDERS, name);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeAllManifestPlaceholders() {
+  public void removeAllManifestPlaceholders() {
     myDslElement.removeProperty(MANIFEST_PLACEHOLDERS);
-    return this;
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> multiDexEnabled() {
-    return myDslElement.getLiteralProperty(MULTI_DEX_ENABLED, Boolean.class);
+  public ResolvedPropertyModel multiDexEnabled() {
+    return getModelForProperty(MULTI_DEX_ENABLED);
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel setMultiDexEnabled(boolean multiDexEnabled) {
-    myDslElement.setNewLiteral(MULTI_DEX_ENABLED, multiDexEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public FlavorTypeModel removeMultiDexEnabled() {
+  public void removeMultiDexEnabled() {
     myDslElement.removeProperty(MULTI_DEX_ENABLED);
-    return this;
   }
 
   @Override
@@ -156,31 +133,23 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel addProguardFile(@NotNull String proguardFile) {
+  public void addProguardFile(@NotNull String proguardFile) {
     myDslElement.addToNewLiteralList(PROGUARD_FILES, proguardFile);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeProguardFile(@NotNull String proguardFile) {
+  public void removeProguardFile(@NotNull String proguardFile) {
     myDslElement.removeFromExpressionList(PROGUARD_FILES, proguardFile);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeAllProguardFiles() {
+  public void removeAllProguardFiles() {
     myDslElement.removeProperty(PROGUARD_FILES);
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
+  public void replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
     myDslElement.replaceInExpressionList(PROGUARD_FILES, oldProguardFile, newProguardFile);
-    return this;
   }
 
   @Nullable
@@ -224,25 +193,21 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return resValues;
   }
 
-  @NotNull
-  protected FlavorTypeModel addTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
+  protected void addTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
     GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.elementName(), GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(myDslElement, typeNameValueElement.elementName());
       myDslElement.setNewElement(typeNameValueElement.elementName(), elementList);
     }
     elementList.addNewElement(TypeNameValueElementImpl.toLiteralListElement(typeNameValueElement, myDslElement));
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel addResValue(@NotNull ResValue resValue) {
-    return addTypeNameValueElement(resValue);
+  public void addResValue(@NotNull ResValue resValue) {
+    addTypeNameValueElement(resValue);
   }
 
-  @NotNull
-  protected FlavorTypeModel removeTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
+  protected void removeTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
     GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.elementName(), GradleDslElementList.class);
     if (elementList != null) {
       for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
@@ -255,24 +220,19 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
         }
       }
     }
-    return this;
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeResValue(@NotNull ResValue resValue) {
-    return removeTypeNameValueElement(resValue);
+  public void removeResValue(@NotNull ResValue resValue) {
+    removeTypeNameValueElement(resValue);
   }
 
   @Override
-  @NotNull
-  public FlavorTypeModel removeAllResValues() {
+  public void removeAllResValues() {
     myDslElement.removeProperty(RES_VALUE);
-    return this;
   }
 
-  @NotNull
-  protected FlavorTypeModel replaceTypeNameValueElement(@NotNull TypeNameValueElement oldElement,
+  protected void replaceTypeNameValueElement(@NotNull TypeNameValueElement oldElement,
                                                         @NotNull TypeNameValueElement newElement) {
     if (oldElement.elementName().equals(newElement.elementName())) {
       GradleDslElementList elementList = myDslElement.getPropertyElement(oldElement.elementName(), GradleDslElementList.class);
@@ -290,33 +250,22 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
         }
       }
     }
-    return this;
+  }
+
+  @Override
+  public void replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
+    replaceTypeNameValueElement(oldResValue, newResValue);
   }
 
   @Override
   @NotNull
-  public FlavorTypeModel replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
-    return replaceTypeNameValueElement(oldResValue, newResValue);
+  public ResolvedPropertyModel useJack() {
+    return getModelForProperty(USE_JACK);
   }
 
   @Override
-  @NotNull
-  public GradleNullableValue<Boolean> useJack() {
-    return myDslElement.getLiteralProperty(USE_JACK, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public FlavorTypeModel setUseJack(boolean useJack) {
-    myDslElement.setNewLiteral(USE_JACK, useJack);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public FlavorTypeModel removeUseJack() {
+  public void removeUseJack() {
     myDslElement.removeProperty(USE_JACK);
-    return this;
   }
 
   /**
@@ -403,6 +352,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
       gradleDslExpressionList.addNewExpression(valueElement);
       return gradleDslExpressionList;
     }
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
+    GradleDslElement element = myDslElement.getPropertyElement(property);
+    return element == null ? new EmptyPropertyModel(myDslElement, REGULAR, property, true) : new ResolvedPropertyModelImpl(element);
   }
 
   /**

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,211 +25,75 @@ import java.util.List;
 
 public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
-  GradleNullableValue<String> applicationIdSuffix();
+  ResolvedPropertyModel applicationIdSuffix();
 
-  @NotNull
-  BuildTypeModel setApplicationIdSuffix(@NotNull String applicationIdSuffix);
-
-  @NotNull
-  BuildTypeModel removeApplicationIdSuffix();
+  void removeApplicationIdSuffix();
 
   @Nullable
   List<GradleNotNullValue<BuildConfigField>> buildConfigFields();
 
-  @NotNull
-  BuildTypeModel addBuildConfigField(@NotNull BuildConfigField buildConfigField);
+  void addBuildConfigField(@NotNull BuildConfigField buildConfigField);
+
+  void removeBuildConfigField(@NotNull BuildConfigField buildConfigField);
+
+  void removeAllBuildConfigFields();
+
+  void replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField, @NotNull BuildConfigField newBuildConfigField);
 
   @NotNull
-  BuildTypeModel removeBuildConfigField(@NotNull BuildConfigField buildConfigField);
+  ResolvedPropertyModel debuggable();
+
+  void removeDebuggable();
 
   @NotNull
-  BuildTypeModel removeAllBuildConfigFields();
+  ResolvedPropertyModel embedMicroApp();
+
+  void removeEmbedMicroApp();
 
   @NotNull
-  BuildTypeModel replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField, @NotNull BuildConfigField newBuildConfigField);
+  ResolvedPropertyModel jniDebuggable();
+
+  void removeJniDebuggable();
 
   @NotNull
-  GradleNullableValue<Boolean> debuggable();
+  ResolvedPropertyModel minifyEnabled();
+
+  void removeMinifyEnabled();
 
   @NotNull
-  BuildTypeModel setDebuggable(@NotNull Boolean debuggable);
+  ResolvedPropertyModel pseudoLocalesEnabled();
+
+  void removePseudoLocalesEnabled();
 
   @NotNull
-  BuildTypeModel removeDebuggable();
+  ResolvedPropertyModel renderscriptDebuggable();
+
+  void removeRenderscriptDebuggable();
 
   @NotNull
-  GradleNullableValue<Boolean> embedMicroApp();
+  ResolvedPropertyModel renderscriptOptimLevel();
+
+  void removeRenderscriptOptimLevel();
 
   @NotNull
-  BuildTypeModel setEmbedMicroApp(@NotNull Boolean embedMicroApp);
+  ResolvedPropertyModel shrinkResources();
+
+  void removeShrinkResources();
 
   @NotNull
-  BuildTypeModel removeEmbedMicroApp();
+  ResolvedPropertyModel testCoverageEnabled();
+
+  void removeTestCoverageEnabled();
 
   @NotNull
-  GradleNullableValue<Boolean> jniDebuggable();
+  ResolvedPropertyModel versionNameSuffix();
+
+  void removeVersionNameSuffix();
 
   @NotNull
-  BuildTypeModel setJniDebuggable(@NotNull Boolean jniDebuggable);
+  ResolvedPropertyModel zipAlignEnabled();
 
-  @NotNull
-  BuildTypeModel removeJniDebuggable();
-
-  @NotNull
-  GradleNullableValue<Boolean> minifyEnabled();
-
-  @NotNull
-  BuildTypeModel setMinifyEnabled(@NotNull Boolean minifyEnabled);
-
-  @NotNull
-  BuildTypeModel removeMinifyEnabled();
-
-  @NotNull
-  GradleNullableValue<Boolean> pseudoLocalesEnabled();
-
-  @NotNull
-  BuildTypeModel setPseudoLocalesEnabled(@NotNull Boolean pseudoLocalesEnabled);
-
-  @NotNull
-  BuildTypeModel removePseudoLocalesEnabled();
-
-  @NotNull
-  GradleNullableValue<Boolean> renderscriptDebuggable();
-
-  @NotNull
-  BuildTypeModel setRenderscriptDebuggable(@NotNull Boolean renderscriptDebuggable);
-
-  @NotNull
-  BuildTypeModel removeRenderscriptDebuggable();
-
-  @NotNull
-  GradleNullableValue<Integer> renderscriptOptimLevel();
-
-  @NotNull
-  BuildTypeModel setRenderscriptOptimLevel(@NotNull Integer renderscriptOptimLevel);
-
-  @NotNull
-  BuildTypeModel removeRenderscriptOptimLevel();
-
-  @NotNull
-  GradleNullableValue<Boolean> shrinkResources();
-
-  @NotNull
-  BuildTypeModel setShrinkResources(@NotNull Boolean shrinkResources);
-
-  @NotNull
-  BuildTypeModel removeShrinkResources();
-
-  @NotNull
-  GradleNullableValue<Boolean> testCoverageEnabled();
-
-  @NotNull
-  BuildTypeModel setTestCoverageEnabled(@NotNull Boolean testCoverageEnabled);
-
-  @NotNull
-  BuildTypeModel removeTestCoverageEnabled();
-
-  @NotNull
-  GradleNullableValue<String> versionNameSuffix();
-
-  @NotNull
-  BuildTypeModel setVersionNameSuffix(@NotNull String versionNameSuffix);
-
-  @NotNull
-  BuildTypeModel removeVersionNameSuffix();
-
-  @NotNull
-  GradleNullableValue<Boolean> zipAlignEnabled();
-
-  @NotNull
-  BuildTypeModel setZipAlignEnabled(@NotNull Boolean zipAlignEnabled);
-
-  @NotNull
-  BuildTypeModel removeZipAlignEnabled();
-
-  @Override
-  @NotNull
-  BuildTypeModel addConsumerProguardFile(@NotNull String consumerProguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeConsumerProguardFile(@NotNull String consumerProguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeAllConsumerProguardFiles();
-
-  @Override
-  @NotNull
-  BuildTypeModel replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile, @NotNull String newConsumerProguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel setManifestPlaceholder(@NotNull String name, @NotNull String value);
-
-  @Override
-  @NotNull
-  BuildTypeModel setManifestPlaceholder(@NotNull String name, int value);
-
-  @Override
-  @NotNull
-  BuildTypeModel setManifestPlaceholder(@NotNull String name, boolean value);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeManifestPlaceholder(@NotNull String name);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeAllManifestPlaceholders();
-
-  @Override
-  @NotNull
-  BuildTypeModel setMultiDexEnabled(boolean multiDexEnabled);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeMultiDexEnabled();
-
-  @Override
-  @NotNull
-  BuildTypeModel addProguardFile(@NotNull String proguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeProguardFile(@NotNull String proguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeAllProguardFiles();
-
-  @Override
-  @NotNull
-  BuildTypeModel replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile);
-
-  @Override
-  @NotNull
-  BuildTypeModel addResValue(@NotNull ResValue resValue);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeResValue(@NotNull ResValue resValue);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeAllResValues();
-
-  @Override
-  @NotNull
-  BuildTypeModel replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue);
-
-  @Override
-  @NotNull
-  BuildTypeModel setUseJack(boolean useJack);
-
-  @Override
-  @NotNull
-  BuildTypeModel removeUseJack();
+  void removeZipAlignEnabled();
 
   /**
    * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
