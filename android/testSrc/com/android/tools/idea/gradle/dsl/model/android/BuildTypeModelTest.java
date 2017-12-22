@@ -413,45 +413,44 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
-    buildType
-      .removeApplicationIdSuffix()
-      .removeAllBuildConfigFields()
-      .removeAllConsumerProguardFiles()
-      .removeDebuggable()
-      .removeEmbedMicroApp()
-      .removeJniDebuggable()
-      .removeAllManifestPlaceholders()
-      .removeMinifyEnabled()
-      .removeMultiDexEnabled()
-      .removeAllProguardFiles()
-      .removePseudoLocalesEnabled()
-      .removeRenderscriptDebuggable()
-      .removeRenderscriptOptimLevel()
-      .removeAllResValues()
-      .removeShrinkResources()
-      .removeTestCoverageEnabled()
-      .removeUseJack()
-      .removeVersionNameSuffix()
-      .removeZipAlignEnabled();
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    buildType.removeApplicationIdSuffix();
+    buildType.removeAllBuildConfigFields();
+    buildType.removeAllConsumerProguardFiles();
+    buildType.removeDebuggable();
+    buildType.removeEmbedMicroApp();
+    buildType.removeJniDebuggable();
+    buildType.removeAllManifestPlaceholders();
+    buildType.removeMinifyEnabled();
+    buildType.removeMultiDexEnabled();
+    buildType.removeAllProguardFiles();
+    buildType.removePseudoLocalesEnabled();
+    buildType.removeRenderscriptDebuggable();
+    buildType.removeRenderscriptOptimLevel();
+    buildType.removeAllResValues();
+    buildType.removeShrinkResources();
+    buildType.removeTestCoverageEnabled();
+    buildType.removeUseJack();
+    buildType.removeVersionNameSuffix();
+    buildType.removeZipAlignEnabled();
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     buildModel.resetState();
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -518,21 +517,21 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
-    buildType
-      .setApplicationIdSuffix("mySuffix-1")
-      .setDebuggable(false)
-      .setEmbedMicroApp(true)
-      .setJniDebuggable(false)
-      .setMinifyEnabled(true)
-      .setMultiDexEnabled(false)
-      .setPseudoLocalesEnabled(true)
-      .setRenderscriptDebuggable(false)
-      .setRenderscriptOptimLevel(2)
-      .setShrinkResources(true)
-      .setTestCoverageEnabled(false)
-      .setUseJack(true)
-      .setVersionNameSuffix("def")
-      .setZipAlignEnabled(false);
+    buildType.applicationIdSuffix().setValue("mySuffix-1");
+    buildType.debuggable().setValue(false);
+    buildType.embedMicroApp().setValue(true);
+    buildType.jniDebuggable().setValue(false);
+    buildType.minifyEnabled().setValue(true);
+    buildType.multiDexEnabled().setValue(false);
+    buildType.pseudoLocalesEnabled().setValue(true);
+    buildType.renderscriptDebuggable().setValue(false);
+    buildType.renderscriptOptimLevel().setValue(2);
+    buildType.shrinkResources().setValue(true);
+    buildType.testCoverageEnabled().setValue(false);
+    buildType.useJack().setValue(true);
+    buildType.versionNameSuffix().setValue("def");
+    buildType.zipAlignEnabled().setValue(false);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -577,41 +576,41 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
-    buildType
-      .setApplicationIdSuffix("mySuffix-1")
-      .setDebuggable(false)
-      .setEmbedMicroApp(true)
-      .setJniDebuggable(false)
-      .setMinifyEnabled(true)
-      .setMultiDexEnabled(false)
-      .setPseudoLocalesEnabled(true)
-      .setRenderscriptDebuggable(false)
-      .setRenderscriptOptimLevel(2)
-      .setShrinkResources(true)
-      .setTestCoverageEnabled(false)
-      .setUseJack(true)
-      .setVersionNameSuffix("def")
-      .setZipAlignEnabled(false);
+    buildType.applicationIdSuffix().setValue("mySuffix-1");
+    buildType.debuggable().setValue(false);
+    buildType.embedMicroApp().setValue(true);
+    buildType.jniDebuggable().setValue(false);
+    buildType.minifyEnabled().setValue(true);
+    buildType.multiDexEnabled().setValue(false);
+    buildType.pseudoLocalesEnabled().setValue(true);
+    buildType.renderscriptDebuggable().setValue(false);
+    buildType.renderscriptOptimLevel().setValue(2);
+    buildType.shrinkResources().setValue(true);
+    buildType.testCoverageEnabled().setValue(false);
+    buildType.useJack().setValue(true);
+    buildType.versionNameSuffix().setValue("def");
+    buildType.zipAlignEnabled().setValue(false);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -628,25 +627,25 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
     buildModel.resetState();
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
   }
 
   public void testReplaceAndResetListElements() throws Exception {
@@ -671,11 +670,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx")), buildType.resValues());
 
-    buildType
-      .replaceBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("abcd", "mnop", "qrst"))
-      .replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt")
-      .replaceProguardFile("proguard-android.txt", "proguard-android-1.txt")
-      .replaceResValue(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("mnop", "efgh", "ijkl"));
+    buildType.replaceBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("abcd", "mnop", "qrst"));
+    buildType.replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt");
+    buildType.replaceProguardFile("proguard-android.txt", "proguard-android-1.txt");
+    buildType.replaceResValue(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("mnop", "efgh", "ijkl"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
@@ -707,11 +705,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertNull("proguardFiles", buildType.proguardFiles());
     assertNull("resValues", buildType.resValues());
 
-    buildType
-      .addBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"))
-      .addConsumerProguardFile("proguard-android.txt")
-      .addProguardFile("proguard-android.txt")
-      .addResValue(new ResValueImpl("mnop", "qrst", "uvwx"));
+    buildType.addBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"));
+    buildType.addConsumerProguardFile("proguard-android.txt");
+    buildType.addProguardFile("proguard-android.txt");
+    buildType.addResValue(new ResValueImpl("mnop", "qrst", "uvwx"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -746,11 +743,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx")), buildType.resValues());
 
-    buildType
-      .addBuildConfigField(new BuildConfigFieldImpl("cdef", "ghij", "klmn"))
-      .addConsumerProguardFile("proguard-android-1.txt")
-      .addProguardFile("proguard-android-1.txt")
-      .addResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
+    buildType.addBuildConfigField(new BuildConfigFieldImpl("cdef", "ghij", "klmn"));
+    buildType.addConsumerProguardFile("proguard-android-1.txt");
+    buildType.addProguardFile("proguard-android-1.txt");
+    buildType.addResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
     assertEquals("buildConfigFields",
                  ImmutableList.of(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("cdef", "ghij", "klmn")),
                  buildType.buildConfigFields());
@@ -796,11 +792,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("opqr", "stuv", "wxyz")),
                  buildType.resValues());
 
-    buildType
-      .removeBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"))
-      .removeConsumerProguardFile("proguard-rules.pro")
-      .removeProguardFile("proguard-rules.pro")
-      .removeResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
+    buildType.removeBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"));
+    buildType.removeConsumerProguardFile("proguard-rules.pro");
+    buildType.removeProguardFile("proguard-rules.pro");
+    buildType.removeResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -950,25 +945,24 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
     // Remove all the properties except the applicationIdSuffix.
-    buildType
-      .removeAllBuildConfigFields()
-      .removeAllConsumerProguardFiles()
-      .removeDebuggable()
-      .removeEmbedMicroApp()
-      .removeJniDebuggable()
-      .removeAllManifestPlaceholders()
-      .removeMinifyEnabled()
-      .removeMultiDexEnabled()
-      .removeAllProguardFiles()
-      .removePseudoLocalesEnabled()
-      .removeRenderscriptDebuggable()
-      .removeRenderscriptOptimLevel()
-      .removeAllResValues()
-      .removeShrinkResources()
-      .removeTestCoverageEnabled()
-      .removeUseJack()
-      .removeVersionNameSuffix()
-      .removeZipAlignEnabled();
+    buildType.removeAllBuildConfigFields();
+    buildType.removeAllConsumerProguardFiles();
+    buildType.removeDebuggable();
+    buildType.removeEmbedMicroApp();
+    buildType.removeJniDebuggable();
+    buildType.removeAllManifestPlaceholders();
+    buildType.removeMinifyEnabled();
+    buildType.removeMultiDexEnabled();
+    buildType.removeAllProguardFiles();
+    buildType.removePseudoLocalesEnabled();
+    buildType.removeRenderscriptDebuggable();
+    buildType.removeRenderscriptOptimLevel();
+    buildType.removeAllResValues();
+    buildType.removeShrinkResources();
+    buildType.removeTestCoverageEnabled();
+    buildType.removeUseJack();
+    buildType.removeVersionNameSuffix();
+    buildType.removeZipAlignEnabled();
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
@@ -976,22 +970,22 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
@@ -1001,22 +995,22 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     buildModel.reparse();
     android = buildModel.android();
@@ -1029,22 +1023,22 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     // Now remove the applicationIdSuffix also and see the whole android block is removed as it would be an empty block.
 
@@ -1053,7 +1047,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
 
     applyChanges(buildModel);
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
@@ -1110,21 +1104,21 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
-    buildType
-      .setApplicationIdSuffix("mySuffix-1")
-      .setDebuggable(false)
-      .setEmbedMicroApp(true)
-      .setJniDebuggable(false)
-      .setMinifyEnabled(true)
-      .setMultiDexEnabled(false)
-      .setPseudoLocalesEnabled(true)
-      .setRenderscriptDebuggable(false)
-      .setRenderscriptOptimLevel(2)
-      .setShrinkResources(true)
-      .setTestCoverageEnabled(false)
-      .setUseJack(true)
-      .setVersionNameSuffix("def")
-      .setZipAlignEnabled(false);
+    buildType.applicationIdSuffix().setValue("mySuffix-1");
+    buildType.debuggable().setValue(false);
+    buildType.embedMicroApp().setValue(true);
+    buildType.jniDebuggable().setValue(false);
+    buildType.minifyEnabled().setValue(true);
+    buildType.multiDexEnabled().setValue(false);
+    buildType.pseudoLocalesEnabled().setValue(true);
+    buildType.renderscriptDebuggable().setValue(false);
+    buildType.renderscriptOptimLevel().setValue(2);
+    buildType.shrinkResources().setValue(true);
+    buildType.testCoverageEnabled().setValue(false);
+    buildType.useJack().setValue(true);
+    buildType.versionNameSuffix().setValue("def");
+    buildType.zipAlignEnabled().setValue(false);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -1186,41 +1180,41 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
-    buildType
-      .setApplicationIdSuffix("mySuffix-1")
-      .setDebuggable(false)
-      .setEmbedMicroApp(true)
-      .setJniDebuggable(false)
-      .setMinifyEnabled(true)
-      .setMultiDexEnabled(false)
-      .setPseudoLocalesEnabled(true)
-      .setRenderscriptDebuggable(false)
-      .setRenderscriptOptimLevel(2)
-      .setShrinkResources(true)
-      .setTestCoverageEnabled(false)
-      .setUseJack(true)
-      .setVersionNameSuffix("def")
-      .setZipAlignEnabled(false);
+    buildType.applicationIdSuffix().setValue("mySuffix-1");
+    buildType.debuggable().setValue(false);
+    buildType.embedMicroApp().setValue(true);
+    buildType.jniDebuggable().setValue(false);
+    buildType.minifyEnabled().setValue(true);
+    buildType.multiDexEnabled().setValue(false);
+    buildType.pseudoLocalesEnabled().setValue(true);
+    buildType.renderscriptDebuggable().setValue(false);
+    buildType.renderscriptOptimLevel().setValue(2);
+    buildType.shrinkResources().setValue(true);
+    buildType.testCoverageEnabled().setValue(false);
+    buildType.useJack().setValue(true);
+    buildType.versionNameSuffix().setValue("def");
+    buildType.zipAlignEnabled().setValue(false);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -1292,11 +1286,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx")), buildType.resValues());
 
-    buildType
-      .replaceBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("abcd", "mnop", "qrst"))
-      .replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt")
-      .replaceProguardFile("proguard-android.txt", "proguard-android-1.txt")
-      .replaceResValue(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("mnop", "efgh", "ijkl"));
+    buildType.replaceBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("abcd", "mnop", "qrst"));
+    buildType.replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt");
+    buildType.replaceProguardFile("proguard-android.txt", "proguard-android-1.txt");
+    buildType.replaceResValue(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("mnop", "efgh", "ijkl"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
@@ -1336,11 +1329,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertNull("proguardFiles", buildType.proguardFiles());
     assertNull("resValues", buildType.resValues());
 
-    buildType
-      .addBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"))
-      .addConsumerProguardFile("proguard-android.txt")
-      .addProguardFile("proguard-android.txt")
-      .addResValue(new ResValueImpl("mnop", "qrst", "uvwx"));
+    buildType.addBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"));
+    buildType.addConsumerProguardFile("proguard-android.txt");
+    buildType.addProguardFile("proguard-android.txt");
+    buildType.addResValue(new ResValueImpl("mnop", "qrst", "uvwx"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -1383,11 +1375,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx")), buildType.resValues());
 
-    buildType
-      .addBuildConfigField(new BuildConfigFieldImpl("cdef", "ghij", "klmn"))
-      .addConsumerProguardFile("proguard-android-1.txt")
-      .addProguardFile("proguard-android-1.txt")
-      .addResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
+    buildType.addBuildConfigField(new BuildConfigFieldImpl("cdef", "ghij", "klmn"));
+    buildType.addConsumerProguardFile("proguard-android-1.txt");
+    buildType.addProguardFile("proguard-android-1.txt");
+    buildType.addResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
     assertEquals("buildConfigFields",
                  ImmutableList.of(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"), new BuildConfigFieldImpl("cdef", "ghij", "klmn")),
                  buildType.buildConfigFields());
@@ -1449,11 +1440,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("resValues", ImmutableList.of(new ResValueImpl("mnop", "qrst", "uvwx"), new ResValueImpl("opqr", "stuv", "wxyz")),
                  buildType.resValues());
 
-    buildType
-      .removeBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"))
-      .removeConsumerProguardFile("proguard-rules.pro")
-      .removeProguardFile("proguard-rules.pro")
-      .removeResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
+    buildType.removeBuildConfigField(new BuildConfigFieldImpl("abcd", "efgh", "ijkl"));
+    buildType.removeConsumerProguardFile("proguard-rules.pro");
+    buildType.removeProguardFile("proguard-rules.pro");
+    buildType.removeResValue(new ResValueImpl("opqr", "stuv", "wxyz"));
     assertEquals("buildConfigFields", ImmutableList.of(new BuildConfigFieldImpl("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -1490,9 +1480,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-rules.pro"), buildType.proguardFiles());
 
-    buildType
-      .removeConsumerProguardFile("proguard-android.txt")
-      .removeProguardFile("proguard-rules.pro");
+    buildType.removeConsumerProguardFile("proguard-android.txt");
+    buildType.removeProguardFile("proguard-rules.pro");
     assertThat(buildType.consumerProguardFiles()).named("consumerProguardFiles").isEmpty();
     assertThat(buildType.proguardFiles()).named("proguardFiles").isEmpty();
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,83 +30,58 @@ public interface FlavorTypeModel {
   @Nullable
   List<GradleNotNullValue<String>> consumerProguardFiles();
 
-  @NotNull
-  FlavorTypeModel addConsumerProguardFile(@NotNull String consumerProguardFile);
+  void addConsumerProguardFile(@NotNull String consumerProguardFile);
 
-  @NotNull
-  FlavorTypeModel removeConsumerProguardFile(@NotNull String consumerProguardFile);
+  void removeConsumerProguardFile(@NotNull String consumerProguardFile);
 
-  @NotNull
-  FlavorTypeModel removeAllConsumerProguardFiles();
+  void removeAllConsumerProguardFiles();
 
-  @NotNull
-  FlavorTypeModel replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile, @NotNull String newConsumerProguardFile);
+  void replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile, @NotNull String newConsumerProguardFile);
 
   @Nullable
   Map<String, GradleNotNullValue<Object>> manifestPlaceholders();
 
-  @NotNull
-  FlavorTypeModel setManifestPlaceholder(@NotNull String name, @NotNull String value);
+  void setManifestPlaceholder(@NotNull String name, @NotNull String value);
+
+  void setManifestPlaceholder(@NotNull String name, int value);
+
+  void setManifestPlaceholder(@NotNull String name, boolean value);
+
+  void removeManifestPlaceholder(@NotNull String name);
+
+  void removeAllManifestPlaceholders();
 
   @NotNull
-  FlavorTypeModel setManifestPlaceholder(@NotNull String name, int value);
+  ResolvedPropertyModel multiDexEnabled();
 
-  @NotNull
-  FlavorTypeModel setManifestPlaceholder(@NotNull String name, boolean value);
-
-  @NotNull
-  FlavorTypeModel removeManifestPlaceholder(@NotNull String name);
-
-  @NotNull
-  FlavorTypeModel removeAllManifestPlaceholders();
-
-  @NotNull
-  GradleNullableValue<Boolean> multiDexEnabled();
-
-  @NotNull
-  FlavorTypeModel setMultiDexEnabled(boolean multiDexEnabled);
-
-  @NotNull
-  FlavorTypeModel removeMultiDexEnabled();
+  void removeMultiDexEnabled();
 
   @Nullable
   List<GradleNotNullValue<String>> proguardFiles();
 
-  @NotNull
-  FlavorTypeModel addProguardFile(@NotNull String proguardFile);
+  void addProguardFile(@NotNull String proguardFile);
 
-  @NotNull
-  FlavorTypeModel removeProguardFile(@NotNull String proguardFile);
+  void removeProguardFile(@NotNull String proguardFile);
 
-  @NotNull
-  FlavorTypeModel removeAllProguardFiles();
+  void removeAllProguardFiles();
 
-  @NotNull
-  FlavorTypeModel replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile);
+  void replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile);
 
   @Nullable
   List<GradleNotNullValue<ResValue>> resValues();
 
-  @NotNull
-  FlavorTypeModel addResValue(@NotNull ResValue resValue);
+  void addResValue(@NotNull ResValue resValue);
+
+  void removeResValue(@NotNull ResValue resValue);
+
+  void removeAllResValues();
+
+  void replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue);
 
   @NotNull
-  FlavorTypeModel removeResValue(@NotNull ResValue resValue);
+  ResolvedPropertyModel useJack();
 
-  @NotNull
-  FlavorTypeModel removeAllResValues();
-
-  @NotNull
-  FlavorTypeModel replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue);
-
-  @NotNull
-  GradleNullableValue<Boolean> useJack();
-
-  @NotNull
-  FlavorTypeModel setUseJack(boolean useJack);
-
-  @NotNull
-  FlavorTypeModel removeUseJack();
+  void removeUseJack();
 
   /**
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.

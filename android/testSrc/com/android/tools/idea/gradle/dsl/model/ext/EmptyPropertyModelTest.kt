@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import org.apache.commons.io.FileUtils
-import kotlin.test.assertNotEquals
 
 class EmptyPropertyModelTest : GradleFileModelTestCase() {
   fun testEmptyProperty() {
@@ -42,7 +40,7 @@ class EmptyPropertyModelTest : GradleFileModelTestCase() {
     assertEquals("ext.prop", model.fullyQualifiedName)
     assertEquals(buildModel.virtualFile, model.gradleFile)
 
-    assertEquals(null, model.getUnresolvedValue(STRING_TYPE))
+    assertEquals(null, model.getRawValue(STRING_TYPE))
     assertSize(0, model.dependencies)
   }
 
@@ -74,7 +72,7 @@ class EmptyPropertyModelTest : GradleFileModelTestCase() {
       assertEquals(STRING, newModel.valueType)
       assertEquals(REGULAR, newModel.propertyType)
       assertEquals("Hello my value is 54", newModel.getValue(STRING_TYPE))
-      assertEquals("Hello my value is ${'$'}{prop}", newModel.getUnresolvedValue(STRING_TYPE))
+      assertEquals("Hello my value is ${'$'}{prop}", newModel.getRawValue(STRING_TYPE))
       assertSize(1, newModel.dependencies)
       assertEquals(model, newModel.dependencies[0])
     }
@@ -87,7 +85,7 @@ class EmptyPropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, reparsedModel.valueType)
     assertEquals(REGULAR, reparsedModel.propertyType)
     assertEquals("Hello my value is 54", reparsedModel.getValue(STRING_TYPE))
-    assertEquals("Hello my value is ${'$'}{prop}", reparsedModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("Hello my value is ${'$'}{prop}", reparsedModel.getRawValue(STRING_TYPE))
     assertSize(1, reparsedModel.dependencies)
     assertEquals(newExtModel.findProperty("prop"), reparsedModel.dependencies[0])
   }

@@ -56,7 +56,7 @@ public final class GradleDslReference extends GradleDslExpression {
 
   /**
    * Returns the same as getReferenceText if you need to get the unresolved version of what this
-   * reference refers to then use getResolvedVariables and call getUnresolvedValue on the result.
+   * reference refers to then use getResolvedVariables and call getRawValue on the result.
    */
   @Override
   @Nullable

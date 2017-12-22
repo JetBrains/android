@@ -59,7 +59,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
-  public <T> T getUnresolvedValue(@NotNull TypeReference<T> typeReference) {
+  public <T> T getRawValue(@NotNull TypeReference<T> typeReference) {
     return extractValue(typeReference, false);
   }
 
