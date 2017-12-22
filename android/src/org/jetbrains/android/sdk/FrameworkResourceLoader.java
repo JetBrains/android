@@ -17,14 +17,17 @@
 package org.jetbrains.android.sdk;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.FrameworkResources;
+import com.android.ide.common.resources.ResourceDeltaKind;
+import com.android.ide.common.resources.ResourceFolder;
+import com.android.ide.common.resources.ScanningContext;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.io.BufferingFolderWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
@@ -85,9 +88,7 @@ public class FrameworkResourceLoader {
     @Override
     public synchronized boolean ensureInitialized() {
       if (myCleared && !myInitializing) {
-
-
-        ScanningContext context = new ScanningContext(this);
+        ScanningContext context = new ScanningContext();
         myInitializing = true;
 
         IAbstractResource[] resources = getResFolder().listMembers();
