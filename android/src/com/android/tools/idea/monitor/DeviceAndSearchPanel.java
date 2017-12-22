@@ -16,8 +16,8 @@
 package com.android.tools.idea.monitor;
 
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.logcat.AndroidLogConsole;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.logcat.AndroidLogcatView.AndroidLogConsole;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
