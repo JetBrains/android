@@ -1,5 +1,6 @@
 package org.jetbrains.android.download;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -25,6 +26,7 @@ public class AndroidProfilerDownloader {
   private static final Logger LOG = Logger.getInstance(AndroidProfilerDownloader.class);
 
   public static boolean makeSureProfilerIsInPlace() {
+    if (IdeInfo.getInstance().isAndroidStudio()) return true;
     File pluginDir = getPluginDir();
     if (pluginDir.exists()) return true;
 
