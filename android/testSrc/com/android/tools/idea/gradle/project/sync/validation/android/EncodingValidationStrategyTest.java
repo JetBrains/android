@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.stubs.android.TestAndroidProject;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
@@ -55,9 +54,8 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getModelVersion()).thenReturn(GradleVersion.parse("1.2.0"));
 
-    TestAndroidProject androidProject = new TestAndroidProject("app");
-    JavaCompileOptionsStub javaCompileOptions = (JavaCompileOptionsStub)androidProject.getJavaCompileOptions();
-    javaCompileOptions.setEncoding(modelEncoding);
+    AndroidProjectStub androidProject = new AndroidProjectStub("app");
+    androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
     myStrategy.validate(mock(Module.class), androidModel);

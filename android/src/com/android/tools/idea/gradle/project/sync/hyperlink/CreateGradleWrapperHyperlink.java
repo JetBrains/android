@@ -55,6 +55,6 @@ public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
 
   private static void requestSync(@NotNull Project project) {
     // TODO use another trigger?
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
   }
 }

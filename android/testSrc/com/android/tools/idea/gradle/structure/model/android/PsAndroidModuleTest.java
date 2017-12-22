@@ -38,6 +38,8 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
  * Tests for {@link PsAndroidModule}.
  */
 public class PsAndroidModuleTest extends AndroidGradleTestCase {
+  @NotNull public static final String APPCOMPAT_V7_VERSION_26_1_0 = "26.1.0";
+
   public void testProductFlavors() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
@@ -106,8 +108,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     return variants;
   }
 
-  // Disabled due to b/70214606
-  public void /*test*/EditableDependencies() throws Throwable {
+  public void testEditableDependencies() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
@@ -119,7 +120,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertNotNull(buildModel);
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts("compile")) {
       if ("com.android.support".equals(dependency.group().value()) && "appcompat-v7".equals(dependency.name().value())) {
-        dependency.setVersion("23.1.1");
+        dependency.setVersion(APPCOMPAT_V7_VERSION_26_1_0); // Current one should be 26.0.2
         break;
       }
     }
@@ -144,6 +145,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
     assertEquals("appcompat-v7", resolvedSpec.getName());
+    assertEquals(APPCOMPAT_V7_VERSION_26_1_0, resolvedSpec.getVersion());
 
     // Verify that the variants where appcompat is are properly registered.
     Collection<String> variants = appCompatV7.getVariants();

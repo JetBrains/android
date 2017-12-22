@@ -16,22 +16,21 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
 import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
-import javax.swing.JButton
 
 class SuggestionsForm(
-    private val context: PsContext
+    private val context: PsContext,
+    suggestionsViewIssueRenderer: SuggestionsViewIssueRenderer
 ) : SuggestionsFormUi(), Disposable {
 
   val panel = myMainPanel!!
 
-  private val issuesViewer = SuggestionsViewer(context, SuggestionsViewIssueRenderer(context))
+  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer)
 
   init {
     setViewComponent(issuesViewer.panel)
@@ -40,22 +39,6 @@ class SuggestionsForm(
     context.project.forEachModule { module ->
       module.add(PsModule.DependenciesChangeListener { dependencyChanged() }, this)
     }
-
-    myAnalyzeProjectButton.addActionListener { analyzeProject() }
-    myCheckForUpdateButton.addActionListener { checkForUpdates() }
-  }
-
-  private fun analyzeProject() {
-    myAnalyzeProjectButton.isEnabled = false
-    val daemon = context.analyzerDaemon
-    daemon.removeIssues(PROJECT_ANALYSIS)
-    context.project.forEachModule({ daemon.queueCheck(it) })
-  }
-
-  private fun checkForUpdates() {
-    myCheckForUpdateButton.isEnabled = false
-    context.analyzerDaemon.removeIssues(LIBRARY_UPDATES_AVAILABLE)
-    context.libraryUpdateCheckerDaemon.queueUpdateCheck()
   }
 
   private fun dependencyChanged() {
@@ -63,18 +46,20 @@ class SuggestionsForm(
     analyzeProject()
   }
 
-  private fun enableButton(button: JButton) {
-    button.isEnabled = !context.analyzerDaemon.isRunning
+  private fun analyzeProject() {
+    val daemon = context.analyzerDaemon
+    daemon.removeIssues(PROJECT_ANALYSIS)
+    context.project.forEachModule({ daemon.queueCheck(it) })
+    updateLoading()
   }
 
-  private fun enableButtons() {
-    enableButton(myAnalyzeProjectButton)
-    enableButton(myCheckForUpdateButton)
+  private fun updateLoading() {
+    myLoadingLabel.isVisible = context.analyzerDaemon.isRunning
   }
 
   internal fun renderIssues(issues: List<PsIssue>) {
     if (Disposer.isDisposed(this)) return
-    enableButtons()
+    updateLoading()
     issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE))
   }
 

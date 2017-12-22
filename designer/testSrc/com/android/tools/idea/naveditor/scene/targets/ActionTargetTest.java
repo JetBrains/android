@@ -73,4 +73,45 @@ public class ActionTargetTest extends NavTestCase {
     assertEquals(model.find("action1"), surface.getSelectionModel().getPrimary());
     interactionManager.stopListening();
   }
+
+  public void testHighlight() {
+    SyncNlModel model = model("nav.xml", rootComponent("root")
+      .withStartDestinationAttribute("fragment1")
+      .unboundedChildren(
+        fragmentComponent("fragment1")
+          .unboundedChildren(
+            actionComponent("action1")
+              .withDestinationAttribute("fragment2")),
+        fragmentComponent("fragment2"))).build();
+
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    SceneComponent fragment1 = scene.getSceneComponent("fragment1");
+    NavView navView = new NavView((NavDesignSurface)model.getSurface(), scene.getSceneManager());
+    SceneContext context = SceneContext.get(navView);
+    fragment1.buildDisplayList(0, list, context);
+
+    assertEquals("DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
+                 "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawAction,NORMAL,390x390x0x0,390x390x0x0,NORMAL\n" +
+                 "DrawArrow,2,RIGHT,380x387x5x6,b2a7a7a7\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,390x390x7x7,START_DESTINATION\n" +
+                 "\n", list.generateSortedDisplayList(context));
+
+    ((ActionTarget)fragment1.getTargets().get(fragment1.findTarget(ActionTarget.class))).setHighlighted(true);
+    list.clear();
+    fragment1.buildDisplayList(0, list, context);
+
+    assertEquals("DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
+                 "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
+                 "DrawAction,NORMAL,390x390x0x0,390x390x0x0,HOVER\n" +
+                 "DrawArrow,2,RIGHT,380x387x5x6,ffa7a7a7\n" +
+                 "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+                 "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
+                 "DrawIcon,390x390x7x7,START_DESTINATION\n" +
+                 "\n", list.generateSortedDisplayList(context));
+  }
 }

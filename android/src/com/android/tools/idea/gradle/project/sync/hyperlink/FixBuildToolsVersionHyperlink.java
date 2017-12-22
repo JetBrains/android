@@ -59,7 +59,7 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
     runWriteCommandAction(project, buildModel::applyChanges);
 
     if (requestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
     }
   }
 }

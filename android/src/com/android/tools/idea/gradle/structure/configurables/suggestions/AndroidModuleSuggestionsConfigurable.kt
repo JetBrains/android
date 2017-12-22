@@ -69,7 +69,8 @@ class AndroidModuleSuggestionsConfigurable(
       is PsAllModulesFakeModule -> null
       else -> PsModulePath(module)
     }
-    return SuggestionsForm(context).apply {
+    val issueRenderer = SuggestionsViewIssueRenderer(context, showParentPath = psModulePath == null)
+    return SuggestionsForm(context, issueRenderer).apply {
       renderIssues(getIssues(context, psModulePath))
 
       context.analyzerDaemon.add(PsAnalyzerDaemon.IssuesUpdatedListener {
@@ -86,6 +87,10 @@ class AndroidModuleSuggestionsConfigurable(
     super.disposeUIResources()
     panel?.run { Disposer.dispose(this) }
     uiDisposed = true
+  }
+
+  companion object {
+    const val SUGGESTIONS_VIEW = "SuggestionsView"
   }
 }
 

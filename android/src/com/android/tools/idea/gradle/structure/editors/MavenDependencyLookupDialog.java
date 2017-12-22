@@ -65,7 +65,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
   private static final int RESULT_LIMIT = 50;
-  private static final String MAVEN_CENTRAL_SEARCH_URL = "https://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=\"%s\"";
+  private static final String MAVEN_CENTRAL_SEARCH_URL = "https://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=%%22%s%%22";
   private static final Logger LOG = Logger.getInstance(MavenDependencyLookupDialog.class);
 
   /**

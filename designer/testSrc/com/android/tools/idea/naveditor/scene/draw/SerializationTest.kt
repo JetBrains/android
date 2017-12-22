@@ -37,6 +37,11 @@ class SerializationTest : TestCase() {
         Rectangle(50, 60, 70, 80),
         DrawAction.DrawMode.NORMAL), factory)
 
+    testSerialization("DrawAction,NORMAL,10x20x30x40,50x60x70x80,HOVER", DrawAction(ActionTarget.ConnectionType.NORMAL,
+        Rectangle(10, 20, 30, 40),
+        Rectangle(50, 60, 70, 80),
+        DrawAction.DrawMode.HOVER), factory)
+
     testSerialization("DrawAction,SELF,80x70x60x50,40x30x20x10,SELECTED", DrawAction(ActionTarget.ConnectionType.SELF,
         Rectangle(80, 70, 60, 50),
         Rectangle(40, 30, 20, 10),

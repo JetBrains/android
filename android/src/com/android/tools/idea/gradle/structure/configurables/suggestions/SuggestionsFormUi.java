@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,8 +28,8 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public abstract class SuggestionsFormUi {
   protected JPanel myMainPanel;
   protected JPanel myContentsPanel;
-  protected JButton myCheckForUpdateButton;
-  protected JButton myAnalyzeProjectButton;
+  protected JBLabel myLoadingLabel;
+  protected JCheckBox myShowDismissedSuggestionsCheckBox;
 
   protected void setViewComponent(JPanel issuesViewerPanel) {
     JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);

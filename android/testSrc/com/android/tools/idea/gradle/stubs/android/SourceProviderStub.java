@@ -15,27 +15,62 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
-public class TestSourceProvider extends SourceProviderStub {
+public class SourceProviderStub implements SourceProvider {
+  @NotNull private final Set<File> myAidlDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myAssetsDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myJavaDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
+
+  @Nullable File myManifestFile;
+
   @NotNull private final FileStructure myFileStructure;
+
+  @NotNull
+  public FileStructure getFileStructure() {
+    return myFileStructure;
+  }
 
   /**
    * Creates a new {@code SourceProviderStub}.
    *
    * @param fileStructure the file structure of the Android project this {@code SourceProvider} belongs to.
    */
-  TestSourceProvider(@NotNull FileStructure fileStructure) {
-    super("test", new File("manifest"));
+  SourceProviderStub(@NotNull FileStructure fileStructure) {
     myFileStructure = fileStructure;
   }
 
   public void setManifestFile(@NotNull String manifestFilePath) {
-    setManifestFile(myFileStructure.createProjectFile(manifestFilePath));
+    myManifestFile = myFileStructure.createProjectFile(manifestFilePath);
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return "test";
+  }
+
+  @Override
+  @NotNull
+  public File getManifestFile() {
+    if (myManifestFile != null) {
+      return myManifestFile;
+    }
+    return new File("fake");
   }
 
   /**
@@ -44,8 +79,14 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'java' directory, relative to the root directory of the Android project.
    */
   public void addJavaDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getJavaDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myJavaDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getJavaDirectories() {
+    return myJavaDirectories;
   }
 
   /**
@@ -54,8 +95,14 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'resources' directory to add, relative to the root directory of the Android project.
    */
   public void addResourcesDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getResourcesDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myResourcesDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getResourcesDirectories() {
+    return myResourcesDirectories;
   }
 
   /**
@@ -64,18 +111,29 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'aidl' directory to add, relative to the root directory of the Android project.
    */
   public void addAidlDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getAidlDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myAidlDirectories.add(directory);
   }
 
+  @Override
+  @NotNull
+  public Set<File> getAidlDirectories() {
+    return myAidlDirectories;
+  }
   /**
    * Adds the given path to the list of 'renderscript' directories. It also creates the directory in the file system.
    *
    * @param path path of the 'renderscript' directory to add, relative to the root directory of the Android project.
    */
   public void addRenderscriptDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getRenderscriptDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myRenderscriptDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getRenderscriptDirectories() {
+    return myRenderscriptDirectories;
   }
 
   /**
@@ -84,8 +142,14 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'Cpp' directory to add, relative to the root directory of the Android project.
    */
   public void addCppDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getCppDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myCppDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getCppDirectories() {
+    return myCppDirectories;
   }
 
   /**
@@ -94,8 +158,14 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'C' directory to add, relative to the root directory of the Android project.
    */
   public void addCDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getCDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myCDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getCDirectories() {
+    return myCDirectories;
   }
 
   /**
@@ -104,8 +174,14 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'res' directory to add, relative to the root directory of the Android project.
    */
   public void addResDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getResDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myResDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getResDirectories() {
+    return myResDirectories;
   }
 
   /**
@@ -115,7 +191,25 @@ public class TestSourceProvider extends SourceProviderStub {
    * @param path path of the 'assets' directory to add, relative to the root directory of the Android project.
    */
   public void addAssetsDirectory(@NotNull String path) {
-    File directory = myFileStructure.createProjectFolder(path);
-    getAssetsDirectories().add(directory);
+    File directory = myFileStructure.createProjectDir(path);
+    myAssetsDirectories.add(directory);
+  }
+
+  @Override
+  @NotNull
+  public Set<File> getAssetsDirectories() {
+    return myAssetsDirectories;
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getJniLibsDirectories() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getShadersDirectories() {
+    return Collections.emptyList();
   }
 }

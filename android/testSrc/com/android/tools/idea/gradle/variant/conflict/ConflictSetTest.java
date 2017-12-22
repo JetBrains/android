@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.ide.common.gradle.model.stubs.DependenciesStub;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.*;
@@ -43,13 +42,13 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
  * Tests for {@link ConflictSet}.
  */
 public class ConflictSetTest extends IdeaTestCase {
-  private TestAndroidProject myAppModel;
-  private TestVariant myAppDebugVariant;
+  private AndroidProjectStub myAppModel;
+  private VariantStub myAppDebugVariant;
 
   private Module myLibModule;
   private String myLibGradlePath;
-  private TestAndroidProject myLibModel;
-  private TestVariant myLibDebugVariant;
+  private AndroidProjectStub myLibModel;
+  private VariantStub myLibDebugVariant;
   private IdeDependenciesFactory myDependenciesFactory;
 
   @Override
@@ -115,9 +114,9 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   private void setUpModels() {
-    myAppModel = new TestAndroidProject("app");
+    myAppModel = new AndroidProjectStub("app");
     myAppDebugVariant = myAppModel.addVariant("debug");
-    myLibModel = new TestAndroidProject("lib");
+    myLibModel = new AndroidProjectStub("lib");
     myLibModel.setProjectType(PROJECT_TYPE_LIBRARY);
     myLibDebugVariant = myLibModel.addVariant("debug");
   }
@@ -192,10 +191,10 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   private void setUpDependencyOnLibrary(@Nullable String projectVariant) {
-    TestAndroidArtifact mainArtifact = myAppDebugVariant.getMainArtifact();
-    DependenciesStub dependencies = (DependenciesStub)mainArtifact.getDependencies();
+    AndroidArtifactStub mainArtifact = myAppDebugVariant.getMainArtifact();
+    DependenciesStub dependencies = mainArtifact.getDependencies();
     File jarFile = new File(myProject.getBasePath(), "file.jar");
-    TestAndroidLibrary lib = new TestAndroidLibrary(jarFile, jarFile, myLibGradlePath, projectVariant);
+    AndroidLibraryStub lib = new AndroidLibraryStub(jarFile, jarFile, myLibGradlePath, projectVariant);
     dependencies.addLibrary(lib);
   }
 }

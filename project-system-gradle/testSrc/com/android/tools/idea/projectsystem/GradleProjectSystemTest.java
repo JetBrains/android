@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager;
 import com.android.tools.idea.testing.IdeComponents;
@@ -32,9 +31,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
-import java.util.concurrent.CountDownLatch;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -88,7 +84,7 @@ public class GradleProjectSystemTest extends IdeaTestCase {
     GradleSyncInvoker mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
 
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(SyncReason.PROJECT_LOADED, true);
-    Mockito.verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
+    Mockito.verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
   }
 
   public void testBuildProject() {

@@ -25,7 +25,8 @@ import com.intellij.openapi.Disposable
  * Creates the [InspectorProvider]s for navigation editor elements.
  */
 // Open for mocking in tests only
-open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parentDisposable: Disposable) : InspectorProviders<NavPropertiesManager>(propertiesManager, parentDisposable) {
+open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parentDisposable: Disposable)
+  : InspectorProviders<NavPropertiesManager>(propertiesManager, parentDisposable) {
   private val myProviders: List<InspectorProvider<NavPropertiesManager>>
   private val myNullProvider: InspectorProvider<NavPropertiesManager>
 

@@ -61,23 +61,25 @@ public class TestPath extends PsPath {
 
   @NotNull private final String myComparisonValue;
   @NotNull private final String myOtherValue;
+  @Nullable private final String myHyperlinkDestination;
 
   public TestPath(@NotNull String path) {
     this(path, path);
   }
 
   public TestPath(@NotNull String path, @NotNull PsPath parentPath) {
-    this(path, path, parentPath);
+    this(path, path, parentPath, null);
   }
 
   public TestPath(@NotNull String comparisonValue, @NotNull String otherValue) {
-    this(comparisonValue, otherValue, null);
+    this(comparisonValue, otherValue, null, null);
   }
 
-  private TestPath(@NotNull String comparisonValue, @NotNull String otherValue, @Nullable PsPath parentPath) {
+  public TestPath(@NotNull String comparisonValue, @NotNull String otherValue, @Nullable PsPath parentPath, @Nullable String hyperlinkDestination) {
     super(parentPath);
     myComparisonValue = comparisonValue;
     myOtherValue = otherValue;
+    myHyperlinkDestination = hyperlinkDestination;
   }
 
   @NotNull
@@ -89,7 +91,7 @@ public class TestPath extends PsPath {
   @Nullable
   @Override
   public String getHyperlinkDestination(@NotNull PsContext context) {
-    return null;
+    return myHyperlinkDestination;
   }
 
   @NotNull
