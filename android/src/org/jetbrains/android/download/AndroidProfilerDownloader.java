@@ -1,5 +1,8 @@
 package org.jetbrains.android.download;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -41,6 +44,7 @@ public class AndroidProfilerDownloader {
     catch (IOException e) {
       LOG.warn("Can't download Android profiler", e);
       FileUtil.delete(pluginDir);
+      Notifications.Bus.notify(new Notification("Android", "Can't download Android profiler", "Check logs for details", NotificationType.ERROR));
       return false;
     }
   }
