@@ -15,7 +15,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <nav-graph android:value="@navigation/mobile_navigation" />
         </activity>
         <activity android:name=".FirstScreen"></activity>
     </application>
