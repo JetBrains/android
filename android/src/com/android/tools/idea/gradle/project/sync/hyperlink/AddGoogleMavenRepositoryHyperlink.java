@@ -57,7 +57,7 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
       runWriteCommandAction(project, buildModelProject::applyChanges);
     }
     if (mySyncAfterFix) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
     }
   }
 

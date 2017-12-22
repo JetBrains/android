@@ -17,75 +17,58 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-public class AndroidArtifactOutputStubOld implements AndroidArtifactOutput {
-  @NotNull
-  private final Collection<OutputFile> myOutputs;
+public class OutputFileStub implements OutputFile {
 
-  public AndroidArtifactOutputStubOld(@NotNull OutputFile output) {
-    this(Collections.singletonList(output));
-  }
+  private final File myOutputFile;
 
-  public AndroidArtifactOutputStubOld(@NotNull Collection<OutputFile> outputs) {
-    myOutputs = outputs;
-  }
-
-  @Override
-  @NotNull
-  public String getAssembleTaskName() {
-    return "assemble";
-  }
-
-  @Override
-  @NotNull
-  public File getGeneratedManifest() {
-    return new File("test");
+  public OutputFileStub(File outputFile) {
+    myOutputFile = outputFile;
   }
 
   @Override
   @NotNull
   public String getOutputType() {
-    return getMainOutputFile().getOutputType();
+    return "test";
   }
 
   @Override
   @NotNull
   public Collection<String> getFilterTypes() {
-    return getMainOutputFile().getFilterTypes();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<FilterData> getFilters() {
-    return getMainOutputFile().getFilters();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public OutputFile getMainOutputFile() {
-    return myOutputs.iterator().next();
+    return this;
   }
 
   @Override
   @NotNull
   public Collection<? extends OutputFile> getOutputs() {
-    return myOutputs;
+    return Collections.emptyList();
   }
 
   @Override
   public int getVersionCode() {
-    return getMainOutputFile().getVersionCode();
+    return 0;
   }
 
   @Override
   @NotNull
   public File getOutputFile() {
-    return getMainOutputFile().getOutputFile();
+    return myOutputFile;
   }
 }

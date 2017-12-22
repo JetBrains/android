@@ -15,21 +15,25 @@
         <properties/>
         <border type="none"/>
         <children>
-          <grid id="eb51f" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="2">
+          <grid id="eb51f" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints border-constraint="South"/>
-            <properties/>
+            <properties>
+              <minimumSize width="60" height="24"/>
+              <preferredSize width="60" height="24"/>
+            </properties>
             <border type="none"/>
             <children>
-              <component id="4aa7b" class="javax.swing.JButton" binding="myAnalyzeProjectButton" default-binding="true">
-                <constraints/>
+              <component id="a7bf7" class="javax.swing.JCheckBox" binding="myShowDismissedSuggestionsCheckBox">
+                <constraints border-constraint="West"/>
                 <properties>
-                  <text value="&amp;Analyze Project"/>
+                  <text value="&amp;Show dismissed suggestions"/>
+                  <visible value="false"/>
                 </properties>
               </component>
-              <component id="2d791" class="javax.swing.JButton" binding="myCheckForUpdateButton" default-binding="true">
-                <constraints/>
+              <component id="2b375" class="com.intellij.ui.components.JBLabel" binding="myLoadingLabel">
+                <constraints border-constraint="East"/>
                 <properties>
-                  <text value="Check for &amp;Updates"/>
+                  <text value="Loading... "/>
                 </properties>
               </component>
             </children>

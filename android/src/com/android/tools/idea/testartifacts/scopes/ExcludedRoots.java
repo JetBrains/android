@@ -193,7 +193,7 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = (IdeDependencies)artifact.getDependencies();
+    IdeDependencies dependencies = artifact.getDependencies();
     dependencies.forEachLibrary(library -> {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {
@@ -221,7 +221,7 @@ class ExcludedRoots {
   }
 
   private void removeLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = (IdeDependencies)artifact.getDependencies();
+    IdeDependencies dependencies = artifact.getDependencies();
     dependencies.forEachLibrary(library -> {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {

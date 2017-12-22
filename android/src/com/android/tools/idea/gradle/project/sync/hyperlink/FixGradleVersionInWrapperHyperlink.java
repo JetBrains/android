@@ -89,7 +89,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
   }
 
   @VisibleForTesting

@@ -19,17 +19,16 @@ import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspec
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import java.awt.Container
 
-class DependenciesPerspectiveConfigureableFixture(
+class DependenciesPerspectiveConfigurableFixture(
     ideFrameFixture: IdeFrameFixture,
     container: Container
 ) : BasePerspectiveConfigurableFixture(ideFrameFixture, container)
 
-fun ProjectStructureDialogFixture.selectDependenciesConfigurable(block: TestBlock<DependenciesPerspectiveConfigureableFixture> = null) {
+fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): DependenciesPerspectiveConfigurableFixture {
   selectConfigurable("Dependencies")
-  block.runTestOn(
-      DependenciesPerspectiveConfigureableFixture(
-          ideFrameFixture,
-          findConfigurable(DependenciesPerspectiveConfigurable.DEPENDENCIES_VIEW)))
+  return DependenciesPerspectiveConfigurableFixture(
+      ideFrameFixture,
+      findConfigurable(DependenciesPerspectiveConfigurable.DEPENDENCIES_VIEW))
 }
 
 

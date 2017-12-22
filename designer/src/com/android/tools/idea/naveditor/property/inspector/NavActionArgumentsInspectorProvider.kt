@@ -67,8 +67,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
     myInspector = null
   }
 
-  private class NavActionArgumentsInspectorComponent :
-      InspectorComponent<NavPropertiesManager> {
+  private class NavActionArgumentsInspectorComponent : InspectorComponent<NavPropertiesManager> {
 
     private lateinit var myArgumentProperty: NavActionArgumentsProperty
     private val myComponents = mutableListOf<NlComponent>()

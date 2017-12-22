@@ -157,6 +157,9 @@ public class NlPreviewManager implements ProjectComponent {
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
     myToolWindowForm.setUseInteractiveSelector(isUseInteractiveSelector());
+    if (isWindowVisible()) {
+      myToolWindowForm.activate();
+    }
   }
 
   @Override

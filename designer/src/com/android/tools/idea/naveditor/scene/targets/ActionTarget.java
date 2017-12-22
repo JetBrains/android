@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.HOVER;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.NORMAL;
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.*;
@@ -52,6 +53,7 @@ public class ActionTarget extends BaseTarget {
   @SwingCoordinate private Rectangle myDestRect;
   private final NlComponent myNlComponent;
   private final SceneComponent myDestination;
+  private boolean myHighlighted = false;
 
   @NavCoordinate private static final int SELF_ACTION_LENGTH_1 = 28;
   @NavCoordinate private static final int SELF_ACTION_LENGTH_2 = 26;
@@ -115,9 +117,21 @@ public class ActionTarget extends BaseTarget {
     myDestination = destination;
   }
 
+  public String getId() {
+    return myNlComponent.getId();
+  }
+
   @Override
   public boolean canChangeSelection() {
     return false;
+  }
+
+  public void setHighlighted(boolean highlighted) {
+    myHighlighted = highlighted;
+  }
+
+  public boolean isHighlighted() {
+    return myHighlighted;
   }
 
   @Override
@@ -155,7 +169,7 @@ public class ActionTarget extends BaseTarget {
     mySourceRect = sourceRect;
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
     DrawAction.buildDisplayList(list, sourceId.equals(targetId) ? ConnectionType.SELF : ConnectionType.NORMAL, sourceRect, myDestRect,
-                                selected ? SELECTED : NORMAL);
+                                selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
 
     @SwingCoordinate Rectangle rectangle = new Rectangle();
     ArrowDirection direction;
@@ -178,7 +192,8 @@ public class ActionTarget extends BaseTarget {
     }
 
     NavColorSet colorSet = (NavColorSet)sceneContext.getColorSet();
-    Color color = selected ? colorSet.getSelectedActions() : colorSet.getActions();
+    Color color = selected ? colorSet.getSelectedActions()
+                           : mIsOver || myHighlighted ? colorSet.getHighlightedActions() : colorSet.getActions();
     list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, direction, rectangle, color));
   }
 

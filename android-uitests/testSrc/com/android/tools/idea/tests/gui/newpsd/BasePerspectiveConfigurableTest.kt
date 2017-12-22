@@ -19,9 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openFromMenu
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,26 +40,63 @@ class BasePerspectiveConfigurableTest {
   }
 
   @Test
-  fun testModulesListIsHiddenAndRestored() {
-    guiTest
+  fun modulesListIsHiddenAndRestored() {
+    val psd = guiTest
         .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
-        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, "File", "Project Structure...") {
-          selectDependenciesConfigurable {
-            requireVisibleModuleSelector()
-            minizeModulesList()
-            requireMinimizedModuleSelector()
-          }
-          selectIdeSdksLocationConfigurable {}
-          selectDependenciesConfigurable {
-            requireMinimizedModuleSelector()
-          }
-          selectIdeSdksLocationConfigurable {}
-          selectDependenciesConfigurable {
-            requireMinimizedModuleSelector()
-            restoreModulesList()
-            requireVisibleModuleSelector()
-          }
-          clickCancel()
-        }
+        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+
+    var dependenciesConfigurable = psd.selectDependenciesConfigurable();
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
+    dependenciesConfigurable.minimizeModulesList()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
+
+    psd.selectIdeSdksLocationConfigurable()
+
+    dependenciesConfigurable = psd.selectDependenciesConfigurable()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
+
+    psd.selectIdeSdksLocationConfigurable()
+
+    dependenciesConfigurable = psd.selectDependenciesConfigurable()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
+    dependenciesConfigurable.restoreModulesList()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
+
+    psd.clickCancel()
+
   }
+
+  @Test
+  fun moduleSelectorPreservesSelectionOnModeChanges() {
+    val psd = guiTest
+        .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+
+    val dependenciesConfigurable = psd.selectDependenciesConfigurable();
+
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
+    var moduleSelector = dependenciesConfigurable.findModuleSelector()
+    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
+    moduleSelector.selectModule("app")
+    assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+
+    dependenciesConfigurable.minimizeModulesList()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
+    moduleSelector = dependenciesConfigurable.findModuleSelector()
+    assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
+    moduleSelector.selectModule("mylibrary")
+    assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+
+    dependenciesConfigurable.restoreModulesList()
+    assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
+    moduleSelector = dependenciesConfigurable.findModuleSelector()
+    assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
+    moduleSelector.selectModule("<All Modules>")
+    assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+
+    psd.clickCancel()
+  }
+
 }

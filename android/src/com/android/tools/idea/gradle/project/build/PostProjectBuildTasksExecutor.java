@@ -176,13 +176,13 @@ public class PostProjectBuildTasksExecutor {
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
         request.generateSourcesOnSuccess = false;
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, null);
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request);
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST);
       }
     }
   }

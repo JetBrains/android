@@ -61,6 +61,11 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
+  public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
+    NPW, "home.template.root", "Use .android folder as a Template Root Folder",
+    "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
+    true);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
   public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
     PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
