@@ -50,7 +50,7 @@ public class AndroidProfilerDownloader {
   }
 
   private static File getPluginDir() {
-    return new File(PathManager.getSystemPath(), "android/profiler");
+    return new File(PathManager.getSystemPath(), "android/profiler/3.0");
   }
 
   public static File getHostDir(String hostReleaseDir) {
