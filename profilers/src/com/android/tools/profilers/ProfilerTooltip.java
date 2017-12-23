@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,13 @@
  */
 package com.android.tools.profilers;
 
-public enum ProfilerAspect {
-  // The connection between the profilers and the datastore has changed.
-  CONNECTION,
-  // The current stage of the profiler tools has changed
-  STAGE,
-  // The set of processes has changed.
-  PROCESSES,
-  // The overall set of devices and/or processes seen by the datastore has changed.
-  DEVICES,
-  // The profiler desired mode has changed
-  MODE,
-  // The agent attach state has changed
-  AGENT,
-  // The active tooltip has changed
-  TOOLTIP,
+/**
+ * Represents a tooltip model used by a multi-tooltip Profiler stage, e.g. CPU stage view, which uses usage tooltip and threads tooltip).
+ */
+public interface ProfilerTooltip {
+  /**
+   * Invoked when user exists the tooltip.
+   */
+  default void dispose() {
+  }
 }

@@ -27,18 +27,18 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuProfilerStage.ThreadsTooltip myTooltip;
+  @NotNull private final CpuThreadsTooltip myTooltip;
   @NotNull private final JLabel myContent;
   @NotNull private final ProfilerTimeline myTimeline;
 
-  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.ThreadsTooltip tooltip) {
+  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
     super(view.getTimeline(), "CPU");
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
     myContent.setFont(AdtUiUtils.DEFAULT_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuProfilerStage.ThreadsTooltip.Aspect.THREAD_STATE, this::threadStateChanged);
+    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::threadStateChanged);
   }
 
   @Override

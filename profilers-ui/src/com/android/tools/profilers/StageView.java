@@ -28,11 +28,30 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   private final JPanel myComponent;
   private final StudioProfilersView myProfilersView;
 
+  /**
+   * Container for the tooltip.
+   */
+  private final JPanel myTooltipPanel;
+
+  /**
+   * View of the active tooltip for stages that contain more than one tooltips.
+   */
+  private ProfilerTooltipView activeTooltipView;
+
+  /**
+   * Binder to bind a tooltip to its view.
+   */
+  private final ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> myTooltipBinder;
+
   public StageView(@NotNull StudioProfilersView profilersView, @NotNull T stage) {
     myProfilersView = profilersView;
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myTooltipPanel = new JPanel(new BorderLayout());
+    myTooltipBinder = new ViewBinder<>();
+
+    stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
   }
 
   @NotNull
@@ -60,6 +79,14 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     return myStage.getStudioProfilers().getTimeline();
   }
 
+  public ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> getTooltipBinder() {
+    return myTooltipBinder;
+  }
+
+  public JPanel getTooltipPanel() {
+    return myTooltipPanel;
+  }
+
   @NotNull
   protected JComponent buildTimeAxis(StudioProfilers profilers) {
     JPanel axisPanel = new JPanel(new BorderLayout());
@@ -80,5 +107,18 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
    */
   public boolean needsProcessSelection() {
     return false;
+  }
+
+  protected void tooltipChanged() {
+    if (activeTooltipView != null) {
+      activeTooltipView.dispose();
+      activeTooltipView = null;
+    }
+    myTooltipPanel.removeAll();
+
+    if (myStage.getTooltip() != null) {
+      activeTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
+      myTooltipPanel.add(activeTooltipView.createComponent(), BorderLayout.CENTER);
+    }
   }
 }

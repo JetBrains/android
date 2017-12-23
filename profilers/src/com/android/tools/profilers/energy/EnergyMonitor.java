@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +45,11 @@ public class EnergyMonitor extends ProfilerMonitor {
   @Override
   public String getName() {
     return "ENERGY";
+  }
+
+  @Override
+  public ProfilerTooltip buildTooltip() {
+    return new EnergyMonitorTooltip(this);
   }
 
   @Override
