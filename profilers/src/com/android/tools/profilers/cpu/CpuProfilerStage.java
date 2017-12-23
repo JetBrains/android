@@ -27,13 +27,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
@@ -156,9 +155,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private final CpuCaptureParser myCaptureParser;
 
-  @Nullable
-  private Tooltip myTooltip;
-
   /**
    * State to track if an invalid (excluding "cancel") selection has been made.
    */
@@ -266,29 +262,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public CpuStageLegends getLegends() {
     return myLegends;
-  }
-
-  public void setTooltip(@Nullable Tooltip.Type type) {
-    if (type != null && myTooltip != null && type.equals(myTooltip.getType())) {
-      return;
-    }
-    if (myTooltip != null) {
-      myTooltip.dispose();
-    }
-
-    if (type != null) {
-      myTooltip = type.build(this);
-    }
-    else {
-      myTooltip = null;
-    }
-
-    getAspect().changed(CpuProfilerAspect.TOOLTIP);
-  }
-
-  @Nullable
-  public Tooltip getTooltip() {
-    return myTooltip;
   }
 
   public DurationDataModel<CpuTraceInfo> getTraceDurations() {
@@ -832,124 +805,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     @NotNull
     public SeriesLegend getThreadsLegend() {
       return myThreadsLegend;
-    }
-  }
-
-  public interface Tooltip {
-    enum Type {
-      USAGE(UsageTooltip::new),
-      THREADS(ThreadsTooltip::new);
-
-      @NotNull
-      private final Function<CpuProfilerStage, Tooltip> myBuilder;
-
-      Type(@NotNull Function<CpuProfilerStage, Tooltip> builder) {
-        myBuilder = builder;
-      }
-
-      public Tooltip build(@NotNull CpuProfilerStage stage) {
-        return myBuilder.apply(stage);
-      }
-    }
-
-    @NotNull
-    Type getType();
-
-    /**
-     * Invoked when the user exits the tooltip.
-     */
-    default void dispose() {
-    }
-  }
-
-
-  public static class ThreadsTooltip extends AspectModel<ThreadsTooltip.Aspect> implements Tooltip {
-    public enum Aspect {
-      // The hovering thread state changed
-      THREAD_STATE,
-    }
-
-    @NotNull private final CpuProfilerStage myStage;
-
-    @Nullable private String myThreadName;
-    @Nullable private ThreadStateDataSeries mySeries;
-    @Nullable private CpuProfilerStage.ThreadState myThreadState;
-
-    ThreadsTooltip(@NotNull CpuProfilerStage stage) {
-      myStage = stage;
-      Range tooltipRange = stage.getStudioProfilers().getTimeline().getTooltipRange();
-      tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateThreadState);
-    }
-
-    private void updateThreadState() {
-      myThreadState = null;
-      if (mySeries == null) {
-        changed(Aspect.THREAD_STATE);
-        return;
-      }
-
-      Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-      // We could get data for [tooltipRange.getMin() - buffer, tooltipRange.getMin() - buffer],
-      // However it is tricky to come up with the buffer duration, a thread state can be longer than any buffer.
-      // So, lets get data what the user sees and extract the hovered state.
-      List<SeriesData<ThreadState>> series = mySeries.getDataForXRange(myStage.getStudioProfilers().getTimeline().getViewRange());
-
-      for (int i = 0; i < series.size(); ++i) {
-        if (i + 1 == series.size() || tooltipRange.getMin() < series.get(i + 1).x) {
-          myThreadState = series.get(i).value;
-          break;
-        }
-      }
-      changed(Aspect.THREAD_STATE);
-    }
-
-    @NotNull
-    @Override
-    public Type getType() {
-      return Type.THREADS;
-    }
-
-    void setThread(@Nullable String threadName, @Nullable ThreadStateDataSeries stateSeries) {
-      myThreadName = threadName;
-      mySeries = stateSeries;
-      updateThreadState();
-    }
-
-    @Nullable
-    public String getThreadName() {
-      return myThreadName;
-    }
-
-    @Nullable
-    ThreadState getThreadState() {
-      return myThreadState;
-    }
-  }
-
-  public static class UsageTooltip implements Tooltip {
-    @NotNull private final CpuProfilerStage myStage;
-    @NotNull private final CpuStageLegends myLegends;
-
-    UsageTooltip(@NotNull CpuProfilerStage stage) {
-      myStage = stage;
-      myLegends = new CpuStageLegends(stage.getCpuUsage(), stage.getStudioProfilers().getTimeline().getTooltipRange());
-      myStage.getStudioProfilers().getUpdater().register(myLegends);
-    }
-
-    @NotNull
-    @Override
-    public Type getType() {
-      return Type.USAGE;
-    }
-
-    @Override
-    public void dispose() {
-      myStage.getStudioProfilers().getUpdater().unregister(myLegends);
-    }
-
-    @NotNull
-    public CpuStageLegends getLegends() {
-      return myLegends;
     }
   }
 }

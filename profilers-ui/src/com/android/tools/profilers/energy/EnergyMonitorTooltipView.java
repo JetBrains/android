@@ -16,26 +16,23 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class EnergyMonitorTooltipView extends ProfilerTooltipView {
-  @NotNull private final EnergyMonitor myMonitor;
-
-  public EnergyMonitorTooltipView(StudioMonitorStageView parent, @NotNull EnergyMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+public class EnergyMonitorTooltipView extends ProfilerMonitorTooltipView<EnergyMonitor> {
+  public EnergyMonitorTooltipView(StudioMonitorStageView parent, @NotNull EnergyMonitorTooltip tooltip) {
+    super(tooltip.getMonitor());
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    LegendComponent.Builder legendBuilder = new LegendComponent.Builder(myMonitor.getTooltipLegends());
+    LegendComponent.Builder legendBuilder = new LegendComponent.Builder(getMonitor().getTooltipLegends());
     LegendComponent legend = legendBuilder.setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
-    legend.configure(myMonitor.getTooltipLegends().getLegends().get(0),
+    legend.configure(getMonitor().getTooltipLegends().getLegends().get(0),
                      new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_USAGE));
     return legend;
   }

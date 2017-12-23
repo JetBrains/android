@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 class CpuUsageTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuProfilerStage.UsageTooltip myTooltip;
+  @NotNull private final CpuUsageTooltip myTooltip;
 
-  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.UsageTooltip tooltip) {
+  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
     super(view.getTimeline(), "CPU");
     myTooltip = tooltip;
   }

@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +49,11 @@ public class CpuMonitor extends ProfilerMonitor {
   @Override
   public String getName() {
     return "CPU";
+  }
+
+  @Override
+  public ProfilerTooltip buildTooltip() {
+    return new CpuMonitorTooltip(this);
   }
 
   @Override
@@ -85,6 +92,7 @@ public class CpuMonitor extends ProfilerMonitor {
     return myThisProcessCpuUsage;
   }
 
+  @NotNull
   public Legends getTooltipLegends() {
     return myTooltipLegends;
   }

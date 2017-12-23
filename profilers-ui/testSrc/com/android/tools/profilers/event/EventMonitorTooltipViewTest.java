@@ -45,7 +45,7 @@ public class EventMonitorTooltipViewTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     myMonitor = new EventMonitor(profilers);
-    myTooltipView = new FakeEventMonitorTooltipView(null, myMonitor);
+    myTooltipView = new FakeEventMonitorTooltipView(null, new EventMonitorTooltip(myMonitor));
     long tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1);
     long timelineRange = TimeUnit.SECONDS.toMicros(5);
     myMonitor.getTimeline().getDataRange().set(0, timelineRange);
@@ -117,8 +117,8 @@ public class EventMonitorTooltipViewTest {
 
   private static final class FakeEventMonitorTooltipView extends EventMonitorTooltipView {
 
-    public FakeEventMonitorTooltipView(StudioMonitorStageView parent, EventMonitor monitor) {
-      super(parent, monitor);
+    public FakeEventMonitorTooltipView(StudioMonitorStageView parent, EventMonitorTooltip tooltip) {
+      super(parent, tooltip);
       createComponent();
     }
 

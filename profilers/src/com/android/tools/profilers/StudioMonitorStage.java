@@ -15,11 +15,9 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,26 +29,8 @@ public class StudioMonitorStage extends Stage {
   @NotNull
   private List<ProfilerMonitor> myMonitors;
 
-  @Nullable
-  private ProfilerMonitor myTooltip;
-
   @NotNull
   private final Updatable myUpdatable;
-
-  enum Aspect {
-    TOOLTIP
-  }
-
-  private AspectModel<Aspect> myAspect = new AspectModel<>();
-
-  public AspectModel<Aspect> getAspect() {
-    return myAspect;
-  }
-
-  @Nullable
-  public ProfilerMonitor getTooltip() {
-    return myTooltip;
-  }
 
   public StudioMonitorStage(@NotNull StudioProfilers profiler) {
     super(profiler);
@@ -87,11 +67,10 @@ public class StudioMonitorStage extends Stage {
     return myMonitors;
   }
 
-  public void setTooltip(@Nullable ProfilerMonitor tooltip) {
-    if (tooltip != myTooltip) {
-      myTooltip = tooltip;
-      myMonitors.forEach(monitor -> monitor.setFocus(monitor == tooltip));
-      myAspect.changed(Aspect.TOOLTIP);
-    }
+  @Override
+  public void setTooltip(ProfilerTooltip tooltip) {
+    super.setTooltip(tooltip);
+    myMonitors.forEach(monitor -> monitor
+      .setFocus(getTooltip() instanceof ProfilerMonitorTooltip && ((ProfilerMonitorTooltip)getTooltip()).getMonitor() == monitor));
   }
 }

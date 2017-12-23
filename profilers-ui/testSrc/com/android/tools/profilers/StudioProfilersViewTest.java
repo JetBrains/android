@@ -20,14 +20,15 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.cpu.CpuMonitor;
+import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.energy.EnergyMonitor;
+import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
-import com.android.tools.profilers.memory.MemoryMonitor;
+import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.network.NetworkMonitor;
+import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -124,32 +125,40 @@ public class StudioProfilersViewTest {
 
     // cpu monitor tooltip
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitorTooltip.class);
+    ProfilerMonitor cpuMonitor = ((CpuMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the CPU Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == cpuMonitor));
 
     // memory monitor tooltip
     myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitorTooltip.class);
+    ProfilerMonitor memoryMonitor = ((MemoryMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Memory Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == memoryMonitor));
 
     // network monitor tooltip
     myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitorTooltip.class);
+    ProfilerMonitor networMonitor = ((NetworkMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Network Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == networMonitor));
 
     // energy monitor tooltip
     myUi.mouse.moveTo(points.get(3).x + 1, points.get(3).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitor.class);
-    assertThat(stage.getTooltip().isFocused()).isTrue();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+    assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitorTooltip.class);
+    ProfilerMonitor energyMonitor = ((EnergyMonitorTooltip)stage.getTooltip()).getMonitor();
+    stage.getMonitors().forEach(
+      monitor -> Truth.assertWithMessage("Only the Energy Monitor should be focused.")
+        .that(monitor.isFocused()).isEqualTo(monitor == energyMonitor));
 
     // no tooltip
     myUi.mouse.moveTo(0, 0);
     assertThat(stage.getTooltip()).isNull();
-    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isFalse());
+    stage.getMonitors().forEach(monitor -> Truth.assertWithMessage("No monitor should be focused.").that(monitor.isFocused()).isFalse());
   }
 
   @Test
