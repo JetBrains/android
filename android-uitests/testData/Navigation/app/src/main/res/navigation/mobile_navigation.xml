@@ -20,25 +20,25 @@
               android:label="@string/title_activity_main"
               android:name="google.navigation.MainActivity"
               tools:layout="@layout/activity_main" >
-        <default-argument app:name="myarg" app:defaultValue="Home" />
+        <default-argument android:name="myarg" android:defaultValue="Home" />
         <action android:id="@+id/next" app:destination="@+id/first_screen"/>
     </activity>
     <activity android:id="@+id/first_screen"
               android:name="google.navigation.FirstScreen"
               tools:layout="@layout/activity_first_screen">
-        <default-argument app:name="myarg" app:defaultValue="one" />
+        <default-argument android:name="myarg" android:defaultValue="one" />
     </activity>
     <fragment android:id="@+id/next_fragment"
               android:name="google.navigation.NextFragment"
               tools:layout="@layout/fragment_next">
-        <default-argument app:name="myarg" app:defaultValue="two" />
+        <default-argument android:name="myarg" android:defaultValue="two" />
         <action android:id="@+id/next4" app:destination="@id/subnav"/>
     </fragment>
     <navigation app:startDestination="@id/next_fragment2" android:label="sub nav" android:id="@+id/subnav">
         <fragment android:id="@+id/next_fragment2"
                   android:name="google.navigation.NextFragment"
                   tools:layout="@layout/fragment_next">
-            <default-argument app:name="myarg" app:defaultValue="two" />
+            <default-argument android:name="myarg" android:defaultValue="two" />
             <action android:id="@+id/out_of_nav" app:destination="@id/first_screen"/>
         </fragment>
     </navigation>
