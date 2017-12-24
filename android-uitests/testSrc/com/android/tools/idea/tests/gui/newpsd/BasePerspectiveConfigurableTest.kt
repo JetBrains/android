@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.newpsd
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner
+import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
@@ -27,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner::class)
 class BasePerspectiveConfigurableTest {
 
