@@ -97,7 +97,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     if (!myDevicesFuture.isDone) return "Loading..."
     if (myDevicesFuture.get().isEmpty()) return "No USB device detected."
 
-    val devices = myDevicesFuture.get()
+    val devices = myDevicesFuture.get().sortedBy { it.name }
     val count = devices.size
     val htmlBuilder = HtmlBuilder().openHtmlBody().add("We detected the following $count USB devices:").newline()
 
