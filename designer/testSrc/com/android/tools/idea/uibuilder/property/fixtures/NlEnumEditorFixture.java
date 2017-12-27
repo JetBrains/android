@@ -270,7 +270,6 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     private JComboBox myCombo;
 
     public ComboUI(@NotNull JComboBox comboBox) {
-      super(comboBox);
       myCombo = comboBox;
     }
 
