@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
@@ -161,7 +161,7 @@ public class AndroidPluginInfo {
         }
       }
       return keepSearchingForAppModule || keepSearchingForPluginVersion;
-    });
+    }, false /* do not process composite builds */);
 
     return result;
   }
