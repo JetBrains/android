@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 public class IntellijSearchComponent implements SearchComponent {
   private static final String REGEX = "Regex";
-  private static final String MATCH_CASE = "Match Case";
+  private static final String MATCH_CASE = "Match case";
   private final FilterComponent myFilterComponent;
   private final JComponent myComponent;
   private final SearchModel myModel;
