@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.os.health.SystemHealthManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.SYSTEM_HEALTH_SERVICE" />
+    </annotation>
+  </item>
+</root>
+

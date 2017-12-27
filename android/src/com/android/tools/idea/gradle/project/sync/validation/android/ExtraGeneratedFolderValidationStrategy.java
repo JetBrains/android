@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -29,8 +29,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.GENERATED_SOURCES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
 class ExtraGeneratedFolderValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final List<File> myExtraGeneratedSourceFolderPaths = new ArrayList<>();
@@ -48,7 +48,7 @@ class ExtraGeneratedFolderValidationStrategy extends AndroidProjectValidationStr
   @Override
   void fixAndReportFoundIssues() {
     if (!myExtraGeneratedSourceFolderPaths.isEmpty()) {
-      SyncMessages messages = SyncMessages.getInstance(getProject());
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(getProject());
       Collections.sort(myExtraGeneratedSourceFolderPaths);
 
       // Warn users that there are generated source folders at the wrong location.

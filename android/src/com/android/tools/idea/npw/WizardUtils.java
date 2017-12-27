@@ -252,7 +252,8 @@ public class WizardUtils {
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
       if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
-        return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
+        ValidationResult.Status status = SystemInfo.isWindows ? ValidationResult.Status.ERROR : ValidationResult.Status.WARN;
+        return new ValidationResult(status, ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
         warningResult = ValidationResult.warn(ValidationResult.Message.WHITESPACE, fieldName);

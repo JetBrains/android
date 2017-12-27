@@ -21,13 +21,13 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import static junit.framework.Assert.fail;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class GradleBuildModelFixture {
   @NotNull private final GradleBuildModel myTarget;
@@ -64,20 +64,10 @@ public class GradleBuildModelFixture {
   }
 
   public void applyChanges() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges);
-      }
-    });
+    ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges));
   }
 
   public void reparse() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        myTarget.reparse();
-      }
-    });
+    GuiTask.execute(() -> myTarget.reparse());
   }
 }

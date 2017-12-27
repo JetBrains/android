@@ -108,7 +108,7 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
   @Override
   @NotNull
   public String getName() {
-    return myResolvedSpec.name;
+    return myResolvedSpec.getName();
   }
 
   @Override

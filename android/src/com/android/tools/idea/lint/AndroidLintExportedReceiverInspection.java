@@ -17,23 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SecurityDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_PERMISSION;
 
 public class AndroidLintExportedReceiverInspection extends AndroidLintInspectionBase {
   public AndroidLintExportedReceiverInspection() {
     super(AndroidBundle.message("android.lint.inspections.exported.receiver"), SecurityDetector.EXPORTED_RECEIVER);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix("Set permission attribute", ATTR_PERMISSION, null)
-    };
   }
 }

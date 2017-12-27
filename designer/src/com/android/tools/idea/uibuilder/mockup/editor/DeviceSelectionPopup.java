@@ -22,6 +22,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
@@ -203,7 +204,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
       // Unlikely, but has happened - see http://b.android.com/68091
       return false;
     }
-    final AvdManager avdManager = facet.getAvdManagerSilently();
+    final AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
     if (avdManager != null) {
       final AvdInfo[] allAvds = avdManager.getAllAvds();
       for (AvdInfo avd : allAvds) {

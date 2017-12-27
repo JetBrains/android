@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -42,7 +43,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -50,7 +51,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
 
-  public SdkModuleSetupStep(@NotNull AndroidSdks androidSdks) {
+  public SdkModuleSetupStep() {
+    this(AndroidSdks.getInstance());
+  }
+
+  @VisibleForTesting
+  SdkModuleSetupStep(@NotNull AndroidSdks androidSdks) {
     myAndroidSdks = androidSdks;
   }
 
@@ -115,7 +121,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     getLog().warn(text);
 
     SyncMessage msg = new SyncMessage(SDK_SETUP_ISSUES, ERROR, text);
-    SyncMessages.getInstance(module.getProject()).report(msg);
+    GradleSyncMessages.getInstance(module.getProject()).report(msg);
   }
 
   @NotNull
@@ -169,11 +175,5 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
       }
     }
     return false;
-  }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Android SDK setup";
   }
 }

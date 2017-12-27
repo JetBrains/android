@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.stubs.gradle;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaModuleIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 public class IdeaModuleDependencyStub implements IdeaModuleDependency {
@@ -30,7 +29,7 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
 
   @Override
   public String getTargetModuleName() {
-    return null;
+    return myModule.getName();
   }
 
   @Override

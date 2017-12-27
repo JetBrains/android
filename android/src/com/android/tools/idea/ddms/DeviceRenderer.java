@@ -18,6 +18,7 @@ package com.android.tools.idea.ddms;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -29,6 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.Set;
+
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 
 public class DeviceRenderer {
 
@@ -36,36 +41,32 @@ public class DeviceRenderer {
   private DeviceRenderer() {
   }
 
-  public static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component) {
-    renderDeviceName(d, component, null);
+  public static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component, boolean showSerialNumber) {
+    renderDeviceName(d, component, showSerialNumber, null);
   }
 
-  static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component, @Nullable AvdManager avdManager) {
+  public static void renderDeviceName(@NotNull IDevice d,
+                                      @NotNull ColoredTextContainer component,
+                                      boolean showSerialNumber,
+                                      @Nullable AvdManager avdManager) {
     component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
 
     String name;
     if (d.isEmulator()) {
-      String avdName = d.getAvdName();
-      if (avdManager != null) {
-        AvdInfo info = avdManager.getAvd(avdName, true);
-        if (info != null) {
-          avdName = info.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
-        }
-      }
-      if (avdName == null) {
-        avdName = "unknown";
-      }
-      name = String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
+      name = getEmulatorDeviceName(d, avdManager);
     }
     else {
-      name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
+      name = getDeviceName(d);
     }
 
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-
     IDevice.DeviceState deviceState = d.getState();
     if (deviceState != IDevice.DeviceState.ONLINE) {
       String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
+      component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+    }
+    else if (showSerialNumber) {
+      String state = String.format("%1$s ", d.getSerialNumber());
       component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
     }
 
@@ -74,17 +75,55 @@ public class DeviceRenderer {
     }
   }
 
+  @NotNull
+  private static String getEmulatorDeviceName(@NotNull IDevice d, @Nullable AvdManager avdManager) {
+    String avdName = d.getAvdName();
+    if (avdManager != null) {
+      AvdInfo info = avdManager.getAvd(avdName, true);
+      if (info != null) {
+        avdName = info.getProperties().get(AVD_INI_DISPLAY_NAME);
+      }
+    }
+    if (avdName == null) {
+      avdName = "unknown";
+    }
+    return String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
+  }
+
+  @NotNull
+  private static String getDeviceName(@NotNull IDevice d) {
+    return String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
+  }
+
+  public static boolean shouldShowSerialNumbers(@NotNull List<IDevice> devices) {
+    Set<String> myNames = Sets.newHashSet();
+    for (IDevice currentDevice : devices) {
+      if (currentDevice.isEmulator()) {
+        continue;
+      }
+
+      String currentName = getDeviceName(currentDevice);
+      if (myNames.contains(currentName)) {
+        return true;
+      }
+      myNames.add(currentName);
+    }
+    return false;
+  }
+
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
 
     @NotNull
     private String myEmptyText;
+    private boolean myShowSerial;
 
-    public DeviceComboBoxRenderer(@NotNull String emptyText) {
+    public DeviceComboBoxRenderer(@NotNull String emptyText, boolean showSerial) {
       myEmptyText = emptyText;
+      myShowSerial = showSerial;
     }
 
-    public DeviceComboBoxRenderer() {
-      this("[none]");
+    public void setShowSerial(boolean showSerial) {
+      myShowSerial = showSerial;
     }
 
     @Override
@@ -93,7 +132,7 @@ public class DeviceRenderer {
         append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
       else if (value instanceof IDevice) {
-        renderDeviceName((IDevice)value, this);
+        renderDeviceName((IDevice)value, this, myShowSerial);
       }
       else if (value == null) {
         append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
@@ -104,7 +143,6 @@ public class DeviceRenderer {
   public static class DeviceNameRenderer extends ColoredTableCellRenderer {
     private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
     private final DeviceNameRendererEx[] myRenderers = EP_NAME.getExtensions();
-
     private final AvdManager myAvdManager;
 
     public DeviceNameRenderer(@Nullable AvdManager avdManager) {
@@ -125,7 +163,7 @@ public class DeviceRenderer {
         }
       }
 
-      renderDeviceName(device, this, myAvdManager);
+      renderDeviceName(device, this, false, myAvdManager);
     }
   }
 }

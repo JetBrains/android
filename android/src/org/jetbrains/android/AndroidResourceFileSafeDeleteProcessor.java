@@ -15,7 +15,8 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static org.jetbrains.android.util.AndroidCommonUtils.getResourceName;
 
 /**
  * @author Eugene.Kudelevsky
@@ -50,7 +53,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     final VirtualFile vFile = ((PsiFile)element).getVirtualFile();
     final VirtualFile parent = vFile != null ? vFile.getParent() : null;
     final VirtualFile resDir = parent != null ? parent.getParent() : null;
-    return resDir != null && facet.getLocalResourceManager().isResourceDir(resDir);
+    return resDir != null && ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(resDir);
   }
 
   @Nullable
@@ -92,9 +95,11 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     }
     final String type = folderType.getName();
     final String name = vFile.getName();
-    final List<PsiFile> resourceFiles = facet.getLocalResourceManager().findResourceFiles(
-      type, AndroidCommonUtils.getResourceName(type, name), true, false);
-    final List<PsiElement> result = new ArrayList<PsiElement>();
+
+    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+    List<PsiFile> resourceFiles = resourceManager.findResourceFiles(folderType, getResourceName(type, name), true, false);
+
+    final List<PsiElement> result = new ArrayList<>();
 
     for (PsiFile resourceFile : resourceFiles) {
       if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) &&
@@ -102,7 +107,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
         result.add(resourceFile);
       }
     }
-    if (result.size() > 0 && askUser) {
+    if (!result.isEmpty() && askUser) {
       final int r = Messages.showDialog(element.getProject(), "Delete alternative resource files for other configurations?", "Delete",
                                         new String[]{Messages.YES_BUTTON, Messages.NO_BUTTON}, 1, Messages.getQuestionIcon());
       if (r != Messages.YES) {

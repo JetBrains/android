@@ -18,12 +18,11 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +39,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     // The android gradle plugin version 2.3.0-alpha1 is too old, please update to the latest version.
     // To override this check from the command line please set the ANDROID_DAILY_OVERRIDE environment variable to "e3353206c64a2c010454e8bb4f2d7187b56c198"
     String text = rootCause.getMessage();
@@ -67,9 +66,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
     AndroidPluginInfo result = searchInBuildFilesOnly(project);

@@ -46,7 +46,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
         final String resName = entry.getName();
         final String resContext = entry.getContext();
 
-        if (resContext.length() > 0) {
+        if (!resContext.isEmpty()) {
           fieldNames.put(resContext + '_' + resName, PsiType.INT);
         }
       }

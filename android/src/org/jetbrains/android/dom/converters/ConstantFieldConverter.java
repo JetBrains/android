@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
@@ -70,8 +69,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
 
     final Module module = context.getModule();
     final GlobalSearchScope scope = module != null ? GlobalSearchScope.allScope(module.getProject()) : domElement.getResolveScope();
-    final JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(context.getPsiManager().
-      getProject());
+    final JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(context.getPsiManager().getProject());
 
     final String[] classNames = lookupClass.value();
     final List<PsiReference> result = Lists.newArrayListWithCapacity(classNames.length);

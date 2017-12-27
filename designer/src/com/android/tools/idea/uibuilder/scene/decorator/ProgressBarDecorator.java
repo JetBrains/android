@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAnchor;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawRegion;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +37,7 @@ public class ProgressBarDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawProgressBar(int x, int y, int width, int height) {
+    DrawProgressBar(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
     public DrawProgressBar(String s) {

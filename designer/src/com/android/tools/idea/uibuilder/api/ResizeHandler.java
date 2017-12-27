@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.api;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
 import java.awt.*;

@@ -208,7 +208,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
             value, reference.getRangeInElement(), ProblemsHolder.unresolvedReferenceMessage(reference),
             ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly));
         }
-        else if (resolvedClassesWithMistake.size() > 0) {
+        else if (!resolvedClassesWithMistake.isEmpty()) {
           reportMissingOnClickProblem(ref, resolvedClassesWithMistake.iterator().next(), methodName, true);
         }
       }

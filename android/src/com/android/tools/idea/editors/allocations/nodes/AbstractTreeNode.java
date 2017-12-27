@@ -61,7 +61,7 @@ public abstract class AbstractTreeNode implements ValuedTreeNode {
 
   @Override
   public boolean isLeaf() {
-    return myChildren.size() == 0;
+    return myChildren.isEmpty();
   }
 
   @Override

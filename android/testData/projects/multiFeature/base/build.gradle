@@ -1,0 +1,20 @@
+apply plugin: 'com.android.feature'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "25.0.0"
+
+    baseFeature true
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+}
+
+dependencies {
+    feature project(':feature1')
+    feature project(':feature2')
+
+    compile("com.android.support:appcompat-v7:+")
+}

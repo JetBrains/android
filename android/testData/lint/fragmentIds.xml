@@ -4,8 +4,8 @@
     android:layout_height="match_parent">
 
     <<warning descr="This `<fragment>` tag should specify an id or a tag to preserve state across activity restarts">fra<caret>gment</warning>
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:name="android.app.ListFragment"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:name="android.app.ListFragment"/>
 
 </LinearLayout>

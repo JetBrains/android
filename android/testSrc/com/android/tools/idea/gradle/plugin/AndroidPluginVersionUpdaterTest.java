@@ -18,38 +18,49 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.TextSearch;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
  */
-public class AndroidPluginVersionUpdaterTest {
-  private Project myProject;
-  private GradleSyncState mySyncState;
-  private GradleSyncInvoker mySyncInvoker;
-  private TextSearch myTextSearch;
+public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
+  @Mock private GradleSyncState mySyncState;
+  @Mock private GradleSyncInvoker mySyncInvoker;
+  @Mock private TextSearch myTextSearch;
 
   private AndroidPluginVersionUpdater myVersionUpdater;
 
-  @Before
-  public void setUp() {
-    myProject = mock(Project.class);
-    mySyncState = mock(GradleSyncState.class);
-    mySyncInvoker = mock(GradleSyncInvoker.class);
-    myTextSearch = mock(TextSearch.class);
-
-    myVersionUpdater = new AndroidPluginVersionUpdater(myProject, mySyncState, mySyncInvoker, myTextSearch);
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    initMocks(this);
+    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, mySyncInvoker, myTextSearch);
   }
 
-  @Test
-  public void handleUpdateResultWithPluginUpdateErrorAndInvalidatingSync() {
+  @Override
+  protected void tearDown() throws Exception {
+    myVersionUpdater = null;
+    super.tearDown();
+  }
+
+  public void testHandleUpdateResultWithPreviousSyncFailed() {
+    // http://b/38487637
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
+    result.pluginVersionUpdated();
+    myVersionUpdater.handleUpdateResult(result, false);
+    verify(mySyncState, never()).syncEnded();
+  }
+
+  public void testHandleUpdateResultWithPluginUpdateErrorAndInvalidatingSync() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setPluginVersionUpdateError(new Throwable());
 
@@ -60,8 +71,7 @@ public class AndroidPluginVersionUpdaterTest {
     verifyTextSearch(times(1));
   }
 
-  @Test
-  public void handleUpdateResultWithGradleUpdateErrorAndInvalidatingSync() {
+  public void testHandleUpdateResultWithGradleUpdateErrorAndInvalidatingSync() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setGradleVersionUpdateError(new Throwable());
 
@@ -72,8 +82,7 @@ public class AndroidPluginVersionUpdaterTest {
     verifyTextSearch(never());
   }
 
-  @Test
-  public void handleUpdateResultWithPluginVersionUpdated() {
+  public void testHandleUpdateResultWithPluginVersionUpdated() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
 
@@ -84,8 +93,7 @@ public class AndroidPluginVersionUpdaterTest {
     verifyTextSearch(never());
   }
 
-  @Test
-  public void handleUpdateResultWithGradleVersionUpdated() {
+  public void testHandleUpdateResultWithGradleVersionUpdated() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.gradleVersionUpdated();
 
@@ -96,8 +104,7 @@ public class AndroidPluginVersionUpdaterTest {
     verifyTextSearch(never());
   }
 
-  @Test
-  public void handleUpdateResultWithNoVersionsUpdatedAndNoErrors() {
+  public void testHandleUpdateResultWithNoVersionsUpdatedAndNoErrors() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     myVersionUpdater.handleUpdateResult(result, true);
 
@@ -111,7 +118,7 @@ public class AndroidPluginVersionUpdaterTest {
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
     verify(mySyncState, verificationMode).syncEnded();
     verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request, null);
   }

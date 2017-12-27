@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.List;
@@ -29,31 +28,32 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.SystemProperties.getUserName;
+import static java.io.File.separatorChar;
 import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link FailedToParseSdkErrorHandler}.
  */
 public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
-
-  private SyncMessagesStub mySyncMessagesStub;
+  private IdeComponents myIdeComponents;
+  private GradleSyncMessagesStub mySyncMessagesStub;
   private AndroidSdks myAndroidSdks;
-  private AndroidSdks myOriginalAndroidSdks;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myOriginalAndroidSdks = AndroidSdks.getInstance();
-    myAndroidSdks = IdeComponents.replaceServiceWithMock(AndroidSdks.class);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    myIdeComponents = new IdeComponents(getProject());
+    myAndroidSdks = myIdeComponents.mockService(AndroidSdks.class);
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      assertNotNull(myOriginalAndroidSdks);
-      IdeComponents.replaceService(AndroidSdks.class, myOriginalAndroidSdks);
-      Mockito.reset(myAndroidSdks);
+      myIdeComponents.restore();
+      myIdeComponents = null;
+      myAndroidSdks = null;
+      mySyncMessagesStub = null;
     }
     finally {
       super.tearDown();
@@ -67,7 +67,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).isEqualTo("failed to parse SDK");
 
@@ -89,13 +89,12 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).isEqualTo(
-      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty\n\nCurrent user (" +
-      getUserName() +
-      ") does not have write access to the SDK directory.");
+      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty\n\nCurrent user ("
+        .replace('/', separatorChar) + getUserName() + ") does not have write access to the SDK directory.");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
@@ -115,11 +114,11 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
-    assertThat(notificationUpdate.getText())
-      .isEqualTo("The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty");
+    assertThat(notificationUpdate.getText()).isEqualTo(
+      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty".replace('/', separatorChar));
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

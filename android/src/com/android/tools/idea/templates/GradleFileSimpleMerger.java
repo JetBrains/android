@@ -26,7 +26,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -35,9 +34,9 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
-import static com.android.tools.idea.templates.GradleFileMergers.DEPENDENCIES;
+import static com.android.tools.idea.templates.GradleFileMergers.*;
 
 /**
  * Simplified gradle.build merger designed to be used while instantiating android project templates.
@@ -425,38 +424,46 @@ public class GradleFileSimpleMerger {
     }
 
     private void mergeDependencies(@NotNull MergeContext context, @NotNull AstNode other) {
-      Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
+      Map<String, Multimap<String, GradleCoordinate>> dependencies = new TreeMap<>(CONFIGURATION_ORDERING);
       List<Ast> unparseableDependencies = Lists.newArrayListWithCapacity(10);
-      pullDependenciesIntoMap(dependencies, null);
-      other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
-      RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-      ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
-      Ast prev = null;
+      Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
+      pullDependenciesIntoMap(originalDependencies, null);
+      other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
+
+      removeExistingDependencies(dependencies, originalDependencies);
+
+      RepositoryUrlManager urlManager = RepositoryUrlManager.get();
+
       AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdk != null) {
-        for (String configuration : configurations) {
-          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configuration),
+        dependencies.forEach((configurationName, unresolvedDependencies) -> {
+          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
                                                                                      context.getFilter(),
                                                                                      sdk,
                                                                                      FileOpUtils.create());
 
+          Ast prev = myParam != null ? findInsertionPoint(configurationName) : null;
           // Add the resolved dependencies:
-          prev = myParam != null ? myParam.findLast() : null;
           for (GradleCoordinate coordinate : resolved) {
-            AstNode compile = new AstNode(configuration);
-            compile.myParam = new ValueAst("'" + coordinate + "'");
+            AstNode configurationNode = new AstNode(configurationName);
+            configurationNode.myParam = new ValueAst("'" + coordinate + "'");
             if (prev == null) {
-              myParam = compile;
+              // Put this node as the first in the singly linked list.
+              configurationNode.myNext = myParam;
+              myParam = configurationNode;
             }
             else {
-              prev.myNext = compile;
+              // Append after "prev".
+              configurationNode.myNext = prev.myNext;
+              prev.myNext = configurationNode;
             }
-            prev = compile;
+            prev = configurationNode;
           }
-        }
+        });
       }
 
+      Ast prev = myParam != null ? myParam.findLast() : null;
       // Add the dependencies we could not parse (steal the AST nodes from the other parse tree):
       for (Ast node : unparseableDependencies) {
         if (prev == null) {
@@ -470,10 +477,36 @@ public class GradleFileSimpleMerger {
       }
     }
 
+    /**
+     * Finds the {@link Ast} node that dependencies for a given configuration should appended after. Returns null if dependencies for the
+     * given configuration should be prepended before all existing {@link Ast} nodes.
+     */
+    @Nullable
+    private Ast findInsertionPoint(@NotNull String configuration) {
+      assert myParam != null;
+
+      if (myParam.myId != null && CONFIGURATION_ORDERING.compare(configuration, myParam.myId) < 0) {
+        // There is no previous node, we go first.
+        return null;
+      }
+
+      // Skip all dependencies that go before us.
+      Ast result = myParam;
+      while (result.myNext != null) {
+        // result.myNext may be a comment node, which has no ID. Skip over those.
+        if (result.myNext.myId != null && CONFIGURATION_ORDERING.compare(configuration, result.myNext.myId) < 0) {
+          break;
+        }
+        result = result.myNext;
+        assert result != null; // Make IJ happy: we've already checked there's a next node at the start of the loop.
+      }
+
+      return result;
+    }
+
     private void pullDependenciesIntoMap(@NotNull Map<String, Multimap<String, GradleCoordinate>> dependencies,
                                          @Nullable List<Ast> unparseableDependencies) {
       Ast node = myParam;
-      Ast prev = null;
       while (node != null) {
         assert myParam != null;
         boolean parsed = false;
@@ -494,12 +527,6 @@ public class GradleFileSimpleMerger {
 
               if (!map.get(coordinate.getId()).contains(coordinate)) {
                 map.put(coordinate.getId(), coordinate);
-
-                // Delete the current node:
-                Ast toDelete = node;
-                node = node.myNext;
-                myParam = remove(toDelete, myParam, prev);
-                continue;
               }
             }
           }
@@ -507,7 +534,6 @@ public class GradleFileSimpleMerger {
         if (!parsed && unparseableDependencies != null) {
           unparseableDependencies.add(node);
         }
-        prev = node;
         node = node.myNext;
       }
     }

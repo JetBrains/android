@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+}
+
+dependencies {
+    api 'com.android.support:appcompat-v7:+'
+    api 'com.android.support.constraint:constraint-layout:+'
+    testImplementation 'junit:junit:+'
+    androidTestImplementation 'com.android.support.test:runner:+'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}

@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.scene.decorator.ConstraintLayoutDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.image.BufferedImage;
 
 import static com.android.SdkConstants.*;
 

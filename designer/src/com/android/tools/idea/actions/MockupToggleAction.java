@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.intellij.openapi.actionSystem.*;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,16 +36,17 @@ import java.awt.*;
 public class MockupToggleAction extends ToggleAction {
   public static final Dimension CLOSED_DIMENSION = new Dimension(0, 0);
   public static final Dimension OPEN_DIMENSION = new Dimension(200, 200);
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
   private final static String SHOW_ACTION_TITLE = "Show Mockup Editor";
   private final static String HIDE_ACTION_TITLE = "Hide Mockup Editor";
 
-  public MockupToggleAction(@NotNull DesignSurface surface) {
+  public MockupToggleAction(@NotNull NlDesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(getDesignIcon());
     presentation.setDescription(getDescription());
+    getTemplatePresentation().setEnabledAndVisible(StudioFlags.NELE_MOCKUP_EDITOR.get());
   }
 
 
@@ -83,8 +86,7 @@ public class MockupToggleAction extends ToggleAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     super.update(event);
-    event.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
     event.getPresentation().setIcon(getDesignIcon());
-    getTemplatePresentation().setDescription(getDescription());
+    event.getPresentation().setDescription(getDescription());
   }
 }

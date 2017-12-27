@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.idea.editors.theme.ColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColorUtils;
-import com.android.tools.swing.ui.ClickableLabel;
-import com.android.tools.swing.util.GraphicsUtil;
+import com.android.tools.adtui.ui.ClickableLabel;
+import com.android.tools.adtui.util.GraphicsUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -1383,14 +1383,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     //}
 
     public static boolean isAvailable() {
-      try {
-        Robot robot = new Robot();
-        robot.createScreenCapture(new Rectangle(0, 0, 1, 1));
-        return WindowManager.getInstance().isAlphaModeSupported();
-      }
-      catch (AWTException e) {
-        return false;
-      }
+      // Wayland's stricter security policy prevents applications from grabbing screenshots of windows they do not owm.
+      // OpenJDK crashes if such a request is made to the robot: https://bugs.openjdk.java.net/browse/JDK-8171000
+      // Unfortunately the color pipette relies on this kind of functionality, so we disable it.
+      return !SystemInfo.isWayland && WindowManager.getInstance().isAlphaModeSupported();
     }
   }
 

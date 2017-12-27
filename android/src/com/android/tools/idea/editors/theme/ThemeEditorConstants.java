@@ -21,7 +21,6 @@ import com.intellij.util.ui.JBUI;
 import java.awt.*;
 
 public class ThemeEditorConstants {
-  public static final int ROUNDED_BORDER_ARC_SIZE = JBUI.scale(2);
 
   /** Scale of headers of attributes in the ThemeEditorTable */
   public static final float ATTRIBUTES_HEADER_FONT_SCALE = 1.3f;

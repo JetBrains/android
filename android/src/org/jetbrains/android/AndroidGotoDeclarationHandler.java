@@ -19,7 +19,10 @@ import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.android.dom.AndroidAttributeValue;
@@ -29,6 +32,7 @@ import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.DeclareStyleable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -36,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -81,15 +84,16 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     }
     final String nestedClassName = info.getClassName();
     final String fieldName = info.getFieldName();
-    final List<PsiElement> resourceList = new ArrayList<PsiElement>();
+    final List<PsiElement> resourceList = new ArrayList<>();
 
     if (info.isFromManifest()) {
       collectManifestElements(nestedClassName, fieldName, facet, resourceList);
     }
     else {
+      ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
       final ResourceManager manager = info.isSystem()
-                                      ? facet.getSystemResourceManager(false)
-                                      : facet.getLocalResourceManager();
+                                      ? resourceManagers.getSystemResourceManager(false)
+                                      : resourceManagers.getLocalResourceManager();
       if (manager == null) {
         return null;
       }
@@ -117,7 +121,7 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
 
     if (resourceList.size() > 1) {
       // Sort to ensure the output is stable, and to prefer the base folders
-      Collections.sort(resourceList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+      resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     }
 
     return resourceList.toArray(new PsiElement[resourceList.size()]);

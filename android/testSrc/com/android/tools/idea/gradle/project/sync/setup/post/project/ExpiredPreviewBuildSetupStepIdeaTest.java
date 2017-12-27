@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub;
-import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub.NotificationMessage;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.AndroidNotificationStub;
+import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.testFramework.IdeaTestCase;
@@ -41,14 +41,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
 
-  private AndroidGradleNotificationStub myNotification;
+  private AndroidNotificationStub myNotification;
   private ExpiredPreviewBuildSetupStep mySetupStep;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myNotification = AndroidGradleNotificationStub.replaceSyncMessagesService(getProject());
+    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
     mySetupStep = new ExpiredPreviewBuildSetupStep(myApplicationInfo);
   }
 

@@ -23,6 +23,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -51,14 +53,20 @@ public final class AndroidPackageUtils {
   public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
                                          @NotNull List<AndroidSourceSet> sourceSets,
                                          @NotNull VirtualFile targetDirectory) {
-    if (sourceSets.size() > 0) {
+    if (!sourceSets.isEmpty()) {
       Module module = androidFacet.getModule();
-      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory();
+      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory(null);
       if (srcDirectory != null) {
-        ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
-        String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);
-        if (suggestedPackage != null && !suggestedPackage.isEmpty()) {
-          return suggestedPackage;
+        // We generate a package name relative to the source root, but if the target path is not under the source root, we should just
+        // fall back to the default application package.
+        Path srcPath = Paths.get(srcDirectory.getPath()).toAbsolutePath();
+        Path targetPath = Paths.get(targetDirectory.getPath()).toAbsolutePath();
+        if (targetPath.startsWith(srcPath)) {
+          ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
+          String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);
+          if (suggestedPackage != null && !suggestedPackage.isEmpty()) {
+            return suggestedPackage;
+          }
         }
       }
     }

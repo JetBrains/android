@@ -120,6 +120,16 @@
   <item name="android.os.BaseBundle void putStringArray(java.lang.String, java.lang.String[]) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.BatteryManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.BATTERY_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.os.Build java.lang.String getSerial()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
   <item name="android.os.Bundle T getParcelable(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -351,6 +361,19 @@
   <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.DropBoxManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.DROPBOX_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.os.FileObserver void onEvent(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.HardwarePropertiesManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.HARDWARE_PROPERTIES_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.os.HardwarePropertiesManager android.os.CpuUsageInfo[] getCpuUsages()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -473,6 +496,18 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.os.Parcelable int describeContents()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.Parcelable.CONTENTS_FILE_DESCRIPTOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.os.Parcelable void writeToParcel(android.os.Parcel, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.os.PersistableBundle android.os.PersistableBundle getPersistableBundle(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -484,6 +519,23 @@
   </item>
   <item name="android.os.PersistableBundle void putPersistableBundle(java.lang.String, android.os.PersistableBundle) 1">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.PowerManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.POWER_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.os.RecoverySystem">
+  </item>
+  <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.RECOVERY&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.UserManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.USER_SERVICE" />
+    </annotation>
   </item>
   <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -499,6 +551,46 @@
   </item>
   <item name="android.os.UserManager android.os.Bundle getApplicationRestrictions(java.lang.String)">
     <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.Vibrator">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.VIBRATOR_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void cancel()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(android.os.VibrationEffect)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(android.os.VibrationEffect, android.media.AudioAttributes)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(long)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(long, android.media.AudioAttributes)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(long[], int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.os.Vibrator void vibrate(long[], int, android.media.AudioAttributes)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.VIBRATE&quot;" />
+    </annotation>
   </item>
 </root>
 

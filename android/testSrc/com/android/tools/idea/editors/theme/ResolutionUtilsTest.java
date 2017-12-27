@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -29,10 +32,14 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
 
   public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true, null);
+    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceUrl.create(SdkConstants.ANDROID_NS_NAME,
+                                                                                      ResourceType.STYLE,
+                                                                                      "myStyle"),
+                                                                   null,
+                                                                   null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false, null);
+    styleResourceValue = new StyleResourceValue(ResourceUrl.create(null, ResourceType.STYLE, "myStyle"), null, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
@@ -67,7 +74,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
     assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
 
@@ -117,7 +124,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
   public void testGetParentQualifiedName() {
     VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ResourceResolver resolver = configuration.getResourceResolver();
     assertNotNull(resolver);
     StyleResourceValue style;

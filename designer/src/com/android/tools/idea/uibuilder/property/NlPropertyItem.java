@@ -16,32 +16,34 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
+import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +58,8 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @NotNull
   protected final List<NlComponent> myComponents;
+  @NotNull
+  protected final NlPropertiesManager myPropertiesManager;
   @Nullable
   protected final AttributeDefinition myDefinition;
   @NotNull
@@ -67,54 +71,39 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   private StarState myStarState;
 
-  public static NlPropertyItem create(@NotNull List<NlComponent> components,
-                                      @NotNull XmlAttributeDescriptor descriptor,
-                                      @Nullable String namespace,
-                                      @Nullable AttributeDefinition attributeDefinition) {
+  public static NlPropertyItem create(@NotNull XmlName name,
+                                      @Nullable AttributeDefinition attributeDefinition,
+                                      @NotNull List<NlComponent> components,
+                                      @NotNull NlPropertiesManager propertiesManager) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
-      return new NlFlagPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
-    else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
-      return new NlIdPropertyItem(components, descriptor, attributeDefinition);
+    else if (name.getLocalName().equals(SdkConstants.ATTR_ID)) {
+      return new NlIdPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
     else {
-      return new NlPropertyItem(components, descriptor, namespace, attributeDefinition);
+      return new NlPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
   }
 
-  protected NlPropertyItem(@NotNull List<NlComponent> components,
-                           @NotNull XmlAttributeDescriptor descriptor,
-                           @Nullable String namespace,
-                           @Nullable AttributeDefinition attributeDefinition) {
+  protected NlPropertyItem(@NotNull XmlName name,
+                           @Nullable AttributeDefinition attributeDefinition,
+                           @NotNull List<NlComponent> components,
+                           @NotNull NlPropertiesManager propertiesManager) {
     assert !components.isEmpty();
-    if (namespace == null) {
-      namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(components.get(0).getTag()) : null;
-    }
     if (attributeDefinition == null &&
-        !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName()) &&
-        !SdkConstants.TOOLS_URI.equals(namespace)) {
-      throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
+        !ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) &&
+        !SdkConstants.TOOLS_URI.equals(name.getNamespaceKey())) {
+      throw new IllegalArgumentException("Missing attribute definition for " + name.getLocalName());
     }
 
     // NOTE: we do not save any PSI data structures as fields as they could go out of date as the user edits the file.
     // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponents = components;
-    myName = descriptor.getName();
-    myNamespace = namespace;
-    myDefinition = attributeDefinition;
-    myStarState = StarState.STAR_ABLE;
-  }
-
-  public NlPropertyItem(@NotNull List<NlComponent> components,
-                        @NotNull String namespace,
-                        @Nullable AttributeDefinition attributeDefinition) {
-    assert !components.isEmpty();
-    assert attributeDefinition != null;
-    myComponents = components;
-    myName = attributeDefinition.getName();
-    myNamespace = namespace;
+    myPropertiesManager = propertiesManager;
+    myName = name.getLocalName();
+    myNamespace = name.getNamespaceKey();
     myDefinition = attributeDefinition;
     myStarState = StarState.STAR_ABLE;
   }
@@ -122,6 +111,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
     assert !property.myComponents.isEmpty();
     myComponents = property.myComponents;
+    myPropertiesManager = property.myPropertiesManager;
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;
@@ -158,12 +148,8 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public void setStarState(@NotNull StarState starState) {
     myStarState = starState;
-    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED);
-    updateAllProperties();
-  }
-
-  private void updateAllProperties() {
-    getModel().getSelectionModel().updateListeners();
+    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED, myPropertiesManager);
+    myPropertiesManager.starStateChanged();
   }
 
   @Override
@@ -231,6 +217,12 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return value != null ? resolveValueUsingResolver(value) : null;
   }
 
+  @Override
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    NlAttributeRenderer renderer = NlPropertyRenderers.getInstance().get(this);
+    renderer.mouseMoved(table, event, rectRightColumn);
+  }
+
   public void delete() {
     PTableGroupItem group = (PTableGroupItem)getParent();
     if (group != null) {
@@ -238,9 +230,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     }
   }
 
+  public static boolean isReference(@Nullable String value) {
+    return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value));
+  }
+
   @NotNull
   private String resolveValueUsingResolver(@NotNull String value) {
-    if (value.startsWith("?") || value.startsWith("@") && !isId(value)) {
+    if (isReference(value)) {
       ResourceResolver resolver = getResolver();
       if (resolver != null) {
         ResourceValue resource = resolver.findResValue(value, false);
@@ -249,14 +245,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         }
         if (resource != null) {
           if (resource.getValue() != null) {
-            value = resource.getValue();
+            value = resource.getResourceType() == ResourceType.FONT ? resource.getName() : resource.getValue();
             if (resource.isFramework()) {
               value = addAndroidPrefix(value);
             }
           }
           ResourceValue resolved = resolver.resolveResValue(resource);
           if (resolved != null && resolved.getValue() != null) {
-            value = resolved.getValue();
+            value = resolved.getResourceType() == ResourceType.FONT ? resolved.getName() : resolved.getValue();
             if (resource.isFramework()) {
               value = addAndroidPrefix(value);
             }
@@ -328,49 +324,41 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Nullable
   public ResourceResolver getResolver() {
     Configuration configuration = getModel().getConfiguration();
-    //noinspection ConstantConditions
-    if (configuration == null) { // happens in unit test
-      return null;
-    }
 
     // TODO: what happens if this is configuration dependent? (in theory, those should be edited in the theme editor)
     return configuration.getResourceResolver();
   }
 
   @Override
-  public void setValue(Object value) {
+  public void setValue(@Nullable Object value) {
+    String strValue = value == null ? null : value.toString();
+    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
+      strValue = null;
+    }
+    setValueIgnoreDefaultValue(strValue, null);
+  }
+
+  protected void setValueIgnoreDefaultValue(@Nullable String attrValue, @Nullable Runnable valueUpdated) {
     // TODO: Consider making getApplication() a field to avoid statics
     assert ApplicationManager.getApplication().isDispatchThread();
     if (getModel().getProject().isDisposed()) {
       return;
     }
-    String strValue = value == null ? null : value.toString();
-    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
-      strValue = null;
-    }
-    final String attrValue = strValue;
-    NlComponent first = myComponents.get(0);
-    String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
-    String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
-    new WriteCommandAction.Simple(getModel().getProject(), msg, getModel().getFile()) {
-      @Override
-      protected void run() throws Throwable {
-        for (NlComponent component : myComponents) {
-          String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
-          component.setAttribute(myNamespace, myName, v);
-          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
-        }
-      }
-    }.execute();
+    String oldValue = getValue();
+    String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
 
-    if (SdkConstants.VIEW_MERGE.equals(componentName) &&
-        SdkConstants.TOOLS_URI.equals(getNamespace()) &&
-        SdkConstants.ATTR_PARENT_TAG.equals(getName())) {
-      // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
-      // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
-      // then have all attributes from a <LinearLayout>. Force an update of all properties:
-      updateAllProperties();
-    }
+    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValue, () -> {
+      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValue));
+      myPropertiesManager.propertyChanged(this, oldValue, attrValue);
+
+      if (valueUpdated == null) {
+        return;
+      }
+
+      valueUpdated.run();
+    });
+
+    myPropertiesManager.logPropertyChange(this);
   }
 
   @NotNull
@@ -384,26 +372,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myDefinition;
   }
 
-  @NotNull
   @Override
-  public TableCellRenderer getCellRenderer() {
-    return NlPropertyRenderers.get(this);
-  }
-
-  @Override
-  public boolean isEditable(int col) {
-    return true;
+  public boolean isEditable(int column) {
+    return column == 1;
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-      .add("name", myName)
-      .add("namespace", namespaceToPrefix(myNamespace))
-      .toString();
+    return namespaceToPrefix(myNamespace) + myName;
   }
 
   @Override
+  @NotNull
   public String getTooltipText() {
     StringBuilder sb = new StringBuilder(100);
     sb.append(namespaceToPrefix(myNamespace));
@@ -420,12 +400,20 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @NotNull
-  private static String namespaceToPrefix(@Nullable String namespace) {
-    if (namespace != null && SdkConstants.NS_RESOURCES.equalsIgnoreCase(namespace)) {
-      return SdkConstants.ANDROID_PREFIX;
-    }
-    else {
+  @VisibleForTesting
+  static String namespaceToPrefix(@Nullable String namespace) {
+    if (namespace == null) {
       return "";
     }
+
+    if (namespace.equalsIgnoreCase(SdkConstants.ANDROID_URI)) {
+      return SdkConstants.ANDROID_PREFIX;
+    }
+
+    if (namespace.equalsIgnoreCase(SdkConstants.AUTO_URI)) {
+      return "@app:";
+    }
+
+    return "";
   }
 }

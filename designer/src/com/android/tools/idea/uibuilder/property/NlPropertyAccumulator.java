@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.intellij.ui.ColoredTableCellRenderer;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.function.Predicate;
 
 class NlPropertyAccumulator {
+  private static final TableCellRenderer EMPTY_VALUE_RENDERER = createTableCellRenderer();
+
   private final String myGroupName;
+  private final String myPrefix;
   private final Predicate<NlPropertyItem> myFilter;
   private PTableGroupItem myGroupNode;
 
-  public NlPropertyAccumulator(@NotNull String groupName) {
+  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix) {
     myGroupName = groupName;
+    myPrefix = prefix;
     myFilter = null;
   }
 
-  public NlPropertyAccumulator(@NotNull String groupName, @NotNull Predicate<NlPropertyItem> isApplicable) {
+  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix, @NotNull Predicate<NlPropertyItem> isApplicable) {
     myGroupName = groupName;
+    myPrefix = prefix;
     myFilter = isApplicable;
-  }
-
-  @NotNull
-  public String getGroupName() {
-    return myGroupName;
   }
 
   protected boolean isApplicable(@NotNull NlPropertyItem p) {
@@ -54,7 +56,7 @@ class NlPropertyAccumulator {
     }
 
     if (myGroupNode == null) {
-      myGroupNode = createGroupNode(myGroupName);
+      myGroupNode = createGroupNode(myGroupName, myPrefix);
     }
 
     myGroupNode.addChild(p);
@@ -67,30 +69,46 @@ class NlPropertyAccumulator {
 
   @NotNull
   public PTableGroupItem getGroupNode() {
-    return myGroupNode == null ? createGroupNode(myGroupName) : myGroupNode;
+    return myGroupNode == null ? createGroupNode(myGroupName, myPrefix) : myGroupNode;
   }
 
   @NotNull
-  protected PTableGroupItem createGroupNode(@NotNull String groupName) {
-    return new GroupNode(groupName);
+  protected PTableGroupItem createGroupNode(@NotNull String groupName, @NotNull String prefix) {
+    return new AccumulatorGroupNode(groupName, prefix);
   }
 
-  private static class GroupNode extends PTableGroupItem {
-    private static final ColoredTableCellRenderer EMPTY_VALUE_RENDERER = new ColoredTableCellRenderer() {
+  private static TableCellRenderer createTableCellRenderer() {
+    return new PTableCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                           boolean selected, boolean hasFocus, int row, int column) {
       }
     };
-    private final String myStyleable;
+  }
 
-    public GroupNode(@NotNull String styleable) {
-      myStyleable = styleable;
+  static class AccumulatorGroupNode extends NlPTableGroupItem {
+    private final String myName;
+    private final String myPrefix;
+
+    AccumulatorGroupNode(@NotNull String name, @NotNull String prefix) {
+      myName = name;
+      myPrefix = prefix;
     }
 
     @NotNull
     @Override
     public String getName() {
-      return myStyleable;
+      return myName;
+    }
+
+    @NotNull
+    @Override
+    public String getChildLabel(@NotNull PTableItem item) {
+      String label = StringUtil.trimStart(item.getName(), myPrefix);
+      if (label.isEmpty()) {
+        return "all";
+      }
+      return StringUtil.decapitalize(label);
     }
 
     @NotNull
@@ -102,7 +120,7 @@ class NlPropertyAccumulator {
 
   public static class PropertyNamePrefixAccumulator extends NlPropertyAccumulator {
     public PropertyNamePrefixAccumulator(@NotNull String groupName, @NotNull final String prefix) {
-      super(groupName, p -> p != null && p.getName().startsWith(prefix));
+      super(groupName, prefix, p -> p != null && p.getName().startsWith(prefix));
     }
   }
 }

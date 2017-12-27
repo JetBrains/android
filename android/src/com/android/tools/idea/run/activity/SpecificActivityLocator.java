@@ -52,7 +52,7 @@ public class SpecificActivityLocator extends ActivityLocator {
 
   @Override
   public void validate() throws ActivityLocatorException {
-    if (myActivityName == null || myActivityName.length() == 0) {
+    if (myActivityName == null || myActivityName.isEmpty()) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.class.not.specified.error"));
     }
 

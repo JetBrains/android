@@ -29,7 +29,6 @@ import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class EditorTextFieldDriver extends JComponentDriver implements TextDisplayDriver<EditorTextField> {
   /**
@@ -57,25 +56,23 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @Nullable
   @Override
   public String textOf(@NotNull final EditorTextField component) {
-    return execute(GuiQuery.from(component::getText));
+    return GuiQuery.get(component::getText);
   }
 
   @RunsInEDT
   public void enterText(@NotNull EditorTextField component, @NotNull String text) {
     focusAndWaitForFocusGain(component);
-    robot.enterText(text);
+    robot.enterText(text, component);
   }
 
   @RunsInEDT
   public void deleteText(@NotNull EditorTextField component) {
-    selectAll(component);
-    robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
+    GuiTask.execute(() -> component.setText(""));
   }
 
   @RunsInEDT
   public void replaceText(@NotNull EditorTextField component, @NotNull String text) {
-    selectAll(component);
-    robot.enterText(text);
+    GuiTask.execute(() -> component.setText(text));
   }
 
   @RunsInEDT
@@ -88,11 +85,6 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
     if (!component.isFocusOwner()) {
       focusAndWaitForFocusGain(component);
     }
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        component.getEditor().getCaretModel().getCurrentCaret().setSelection(start, end);
-      }
-    });
+    GuiTask.execute(() -> component.getEditor().getCaretModel().getCurrentCaret().setSelection(start, end));
   }
 }

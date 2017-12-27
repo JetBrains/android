@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,8 +25,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.ide.util.PropertiesComponent;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,13 +38,15 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.EDITING)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
+  private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
   private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
@@ -54,6 +61,7 @@ public class NewActivityTest {
   @Before
   public void setUp() throws IOException {
     guiTest.importSimpleApplication();
+    guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
 
@@ -64,11 +72,16 @@ public class NewActivityTest {
       PROVIDED_MANIFEST
     );
 
-    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
-    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
-
-    myConfigActivity = myDialog.getConfigureActivityStep();
+    invokeNewActivityMenu();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+    assertThat(getSavedKotlinSupport()).isFalse();
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
+  }
+
+  @After
+  public void tearDown() {
+    setSavedKotlinSupport(false);
+    setSavedRenderSourceLanguage(Language.JAVA);
   }
 
   @RunIn(TestGroup.QA)
@@ -82,12 +95,13 @@ public class NewActivityTest {
       "app/src/main/res/layout/activity_main.xml"
     );
 
-    myEditor.open(PROVIDED_MANIFEST);
+    String manifesText = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
+    assertEquals(getOccurrenceCount(manifesText, "android:name=\".MainActivity\""), 1);
+    assertEquals(getOccurrenceCount(manifesText, "@string/title_activity_main"), 1);
+    assertEquals(getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"), 1);
 
-    String text = myEditor.getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "@string/title_activity_main"), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 1);
+    String gradleText = myEditor.open(APP_BUILD_GRADLE).getCurrentFileContents();
+    assertEquals(getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"), 1);
   }
 
   @Test
@@ -100,7 +114,7 @@ public class NewActivityTest {
     myEditor.open(PROVIDED_MANIFEST);
 
     String text = myEditor.getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
+    assertEquals(getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
   }
 
   @Test
@@ -108,7 +122,7 @@ public class NewActivityTest {
     myConfigActivity.selectUseFragment();
     myDialog.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(15));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
@@ -124,8 +138,8 @@ public class NewActivityTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     String text = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\">"), 1);
+    assertThat(getOccurrenceCount(text, "android:name=\".MainActivity\"")).isEqualTo(1);
+    assertThat(getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\"")).isEqualTo(1);
   }
 
   @Test
@@ -144,6 +158,39 @@ public class NewActivityTest {
 
     String text = myEditor.open("app/src/main/java/google/test2/MainActivity.java").getCurrentFileContents();
     assertThat(text).startsWith("package google.test2;");
+  }
+
+  @Test
+  public void createActivityWithKotlin() throws Exception {
+    myConfigActivity.setSourceLanguage("Kotlin");
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
+    assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
+
+    myDialog.clickFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    myEditor
+      .open("app/build.gradle")
+      .moveBetween("apply plugin: 'kotlin-android'", "")
+      .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
+      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_", "version")
+      .enterText("my_")
+      .open("build.gradle")
+      .moveBetween("ext.kotlin_", "version")
+      .enterText("my_")
+      .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_", "version")
+      .enterText("my_")
+      .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
+      .moveBetween("override fun onCreate", "");
+
+    // Add second Kotlin Activity and check it shouldn't add dependencies again (renamed $kotlin_version -> $kotlin_my_version)
+    invokeNewActivityMenu();
+    myConfigActivity.setSourceLanguage("Kotlin");
+    myDialog.clickFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    assertThat(myEditor.open("build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
+    assertThat(myEditor.open("app/build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
   }
 
   @Test
@@ -239,9 +286,79 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
+  @Test
+  public void projectViewPaneNotChanged() throws Exception {
+    // Verify that after creating a new activity, the current pane on projectView does not change, assumes initial pane is ProjectView
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    myEditor = guiTest.ideFrame().getEditor();
+    myEditor.open(PROVIDED_ACTIVITY);
+
+    assertEquals(ProjectViewPane.ID, guiTest.ideFrame().getProjectView().getCurrentViewId());
+
+    // Verify that Android stays on Android
+    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", true);
+
+    // Now when new activity is cancelled
+    verifyNewActivityProjectPane(ProjectViewPane.ID, "Project", false);
+    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", false);
+  }
+
+  // Note: This should be called only when the last open file was a Java/Kotlin file
+  private void invokeNewActivityMenu() {
+    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
+    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
+
+    myConfigActivity = myDialog.getConfigureActivityStep();
+  }
+
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.NAME)).isEqualTo(activityName);
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.LAYOUT)).isEqualTo(layoutName);
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
+  }
+
+  private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
+    // Change to viewId
+    guiTest.ideFrame().getProjectView().selectPane(viewId, name);
+    myEditor = guiTest.ideFrame().getEditor();
+    myEditor.open(PROVIDED_ACTIVITY);
+
+    // Create a new activity
+    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
+    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
+    myConfigActivity = myDialog.getConfigureActivityStep();
+    if (finish) {
+      myDialog.clickFinish();
+      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      myEditor = guiTest.ideFrame().getEditor();
+      myEditor.open(PROVIDED_ACTIVITY);
+
+    }
+    else {
+      myDialog.clickCancel();
+    }
+
+    // Make sure it is still the same
+    assertEquals(viewId, guiTest.ideFrame().getProjectView().getCurrentViewId());
+  }
+
+  private static boolean getSavedKotlinSupport() {
+    return PropertiesComponent.getInstance().isTrueValue("SAVED_PROJECT_KOTLIN_SUPPORT");
+  }
+
+  private static void setSavedKotlinSupport(boolean isSupported) {
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", isSupported);
+  }
+
+  @NotNull
+  private static Language getSavedRenderSourceLanguage() {
+      return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
+  }
+
+  private static void setSavedRenderSourceLanguage(Language language) {
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", language.getName());
   }
 }

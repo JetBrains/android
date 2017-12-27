@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.StdFileTypes;

@@ -19,9 +19,10 @@ package com.android.tools.idea.rendering.webp;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.notification.NotificationDisplayType;
@@ -80,7 +81,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     }
     int minSdkVersion = Integer.MAX_VALUE;
     if (module != null) {
-      AndroidModuleInfo info = AndroidModuleInfo.get(module);
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
       if (info != null) {
         minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
       }
@@ -89,7 +90,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       Module[] modules = e.getData(LangDataKeys.MODULE_CONTEXT_ARRAY);
       if (modules != null) {
         for (Module m : modules) {
-          AndroidModuleInfo info = AndroidModuleInfo.get(m);
+          AndroidModuleInfo info = AndroidModuleInfo.getInstance(m);
           if (info != null) {
             minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
           }
@@ -120,7 +121,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     convert(project, settings, true, Arrays.asList(files));
   }
 
-  public static boolean isResourceDirectory(@NotNull VirtualFile file, @NotNull Project project) {
+  private static boolean isResourceDirectory(@NotNull VirtualFile file, @NotNull Project project) {
     if (file.isDirectory()) {
       ResourceFolderType folderType = ResourceFolderType.getFolderType(file.getName());
       if (folderType != null) {
@@ -363,9 +364,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
 
       if (modules.isEmpty()) {
-        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-          modules.add(module);
-        }
+        modules.addAll(Arrays.asList(ModuleManager.getInstance(myProject).getModules()));
       }
 
       // Find all the android modules/facets
@@ -383,24 +382,22 @@ public class ConvertToWebpAction extends DumbAwareAction {
       for (AndroidFacet facet : facets) {
         Document document = MergedManifest.get(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {
-          for (Element element : LintUtils.getChildren(document.getDocumentElement())) {
-            if (TAG_APPLICATION.equals(element.getTagName())) {
-              addIcons(names, element);
-              for (Element child : LintUtils.getChildren(element)) {
-                String tagName = child.getTagName();
-                if (tagName.equals(TAG_ACTIVITY)
-                    || tagName.equals(TAG_ACTIVITY_ALIAS)
-                    || tagName.equals(TAG_SERVICE)
-                    || tagName.equals(TAG_PROVIDER)
-                    || tagName.equals(TAG_RECEIVER)) {
-                  addIcons(names, element);
-                }
+          Element element = XmlUtils.getFirstSubTagByName(document.getDocumentElement(), TAG_APPLICATION);
+          if (element != null) {
+            addIcons(names, element);
+            for (Element child : XmlUtils.getSubTags(element)) {
+              String tagName = child.getTagName();
+              if (tagName.equals(TAG_ACTIVITY)
+                  || tagName.equals(TAG_ACTIVITY_ALIAS)
+                  || tagName.equals(TAG_SERVICE)
+                  || tagName.equals(TAG_PROVIDER)
+                  || tagName.equals(TAG_RECEIVER)) {
+                addIcons(names, element);
               }
             }
           }
         }
       }
-
 
       // Defaults
       names.add("ic_launcher_round");

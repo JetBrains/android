@@ -19,6 +19,9 @@ import com.intellij.ProjectTopics;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.DumbModeTask;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -52,10 +55,16 @@ public class ProjectResourceRepositoryRootListener {
    * @param project the project whose module roots changed.
    */
   private static void moduleRootsChanged(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      moduleRootsChanged(module);
-    }
+    DumbService.getInstance(project).queueTask(new DumbModeTask() {
+      @Override
+      public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+        indicator.setText("Updating resource repository roots");
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
+          moduleRootsChanged(module);
+        }
+      }
+    });
   }
 
   /**
@@ -74,11 +83,11 @@ public class ProjectResourceRepositoryRootListener {
         return;
       }
       facet.getResourceFolderManager().invalidate();
-      ProjectResourceRepository projectResources = ProjectResourceRepository.getProjectResources(facet, false);
+      ProjectResourceRepository projectResources = ProjectResourceRepository.findExistingInstance(facet);
       if (projectResources != null) {
         projectResources.updateRoots();
 
-        AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, false);
+        AppResourceRepository appResources = AppResourceRepository.findExistingInstance(facet);
         if (appResources != null) {
           appResources.invalidateCache(projectResources);
           appResources.updateRoots();

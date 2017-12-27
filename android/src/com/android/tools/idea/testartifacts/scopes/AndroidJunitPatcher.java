@@ -15,28 +15,33 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
-import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.PathsList;
-import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.model.UnsupportedMethodException;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Implementation of {@link JUnitPatcher} that removes android.jar from the class path. It's only applicable to
@@ -47,17 +52,19 @@ public class AndroidJunitPatcher extends JUnitPatcher {
   @Override
   public void patchJavaParameters(@Nullable Module module, @NotNull JavaParameters javaParameters) {
     // Only patch if the project is a Gradle project.
-    if (module == null || !isBuildWithGradle(module.getProject())) {
+    if (module == null || !GradleProjectInfo.getInstance(module.getProject()).isBuildWithGradle()) {
       return;
     }
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
+      // Add resource folders if Java module and for module dependencies
+      addFoldersToClasspath(module, null, javaParameters.getClassPath());
       return;
     }
 
     // Modify the class path only if we're dealing with the unit test artifact.
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    JavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     if (testArtifact == null) {
       return;
     }
@@ -86,19 +93,21 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     String originalClassPath = classPath.getPathsString();
     try {
-      handlePlatformJar(classPath, platform, testArtifact);
-      handleJavaResources(module, androidModel, classPath);
+      replaceAndroidJarWithMockableJar(classPath, platform, testArtifact);
+      addFoldersToClasspath(module, testArtifact, classPath);
     }
     catch (RuntimeException e) {
       throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
     }
   }
 
-  // Removes real android.jar from the classpath and puts the mockable one at the end.
-  private static void handlePlatformJar(@NotNull PathsList classPath,
-                                        @NotNull AndroidPlatform platform,
-                                        @NotNull JavaArtifact artifact) {
-    String androidJarPath = platform.getTarget().getPath(IAndroidTarget.ANDROID_JAR);
+  /**
+   * Removes real android.jar from the classpath and puts the mockable one at the end.
+   */
+  private static void replaceAndroidJarWithMockableJar(@NotNull PathsList classPath,
+                                                       @NotNull AndroidPlatform platform,
+                                                       @NotNull JavaArtifact artifact) {
+    String androidJarPath = platform.getTarget().getPath(ANDROID_JAR);
     for (String entry : classPath.getPathList()) {
       if (pathsEqual(androidJarPath, entry)) {
         classPath.remove(entry);
@@ -107,11 +116,11 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     // Move the mockable android jar to the end. This is to make sure "empty" classes from android.jar don't end up shadowing real
     // classes needed by the testing code (e.g. XML/JSON related). Since mockable jars were introduced in 1.1, they were put in the model
-    // as dependencies, which means a module which depends on Android libraries with different  will end up with more than one mockable jar in the
-    // classpath.
-    List<String> mockableJars = ContainerUtil.newSmartList();
+    // as dependencies, which means a module which depends on Android libraries with different  will end up with more than one mockable jar
+    // in the classpath.
+    List<String> mockableJars = new ArrayList<>();
     for (String path : classPath.getPathList()) {
-      if (new File(toSystemDependentName(path)).getName().startsWith("mockable-")) {
+      if (toSystemDependentPath(path).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
         mockableJars.add(path);
       }
@@ -122,7 +131,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       classPath.remove(mockableJar);
     }
 
-    File mockableJar = getMockableJarFromModel(artifact);
+    File mockableJar = artifact.getMockablePlatformJar();
 
     if (mockableJar != null) {
       classPath.addTail(mockableJar.getPath());
@@ -131,7 +140,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       // We're dealing with an old plugin, that puts the mockable jar in the dependencies. Just put the matching android.jar at the end of
       // the classpath.
       for (String mockableJarPath : mockableJars) {
-        if (mockableJarPath.endsWith("-" + platform.getApiLevel() + ".jar")) {
+        if (mockableJarPath.endsWith("-" + platform.getApiLevel() + DOT_JAR)) {
           classPath.addTail(mockableJarPath);
           return;
         }
@@ -139,45 +148,31 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
   }
 
-  @Nullable
-  private static File getMockableJarFromModel(@NotNull JavaArtifact model) {
-    try {
-      return model.getMockablePlatformJar();
-    }
-    catch (UnsupportedMethodException e) {
-      // Older model.
-      return null;
-    }
-  }
-
   /**
-   * Puts folders with merged java resources for the selected variant of every module on the classpath.
+   * Puts additional necessary folders for the selected variant of every module on the classpath.
    *
    * <p>The problem we're solving here is that CompilerModuleExtension supports only one directory for "compiler output". When IJ compiles
-   * Java projects, it copies resources to the output classes dir. This is something our Gradle plugin doesn't do, so we need to add the
-   * resource directories to the classpath here.
+   * Java projects, it copies resources and Kotlin classes to the output classes dir. This is something Gradle doesn't do, so we need to add
+   * these directories to the classpath here.
    *
    * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
+   * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
-  private static void handleJavaResources(@NotNull Module module,
-                                          @NotNull AndroidModuleModel androidModel,
-                                          @NotNull PathsList classPath) {
+  private static void addFoldersToClasspath(@NotNull Module module,
+                                            @Nullable JavaArtifact testArtifact,
+                                            @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
-    // The only test resources we want to use, are the ones from the module where the test is. They should go first, before main resources.
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
-
     if (testArtifact != null) {
-      try {
-        classPath.add(testArtifact.getJavaResourcesFolder());
-      }
-      catch (UnsupportedMethodException ignored) {
-        // Java resources were not present in older versions of the gradle plugin.
+      classPath.add(testArtifact.getJavaResourcesFolder());
+      for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
+        classPath.add(additionalTestClasses);
       }
     }
+
     FileRootSearchScope excludeScope = null;
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
     if (testScopes != null) {
@@ -185,22 +180,51 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     for (Module affectedModule : scope.getAffectedModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
-      if (facet != null) {
-        AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(facet);
-        if (affectedAndroidModel != null) {
-          try {
-            File resourceFolder = affectedAndroidModel.getMainArtifact().getJavaResourcesFolder();
-            if (excludeScope != null && excludeScope.accept(resourceFolder)) {
-              continue;
-            }
-            classPath.add(resourceFolder);
-          }
-          catch (UnsupportedMethodException ignored) {
-            // Java resources were not present in older versions of the gradle plugin.
+      AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(affectedModule);
+      if (affectedAndroidModel != null) {
+        AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
+        addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
+        for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
+          addToClasspath(additionalClassesFolder, classPath, excludeScope);
+        }
+      }
+
+      // Adds resources from java modules to the classpath (see b/37137712)
+      JavaFacet javaFacet = JavaFacet.getInstance(affectedModule);
+      if (javaFacet != null) {
+        JavaModuleModel javaModel = javaFacet.getJavaModuleModel();
+        if (javaModel == null) {
+          continue;
+        }
+
+        ExtIdeaCompilerOutput output = javaModel.getCompilerOutput();
+        File javaTestResources = output == null ? null : output.getTestResourcesDir();
+        if (javaTestResources != null) {
+          addToClasspath(javaTestResources, classPath, excludeScope);
+        }
+        File javaMainResources = output == null ? null : output.getMainResourcesDir();
+        if (javaMainResources != null) {
+          addToClasspath(javaMainResources, classPath, excludeScope);
+        }
+
+        if (javaModel.getBuildFolderPath() != null) {
+          File kotlinClasses = javaModel.getBuildFolderPath().toPath().resolve("classes").resolve("kotlin").toFile();
+
+          if (kotlinClasses.exists()) {
+            // It looks like standard Gradle-4.0-style output directories are used. We add Kotlin equivalents speculatively, since we don't
+            // yet have a way of passing the data all the way from Gradle to here.
+            addToClasspath(new File(kotlinClasses, "main"), classPath, excludeScope);
+            addToClasspath(new File(kotlinClasses, "test"), classPath, excludeScope);
           }
         }
       }
     }
+  }
+
+  private static void addToClasspath(@NotNull File folder, @NotNull PathsList classPath, @Nullable FileRootSearchScope excludeScope) {
+    if (excludeScope != null && excludeScope.accept(folder)) {
+      return;
+    }
+    classPath.add(folder);
   }
 }

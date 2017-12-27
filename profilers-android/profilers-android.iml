@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="core-api" />
+    <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="profilers-ui" />
+    <orderEntry type="module" module-name="profilers" />
+    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="adt-ui-model" />
+    <orderEntry type="module" module-name="perfd-host" />
+    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="java-psi-api" />
+    <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="lang-impl" />
+    <orderEntry type="module" module-name="ddmlib" />
+    <orderEntry type="module" module-name="platform-impl" />
+    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="library" name="analytics-protos" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
+  </component>
+</module>

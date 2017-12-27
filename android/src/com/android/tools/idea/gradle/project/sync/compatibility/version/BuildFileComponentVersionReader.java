@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;

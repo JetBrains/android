@@ -127,7 +127,7 @@ public class Class extends Activity {
     public static class ApiCallTest6 {
         public void test(Throwable throwable) {
             // IOException(Throwable) requires API 9
-            IOException ioException = <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException(throwable)</error>;
+            IOException ioException = <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException</error>(throwable);
         }
     }
 
@@ -138,7 +138,7 @@ public class Class extends Activity {
         }
 
         public void fun() throws IOException {
-            super.toString(); throw <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException((Throwable) null)</error>; // API 9
+            super.toString(); throw <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException</error>((Throwable) null); // API 9
         }
     }
 

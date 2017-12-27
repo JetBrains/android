@@ -16,9 +16,6 @@
 buildscript {
     repositories {
       jcenter()
-      if (System.getenv("MAVEN_URL") != null) {
-        maven {url System.getenv("MAVEN_URL")}
-      }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.14.+'
@@ -34,17 +31,17 @@ android {
 
     productFlavors {
         free {
-            flavorDimension   "group1"
+            dimension = "group1"
         }
         pro {
-            flavorDimension   "group1"
+            dimension = "group1"
         }
 
         arm {
-            flavorDimension   "group2"
+            dimension = "group2"
         }
         x86 {
-            flavorDimension   "group2"
+            dimension = "group2"
         }
     }
 }

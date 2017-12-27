@@ -21,7 +21,6 @@ import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.lint.AndroidLintMissingConstraintsInspection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -56,7 +55,7 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       StudioLoggerProgressIndicator
         progress = new StudioLoggerProgressIndicator(AndroidLintMissingConstraintsInspection.class);
 
-      RepoPackage p = SdkMavenRepository.findLatestVersion(LATEST_KNOWN_VERSION, sdkHandler, progress);
+      RepoPackage p = SdkMavenRepository.findLatestVersion(LATEST_KNOWN_VERSION, sdkHandler, null, progress);
       if (p != null) {
         GradleCoordinate gc = SdkMavenRepository.getCoordinateFromSdkPath(p.getPath());
         if (gc != null) { // should always be the case unless the version suffix is somehow wrong

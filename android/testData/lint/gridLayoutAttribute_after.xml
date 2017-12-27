@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        myns:layout_column="1"
-        android:text="2" />
+        android:text="2"
+        myns:layout_column="1" />
 
 </android.support.v7.widget.GridLayout>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.text.BidiFormatter java.lang.CharSequence unicodeWrap(java.lang.CharSequence, android.text.TextDirectionHeuristic, boolean)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.BidiFormatter java.lang.CharSequence unicodeWrap(java.lang.CharSequence, android.text.TextDirectionHeuristic, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.text.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -22,6 +28,11 @@
       <val name="value" val="{android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, android.text.Layout.HYPHENATION_FREQUENCY_FULL, android.text.Layout.HYPHENATION_FREQUENCY_NONE}" />
     </annotation>
   </item>
+  <item name="android.text.StaticLayout.Builder android.text.StaticLayout.Builder setJustificationMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.JUSTIFICATION_MODE_NONE, android.text.Layout.JUSTIFICATION_MODE_INTER_WORD}" />
+    </annotation>
+  </item>
   <item name="android.text.TextPaint bgColor">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -36,10 +47,31 @@
   <item name="android.text.TextUtils boolean isEmpty(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.text.TextUtils java.lang.CharSequence stringOrSpannedString(java.lang.CharSequence)">
+  <item name="android.text.TextUtils boolean stringOrSpannedString(java.lang.CharSequence)">
     <annotation name="org.jetbrains.annotations.Contract">
       <val name="value" val="&quot;null&gt;null;!null&gt;!null&quot;" />
     </annotation>
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 4">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="fromInclusive" val="false" />
+    </annotation>
+  </item>
+  <item name="android.text.TextUtils java.lang.CharSequence listEllipsize(android.content.Context, java.util.List&lt;java.lang.CharSequence&gt;, java.lang.String, android.text.TextPaint, float, int) 5">
+    <annotation name="android.support.annotation.PluralsRes" />
   </item>
 </root>
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +30,12 @@ public class AndroidModelFeatures {
   private final boolean myExternalBuildSupported;
   private final boolean myConstraintLayoutSdkLocationSupported;
   private final boolean myLayoutRenderingIssuePresent;
+  private final boolean myPostBuildSyncSupported;
+  // Should current module export its module/library dependencies.
+  private final boolean myExportDependencies;
 
-  AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
+  @VisibleForTesting
+  public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");
     myShadersSupported = modelVersionIsAtLeast("2.1.0");
@@ -38,8 +43,19 @@ public class AndroidModelFeatures {
     myTestedTargetVariantsSupported = myProductFlavorVersionSuffixSupported = myExternalBuildSupported = modelVersionIsAtLeast("2.2.0");
 
     // https://code.google.com/p/android/issues/detail?id=170841
-    myLayoutRenderingIssuePresent =
-      modelVersion != null && modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
+    if (modelVersion != null) {
+      myLayoutRenderingIssuePresent = modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
+      myPostBuildSyncSupported = modelVersion.isAtLeast(2, 4, 0, "alpha", 8, false);
+    }
+    else {
+      myLayoutRenderingIssuePresent = false;
+      myPostBuildSyncSupported = false;
+    }
+    // Dependencies exported should be true if android plugin version is less than 3.0.
+    // Although with IdeDependencies, each module manages their own list of dependencies, this list is not
+    // complete for pre-3.0 plugins, where java library dependencies of dependent module are always empty.
+    // See b/64521930.
+    myExportDependencies = !modelVersionIsAtLeast("3.0.0");
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
@@ -72,5 +88,13 @@ public class AndroidModelFeatures {
 
   public boolean isLayoutRenderingIssuePresent() {
     return myLayoutRenderingIssuePresent;
+  }
+
+  public boolean isPostBuildSyncSupported() {
+    return myPostBuildSyncSupported;
+  }
+
+  public boolean shouldExportDependencies() {
+    return myExportDependencies;
   }
 }

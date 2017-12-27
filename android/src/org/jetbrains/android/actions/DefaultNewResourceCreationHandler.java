@@ -18,7 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -85,7 +85,7 @@ class DefaultNewResourceCreationHandler implements NewResourceCreationHandler {
     boolean chooseFilename,
     @Nullable VirtualFile defaultFile,
     @Nullable VirtualFile contextFile,
-    @NotNull Function<Module, ResourceNameValidator> nameValidatorFactory) {
+    @NotNull Function<Module, IdeResourceNameValidator> nameValidatorFactory) {
     return new CreateXmlResourcePanelImpl(module, resourceType, folderType, resourceName, resourceValue,
                                           chooseName, chooseValue, chooseFilename, defaultFile, contextFile, nameValidatorFactory);
   }

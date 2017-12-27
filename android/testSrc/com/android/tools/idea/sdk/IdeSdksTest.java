@@ -16,13 +16,14 @@
 package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
@@ -31,15 +32,16 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -56,10 +58,10 @@ public class IdeSdksTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Mockito.when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = TestUtils.getSdk();
+    myAndroidSdkPath = getSdk();
 
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
@@ -68,8 +70,10 @@ public class IdeSdksTest extends IdeaTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo,
+                            ApplicationManager.getApplication().getMessageBus());
     IdeSdks.removeJdksOn(getTestRootDisposable());
+    AndroidGradleTestCase.allowAccessToSdk(getTestRootDisposable());
   }
 
   @Override
@@ -142,10 +146,7 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   public void testUseEmbeddedJdk() {
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      System.out.println("SKIPPED: IdeSdksTest.testUseEmbeddedJdk runs only in Android Studio");
-      return;
-    }
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
@@ -156,5 +157,17 @@ public class IdeSdksTest extends IdeaTestCase {
     File embeddedJdkPath = myEmbeddedDistributionPaths.getEmbeddedJdkPath();
     assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath.getPath(), embeddedJdkPath.getPath()),
                filesEqual(jdkPath, embeddedJdkPath));
+  }
+
+  public void testNotificationOnSdkPathChange() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+    IdeSdks.IdeSdkChangeListener changeListener = mock(IdeSdks.IdeSdkChangeListener.class);
+    Project project = getProject();
+    IdeSdks.subscribe(changeListener, project);
+
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, project);
+    });
+    verify(changeListener).sdkPathChanged(myAndroidSdkPath);
   }
 }

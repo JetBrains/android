@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
@@ -52,8 +52,18 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label");
+  }
+
+  public void testSetAndroidValueChangeReferences() {
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("@android:id/text2");
+
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@android:id/text2");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@android:id/text2");
   }
 
   public void testSetValueDoNotChangeReferences() {
@@ -99,7 +109,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
 
   @Override
   @NotNull
-  protected NlModel createModel() {
+  protected SyncNlModel createModel() {
     return model("relative.xml",
                  component(RELATIVE_LAYOUT)
                    .withBounds(0, 0, 1000, 1000)

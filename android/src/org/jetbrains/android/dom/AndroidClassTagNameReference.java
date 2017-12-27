@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -40,8 +41,8 @@ public class AndroidClassTagNameReference extends TagNameReference {
     XmlTag tagElement = getTagElement();
     assert tagElement != null;
 
-    final AndroidFacet facet = AndroidFacet.getInstance(element);
-    int minimumApi = facet == null ? -1 : facet.getModuleMinApi();
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    int minimumApi = facet == null ? -1 : AndroidModuleInfo.getInstance(facet).getModuleMinApi();
     String tagName = ArrayUtil.getFirstElement(LayoutViewClassUtils.getTagNamesByClass((PsiClass)element, minimumApi));
 
     return tagElement.setName(tagName != null ? tagName : "");

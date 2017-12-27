@@ -52,7 +52,7 @@ public class HprofView implements Disposable {
 
     mySnapshot = snapshot;
 
-    assert (mySnapshot.getHeaps().size() > 0);
+    assert (!mySnapshot.getHeaps().isEmpty());
     Heap currentHeap = null;
     for (Heap heap : mySnapshot.getHeaps()) {
       if ("app".equals(heap.getName())) {

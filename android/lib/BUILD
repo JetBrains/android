@@ -48,13 +48,6 @@ java_import(
 )
 
 java_import(
-    name = "jsr305-1.3.9",
-    jars = ["jsr305-1.3.9.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "spantable",
     jars = ["spantable.jar"],
     tags = ["managed"],
@@ -76,15 +69,59 @@ java_import(
 )
 
 java_import(
-    name = "dexlib2-2.0.8-dev",
-    jars = ["dexlib2-2.0.8-dev.jar"],
+    name = "baksmali-2.2.1",
+    jars = ["baksmali-2.2.1.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
-    name = "dexlib2-util-2.0.8-dev",
-    jars = ["dexlib2-util-2.0.8-dev.jar"],
+    name = "dexlib2-2.2.1",
+    jars = ["dexlib2-2.2.1.jar"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "guava-testlib-21.0",
+    jars = ["guava-testlib-21.0.jar"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "androidWidgets",
+    srcs = glob(["androidWidgets/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "sampleData",
+    srcs = glob(["sampleData/**"]),
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "util-2.2.1",
+    jars = ["util-2.2.1.jar"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "licenses",
+    srcs = glob(["licenses/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "bundled-libs",
+    srcs = glob([
+        # TODO: Figure out why we need to bundle these if they
+        # are not needed to compile.
+        "commons-compress-1.8.1.jar",
+        "javawriter-2.2.1.jar",
+        "androidWidgets/**",
+    ]),
     visibility = ["//visibility:public"],
 )

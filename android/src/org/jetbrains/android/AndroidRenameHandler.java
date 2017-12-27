@@ -1,6 +1,6 @@
 package org.jetbrains.android;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
@@ -272,7 +272,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       protected void canRun() throws ConfigurationException {
         final String name = getNewName();
 
-        if (name.length() == 0) {
+        if (name.isEmpty()) {
           throw new ConfigurationException(AndroidBundle.message("specify.package.name.error"));
         }
         if (!AndroidUtils.isValidAndroidPackageName(name)) {

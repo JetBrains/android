@@ -16,9 +16,11 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
@@ -32,30 +34,31 @@ import java.util.Set;
 
 public class NlBooleanRenderer extends NlAttributeRenderer {
   private final ThreeStateCheckBox myCheckbox;
-  private final SimpleColoredComponent myLabel;
 
   public NlBooleanRenderer() {
     JPanel panel = getContentPanel();
 
     myCheckbox = new ThreeStateCheckBox();
     panel.add(myCheckbox, BorderLayout.LINE_START);
-
-    myLabel = new SimpleColoredComponent();
-    panel.add(myLabel, BorderLayout.CENTER);
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
-    myCheckbox.setEnabled(true);
-    myLabel.clear();
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item, boolean selected, boolean focus, int row, int col) {
+    if (!(item instanceof NlProperty)) {
+      return;
+    }
 
-    String propValue = p.getValue();
+    NlProperty property = (NlProperty)item;
+    myCheckbox.setEnabled(true);
+
+    String propValue = property.getValue();
     ThreeStateCheckBox.State state = getState(propValue);
     if (state == null && propValue != null) {
-      ResourceResolver resourceResolver = p.getResolver();
+      ResourceResolver resourceResolver = property.getResolver();
       if (resourceResolver != null) {
-        myLabel.append(propValue, modifyAttributes(selected, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES));
-        String resolvedValue = resourceResolver.findResValue(propValue, false).getValue();
+        append(propValue, modifyAttributes(selected, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES));
+        ResourceValue resource = resourceResolver.findResValue(propValue, false);
+        String resolvedValue = resource != null ? resource.getValue() : null;
         state = getState(resolvedValue);
       }
     }

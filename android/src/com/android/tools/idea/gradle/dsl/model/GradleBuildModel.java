@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -46,6 +47,7 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -102,9 +104,11 @@ public class GradleBuildModel extends GradleFileModel {
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
-    populateWithParentModuleSubProjectsProperties(buildDslFile);
-    populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
-    buildDslFile.parse();
+    ApplicationManager.getApplication().runReadAction(() -> {
+      populateWithParentModuleSubProjectsProperties(buildDslFile);
+      populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
+      buildDslFile.parse();
+    });
     return new GradleBuildModel(buildDslFile);
   }
 
@@ -313,6 +317,14 @@ public class GradleBuildModel extends GradleFileModel {
     }
     myToBeAppliedPlugins.clear();
     super.applyChanges();
+  }
+
+  /**
+   * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
+   */
+  @TestOnly
+  public void removeRepositoriesBlocks() {
+    myGradleDslFile.removeProperty(REPOSITORIES_BLOCK_NAME);
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {

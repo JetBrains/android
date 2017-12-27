@@ -27,46 +27,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * A {@link Downloader} that uses Studio's {@link HttpRequests} to download files. Saves the file to a temp location and returns a
  * stream from that file.
  */
 public class StudioDownloader implements Downloader {
-  private com.intellij.openapi.progress.ProgressIndicator myStudioProgressIndicator;
-
-  Logger LOG = Logger.getInstance("#" + this.getClass().getName());
-
-  /**
-   * Creates a new {@code StudioDownloader}. The current {@link com.intellij.openapi.progress.ProgressIndicator} will be picked up
-   * when downloads are run.
-   */
-  public StudioDownloader() {}
-
-  /**
-   * Like {@link #StudioDownloader()}}, but will run downloads using the given {@link com.intellij.openapi.progress.ProgressIndicator}.
-   *
-   * @param progress
-   */
-  public StudioDownloader(@Nullable com.intellij.openapi.progress.ProgressIndicator progress) {
-    myStudioProgressIndicator = progress;
-  }
 
   @Override
+  @Nullable
   public InputStream downloadAndStream(@NotNull URL url, @NotNull ProgressIndicator indicator)
     throws IOException {
-    File file = downloadFully(url, indicator);
+    Path file = downloadFully(url, indicator);
     if (file == null) {
       return null;
     }
-    file.deleteOnExit();
-    return new FileInputStream(file) {
-      @Override
-      public void close() throws IOException {
-        super.close();
-        file.delete();
-      }
-    };
+    return Files.newInputStream(file, StandardOpenOption.DELETE_ON_CLOSE);
   }
 
   @Override
@@ -83,35 +62,22 @@ public class StudioDownloader implements Downloader {
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
-    final com.intellij.openapi.progress.ProgressIndicator studioProgress =
-      (myStudioProgressIndicator == null ? ProgressManager.getInstance().getProgressIndicator() : myStudioProgressIndicator);
-    //Ref<IOException> ioExceptionRef = new Ref<>();
-    //new Task.Modal(null, "Downloading...", false) {
-    //  @Override
-    //  public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator progressIndicator) {
-    //    try {
-        HttpRequests.request(url.toExternalForm())
-          //        .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, progressIndicator));
-          .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, myStudioProgressIndicator));
-    //}
-        //catch (IOException e) {
-        //  ioExceptionRef.set(e);
-        //}
-      //}
-    //}.queue();
-    //if (ioExceptionRef.get() != null) throw ioExceptionRef.get();
+    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
+    // different range.
+    HttpRequests.request(url.toExternalForm()).productNameAsUserAgent()
+      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, null));
   }
 
   @Nullable
   @Override
-  public File downloadFully(@NotNull URL url,
+  public Path downloadFully(@NotNull URL url,
                             @NotNull ProgressIndicator indicator) throws IOException {
     // TODO: caching
     String suffix = url.getPath();
-    suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
+    suffix = suffix.substring(suffix.lastIndexOf('/') + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
     downloadFully(url, tempFile, null, indicator);
-    return tempFile;
+    return tempFile.toPath();
   }
 }

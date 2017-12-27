@@ -22,6 +22,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -81,12 +82,12 @@ public class FoundArtifact implements Comparable<FoundArtifact> {
 
   @Override
   public int compareTo(FoundArtifact other) {
-    int compare = compareRepositoryNames(myRepositoryName, other.myRepositoryName);
+    int compare = comparePrioritizedStrings(myRepositoryName, other.myRepositoryName, FoundArtifact::getRepositoryPriority);
     if (compare != 0) {
       return compare;
     }
 
-    compare = compareGroupIds(myGroupId, other.myGroupId);
+    compare = comparePrioritizedStrings(myGroupId, other.myGroupId, FoundArtifact::getPackagePriority);
     if (compare != 0) {
       return compare;
     }
@@ -94,42 +95,36 @@ public class FoundArtifact implements Comparable<FoundArtifact> {
     return myName.compareTo(other.myName);
   }
 
-  private static int compareRepositoryNames(@NotNull String s1, @NotNull String s2) {
+  private static int comparePrioritizedStrings(@NotNull String s1, @NotNull String s2, @NotNull Function<String, Integer> getPriority) {
     if (s1.equals(s2)) {
       return 0;
     }
-    if (s1.equals(ANDROID_REPOSITORY_NAME)) {
-      return -1;
+
+    int relativePriority = getPriority.apply(s1) - getPriority.apply(s2);
+    if (relativePriority == 0) {
+      return s1.compareTo(s2);
     }
-    if (s1.equals(GOOGLE_REPOSITORY_NAME) && !s2.equals(ANDROID_REPOSITORY_NAME)) {
-      return -1;
-    }
-    return s1.compareTo(s2);
+    return relativePriority;
   }
 
-  private static int compareGroupIds(@NotNull String s1, @NotNull String s2) {
-    if (s1.equals(s2)) {
+  private static int getPackagePriority(@NotNull String packageName) {
+    if (packageName.startsWith("com.android")) {
       return 0;
     }
-    // Give preference to package 'com.android' an 'com.google'
-    String androidPackage = "com.android";
-    if (s1.startsWith(androidPackage)) {
-      if (s2.startsWith(androidPackage)) {
-        return s1.compareTo(s2);
-      }
-      return -1;
+    if (packageName.startsWith("com.google")) {
+      return 1;
     }
-    String googlePackage = "com.google";
-    if (s1.startsWith(googlePackage)) {
-      if (s2.startsWith(googlePackage)) {
-        return s1.compareTo(s2);
-      }
-      if (!s2.startsWith(androidPackage)) {
-        return -1;
-      }
-    }
+    return 2;
+  }
 
-    return s1.compareTo(s2);
+  private static int getRepositoryPriority(@NotNull String repositoryName) {
+    if (repositoryName.startsWith(ANDROID_REPOSITORY_NAME)) {
+      return 0;
+    }
+    if (repositoryName.startsWith(GOOGLE_REPOSITORY_NAME)) {
+      return 1;
+    }
+    return 2;
   }
 
   @TestOnly

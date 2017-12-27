@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
@@ -41,8 +38,6 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
   @Mock private ProjectCleanup myProjectCleanup;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
 
-  private GradleSyncState myOriginalSyncState;
-  private GradleSyncState mySyncState;
   private ProjectCleanupDataService myDataService;
   private List<DataNode<ProjectCleanupModel>> myDataNodes;
 
@@ -54,44 +49,19 @@ public class ProjectCleanupDataServiceTest extends IdeaTestCase {
     myDataNodes = new ArrayList<>();
     myDataNodes.add(new DataNode<>(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance(), null));
 
-    Project project = getProject();
-    myOriginalSyncState = GradleSyncState.getInstance(project);
-    mySyncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
     myDataService = new ProjectCleanupDataService(myIdeInfo, myProjectCleanup);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalSyncState != null) {
-        IdeComponents.replaceService(getProject(), GradleSyncState.class, myOriginalSyncState);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testGetTargetDataKey() {
     assertSame(PROJECT_CLEANUP_MODEL, myDataService.getTargetDataKey());
   }
 
-  public void testImportDataWithAndroidStudioAndSuccessfulSync() {
+  public void testImportDataWithAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
 
     myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
 
     verify(myProjectCleanup, times(1)).cleanUpProject(getProject(), myModelsProvider, null);
-  }
-
-  public void testImportDataWithAndroidStudioAndFailedSync() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
-
-    myDataService.importData(myDataNodes, null, getProject(), myModelsProvider);
-
-    verify(myProjectCleanup, never()).cleanUpProject(getProject(), myModelsProvider, null);
   }
 
   public void testImportDataWithIdeNotAndroidStudio() {

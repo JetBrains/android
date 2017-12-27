@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "updater-ui",
     srcs = ["src"],
+    iml_files = ["updater-ui.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

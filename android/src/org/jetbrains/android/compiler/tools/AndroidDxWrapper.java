@@ -92,7 +92,7 @@ public class AndroidDxWrapper {
 
     ParametersList vmParamList = parameters.getVMParametersList();
 
-    if (additionalVmParams.length() > 0) {
+    if (!additionalVmParams.isEmpty()) {
       vmParamList.addParametersString(additionalVmParams);
     }
     if (!AndroidCommonUtils.hasXmxParam(vmParamList.getParameters())) {

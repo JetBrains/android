@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.math.BigInteger java.lang.String toString(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

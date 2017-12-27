@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawRegion;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
@@ -28,7 +33,8 @@ public class DrawHorizontalNotch extends DrawRegion {
   public DrawHorizontalNotch(String s) {
     super(s);
   }
-  public DrawHorizontalNotch(int x, int y, int width) {
+  public DrawHorizontalNotch(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width) {
+    //noinspection SuspiciousNameCombination
     super(x, y, width, x);
   }
 
@@ -43,7 +49,11 @@ public class DrawHorizontalNotch extends DrawRegion {
     g.setStroke(stroke);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
@@ -32,23 +33,21 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
   @NotNull
   static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!title.equals(dialog.getTitle())) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, title).and(
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
+        @Override
+        protected boolean isMatching(@NotNull JDialog dialog) {
+          DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
+          if (wrapper != null) {
+            String typeName = Messages.class.getName() + "$MessageDialog";
+            if (typeName.equals(wrapper.getClass().getName())) {
+              wrapperRef.set(wrapper);
+              return true;
+            }
+          }
           return false;
         }
-        DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-        if (wrapper != null) {
-          String typeName = Messages.class.getName() + "$MessageDialog";
-          if (typeName.equals(wrapper.getClass().getName())) {
-            wrapperRef.set(wrapper);
-            return true;
-          }
-        }
-        return false;
-      }
-    });
+      }));
     return new MessageDialogFixture(robot, dialog, wrapperRef.get());
   }
 

@@ -20,7 +20,7 @@ import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -30,7 +30,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +47,9 @@ import java.util.List;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * If adding a new device (new device art), run the tests to generate crop data and insert
@@ -56,14 +58,13 @@ import static org.junit.Assert.*;
  * and adjusted device-art descriptors.
  */
 public class DeviceArtPainterTest {
+  @BeforeClass
+  public static void setUp() {
+    WebpMetadata.ensureWebpRegistered();
+  }
 
   @Rule
   public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
-
-  @Before
-  public void setUp() throws Exception {
-    WebpMetadata.ensureWebpRegistered();
-  }
 
   @Test
   public void testGenerateCropData() throws Exception {

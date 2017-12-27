@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="java.nio.channels.Channels java.io.InputStream newInputStream(java.nio.channels.AsynchronousByteChannel) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.nio.channels.Channels java.io.InputStream newInputStream(java.nio.channels.ReadableByteChannel) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.channels.Channels java.io.OutputStream newOutputStream(java.nio.channels.AsynchronousByteChannel) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.nio.channels.Channels java.io.OutputStream newOutputStream(java.nio.channels.WritableByteChannel) 0">

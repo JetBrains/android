@@ -17,18 +17,17 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import javax.swing.table.TableModel;
+import java.awt.Component;
 
 final class LocaleRenderer implements TableCellRenderer {
   private final TableCellRenderer myRenderer;
-  private final StringResourceTableModel myModel;
 
-  LocaleRenderer(@NotNull TableCellRenderer renderer, @NotNull StringResourceTableModel model) {
+  LocaleRenderer(@NotNull TableCellRenderer renderer) {
     myRenderer = renderer;
-    myModel = model;
   }
 
   @NotNull
@@ -40,11 +39,11 @@ final class LocaleRenderer implements TableCellRenderer {
                                                  int row,
                                                  int column) {
     Component component = myRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
+    TableModel model = table.getModel();
 
-    if (component instanceof JLabel) {
-      Locale locale = myModel.getLocale(column);
+    if (component instanceof JLabel && model instanceof StringResourceTableModel) {
+      Locale locale = ((StringResourceTableModel)model).getLocale(table.convertColumnIndexToModel(column));
       assert locale != null;
-
       ((JLabel)component).setIcon(locale.getFlagImage());
     }
 

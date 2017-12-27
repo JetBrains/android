@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -30,8 +29,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -41,6 +42,8 @@ import java.util.concurrent.Future;
 
 public class ResourceFolderRegistry {
   private final static Object DIR_MAP_LOCK = new Object();
+
+  @GuardedBy("DIR_MAP_LOCK")
   private final static Map<VirtualFile, ResourceFolderRepository> ourDirMap = Maps.newHashMap();
 
   public static void reset() {
@@ -56,12 +59,21 @@ public class ResourceFolderRegistry {
   }
 
   @NotNull
+  // TODO: namespaces
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
+    return get(facet, dir, null);
+  }
+
+  @NotNull
+  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet,
+                                             @NotNull final VirtualFile dir,
+                                             @Nullable String namespace) {
     synchronized (DIR_MAP_LOCK) {
       ResourceFolderRepository repository = ourDirMap.get(dir);
       if (repository == null) {
         Project project = facet.getModule().getProject();
-        repository = ResourceFolderRepository.create(facet, dir, null);
+        // TODO: namespaces: use the namespace as the cache key.
+        repository = ResourceFolderRepository.create(facet, dir, namespace);
         putRepositoryInCache(project, dir, repository);
       }
       return repository;
@@ -70,22 +82,20 @@ public class ResourceFolderRegistry {
 
   private static void putRepositoryInCache(@NotNull Project project, @NotNull final VirtualFile dir,
                                            @NotNull ResourceFolderRepository repository) {
-    synchronized (DIR_MAP_LOCK) {
-      PsiProjectListener.addRoot(project, dir, repository);
-      // Some of the resources in the ResourceFolderRepository might actually contain pointers to the Project instance so we need
-      // to make sure we invalidate those whenever the project is closed.
-      Disposer.register(project, new Disposable() {
-        @Override
-        public void dispose() {
-          synchronized (DIR_MAP_LOCK) {
-            ResourceFolderRepository repository = ourDirMap.remove(dir);
-            if (repository != null) {
-              repository.dispose();
-            }
-          }
-        }
-      });
+    PsiProjectListener.addRoot(project, dir, repository);
+    // Some of the resources in the ResourceFolderRepository might actually contain pointers to the Project instance so we need
+    // to make sure we invalidate those whenever the project is closed.
+    Disposer.register(project, () -> {
+      ResourceFolderRepository repositoryFromMap;
+      synchronized (DIR_MAP_LOCK) {
+        repositoryFromMap = ourDirMap.remove(dir);
+      }
+      if (repositoryFromMap != null) {
+        Disposer.dispose(repositoryFromMap);
+      }
+    });
 
+    synchronized (DIR_MAP_LOCK) {
       ourDirMap.put(dir, repository);
     }
   }
@@ -95,7 +105,9 @@ public class ResourceFolderRegistry {
    * @param resDirectories
    */
   private static void filterOutCached(Map<VirtualFile, AndroidFacet> resDirectories) {
-    resDirectories.keySet().removeAll(ourDirMap.keySet());
+    synchronized (DIR_MAP_LOCK) {
+      resDirectories.keySet().removeAll(ourDirMap.keySet());
+    }
   }
 
   /**
@@ -134,36 +146,34 @@ public class ResourceFolderRegistry {
         return;
       }
       // Some directories in the registry may already be populated by this point, so filter them out.
-      synchronized (DIR_MAP_LOCK) {
-        indicator.setText("Indexing resources");
-        indicator.setIndeterminate(false);
-        Map<VirtualFile, AndroidFacet> resDirectories = getResourceDirectoriesForFacets(facets);
-        filterOutCached(resDirectories);
-        // Might already be done, as there can be a race for filling the memory caches.
-        if (resDirectories.isEmpty()) {
-          return;
-        }
-        // Make sure the cache root is created before parallel execution to avoid racing to create the root.
-        Path projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
-        if (projectCacheRoot == null) {
-          return;
-        }
-        try {
-          FileUtil.ensureExists(projectCacheRoot.toFile());
-        }
-        catch (IOException e) {
-          return;
-        }
-        Application application = ApplicationManager.getApplication();
-        List<ResourceFolderRepository> repositories;
-        // Beware if the current thread is holding the write lock. The current thread will
-        // end up waiting for helper threads to finish, and the helper threads will be
-        // acquiring a read lock (which would then block because of the write lock).
-        assert !application.isWriteAccessAllowed();
-        repositories = executeParallel(indicator, resDirectories);
-        for (ResourceFolderRepository repository : repositories) {
-          putRepositoryInCache(myProject, repository.getResourceDir(), repository);
-        }
+      indicator.setText("Indexing resources");
+      indicator.setIndeterminate(false);
+      Map<VirtualFile, AndroidFacet> resDirectories = getResourceDirectoriesForFacets(facets);
+      filterOutCached(resDirectories);
+      // Might already be done, as there can be a race for filling the memory caches.
+      if (resDirectories.isEmpty()) {
+        return;
+      }
+      // Make sure the cache root is created before parallel execution to avoid racing to create the root.
+      Path projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
+      if (projectCacheRoot == null) {
+        return;
+      }
+      try {
+        FileUtil.ensureExists(projectCacheRoot.toFile());
+      }
+      catch (IOException e) {
+        return;
+      }
+      Application application = ApplicationManager.getApplication();
+      List<ResourceFolderRepository> repositories;
+      // Beware if the current thread is holding the write lock. The current thread will
+      // end up waiting for helper threads to finish, and the helper threads will be
+      // acquiring a read lock (which would then block because of the write lock).
+      assert !application.isWriteAccessAllowed();
+      repositories = executeParallel(indicator, resDirectories);
+      for (ResourceFolderRepository repository : repositories) {
+        putRepositoryInCache(myProject, repository.getResourceDir(), repository);
       }
     }
 

@@ -96,11 +96,13 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
     PackageOperation op = PatchInstallerUtil.getInProgressDependantPatcherInstall(getPackage(), getRepoManager());
     if (op != null && op.getInstallStatus() == InstallStatus.PREPARED) {
       // It's ready to be installed, but not complete yet. We have to finish it now so we can use it.
-      op.complete(progress);
+      op.complete(progress.createSubProgress(0.9));
+      progress.setFraction(0.9);
     }
 
     // Maybe it completed already, but we haven't reloaded the local SDK. Do so now.
-    getRepoManager().reloadLocalIfNeeded(progress);
+    getRepoManager().reloadLocalIfNeeded(progress.createSubProgress(1));
+    progress.setFraction(1);
     return PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
   }
 

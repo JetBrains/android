@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
@@ -52,18 +53,24 @@ public class NlDesignProperties {
   }
 
   @NotNull
-  public List<NlProperty> getKnownProperties(@NotNull List<NlComponent> components) {
+  public List<NlPropertyItem> getKnownProperties(@NotNull List<NlComponent> components, @NotNull NlPropertiesManager propertiesManager) {
     return ImmutableList.of(
-      new NlPropertyItem(components, TOOLS_URI, myContextDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myListItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myShowInItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myOpenDrawerItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myParentTagDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupCropDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupOpacityDefinition));
+      create(myContextDefinition, components, propertiesManager),
+      create(myListItemDefinition, components, propertiesManager),
+      create(myShowInItemDefinition, components, propertiesManager),
+      create(myOpenDrawerItemDefinition, components, propertiesManager),
+      create(myLayoutDefinition, components, propertiesManager),
+      create(myParentTagDefinition, components, propertiesManager),
+      create(myLayoutDefinition, components, propertiesManager),
+      create(myMockupDefinition, components, propertiesManager),
+      create(myMockupCropDefinition, components, propertiesManager),
+      create(myMockupOpacityDefinition, components, propertiesManager));
+  }
+
+  private static NlPropertyItem create(@NotNull AttributeDefinition definition,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull NlPropertiesManager propertiesManager) {
+    return NlPropertyItem.create(new XmlName(definition.getName(), TOOLS_URI), definition, components, propertiesManager);
   }
 
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {

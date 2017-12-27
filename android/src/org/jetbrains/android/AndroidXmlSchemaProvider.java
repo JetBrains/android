@@ -184,7 +184,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
           return manifest.getPackage().getValue();
         }
       });
-      if (aPackage != null && aPackage.length() != 0) {
+      if (aPackage != null && !aPackage.isEmpty()) {
         return URI_PREFIX + aPackage;
       }
     }

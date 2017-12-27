@@ -15,57 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ManifestDetector;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 public class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase {
   public AndroidLintOldTargetApiInspection() {
     super(AndroidBundle.message("android.lint.inspections.old.target.api"), ManifestDetector.TARGET_NEWER);
-  }
-
-  private static int getHighestApi(PsiElement element) {
-    int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-    AndroidFacet instance = AndroidFacet.getInstance(element);
-    if (instance != null) {
-      AndroidSdkData sdkData = instance.getSdkData();
-      if (sdkData != null) {
-        for (IAndroidTarget target : sdkData.getTargets()) {
-          if (target.isPlatform()) {
-            AndroidVersion version = target.getVersion();
-            if (version.getApiLevel() > max && !version.isPreview()) {
-              max = version.getApiLevel();
-            }
-          }
-        }
-      }
-    }
-    return max;
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    String highest = Integer.toString(getHighestApi(startElement)); // TODO: preview platform??
-    String label = "Update targetSdkVersion to " + highest;
-    if (startElement.getContainingFile() instanceof XmlFile) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(label, "targetSdkVersion\\s*=\\s*[\"'](.*)[\"']", highest)};
-    }
-    else if (startElement.getContainingFile() instanceof GroovyFile) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(label, null, highest)};
-    }
-    else {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
   }
 }

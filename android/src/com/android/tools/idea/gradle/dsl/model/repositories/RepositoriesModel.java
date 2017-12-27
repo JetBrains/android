@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel.JCENTER_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
@@ -54,6 +55,9 @@ public class RepositoriesModel extends GradleDslBlockModel {
         else if (JCENTER_METHOD_NAME.equals(element.getName())) {
           result.add(new JCenterDefaultRepositoryModel());
         }
+        else if (GOOGLE_METHOD_NAME.equals(element.getName())) {
+          result.add(new GoogleDefaultRepositoryModel());
+        }
       }
       else if (element instanceof MavenRepositoryDslElement) {
         if (MAVEN_BLOCK_NAME.equals(element.getName())) {
@@ -76,5 +80,82 @@ public class RepositoriesModel extends GradleDslBlockModel {
       }
     }
     return result;
+  }
+
+  /**
+   * Adds a repository by method name if it is not already in the list of repositories.
+   *
+   * @param methodName Name of method to call.
+   */
+  public void addRepositoryByMethodName(@NotNull String methodName) {
+    GradleDslElementList repositoriesElementList = getRepositoryElementList();
+    // Check if it is already there
+    if (containsMethodCall(methodName)) {
+      return;
+    }
+    repositoriesElementList.addNewElement(new GradleDslMethodCall(repositoriesElementList, methodName, /* no statement */null));
+  }
+
+  /**
+   * Looks for a repository by method name.
+   *
+   * @param methodName Method name of the repository
+   * @return {@code true} if there is a call to {@code methodName}, {@code false} other wise.
+   */
+  public boolean containsMethodCall(@NotNull String methodName) {
+    GradleDslElementList list = getRepositoryElementList();
+    List<GradleDslMethodCall> elements = list.getElements(GradleDslMethodCall.class);
+    for (GradleDslMethodCall element : elements) {
+      if (methodName.equals(element.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Adds a repository by url if it is not already in the list of repositories.
+   *
+   * @param url address to use.
+   */
+  public void addMavenRepositoryByUrl(@NotNull String url, @NotNull String name) {
+    GradleDslElementList repositoriesElementList = getRepositoryElementList();
+    // Check if it is already there
+    if (containsMavenRepositoryByUrl(url)) {
+      return;
+    }
+    MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(repositoriesElementList, MAVEN_BLOCK_NAME);
+    newElement.setNewLiteral("url", url);
+    // name is an optional property, it can be nullable but at this point only non null values are used.
+    newElement.setNewLiteral("name", name);
+    repositoriesElementList.addNewElement(newElement);
+  }
+
+  /**
+   * Looks for a repository by URL.
+   *
+   * @param repositoryUrl the URL of the repository to find.
+   * @return {@code true} if there is a repository using {@code repositoryUrl} as URL, {@code false} otherwise.
+   */
+  public boolean containsMavenRepositoryByUrl(@NotNull String repositoryUrl) {
+    GradleDslElementList list = getRepositoryElementList();
+    List<MavenRepositoryDslElement> elements = list.getElements(MavenRepositoryDslElement.class);
+    for (MavenRepositoryDslElement element : elements) {
+      String urlElement = element.getLiteralProperty("url", String.class).value();
+      if (repositoryUrl.equals(urlElement)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  private GradleDslElementList getRepositoryElementList() {
+    GradleDslElementList repositoriesElementList = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
+    if (repositoriesElementList == null) {
+      repositoriesElementList = new GradleDslElementList(myDslElement, REPOSITORIES_BLOCK_NAME);
+      myDslElement.addParsedElement(REPOSITORIES_BLOCK_NAME, repositoriesElementList);
+    }
+    return repositoriesElementList;
   }
 }

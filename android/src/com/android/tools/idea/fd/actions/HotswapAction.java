@@ -26,7 +26,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.RunManager;
+import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -43,6 +43,7 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
       presentation.setText("Apply Changes: No run configuration selected");
       return;
@@ -124,6 +125,10 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
+    if (!InstantRunGradleUtils.appHasCode(AndroidFacet.getInstance(module))) {
+      return;
+    }
+
     presentation.setText("Apply Changes" + getShortcutText());
     presentation.setEnabled(true);
   }
@@ -137,7 +142,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
       InstantRunManager.LOG.warn("Hotswap Action could not locate current run config settings");
       return;
@@ -188,7 +193,12 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
 
   @Nullable
   private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
-    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, settings.getConfiguration().getUniqueID());
+    RunConfiguration configuration = settings.getConfiguration();
+    if (configuration == null) {
+      return null;
+    }
+
+    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, configuration.getUniqueID());
     if (session == null) {
       return null;
     }

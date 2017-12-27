@@ -15,35 +15,39 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
+import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class EventIconRenderer implements SimpleEventRenderer {
+public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
 
-  @NonNull private Icon myLightThemeIcon;
-  @NonNull private Icon myDarkThemeIcon;
-  @NonNull private int myIconWidth;
+  @NotNull private Icon myIcon;
+  @NotNull private int myIconWidth;
 
+  @NotNull
   private static Icon load(String path) {
     return IconLoader.getIcon(path, EventIconRenderer.class);
   }
 
-  public EventIconRenderer(String lightTheme, String darkTheme) {
-    myDarkThemeIcon = load(darkTheme);
-    myLightThemeIcon = load(lightTheme);
-    myIconWidth = myDarkThemeIcon.getIconWidth();
+  public EventIconRenderer(String icon) {
+    this(load(icon));
+  }
+
+  EventIconRenderer(@NotNull Icon icon) {
+    myIcon = icon;
+    myIconWidth = myIcon.getIconWidth();
   }
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
-    Icon icon = UIUtil.isUnderDarcula() ? myDarkThemeIcon : myLightThemeIcon;
+  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
+    Icon icon = myIcon;
     AffineTransform originalTransform = g2d.getTransform();
-    g2d.setTransform(transform);
+    g2d.transform(transform);
     icon.paintIcon(parent, g2d, -myIconWidth / 2, 0);
     g2d.setTransform(originalTransform);
   }

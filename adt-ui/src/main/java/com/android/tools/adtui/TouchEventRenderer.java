@@ -15,37 +15,44 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.event.EventAction;
+import com.intellij.ui.JBColor;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 
-public class TouchEventRenderer implements SimpleEventRenderer {
+public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
 
-  private static final Color HOLD_COLOR = new Color(214, 196, 228);
-  private static final Color TOUCH_COLOR = new Color(156, 110, 189);
+  private static final JBColor HOLD_COLOR = new JBColor(new Color(0x668D7BCE, true),
+                                                        new Color(0x669876D8, true));
+  private static final JBColor TOUCH_COLOR = new JBColor(new Color(0xCC8D7BCE, true),
+                                                         new Color(0xCC9876D8, true));
   private static final int MIN_LENGTH = 20;
 
   // TODO: make this accessible for on mouse over to adjust height.
   private int myLineWidth = 12;
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
-
+  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
     Color currentColor = g2d.getColor();
     Stroke currentStroke = g2d.getStroke();
-    int xPosition = (int)(transform.getTranslateX() -myLineWidth/2.0);
-    int yPosition = (int)(transform.getTranslateY() + myLineWidth/2.0);
+    double xPosition = transform.getTranslateX() - myLineWidth / 2.0;
+    double yPosition = transform.getTranslateY() + myLineWidth / 2.0;
 
     // If the duration of mouse down was significant we draw a trailing line for it.
     if (length >= MIN_LENGTH) {
       BasicStroke str = new BasicStroke(myLineWidth);
       g2d.setStroke(str);
       g2d.setColor(HOLD_COLOR);
-      g2d.fillRoundRect(xPosition, yPosition, (int)length, myLineWidth, myLineWidth, myLineWidth);
+      RoundRectangle2D.Double rect = new RoundRectangle2D.Double(xPosition, yPosition, length, myLineWidth, myLineWidth, myLineWidth);
+      g2d.fill(rect);
       g2d.setStroke(currentStroke);
     }
     g2d.setColor(TOUCH_COLOR);
-    g2d.fillOval(xPosition, yPosition, myLineWidth, myLineWidth);
+    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition, yPosition, myLineWidth, myLineWidth);
+    g2d.fill(ellipse);
     g2d.setColor(currentColor);
   }
 }

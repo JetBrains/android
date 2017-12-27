@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Variant;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.JavaArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeJavaArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -32,19 +36,27 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
 
   PsAndroidArtifactCollection(@NotNull PsVariant parent) {
     myParent = parent;
-    Variant variant = myParent.getResolvedModel();
+    IdeVariant variant = myParent.getResolvedModel();
     if (variant != null) {
       addArtifact(variant.getMainArtifact());
-      addArtifacts(variant.getExtraAndroidArtifacts());
-      addArtifacts(variant.getExtraJavaArtifacts());
+      for (AndroidArtifact androidArtifact : variant.getExtraAndroidArtifacts()) {
+        if (androidArtifact != null) {
+          addArtifact((IdeAndroidArtifact)androidArtifact);
+        }
+      }
+      for (JavaArtifact javaArtifact : variant.getExtraJavaArtifacts()) {
+        if (javaArtifact != null) {
+          addArtifact((IdeJavaArtifact)javaArtifact);
+        }
+      }
     }
   }
 
-  private void addArtifacts(@NotNull Collection<? extends BaseArtifact> artifacts) {
+  private void addArtifacts(@NotNull Collection<? extends IdeBaseArtifact> artifacts) {
     artifacts.forEach(this::addArtifact);
   }
 
-  private void addArtifact(@NotNull BaseArtifact artifact) {
+  private void addArtifact(@NotNull IdeBaseArtifact artifact) {
     myArtifactsByName.put(artifact.getName(), new PsAndroidArtifact(myParent, artifact.getName(), artifact));
   }
 

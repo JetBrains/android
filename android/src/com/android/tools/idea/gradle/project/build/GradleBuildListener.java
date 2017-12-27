@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.util.BuildMode;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleBuildListener {
-  /**
-   * A Gradle project's build has completed.
-   *
-   * @param project the target project.
-   * @param mode    the build operation that was executed.
-   */
-  void buildFinished(@NotNull Project project, @Nullable BuildMode mode);
+  void buildStarted(@NotNull BuildContext context);
+
+  void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context);
+
+  abstract class Adapter implements GradleBuildListener {
+    @Override
+    public void buildStarted(@NotNull BuildContext context) {
+    }
+
+    @Override
+    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+    }
+  }
 }

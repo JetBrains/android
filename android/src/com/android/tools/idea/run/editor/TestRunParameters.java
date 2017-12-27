@@ -166,7 +166,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     @Override
     protected String showDialog() {
       final String className = myClassComponent.getComponent().getText();
-      if (className.trim().length() == 0) {
+      if (className.trim().isEmpty()) {
         Messages.showMessageDialog(getField(), ExecutionBundle.message("set.class.name.message"),
                                    ExecutionBundle.message("cannot.browse.method.dialog.title"), Messages.getInformationIcon());
         return null;

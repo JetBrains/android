@@ -17,16 +17,21 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
@@ -34,6 +39,7 @@ import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +47,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";
@@ -55,17 +64,27 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myUnknown;
   protected NlComponent myMerge;
   protected NlComponent myConstraintLayout;
+  protected NlComponent myConstraintLayoutWithConstraintSet;
   protected NlComponent myButton;
   protected NlComponent myImageView;
   protected NlComponent myAutoCompleteTextView;
   protected NlComponent myRadioGroup;
   protected NlComponent myButtonInConstraintLayout;
-  protected NlModel myModel;
+  protected NlComponent myTextViewInLinearLayout;
+  protected NlComponent myButtonInLinearLayout;
+  protected NlComponent myImageViewInCollapsingToolbarLayout;
+  protected NlComponent myTabLayout;
+  protected NlComponent myRelativeLayout;
+  protected NlComponent myViewTag;
+  protected NlComponent myFragment;
+  protected SyncNlModel myModel;
+  protected DesignSurface myDesignSurface;
+  protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
+  protected NlUsageTracker myUsageTracker;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
   protected Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
-  protected PropertiesComponent myOldPropertiesComponent;
 
   @Override
   public void setUp() throws Exception {
@@ -85,19 +104,64 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myButton = myComponentMap.get("button");
     myMerge = myComponentMap.get("merge");
     myConstraintLayout = myComponentMap.get("constraintLayout");
+    myConstraintLayoutWithConstraintSet = myComponentMap.get("constraintLayoutWithConstraintSet");
     myButtonInConstraintLayout = myComponentMap.get("button2");
-    myPropertiesManager = new NlPropertiesManager(getProject(), null);
+    myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
+    myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
+    myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
+    myTabLayout = myComponentMap.get("tabLayout");
+    myRelativeLayout = myComponentMap.get("relativeLayout");
+    myViewTag = myComponentMap.get("viewTag");
+    myFragment = myComponentMap.get("fragmentTag");
+    myDesignSurface = myModel.getSurface();
+    myScreenView = createScreen(myModel);
+    myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
+    NlInspectorProviders inspectorProviders = new NlInspectorProviders(myPropertiesManager, myDesignSurface);
+    when(myDesignSurface.getInspectorProviders(any(), any()))
+      .thenReturn(inspectorProviders);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
-    myOldPropertiesComponent = registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
+    myUsageTracker = mockNlUsageTracker(myDesignSurface);
+    registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      registerApplicationComponent(PropertiesComponent.class, myOldPropertiesComponent);
+      cleanUsageTrackerAfterTesting(myDesignSurface);
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
+      Disposer.dispose(myDesignSurface);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myTextView = null;
+      myProgressBar = null;
+      myCheckBox1 = null;
+      myCheckBox2 = null;
+      myCheckBox3 = null;
+      mySwitch = null;
+      myUnknown = null;
+      myMerge = null;
+      myConstraintLayout = null;
+      myConstraintLayoutWithConstraintSet = null;
+      myButton = null;
+      myImageView = null;
+      myAutoCompleteTextView = null;
+      myRadioGroup = null;
+      myButtonInConstraintLayout = null;
+      myTextViewInLinearLayout = null;
+      myButtonInLinearLayout = null;
+      myImageViewInCollapsingToolbarLayout = null;
+      myTabLayout = null;
+      myRelativeLayout = null;
+      myModel = null;
+      myDesignSurface = null;
+      myScreenView = null;
+      myPropertiesManager = null;
+      myUsageTracker = null;
+      myDescriptorProvider = null;
+      myComponentMap = null;
+      myPropertiesComponent = null;
     }
     finally {
       super.tearDown();
@@ -121,7 +185,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected NlModel createModel() {
+  protected SyncNlModel createModel() {
     ModelBuilder builder = model("merge.xml",
                                  component(VIEW_MERGE)
                                    .withBounds(0, 0, 1000, 1500)
@@ -135,6 +199,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .id("@id/textView")
                                        .width("wrap_content")
                                        .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, ATTR_ELEVATION, "2dp")
                                        .text("SomeText"),
                                      component(PROGRESS_BAR)
                                        .withBounds(100, 200, 100, 100)
@@ -214,7 +279,66 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("OtherButton")
-                                       )));
+                                       ),
+                                     component(CONSTRAINT_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/constraintLayoutWithConstraintSet")
+                                       .width("700dp")
+                                       .height("1000dp")
+                                       .withAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET, "@+id/constraints")
+                                       .children(
+                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@+id/constraints")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                       ),
+                                     component(TAB_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/tabLayout")
+                                       .width("700dp")
+                                       .height("1000dp"),
+                                     component(RELATIVE_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/relativeLayout")
+                                       .width("700dp")
+                                       .height("1000dp"),
+                                     component(VIEW_TAG)
+                                       .withBounds(400, 0, 100, 100)
+                                       .id("@id/viewTag")
+                                       .width("100dp")
+                                       .height("100dp"),
+                                     component(VIEW_FRAGMENT)
+                                       .withBounds(400, 100, 100, 100)
+                                       .id("@id/fragmentTag")
+                                       .width("100dp")
+                                       .height("100dp"),
+                                     component(LINEAR_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/linearlayout")
+                                       .width("700dp")
+                                       .height("1000dp")
+                                       .children(
+                                         component(TEXT_VIEW)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@id/textview_in_linearlayout")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .text("TextViewInLinearLayout"),
+                                         component(BUTTON)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@id/button_in_linearlayout")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .text("ButtonInLinearLayout"),
+                                         component(COLLAPSING_TOOLBAR_LAYOUT)
+                                           .withBounds(400, 300, 100, 200)
+                                           .children(
+                                             component(IMAGE_VIEW)
+                                               .withBounds(410, 310, 50, 100)
+                                               .id("@id/imgv")
+                                               .withAttribute(AUTO_URI, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, ".2")
+                                       ))));
     return builder.build();
   }
 
@@ -235,9 +359,18 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     XmlAttributeDescriptor descriptor = getDescriptor(component, attributeName);
     assertThat(descriptor).isNotNull();
     AttributeDefinition definition = getDefinition(component, descriptor);
-    String namespace = getNamespace(component, descriptor);
 
-    return NlPropertyItem.create(components, descriptor, namespace, definition);
+    return NlPropertyItem.create(getXmlName(component, descriptor), definition, components, myPropertiesManager);
+  }
+
+  @NotNull
+  protected NlPropertyItem createFrom(@NotNull String attributeName, @NotNull NlComponent... componentArray) {
+    List<NlComponent> components = Arrays.asList(componentArray);
+    XmlAttributeDescriptor descriptor = getDescriptor(components.get(0), attributeName);
+    assertThat(descriptor).isNotNull();
+    AttributeDefinition definition = getDefinition(components.get(0), descriptor);
+
+    return NlPropertyItem.create(getXmlName(components.get(0), descriptor), definition, components, myPropertiesManager);
   }
 
   @Nullable
@@ -256,33 +389,36 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   @Nullable
   protected static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     AndroidFacet facet = component.getModel().getFacet();
-    ResourceManager localResourceManager = facet.getLocalResourceManager();
-    ResourceManager systemResourceManager = facet.getSystemResourceManager();
+    ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
+    ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
+    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
     assertThat(systemResourceManager).isNotNull();
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
     AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    XmlName name = getXmlName(component, descriptor);
 
-    AttributeDefinitions attrDefs = NS_RESOURCES.equals(getNamespace(component, descriptor)) ? systemAttrDefs : localAttrDefs;
+    AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
     return attrDefs == null ? null : attrDefs.getAttrDefByName(descriptor.getName());
   }
 
-  @Nullable
-  private static String getNamespace(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+  @NotNull
+  private static XmlName getXmlName(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+    String namespace = null;
     if (descriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      return ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
+      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
     }
-    return null;
+    return new XmlName(descriptor.getName(), namespace);
   }
 
   @NotNull
-  protected static Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
+  protected Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
     NlProperties propertiesProvider = NlProperties.getInstance();
-    return propertiesProvider.getProperties(components);
+    return propertiesProvider.getProperties(myPropertiesManager, components);
   }
 
   @NotNull
-  protected static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
+  protected Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -299,25 +435,25 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     }
     // Add access to known design properties
     NlDesignProperties designProperties = new NlDesignProperties();
-    for (NlProperty property : designProperties.getKnownProperties(components)) {
+    for (NlProperty property : designProperties.getKnownProperties(components, myPropertiesManager)) {
       propertiesByName.putIfAbsent(property.getName(), property);
     }
     return propertiesByName;
   }
 
   @NotNull
-  protected static NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
+  protected NlPropertyItem getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
     Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(component));
     NlProperty property = properties.get(propertyName);
     assert property != null;
-    return property;
+    return (NlPropertyItem)property;
   }
 
   @NotNull
-  protected static NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
-                                                          @NotNull String propertyName,
-                                                          @NotNull String resource) {
-    NlPropertyItem property = (NlPropertyItem)getProperty(component, propertyName);
+  protected NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
+                                                   @NotNull String propertyName,
+                                                   @NotNull String resource) {
+    NlPropertyItem property = getProperty(component, propertyName);
     property.setDefaultValue(new PropertiesMap.Property(resource, null));
     return property;
   }

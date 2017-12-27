@@ -29,8 +29,7 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
  * Notifies subscribers about build events on an Android project.
  */
 public class AndroidProjectBuildNotifications {
-  private static final Topic<AndroidProjectBuildListener> PROJECT_BUILD_LISTENER_TOPIC =
-    new Topic<AndroidProjectBuildListener>("Android Project Build", AndroidProjectBuildListener.class);
+  private static final Topic<AndroidProjectBuildListener> TOPIC = new Topic<>("Android Project Build", AndroidProjectBuildListener.class);
 
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
@@ -45,7 +44,7 @@ public class AndroidProjectBuildNotifications {
    */
   public static void subscribe(@NotNull Project project, @NotNull Disposable disposable, @NotNull AndroidProjectBuildListener listener) {
     MessageBusConnection connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(PROJECT_BUILD_LISTENER_TOPIC, listener);
+    connection.subscribe(TOPIC, listener);
   }
 
   @NotNull
@@ -58,13 +57,8 @@ public class AndroidProjectBuildNotifications {
     myMessageBus = messageBus;
   }
 
-  public void notifyBuildComplete(@NotNull final BuildContext context) {
-    invokeLaterIfProjectAlive(myProject, new Runnable() {
-      @Override
-      public void run() {
-        myMessageBus.syncPublisher(PROJECT_BUILD_LISTENER_TOPIC).buildComplete(context);
-      }
-    });
+  public void notifyBuildComplete(@NotNull BuildContext context) {
+    invokeLaterIfProjectAlive(myProject, () -> myMessageBus.syncPublisher(TOPIC).buildComplete(context));
   }
 
   public interface AndroidProjectBuildListener {

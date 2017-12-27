@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.core.ObservableOptional;
-import com.android.tools.idea.ui.properties.core.ObservableString;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
-import com.android.tools.idea.ui.properties.swing.EnabledProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableOptional;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
@@ -39,11 +39,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 /**
  * A dialog container which drives an underlying {@link ModelWizard}, decorating it with UI.
@@ -51,7 +50,7 @@ import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpre
  * Note that the dialog owns responsibility for starting the wizard. If you start it externally
  * first, this dialog will throw an exception on {@link #show()}.
  */
-public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.ResultListener {
+public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.WizardListener {
   public enum CancellationPolicy {
     ALWAYS_CAN_CANCEL,
     CAN_CANCEL_UNTIL_CAN_FINISH
@@ -63,8 +62,8 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @NotNull
   private ModelWizard myWizard;
 
-  private BindingsManager myBindings = new BindingsManager();
-  private ListenerManager myListeners = new ListenerManager();
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
 
   @Nullable private CustomLayout myCustomLayout;
   @Nullable private URL myHelpUrl;
@@ -72,7 +71,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @NotNull
   @Override
   protected Action[] createLeftSideActions() {
-    return new Action[] { new StepActionWrapper() };
+    return new Action[]{new StepActionWrapper()};
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
@@ -96,7 +95,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
-  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl, @NotNull CancellationPolicy cancellationPolicy) {
+  private void init(@NotNull ModelWizard wizard,
+                    @NotNull String title,
+                    @Nullable CustomLayout customLayout,
+                    @Nullable URL helpUrl,
+                    @NotNull CancellationPolicy cancellationPolicy) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
     myWizard.addResultListener(this);
@@ -120,31 +123,17 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     myWizard.removeResultListener(this);
   }
 
-  @Override
-  public void show() {
-    // TODO: Why is this necessary? Why is DialogWrapper ignoring setSize unless I do this?
-    getContentPanel().setMinimumSize(getSize());
-    super.show();
-  }
-
   @NotNull
   @Override
   protected DialogStyle getStyle() {
     return DialogStyle.COMPACT; // Remove padding from this dialog, we'll fill it in ourselves
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected JComponent createCenterPanel() {
     JPanel wizardContent = myWizard.getContentPanel();
-    JPanel centerPanel;
-    if (myCustomLayout != null) {
-      centerPanel = myCustomLayout.decorate(myWizard.title(), wizardContent);
-    }
-    else {
-      centerPanel = wizardContent;
-    }
-    return centerPanel;
+    return myCustomLayout == null ? wizardContent : myCustomLayout.decorate(myWizard.getTitleHeader(), wizardContent);
   }
 
   @Override
@@ -167,15 +156,20 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
+  public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
     // Only progress when we know the underlying wizard is done. Call the super methods directly
     // since we stubbed out our local overrides.
-    if (success) {
+    if (result.isFinished()) {
       super.doOKAction();
     }
     else {
       super.doCancelAction();
     }
+  }
+
+  @Override
+  public void onWizardAdvanceError(@NotNull Exception e) {
+    DialogEarthquakeShaker.shake(getWindow());
   }
 
   @NotNull
@@ -233,7 +227,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    */
   public interface CustomLayout extends Disposable {
     @NotNull
-    JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel);
+    JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel);
+
+    Dimension getDefaultPreferredSize();
+
+    Dimension getDefaultMinSize();
   }
 
   /**
@@ -381,12 +379,9 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
           myActiveAction = myExtraAction.getValueOrNull();
           if (myActiveAction != null) {
             StepActionWrapper.this.putValue(NAME, myActiveAction.getValue(NAME));
-            myActionListener = new PropertyChangeListener() {
-              @Override
-              public void propertyChange(PropertyChangeEvent evt) {
-                if ("enabled".equals(evt.getPropertyName())) {
-                  myEnabled.set((Boolean)evt.getNewValue());
-                }
+            myActionListener = evt -> {
+              if ("enabled".equals(evt.getPropertyName())) {
+                myEnabled.set((Boolean)evt.getNewValue());
               }
             };
             myActiveAction.addPropertyChangeListener(myActionListener);

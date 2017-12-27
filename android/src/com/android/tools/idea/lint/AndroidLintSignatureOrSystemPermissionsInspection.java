@@ -17,18 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SignatureOrSystemDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintSignatureOrSystemPermissionsInspection extends AndroidLintInspectionBase {
   public AndroidLintSignatureOrSystemPermissionsInspection() {
     super(AndroidBundle.message("android.lint.inspections.signature.or.system.permissions"), SignatureOrSystemDetector.ISSUE);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "signatureOrSystem", "signature")};
   }
 }

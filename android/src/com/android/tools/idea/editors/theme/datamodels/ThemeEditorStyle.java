@@ -27,7 +27,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -38,6 +38,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -100,7 +101,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myManager.getModule(), true);
+    ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myManager.getModule());
     assert repository != null;
     return repository.hasResourceItem(ResourceType.STYLE, myQualifiedName);
   }
@@ -121,34 +122,28 @@ public class ThemeEditorStyle {
 
       // We need to keep a Set of ResourceItems to override them. The key is the folder configuration + the name
       final HashMap<String, ResourceItem> resourceItems = Maps.newHashMap();
-      ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
-        @Override
-        public void visitResourceFolder(@NotNull LocalResourceRepository resources,
-                                        String moduleName,
-                                        @NotNull String variantName,
-                                        boolean isSourceSelected) {
-          if (!isSourceSelected) {
-            // Currently we ignore the source sets that are not active
-            // TODO: Process all source sets
-            return;
-          }
+      ThemeEditorUtils.acceptResourceResolverVisitor(facet, (resources, moduleName, variantName, isSourceSelected) -> {
+        if (!isSourceSelected) {
+          // Currently we ignore the source sets that are not active
+          // TODO: Process all source sets
+          return;
+        }
 
-          List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myQualifiedName);
-          if (items == null) {
-            return;
-          }
+        List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myQualifiedName);
+        if (items == null) {
+          return;
+        }
 
-          for (ResourceItem item : items) {
-            String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
-            resourceItems.put(key, item);
-          }
+        for (ResourceItem item : items) {
+          String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
+          resourceItems.put(key, item);
         }
       });
 
       resultItems = ImmutableList.copyOf(resourceItems.values());
     }
     else {
-      LocalResourceRepository resourceRepository = AppResourceRepository.getAppResources(module, true);
+      LocalResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(module);
       assert resourceRepository != null;
       List<ResourceItem> items = resourceRepository.getResourceItem(ResourceType.STYLE, myQualifiedName);
       if (items != null) {
@@ -361,9 +356,9 @@ public class ThemeEditorStyle {
     new WriteCommandAction.Simple(project, "Setting value of " + attribute) {
       @Override
       protected void run() {
-        // Makes the command global even if only one xml file is modified
-        // That way, the Undo is always available from the theme editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
+        // from the Theme Editor
+        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
 
         Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
         for (FolderConfiguration configuration : toBeCopied) {
@@ -379,7 +374,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleBuildInvoker.saveAllFilesSafely();
+            FileDocumentManager.getInstance().saveAllDocuments();
           }
         }
 
@@ -427,19 +422,20 @@ public class ThemeEditorStyle {
     assert !qualifiedThemeName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
 
     String newParentResourceUrl = ResolutionUtils.getStyleResourceUrl(qualifiedThemeName);
-    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, myManager.getProject());
+    Project project = myManager.getProject();
+    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, project);
     int minSdk = ThemeEditorUtils.getMinApiLevel(myManager.getModule());
 
     // When api level of both attribute and value is not greater that Minimum SDK,
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
 
-    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName) {
+    new WriteCommandAction.Simple(project, "Updating Parent to " + qualifiedThemeName) {
       @Override
       protected void run() {
-        // Makes the command global even if only one xml file is modified
-        // That way, the Undo is always available from the theme editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myManager.getProject());
+        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
+        // from the Theme Editor
+        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
 
         Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
         for (FolderConfiguration configuration : toBeCopied) {
@@ -455,7 +451,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleBuildInvoker.saveAllFilesSafely();
+            FileDocumentManager.getInstance().saveAllDocuments();
           }
         }
 
@@ -484,7 +480,7 @@ public class ThemeEditorStyle {
       return null;
     }
 
-    final Ref<XmlTag> resultXmlTag = new Ref<XmlTag>();
+    final Ref<XmlTag> resultXmlTag = new Ref<>();
     ApplicationManager.getApplication().assertReadAccessAllowed();
     sourceTag.acceptChildren(new PsiElementVisitor() {
       @Override
@@ -513,8 +509,8 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
     final Project project = myManager.getProject();
-    Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
-    final Collection<XmlTag> toBeRemoved = new HashSet<XmlTag>();
+    Collection<PsiFile> toBeEdited = new HashSet<>();
+    final Collection<XmlTag> toBeRemoved = new HashSet<>();
     for (ResourceItem resourceItem : getStyleResourceItems()) {
       final XmlTag sourceXml = LocalResourceRepository.getItemTag(project, resourceItem);
       assert sourceXml != null;
@@ -528,9 +524,9 @@ public class ThemeEditorStyle {
     new WriteCommandAction.Simple(project, "Removing " + attribute, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
-        // Makes the command global even if only one xml file is modified
-        // That way, the Undo is always available from the theme editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
+        // from the Theme Editor
+        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
 
         for (XmlTag tag : toBeRemoved) {
           tag.delete();

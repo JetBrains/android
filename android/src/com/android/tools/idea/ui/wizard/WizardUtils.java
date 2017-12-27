@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import com.android.tools.adtui.validation.Validator;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -96,5 +97,21 @@ public final class WizardUtils {
       throw new RuntimeException(e);
     }
     return url;
+  }
+
+  /**
+   * Utility method that returns a unique name using an initial seed and a {@link Validator}
+   * @return The supplied initialValue if its valid (as per the return of {@link Validator}, or the initialValue contatenated with an
+   * {@link Integer} value that will be valid.
+   */
+  public static String getUniqueName(String initialValue, Validator<String> validator) {
+    int i = 2;
+    String uniqueName = initialValue;
+    while (i <= 100 && validator.validate(uniqueName) != Validator.Result.OK) {
+      uniqueName = initialValue + Integer.toString(i);
+      i++;
+    }
+
+    return uniqueName;
   }
 }

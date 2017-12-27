@@ -436,7 +436,11 @@ public final class AndroidSdkUtils {
       AndroidDebugBridge bridge = getDebugBridge(project);
       if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
         LOG.info("DDMLIB is corrupted and will be restarted");
-        AdbService.getInstance().restartDdmlib(project);
+        File adb = getAdb(project);
+        if (adb == null) {
+          throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
+        }
+        AdbService.getInstance().restartDdmlib(adb);
       }
     }
     else {

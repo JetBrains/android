@@ -18,9 +18,11 @@ package org.jetbrains.android.databinding;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -74,11 +76,11 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(myAndroidFacet.isDataBindingEnabled());
+    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
 
 
     // trigger initialization
-    myAndroidFacet.getModuleResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
 
     File classesOut = new File(getProject().getBaseDir().getPath(), "/app/build/intermediates/classes/debug");
     //noinspection unchecked
@@ -117,9 +119,9 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
       if (!shouldVerify(viewDataBindingClass, classReader, superClassLookup)) {
         continue;
       }
-      verifiedClassCount ++;
+      verifiedClassCount++;
       String className = classReader.getClassName();
-      PsiClass psiClass =  javaPsiFacade
+      PsiClass psiClass = javaPsiFacade
         .findClass(className.replace("/", "."), myAndroidFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
       if (psiClass == null) {
         missingClasses.add(className);

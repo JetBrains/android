@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +30,7 @@ import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Model that represents the import of an existing library (.jar or .aar) into a Gradle project as a new Module
@@ -43,6 +46,8 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
     myProject = project;
     myArchive.addConstraint(String::trim);
     myGradlePath.addConstraint(String::trim);
+    //noinspection ConstantConditions
+    myArchive.set(project.getBasePath());
   }
 
   @NotNull
@@ -86,6 +91,10 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
       myArchive.get(),
       myMoveArchive.get(),
       getContainingModule(new File(myArchive.get()), myProject)).execute();
+
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
+    }
   }
 
 }

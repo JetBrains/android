@@ -15,32 +15,25 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.model.AndroidModel;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
+import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -60,7 +53,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
@@ -72,11 +64,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
-  private static final Logger logger = Logger.getInstance(ProjectResourceRepositoryTest.class);
-
   public void testStable() {
-    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myFacet, true));
-    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myModule, true));
+    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myFacet));
+    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myModule));
   }
 
   // Ensure that we invalidate the id cache when the file is rescanned but ids don't change
@@ -98,25 +88,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     // Just need an empty repository to make it a real module -set-; otherwise with a single
     // module we just get a module repository, not a module set repository
-    LocalResourceRepository other = new LocalResourceRepository("unit test") {
-      @NonNull
-      @Override
-      protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-        return Collections.emptyMap();
-      }
-
-      @Nullable
-      @Override
-      protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-        return ArrayListMultimap.create();
-      }
-
-      @NotNull
-      @Override
-      protected Set<VirtualFile> computeResourceDirs() {
-        return ImmutableSet.of();
-      }
-    };
+    LocalResourceRepository other = new TestLocalResourceRepository();
 
     ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
     final ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(module, other));
@@ -160,75 +132,34 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     addArchiveLibraries();
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    assertEquals(3, repository.getChildCount());
+    assertEquals(3, repository.getChildren().size());
     Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = facet.getModuleResources(true);
+      LocalResourceRepository moduleRepository = ModuleResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = facet.getProjectResources(true);
+      LocalResourceRepository moduleSetRepository = ProjectResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = facet.getAppResources(true);
+      LocalResourceRepository librarySetRepository = AppResourceRepository.getOrCreateInstance(facet);
       assertNotNull(librarySetRepository);
     }
-    myFacet.getModuleResources(true);
-    myFacet.getProjectResources(true);
-    myFacet.getAppResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myFacet);
+    ProjectResourceRepository.getOrCreateInstance(myFacet);
+    AppResourceRepository.getOrCreateInstance(myFacet);
   }
 
   public void testGetResourceDirsAndUpdateRoots() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     addArchiveLibraries();
     List<VirtualFile> flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
-    // For debugging: check that the IO File collection is consistent with the VirtualFile one.
-    Collection<File> ioFileFlavorDirs =
-      IdeaSourceProvider.getAllSourceProviders(myFacet)
-        .stream()
-        .flatMap(provider -> provider.getResDirectories().stream())
-        .collect(Collectors.toList());
     final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
-    String beforeState =
-      new DebugState("Before Removal", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, resourceDirs, originalChildren).toString();
-    logger.warn("Test logging: " + beforeState);
-    if (resourceDirs.isEmpty()) {
-      logger.warn("Had empty resourceDirs: " + beforeState);
-      // Check if the IO files actually exist.
-      for (File ioDir : ioFileFlavorDirs) {
-        if (!ioDir.exists()) {
-          logger.warn("Dir doesn't exist: " + ioDir.getPath());
-        }
-      }
-      // See if a VFS refresh and root update will help.
-      WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-        ioFileFlavorDirs.forEach(file -> {
-          VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
-          if (virtualFile == null) {
-            logger.warn("Still can't find the virtual file for " + file);
-          }
-        });
-        repository.updateRoots();
-      });
-      // Load up the dirs again, before trying the asserts a second time.
-      flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
-      originalChildren = repository.getChildren();
-      resourceDirs = repository.getResourceDirs();
-      String refreshedState =
-        new DebugState("After hacky refresh", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, resourceDirs, originalChildren)
-          .toString();
-      logger.warn("State after hacky refresh: " + refreshedState);
-      // If it's still empty, just disable the test. We'll look over the logs.
-      if (resourceDirs.isEmpty() || flavorDirs.isEmpty()) {
-        logger.warn("Still no resource directories! Test disabled.");
-        return;
-      }
-    }
-    assertFalse(beforeState, resourceDirs.isEmpty());
-    assertFalse(beforeState, flavorDirs.isEmpty());
-    assertSameElements(beforeState, resourceDirs, flavorDirs);
+    assertNotEmpty(resourceDirs);
+    assertNotEmpty(flavorDirs);
+    assertSameElements(resourceDirs, flavorDirs);
 
     // Now delete a directory, notify the folder manager and updateRoots.
     final VirtualFile firstFlavor = flavorDirs.remove(0);
@@ -248,79 +179,27 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // The child repositories should be the same since the module structure didn't change.
     List<? extends LocalResourceRepository> newChildren = repository.getChildren();
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
-    String afterState =
-      new DebugState("After Removal", myFacet.getAndroidModel(), flavorDirs, ioFileFlavorDirs, newResourceDirs, newChildren).toString();
-    assertTrue(afterState, newChildren.equals(originalChildren));
+    assertTrue(newChildren.equals(originalChildren));
     // However, the resourceDirs should now be different, missing the first flavor directory.
-    assertSameElements(afterState, newResourceDirs, flavorDirs);
+    assertSameElements(newResourceDirs, flavorDirs);
   }
 
-  // For debugging failures to testGetResourceDirsAndUpdateRoots (temporary).
-  // See: https://code.google.com/p/android/issues/detail?id=227339
-  private static class DebugState {
-    private final String label;
-    private final AndroidModel androidModel;
-    private final Collection<VirtualFile> flavorResDirs;
-    private final Collection<File> ioFileFlavorResDirs;
-    private final Collection<VirtualFile> resDirs;
-    private final Collection<? extends LocalResourceRepository> repoChildren;
+  public void testRootChangeListener() {
+    ProjectResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(myFacet);
+    List<? extends LocalResourceRepository> originalChildren = resources.getChildren();
+    assertNotEmpty(originalChildren);
+    Collection<VirtualFile> originalDirs = resources.getResourceDirs();
+    assertNotEmpty(originalDirs);
 
-    DebugState(String label,
-               AndroidModel androidModel,
-               Collection<VirtualFile> flavorResDirs,
-               Collection<File> ioFileFlavorResDirs,
-               Collection<VirtualFile> resDirs,
-               Collection<? extends LocalResourceRepository> repoChildren) {
-      this.label = label;
-      this.androidModel = androidModel;
-      this.flavorResDirs = flavorResDirs;
-      this.ioFileFlavorResDirs = ioFileFlavorResDirs;
-      this.resDirs = resDirs;
-      this.repoChildren = repoChildren;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s: {\n\tmodel: %s\n\tflavorResDirs: %s\n\tioFileFlavorResDirs: %s\n\tresDirs: %s\n\trepoChildren: %s\n}",
-                           label,
-                           androidModel.toString(),
-                           String.format("|%d| %s",
-                                         flavorResDirs.size(),
-                                         String.join(", ", flavorResDirs.stream().map(VirtualFile::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         ioFileFlavorResDirs.size(),
-                                         String.join(", ", ioFileFlavorResDirs.stream().map(File::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         resDirs.size(),
-                                         String.join(", ", resDirs.stream().map(VirtualFile::getPath).collect(Collectors.toList()))),
-                           String.format("|%d| %s",
-                                         repoChildren.size(),
-                                         String.join(", ", repoChildren.stream().map(repo -> describeResourceRepository(repo, 1))
-                                           .collect(Collectors.toList())))
-      );
-    }
-
-    private static String describeResourceRepository(LocalResourceRepository repository, int tabLevel) {
-      String tabs = "";
-      for (int i = 0; i < tabLevel; ++i) {
-        tabs += "\t";
-      }
-      if (repository instanceof MultiResourceRepository) {
-        MultiResourceRepository multiRepo = (MultiResourceRepository)repository;
-        return String.format("%s%s w/ %d children {\n%s\n%s}",
-                             tabs,
-                             multiRepo.toString(),
-                             multiRepo.getChildCount(),
-                             String.join("\n",
-                                         multiRepo.getChildren().stream().map(child -> describeResourceRepository(child, tabLevel + 1))
-                                           .collect(
-                                             Collectors.toList())),
-                             tabs);
-      }
-      else {
-        return String.format("%s%s", tabs, repository.toString());
-      }
-    }
+    Modules modules = new Modules(getProject());
+    // Now remove one of the modules, which should automatically cause the repo to have different roots.
+    WriteCommandAction.runWriteCommandAction(
+      getProject(), () -> removeModuleDependency(myModule, modules.getModule("plib2").getName()));
+    DumbService.getInstance(getProject()).runWhenSmart(() -> {
+      assertEquals(originalChildren.size() - 1, resources.getChildren().size());
+      assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
+    });
+    DumbService.getInstance(getProject()).waitForSmartMode();
   }
 
   public void testHasResourcesOfType() {
@@ -361,13 +240,30 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    AndroidModuleModel androidModel = new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName());
+    AndroidModuleModel androidModel =
+      new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
     myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
     variant.getMainArtifact().getDependencies().addLibrary(library);
+
+    // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
+    Collection<File> resourceDirs =
+      IdeaSourceProvider.getAllSourceProviders(myFacet)
+        .stream()
+        .flatMap(provider -> provider.getResDirectories().stream())
+        .collect(Collectors.toList());
+    refreshForVfs(resourceDirs);
+  }
+
+  private static void refreshForVfs(Collection<File> freshFiles) {
+    for (File file : freshFiles) {
+      String path = FileUtil.toSystemIndependentName(file.getPath());
+      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
+    }
   }
 
   @Override
@@ -377,11 +273,15 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     if (testName.equals("parents")) { // for unit test testDependencies
       addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
-    } else if (testName.equals("dependencies")) { // for unit test testDependencies
+    }
+    else if (testName.equals("dependencies")) { // for unit test testDependencies
       addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib2", PROJECT_TYPE_LIBRARY);
-      addModuleWithAndroidFacet(projectBuilder, modules, "app", PROJECT_TYPE_APP);
+    }
+    else if (testName.equals("rootChangeListener")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
     }
   }
 
@@ -389,46 +289,16 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   public void testDependencies() throws Exception {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
 
-    Module lib1 = null;
-    Module lib2 = null;
-    Module sharedLib = null;
-    Module app = null;
-
-    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      if (module != myModule) {
-        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        assertEquals(1, contentRoots.length);
-
-        String name = contentRoots[0].getName();
-        switch (name) {
-          case "lib1":
-            lib1 = module;
-            break;
-          case "lib2":
-            lib2 = module;
-            break;
-          case "sharedlib":
-            sharedLib = module;
-            break;
-          case "app":
-            app = module;
-            break;
-          default:
-            fail(name);
-            break;
-        }
-      }
-    }
+    Modules modules = new Modules(getProject());
+    Module lib1 = modules.getModule("lib1");
+    Module lib2 = modules.getModule("lib2");
+    Module sharedLib = modules.getModule("sharedlib");
+    Module app = modules.getAppModule();
 
     assertNotNull(lib1);
     assertNotNull(lib2);
     assertNotNull(sharedLib);
     assertNotNull(app);
-
-    renameModule(lib1, "lib1");
-    renameModule(lib2, "lib2");
-    renameModule(sharedLib, "sharedLib");
-    renameModule(app, "app");
 
     AndroidFacet lib1Facet = AndroidFacet.getInstance(lib1);
     AndroidFacet lib2Facet = AndroidFacet.getInstance(lib2);
@@ -477,8 +347,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    final AppResourceRepository lib1Resources = lib1Facet.getAppResources(true);
-    final AppResourceRepository lib2Resources = lib2Facet.getAppResources(true);
+    final AppResourceRepository lib1Resources = AppResourceRepository.getOrCreateInstance(lib1Facet);
+    final AppResourceRepository lib2Resources = AppResourceRepository.getOrCreateInstance(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);
@@ -518,9 +388,20 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     ApplicationManager.getApplication().runWriteAction(model::commit);
   }
 
-  private static void renameModule(Module from, String name) throws ModuleWithNameAlreadyExists {
-    final ModifiableModuleModel model = ModuleManager.getInstance(from.getProject()).getModifiableModel();
-    model.renameModule(from, name);
+  private static void removeModuleDependency(Module from, String name) {
+    boolean found = false;
+    final ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
+    for (OrderEntry orderEntry : model.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        final ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
+        if (moduleOrderEntry.getModuleName().equals(name)) {
+          assertFalse(found);
+          model.removeOrderEntry(orderEntry);
+          found = true;
+        }
+      }
+    }
+    assertTrue(found);
     ApplicationManager.getApplication().runWriteAction(model::commit);
   }
 

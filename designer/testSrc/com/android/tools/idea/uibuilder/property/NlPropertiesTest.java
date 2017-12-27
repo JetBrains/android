@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.adtui.ptable.StarState;
 import com.google.common.base.Joiner;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -32,7 +34,10 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class NlPropertiesTest extends PropertyTestCase {
@@ -46,12 +51,9 @@ public class NlPropertiesTest extends PropertyTestCase {
   private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
   private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
-  private GradleDependencyManager myDependencyManager;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDependencyManager = mock(GradleDependencyManager.class);
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
   }
 
@@ -70,7 +72,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(myPropertiesManager,
       ImmutableList.of(MockNlComponent.create(rootTag)));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
@@ -103,7 +105,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
@@ -129,7 +131,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
@@ -148,7 +150,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlPropertyItem p = properties.get(ANDROID_URI, "id");
     assertNotNull(p);
@@ -212,17 +214,30 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testAppCompatIssues() {
+    @Language("JAVA")
+    String java = "package com.example;\n" +
+                  "\n" +
+                  "import android.content.Context;\n" +
+                  "import android.widget.TextView;\n" +
+                  "\n" +
+                  "public class MyTextView extends TextView {\n" +
+                  "    public MyTextView(Context context) {\n" +
+                  "        super(context);\n" +
+                  "    }\n" +
+                  "}\n";
+    myFixture.addFileToProject("src/com/example/MyTextView.java", java);
+
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout>" +
-                    "  <TextView />" +
+                    "  <com.example.MyTextView />" +
                     "</RelativeLayout>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
     @Language("XML")
     String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<resources>\n" +
-                      "    <declare-styleable name=\"View\">\n" +
+                      "    <declare-styleable name=\"MyTextView\">\n" +
                       "        <attr name=\"android:focusable\" />\n" +
                       "        <attr name=\"theme\" format=\"reference\" />\n" +
                       "        <attr name=\"android:theme\" />\n" +
@@ -238,18 +253,19 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
-    assertPresent("TextView", properties, ANDROID_URI, "focusable", "theme");
-    assertPresent("TextView", properties, CUSTOM_NAMESPACE, "custom");
-    assertAbsent("TextView", properties, ANDROID_URI, "android:focusable", "android:theme");
+    assertPresent("com.example.MyTextView", properties, ANDROID_URI, "focusable", "theme");
+    assertPresent("com.example.MyTextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertAbsent("com.example.MyTextView", properties, ANDROID_URI, "android:focusable", "android:theme");
   }
 
   public void testVisibleIsStarredPropertyByDefault() {
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
     List<NlPropertyItem> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .collect(Collectors.toList());
@@ -261,7 +277,8 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testStarredPropertiesAreReadFromComponentProperties() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(myTextView));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
     List<String> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .map(NlPropertyItem::getName)
@@ -273,136 +290,66 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testAddStarredProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    NlProperties.saveStarState(null, ATTR_NAME, true);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME));
+    NlProperties.saveStarState(null, ATTR_NAME, true, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(ATTR_NAME, "", expected, myFacet);
   }
 
   public void testAddStarredToolsProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION));
-    NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT));
+    NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, "", expected, myFacet);
   }
 
   public void testRemoveStarredProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK));
+    NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange("", ATTR_CARD_ELEVATION, expected, myFacet);
   }
 
   @NotNull
   private static String propertyList(@NotNull String... propertyNames) {
-    return Joiner.on(";").join(propertyNames) + ";";
+    return Joiner.on(";").join(propertyNames);
+  }
+
+  @NotNull
+  private static String propertyList(@NotNull List<String> propertyNames) {
+    return Joiner.on(";").join(propertyNames);
+  }
+
+  private void setupImageViewNeedsSrcCompat(boolean useSrcCompat) {
+    ViewHandlerManager manager = mock(ViewHandlerManager.class);
+    ImageViewHandler handler = mock(ImageViewHandler.class);
+    ViewHandler other = mock(ViewHandler.class);
+    when(manager.getHandler(anyString())).thenReturn(other);
+    when(manager.getHandler(IMAGE_VIEW)).thenReturn(handler);
+    when(handler.shouldUseSrcCompat(any(NlModel.class))).thenReturn(useSrcCompat);
+    registerProjectComponentImplementation(ViewHandlerManager.class, manager);
   }
 
   public void testSrcCompatIncluded() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
+    setupImageViewNeedsSrcCompat(true);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
-  public void testSrcCompatIncludedWithRelativeContextName() {
-    Configuration configuration = myModel.getConfiguration();
-    configuration.setActivity(".MyActivity");
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
+  public void testSrcNotCompatIncluded() {
+    setupImageViewNeedsSrcCompat(false);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
-    assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfActivityIsNotAppCompatActivity() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addMyActivityAsSystemActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfAppCompatArtifactIsNotIncludedInModule() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(false);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ATTR_SRC);
-    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
-  }
-
-  public void testSrcCompatNotIncludedIfNotAllComponentsAreImageViews() {
-    when(myDependencyManager.dependsOn(myModule, APPCOMPAT_LIB_ARTIFACT)).thenReturn(true);
-    addAppCompatActivity();
-    addMyActivityAsAppCompatActivity();
-
-    Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, ImmutableList.of(myImageView), myDependencyManager);
-
-    assertPresent("ImageView", properties, ATTR_SRC);
-    assertAbsent("ImageView", properties, ATTR_SRC_COMPAT);
-  }
-
-  private void addMyActivityAsAppCompatActivity() {
-    @Language("JAVA")
-    String javaFile = "package com.example;\n" +
-                      "\n" +
-                      "import android.support.v7.app.AppCompatActivity;\n" +
-                      "import android.os.Bundle;\n" +
-                      "\n" +
-                      "public class MyActivity extends AppCompatActivity {\n" +
-                      "    @Override\n" +
-                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
-                      "        super.onCreate(savedInstanceState);\n" +
-                      "        setContentView(R.layout.activity_main);\n" +
-                      "    }\n" +
-                      "\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
-  }
-
-  private void addAppCompatActivity() {
-    @Language("JAVA")
-    String javaFile = "package android.support.v7.app;\n" +
-                      "\n" +
-                      "import android.app.Activity;\n" +
-                      "\n" +
-                      "public class AppCompatActivity extends Activity {\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/android/support/v7/app/AppCompatActivity.java", javaFile);
-  }
-
-  private void addMyActivityAsSystemActivity() {
-    @Language("JAVA")
-    String javaFile = "package com.example;\n" +
-                      "\n" +
-                      "import android.app.Activity;\n" +
-                      "import android.os.Bundle;\n" +
-                      "\n" +
-                      "public class MyActivity extends Activity {\n" +
-                      "\n" +
-                      "    @Override\n" +
-                      "    protected void onCreate(Bundle savedInstanceState) {\n" +
-                      "        super.onCreate(savedInstanceState);\n" +
-                      "        setContentView(R.layout.merge);\n" +
-                      "    }\n" +
-                      "}\n";
-    myFixture.addFileToProject("src/com/example/MyActivity.java", javaFile);
   }
 
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {

@@ -18,15 +18,15 @@ package com.android.tools.idea.testartifacts;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestConsoleProperties;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testartifacts.junit.AndroidTestPackage;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.CantRunException;
 import com.intellij.execution.ConfigurationUtil;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.testframework.TestSearchScope;
@@ -35,8 +35,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -100,7 +99,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     AndroidTestPackage testPackage = new AndroidTestPackage(configuration, ExecutionEnvironmentBuilder.create(
       DefaultRunExecutor.getRunExecutorInstance(), configuration).build());
     Set<PsiClass> myClasses = new HashSet<>();
-    ConfigurationUtil.findAllTestClasses(testPackage.getClassFilter(configuration.getPersistentData()), null, myClasses);
+    ConfigurationUtil.findAllTestClasses(testPackage.getClassFilter(configuration.getPersistentData()), module, myClasses);
 
     assertSize(1, myClasses);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);

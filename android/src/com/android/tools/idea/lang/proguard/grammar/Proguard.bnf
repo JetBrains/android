@@ -25,6 +25,8 @@
     elementTypeHolderClass="com.android.tools.idea.lang.proguard.psi.ProguardTypes"
     elementTypeClass="com.android.tools.idea.lang.proguard.psi.ProguardElementType"
     tokenTypeClass="com.android.tools.idea.lang.proguard.psi.ProguardTokenType"
+
+    classHeader='generatedFilesHeader.txt'
 }
 
 // The tokens used in this grammar are defined in Proguard.flex.

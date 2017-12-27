@@ -15,31 +15,30 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.SdkConstants;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiPackageImpl;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.search.ProjectScope;
+import com.intellij.psi.search.searches.AnnotatedElementsSearch;
+import com.intellij.psi.util.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 /**
  * Keeps data binding information related to a project
  */
 public class DataBindingProjectComponent implements ModificationTracker {
   final CachedValue<AndroidFacet[]> myDataBindingEnabledModules;
+  final ParameterizedCachedValue<Collection<? extends PsiModifierListOwner>, Module> myBindingAdapterAnnotations;
   final Project myProject;
   private AtomicLong myModificationCount = new AtomicLong(0);
   private Map<String, PsiPackage> myDataBindingPsiPackages = Maps.newConcurrentMap();
@@ -54,13 +53,33 @@ public class DataBindingProjectComponent implements ModificationTracker {
         if (facet == null) {
           continue;
         }
-        if (facet.isDataBindingEnabled()) {
+        if (ModuleDataBinding.isEnabled(facet)) {
           facets.add(facet);
         }
       }
+
       myModificationCount.incrementAndGet();
       return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[facets.size()]),
                                                DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
+    }, false);
+
+    myBindingAdapterAnnotations = CachedValuesManager.getManager(project).createParameterizedCachedValue(module -> {
+      JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
+      PsiClass aClass = facade
+        .findClass(SdkConstants.BINDING_ADAPTER_ANNOTATION, module.getModuleWithDependenciesAndLibrariesScope(false));
+
+      Collection<? extends PsiModifierListOwner> psiElements = null;
+      if (aClass == null) {
+        psiElements = Collections.emptyList();
+      }
+      else {
+        // ProjectScope used. ModuleWithDepencies does not seem to work
+        psiElements = AnnotatedElementsSearch.searchElements(aClass, ProjectScope.getAllScope(myProject), PsiMethod.class).findAll();
+      }
+
+      // Cached value that will be refreshed in every Java change
+      return CachedValueProvider.Result
+        .create(psiElements, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT, ModuleManager.getInstance(project));
     }, false);
   }
 
@@ -102,5 +121,38 @@ public class DataBindingProjectComponent implements ModificationTracker {
       myDataBindingPsiPackages.put(packageName, pkg);
     }
     return pkg;
+  }
+
+  /**
+   * Convert the passed annotation initialization into a {@link Stream} of {@link PsiLiteral} values
+   */
+  @NotNull
+  private static Stream<PsiLiteral> getPsiLiterals(@NotNull PsiAnnotationMemberValue annotationMemberValue) {
+    if (annotationMemberValue instanceof PsiArrayInitializerMemberValue) {
+      return Arrays.stream(((PsiArrayInitializerMemberValue)annotationMemberValue).getInitializers())
+        .filter(PsiLiteral.class::isInstance)
+        .map(PsiLiteral.class::cast);
+    }
+    if (annotationMemberValue instanceof PsiLiteral) {
+      return Stream.of((PsiLiteral)annotationMemberValue);
+    }
+
+    return Stream.empty();
+  }
+
+  /**
+   * Returns the stream of attributes defined by {@code @BindingAdapter} annotations
+   */
+  @NotNull
+  public Stream<String> getBindingAdapterAttributes(@NotNull Module module) {
+    return myBindingAdapterAnnotations.getValue(module).stream().map(PsiModifierListOwner::getModifierList)
+      .filter(Objects::nonNull)
+      .flatMap(modifierList -> Stream.of(modifierList.getAnnotations()))
+      .map(annotation -> annotation.findAttributeValue("value"))
+      .filter(Objects::nonNull)
+      .flatMap(DataBindingProjectComponent::getPsiLiterals)
+      .map(PsiLiteral::getValue)
+      .filter(Objects::nonNull)
+      .map(Object::toString);
   }
 }

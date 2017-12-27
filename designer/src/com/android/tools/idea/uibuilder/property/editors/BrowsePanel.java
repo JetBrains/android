@@ -16,49 +16,48 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Condition;
+import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.handlers.ViewEditorImpl.isRestricted;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
   private final ActionButton myBrowseButton;
   private final ActionButton myDesignButton;
+  private PropertyDesignState myDesignState;
 
   public interface Context {
     @Nullable
     NlProperty getProperty();
 
-    @Nullable
-    default NlProperty getDesignProperty() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Nullable
-    default NlProperty getRuntimeProperty() {
-      throw new UnsupportedOperationException();
-    }
-
+    // Overridden by table cell editor
     default void cancelEditing() {
     }
 
+    // Overridden by table cell editor
     default void stopEditing(@Nullable Object newValue) {
       NlProperty property = getProperty();
       if (property != null) {
@@ -66,10 +65,12 @@ public class BrowsePanel extends JPanel {
       }
     }
 
+    // Overridden by table cell editor
     default void addDesignProperty() {
       throw new UnsupportedOperationException();
     }
 
+    // Overridden by table cell editor
     default void removeDesignProperty() {
       throw new UnsupportedOperationException();
     }
@@ -89,11 +90,12 @@ public class BrowsePanel extends JPanel {
     }
   }
 
-  public BrowsePanel(@NotNull Context context) {
-    this(context, true);
+  // This is used from a table cell renderer only
+  public BrowsePanel() {
+    this(null, true);
   }
 
-  public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
+  public BrowsePanel(@Nullable Context context, boolean showDesignButton) {
     myContext = context;
     myBrowseButton = createActionButton(new BrowseAction(context));
     myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
@@ -106,19 +108,37 @@ public class BrowsePanel extends JPanel {
     }
   }
 
+  public void setDesignState(@NotNull PropertyDesignState designState) {
+    myDesignState = designState;
+  }
+
   public void setProperty(@NotNull NlProperty property) {
-    myBrowseButton.setVisible(hasResourceChooser(property));
+    myBrowseButton.setVisible(hasBrowseDialog(property));
   }
 
   public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
-    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth()) {
+    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth()) {
       myDesignButton.click();
     }
-    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth() - myBrowseButton.getWidth()) {
+    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth() - getBrowseButtonWidth()) {
       myBrowseButton.click();
     }
   }
 
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    table.setExpandableItemsEnabled(
+      event.getX() < rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth() - getBrowseButtonWidth());
+  }
+
+  private int getDesignButtonWidth() {
+    return myDesignButton != null ? myDesignButton.getWidth() : 0;
+  }
+
+  private int getBrowseButtonWidth() {
+    return myBrowseButton.isVisible() ? myBrowseButton.getWidth() : 0;
+  }
+
+  @NotNull
   private static ActionButton createActionButton(@NotNull AnAction action) {
     return new ActionButton(action,
                             action.getTemplatePresentation().clone(),
@@ -129,7 +149,7 @@ public class BrowsePanel extends JPanel {
   private static class BrowseAction extends AnAction {
     private final Context myContext;
 
-    private BrowseAction(@NotNull Context context) {
+    private BrowseAction(@Nullable Context context) {
       myContext = context;
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.Ellipsis);
@@ -138,52 +158,127 @@ public class BrowsePanel extends JPanel {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
+      if (myContext == null) {
+        return;
+      }
       NlProperty property = myContext.getProperty();
       if (property == null) {
         return;
       }
-      ChooseResourceDialog dialog = showResourceChooser(property);
+      String newValue = showBrowseDialog(property);
       myContext.cancelEditing();
 
-      if (dialog.showAndGet()) {
-        myContext.stopEditing(dialog.getResourceName());
+      if (newValue != null) {
+        myContext.stopEditing(newValue);
       }
     }
   }
 
-  public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
+  private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
-    AttributeDefinition definition = property.getDefinition();
-    EnumSet<ResourceType> types = getResourceTypes(property.getName(), definition);
-    //return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
+    EnumSet<ResourceType> types = getResourceTypes(property);
+    ResourceType defaultResourceType = getDefaultResourceType(property.getName());
     return ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(types)
       .setCurrentValue(property.getValue())
       .setTag(property.getTag())
+      .setDefaultType(defaultResourceType)
       .build();
   }
 
-  public static boolean hasResourceChooser(@NotNull NlProperty property) {
-    return !getResourceTypes(property.getName(), property.getDefinition()).isEmpty();
+  @Nullable
+  private static String showClassChooser(@NotNull NlProperty property, boolean includeSystemClasses, @NotNull Set<String> classes) {
+    Condition<PsiClass> psiFilter = psiClass -> {
+      if (isRestricted(psiClass)) {
+        // All restriction scopes are currently filtered out
+        return false;
+      }
+      if (includeSystemClasses) {
+        return true;
+      }
+      String qualifiedName = psiClass.getQualifiedName();
+      if (qualifiedName == null) {
+        return false;
+      }
+      return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) && !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+    };
+    return ChooseClassDialog.openDialog(property.getModel().getModule(), "Classes", true, psiFilter, ArrayUtil.toStringArray(classes));
+  }
+
+  public static boolean hasBrowseDialog(@NotNull NlProperty property) {
+    return property.getName().equals(ATTR_CLASS) ||
+           property.getName().equals(ATTR_NAME) ||
+           !getResourceTypes(property).isEmpty();
+  }
+
+  /**
+   * Show a browse dialog depending on the property type.
+   * TODO: Move the implementation into ViewHandler such that each view type has control over the dialog presented.
+   * TODO: And we avoid code duplication between ViewEditor and this class.
+   * @return a new value or null if the dialog was cancelled.
+   */
+  @Nullable
+  public static String showBrowseDialog(@NotNull NlProperty property) {
+    if (property.getName().equals(ATTR_CLASS)) {
+      return showClassChooser(property, false, Collections.singleton(CLASS_VIEW));
+    }
+    else if (property.getName().equals(ATTR_NAME)) {
+      return showClassChooser(property, true, ImmutableSet.of(CLASS_FRAGMENT, CLASS_V4_FRAGMENT));
+    }
+    else if (!getResourceTypes(property).isEmpty()) {
+      ChooseResourceDialog dialog = showResourceChooser(property);
+      if (dialog.showAndGet()) {
+        return dialog.getResourceName();
+      }
+    }
+    return null;
   }
 
   @NotNull
-  public static EnumSet<ResourceType> getResourceTypes(@NotNull String propertyName, @Nullable AttributeDefinition definition) {
+  public static EnumSet<ResourceType> getResourceTypes(@NotNull NlProperty property) {
+    String propertyName = property.getName();
+    if (propertyName.equals(ATTR_ID)) {
+      // Don't encourage the use of android IDs
+      return EnumSet.noneOf(ResourceType.class);
+    }
+    AttributeDefinition definition = property.getDefinition();
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    ResourceType type = AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(propertyName);
-    return type == null ? AttributeFormat.convertTypes(formats) : EnumSet.of(type);
+    Collection<ResourceType> types = AndroidDomUtil.getSpecialResourceTypes(propertyName);
+    return types.isEmpty() ? AttributeFormat.convertTypes(formats) : EnumSet.copyOf(types);
   }
 
-  private enum DesignState {NOT_APPLICABLE, IS_REMOVABLE_DESIGN_PROPERTY, HAS_DESIGN_PROPERTY, MISSING_DESIGN_PROPERTY}
+  /**
+   * For some attributes, it make more sense the display a specific type by default.
+   * <p>
+   * For example <code>textColor</code> has more chance to have a color value than a drawable value,
+   * so in the {@link ChooseResourceDialog}, we need to select the Color tab by default.
+   *
+   * @param propertyName The property name to get the associated default type from.
+   * @return The {@link ResourceType} that should be selected by default for the provided property name.
+   */
+  @Nullable
+  public static ResourceType getDefaultResourceType(@NotNull String propertyName) {
+    String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
+    if (lowerCaseProperty.contains("color")
+        || lowerCaseProperty.contains("tint")) {
+      return ResourceType.COLOR;
+    }
+    else if (lowerCaseProperty.contains("drawable")
+      || propertyName.equals(ATTR_SRC)
+      || propertyName.equals(ATTR_SRC_COMPAT)) {
+      return ResourceType.DRAWABLE;
+    }
+    return null;
+  }
 
   private AnAction createDesignAction() {
     return new AnAction() {
       @Override
       public void update(AnActionEvent event) {
         Presentation presentation = event.getPresentation();
-        switch (checkDesignState()) {
+        switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(AndroidIcons.NeleIcons.DesignProperty);
             presentation.setText("Specify Design Property");
@@ -207,7 +302,10 @@ public class BrowsePanel extends JPanel {
 
       @Override
       public void actionPerformed(AnActionEvent event) {
-        switch (checkDesignState()) {
+        if (myContext == null) {
+          return;
+        }
+        switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
             myContext.addDesignProperty();
             break;
@@ -215,21 +313,6 @@ public class BrowsePanel extends JPanel {
             myContext.removeDesignProperty();
             break;
           default:
-        }
-      }
-
-      private DesignState checkDesignState() {
-        NlProperty property = myContext.getProperty();
-        if (property == null || myDesignButton == null) {
-          return DesignState.NOT_APPLICABLE;
-        }
-        if (TOOLS_URI.equals(property.getNamespace())) {
-          NlProperty runtimeProperty = myContext.getRuntimeProperty();
-          return runtimeProperty != null ? DesignState.IS_REMOVABLE_DESIGN_PROPERTY : DesignState.NOT_APPLICABLE;
-        }
-        else {
-          NlProperty designProperty = myContext.getDesignProperty();
-          return designProperty != null ? DesignState.HAS_DESIGN_PROPERTY : DesignState.MISSING_DESIGN_PROPERTY;
         }
       }
     };

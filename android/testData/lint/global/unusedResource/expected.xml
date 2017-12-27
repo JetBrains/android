@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+  <problem>
+    <file>strings.xml</file>
+    <line>3</line>
+    <hints />
+    <description>&lt;html&gt;The resource &lt;code&gt;R.string.unused&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  </problem>
+</problems>

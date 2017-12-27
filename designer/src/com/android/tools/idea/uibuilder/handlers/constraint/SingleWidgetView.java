@@ -17,10 +17,13 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import com.intellij.ui.JBColor;
+import icons.AndroidIcons;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,22 +31,22 @@ import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
 
 /**
  * Uses a SceneDraw to render an iconic form of the widget
  */
 public class SingleWidgetView extends JPanel {
   public static final int RATIO_UNLOCK = 0;
-  public static final int RATIO_LOCK = 1;
+  private static final int RATIO_LOCK = 1;
   public static final int RATIO_LOCK_HEIGHT = 2;
   public static final int RATIO_LOCK_WIDTH = 3;
 
-  WidgetConstraintPanel mWidgetConstraintPanel;
+  private WidgetConstraintPanel mWidgetConstraintPanel;
   public final static int MATCH_CONSTRAINT = 1;
   public final static int WRAP_CONTENT = 2;
   public final static int FIXED = 0;
-  public static final int UNCONNECTED = -1;
+  private static final int UNCONNECTED = -1;
   private final ColorSet mColorSet;
   private int mCacheBottom;
   private int mCacheTop;
@@ -59,29 +62,40 @@ public class SingleWidgetView extends JPanel {
   private int mRatioWidth;
   private int mRatioLock;
 
-  int mWidth;
-  int mHeight;
-  int mBoxSize;
+  private int mWidth;
+  private int mHeight;
+  private int mBoxSize;
 
-  WidgetRender mWidgetRender = new WidgetRender();
-  ArrayList<Graphic> mGraphicList = new ArrayList<>();
-  MarginWidget mTopMargin;
-  MarginWidget mLeftMargin;
-  MarginWidget mRightMargin;
-  MarginWidget mBottomMargin;
-  HConstraintDisplay mHbar1;
-  HConstraintDisplay mHbar2;
-  VConstraintDisplay mVbar1;
-  VConstraintDisplay mVbar2;
+  private WidgetRender mWidgetRender = new WidgetRender();
+  private ArrayList<Graphic> mGraphicList = new ArrayList<>();
+  private MarginWidget mTopMargin;
+  private MarginWidget mLeftMargin;
+  private MarginWidget mRightMargin;
+  private MarginWidget mBottomMargin;
+  private HConstraintDisplay mHbar1;
+  private HConstraintDisplay mHbar2;
+  private VConstraintDisplay mVbar1;
+  private VConstraintDisplay mVbar2;
 
-  KillButton mTopKill;
-  KillButton mLeftKill;
-  KillButton mRightKill;
-  KillButton mBottomKill;
-  KillButton mBaselineKill;
-  AspectButton mAspectButton;
-  JLabel mAspectLabel;
-  JTextField mAspectText;
+  private ConnectButton mTopConnect;
+  private ConnectButton mLeftConnect;
+  private ConnectButton mRightConnect;
+  private ConnectButton mBottomConnect;
+  private final static int mConnectRadius = 7;
+  private final static int mConnectSize = mConnectRadius * 2 + 1; // widget size
+  private int mConnectTopPos; // the y pos of the bottom of the top connection
+  private int mConnectLeftPos; // the x pos of the right side of the left connection
+  private int mConnectRightPos; // the x pos of the left side of the right connection
+  private int mConnectBottomPos; // the y pos of the top of the bottom connection
+
+  private KillButton mTopKill;
+  private KillButton mLeftKill;
+  private KillButton mRightKill;
+  private KillButton mBottomKill;
+  private KillButton mBaselineKill;
+  private AspectButton mAspectButton;
+  private JLabel mAspectLabel;
+  private JTextField mAspectText;
 
   private String[] statusString = {"Fixed", "Match Constraints", "Wrap Content"};
 
@@ -89,10 +103,10 @@ public class SingleWidgetView extends JPanel {
     super(null);
     mColorSet = colorSet;
 
-    mTopMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mLeftMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mRightMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mBottomMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mTopMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginTop");
+    mLeftMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginStart");
+    mRightMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginEnd");
+    mBottomMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginBottom");
     mTopMargin.setToolTipText("Top Margin");
     mLeftMargin.setToolTipText("Left Margin");
     mRightMargin.setToolTipText("Right Margin");
@@ -108,15 +122,27 @@ public class SingleWidgetView extends JPanel {
     mRightKill = new KillButton(mColorSet);
     mBottomKill = new KillButton(mColorSet);
     mBaselineKill = new KillButton(mColorSet);
+    mTopConnect = new ConnectButton(mColorSet);
+    mLeftConnect = new ConnectButton(mColorSet);
+    mRightConnect = new ConnectButton(mColorSet);
+    mBottomConnect = new ConnectButton(mColorSet);
+
     mAspectButton = new AspectButton(mColorSet);
     mAspectText = new JTextField();
     mAspectLabel = new JLabel("ratio");
 
     mTopKill.setToolTipText("Delete Top Constraint");
     mLeftKill.setToolTipText("Delete Left Constraint");
+
+    mRightKill.setName("deleteRightConstraintButton");
     mRightKill.setToolTipText("Delete Right Constraint");
+
     mBottomKill.setToolTipText("Delete Bottom Constraint");
     mBaselineKill.setToolTipText("Delete Baseline Constraint");
+    mTopConnect.setToolTipText("Create a connection above");
+    mLeftConnect.setToolTipText("Create a connection to the left");
+    mRightConnect.setToolTipText("Create a connection to the right");
+    mBottomConnect.setToolTipText("Create a connection below");
     mAspectButton.setToolTipText("Toggle Aspect Ratio Constraint");
 
     mHbar1.setSister(mHbar2);
@@ -144,6 +170,10 @@ public class SingleWidgetView extends JPanel {
     add(mLeftKill);
     add(mRightKill);
     add(mBottomKill);
+    add(mTopConnect);
+    add(mLeftConnect);
+    add(mRightConnect);
+    add(mBottomConnect);
     add(mBaselineKill);
     add(mAspectButton);
     add(mAspectText);
@@ -159,6 +189,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.addActionListener(e -> rightKill());
     mBottomKill.addActionListener(e -> bottomKill());
     mBaselineKill.addActionListener(e -> baselineKill());
+    mTopConnect.addActionListener(e -> connectConstraintTop());
+    mLeftConnect.addActionListener(e -> connectConstraintLeft());
+    mRightConnect.addActionListener(e -> connectConstraintRight());
+    mBottomConnect.addActionListener(e -> connectConstraintBottom());
     mAspectButton.addActionListener(e -> toggleAspect());
     mAspectText.addActionListener(e -> setAspectString());
     mAspectText.addFocusListener(new FocusAdapter() {
@@ -212,7 +246,7 @@ public class SingleWidgetView extends JPanel {
     if (str == null) {
       return "1:1";
     }
-    int index = str.indexOf(",");
+    int index = str.indexOf(',');
     if (index == -1) {
       return str;
     }
@@ -224,6 +258,9 @@ public class SingleWidgetView extends JPanel {
     int count = 0;
     order[count++] = RATIO_UNLOCK;
 
+    if (mCacheHeight == MATCH_CONSTRAINT && mCacheWidth == MATCH_CONSTRAINT) {
+      order[count++] = RATIO_LOCK;
+    }
     if (mCacheHeight == MATCH_CONSTRAINT) {
       order[count++] = RATIO_LOCK_HEIGHT;
     }
@@ -285,9 +322,10 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void updateTriangle() {
-    boolean show  = mVbar1.getState() == MATCH_CONSTRAINT || mHbar1.getState() == MATCH_CONSTRAINT;
+    boolean show = mVbar1.getState() == MATCH_CONSTRAINT || mHbar1.getState() == MATCH_CONSTRAINT;
     mWidgetRender.mAspectLock.setShowTriangle(show);
   }
+
   private void topKill() {
     mWidgetConstraintPanel.killTopConstraint();
     mCacheTop = UNCONNECTED;
@@ -318,11 +356,27 @@ public class SingleWidgetView extends JPanel {
     update();
   }
 
+  private void connectConstraintTop() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectTop, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintLeft() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectStart, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintRight() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintBottom() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+  }
+
   static int baselinePos(int height) {
     return (9 * height) / 10;
   }
 
-  void resize() {
+  private void resize() {
     mWidth = getWidth();
     mHeight = getHeight();
     mWidgetRender.build(mWidth, mHeight);
@@ -332,7 +386,7 @@ public class SingleWidgetView extends JPanel {
     int hgap = 4;
     int cw = 38;
     int ch = 30;
-    int tmpx, tmpy, tmpw, tmph;
+    int tmpx, tmpy;
     int inset = 5 + mWidth / 100;
     int boxLeft = (mWidth - mBoxSize) / 2;
     int boxTop = (mHeight - mBoxSize) / 2;
@@ -350,25 +404,36 @@ public class SingleWidgetView extends JPanel {
     mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
     mBaselineKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
+
+    rad = mConnectRadius;
+    size = mConnectSize; // widget size
+    mConnectTopPos = boxTop - mConnectRadius - mConnectSize * 2 + mConnectSize;
+    mConnectLeftPos = boxLeft - mConnectRadius - mConnectSize * 2 + mConnectSize;
+    mConnectRightPos = boxLeft + mBoxSize - mConnectRadius + mConnectSize * 2;
+    mConnectBottomPos = boxTop + mBoxSize - mConnectRadius + mConnectSize * 2;
+    mTopConnect.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad - size * 2, size, size);
+    mLeftConnect.setBounds(boxLeft - rad - size * 2, boxTop + mBoxSize / 2 - rad + 1, size, size);
+    mRightConnect.setBounds(boxLeft + mBoxSize - rad + size * 2, boxTop + mBoxSize / 2 - rad + 1, size, size);
+    mBottomConnect.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad + size * 2, size, size);
     mAspectButton.setBounds(boxLeft, boxTop, mBoxSize / 6, mBoxSize / 6);
     tmpx = boxLeft + mBoxSize + 4;
-    mAspectText.setBounds(tmpx, tmpy = boxTop + mBoxSize + 10, Math.min(70, mWidth - tmpx), tmph = mAspectText.getPreferredSize().height);
+    mAspectText.setBounds(tmpx, tmpy = boxTop + mBoxSize + 10, Math.min(70, mWidth - tmpx), mAspectText.getPreferredSize().height);
     Dimension labelSize = mAspectLabel.getPreferredSize();
     mAspectLabel.setBounds(boxLeft + mBoxSize + 4, tmpy - labelSize.height, labelSize.width, labelSize.height);
     int barSize = 10;
     int barLong = mBoxSize / 2 - barSize - 1;
 
-    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
-    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
-    mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
+    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize + 1);
+    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize + 1);
+    mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize + 1, barLong);
     if (mCacheBaseline) {
       int left = boxLeft + mBoxSize / 2 - barSize / 2;
       int top = boxTop + mBoxSize / 2 + barSize;
       int height = boxTop + baselinePos(mBoxSize) - top - 2;
-      mVbar2.setBounds(left, top, barSize, height);
+      mVbar2.setBounds(left, top, barSize + 1, height);
     }
     else {
-      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
+      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize + 1, barLong);
     }
   }
 
@@ -446,7 +511,7 @@ public class SingleWidgetView extends JPanel {
 
       @Override
       public void paintIcon(Component c, Graphics g, int x, int y) {
-        g.setColor(Color.BLUE);
+        g.setColor(JBColor.BLUE);
         mXPoints[0] = 1;
         mYPoints[0] = 1;
         mXPoints[1] = getIconWidth();
@@ -476,9 +541,62 @@ public class SingleWidgetView extends JPanel {
   }
 
   /**
+   * Connect button
+   */
+  static class ConnectButton extends JComponent {
+    boolean mMouseIn;
+    boolean mShow = true;
+    ColorSet mColorSet;
+    public static int sCircleRadius = 5;
+
+    public void addActionListener(ActionListener listener) {
+      mListener = listener;
+    }
+
+    static Dimension size = new Dimension(sCircleRadius * 2, sCircleRadius * 2);
+
+    private ActionListener mListener;
+
+    public void setShown(boolean show) {
+      mShow = show;
+    }
+
+    public ConnectButton(ColorSet colorSet) {
+      mColorSet = colorSet;
+      setPreferredSize(size);
+      setSize(size);
+      setOpaque(false);
+
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent evt) {
+          mMouseIn = true;
+          repaint();
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          mListener.actionPerformed(null);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent evt) {
+          mMouseIn = false;
+          repaint();
+        }
+      });
+    }
+
+    @Override
+    public void paint(Graphics g) {
+      AndroidIcons.SherpaIcons.AddConnection.paintIcon(this, g, 0, 0);
+    }
+  }
+
+  /**
    * Buttons that can kill the constraint
    */
-  static class KillButton extends JComponent {
+  public static class KillButton extends JComponent {
     boolean mMouseIn;
     boolean mShow = true;
     ColorSet mColorSet;
@@ -528,9 +646,9 @@ public class SingleWidgetView extends JPanel {
 
       @Override
       public void paintIcon(Component c, Graphics g, int x, int y) {
-        g.setColor(Color.BLUE);
+        g.setColor(JBColor.BLUE);
         if (mMouseIn) {
-          drawCircle((Graphics2D)g, x + sCircleRadius, y + sCircleRadius, sCircleRadius, true);
+          drawCircle((Graphics2D)g, x + sCircleRadius, y + sCircleRadius, sCircleRadius);
         }
       }
 
@@ -541,9 +659,8 @@ public class SingleWidgetView extends JPanel {
        * @param x      x coordinate of the circle
        * @param y      y coordinate of the circle
        * @param radius radius of the circle
-       * @param full   if the circle is full or not
        */
-      private void drawCircle(Graphics2D g2, int x, int y, int radius, boolean full) {
+      private void drawCircle(Graphics2D g2, int x, int y, int radius) {
         Graphics2D g = (Graphics2D)g2.create();
         g.setColor(mColorSet.getInspectorConstraintColor());
         g.drawRoundRect(x - radius, y - radius,
@@ -554,9 +671,9 @@ public class SingleWidgetView extends JPanel {
 
         g.setColor(mColorSet.getInspectorBackgroundColor());
         g.setStroke(new BasicStroke(2));
-        radius = 4;
-        g.drawLine(x - radius, y - radius, x + radius, y + radius);
-        g.drawLine(x - radius, y + radius, x + radius, y - radius);
+
+        g.drawLine(x - 4, y - 4, x + 4, y + 4);
+        g.drawLine(x - 4, y + 4, x + 4, y - 4);
 
         g.dispose();
       }
@@ -582,7 +699,6 @@ public class SingleWidgetView extends JPanel {
   }
 
   /**
-   * @param name
    * @param bottom      sets the margin -1 = no margin
    * @param top         sets the margin -1 = no margin
    * @param left        sets the margin -1 = no margin
@@ -590,7 +706,6 @@ public class SingleWidgetView extends JPanel {
    * @param baseline    sets the name of baseline connection null = no baseline
    * @param width       the horizontal constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    * @param height      the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
-   * @param aspect      The aspect ratio
    * @param ratioString The side that will be constrained
    */
   public void configureUi(int bottom, int top, int left, int right, boolean baseline, int width, int height, String ratioString) {
@@ -627,7 +742,6 @@ public class SingleWidgetView extends JPanel {
   }
 
   /**
-   * @param name
    * @param bottom   sets the margin -1 = no margin
    * @param top      sets the margin -1 = no margin
    * @param left     sets the margin -1 = no margin
@@ -673,6 +787,10 @@ public class SingleWidgetView extends JPanel {
     mLeftKill.setVisible(left != UNCONNECTED);
     mRightKill.setVisible(right != UNCONNECTED);
     mBottomKill.setVisible(bottom != UNCONNECTED);
+    mTopConnect.setVisible(top == UNCONNECTED);
+    mLeftConnect.setVisible(left == UNCONNECTED);
+    mRightConnect.setVisible(right == UNCONNECTED);
+    mBottomConnect.setVisible(bottom == UNCONNECTED);
     mBaselineKill.setVisible(baseline);
     mAspectButton.setVisible(true);
     mAspectText.setVisible(mRatioString != null);
@@ -704,9 +822,9 @@ public class SingleWidgetView extends JPanel {
    * @param ratio
    */
   private void parseDimensionRatio(String ratio) {
-    mRatioHeight = (int)-1;
-    mRatioWidth = (int)-1;
-    if (ratio == null || ratio.length() == 0) {
+    mRatioHeight = -1;
+    mRatioWidth = -1;
+    if (ratio == null || ratio.isEmpty()) {
       mDimensionRatio = 0;
       mDimensionRatioSide = ConstraintWidget.UNKNOWN;
 
@@ -734,22 +852,13 @@ public class SingleWidgetView extends JPanel {
     if (colonIndex >= 0 && colonIndex < len - 1) {
       String nominator = ratio.substring(commaIndex, colonIndex);
       String denominator = ratio.substring(colonIndex + 1);
-      if (nominator.length() > 0 && denominator.length() > 0) {
+      if (!nominator.isEmpty() && !denominator.isEmpty()) {
         try {
           float nominatorValue = Float.parseFloat(nominator);
           float denominatorValue = Float.parseFloat(denominator);
-          if (nominatorValue > 0 && denominatorValue > 0) {
-            if (dimensionRatioSide == ConstraintWidget.VERTICAL) {
-              dimensionRatio = Math.abs(denominatorValue / nominatorValue);
-              mRatioHeight = (int)denominatorValue;
-              mRatioWidth = (int)nominatorValue;
-            }
-            else {
-              dimensionRatio = Math.abs(nominatorValue / denominatorValue);
-              mRatioHeight = (int)nominatorValue;
-              mRatioWidth = (int)denominatorValue;
-            }
-          }
+          dimensionRatio = Math.abs(nominatorValue / denominatorValue);
+          mRatioHeight = (int)nominatorValue;
+          mRatioWidth = (int)denominatorValue;
         }
         catch (NumberFormatException e) {
           // Ignore
@@ -758,7 +867,7 @@ public class SingleWidgetView extends JPanel {
     }
     else {
       String r = ratio.substring(commaIndex);
-      if (r.length() > 0) {
+      if (!r.isEmpty()) {
         try {
           dimensionRatio = Float.parseFloat(r);
         }
@@ -774,31 +883,25 @@ public class SingleWidgetView extends JPanel {
     }
   }
 
-  static int[][] ratios = {{1, 1}, {4, 3}, {3, 2}, {5, 3}, {16, 9}, {2, 1}, {21, 9}, {5, 2}, {3, 1}, {4, 1}};
+  private static int[][] ratios = {{1, 1}, {4, 3}, {3, 2}, {5, 3}, {16, 9}, {2, 1}, {21, 9}, {5, 2}, {3, 1}, {4, 1}};
 
   static {
-    Arrays.sort(ratios, new Comparator<int[]>() {
-
-      @Override
-      public int compare(int[] a, int[] b) {
-        return Float.compare(a[0] / (float)a[1], b[0] / (float)b[1]);
-      }
-    });
+    Arrays.sort(ratios, (a, b) -> Float.compare(a[0] / (float)a[1], b[0] / (float)b[1]));
   }
 
   // use to split the ratios
   private static int[] splitRatio(float ratio) {
     if (ratio >= 1) {
-      for (int i = 0; i < ratios.length; i++) {
-        if (ratios[i][0] / (float)ratios[i][1] >= ratio) {
-          return ratios[i];
+      for (int[] r : ratios) {
+        if (r[0] / (float)r[1] >= ratio) {
+          return r;
         }
       }
     }
     else {
-      for (int i = 0; i < ratios.length; i++) {
-        if (ratios[i][1] / (float)ratios[i][0] <= ratio) {
-          return ratios[i];
+      for (int[] r : ratios) {
+        if (r[1] / (float)r[0] <= ratio) {
+          return r;
         }
       }
     }
@@ -820,18 +923,20 @@ public class SingleWidgetView extends JPanel {
     public final static int LEFT = 4;
     public final static int RIGHT = 8;
     public final static int ALL = TOP | BOTTOM | LEFT | RIGHT;
+    public boolean mDisplay;
 
-    Box(int x, int y, int w, int h, int edges) {
+    Box(int x, int y, int w, int h, int edges, boolean display) {
       mX = x;
       mY = y;
       mHeight = h;
       mWidth = w;
       mEdges = edges;
+      mDisplay = display;
     }
 
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
-      if (mEdges == 0) {
+      if (mEdges == 0 || !mDisplay) {
         return false;
       }
       g.setColor(colorSet.getInspectorFillColor());
@@ -844,23 +949,19 @@ public class SingleWidgetView extends JPanel {
         if ((mEdges & TOP) != 0) {
           g.setColor(colorSet.getInspectorConstraintColor());
           g.drawLine(mX, mY, mX + mWidth, mY);
-
         }
         if ((mEdges & BOTTOM) != 0) {
           g.setColor(colorSet.getInspectorConstraintColor());
           g.drawLine(mX, mY + mHeight, mX + mWidth, mY + mHeight);
-
         }
         if ((mEdges & LEFT) != 0) {
           g.setColor(colorSet.getInspectorConstraintColor());
           g.drawLine(mX, mY, mX, mY + mWidth);
-
         }
         if ((mEdges & RIGHT) != 0) {
           g.setColor(colorSet.getInspectorConstraintColor());
           g.drawLine(mX + mWidth, mY, mX + mWidth, mY + mHeight);
         }
-
       }
       return false;
     }
@@ -872,7 +973,7 @@ public class SingleWidgetView extends JPanel {
     boolean mDisplay;
 
     BaseLineBox(String title, int x, int y, int w, int h, boolean baseline, boolean display) {
-      super(x, y, w, h, display ? ALL : 0);
+      super(x, y, w, h, display ? ALL : 0, true);
       mTitle = title;
       mBaseline = baseline;
       mDisplay = display;
@@ -898,7 +999,6 @@ public class SingleWidgetView extends JPanel {
 
           g.setStroke(defaultStroke);
           g.drawLine(mX, y, mX + mWidth, y);
-
         }
         else {
           g.drawRect(mX, mY, mWidth, mHeight);
@@ -942,6 +1042,7 @@ public class SingleWidgetView extends JPanel {
     public void setShowTriangle(boolean show) {
       mShowTriangle = show;
     }
+
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
       if (mShowTriangle) {
@@ -969,8 +1070,6 @@ public class SingleWidgetView extends JPanel {
         g.drawLine(mX, mY + 1, mX, mY + mHeight - 1);
         g.drawLine(mX + mWidth, mY + 1, mX + mWidth, mY + mHeight - 1);
         g.drawLine(mX + 1, mY + mHeight / 2, mX + mWidth - 1, mY + mHeight / 2);
-
-
       }
       else if (mLock == RATIO_LOCK_HEIGHT) {
         g.drawLine(mX + 1, mY, mX + mWidth - 1, mY);
@@ -986,6 +1085,11 @@ public class SingleWidgetView extends JPanel {
   static class Line implements Graphic {
     int mX1, mY1, mX2, mY2;
     boolean mDisplay;
+    final static float[] dash1 = {1.0f, 3.0f};
+    final static private Stroke sDashStroke = new BasicStroke(1.0f,
+                                                              BasicStroke.CAP_BUTT,
+                                                              BasicStroke.JOIN_MITER,
+                                                              2.0f, dash1, 0.0f);
 
     Line(int x1, int y1, int x2, int y2, boolean display) {
       mX1 = x1;
@@ -997,17 +1101,21 @@ public class SingleWidgetView extends JPanel {
 
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
-
       if (mDisplay) {
         drawCircle(g, mX1, mY1, mDisplay);
         g.drawLine(mX1, mY1, mX2, mY2);
       }
+      else {
+        Stroke stroke = g.getStroke();
+        g.setStroke(sDashStroke);
+        g.drawLine(mX1, mY1, mX2, mY2);
+        g.setStroke(stroke);
+      }
       return false;
     }
-
   }
 
-  private static final void drawCircle(Graphics2D g, int x, int y, boolean fill) {
+  private static void drawCircle(Graphics2D g, int x, int y, boolean fill) {
     if (fill) {
       g.fillRoundRect(x - 5, y - 5, 10, 10, 10, 10);
     }
@@ -1034,7 +1142,6 @@ public class SingleWidgetView extends JPanel {
       mYArrow[1] = y2 - ConnectionDraw.ARROW_SIDE;
       mXArrow[2] = x2 + ConnectionDraw.CONNECTION_ARROW_SIZE;
       mYArrow[2] = y2 - ConnectionDraw.ARROW_SIDE;
-
     }
 
     @Override
@@ -1046,7 +1153,6 @@ public class SingleWidgetView extends JPanel {
       }
       return false;
     }
-
   }
 
   /**
@@ -1104,19 +1210,26 @@ public class SingleWidgetView extends JPanel {
       int boxTop = (height - mBoxSize) / 2;
 
       mWidgetCenter = new BaseLineBox(null, boxLeft, boxTop, mBoxSize, mBoxSize, mBaseline, true);
-      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize, Box.TOP);
-      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT);
-      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT);
-      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM);
+      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize, Box.TOP, (mMarginBottom >= 0 || mBaseline));
+      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT, (mMarginRight >= 0));
+      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT, (mMarginLeft >= 0));
+      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM, (mMarginTop >= 0));
       mAspectLock = new AspectLock(boxLeft, boxTop, mBoxSize, mBoxSize, mRatioLock, mRatioWidth, mRatioHeight);
       int baseArrowX = boxLeft + mBoxSize / 2;
       mBaselineArrow =
         new LineArrow(baseArrowX, boxTop + baselinePos(mBoxSize), baseArrowX, height - inset, mBaseline);
 
-      mTopArrow = new Line(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
-      mLeftArrow = new Line(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
-      mRightArrow = new Line(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
-      mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
+      mConnectTopPos = boxTop - mConnectRadius - mConnectSize * 2 + mConnectSize;
+      mConnectLeftPos = boxLeft - mConnectRadius - mConnectSize * 2 + mConnectSize;
+      mConnectRightPos = boxLeft + mBoxSize - mConnectRadius + mConnectSize * 2;
+      mConnectBottomPos = boxTop + mBoxSize - mConnectRadius + mConnectSize * 2;
+
+      mTopArrow = new Line(width / 2, boxTop, width / 2, (mMarginTop >= 0) ? inset : mConnectTopPos, (mMarginTop >= 0));
+      mLeftArrow = new Line(boxLeft, height / 2, (mMarginLeft >= 0) ? inset : mConnectLeftPos, height / 2, (mMarginLeft >= 0));
+      mRightArrow =
+        new Line(boxLeft + mBoxSize, height / 2, (mMarginRight >= 0) ? (width - inset) : mConnectRightPos, height / 2, (mMarginRight >= 0));
+      mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, (mMarginBottom >= 0) ? (height - inset) : mConnectBottomPos,
+                              (mMarginBottom >= 0));
       updateTriangle();
     }
 
@@ -1337,11 +1450,10 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawFixedHorizontalConstraint(Graphics g, int l, int y, int r) {
       int m = 7;
-      g.drawLine(l, y - m, l, y + m);
+      g.drawLine(l, y - m + 1, l, y + m);
       g.drawLine(l, y, r, y);
-      g.drawLine(r, y - m, r, y + m);
+      g.drawLine(r, y - m + 1, r, y + m);
     }
-
   }
 
   /*-----------------------------------------------------------------------*/
@@ -1411,9 +1523,9 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawFixedVerticalConstraint(Graphics g, int t, int x, int b) {
       int m = 7;
-      g.drawLine(x - m, t, x + m, t);
+      g.drawLine(x - m + 1, t, x + m, t);
       g.drawLine(x, t, x, b);
-      g.drawLine(x - m, b, x + m, b);
+      g.drawLine(x - m + 1, b, x + m, b);
     }
 
     /**
@@ -1445,7 +1557,5 @@ public class SingleWidgetView extends JPanel {
         }
       }
     }
-
   }
-
 }

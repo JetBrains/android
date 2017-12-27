@@ -16,9 +16,12 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
@@ -26,6 +29,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import static org.mockito.Mockito.mock;
 
 public class NlDefaultRendererTest extends LayoutTestCase {
   public void testSimple() {
@@ -39,31 +44,38 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
+    NlPropertiesManager manager = mock(NlPropertiesManager.class);
+    PTable table = mock(PTable.class);
+
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(manager, ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
     NlPropertyItem property = properties.get(SdkConstants.ANDROID_URI, "id");
-    validateRendering(renderer, property, "id", "textView");
+    validateRendering(renderer, table, property, "id", "textView");
 
     property = properties.get(SdkConstants.ANDROID_URI, "text");
-    validateRendering(renderer, property, "text", "");
+    validateRendering(renderer, table, property, "text", "");
 
     property = properties.get(SdkConstants.ANDROID_URI, "focusable");
-    validateRendering(renderer, property, "focusable", "");
+    validateRendering(renderer, table, property, "focusable", "");
+
+    PTableItem item = mock(PTableItem.class);
+    validateRendering(renderer, table, item, "", "");
   }
 
   private static void validateRendering(@NotNull NlDefaultRenderer renderer,
-                                        @NotNull NlPropertyItem property,
+                                        @NotNull PTable table,
+                                        @NotNull PTableItem item,
                                         @NotNull String name,
                                         @NotNull String value) {
     renderer.getLabel().clear();
-    renderer.customize(property, 0);
+    renderer.customizeCellRenderer(table, item, false, false, 10, 0);
     assertEquals(name, renderer.getLabel().getCharSequence(true));
 
     renderer.getLabel().clear();
-    renderer.customize(property, 1);
+    renderer.customizeCellRenderer(table, item, false, false, 10, 1);
     assertEquals(value, renderer.getLabel().getCharSequence(true));
   }
 }

@@ -16,11 +16,12 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -30,6 +31,7 @@ import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -39,6 +41,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 /**
@@ -60,7 +63,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     }
     final String packageName = p.getQualifiedName();
     setupConfiguration(configuration, p, context, sourceElement);
-    configuration.TESTING_TYPE = packageName.length() > 0
+    configuration.TESTING_TYPE = !packageName.isEmpty()
                                  ? AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
                                  : AndroidTestRunConfiguration.TEST_ALL_IN_MODULE;
     configuration.PACKAGE_NAME = packageName;
@@ -72,7 +75,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                           PsiElement element,
                                           ConfigurationContext context,
                                           Ref<PsiElement> sourceElement) {
-    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = AndroidPsiUtils.getPsiParentOfType(element, PsiClass.class, false);
 
     while (elementClass != null) {
       if (JUnitUtil.isTestClass(elementClass)) {
@@ -91,7 +94,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                                   PsiElement element,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
+    PsiMethod elementMethod = AndroidPsiUtils.getPsiParentOfType(element, PsiMethod.class, false);
 
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
@@ -109,14 +112,14 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     return false;
   }
 
-  private boolean setupConfiguration(AndroidTestRunConfiguration configuration,
-                                     PsiElement element,
-                                     ConfigurationContext context,
-                                     Ref<PsiElement> sourceElement) {
+  private void setupConfiguration(AndroidTestRunConfiguration configuration,
+                                  PsiElement element,
+                                  ConfigurationContext context,
+                                  Ref<PsiElement> sourceElement) {
     final Module module = AndroidUtils.getAndroidModule(context);
 
     if (module == null) {
-      return false;
+      return;
     }
     sourceElement.set(element);
     setupConfigurationModule(context, configuration);
@@ -127,7 +130,6 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    return true;
   }
 
   private static boolean isTestMethod(PsiMethod method) {
@@ -169,7 +171,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
-      if (androidModel.getAndroidTestArtifactInSelectedVariant() == null) {
+      if (facet.getProjectType() != PROJECT_TYPE_TEST && androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
         return false;
       }
 
@@ -205,7 +207,9 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   private static void setupInstrumentationTestRunner(@NotNull AndroidTestRunConfiguration configuration, @NotNull AndroidFacet facet) {
-    configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
+    if (!GradleProjectInfo.getInstance(configuration.getProject()).isBuildWithGradle()) {
+      configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
+    }
   }
 
   @Override
@@ -233,10 +237,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
     String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
 
-    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = AndroidPsiUtils.getPsiParentOfType(element, PsiClass.class, false);
     String className = elementClass == null ? null : elementClass.getQualifiedName();
 
-    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
+    PsiMethod elementMethod = AndroidPsiUtils.getPsiParentOfType(element, PsiMethod.class, false);
     String methodName = elementMethod == null ? null : elementMethod.getName();
     Module moduleInConfig = configuration.getConfigurationModule().getModule();
 
@@ -262,7 +266,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Override
   public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
-    if (!Projects.isBuildWithGradle(self.getConfiguration().getProject())) return false;
+    Project project = self.getConfiguration().getProject();
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      return false;
+    }
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
     // other test configurations, as they won't work anyway.
     return other.isProducedBy(JUnitConfigurationProducer.class);

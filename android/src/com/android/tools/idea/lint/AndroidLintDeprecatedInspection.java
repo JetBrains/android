@@ -32,7 +32,6 @@ public class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
   @Override
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     return new AndroidLintQuickFix[]{
-      new SingleLineTrueQuickFix(),
       new RemoveAttributeQuickFix()
     };
   }

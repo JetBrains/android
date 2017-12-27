@@ -77,7 +77,7 @@ public class AndroidPluginInfo {
     if (!searchInBuildFilesOnly) {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-        if (gradleModel != null && gradleModel.getProjectType() == PROJECT_TYPE_APP) {
+        if (gradleModel != null && gradleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           // This is the 'app' module in the project.
           appModule = module;
           appGradleModel = gradleModel;

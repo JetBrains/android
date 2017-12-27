@@ -39,7 +39,7 @@ import java.io.File;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AnalyzeApkAction extends DumbAwareAction {
-  private static final java.lang.String LAST_APK_PATH = "AnalyzeApkAction.lastApkPath";
+  private static final String LAST_APK_PATH = "AnalyzeApkAction.lastApkPath";
 
   public AnalyzeApkAction() {
     super("Analyze APK...");
@@ -93,7 +93,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
         continue;
       }
 
-      if (model.getProjectType() != PROJECT_TYPE_APP) {
+      if (model.getAndroidProject().getProjectType() != PROJECT_TYPE_APP) {
         continue;
       }
 

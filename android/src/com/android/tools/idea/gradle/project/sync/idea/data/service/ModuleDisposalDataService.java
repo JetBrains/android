@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -41,17 +39,15 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
  */
 public class ModuleDisposalDataService extends AbstractProjectDataService<ImportedModule, Void> {
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ModuleDisposer myModuleDisposer;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public ModuleDisposalDataService(@NotNull IdeInfo ideInfo) {
-    this(ideInfo, new ModuleDisposer());
+  public ModuleDisposalDataService() {
+    this(new ModuleDisposer());
   }
 
   @VisibleForTesting
-  ModuleDisposalDataService(@NotNull IdeInfo ideInfo, @NotNull ModuleDisposer moduleDisposer) {
-    myIdeInfo = ideInfo;
+  ModuleDisposalDataService(@NotNull ModuleDisposer moduleDisposer) {
     myModuleDisposer = moduleDisposer;
   }
 
@@ -69,7 +65,7 @@ public class ModuleDisposalDataService extends AbstractProjectDataService<Import
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    if (toImport.isEmpty() || !myIdeInfo.isAndroidStudio() || GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues()) {
+    if (toImport.isEmpty() || !myModuleDisposer.canDisposeModules(project)) {
       return;
     }
 
@@ -85,7 +81,7 @@ public class ModuleDisposalDataService extends AbstractProjectDataService<Import
       }
 
       Collection<Module> modulesToDispose = new ArrayList<>(modulesByName.values());
-      myModuleDisposer.disposeModulesAndMarkImlFilesForDeletion(modulesToDispose, project, modelsProvider);
+      myModuleDisposer.disposeModules(modulesToDispose, project, modelsProvider);
     }
   }
 }

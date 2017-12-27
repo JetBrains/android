@@ -151,13 +151,13 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
   public List<String> getProGuardCfgFiles(@NotNull JpsModule module) {
     final List<String> urls = getProGuardCfgFiles();
 
-    if (urls == null || urls.size() == 0) {
+    if (urls == null || urls.isEmpty()) {
       return urls;
     }
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = module.getSdk(JpsAndroidSdkType.INSTANCE);
     final String sdkHomePath = sdk != null ? FileUtil.toSystemIndependentName(sdk.getHomePath()) : null;
 
-    if (sdkHomePath == null || sdkHomePath.length() == 0) {
+    if (sdkHomePath == null || sdkHomePath.isEmpty()) {
       return urls;
     }
     final List<String> result = new ArrayList<String>(urls.size());

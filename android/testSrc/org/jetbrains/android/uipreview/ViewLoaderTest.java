@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -55,14 +55,14 @@ public class ViewLoaderTest extends RenderTestBase {
   }
 
   public void testMissingClass() throws Exception {
-    RenderLogger logger = RenderService.get(myFacet).createLogger();
+    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
-    logger = RenderService.get(myFacet).createLogger();
+    logger = RenderService.getInstance(myFacet).createLogger();
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     try {
@@ -72,21 +72,21 @@ public class ViewLoaderTest extends RenderTestBase {
     catch (ClassNotFoundException ignored) {
     }
 
-    logger = RenderService.get(myFacet).createLogger();
+    logger = RenderService.getInstance(myFacet).createLogger();
     viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
-    RenderLogger logger = RenderService.get(myFacet).createLogger();
+    RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
     // No AppResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
-    assertNull(AppResourceRepository.getAppResources(myModule, false));
+    assertNull(AppResourceRepository.findExistingInstance(myModule));
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
 
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, false);
+    AppResourceRepository appResources = AppResourceRepository.findExistingInstance(myModule);
     assertNotNull(appResources);
 
     assertEquals(0x7f0a000e, appResources.getResourceId(ResourceType.STRING, "app_name").intValue());

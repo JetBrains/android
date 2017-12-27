@@ -16,16 +16,15 @@
 
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
-import static com.google.common.truth.Truth.assertThat;
-
-public class SourceToGradleModuleModelTest extends AndroidGradleImportTestCase {
+public class SourceToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testContextCreation() {
     Project project = getProject();
     SourceToGradleModuleModel model = new SourceToGradleModuleModel(project);
-    assertThat(model.getContext().getProject()).isEqualTo(project);
+    assertEquals(project, model.getContext().getProject());
   }
 
   public void testPropertiesAreStripped() {
@@ -33,6 +32,6 @@ public class SourceToGradleModuleModelTest extends AndroidGradleImportTestCase {
     SourceToGradleModuleModel model = new SourceToGradleModuleModel(getProject());
 
     model.sourceLocation().set(" " + testString + " ");
-    assertThat(model.sourceLocation().get()).isEqualTo(testString);
+    assertEquals(testString, model.sourceLocation().get());
   }
 }

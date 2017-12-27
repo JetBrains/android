@@ -39,6 +39,11 @@
   <item name="android.view.inputmethod.InputContentInfo android.net.Uri getLinkUri()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.inputmethod.InputMethodManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.INPUT_METHOD_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.view.inputmethod.InputMethodManager boolean setCurrentInputMethodSubtype(android.view.inputmethod.InputMethodSubtype)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.WRITE_SECURE_SETTINGS&quot;" />

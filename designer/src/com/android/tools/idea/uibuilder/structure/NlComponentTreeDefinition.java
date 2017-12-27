@@ -19,16 +19,19 @@ import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurface> {
 
-  public NlComponentTreeDefinition(@NotNull Side side,
+  public NlComponentTreeDefinition(@NotNull Project project,
+                                   @NotNull Side side,
                                    @NotNull Split split,
                                    @NotNull AutoHide autoHide) {
     // TODO: Get a new 13x13 icon for this tool window...
-    super("Component Tree", AllIcons.Toolwindows.WebToolWindow, "COMPONENT_TREE", side, split, autoHide, NlComponentTreePanel::new);
+    super("Component Tree", AllIcons.Toolwindows.WebToolWindow, "COMPONENT_TREE", side, split, autoHide,
+          () -> new NlComponentTreePanel(project));
   }
 }

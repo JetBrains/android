@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
@@ -40,7 +41,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlFlagEditor(cellEditor, false));
+    cellEditor.init(new NlFlagEditor(cellEditor, false), null);
     return cellEditor;
   }
 
@@ -55,6 +56,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
     myCheckbox = new JCheckBox();
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
     myCheckbox.addActionListener(this::actionPerformed);
+    myProperty = EmptyProperty.INSTANCE;
   }
 
   @NotNull
@@ -69,7 +71,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
     return myValue;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public NlProperty getProperty() {
     return myProperty;
@@ -77,7 +79,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
-    assert property instanceof NlFlagPropertyItemValue;
+    assert property instanceof NlFlagPropertyItemValue || property == EmptyProperty.INSTANCE;
     if (property != myProperty) {
       myProperty = property;
       if (myIncludeLabel) {

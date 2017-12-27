@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
@@ -29,10 +30,11 @@ import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.ApplicationUtils;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.adapters.AdapterProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.adapters.AdapterProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -216,29 +218,35 @@ public class SdkUpdaterConfigPanel implements Disposable {
     Collection<File> sdkLocations = getSdkLocations();
     mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
-
-    ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
-    setUpSingleSdkChooser();
-    myBindingsManager.bindTwoWay(
-      mySelectedSdkLocation,
-      new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
-        @Nullable
-        @Override
-        protected Optional<File> convertFromSourceType(@NotNull String value) {
-          if (value.isEmpty()) {
-            return Optional.empty();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
+      setUpSingleSdkChooser();
+      myBindingsManager.bindTwoWay(
+        mySelectedSdkLocation,
+        new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+          @Nullable
+          @Override
+          protected Optional<File> convertFromSourceType(@NotNull String value) {
+            if (value.isEmpty()) {
+              return Optional.empty();
+            }
+            return Optional.of(new File(value));
           }
-          return Optional.of(new File(value));
-        }
 
-        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-        @NotNull
-        @Override
-        protected String convertFromDestType(@NotNull Optional<File> value) {
-          return value.isPresent() ? value.get().getPath() : "";
-        }
-      });
-
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+          @NotNull
+          @Override
+          protected String convertFromDestType(@NotNull Optional<File> value) {
+            return value.isPresent() ? value.get().getPath() : "";
+          }
+        });
+    }
+    else {
+      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "MultiSdk");
+      sdkLocations.forEach(location -> mySdkLocationChooser.addItem(location));
+      myBindingsManager.bindTwoWay(mySelectedSdkLocation,
+                                   new SelectedItemProperty<>(mySdkLocationChooser));
+    }
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -263,9 +271,11 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   @NotNull
   private static Collection<File> getSdkLocations() {
-    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
-    if (androidHome != null) {
-      return ImmutableList.of(androidHome);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
+      if (androidHome != null) {
+        return ImmutableList.of(androidHome);
+      }
     }
 
     Set<File> locations = new HashSet<>();
@@ -286,6 +296,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
       }
 
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+      assert !facets.isEmpty();
 
       for (AndroidFacet facet : facets) {
         AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
@@ -516,7 +527,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =
-      new StudioProgressRunner(false, false, "Loading SDK", false, projects.length == 0 ? null : projects[0]);
+      new StudioProgressRunner(false, false, "Loading SDK", projects.length == 0 ? null : projects[0]);
     myConfigurable.getRepoManager()
       .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
             progressRunner, myDownloader, mySettings, false);
@@ -545,8 +556,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
 
-        myPlatformComponentsPanel.setEnabled(false);
-        myTabPane.setEnabled(false);
+        myPlatformComponentsPanel.setEnabled(true);
+        myTabPane.setEnabled(true);
 
         break;
       case ERROR:

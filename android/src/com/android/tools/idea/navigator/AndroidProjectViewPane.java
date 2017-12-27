@@ -17,9 +17,8 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
-import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -34,7 +33,9 @@ import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -54,16 +55,25 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
+import static com.intellij.openapi.actionSystem.CommonDataKeys.*;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = "AndroidView";
+
+  public static final DataKey<TreeNode[]> SELECTED_TREE_NODES = DataKey.create("selectedTreeNodes");
 
   public AndroidProjectViewPane(Project project) {
     super(project);
@@ -132,7 +142,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @NotNull
   @Override
   protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
-    return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, null, (ProjectAbstractTreeStructureBase)myTreeStructure);
+    return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, (ProjectAbstractTreeStructureBase)myTreeStructure, null);
   }
 
   @Override
@@ -158,15 +168,15 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     }
 
     NodeDescriptor descriptor = getSelectedDescriptor();
-    if (descriptor instanceof DirectoryGroupNode) {
-      return ((DirectoryGroupNode)descriptor).getDirectories();
+    if (descriptor instanceof FolderGroupNode) {
+      return ((FolderGroupNode)descriptor).getFolders();
     }
 
     PsiDirectory[] selectedDirectories = super.getSelectedDirectories();
     // For modules we'll include generated folders too but we don't want
     // to treat these as selectable (for target output directories etc)
     if (selectedElement instanceof Module && selectedDirectories.length > 0) {
-      List<PsiDirectory> dirs = Lists.newArrayListWithExpectedSize(selectedDirectories.length);
+      List<PsiDirectory> dirs = new ArrayList<>(selectedDirectories.length);
       for (PsiDirectory dir : selectedDirectories) {
         VirtualFile file = dir.getVirtualFile();
         if (!GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, myProject)) {
@@ -188,7 +198,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @Override
   protected Object exhumeElementFromNode(DefaultMutableTreeNode node) {
     Object o = super.exhumeElementFromNode(node);
-    if (o instanceof ArrayList && node.getUserObject() instanceof DirectoryGroupNode) {
+    if (o instanceof ArrayList && node.getUserObject() instanceof FolderGroupNode) {
       return ((ArrayList)o).toArray();
     }
 
@@ -197,11 +207,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @Override
   public Object getData(String dataId) {
-    if (CommonDataKeys.PROJECT.is(dataId)) {
+    if (PROJECT.is(dataId)) {
       return myProject;
     }
 
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+    if (DELETE_ELEMENT_PROVIDER.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PsiDirectory) {
         VirtualFile directory = ((PsiDirectory)o).getVirtualFile();
@@ -213,7 +223,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (LangDataKeys.MODULE.is(dataId)) {
+    if (MODULE.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;
@@ -224,7 +234,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
+    if (VIRTUAL_FILE.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;
@@ -241,12 +251,12 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
+    if (VIRTUAL_FILE_ARRAY.is(dataId)) {
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
       if (selectedDescriptor instanceof FileGroupNode) {
         PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
         if (files.length > 0) {
-          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(files.length);
+          List<VirtualFile> virtualFiles = new ArrayList<>(files.length);
           for (PsiFile file : files) {
             if (file.isValid()) {
               virtualFiles.add(file.getVirtualFile());
@@ -256,10 +266,10 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         }
       }
 
-      if (selectedDescriptor instanceof DirectoryGroupNode) {
-        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof FolderGroupNode) {
+        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
         if (directories.length > 0) {
-          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(directories.length);
+          List<VirtualFile> virtualFiles = new ArrayList<>(directories.length);
           for (PsiDirectory directory : directories) {
             if (directory.isValid()) {
               virtualFiles.add(directory.getVirtualFile());
@@ -270,7 +280,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+    if (PSI_ELEMENT.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PsiElement) {
         return o;
@@ -290,26 +300,45 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         }
       }
 
-      if (selectedDescriptor instanceof DirectoryGroupNode) {
-        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof FolderGroupNode) {
+        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
         if (directories.length > 0) {
           return directories[0];
         }
       }
     }
 
+    if (SELECTED_TREE_NODES.is(dataId)) {
+      return getSelectedTreeNodes();
+    }
+
     return super.getData(dataId);
+  }
+
+  @Nullable
+  private TreeNode[] getSelectedTreeNodes() {
+    TreePath[] paths = getSelectionPaths();
+    if (paths == null) {
+      return null;
+    }
+    List<TreeNode> result = new ArrayList<>();
+    for (TreePath path : paths) {
+      Object lastPathComponent = path.getLastPathComponent();
+      if (lastPathComponent instanceof DefaultMutableTreeNode) {
+        result.add((TreeNode)lastPathComponent);
+      }
+    }
+    return result.toArray(new TreeNode[result.size()]);
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
-      File moduleRootDirPath = moduleFilePath.getParentFile();
-      if (moduleRootDirPath == null) {
+      File moduleRootFolderPath = findModuleRootFolderPath(module);
+      if (moduleRootFolderPath == null) {
         continue;
       }
       File baseDirPath = Projects.getBaseDirPath(myProject);
-      if (filesEqual(moduleRootDirPath, baseDirPath)) {
+      if (filesEqual(moduleRootFolderPath, baseDirPath)) {
         // This is the project module. Don't allow to delete.
         File directoryPath = virtualToIoFile(directory);
         return isAncestor(directoryPath, baseDirPath, false);

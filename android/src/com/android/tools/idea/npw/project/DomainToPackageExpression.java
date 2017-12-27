@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.expressions.Expression;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;

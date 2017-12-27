@@ -26,10 +26,10 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable {
   protected AbstractDependencyScopesPanel() {

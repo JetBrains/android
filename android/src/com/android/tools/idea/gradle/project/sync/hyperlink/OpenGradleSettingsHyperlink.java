@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;

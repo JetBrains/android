@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static java.util.Collections.sort;
 
 class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy {
@@ -103,7 +103,7 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
 
       Project project = getProject();
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, msg.toString());
-      SyncMessages.getInstance(project).report(message);
+      GradleSyncMessages.getInstance(project).report(message);
 
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }

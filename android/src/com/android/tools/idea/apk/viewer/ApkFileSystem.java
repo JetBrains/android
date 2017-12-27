@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
@@ -48,7 +49,8 @@ public class ApkFileSystem extends ArchiveFileSystem {
     SdkConstants.EXT_ANDROID_PACKAGE,
     SdkConstants.EXT_AAR,
     SdkConstants.EXT_INSTANTAPP_PACKAGE,
-    SdkConstants.EXT_ATOM
+    SdkConstants.EXT_ATOM,
+    SdkConstants.EXT_ZIP
   );
 
   public static final String PROTOCOL = "apk";
@@ -202,13 +204,5 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
     short code = Shorts.fromBytes(bytes[1], bytes[0]);
     return code == Chunk.Type.XML.code();
-  }
-
-  public boolean isArsc(@NotNull VirtualFile file) {
-    return isArsc(getRelativePath(file));
-  }
-
-  public static boolean isArsc(@NotNull String relativePath) {
-    return "resources.arsc".equals(relativePath);
   }
 }

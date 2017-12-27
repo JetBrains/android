@@ -19,13 +19,13 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes.ViewGroupAttributesManager;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -94,7 +94,7 @@ public abstract class WidgetCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates
    */
   protected WidgetCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView) {
@@ -280,7 +280,7 @@ public abstract class WidgetCreator {
     if (myComponent == null) {
       final XmlTag parentTag = myMockup.getComponent().getTag();
       final XmlTag childTag = parentTag.createChildTag(getAndroidViewTag(), null, null, false);
-      myComponent = new NlComponent(myModel, childTag);
+      myComponent = myModel.createComponent(childTag);
     }
   }
 

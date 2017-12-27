@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -6,16 +21,28 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
+import com.android.utils.CharSequences;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.CommonProblemDescriptor;
+import com.intellij.codeInspection.QuickFix;
+import com.intellij.codeInspection.reference.RefEntity;
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
@@ -37,6 +64,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
@@ -73,8 +102,39 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHardcodedQuickfix();
   }
 
+  @NotNull
+  private List<IntentionAction> getAvailableFixes() {
+    ShowIntentionsPass.IntentionsInfo intentions = new ShowIntentionsPass.IntentionsInfo();
+    ShowIntentionsPass.getActionsToShow(myFixture.getEditor(), myFixture.getFile(), intentions, -1);
+
+    List<IntentionAction> actions = Lists.newArrayList();
+    for (HighlightInfo.IntentionActionDescriptor descriptor : intentions.inspectionFixesToShow) {
+      actions.add(descriptor.getAction());
+    }
+    return actions;
+  }
+
+  @NotNull
+  private String listAvailableFixes() {
+    ShowIntentionsPass.IntentionsInfo intentions = new ShowIntentionsPass.IntentionsInfo();
+    ShowIntentionsPass.getActionsToShow(myFixture.getEditor(), myFixture.getFile(), intentions, -1);
+
+    StringBuilder sb = new StringBuilder();
+    for (IntentionAction action : getAvailableFixes()) {
+      sb.append(action.getText()).append("\n");
+    }
+    return sb.toString();
+  }
+
   public void testHardcodedString() throws Exception {
     doTestHighlighting(new AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml");
+
+    // Make sure we only have the extract quickfix and the suppress quickfix: not the disable inspection fix, and
+    // the edit inspection settings quickfix (they are suppressed in AndroidLintExternalAnnotator)
+    assertEquals("" +
+                 "Extract string resource\n" +
+                 "Suppress: Add tools:ignore=\"HardcodedText\" attribute\n",
+                 listAvailableFixes());
   }
 
   private void doTestHardcodedQuickfix() throws IOException {
@@ -98,7 +158,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testContentDescription() throws Exception {
     doTestWithFix(new AndroidLintContentDescriptionInspection(),
-                  AndroidBundle.message("android.lint.fix.add.content.description"),
+                  "Set contentDescription",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -170,7 +230,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testBaselineWeights() throws Exception {
     doTestWithFix(new AndroidLintDisableBaselineAlignmentInspection(),
-                  AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
+                  "Set baselineAligned=\"false\"",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -207,7 +267,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testExportedService() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintExportedServiceInspection(),
-                  AndroidBundle.message("android.lint.fix.add.permission.attribute"),
+                  "Set permission",
                   "AndroidManifest.xml", "xml");
   }
 
@@ -220,12 +280,12 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testExportedReceiver() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintExportedReceiverInspection(),
-                  "Set permission attribute", "AndroidManifest.xml", "xml");
+                  "Set permission", "AndroidManifest.xml", "xml");
   }
 
   public void testEditText() throws Exception {
     doTestWithFix(new AndroidLintTextFieldsInspection(),
-                  AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
+                  "Set inputType",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -279,7 +339,11 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
 
-    doTestWithFix(new AndroidLintAllowBackupInspection(),
+    // No highlighting test: the error markers are physically present in the PSI File
+    // and confuses the manifest merger, which sees them. (The <caret> tag on the
+    // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
+    doTestWithoutHighlightingWithFix(
+      new AndroidLintAllowBackupInspection(),
                   "Generate full-backup-content descriptor",
                   "AndroidManifest.xml", "xml");
     // also check the generated backup descriptor.
@@ -336,7 +400,7 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
     doTestWithFix(new AndroidLintRtlCompatInspection(),
-                  "Set paddingLeft", "/res/layout/layout.xml", "xml");
+                  "Set paddingLeft=\"12sp\"", "/res/layout/layout.xml", "xml");
   }
 
   public void testAppCompatMethod() throws Exception {
@@ -400,16 +464,6 @@ public class AndroidLintTest extends AndroidTestCase {
     AndroidSdks.getInstance().setSdkData(prevSdkData);
   }
 
-  public void testObsoleteDependency() throws Exception {
-    doTestWithFix(new AndroidLintGradleDependencyInspection(),
-                  "Change to 20.0", "build.gradle", "gradle");
-  }
-
-  public void testObsoleteLongDependency() throws Exception {
-    doTestWithFix(new AndroidLintGradleDependencyInspection(),
-                  "Change to 20.0", "build.gradle", "gradle");
-  }
-
   public void testGradleDeprecation() throws Exception {
     doTestWithFix(new AndroidLintGradleDeprecatedInspection(),
                   "Replace with com.android.library", "build.gradle", "gradle");
@@ -423,7 +477,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingAppIcon() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintMissingApplicationIconInspection(),
-                  "Set application icon", "AndroidManifest.xml", "xml");
+                  "Set icon", "AndroidManifest.xml", "xml");
   }
 
   public void testMissingLeanbackSupport() throws Exception {
@@ -441,13 +495,18 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingTvBanner() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintMissingTvBannerInspection(),
-                  "Set banner attribute", "AndroidManifest.xml", "xml");
+                  "Set banner", "AndroidManifest.xml", "xml");
   }
 
   public void testInvalidUsesTagAttribute() throws Exception {
     doTestWithFix(new AndroidLintInvalidUsesTagAttributeInspection(),
                   "Replace with \"media\"",
                   "res/xml/automotive_app_desc.xml", "xml");
+  }
+
+  public void testVectorScientificNotation() throws Exception {
+    doTestWithFix(new AndroidLintInvalidVectorPathInspection(),
+                  "Replace with 67", "res/drawable/vector.xml", "xml");
   }
 
   public void testUnsupportedChromeOsHardware() throws Exception {
@@ -586,7 +645,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testPropertyFiles() throws Exception {
     doTestWithFix(new AndroidLintPropertyEscapeInspection(),
-                  "Replace with C\\:\\\\foo\\\\bar", "local.properties", "properties");
+                  "Escape", "local.properties", "properties");
   }
 
   public void testReferenceTypes() throws Exception {
@@ -600,7 +659,7 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     // Need to use targetSdkVersion 11
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
-    doTestWithFix(new AndroidLintSelectableTextInspection(), "Set android:textIsSelectable=true",
+    doTestWithFix(new AndroidLintSelectableTextInspection(), "Set textIsSelectable=\"true\"",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -714,8 +773,21 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testCallSuper() throws Exception {
-    myFixture.copyFileToProject(getGlobalTestDir() + "/CallSuperTest.java", "src/p1/p2/CallSuperTest.java");
-    doGlobalInspectionTest(new AndroidLintMissingSuperCallInspection());
+    myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
+                               "package android.support.annotation;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+                               "\n" +
+                               "@Retention(SOURCE)\n" +
+                               "@Target({METHOD})\n" +
+                               "public @interface CallSuper {\n" +
+                               "}");
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call","src/p1/p2/CallSuperTest.java", "java");
   }
 
   public void testSuppressingInXml1() throws Exception {
@@ -807,6 +879,77 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintStopShipInspection());
   }
 
+  public void testUnusedResource() throws Exception {
+    // This test checks 3 things.
+    // First, it runs the unused resources global inspection and checks that it gets it right (the results are checked
+    // against unusedResources/expected.xml).
+    //
+    // Then, it checks that *all* the quickfixes associated with this use a unique family name. This checks that
+    // we don't get into the scenario described in issue 235641, where a *single* action is created to run all 3
+    // quickfixes (both adding tools/keep, which is taken as the display name, as well as the removal refactoring).
+    //
+    // Finally, it actually performs the unused refactoring fix. This verifies that this works without the crash
+    // also reported in issue 235641 (where the unused refactoring is invoked under a write lock, which quickfixes
+    // normally are, but which is forbidden by the refactoring framework.)
+
+    VirtualFile file = myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(new AndroidLintUnusedResourcesInspection());
+
+    CommonProblemDescriptor targetDescriptor = null;
+    QuickFix<CommonProblemDescriptor> targetFix = null;
+
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
+      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+        Set<String> familyNames = Sets.newHashSet();
+        QuickFix[] fixes = descriptor.getFixes();
+        if (fixes != null) {
+          for (QuickFix fix : fixes) {
+            String name = fix.getName();
+            System.out.println("Next fix = " + name);
+            System.out.println("Next fix.family = " + fix.getFamilyName());
+            assertTrue(familyNames.add(fix.getFamilyName()));
+
+            if ("Remove Declarations for R.string.unused".equals(name)) {
+              targetDescriptor = descriptor;
+              //noinspection unchecked
+              targetFix = fix;
+            }
+          }
+        }
+      }
+    }
+
+    assertNotNull(targetDescriptor);
+    assertNotNull(targetFix);
+
+    // TODO: Consider using CodeInsightTestFixtureImpl#invokeIntention
+    targetFix.applyFix(getProject(), targetDescriptor);
+    myFixture.checkResultByFile(getGlobalTestDir() + "/strings_after.xml");
+  }
+
+  public void testMergeObsoleteFolders() throws Exception {
+    // Force minSdkVersion to v14:
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+
+    VirtualFile mainFile = myFixture.copyFileToProject(getGlobalTestDir() + "/values-strings.xml", "res/values/strings.xml");
+    VirtualFile v8strings = myFixture.copyFileToProject(getGlobalTestDir() + "/values-v8-strings.xml", "res/values-v8/strings.xml");
+    VirtualFile v10strings = myFixture.copyFileToProject(getGlobalTestDir() + "/values-v10-strings.xml", "res/values-v10/strings.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/layout-v11-activity_main.xml", "res/layout-v11/activity_main.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/layout-activity_main.xml", "res/layout/activity_main.xml");
+    myFixture.configureFromExistingVirtualFile(mainFile);
+    AndroidLintObsoleteSdkIntInspection inspection = new AndroidLintObsoleteSdkIntInspection();
+    String actionLabel = "Merge resources from -v8 and -v10 into values";
+    doGlobalInspectionWithFix(inspection, actionLabel);
+
+    myFixture.checkResultByFile(getGlobalTestDir() + "/values-strings_after.xml");
+    // check that the other folders don't exist
+    assertFalse(v8strings.isValid());
+    assertFalse(v10strings.isValid());
+  }
+
   public void testImpliedTouchscreenHardware() throws Exception {
     doTestWithFix(new AndroidLintImpliedTouchscreenHardwareInspection(),
                   "Add uses-feature tag",
@@ -853,37 +996,10 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/deprecation.xml", "xml");
   }
 
-  /**
-   * Quick fix is available on singleLine="true" and does the right thing
-   */
-  public void testSingleLine() throws Exception {
-    deleteManifest();
-    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    myFixture.enableInspections(new AndroidLintDeprecatedInspection());
-    myFixture.configureFromExistingVirtualFile(
-      myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
-    assertNotNull(action);
-    doTestWithAction("xml", action);
-  }
-
-  /**
-   * Specialized quick fix is not available on singleLine="false"
-   */
-  public void testSingleLineFalse() throws Exception {
-    deleteManifest();
-    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    myFixture.enableInspections(new AndroidLintDeprecatedInspection());
-    myFixture.configureFromExistingVirtualFile(
-      myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
-    assertNull(action);
-  }
-
   public void testUnprotectedSmsBroadcastReceiver() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
-                  "Set permission attribute", "AndroidManifest.xml", "xml");
+                  "Set permission=\"android.permission.BROADCAST_SMS\"", "AndroidManifest.xml", "xml");
   }
 
   public void testActivityRegistered() throws Exception {
@@ -911,11 +1027,23 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Use includeSubdomains", "res/xml/network-config.xml", "xml");
   }
 
+  public void testDeleteRepeatedWords() throws Exception {
+    doTestWithFix(new AndroidLintTyposInspection(),
+                  "Delete repeated word", "res/values/strings.xml", "xml");
+
+  }
+
   public void testInvalidPinDigestAlg() throws Exception {
     createManifest();
     doTestWithFix(new AndroidLintNetworkSecurityConfigInspection(),
                   "Set digest to \"SHA-256\"",
                   "res/xml/network-config.xml", "xml");
+  }
+
+  public void testResourceTypes() throws Exception {
+    createManifest();
+    doTestNoFix(new AndroidLintResourceTypeInspection(),
+                "/src/p1/p2/ResourceTypes.java", "java");
   }
 
   public void testMissingSuperCall() throws Exception {
@@ -928,6 +1056,10 @@ public class AndroidLintTest extends AndroidTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=224150
     doTestWithFix(new AndroidLintStringEscapingInspection(),
                   "Escape Apostrophe", "/res/values/strings.xml", "xml");
+  }
+
+  public void testRegistration() throws Exception {
+    doTestHighlighting(new AndroidLintRegisteredInspection(), "/src/p1/p2/RegistrationTest.java", "java");
   }
 
   public void testExtendAppCompatWidgets() throws Exception {
@@ -944,8 +1076,90 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java");
   }
 
-  private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
-    doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
+  public void testExif() throws Exception {
+    doTestWithFix(new AndroidLintExifInterfaceInspection(),
+                  "Update all references in this file",
+                  "/src/test/pkg/ExifUsage.java", "java");
+  }
+
+  public void testMissingWearStandaloneAppFlag() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Add meta-data element for 'com.google.android.wearable.standalone'",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearStandaloneAppAttrValue() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Replace with true",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingWearStandaloneAppFlagValueAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Set value=\"true\"",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearFeatureAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInvalidWearFeatureAttributeInspection(),
+                  "Remove attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testWakelockTimeout() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWakelockTimeoutInspection(),
+                  "Set timeout to 10 minutes",
+                  "/src/test/pkg/WakelockTest.java", "java");
+  }
+
+  public void testWifiManagerLeak() throws Exception {
+    deleteManifest();
+    // Set minSdkVersion to pre-N:
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+
+    doTestWithFix(new AndroidLintWifiManagerLeakInspection(),
+                  "Add getApplicationContext()",
+                  "/src/test/pkg/WifiManagerLeak.java", "java");
+  }
+
+  public void testInvalidImeActionId() throws Exception {
+    doTestNoFix(new AndroidLintInvalidImeActionIdInspection(),
+                "/res/layout/layout.xml", "xml");
+  }
+
+  private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
+    myFixture.enableInspections(inspection);
+    return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
+  }
+
+  private void doGlobalInspectionWithFix(@NotNull AndroidLintInspectionBase inspection, @NotNull String actionLabel) {
+    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(inspection);
+
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
+      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+        QuickFix[] fixes = descriptor.getFixes();
+        if (fixes != null) {
+          //noinspection unchecked
+          for (QuickFix<CommonProblemDescriptor> fix : fixes) {
+            String name = fix.getName();
+            if (actionLabel.equals(name)) {
+              if (fix.startInWriteAction()) {
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> fix.applyFix(getProject(), descriptor));
+              } else {
+                fix.applyFix(getProject(), descriptor);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 
   private String getGlobalTestDir() {
@@ -976,6 +1190,16 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithAction(extension, action);
   }
 
+  private void doTestWithoutHighlightingWithFix(@NotNull AndroidLintInspectionBase inspection,
+                                                @NotNull String message,
+                                                @NotNull String copyTo,
+                                                @NotNull String extension)
+    throws IOException {
+    final IntentionAction action = getQuickfixWithoutHighlightingCheck(inspection, message, copyTo, extension);
+    assertNotNull(action);
+    doTestWithAction(extension, action);
+  }
+
   private void doTestWithAction(@NotNull String extension, @NotNull final IntentionAction action) {
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
@@ -994,16 +1218,99 @@ public class AndroidLintTest extends AndroidTestCase {
                                                            @NotNull String message,
                                                            @NotNull String copyTo,
                                                            @NotNull String extension) throws IOException {
-    doTestHighlighting(inspection, copyTo, extension);
+    doTestHighlighting(inspection, copyTo, extension, false);
+    return AndroidTestUtils.getIntentionAction(myFixture, message);
+  }
+
+  @Nullable
+  private IntentionAction getQuickfixWithoutHighlightingCheck(@NotNull AndroidLintInspectionBase inspection,
+                                                              @NotNull String message,
+                                                              @NotNull String copyTo,
+                                                              @NotNull String extension) throws IOException {
+    doTestHighlighting(inspection, copyTo, extension, true);
     return AndroidTestUtils.getIntentionAction(myFixture, message);
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
-    throws IOException {
+      throws IOException {
+    doTestHighlighting(inspection, copyTo, extension, false);
+  }
+  private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension,
+                                  boolean skipCheck) throws IOException {
     myFixture.enableInspections(inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
+
+    // Strip out <error> and <warning> markers. It's not clear why the test framework
+    // doesn't do this (it *does* strip out the <caret> markers). Without this,
+    // lint is passed markup files that contain the error markers, which makes
+    // for example quick fixes not work.
+    String prev = stripMarkers(file);
     myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, false, false);
+    // Restore markers before diffing.
+    restoreMarkers(file, prev);
+
+    if (!skipCheck) {
+      myFixture.checkHighlighting(true, false, false);
+    }
+  }
+
+  /** Removes any error and warning markers from a file, and returns the original text */
+  @Nullable
+  private String stripMarkers(VirtualFile file) {
+    Project project = getProject();
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    if (psiFile == null) {
+      return null;
+    }
+    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+    if (document == null) {
+      return null;
+    }
+
+    String prev = document.getText();
+    WriteCommandAction.runWriteCommandAction(project, (Runnable)() -> {
+      while (true) {
+        if (!(removeTag(document, "<error", ">")
+              || removeTag(document, "</error", ">")
+              || removeTag(document, "<warning", ">")
+              || removeTag(document, "</warning", ">"))) {
+          break;
+        }
+      }
+    });
+
+    return prev;
+  }
+
+  /** Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock. */
+  private static boolean removeTag(@NotNull Document document, @NotNull String prefix, @NotNull String suffix) {
+    CharSequence sequence = document.getCharsSequence();
+    int start = CharSequences.indexOf(sequence, prefix);
+    if (start != -1) {
+      int end = CharSequences.indexOf(sequence, suffix, start + prefix.length());
+      if (end != -1) {
+        end += suffix.length();
+        document.deleteString(start, end);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Sets the contents of the given file to the given string. */
+  private void restoreMarkers(VirtualFile file, String contents) {
+    Project project = getProject();
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    if (psiFile == null) {
+      return;
+    }
+    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+    if (document == null) {
+      return;
+    }
+
+    WriteCommandAction.runWriteCommandAction(project, () -> document.setText(contents));
   }
 }

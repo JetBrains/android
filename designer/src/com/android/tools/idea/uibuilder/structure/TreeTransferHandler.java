@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,10 +41,16 @@ public final class TreeTransferHandler extends TransferHandler {
     NlComponentTree tree = (NlComponentTree)c;
     setDragImage(getDragImageOfSelection(tree));
     NlModel model = tree.getDesignerModel();
-    if (model == null || model.getSelectionModel().isEmpty()) {
-      return null;
+    if (model != null && !model.getSelectionModel().isEmpty()) {
+      return model.getSelectionAsTransferable();
     }
-    return model.getSelectionAsTransferable();
+    return delegateTransfer(tree);
+  }
+
+  private static Transferable delegateTransfer(NlComponentTree tree) {
+    DelegatedTreeEventHandler handler = NlTreeUtil.getSelectionTreeHandler(tree);
+    TreePath[] selectionPaths = tree.getSelectionModel().getSelectionPaths();
+    return handler != null ? handler.getTransferable(selectionPaths) : null;
   }
 
   @Override

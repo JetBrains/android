@@ -20,7 +20,8 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.swing.util.FormScalingUtil;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -41,6 +42,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
 /**
  * UI panel that presents the user with a list of {@link SystemImageDescription}s to choose from.
@@ -106,11 +110,34 @@ public class ChooseSystemImagePanel extends JPanel
   }
 
   @NotNull
-  private static SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
+  @VisibleForTesting
+  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice) {
 
-    return getClassificationFromParts(Abi.getEnum(image.getAbiType()),
-                                      image.getVersion().getApiLevel(),
-                                      image.getTag());
+    SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
+                                                                          image.getVersion().getApiLevel(),
+                                                                          image.getTag());
+
+    if (theDevice != null && !image.getTag().equals(SystemImage.WEAR_TAG)) {
+      // For non-Wear devices, adjust the recommendation based on Play Store
+      if (theDevice.hasPlayStore()) {
+        // The device supports Google Play Store. Recommend only system images that also support Play Store.
+        if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
+          classification = SystemImageClassification.X86;
+        }
+      }
+      else {
+        // The device does not support Google Play Store. Hide Play Store system images.
+        if (image.getSystemImage().hasPlayStore()) {
+          classification = SystemImageClassification.FORBIDDEN;
+        }
+      }
+    }
+    return classification;
+  }
+
+  @NotNull
+  private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
+    return getClassificationForDevice(image, myDevice);
   }
 
   @NotNull
@@ -120,9 +147,11 @@ public class ChooseSystemImagePanel extends JPanel
     if (!isAvdIntel) {
       return SystemImageClassification.OTHER;
     }
-    if (apiLevel <= 21) {
-      // The emulator does not yet work very well on older system images.
-      // Remove this when they are fully supported.
+    if (tag.equals(SystemImage.WEAR_TAG)) {
+        // For Wear, recommend based on API level (all Wear have Google APIs)
+        return (apiLevel >= MIN_RECOMMENDED_WEAR_API) ? SystemImageClassification.RECOMMENDED : SystemImageClassification.X86;
+    }
+    if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.X86;
     }
     if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
@@ -144,8 +173,7 @@ public class ChooseSystemImagePanel extends JPanel
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return imageTag.equals(SystemImage.DEFAULT_TAG) ||
-             !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG);
+      return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG);
     }
     return deviceTagId.equals(imageTag.getId());
   }
@@ -224,17 +252,23 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void previewCurrentTab() {
     switch (myTabPane.getSelectedIndex()) {
-      case 0:
+      case 0: // "Recommended"
         myRecommendedImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(true);
+        if (myDevice != null && SystemImage.WEAR_TAG.getId().equals(myDevice.getTagId())) {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_WEAR);
+        } else if (myDevice != null && myDevice.hasPlayStore()) {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_GOOGLE_PLAY);
+        } else {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_X86);
+        }
         break;
-      case 1:
+      case 1: // "x86 images"
         myX86ImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false);
+        mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
-      default:
+      default: // "Other images"
         myOtherImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false);
+        mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
     }
   }
@@ -266,7 +300,8 @@ public class ChooseSystemImagePanel extends JPanel
   enum SystemImageClassification {
     RECOMMENDED,
     X86,
-    OTHER
+    OTHER,
+    FORBIDDEN
   }
 
   private class ClassificationRowFilter extends RowFilter<ListTableModel<SystemImageDescription>, Integer> {

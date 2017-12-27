@@ -149,7 +149,7 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getFileByRelativeModulePath(Module module, String relativePath, boolean lookInContentRoot) {
-    if (relativePath == null || relativePath.length() == 0) {
+    if (module.isDisposed() || relativePath == null || relativePath.isEmpty()) {
       return null;
     }
 
@@ -499,7 +499,7 @@ public class AndroidRootUtil {
   @Nullable
   public static String getAptGenSourceRootPath(@NotNull AndroidFacet facet) {
     String path = facet.getProperties().GEN_FOLDER_RELATIVE_PATH_APT;
-    if (path.length() == 0) return null;
+    if (path.isEmpty()) return null;
     String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
@@ -507,7 +507,7 @@ public class AndroidRootUtil {
   @Nullable
   public static String getAidlGenSourceRootPath(@NotNull AndroidFacet facet) {
     String path = facet.getProperties().GEN_FOLDER_RELATIVE_PATH_AIDL;
-    if (path.length() == 0) return null;
+    if (path.isEmpty()) return null;
     String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
@@ -527,7 +527,7 @@ public class AndroidRootUtil {
       }
     }
     String path = facet.getProperties().APK_PATH;
-    if (path.length() == 0) {
+    if (path.isEmpty()) {
       return getOutputPackage(facet.getModule());
     }
     String moduleDirPath = getModuleDirPath(facet.getModule());

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.models;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.wizard.model.WizardModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A model which represents the configuration needed for generating a project.

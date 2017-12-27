@@ -198,7 +198,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           }
           String path = FileUtil.toSystemIndependentName(vFile.getPath());
           if (path.toLowerCase(Locale.US).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
-            if (ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0) {
+            if (!ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty()) {
               VirtualFile jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
               return jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY.equals(jarFile.getName());
             }
@@ -278,7 +278,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
               break;
             }
 
-            if (!skip && read.length() > 0) {
+            if (!skip && !read.isEmpty()) {
               data.append(read).append("\n");
             }
             if (read.contains(skipHeader)) {

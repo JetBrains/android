@@ -15,42 +15,112 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.poller.*;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.datastore.service.*;
+import com.android.tools.profiler.proto.*;
+import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.ServerBuilder;
+import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.netty.NettyChannelBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.RunnableFuture;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
-  private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
-  private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
-  private ManagedChannel myChannel;
-  private ServerBuilder myServerBuilder;
-  private List<ServicePassThrough> myServices = new ArrayList<>();
-  private LegacyAllocationTracker myLegacyAllocationTracker;
 
-  public DataStoreService(String name) {
+  /**
+   * DB report timings are set to occur relatively infrequently, as they include a fair amount of
+   * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
+   * profiling, but in that case, we'd possibly lose some data when a user's application crashed,
+   * and we'd almost never count users who leave their IDE open forever. So, instead, we adopt a
+   * slow but steady sampling strategy.
+   */
+  private static final long REPORT_INITIAL_DELAY = TimeUnit.MINUTES.toMillis(15);
+  private static final long REPORT_PERIOD = TimeUnit.HOURS.toMillis(1);
+
+  public static class BackingNamespace {
+    public static final BackingNamespace DEFAULT_SHARED_NAMESPACE = new BackingNamespace("default.sql", DURABLE);
+
+    @NotNull public final String myNamespace;
+    @NotNull public final DataStoreDatabase.Characteristic myCharacteristic;
+
+    public BackingNamespace(@NotNull String namespace, @NotNull DataStoreDatabase.Characteristic characteristic) {
+      myNamespace = namespace;
+      myCharacteristic = characteristic;
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(new Object[]{myNamespace, myCharacteristic});
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof BackingNamespace)) {
+        return false;
+      }
+
+      BackingNamespace other = (BackingNamespace)obj;
+      return myNamespace.equals(other.myNamespace) && myCharacteristic == other.myCharacteristic;
+    }
+  }
+
+  private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private final String myDatastoreDirectory;
+  private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
+  private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
+  private final ServerBuilder myServerBuilder;
+  private final Server myServer;
+  private final List<ServicePassThrough> myServices = new ArrayList<>();
+  private final Consumer<Runnable> myFetchExecutor;
+  private ProfilerService myProfilerService;
+  private final ServerInterceptor myInterceptor;
+  private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
+
+  private final Timer myReportTimer;
+
+  /**
+   * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
+   *                      The runnable, when run, begins polling the target service. You probably
+   *                      want to run it on a background thread.
+   */
+  public DataStoreService(@NotNull String serviceName, @NotNull String datastoreDirectory, Consumer<Runnable> fetchExecutor) {
+    this(serviceName, datastoreDirectory, fetchExecutor, null);
+  }
+
+  public DataStoreService(@NotNull String serviceName,
+                          @NotNull String datastoreDirectory,
+                          @NotNull Consumer<Runnable> fetchExecutor,
+                          ServerInterceptor interceptor) {
+    myFetchExecutor = fetchExecutor;
+    myInterceptor = interceptor;
+    myDatastoreDirectory = datastoreDirectory;
+    myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
+    createPollers();
+    myServer = myServerBuilder.build();
     try {
-      myServerBuilder = InProcessServerBuilder.forName(name);
-      createPollers();
-      myServerBuilder.build().start();
+      myServer.start();
     }
     catch (IOException ex) {
       LOG.error(ex.getMessage());
     }
+
+    myReportTimer = new Timer("DataStoreReportTimer");
+    myReportTimer.schedule(new ReportTimerTask(), REPORT_INITIAL_DELAY, REPORT_PERIOD);
   }
 
   /**
@@ -58,11 +128,18 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    registerService(new ProfilerService(this));
-    registerService(new EventDataPoller());
-    registerService(new CpuDataPoller());
-    registerService(new MemoryDataPoller(this));
-    registerService(new NetworkDataPoller());
+    myProfilerService = new ProfilerService(this, myFetchExecutor, mySessionIdLookup);
+    registerService(myProfilerService);
+    registerService(new EventService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new CpuService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new MemoryService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new NetworkService(this, myFetchExecutor, mySessionIdLookup));
+  }
+
+  @VisibleForTesting
+  @NotNull
+  DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
+    return new DataStoreDatabase(dbPath, characteristic);
   }
 
   /**
@@ -70,65 +147,185 @@ public class DataStoreService {
    *
    * @param service The service to register with the datastore. This service will be setup as a listener for studio to talk to.
    */
-  private void registerService(ServicePassThrough service) {
+  @VisibleForTesting
+  void registerService(@NotNull ServicePassThrough service) {
     myServices.add(service);
-    // Build server and start listening for RPC calls for the registered service
-    myServerBuilder.addService(service.getService());
-  }
+    List<BackingNamespace> namespaces = service.getBackingNamespaces();
+    namespaces.forEach(namespace -> {
+      assert !namespace.myNamespace.isEmpty();
+      DataStoreDatabase db = myDatabases.computeIfAbsent(namespace, backingNamespace -> createDatabase(
+        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic));
+      service.setBackingStore(namespace, db.getConnection());
+    });
 
-  /**
-   * This function connects all the services registered in the datastore to the device.
-   */
-  private void connectServices() {
-    for (ServicePassThrough service : myServices) {
-      // Tell service how to connect to device RPC to start polling.
-      service.connectService(myChannel);
-      RunnableFuture<Void> runner = service.getRunner();
-      if (runner != null) {
-        ApplicationManager.getApplication().executeOnPooledThread(runner);
-      }
+    // Build server and start listening for RPC calls for the registered service
+    if (myInterceptor != null) {
+      myServerBuilder.addService(ServerInterceptors.intercept(service.bindService(), myInterceptor));
+    }
+    else {
+      myServerBuilder.addService(service.bindService());
     }
   }
 
   /**
    * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
    *
-   * @param devicePort forwarded port for the datastore to connect to perfd on.
+   * @param channel communication channel for the datastore to connect to perfd on.
    */
-  public void connect(int devicePort) {
-    disconnect();
-    ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    myChannel = NettyChannelBuilder
-      .forAddress("localhost", devicePort)
-      .usePlaintext(true)
-      .maxMessageSize(MAX_MESSAGE_SIZE)
-      .build();
-    Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-    connectServices();
+  public void connect(@NotNull ManagedChannel channel) {
+    myProfilerService.startMonitoring(channel);
   }
 
   /**
-   * Disconnect the datastore from the connected device.
+   * Disconnect from the specified channel.
    */
-  public void disconnect() {
-    // TODO: Shutdown service connections.
-    if (myChannel != null) {
-      myChannel.shutdown();
+  public void disconnect(@NotNull Common.Session session) {
+    if (myConnectedClients.containsKey(session)) {
+      DataStoreClient client = myConnectedClients.remove(session);
+      client.shutdownNow();
+      myProfilerService.stopMonitoring(client.getChannel());
     }
-    myChannel = null;
+  }
+
+  public void shutdown() {
+    myReportTimer.cancel();
+    myServer.shutdownNow();
+    for (DataStoreClient client : myConnectedClients.values()) {
+      client.shutdownNow();
+    }
+    myConnectedClients.clear();
+    myDatabases.forEach((name, db) -> db.disconnect());
+  }
+
+  @VisibleForTesting
+  List<ServicePassThrough> getRegisteredServices() {
+    return myServices;
+  }
+
+  public void setConnectedClients(Common.Session session, Channel channel) {
+    if (!myConnectedClients.containsKey(session)) {
+      myConnectedClients.put(session, new DataStoreClient(channel));
+    }
+  }
+
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getCpuClient() : null;
+  }
+
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getEventClient() : null;
+  }
+
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getNetworkClient() : null;
+  }
+
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getMemoryClient() : null;
+  }
+
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
+    return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
   }
 
   /**
-   * Since older releases of Android and uninstrumented apps will not have JVMTI allocation tracking, we therefore need to support the older
-   * JDWP allocation tracking functionality.
+   * This class is used to manage the stub to each service per device.
    */
-  public void setLegacyAllocationTracker(@NotNull LegacyAllocationTracker legacyAllocationTracker) {
-    myLegacyAllocationTracker = legacyAllocationTracker;
+  private static class DataStoreClient {
+    @NotNull private final Channel myChannel;
+    @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
+    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+    @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
+    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+    @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+
+    public DataStoreClient(@NotNull Channel channel) {
+      myChannel = channel;
+      myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
+      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+      myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
+      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      myEventClient = EventServiceGrpc.newBlockingStub(channel);
+    }
+
+    @NotNull
+    public Channel getChannel() {
+      return myChannel;
+    }
+
+    @NotNull
+    public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
+      return myProfilerClient;
+    }
+
+    @NotNull
+    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
+      return myMemoryClient;
+    }
+
+    @NotNull
+    public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
+      return myCpuClient;
+    }
+
+    @NotNull
+    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
+      return myNetworkClient;
+    }
+
+    @NotNull
+    public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
+      return myEventClient;
+    }
+
+    public void shutdownNow() {
+      // The check is needed because the test replace the channel with a PassthroughChannel instead of a managed channel.
+      if (myChannel instanceof ManagedChannel) {
+        ((ManagedChannel)myChannel).shutdownNow();
+      }
+    }
   }
 
-  @Nullable
-  public LegacyAllocationTracker getLegacyAllocationTracker() {
-    return myLegacyAllocationTracker;
+  private final class ReportTimerTask extends TimerTask {
+    private long myStartTime = System.nanoTime();
+
+    @Override
+    public void run() {
+      AndroidProfilerDbStats.Builder dbStats = AndroidProfilerDbStats.newBuilder();
+      // Cast to int. Unlikely we'll ever have more than 2 billion seconds (e.g. ~60 years) here...
+      dbStats.setAgeSec((int)TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - myStartTime));
+      collectReport(dbStats);
+
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER_DB_STATS)
+        .setAndroidProfilerDbStats(dbStats);
+
+      UsageTracker.getInstance().log(event);
+    }
+
+    private void collectReport(AndroidProfilerDbStats.Builder dbStats) {
+      try {
+        File dbFile = new File(myDatastoreDirectory, BackingNamespace.DEFAULT_SHARED_NAMESPACE.myNamespace);
+        dbStats.setTotalDiskMb((int)(dbFile.length() / 1024 / 1024)); // Bytes -> MB
+
+        for (DataStoreDatabase db : myDatabases.values()) {
+          try (
+            Statement tableStatement = db.getConnection().createStatement();
+            ResultSet tableResults = tableStatement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+            while (tableResults.next()) {
+              String tableName = tableResults.getString(1);
+              try (
+                Statement sizeStatement = db.getConnection().createStatement();
+                ResultSet sizeResult = sizeStatement.executeQuery(String.format("SELECT COUNT(*) FROM %s", tableName))) {
+                int tableSize = sizeResult.getInt(1);
+                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize).build();
+              }
+            }
+          }
+        }
+      }
+      catch (SQLException ignored) {
+      }
+    }
   }
 }

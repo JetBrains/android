@@ -70,7 +70,7 @@ public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRo
     final Set<String> subdirs = new HashSet<String>();
     AndroidJpsUtil.addSubdirectories(classesDir, subdirs);
 
-    if (subdirs.size() > 0) {
+    if (!subdirs.isEmpty()) {
       context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.library.packaging", module.getName())));
       final File outputJarFile = new File(outputDir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
       final List<String> srcFiles;
@@ -88,7 +88,7 @@ public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRo
         testingManager.getCommandExecutor().checkJarContent("library_package_jar", outputJarFile.getPath());
       }
 
-      if (srcFiles.size() > 0) {
+      if (!srcFiles.isEmpty()) {
         outputConsumer.registerOutputFile(outputJarFile, srcFiles);
       }
     }

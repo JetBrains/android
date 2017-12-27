@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,29 +29,27 @@ import java.util.Set;
 
 public class NlFlagItemRenderer extends NlAttributeRenderer {
   private final JCheckBox myCheckbox;
-  private final SimpleColoredComponent myLabel;
 
   public NlFlagItemRenderer() {
     JPanel panel = getContentPanel();
     myCheckbox = new JCheckBox();
     panel.add(myCheckbox, BorderLayout.LINE_START);
-    myLabel = new SimpleColoredComponent();
-    panel.add(myLabel, BorderLayout.CENTER);
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty item, boolean selected, boolean hasFocus, int row, int col) {
-    myCheckbox.setEnabled(true);
-    myLabel.clear();
-
-    String propValue = item.getValue();
-
-    if (propValue != null) {
-      myCheckbox.setEnabled(true);
-      myCheckbox.setSelected(SdkConstants.VALUE_TRUE.equalsIgnoreCase(propValue));
-    } else {
-      myCheckbox.setEnabled(false);
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                       boolean selected, boolean hasFocus, int row, int col) {
+    if (!(value instanceof NlFlagPropertyItemValue)) {
+      return;
     }
+
+    NlFlagPropertyItemValue flag = (NlFlagPropertyItemValue)value;
+
+    myCheckbox.setEnabled(true);
+
+    String propValue = flag.getValue();
+    myCheckbox.setSelected(flag.getMaskValue());
+    myCheckbox.setEnabled(SdkConstants.VALUE_TRUE.equalsIgnoreCase(propValue));
   }
 
   @Override

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +33,8 @@ import java.util.Set;
  * Importers for different project types, e.g. ADT, Gradle.
  */
 public abstract class ModuleImporter {
-  private static final Key<ModuleImporter[]> KEY_IMPORTERS = new Key<ModuleImporter[]>("com.android.tools.importers");
-  private static final Key<ModuleImporter> KEY_CURRENT_IMPORTER = new Key<ModuleImporter>("com.android.tools.currentImporter");
+  private static final Key<ModuleImporter[]> KEY_IMPORTERS = new Key<>("com.android.tools.importers");
+  private static final Key<ModuleImporter> KEY_CURRENT_IMPORTER = new Key<>("com.android.tools.currentImporter");
   private static final ModuleImporter NONE = new ModuleImporter() {
     @Override
     public boolean isStepVisible(@NotNull ModuleWizardStep step) {
@@ -93,14 +92,6 @@ public abstract class ModuleImporter {
     ModuleImporter[] importers = {new AdtModuleImporter(context), new GradleModuleImporter(context)};
     context.putUserData(KEY_IMPORTERS, importers);
     return importers;
-  }
-
-  /**
-   * @return "headless" importers - that don't always need UI.
-   */
-  @NotNull
-  public static ModuleImporter[] getAllImporters(@NotNull Project destinationProject) {
-    return new ModuleImporter[] {new GradleModuleImporter(destinationProject)};
   }
 
   @NotNull

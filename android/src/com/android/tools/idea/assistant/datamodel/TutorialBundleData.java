@@ -66,4 +66,12 @@ public interface TutorialBundleData {
    */
   @NotNull
   String getWelcome();
+
+  /**
+   * If true, all tutorials should be rendered single step at a time with a
+   * next/prev button to navigate between steps, Otherwise, all steps for a
+   * tutorial will be displayed on a single page flowing vertically.
+   */
+  @Nullable
+  boolean isStepByStep();
 }

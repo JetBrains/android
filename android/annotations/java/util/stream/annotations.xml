@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.util.stream.BaseStream S onClose(java.lang.Runnable)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.stream.BaseStream S parallel()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.stream.BaseStream S sequential()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.stream.BaseStream S unordered()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.stream.BaseStream java.util.Iterator&lt;T&gt; iterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.stream.BaseStream java.util.Spliterator&lt;T&gt; spliterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

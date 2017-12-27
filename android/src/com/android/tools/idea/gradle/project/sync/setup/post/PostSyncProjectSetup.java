@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.instantapp.ProvistionTasks;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.ExecutionBundle;
@@ -51,32 +56,33 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
+import static com.android.tools.idea.gradle.util.Projects.getPluginVersionsPerModule;
+import static com.android.tools.idea.gradle.util.Projects.storePluginVersionsPerModule;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final DependencySetupErrors myDependencySetupErrors;
+  @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
+  @NotNull private final RunManagerImpl myRunManager;
+  @NotNull private final ProvistionTasks myProvistionTasks;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -86,51 +92,55 @@ public class PostSyncProjectSetup {
   @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
                               @NotNull IdeInfo ideInfo,
-                              @NotNull AndroidSdks androidSdks,
+                              @NotNull GradleProjectInfo gradleProjectInfo,
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
-                              @NotNull SyncMessages syncMessages,
-                              @NotNull DependencySetupErrors dependencySetupErrors,
+                              @NotNull GradleSyncMessages syncMessages,
+                              @NotNull DependencySetupIssues dependencySetupIssues,
+                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
-         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory());
+    this(project, ideInfo, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
+         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
+         RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
   }
 
   @VisibleForTesting
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
+                       @NotNull GradleProjectInfo gradleProjectInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
-                       @NotNull DependencySetupErrors dependencySetupErrors,
+                       @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
+                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
+                       @NotNull RunManagerImpl runManager,
+                       @NotNull ProvistionTasks provistionTasks) {
     myProject = project;
     myIdeInfo = ideInfo;
+    myGradleProjectInfo = gradleProjectInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-    myDependencySetupErrors = dependencySetupErrors;
+    myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
+    myRunManager = runManager;
+    myProvistionTasks = provistionTasks;
   }
 
   /**
    * Invoked after a project has been synced with Gradle.
    */
-  public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
-    // Force a refresh after a sync.
-    // https://code.google.com/p/android/issues/detail?id=229633
-    ApplicationManager.getApplication()
-      .runWriteAction(() -> ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.INSTANCE, false, true));
-
+  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
+    myGradleProjectInfo.setNewOrImportedProject(false);
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
@@ -138,25 +148,29 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    myDependencySetupErrors.reportErrors();
+    myDependencySetupIssues.reportIssues();
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
-    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
+    List<Module> modules = Arrays.asList(moduleManager.getModules());
+    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
       moduleValidator.validate(module);
-    }
+      return true;
+    });
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {
+      failTestsIfSyncIssuesPresent();
+
       myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
       // previous sync, and not the one from the sync that just ended.
-      mySyncState.syncEnded();
+      mySyncState.syncFailed("");
       return;
     }
 
-    if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+    if (!request.isSkipAndroidPluginUpgrade() && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
       return;
     }
@@ -164,7 +178,6 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    removeAllModuleCompiledArtifacts(myProject);
 
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
@@ -175,6 +188,8 @@ public class PostSyncProjectSetup {
     String taskName = androidStudio ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
 
+    myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
+
     notifySyncFinished(request);
     attemptToGenerateSources(request);
 
@@ -183,7 +198,7 @@ public class PostSyncProjectSetup {
     myModuleSetup.setUpModules(null);
   }
 
-  private void onCachedModelsSetupFailure(@NotNull Request request) {
+  public void onCachedModelsSetupFailure(@NotNull Request request) {
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
     long syncTimestamp = request.getLastSyncTimestamp();
@@ -191,14 +206,37 @@ public class PostSyncProjectSetup {
       syncTimestamp = System.currentTimeMillis();
     }
     mySyncState.syncSkipped(syncTimestamp);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+    // TODO add a new trigger for this?
+    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED, null);
+  }
+
+  private void failTestsIfSyncIssuesPresent() {
+    if (ApplicationManager.getApplication().isUnitTestMode() && mySyncState.getSummary().hasSyncErrors()) {
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("Sync issues found!").append('\n');
+      myGradleProjectInfo.forEachAndroidModule(facet -> {
+        AndroidModel androidModel = facet.getAndroidModel();
+        if (androidModel instanceof AndroidModuleModel) {
+          Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
+          if (issues != null && !issues.isEmpty()) {
+            buffer.append("Module '").append(facet.getModule().getName()).append("':").append('\n');
+            for (SyncIssue issue : issues) {
+              buffer.append(issue.getMessage()).append('\n');
+            }
+          }
+        }
+      });
+      throw new IllegalStateException(buffer.toString());
+    }
   }
 
   private void notifySyncFinished(@NotNull Request request) {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.isUsingCachedGradleModels()) {
-      mySyncState.syncSkipped(System.currentTimeMillis());
+      long timestamp = System.currentTimeMillis();
+      mySyncState.syncSkipped(timestamp);
+      GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
       mySyncState.syncEnded();
@@ -215,13 +253,6 @@ public class PostSyncProjectSetup {
       dialog.show();
     }
 
-    List<Conflict> selectionConflicts = conflicts.getSelectionConflicts();
-    if (!selectionConflicts.isEmpty()) {
-      boolean atLeastOneSolved = solveSelectionConflicts(selectionConflicts);
-      if (atLeastOneSolved) {
-        conflicts = findConflicts(myProject);
-      }
-    }
     conflicts.showSelectionConflicts();
   }
 
@@ -297,7 +328,11 @@ public class PostSyncProjectSetup {
         }
       }
     }
-    myProjectBuilder.generateSourcesOnly(cleanProjectAfterSync);
+    if (cleanProjectAfterSync) {
+      myProjectBuilder.cleanAndGenerateSources();
+      return;
+    }
+    myProjectBuilder.generateSources();
   }
 
   public static class Request {
@@ -330,9 +365,10 @@ public class PostSyncProjectSetup {
     private boolean myUsingCachedGradleModels;
     private boolean myCleanProjectAfterSync;
     private boolean myGenerateSourcesAfterSync = true;
+    private boolean mySkipAndroidPluginUpgrade;
     private long myLastSyncTimestamp = -1L;
 
-    boolean isUsingCachedGradleModels() {
+    public boolean isUsingCachedGradleModels() {
       return myUsingCachedGradleModels;
     }
 
@@ -342,7 +378,7 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    boolean isCleanProjectAfterSync() {
+    public boolean isCleanProjectAfterSync() {
       return myCleanProjectAfterSync;
     }
 
@@ -352,7 +388,7 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    boolean isGenerateSourcesAfterSync() {
+    public boolean isGenerateSourcesAfterSync() {
       return myGenerateSourcesAfterSync;
     }
 
@@ -362,14 +398,43 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    long getLastSyncTimestamp() {
+    public long getLastSyncTimestamp() {
       return myLastSyncTimestamp;
+    }
+
+    public boolean isSkipAndroidPluginUpgrade() {
+      return mySkipAndroidPluginUpgrade;
+    }
+
+    @TestOnly
+    public void setSkipAndroidPluginUpgrade() {
+      mySkipAndroidPluginUpgrade = true;
     }
 
     @NotNull
     public Request setLastSyncTimestamp(long lastSyncTimestamp) {
       myLastSyncTimestamp = lastSyncTimestamp;
       return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Request request = (Request)o;
+      return myUsingCachedGradleModels == request.myUsingCachedGradleModels &&
+             myCleanProjectAfterSync == request.myCleanProjectAfterSync &&
+             myGenerateSourcesAfterSync == request.myGenerateSourcesAfterSync &&
+             myLastSyncTimestamp == request.myLastSyncTimestamp;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myUsingCachedGradleModels, myCleanProjectAfterSync, myGenerateSourcesAfterSync, myLastSyncTimestamp);
     }
   }
 }

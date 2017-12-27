@@ -16,20 +16,24 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaPsiFacadeEx;
+import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
+import com.intellij.refactoring.move.moveFilesOrDirectories.JavaMoveFilesOrDirectoriesHandler;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.TestActionEvent;
@@ -135,6 +139,13 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
+  public void testMoveDataBindingClass() throws Throwable {
+    myFixture.copyFileToProject("databinding/java/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
+    myFixture.copyFileToProject("databinding/res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
+    moveClassNoTextReferences("p1.p2.DummyClass", "p1");
+    myFixture.checkResultByFile("res/layout/basic_binding.xml", "databinding/res/layout/basic_binding_after.xml", true);
+  }
+
   public void testAndroidManifestRenameClass1() throws Throwable {
     doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
   }
@@ -172,6 +183,10 @@ public class AndroidRenameTest extends AndroidTestCase {
     new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();
   }
 
+  /**
+   * This will do a refactor and update all code AND non-code (such as text/comments) references.
+   * @see #moveClassNoTextReferences(String, String)
+   */
   private void moveClass(final String className, final String newPackageName) throws Throwable {
     PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
     PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
@@ -182,6 +197,30 @@ public class AndroidRenameTest extends AndroidTestCase {
 
     new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aClass}, new SingleSourceRootMoveDestination(
       PackageWrapper.create(JavaDirectoryService.getInstance().getPackage(dirs[0])), dirs[0]), true, true, null).run();
+  }
+
+  /**
+   * Where as {@link #moveClass(String, String)} will move a class and update all references, including text references
+   * This method will ONLY update code references when moving a class
+   * @see #moveClass(String, String)
+   */
+  private void moveClassNoTextReferences(String className, String newPackageName) throws Exception {
+    JavaPsiFacadeEx myJavaFacade = JavaPsiFacadeEx.getInstanceEx(getProject());
+    final PsiElement element = myJavaFacade.findClass(className, GlobalSearchScope.projectScope(getProject()));
+    assertNotNull("Class " + className + " not found", element);
+
+    PsiManagerImpl myPsiManager = (PsiManagerImpl) PsiManager.getInstance(getProject());
+    PsiPackage aPackage = JavaPsiFacade.getInstance(myPsiManager.getProject()).findPackage(newPackageName);
+    assertNotNull("Package " + newPackageName + " not found", aPackage);
+    final PsiDirectory[] dirs = aPackage.getDirectories();
+    assertEquals(1, dirs.length);
+
+    final JavaMoveFilesOrDirectoriesHandler handler = new JavaMoveFilesOrDirectoriesHandler();
+    PsiElement[] elements = new PsiElement[] {element};
+    assertTrue(handler.canMove(elements, dirs[0]));
+    handler.doMove(getProject(), elements, dirs[0], null);
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    FileDocumentManager.getInstance().saveAllDocuments();
   }
 
   public void testXmlReferenceToValueResource() throws Throwable {

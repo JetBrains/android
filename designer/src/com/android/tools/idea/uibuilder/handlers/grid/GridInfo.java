@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -55,7 +57,9 @@ final class GridInfo {
   private final Dimension size;
 
   GridInfo(NlComponent layout) {
-    if (layout.children == null || layout.viewInfo == null) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(layout);
+
+    if (viewInfo == null) {
       throw new IllegalArgumentException();
     }
 
@@ -66,24 +70,15 @@ final class GridInfo {
       initVerticalLineLocations();
       initHorizontalLineLocations();
 
-      Object view = layout.viewInfo.getViewObject();
-      Class<?> c = view.getClass();
+      Object viewObject = viewInfo.getViewObject();
+      Class<?> c = viewObject.getClass();
 
-      rowCount = (Integer)c.getDeclaredMethod("getRowCount").invoke(view);
-      columnCount = (Integer)c.getDeclaredMethod("getColumnCount").invoke(view);
+      rowCount = (Integer)c.getDeclaredMethod("getRowCount").invoke(viewObject);
+      columnCount = (Integer)c.getDeclaredMethod("getColumnCount").invoke(viewObject);
 
       initChildren();
     }
-    catch (NoSuchFieldException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (IllegalAccessException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (NoSuchMethodException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (InvocationTargetException exception) {
+    catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
       throw new IllegalArgumentException(exception);
     }
   }
@@ -93,11 +88,16 @@ final class GridInfo {
     Dimension size = new Dimension();
 
     if (layout.children != null) {
-      Insets padding = layout.getPadding();
+      Insets padding = NlComponentHelperKt.getPadding(layout);
 
       for (NlComponent child : layout.children) {
-        size.width = Math.max(child.x - layout.x - padding.left + child.w, size.width);
-        size.height = Math.max(child.y - layout.y - padding.top + child.h, size.height);
+        size.width = Math.max(
+          NlComponentHelperKt.getX(child) - NlComponentHelperKt.getX(layout) - padding.left + NlComponentHelperKt.getW(child),
+          size.width);
+
+        size.height = Math.max(
+          NlComponentHelperKt.getY(child) - NlComponentHelperKt.getY(layout) - padding.top + NlComponentHelperKt.getH(child),
+          size.height);
       }
     }
 
@@ -105,30 +105,32 @@ final class GridInfo {
   }
 
   private void initVerticalLineLocations() throws NoSuchFieldException, IllegalAccessException {
-    Insets padding = layout.getPadding();
+    Insets padding = NlComponentHelperKt.getPadding(layout);
     int[] horizontalAxisLocations = getAxisLocations("mHorizontalAxis", "horizontalAxis");
 
-    verticalLineLocations = initLineLocations(layout.w - padding.width(), size.width, horizontalAxisLocations);
-    translate(verticalLineLocations, layout.x + padding.left);
+    verticalLineLocations = initLineLocations(NlComponentHelperKt.getW(layout) - padding.width(), size.width, horizontalAxisLocations);
+    translate(verticalLineLocations, NlComponentHelperKt.getX(layout) + padding.left);
   }
 
   private void initHorizontalLineLocations() throws NoSuchFieldException, IllegalAccessException {
-    Insets padding = layout.getPadding();
+    Insets padding = NlComponentHelperKt.getPadding(layout);
     int[] verticalAxisLocations = getAxisLocations("mVerticalAxis", "verticalAxis");
 
-    horizontalLineLocations = initLineLocations(layout.h - padding.height(), size.height, verticalAxisLocations);
-    translate(horizontalLineLocations, layout.y + padding.top);
+    horizontalLineLocations = initLineLocations(NlComponentHelperKt.getH(layout) - padding.height(), size.height, verticalAxisLocations);
+    translate(horizontalLineLocations, NlComponentHelperKt.getY(layout) + padding.top);
   }
 
   @AndroidCoordinate
   private int[] getAxisLocations(String name1, String name2) throws NoSuchFieldException, IllegalAccessException {
-    assert layout.viewInfo != null;
-    Object view = layout.viewInfo.getViewObject();
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(layout);
+    assert viewInfo != null;
 
-    Field axisField = getDeclaredField(view.getClass(), name1, name2);
+    Object viewObject = viewInfo.getViewObject();
+
+    Field axisField = getDeclaredField(viewObject.getClass(), name1, name2);
     axisField.setAccessible(true);
 
-    Object axis = axisField.get(view);
+    Object axis = axisField.get(viewObject);
 
     Field locationsField = axis.getClass().getDeclaredField("locations");
     locationsField.setAccessible(true);
@@ -181,7 +183,10 @@ final class GridInfo {
 
   private void initChildren() throws NoSuchFieldException, IllegalAccessException {
     children = new NlComponent[rowCount][columnCount];
-    assert layout.children != null;
+
+    if (layout.children == null) {
+      return;
+    }
 
     for (NlComponent child : layout.children) {
       ChildInfo info = getInfo(child);
@@ -197,9 +202,10 @@ final class GridInfo {
   }
 
   private static ChildInfo getInfo(NlComponent child) throws NoSuchFieldException, IllegalAccessException {
-    assert child.viewInfo != null;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(child);
+    assert viewInfo != null;
 
-    Object params = child.viewInfo.getLayoutParamsObject();
+    Object params = viewInfo.getLayoutParamsObject();
     Class<?> paramsClass = params.getClass();
 
     Object rowSpec = paramsClass.getDeclaredField("rowSpec").get(params);
@@ -231,11 +237,8 @@ final class GridInfo {
     if (lineLocations.length < 2) {
       throw new IllegalArgumentException(Arrays.toString(lineLocations));
     }
-    else if (location < lineLocations[0]) {
-      return 0;
-    }
-    else if (location >= lineLocations[lineLocations.length - 1]) {
-      return lineLocations.length - 2;
+    else if (location < lineLocations[0] || location > lineLocations[lineLocations.length - 1]) {
+      return -1;
     }
 
     for (int i = 0, j = 0; i < lineLocations.length - 1; i++) {
@@ -247,6 +250,7 @@ final class GridInfo {
         return j;
       }
 
+      // noinspection AssignmentToForLoopParameter
       j++;
     }
 

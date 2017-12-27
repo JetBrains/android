@@ -19,7 +19,11 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.collect.*;
+import com.google.common.base.CharMatcher;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -32,22 +36,30 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
+import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
 
 /**
  * Utility class to help with merging Gradle files into one another
@@ -94,9 +106,7 @@ public class GradleFilePsiMerger {
     }).execute().getResultObject();
 
     if (projectNeedsCleanup) {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        Disposer.dispose(project2);
-      });
+      ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(project2));
     }
     return result;
   }
@@ -129,6 +139,11 @@ public class GradleFilePsiMerger {
         if (destinationChildren.isEmpty()) {
           toRoot.add(child);
         }
+        else if (child instanceof GrAssignmentExpression && child.getChildren().length == 2 &&
+                 child.getChildren()[1] instanceof GrLiteral && child.getText().startsWith("ext.")) {
+          // Put assignment expressions like, ext.kotlin_version = 'x.x.x', at the top, as they may be used later on the file
+          toRoot.addAfter(child, toRoot.getFirstChild());
+        }
         else {
           toRoot.addBefore(child, toRoot.getLastChild());
         }
@@ -150,54 +165,94 @@ public class GradleFilePsiMerger {
                                         @NotNull PsiElement toRoot,
                                         @NotNull Project project,
                                         @Nullable String supportLibVersionFilter) {
-    Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
+    Map<String, Multimap<String, GradleCoordinate>> dependencies = new TreeMap<>(CONFIGURATION_ORDERING);
     final List<String> unparsedDependencies = Lists.newArrayList();
 
-    // Load existing dependencies into the map for the existing build.gradle
-    pullDependenciesIntoMap(toRoot, dependencies, null);
+    // Load existing dependencies into a map for the existing build.gradle
+    Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
+    final List<String> originalUnparsedDependencies = Lists.newArrayList();
+    pullDependenciesIntoMap(toRoot, originalDependencies, originalUnparsedDependencies);
 
-    // Load dependencies into the map for the new build.gradle
+    // Load dependencies into a map for the new build.gradle
     pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies);
+
+    // filter out dependencies already met by existing build.gradle
+    removeExistingDependencies(dependencies, originalDependencies);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
-    ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
-
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk != null) {
-      for (String configurationName : configurations) {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configurationName),
+      dependencies.forEach((configurationName, unresolvedDependencies) -> {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
                                                                                    supportLibVersionFilter,
                                                                                    sdk,
                                                                                    FileOpUtils.create());
+        PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
         for (GradleCoordinate dependency : resolved) {
           PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
                                                                                        configurationName,
                                                                                        dependency.toString()));
-          toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+          PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
+          toRoot.addAfter(factory.createLineTerminator(1), newElement);
+        }
+      });
+    }
+
+    // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
+    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());
+    for (String dependency : unparsedDependencies) {
+      if (!originalSet.contains(CharMatcher.WHITESPACE.removeFrom(dependency))) {
+        PsiElement dependencyElement = factory.createStatementFromText(dependency);
+        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+      }
+    }
+  }
+
+  /** Finds the {@link PsiElement} that a new dependency (in the given configuration) should be inserted before. */
+  @NotNull
+  private static PsiElement findInsertionPoint(@NotNull PsiElement root, String configurationName) {
+    GrMethodCall current = PsiTreeUtil.getChildOfType(root, GrMethodCall.class);
+
+    // Try to find a method call element that needs to be after our configurationName.
+    while (current != null) {
+      String currentConfigurationName = getConfigurationName(current);
+      if (currentConfigurationName != null && CONFIGURATION_ORDERING.compare(currentConfigurationName, configurationName) > 0) {
+        break;
+      }
+
+      current = PsiTreeUtil.getNextSiblingOfType(current, GrMethodCall.class);
+    }
+
+    return current != null ? current : root.getLastChild();
+  }
+
+  /** Tries to get the configuration name from a dependency declaration. */
+  @Nullable
+  private static String getConfigurationName(@NotNull GrMethodCall element) {
+    GrExpression invokedExpression = element.getInvokedExpression();
+    if (invokedExpression instanceof GrReferenceExpression) {
+      PsiElement referenceNameElement = ((GrReferenceExpression)invokedExpression).getReferenceNameElement();
+      if (referenceNameElement instanceof LeafPsiElement) {
+        IElementType elementType = ((LeafPsiElement)referenceNameElement).getElementType();
+        if (elementType == GroovyTokenTypes.mIDENT) {
+          return referenceNameElement.getText();
         }
       }
     }
 
-    for (String dependency : unparsedDependencies) {
-      PsiElement dependencyElement = factory.createStatementFromText(dependency);
-      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
-    }
+    return null;
   }
 
   /**
    * Looks for statements adding dependencies to different configurations (which look like 'configurationName "dependencyCoordinate"')
-   * and tries to parse them into Gradle coordinates. If successful, adds the new coordinate to the map and removes the corresponding
-   * PsiElement from the tree.
-   *
-   * @return true if new items were added to the map
+   * and tries to parse them into Gradle coordinates. If successful, adds the new coordinate to the map.
    */
-  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root,
-                                                 @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
-                                                 @Nullable List<String> unparsedDependencies) {
-    boolean wasMapUpdated = false;
+  private static void pullDependenciesIntoMap(@NotNull PsiElement root,
+                                              @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
+                                              @Nullable List<String> unparsedDependencies) {
     for (PsiElement existingElem : root.getChildren()) {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
@@ -216,15 +271,10 @@ public class GradleFilePsiMerger {
                 GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
                 if (coordinate != null) {
                   parsed = true;
-                  Multimap<String, GradleCoordinate> map = allConfigurations.get(configurationName);
-                  if (map == null) {
-                    map = LinkedListMultimap.create();
-                    allConfigurations.put(configurationName, map);
-                  }
+                  Multimap<String, GradleCoordinate> map =
+                    allConfigurations.computeIfAbsent(configurationName, k -> LinkedListMultimap.create());
                   if (!map.get(coordinate.getId()).contains(coordinate)) {
                     map.put(coordinate.getId(), coordinate);
-                    existingElem.delete();
-                    wasMapUpdated = true;
                   }
                 }
               }
@@ -235,9 +285,7 @@ public class GradleFilePsiMerger {
           }
         }
       }
-
     }
-    return wasMapUpdated;
   }
 
   /**

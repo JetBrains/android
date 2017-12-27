@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -38,6 +38,7 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -133,15 +134,23 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   @NotNull
   private List<AvdUiAction> getActions() {
-    return ImmutableList.of(new RunAvdAction(this),
-                            new EditAvdAction(this),
-                            new DuplicateAvdAction(this),
-                            //new ExportAvdAction(this), // TODO: implement export/import
-                            new WipeAvdDataAction(this),
-                            new ShowAvdOnDiskAction(this),
-                            new AvdSummaryAction(this),
-                            new DeleteAvdAction(this),
-                            new StopAvdAction(this));
+    List<AvdUiAction> actionList = new ArrayList<AvdUiAction>();
+
+    actionList.add(new RunAvdAction(this));
+    actionList.add(new EditAvdAction(this));
+    actionList.add(new DuplicateAvdAction(this));
+    //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import
+    actionList.add(new WipeAvdDataAction(this));
+
+    if (AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
+      actionList.add(new ColdBootNowAction(this));
+    }
+    actionList.add(new ShowAvdOnDiskAction(this));
+    actionList.add(new AvdSummaryAction(this));
+    actionList.add(new DeleteAvdAction(this));
+    actionList.add(new StopAvdAction(this));
+
+    return actionList;
   }
 
   @NotNull

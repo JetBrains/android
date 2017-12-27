@@ -51,7 +51,7 @@
                     <properties/>
                     <border type="line"/>
                     <children>
-                      <component id="f6cf6" class="com.android.tools.idea.ui.ImageComponent" binding="mySourceAssetImage">
+                      <component id="f6cf6" class="com.android.tools.adtui.ImageComponent" binding="mySourceAssetImage">
                         <constraints border-constraint="Center"/>
                         <properties/>
                       </component>

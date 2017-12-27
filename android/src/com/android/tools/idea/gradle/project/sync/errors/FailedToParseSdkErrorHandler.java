@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +30,7 @@ import static com.intellij.util.SystemProperties.getUserName;
 public class FailedToParseSdkErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (rootCause instanceof RuntimeException && isNotEmpty(text) && text.contains("failed to parse SDK")) {
       text += EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";

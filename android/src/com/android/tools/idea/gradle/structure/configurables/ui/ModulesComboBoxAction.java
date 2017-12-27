@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -27,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
+
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
@@ -41,7 +42,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    presentation.setIcon(AllIcons.Nodes.Module);
+    presentation.setIcon(ANDROID_MODULE);
     presentation.setText(myContext.getSelectedModule());
   }
 

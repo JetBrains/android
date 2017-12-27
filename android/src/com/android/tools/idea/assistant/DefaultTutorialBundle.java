@@ -76,6 +76,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @XmlElement(name = "learnMoreLink")
   private String myLearnMoreLink;
 
+  @XmlAttribute(name = "stepByStep")
+  private boolean myStepByStep;
+
   private Icon myIcon;
 
   private Icon myLogo;
@@ -139,6 +142,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Override
+  @Nullable
+  public boolean isStepByStep() {
+    return myStepByStep;
   }
 
   @Nullable
@@ -445,6 +454,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElement(name = "action", type = Action.class)
     private Action myAction;
 
+    @XmlElement(name = "image", type = Image.class)
+    private Image myImage;
+
     @Override
     @NotNull
     public StepElementType getType() {
@@ -461,6 +473,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       }
       else if (myCode != null) {
         myType = StepElementType.CODE;
+      }
+      else if (myImage != null) {
+        myType = StepElementType.IMAGE;
       }
       if (myType == null) {
         throw new RuntimeException("Unsupported StepElement.");
@@ -486,6 +501,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Override
     public Action getAction() {
       return myAction;
+    }
+
+    @Nullable
+    @Override
+    public Image getImage() {
+      return myImage;
     }
 
     @Override
@@ -527,6 +548,38 @@ public class DefaultTutorialBundle implements TutorialBundleData {
         return FileTypes.PLAIN_TEXT;
       }
       return null;
+    }
+  }
+
+  public static final class Image {
+    @XmlAttribute(name = "src")
+    private String mySource;
+
+    @XmlAttribute(name = "height")
+    private int myHeight;
+
+    @XmlAttribute(name = "width")
+    private int myWidth;
+
+    @XmlAttribute(name = "description")
+    private String myDescription;
+
+    @Nullable
+    public String getSource() {
+      return mySource;
+    }
+
+    public int getHeight() {
+      return myHeight;
+    }
+
+    public int getWidth() {
+      return myWidth;
+    }
+
+    @Nullable
+    public String getDescription() {
+      return myDescription;
     }
   }
 

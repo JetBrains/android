@@ -18,10 +18,13 @@ package com.android.tools.idea.uibuilder.model;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.resources.Density;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -40,6 +43,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     public int intAttribute = -50;
     public boolean booleanAttributeTrueDefault = true;
     public boolean booleanAttributeFalseDefault = false;
+    public int flagAttribute = 987;
 
     public DefaultValues(int width, int height) {
       super(width, height);
@@ -63,7 +67,7 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     Map<String, Object> defaults = LayoutParamsManager.getDefaultValuesFromClass(DefaultValues.class);
 
     // Private or static attributes shouldn't be returned
-    assertThat(defaults.size()).isEqualTo(7); // 4 attributes from our class + with and height from LayoutParams
+    assertThat(defaults.size()).isEqualTo(8); // 5 attributes from our class + with and height from LayoutParams
     assertThat((Boolean)defaults.get("booleanAttributeTrueDefault")).isTrue();
     assertThat((Boolean)defaults.get("booleanAttributeFalseDefault")).isFalse();
     assertThat(defaults.get("intAttribute")).isEqualTo(-50);
@@ -143,5 +147,25 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     assertThat(layoutParams.width).isEqualTo(0);
 
     assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock)).isFalse();
+
+    // Test flag attribute
+    AttributeDefinition flagDefinition = new AttributeDefinition("flagAttribute", null, null, EnumSet.of(
+      AttributeFormat.Flag
+    ));
+    flagDefinition.addValueMapping("value1", 0b001);
+    flagDefinition.addValueMapping("value2", 0b010);
+    flagDefinition.addValueMapping("value3", 0b111);
+
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "invalidValue", nlModelMock)).isFalse();
+    assertThat(layoutParams.flagAttribute).isEqualTo(987); // Invalid value so no change expected
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value3", nlModelMock)).isTrue();
+    assertThat(layoutParams.flagAttribute).isEqualTo(0b111);
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1", nlModelMock)).isTrue();
+    assertThat(layoutParams.flagAttribute).isEqualTo(0b001);
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1| value2|value3", nlModelMock))
+      .isTrue();
+    assertThat(layoutParams.flagAttribute).isEqualTo(0b111); // This should be the three flags combined
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", null, nlModelMock)).isTrue();
+    assertThat(layoutParams.flagAttribute).isEqualTo(987); // Check that default value restored
   }
 }

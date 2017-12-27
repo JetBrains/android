@@ -17,7 +17,6 @@
 package com.android.tools.sherpa.animation;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import android.support.constraint.solver.widgets.Animator;
 
 import java.awt.Graphics2D;
 
@@ -117,7 +116,7 @@ public abstract class Animation {
      * @param progress
      * @return
      */
-    public int getPulsatingAlpha(double progress) {
+    public static int getPulsatingAlpha(double progress) {
         progress *= 2;
         int start = 0;
         int end = 255;
@@ -126,7 +125,17 @@ public abstract class Animation {
             end = 0;
             progress -= 1;
         }
-        return (int)Animator.EaseInOutinterpolator(progress, start, end);
+        return (int)EaseInOutinterpolator(progress, start, end);
+    }
+
+    public static double EaseInOutinterpolator(double progress, double begin, double end) {
+        double change = (end - begin) / 2f;
+        progress *= 2f;
+        if (progress < 1f) {
+            return (change * progress * progress + begin);
+        }
+        progress -= 1f;
+        return (-change * (progress * (progress - 2f) - 1f) + begin);
     }
 
     /**

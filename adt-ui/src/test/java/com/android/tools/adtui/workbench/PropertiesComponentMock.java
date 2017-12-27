@@ -53,22 +53,42 @@ public class PropertiesComponentMock extends PropertiesComponent {
 
   @Override
   public void setValue(@NotNull String name, @Nullable String value, @Nullable String defaultValue) {
-    myProperties.setProperty(name, value != null ? value : defaultValue);
+    if (value == null || value.equals(defaultValue)) {
+      myProperties.remove(name);
+    }
+    else {
+      setValue(name, String.valueOf(value));
+    }
   }
 
   @Override
   public void setValue(@NotNull String name, float value, float defaultValue) {
-    myProperties.setProperty(name, String.valueOf(value != 0.0 ? value : defaultValue));
+    if (value == defaultValue) {
+      myProperties.remove(name);
+    }
+    else {
+      setValue(name, String.valueOf(value));
+    }
   }
 
   @Override
   public void setValue(@NotNull String name, int value, int defaultValue) {
-    myProperties.setProperty(name, String.valueOf(value != 0 ? value : defaultValue));
+    if (value == defaultValue) {
+      myProperties.remove(name);
+    }
+    else {
+      setValue(name, String.valueOf(value));
+    }
   }
 
   @Override
   public void setValue(@NotNull String name, boolean value, boolean defaultValue) {
-    myProperties.setProperty(name, String.valueOf(value));
+    if (value == defaultValue) {
+      myProperties.remove(name);
+    }
+    else {
+      setValue(name, String.valueOf(value));
+    }
   }
 
   @Nullable

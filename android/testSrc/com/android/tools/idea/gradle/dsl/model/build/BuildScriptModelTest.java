@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
@@ -27,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -123,17 +126,58 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     String text = "buildscript {\n" +
                   "  repositories {\n" +
                   "    jcenter()\n" +
+                  "    google()\n" +
                   "  }\n" +
                   "}";
     writeToBuildFile(text);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().buildscript().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
-    assertThat(repositories).hasSize(1);
+    assertThat(repositories).hasSize(2);
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
     JCenterDefaultRepositoryModel repository = (JCenterDefaultRepositoryModel)repositoryModel;
     assertEquals("name", "BintrayJCenter2", repository.name());
     assertEquals("url", "https://jcenter.bintray.com/", repository.url());
+
+    repositoryModel = repositories.get(1);
+    assertTrue(repositoryModel instanceof GoogleDefaultRepositoryModel);
+    GoogleDefaultRepositoryModel googleRepository = (GoogleDefaultRepositoryModel)repositoryModel;
+    assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, googleRepository.name());
+    assertEquals("url", GOOGLE_DEFAULT_REPO_URL, googleRepository.url());
+  }
+
+  public void testRemoveRepositoriesSingleBlock() throws IOException {
+    String text = "buildscript {\n" +
+                  "  repositories {\n" +
+                  "    jcenter()\n" +
+                  "    google()\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+    BuildScriptModel buildscript = getGradleBuildModel().buildscript();
+    List<RepositoryModel> repositories = buildscript.repositories().repositories();
+    assertThat(repositories).hasSize(2);
+    buildscript.removeRepositoriesBlocks();
+    repositories = buildscript.repositories().repositories();
+    assertThat(repositories).hasSize(0);
+  }
+
+  public void testRemoveRepositoriesMultipleBlocks() throws IOException {
+    String text = "buildscript {\n" +
+                  "  repositories {\n" +
+                  "    jcenter()\n" +
+                  "  }\n" +
+                  "  repositories {\n" +
+                  "    google()\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+    BuildScriptModel buildscript = getGradleBuildModel().buildscript();
+    List<RepositoryModel> repositories = buildscript.repositories().repositories();
+    assertThat(repositories).hasSize(2);
+    buildscript.removeRepositoriesBlocks();
+    repositories = buildscript.repositories().repositories();
+    assertThat(repositories).hasSize(0);
   }
 }

@@ -97,11 +97,11 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
 
     @Nullable
     public AvailableLibraryUpdate findUpdateFor(@NotNull PsArtifactDependencySpec spec) {
-      String version = spec.version;
+      String version = spec.getVersion();
       if (isNotEmpty(version)) {
-        GradleVersion parsedVersion = GradleVersion.tryParse(spec.version);
+        GradleVersion parsedVersion = GradleVersion.tryParse(spec.getVersion());
         if (parsedVersion != null) {
-          LibraryUpdateId id = new LibraryUpdateId(spec.name, spec.group);
+          LibraryUpdateId id = new LibraryUpdateId(spec.getName(), spec.getGroup());
           AvailableLibraryUpdate update = myUpdatesById.get(id);
           if (update != null) {
             GradleVersion foundVersion = GradleVersion.parse(update.version);

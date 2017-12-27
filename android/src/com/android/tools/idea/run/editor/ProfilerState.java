@@ -15,29 +15,34 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.ValidationError;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 /**
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
-  @NonNls public static final String ENABLE_ENERGY_PROFILER = "enable.energy.profiler";
-  /** Whether to apply the profiling plugin. */
-  public boolean ENABLE_ADVANCED_PROFILING = true;
+  public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
+
+  /**
+   * Whether to apply the profiling transform.
+   */
+  public boolean ADVANCED_PROFILING_ENABLED = false;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
-  public boolean SUPPORT_LIB_ENABLED = true;
-  private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";
+  private boolean PROFILING_OKHTTP_ENABLED = true;
+  public static final String ENABLE_ADVANCED_OKHTTP_PROFILING_NAME = "android.profiler.okhttp.enabled";
 
-  public boolean INSTRUMENTATION_ENABLED = true;
-  private static final String INSTRUMENTATION_ENABLED_NAME = "android.profiler.instrumentation.enabled";
+  private boolean myCheckAdvancedProfiling;
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
@@ -55,9 +60,25 @@ public class ProfilerState {
 
   public Properties toProperties() {
     Properties result = new Properties();
-    result.setProperty(SUPPORT_LIB_ENABLED_NAME, String.valueOf(SUPPORT_LIB_ENABLED));
-    result.setProperty(INSTRUMENTATION_ENABLED_NAME, String.valueOf(INSTRUMENTATION_ENABLED));
-    result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
+    result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
+    result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
     return result;
+  }
+
+  public void setCheckAdvancedProfiling(boolean checkAdvancedProfiling) {
+    myCheckAdvancedProfiling = checkAdvancedProfiling;
+  }
+
+  @NotNull
+  public List<ValidationError> validate() {
+    List<ValidationError> errors = new LinkedList<>();
+    if (myCheckAdvancedProfiling) {
+      // Currently we do not check against the state of ADVANCED_PROFILING_ENABLED.
+      // As far as the profilers are concerned, the Run Configuration dialog needs to navigate to the profiling tab in any case based on
+      // this ValidationError, so users can obtain more info related to the profiler's configurations.
+      errors.add(ValidationError.info("Check advanced profiling status", ValidationError.Category.PROFILER, null));
+    }
+
+    return errors;
   }
 }

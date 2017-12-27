@@ -16,6 +16,7 @@
 package com.android.tools.idea.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -23,6 +24,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AndroidProjectInfo {
   @NotNull private final Project myProject;
@@ -34,6 +41,22 @@ public class AndroidProjectInfo {
 
   public AndroidProjectInfo(@NotNull Project project) {
     myProject = project;
+  }
+
+  /**
+   * Returns all modules of a given type in the project
+   *
+   * @param projectType the Project type as an integer given in {@link AndroidProject}
+   * @return An array of all Modules in the project of that type
+   */
+  @NotNull
+  public List<Module> getAllModulesOfProjectType(int projectType) {
+    return Stream.of(ModuleManager.getInstance(myProject).getModules())
+      .filter(module -> {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        return facet != null && facet.getProjectType() == projectType;
+      })
+      .collect(Collectors.toList());
   }
 
   /**
@@ -49,6 +72,66 @@ public class AndroidProjectInfo {
       if (androidFacet != null && androidFacet.requiresAndroidModel()) {
         return true;
       }
+    }
+    return false;
+  }
+
+  public boolean isApkProject() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    // TODO revisit the self-imposed limitation of having only one module in a APK project.
+    for (Module module : moduleManager.getModules()) {
+      if (ApkFacet.getInstance(module) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
+   * <ul>
+   * <li>the last sync with the build system failed</li>
+   * <li>Studio just started up and it has not synced the project yet</li>
+   * </ul>
+   *
+   * @return {@code true} if the project is an Android project that does not contain any build system-based model.
+   */
+  public boolean requiredAndroidModelMissing() {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the project is a legacy IDEA Android project (which is deprecated in Android Studio.)
+   *
+   * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
+   */
+  public boolean isLegacyIdeaAndroidProject() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      if (isLegacyIdeaAndroidModule(module)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the given module is a legacy IDEA Android module (which is deprecated in Android Studio.)
+   *
+   * @param module the given module.
+   * @return {@code true} if the given module is a legacy IDEA Android module; {@code false} otherwise.
+   */
+  private static boolean isLegacyIdeaAndroidModule(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && !facet.requiresAndroidModel()) {
+      // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
+      return true;
     }
     return false;
   }

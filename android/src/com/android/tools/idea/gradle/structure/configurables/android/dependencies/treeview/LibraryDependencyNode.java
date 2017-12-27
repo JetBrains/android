@@ -69,8 +69,8 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
       // Show only "promoted" version for declared nodes.
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
-      String version = declaredSpec.version + "→" + resolvedSpec.version;
-      return getTextForSpec(declaredSpec.name, version, declaredSpec.group);
+      String version = declaredSpec.getVersion() + "→" + resolvedSpec.getVersion();
+      return getTextForSpec(declaredSpec.getName(), version, declaredSpec.getGroup());
     }
     return resolvedSpec.getDisplayText();
   }

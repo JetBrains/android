@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
-import org.junit.Ignore;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,7 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("http://ag/1261774")
+  @RunIn(TestGroup.UNRELIABLE)  // b/64151364
   @Test
   public void testNewModuleOldGradle() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
@@ -54,13 +55,13 @@ public class NewModuleTest {
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .getIdeFrame()
       .requestProjectSync()
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFail(Wait.seconds(30))
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("somelibrary")
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFail()
       .getEditor()
       .open("somelibrary/build.gradle")
       .getCurrentFileContents();
@@ -76,7 +77,7 @@ public class NewModuleTest {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep("") // Legacy code, doesn't have a step title
+      .clickNextToStep("Import Module from Library")
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
       .clickFinish()
@@ -98,7 +99,7 @@ public class NewModuleTest {
   /**
    * Verifies addition of new application module to application.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578813
+   * <p>TT ID: fd583b0a-bedd-4ec8-9207-70e4994ed761
    * <pre>
    *   Test Steps
    *   1. File -> new module
@@ -127,7 +128,7 @@ public class NewModuleTest {
   /**
    * Verifies addition of new library module to application.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578813
+   * <p>TT ID: c35b2089-a5e5-408a-a448-5d94f71fda94
    * <pre>
    *   Test Steps
    *   Create a new project
@@ -149,5 +150,24 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
+  }
+
+  @Test
+  public void createNewJavaLibraryWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Java Library")
+      .clickNextToStep("Library name:")
+      .getConfigureJavaLibaryStepFixture()
+      .enterLibraryName("mylib")
+      .enterPackageName("my.test")
+      .enterClassName("MyJavaClass")
+      .setCreateGitIgnore(true)
+      .getWizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("mylib/.gitignore")
+      .open("mylib/src/main/java/my/test/MyJavaClass.java");
   }
 }

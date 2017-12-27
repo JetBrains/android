@@ -25,8 +25,10 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -52,14 +54,23 @@ public class IdeaGradleSync implements GradleSync {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
+  @NotNull private final Project myProject;
+
+  public IdeaGradleSync(@NotNull Project project) {
+    myProject = project;
+  }
+
   @Override
-  public void sync(@NotNull Project project,
-                   @NotNull GradleSyncInvoker.Request request,
+  public void sync(@NotNull GradleSyncInvoker.Request request,
                    @Nullable GradleSyncListener listener) {
+    // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
+    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
+    boolean newProject = request.isNewOrImportedProject();
+
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
-      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
+      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((myProject));
       if (syncData != null && syncData.canUseCachedProjectData()) {
-        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(project);
+        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
@@ -70,8 +81,9 @@ public class IdeaGradleSync implements GradleSync {
                       .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
           // @formatter:on
 
-          boolean newProject = request.isNewProject();
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject, !newProject, true);
+          setSkipAndroidPluginUpgrade(request, setupRequest);
+
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, newProject, true /* select modules */, true);
           setUpTask.onSuccess(cache);
           return;
         }
@@ -84,19 +96,20 @@ public class IdeaGradleSync implements GradleSync {
     setupRequest.setGenerateSourcesAfterSync(request.isGenerateSourcesOnSuccess())
                 .setCleanProjectAfterSync(request.isCleanProject());
     // @formatter:on
+    setSkipAndroidPluginUpgrade(request, setupRequest);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
     Set<String> androidProjectCandidatesPaths = ContainerUtil.newLinkedHashSet();
-    if (request.isNewProject()) {
-      GradleSettings gradleSettings = GradleSettings.getInstance(project);
+    if (request.isNewOrImportedProject()) {
+      GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
       Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
       if (projectsSettings.isEmpty()) {
         GradleProjectOpenProcessor gradleProjectOpenProcessor =
           Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
-        if (project.getBasePath() != null && gradleProjectOpenProcessor.canOpenProject(project.getBaseDir())) {
+        if (myProject.getBasePath() != null && gradleProjectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
           GradleProjectSettings projectSettings = new GradleProjectSettings();
-          String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(project.getBasePath());
+          String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(myProject.getBasePath());
           projectSettings.setExternalProjectPath(externalProjectPath);
           gradleSettings.setLinkedProjectsSettings(ContainerUtil.list(projectSettings));
           androidProjectCandidatesPaths.add(externalProjectPath);
@@ -107,15 +120,15 @@ public class IdeaGradleSync implements GradleSync {
       }
     }
     else {
-      for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      for (Module module : ProjectFacetManager.getInstance(myProject).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
         String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
         ContainerUtil.addIfNotNull(androidProjectCandidatesPaths, projectPath);
       }
     }
     if (androidProjectCandidatesPaths.isEmpty()) {
       // try to discover the project in the IDE project base dir if there is no linked gradle projects at all
-      if (GradleSettings.getInstance(project).getLinkedProjectsSettings().isEmpty()) {
-        String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(Projects.getBaseDirPath(project).getPath());
+      if (GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()) {
+        String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(Projects.getBaseDirPath(myProject).getPath());
         if (new File(externalProjectPath, SdkConstants.FN_BUILD_GRADLE).isFile() ||
             new File(externalProjectPath, SdkConstants.FN_SETTINGS_GRADLE).isFile()) {
           androidProjectCandidatesPaths.add(externalProjectPath);
@@ -125,17 +138,25 @@ public class IdeaGradleSync implements GradleSync {
 
     if (androidProjectCandidatesPaths.isEmpty()) {
       if (listener != null) {
-        listener.syncSkipped(project);
+        listener.syncSkipped(myProject);
       }
       return;
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
-      ProjectSetUpTask setUpTask =
-        new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);
+      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, newProject,
+                                                        newProject /* select modules if it's a new project */, false);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-      refreshProject(project, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
+      refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
                      executionMode, true /* always report import errors */);
+    }
+  }
+
+  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
+                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.isSkipAndroidPluginUpgrade()) {
+      //noinspection TestOnlyProblems
+      setupRequest.setSkipAndroidPluginUpgrade();
     }
   }
 }

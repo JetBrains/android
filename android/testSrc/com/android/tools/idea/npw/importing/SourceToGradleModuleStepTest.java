@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.gradle.project.GradleModuleImportTest;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.*;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
 
-public class SourceToGradleModuleStepTest extends AndroidGradleImportTestCase {
-  private VirtualFile myModule;
+public class SourceToGradleModuleStepTest extends AndroidGradleTestCase {
+
   private SourceToGradleModuleStep myPage;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myModule = GradleModuleImportTest.createGradleProjectToImport(new File(getWorkingDir(), "project"), "gradleProject");
     myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject()));
   }
 
@@ -42,17 +39,34 @@ public class SourceToGradleModuleStepTest extends AndroidGradleImportTestCase {
     super.tearDown();
   }
 
-  public void testValidation() {
-    String modulePath = virtualToIoFile(myModule).getAbsolutePath();
-    assertThat(myPage.checkPath(modulePath).myStatus).isEqualTo(OK);
-    assertThat(myPage.checkPath(modulePath + "_path_that_does_not_exist").myStatus).isEqualTo(DOES_NOT_EXIST);
-    assertThat(myPage.checkPath("").myStatus).isEqualTo(EMPTY_PATH);
-    assertThat(myPage.checkPath(getWorkingDir().getAbsolutePath()).myStatus).isEqualTo(NOT_ADT_OR_GRADLE);
+  public void testCheckPathValidInput() throws Exception {
+    String path = new File(getTestDataPath(), IMPORTING).getPath();
+    SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;
+    assertEquals(OK, status);
   }
 
-  public void testPathInProject() throws IOException {
-    File moduleInProject = createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
-    assertThat(myPage.checkPath(virtualToIoFile(getProject().getBaseDir()).getAbsolutePath()).myStatus).isEqualTo(IS_PROJECT_OR_MODULE);
-    assertThat(myPage.checkPath(moduleInProject.getParentFile().getParentFile().getAbsolutePath()).myStatus).isEqualTo(OK);
+  public void testCheckPathDoesNotExist() throws IOException {
+    String path = new File(getTestDataPath(), "path_that_does_not_exist").getPath();
+    SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;
+    assertEquals(DOES_NOT_EXIST, status);
+  }
+
+  public void testCheckPathEmptyPath() {
+    String path = "";
+    SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;
+    assertEquals(EMPTY_PATH, status);
+  }
+
+  public void testCheckPathNotAProject() throws IOException {
+    String path = getTestDataPath();
+    SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;
+    assertEquals(NOT_ADT_OR_GRADLE, status);
+  }
+
+  public void testCheckPathInProject() throws Exception {
+    loadProject(IMPORTING);
+    String path = getProjectFolderPath().getPath();
+    SourceToGradleModuleStep.PathValidationResult.ResultType status = myPage.checkPath(path).myStatus;
+    assertEquals(IS_PROJECT_OR_MODULE, status);
   }
 }

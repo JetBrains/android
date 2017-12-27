@@ -17,26 +17,26 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /** Cache for resolved resources */
 public class ResourceResolverCache {
@@ -58,7 +59,8 @@ public class ResourceResolverCache {
   private final ConfigurationManager myManager;
 
   /** Map from theme and full configuration to the corresponding resource resolver */
-  private final Map<String, ResourceResolver> myResolverMap;
+  @VisibleForTesting
+  final Map<String, ResourceResolver> myResolverMap;
 
   /**
    * Map of configured app resources. These are cached separately from the final resource
@@ -66,19 +68,21 @@ public class ResourceResolverCache {
    * Note that they key here is only the full configuration, whereas the map for the
    * resolvers also includes the theme.
    */
-  private final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
+  @VisibleForTesting
+  final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
 
   /**
    * Map of configured framework resources. These are cached separately from the final resource
    * resolver since they can be shared between different layouts that only vary by theme
    */
-  private final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
+  @VisibleForTesting
+  final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
 
   /** Map from API level to framework resources */
-  private SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<AndroidTargetData>();
+  private SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<>();
 
   /**
    * Store map keys for the latest custom configuration cached, so that they can be removed from the cache
@@ -99,8 +103,10 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull final FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    final LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
-    assert resources != null;
+    final LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
+    if (resources == null) {
+      return ResourceResolver.create(Collections.emptyMap(), Collections.emptyMap(), null, false);
+    }
     if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
       myAppResourceMap.clear();
@@ -159,14 +165,8 @@ public class ResourceResolverCache {
       // App resources
       configuredAppRes = myAppResourceMap.get(configurationKey);
       if (configuredAppRes == null) {
-        // get the project resource values based on the current config
-        Application application = ApplicationManager.getApplication();
-        configuredAppRes = application.runReadAction(new Computable<Map<ResourceType, ResourceValueMap>>() {
-          @Override
-          public Map<ResourceType, ResourceValueMap> compute() {
-            return resources.getConfiguredResources(fullConfiguration);
-          }
-        });
+        // Get the project resource values based on the current config.
+        configuredAppRes = ReadAction.compute(() -> resources.getConfiguredResources(fullConfiguration));
         myAppResourceMap.put(configurationKey, configuredAppRes);
       }
 
@@ -194,7 +194,7 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link LocalResourceRepository} for the framework resources based on the current configuration selection.
+   * Returns a {@link ResourceRepository} for the framework resources based on the current configuration selection.
    *
    * @return the framework resources or {@code null} if not found.
    */
@@ -315,7 +315,21 @@ public class ResourceResolverCache {
     myResolverMap.clear();
   }
 
+  /**
+   * Replaces the custom configuration value in the resource resolver and removes the old custom configuration from the cache. If the new
+   * configuration is the same as the old, this method will do nothing.
+   * @param themeStyle new theme
+   * @param fullConfiguration new full configuration
+   */
   public void replaceCustomConfig(@NotNull String themeStyle, @NotNull final FolderConfiguration fullConfiguration) {
+    String newCustomConfigurationKey = fullConfiguration.getUniqueKey();
+    String newCustomResolverKey = themeStyle + newCustomConfigurationKey;
+
+    if (newCustomResolverKey.equals(myCustomResolverKey)) {
+      // The new key is the same as this one, no need to remove it
+      return;
+    }
+
     if (myCustomConfigurationKey != null) {
       myFrameworkResourceMap.remove(myCustomConfigurationKey);
       myAppResourceMap.remove(myCustomConfigurationKey);
@@ -323,7 +337,7 @@ public class ResourceResolverCache {
     if (myCustomResolverKey != null) {
       myResolverMap.remove(myCustomResolverKey);
     }
-    myCustomConfigurationKey = fullConfiguration.getUniqueKey();
-    myCustomResolverKey = themeStyle + myCustomConfigurationKey;
+    myCustomConfigurationKey = newCustomConfigurationKey;
+    myCustomResolverKey = newCustomResolverKey;
   }
 }

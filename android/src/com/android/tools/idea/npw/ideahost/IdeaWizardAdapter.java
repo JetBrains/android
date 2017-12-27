@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.wizard.StudioWizardLayout;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.ide.util.newProjectWizard.WizardDelegate;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -38,7 +41,7 @@ import javax.swing.*;
  * {@link WizardDelegate} class is specific to the IDEA New Project Wizard (see {@link AndroidModuleBuilder} for more details) so the
  * IdeaWizardAdapter does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDelegate, Disposable {
+final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDelegate, Disposable {
 
   @NotNull private final ListenerManager myListeners = new ListenerManager();
   @NotNull private final ModelWizardDialog.CustomLayout myCustomLayout = new StudioWizardLayout();
@@ -70,8 +73,13 @@ final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDeleg
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
-    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, success);
+  public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
+    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished());
+  }
+
+  @Override
+  public void onWizardAdvanceError(@NotNull Exception e) {
+    DialogEarthquakeShaker.shake(myHostWizard.getWindow());
   }
 
   @Override
@@ -115,12 +123,18 @@ final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDeleg
     return new ModuleWizardStep() {
       @Override
       public JComponent getComponent() {
-        return myCustomLayout.decorate(myGuestWizard.title(), myGuestWizard.getContentPanel());
+        return myCustomLayout.decorate(myGuestWizard.getTitleHeader(), myGuestWizard.getContentPanel());
       }
 
       @Override
       public void updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
+      }
+
+      @Nullable
+      @Override
+      public String getHelpId() {
+        return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html";
       }
     };
   }

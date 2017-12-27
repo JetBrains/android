@@ -48,5 +48,13 @@
   <item name="android.hardware.usb.UsbInterface java.lang.String getName()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.usb.UsbManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.USB_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbRequest boolean queue(java.nio.ByteBuffer) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
 </root>
 

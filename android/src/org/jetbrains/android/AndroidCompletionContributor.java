@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -24,13 +25,14 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.*;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
@@ -45,10 +47,8 @@ import org.jetbrains.android.dom.color.ColorDomFileDescription;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
-import org.jetbrains.android.dom.layout.Data;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
+import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
@@ -57,12 +57,15 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.*;
+
+import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 
 public class AndroidCompletionContributor extends CompletionContributor {
@@ -81,8 +84,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String,PsiClass> classMap = facet.getClassMap(
-        AndroidUtils.VIEW_CLASS_NAME);
+      final Map<String,PsiClass> classMap = ClassMaps.getInstance(facet).getClassMap(AndroidUtils.VIEW_CLASS_NAME);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
@@ -133,6 +135,14 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (RawDomFileDescription.isRawFile(xmlFile)) {
       resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
+      return false;
+    }
+    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.MIPMAP)) {
+      addAll(AndroidDrawableDomUtil.getPossibleRoots(facet, ResourceFolderType.MIPMAP), resultSet);
+      return false;
+    }
+    else if (FontFamilyDomFileDescription.isFontFamilyFile(xmlFile)) {
+      resultSet.addElement(LookupElementBuilder.create(FontFamilyDomFileDescription.TAG_NAME));
       return false;
     }
     return true;
@@ -198,6 +208,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       if (SdkConstants.TOOLS_URI.equals(namespace)) {
         addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       }
+      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       customizeAddedAttributes(facet, parameters, attribute, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
@@ -286,7 +297,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     if (attribute.getName().contains(":")) {
       final String nsPrefix = attribute.getNamespacePrefix();
 
-      if (nsPrefix.length() == 0) {
+      if (nsPrefix.isEmpty()) {
         return;
       }
       if (!SdkConstants.NS_RESOURCES.equals(tag.getNamespaceByPrefix(nsPrefix))) {
@@ -299,43 +310,40 @@ public class AndroidCompletionContributor extends CompletionContributor {
     else {
       localNameCompletion = false;
     }
-    final Map<String, String> prefix2ns = new HashMap<String, String>();
+    final Map<String, String> prefix2ns = new HashMap<>();
 
-    resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-      @Override
-      public void consume(CompletionResult result) {
-        LookupElement lookupElement = result.getLookupElement();
-        final Object obj = lookupElement.getObject();
+    resultSet.runRemainingContributors(parameters, result -> {
+      LookupElement lookupElement = result.getLookupElement();
+      final Object obj = lookupElement.getObject();
 
-        if (obj instanceof String) {
-          final String s = (String)obj;
-          final int index = s.indexOf(':');
+      if (obj instanceof String) {
+        final String s = (String)obj;
+        final int index = s.indexOf(':');
 
-          final String attributeName = s.substring(index + 1);
-          if (index > 0) {
-            final String prefix = s.substring(0, index);
-            String ns = prefix2ns.get(prefix);
+        final String attributeName = s.substring(index + 1);
+        if (index > 0) {
+          final String prefix = s.substring(0, index);
+          String ns = prefix2ns.get(prefix);
 
-            if (ns == null) {
-              ns = tag.getNamespaceByPrefix(prefix);
-              prefix2ns.put(prefix, ns);
-            }
-            if (SdkConstants.NS_RESOURCES.equals(ns)) {
-              final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
-              result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
-            }
+          if (ns == null) {
+            ns = tag.getNamespaceByPrefix(prefix);
+            prefix2ns.put(prefix, ns);
           }
-          else if (localNameCompletion) {
-            result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, false);
+          if (SdkConstants.NS_RESOURCES.equals(ns)) {
+            final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
+            result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
           }
         }
-        resultSet.passResult(result);
+        else if (localNameCompletion) {
+          result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, false);
+        }
       }
+      resultSet.passResult(result);
     });
   }
 
   private static boolean isFrameworkAttributeDeprecated(AndroidFacet facet, XmlAttribute attribute, String attributeName) {
-    final ResourceManager manager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE, attribute.getParent());
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(SYSTEM_RESOURCE_PACKAGE, attribute.getParent());
     if (manager == null) {
       return false;
     }
@@ -367,8 +375,8 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     final String localSuffix = localName.substring(LAYOUT_ATTRIBUTE_PREFIX.length());
 
-    if (localSuffix.length() > 0) {
-      final HashSet<String> lookupStrings = new HashSet<String>(lookupElement.getAllLookupStrings());
+    if (!localSuffix.isEmpty()) {
+      final HashSet<String> lookupStrings = new HashSet<>(lookupElement.getAllLookupStrings());
       lookupStrings.add(localSuffix);
 
       lookupElement = new LookupElementDecorator<LookupElement>(lookupElement) {
@@ -385,6 +393,35 @@ public class AndroidCompletionContributor extends CompletionContributor {
       };
     }
     return result.withLookupElement(PrioritizedLookupElement.withPriority(lookupElement, 100.0));
+  }
+
+  /**
+   * Adds the XML attributes that come from {@code @BindingAdapter} annotations
+   */
+  private static void addDataBindingAttributes(@NotNull String prefix,
+                                               @NotNull PsiElement position,
+                                               @NotNull AndroidFacet facet,
+                                               @NotNull XmlAttribute attribute,
+                                               @NotNull CompletionResultSet resultSet) {
+    PsiFile containingFile = attribute.getContainingFile();
+    if (!(containingFile instanceof XmlFile) || !DataBindingDomFileDescription.hasDataBindingRootTag((XmlFile)containingFile)) {
+      // Not a databinding XML layout
+      return;
+    }
+
+    Module module = facet.getModule();
+    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    if (dataBindingComponent == null) {
+      return;
+    }
+
+    dataBindingComponent.getBindingAdapterAttributes(module).forEach((dataBindingAttribute) -> {
+      if (!prefix.isEmpty()) {
+        dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
+      }
+      resultSet.addElement(LookupElementBuilder.create(position, dataBindingAttribute)
+                             .withInsertHandler(XmlAttributeInsertHandler.INSTANCE));
+    });
   }
 
   private static void completeDataBindingTypeAttr(CompletionParameters parameters,
@@ -409,7 +446,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
                                                    XmlAttributeValue parent) {
     final String currentValue = parent.getValue();
 
-    if (currentValue == null || currentValue.length() == 0 || currentValue.endsWith("|")) {
+    if (currentValue == null || currentValue.isEmpty() || currentValue.endsWith("|")) {
       return;
     }
     final PsiElement grandparent = parent.getParent();
@@ -428,11 +465,11 @@ public class AndroidCompletionContributor extends CompletionContributor {
     if (valueRange != null && valueRange.getEndOffset() == parameters.getOffset()) {
       final Set<String> valueSet = ((FlagConverter)converter).getValues();
 
-      if (valueSet.size() > 0) {
+      if (!valueSet.isEmpty()) {
         final String prefix = resultSet.getPrefixMatcher().getPrefix();
 
         if (valueSet.contains(prefix)) {
-          final ArrayList<String> filteredValues = new ArrayList<String>(valueSet);
+          final ArrayList<String> filteredValues = new ArrayList<>(valueSet);
           //noinspection unchecked
           DelimitedListConverter.filterVariants(filteredValues, domValue);
 

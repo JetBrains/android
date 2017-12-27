@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Path2D;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -31,36 +31,25 @@ import java.util.List;
  * #draw(Graphics2D)}, as well as pay attention to the field {@link #mFrameLength} as it controls
  * the behavior of timed animations.
  */
-public abstract class AnimatedComponent extends JComponent implements Animatable {
-
-  protected static final float DEFAULT_LERP_FRACTION = 0.99f;
-  protected static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
-
-  /**
-   * The cached length of the last frame in seconds.
-   */
-  protected float mFrameLength;
+public abstract class AnimatedComponent extends JComponent {
 
   protected long mLastRenderTime;
-
-  protected long mUpdateStartTime;
-
-  protected long mUpdateEndTime;
 
   protected boolean mDrawDebugInfo;
 
   protected final FontMetrics mDefaultFontMetrics;
+
+  protected final AspectObserver myAspectObserver;
 
   @NotNull
   private final List<String> mDebugInfo;
 
   private int mDrawCount;
 
-  private int mMultiDrawNumFrames;
-
   public AnimatedComponent() {
     mDebugInfo = new LinkedList<>();
     mDefaultFontMetrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
+    myAspectObserver = new AspectObserver();
   }
 
   public final boolean isDrawDebugInfo() {
@@ -95,11 +84,8 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
   private void doDebugDraw(Graphics2D g) {
     debugDraw(g);
 
-    addDebugInfo("Multi-draw Frame Count: %d", mMultiDrawNumFrames);
     addDebugInfo("Draw Count: %d", mDrawCount);
-    addDebugInfo("Update time: %.2fms", (mUpdateEndTime - mUpdateStartTime) / 1000000.f);
-    addDebugInfo("Render time: %.2fms", (System.nanoTime() - mLastRenderTime) / 1000000.f);
-    addDebugInfo("FPS: %.2f", (1.0f / mFrameLength));
+
     g.setFont(AdtUiUtils.DEFAULT_FONT);
     g.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
     int i = 0;
@@ -110,66 +96,19 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
   }
 
   /**
-   * First step of the animation, this is where the data is read and the current animation values
-   * are fixed.
-   */
-  protected abstract void updateData();
-
-  /**
    * Renders the data constructed in the update phase to the given graphics context.
    */
   protected abstract void draw(Graphics2D g, Dimension size);
 
-  /**
-   * Draws visual debug information.
-   */
-  protected void debugDraw(Graphics2D g) {
-  }
+  protected void debugDraw(Graphics2D g) {}
 
-  protected static void drawArrow(Graphics2D g, float x, float y, float dx, float dy, float len,
-                                  Color color) {
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(x, y);
-    path.lineTo(x + dx * len, y + dy * len);
-    path.lineTo(x + dx * (len - 10) + dy * 10, y + dy * (len - 10) - dx * 10);
-    path.lineTo(x + dx * (len - 10) - dy * 10, y + dy * (len - 10) + dx * 10);
-    g.setColor(color);
-    g.draw(path);
-  }
-
-  protected static void drawMarker(Graphics2D g, float x, float y, Color color) {
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(x - 10, y);
-    path.lineTo(x + 10, y);
-    path.moveTo(x, y - 10);
-    path.lineTo(x, y + 10);
-    g.setColor(color);
-    g.draw(path);
-  }
-
-  @Override
-  public void animate(float frameLength) {
-    if (mDrawCount > 1) {
-      // draw is expected to be triggered once per component per animation cycle.
-      // Otherwise, we are potentially wasting cycles repainting the same data. e.g. This can
-      // happen if there are overlapping translucent components requesting repaints.
-      //
-      // Note - there are circumstances where multiple draws in a cycle is normal,
-      // such as when the panel resizes, or anything that triggers repaint in the swing
-      // rendering system. This code does not distinguish against those cases at the moment.
-      mMultiDrawNumFrames++;
+  protected void opaqueRepaint() {
+    // TODO: In theory swing should handle transparent repaints correctly, but
+    // for now this works-around the issue of multiple repaints.
+    Container c = this;
+    while (c.getParent() != null && !c.isOpaque()) {
+      c = c.getParent();
     }
-    mDrawCount = 0;
-
-    mFrameLength = frameLength;
-
-    mUpdateStartTime = System.nanoTime();
-    this.updateData();
-    mUpdateEndTime = System.nanoTime();
-  }
-
-  @Override
-  public void reset() {
-    mMultiDrawNumFrames = 0;
+    c.repaint();
   }
 }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -35,12 +35,12 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("root", AnchorTarget.Type.LEFT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"8dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginStart=\"8dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
 
   public void testConnectTop() {
@@ -52,12 +52,12 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("root", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"8dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginTop=\"8dp\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"100dp\" />");
     assertEquals(button, myScreen.getScreen().getSelectionModel().getPrimary());
     assertEquals(1, myScreen.getScreen().getSelectionModel().getSelection().size());
   }
@@ -68,12 +68,12 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("root", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginRight=\"8dp\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginEnd=\"8dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
 
   public void testConnectBottom() {
@@ -82,12 +82,12 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("root", AnchorTarget.Type.BOTTOM);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      android:layout_marginBottom=\"8dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginBottom=\"8dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"100dp\" />");
   }
 
   public void testConnectBaseline() {
@@ -98,23 +98,23 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"300dp\"\n" +
-                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button\" />");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
+                 "        tools:layout_editor_absoluteX=\"300dp\" />");
     myInteraction.select("button2", false);
     myInteraction.select("button2", true);
     myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
-                 "      app:layout_constraintLeft_toRightOf=\"@+id/button\"\n" +
-                 "      android:layout_marginLeft=\"8dp\" />");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginStart=\"8dp\"\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/button\" />");
   }
 
   @Override

@@ -109,12 +109,13 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
   /**
    * Status to show in the table.
    */
+  @NotNull
   public String getStatusString() {
     return "";
   }
 
   @Override
-  public int compareTo(UpdaterTreeNode o) {
+  public int compareTo(@NotNull UpdaterTreeNode o) {
     return toString().compareTo(o.toString());
   }
 

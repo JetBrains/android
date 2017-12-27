@@ -15,21 +15,25 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.lint.*;
-import com.android.tools.lint.checks.*;
+import com.android.tools.idea.lint.LintIdeGradleDetector;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeProject;
+import com.android.tools.idea.lint.LintIdeViewTypeDetector;
+import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.HighlightDisplayKey;
-import com.intellij.codeInspection.InspectionProfile;
+import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
-import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -40,6 +44,8 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.L
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
+  public static final String ADT_SOURCE_TREE = "ADT_SOURCE_TREE";
+
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
@@ -69,7 +75,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     List<Issue> allIssues = fullRegistry.getIssues();
 
     for (Issue issue : allIssues) {
-      if (!isRelevant(issue)) {
+      if (!LintIdeIssueRegistry.isRelevant(issue)) {
         continue;
       }
       String className = "com.android.tools.idea.lint.AndroidLint" + issue.getId() + "Inspection";
@@ -101,7 +107,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
     final List<Issue> missing = new ArrayList<>();
     for (Issue issue : allIssues) {
-      if (!isRelevant(issue) || registered.contains(issue.getId())) {
+      if (!LintIdeIssueRegistry.isRelevant(issue) || registered.contains(issue.getId())) {
         continue;
       }
 
@@ -125,46 +131,16 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         }
       }
 
-      final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
-      if (inspectionShortName == null) {
-        missing.add(issue);
-        continue;
-      }
+      missing.add(issue);
+    }
 
-      // ELSE: compare severity, enabledByDefault, etc, message, etc
-
-      final HighlightDisplayKey key = HighlightDisplayKey.find(inspectionShortName);
-      if (key == null) {
-        //fail("No highlight display key for inspection " + inspectionShortName + " for issue " + issue);
-        System.out.println("No highlight display key for inspection " + inspectionShortName + " for issue " + issue);
-        continue;
-      }
-
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
-      HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, null);
-      Severity s;
-      if (errorLevel == HighlightDisplayLevel.WARNING || errorLevel == HighlightDisplayLevel.WEAK_WARNING) {
-        s = Severity.WARNING;
-      } else if (errorLevel == HighlightDisplayLevel.ERROR || errorLevel == HighlightDisplayLevel.NON_SWITCHABLE_ERROR) {
-        s = Severity.ERROR;
-      } else if (errorLevel == HighlightDisplayLevel.DO_NOT_SHOW) {
-        s = Severity.IGNORE;
-      } else if (errorLevel == HighlightDisplayLevel.INFO) {
-        s = Severity.INFORMATIONAL;
-      } else {
-        //fail("Unexpected error level " + errorLevel);
-        System.out.println("Unexpected error level " + errorLevel);
-        continue;
-      }
-      Severity expectedSeverity = issue.getDefaultSeverity();
-      if (expectedSeverity == Severity.FATAL) {
-        expectedSeverity = Severity.ERROR;
-      }
-      //assertSame(expectedSeverity, s);
-
-      if (expectedSeverity != s) {
-        System.out.println("Wrong severity for " + issue + "; expected " + expectedSeverity + ", got " + s);
-      }
+    String sourceTree = System.getenv(ADT_SOURCE_TREE);
+    if (sourceTree == null) {
+      sourceTree = System.getProperty(ADT_SOURCE_TREE);
+    }
+    File root = sourceTree != null ? new File(sourceTree) : null;
+    if (root != null && !new File(root, ".repo").isDirectory()) {
+      fail("Invalid directory: should be pointing to the root of a tools checkout directory");
     }
 
     // Spit out registration information for the missing elements
@@ -174,23 +150,64 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       StringBuilder sb = new StringBuilder(1000);
       sb.append("Missing registration for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")");
-      sb.append("\nAdd to android/src/META-INF/android-plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
+      if (root == null) {
+        sb.append("\n***If you set the environment variable " + ADT_SOURCE_TREE + " (or set it as a system property in the test run " +
+                  "config) this test can automatically create/edit the files for you!***\n");
+        sb.append("\nAdd to android/src/META-INF/android-plugin.xml (and please try to preserve the case insensitive alphabetical " +
+                  "order):\n");
+      }
       for (Issue issue : missing) {
-        sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"");
-        sb.append(LINT_INSPECTION_PREFIX);
+        StringBuilder desc = new StringBuilder();
+
+        desc.append("<globalInspection hasStaticDescription=\"true\" shortName=\"");
+        desc.append(LINT_INSPECTION_PREFIX);
         String id = issue.getId();
-        sb.append(id);
-        sb.append("\" displayName=\"");
-        sb.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)));
-        sb.append("\" groupKey=\"").append(getCategoryBundleKey(issue.getCategory()))
-          .append("\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
-        sb.append(issue.isEnabledByDefault());
-        sb.append("\" level=\"");
-        sb.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
-                  "ERROR" : issue.getDefaultSeverity() == Severity.WARNING ? "WARNING" : "INFO");
-        sb.append("\" implementationClass=\"com.android.tools.idea.lint.AndroidLint");
-        sb.append(id);
-        sb.append("Inspection\"/>\n");
+        desc.append(id);
+        desc.append("\" displayName=\"");
+        desc.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)));
+        desc.append("\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
+        desc.append(issue.isEnabledByDefault());
+        desc.append("\" level=\"");
+        desc.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
+                    "ERROR" : issue.getDefaultSeverity() == Severity.WARNING ? "WARNING" : "INFO");
+        desc.append("\" implementationClass=\"com.android.tools.idea.lint.AndroidLint");
+        desc.append(id);
+        desc.append("Inspection\"/>\n");
+
+        boolean performed = false;
+        if (root != null) {
+          String insert = desc.toString();
+          // Try to make the edit directly
+          File plugin = new File(root, "tools/adt/idea/android/src/META-INF/android-plugin.xml");
+          if (plugin.exists()) {
+            String original = Files.toString(plugin, Charsets.UTF_8);
+            int begin = 0;
+            while (true) {
+              int end = original.indexOf('\n', begin);
+              if (end == -1) {
+                break;
+              }
+              String line = original.substring(begin, end);
+              String trimmed = line.trim();
+              if ((trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint") &&
+                   trimmed.compareToIgnoreCase(insert) > 0) ||
+                  // Passed all lint registration entries: insert it here (must be newly last alphabetical issue)
+                  trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"PermissionUsageInspection\"")) {
+                String contents = original.substring(0, begin) + "    " + insert + original.substring(begin);
+                Files.write(contents, plugin, Charsets.UTF_8);
+                sb.append(" <automatically updated plugin.xml in ").append(root).append(">\n");
+                performed = true;
+                break;
+              }
+
+              begin = end + 1;
+            }
+          }
+        }
+
+        if (!performed) {
+          sb.append("    ").append(desc);
+        }
       }
 
       sb.append("\nAdd to com.android.tools.idea.lint:\n");
@@ -200,9 +217,11 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         String detectorName = getDetectorClass(issue).getSimpleName();
         String issueName = getIssueFieldName(issue);
         String messageKey = getMessageKey(issue);
-        //noinspection StringConcatenationInsideStringBufferAppend
-        sb.append("/*\n" +
-                  " * Copyright (C) 2016 The Android Open Source Project\n" +
+        int year = Calendar.getInstance().get(Calendar.YEAR);
+        //noinspection StringConcatenationInsideStringBufferAppend,ConcatenationWithEmptyString
+        String code = "" +
+                  "/*\n" +
+                  " * Copyright (C) " + year + " The Android Open Source Project\n" +
                   " *\n" +
                   " * Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
                   " * you may not use this file except in compliance with the License.\n" +
@@ -226,30 +245,69 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
                   "  public AndroidLint" + id + "Inspection() {\n" +
                   "    super(AndroidBundle.message(\"android.lint.inspections." + messageKey + "\"), " + detectorName + "." + issueName + ");\n" +
                   "  }\n" +
-                  "}\n");
+                  "}\n";
+
+        if (root != null) {
+          File packageDir = new File(root, "tools/adt/idea/android/src/com/android/tools/idea/lint");
+          assertTrue(packageDir.toString(), packageDir.exists());
+          File to = new File(packageDir, "AndroidLint" + id + "Inspection.java");
+          if (!to.isFile()) {
+            Files.write(code, to, Charsets.UTF_8);
+            sb.append(" <automatically created ").append(to).append(">\n");
+          } else {
+            sb.append(" <already exists: ").append(to).append(">\n");
+          }
+        } else {
+          sb.append(code);
+        }
       }
 
       sb.append("\nAdd to AndroidBundle.properties:\n");
       for (Issue issue : missing) {
         String messageKey = getMessageKey(issue);
-        sb.append("android.lint.inspections.").append(messageKey).append("=")
+        StringBuilder desc = new StringBuilder();
+        desc.append("android.lint.inspections.").append(messageKey).append("=")
           .append(escapePropertyValue(getBriefDescription(issue))).append("\n");
+
+        boolean performed = false;
+        if (root != null) {
+          String insert = desc.toString();
+          // Try to make the edit directly
+          File propertyFile = new File(root, "tools/adt/idea/android/resources/messages/AndroidBundle.properties");
+          if (propertyFile.exists()) {
+            String original = Files.toString(propertyFile, Charsets.UTF_8);
+            int begin = 0;
+            while (true) {
+              int end = original.indexOf('\n', begin);
+              if (end == -1) {
+                break;
+              }
+              String line = original.substring(begin, end);
+              if ((line.startsWith("android.lint.inspections.") &&
+                   !line.startsWith("android.lint.inspections.group.name") &&
+                   !line.startsWith("android.lint.inspections.subgroup.name") &&
+                   line.compareToIgnoreCase(insert) > 0) ||
+                  // Passed all lint keys: insert it here (must be newly last alphabetical issue)
+                  line.startsWith("android.lint.fix.")) {
+                performed = true;
+                String contents = original.substring(0, begin) + insert + original.substring(begin);
+                Files.write(contents, propertyFile, Charsets.UTF_8);
+                desc.append(" <automatically updated AndroidBundle.properties.xml in ").append(root).append(">\n");
+                break;
+              }
+
+              begin = end + 1;
+            }
+          }
+        }
+
+        if (!performed) {
+          sb.append(desc);
+        }
       }
 
       sb.append("\nAdded registrations for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")\n");
-
-      System.out.println("*IF* necessary, add these category descriptors to AndroidBundle.properties:\n");
-      Set<Category> categories = Sets.newHashSet();
-      for (Issue issue : missing) {
-        categories.add(issue.getCategory());
-      }
-      List<Category> sorted = Lists.newArrayList(categories);
-      Collections.sort(sorted);
-      for (Category category : sorted) {
-        sb.append(getCategoryBundleKey(category)).append('=').append(
-          escapePropertyValue(("Android > Lint > " + category.getFullName()).replace(":", " > "))).append("\n");
-      }
 
       System.out.println(sb.toString());
       return false;
@@ -366,18 +424,5 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     }
 
     return sb.toString();
-  }
-
-  private static boolean isRelevant(Issue issue) {
-    // Supported more directly by other IntelliJ checks(?)
-    if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
-        issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
-        // Reimplemented by ResourceTypeInspection
-        issue.getImplementation().getDetectorClass() == SupportAnnotationDetector.class) {
-      return false;
-    }
-
-    return true;
   }
 }

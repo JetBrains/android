@@ -80,7 +80,7 @@ public class RecipeUtils {
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(true)
-        .withGradleSync(false)
+        .withPerformSync(false)
         .intoDependencies(dependencies)
         .intoClasspathEntries(classpathEntries)
         .intoPlugins(plugins)

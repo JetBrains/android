@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <declare-styleable name="GridLayout">
+
+    <attr name="orientation">
+      <!-- Defines an horizontal widget. -->
+      <enum name="horizontal" value="0" />
+      <!-- Defines a vertical widget. -->
+      <enum name="vertical" value="1" />
+    </attr>
+
+    <!-- The maximum number of rows to create when automatically positioning children. -->
+    <attr name="rowCount" format="integer" />
+
+    <!-- The maximum number of columns to create when automatically positioning children. -->
+    <attr name="columnCount" format="integer" />
+
+    <!--
+    When set to true, forces row boundaries to appear in the same order
+    as row indices.
+    The default is true.
+    See {@link android.widget.GridLayout#setRowOrderPreserved(boolean)}.
+    -->
+    <attr name="rowOrderPreserved" format="boolean" />
+
+    <!--
+    When set to true, forces column boundaries to appear in the same order
+    as column indices.
+    The default is true.
+    See {@link android.widget.GridLayout#setColumnOrderPreserved(boolean)}.
+    -->
+    <attr name="columnOrderPreserved" format="boolean" />
+  </declare-styleable>
+
+</resources>

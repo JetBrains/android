@@ -41,6 +41,16 @@ public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAda
   }
 
   @Override
+  public boolean isCanceled() {
+    return myIndicator.isCanceled();
+  }
+
+  @Override
+  public void cancel() {
+    myIndicator.cancel();
+  }
+
+  @Override
   public void setFraction(double progress) {
     myIndicator.setFraction(progress);
   }

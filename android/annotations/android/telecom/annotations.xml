@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.telecom.Call android.telecom.Call.RttCall getRttCall()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.Call.RttCall void setRttMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.Call.RttCall.RTT_MODE_FULL, android.telecom.Call.RttCall.RTT_MODE_HCO, android.telecom.Call.RttCall.RTT_MODE_VCO}" />
+    </annotation>
+  </item>
   <item name="android.telecom.Conference void putExtras(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -33,6 +41,11 @@
   <item name="android.telecom.RemoteConnection.Callback void onExtrasChanged(android.telecom.RemoteConnection, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.telecom.TelecomManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.TELECOM_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.telecom.TelecomManager android.net.Uri getAdnUriForPhoneAccount(android.telecom.PhoneAccountHandle)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
@@ -58,6 +71,11 @@
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.telecom.TelecomManager boolean isInManagedCall()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
   <item name="android.telecom.TelecomManager boolean isVoiceMailNumber(android.telecom.PhoneAccountHandle, java.lang.String)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
@@ -78,6 +96,21 @@
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.telecom.TelecomManager java.util.List&lt;android.telecom.PhoneAccountHandle&gt; getSelfManagedPhoneAccounts()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void acceptRingingCall()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ANSWER_PHONE_CALLS&quot;, &quot;android.permission.MODIFY_PHONE_STATE&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void acceptRingingCall(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ANSWER_PHONE_CALLS&quot;, &quot;android.permission.MODIFY_PHONE_STATE&quot;}" />
+    </annotation>
+  </item>
   <item name="android.telecom.TelecomManager void cancelMissedCallsNotification()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
@@ -85,7 +118,7 @@
   </item>
   <item name="android.telecom.TelecomManager void placeCall(android.net.Uri, android.os.Bundle)">
     <annotation name="android.support.annotation.RequiresPermission">
-      <val name="value" val="&quot;android.permission.CALL_PHONE&quot;" />
+      <val name="anyOf" val="{&quot;android.permission.CALL_PHONE&quot;, &quot;android.permission.MANAGE_OWN_CALLS&quot;}" />
     </annotation>
   </item>
   <item name="android.telecom.TelecomManager void showInCallScreen(boolean)">

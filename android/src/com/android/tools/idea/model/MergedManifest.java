@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.manifmerger.Actions;
@@ -77,6 +76,7 @@ public class MergedManifest {
   private Document myDocument;
   private List<VirtualFile> myManifestFiles;
   private ModulePermissions myPermissionHolder;
+  private boolean myApplicationHasCode = true;
 
   /**
    * Constructs a new MergedManifest
@@ -237,7 +237,7 @@ public class MergedManifest {
     int targetSdk;
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    AndroidModuleInfo info = facet.getAndroidModuleInfo();
+    AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
     targetSdk = info.getTargetSdkVersion().getApiLevel();
 
     int renderingTargetSdk = targetSdk;
@@ -300,6 +300,14 @@ public class MergedManifest {
   }
 
   /**
+   * Returns the value for the hasCode flag set in the manifest. Returns true if not set
+   */
+  public boolean getApplicationHasCode() {
+    sync();
+    return myApplicationHasCode;
+  }
+
+  /**
    * Returns the target SDK version
    *
    * @return the target SDK version
@@ -348,15 +356,7 @@ public class MergedManifest {
 
     // TODO remove this time based checking
 
-    // Ensure that two simultaneous sync requests from different threads don't interfere with each other.
-    synchronized (this) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          syncWithReadPermission();
-        }
-      });
-    }
+    ApplicationManager.getApplication().runReadAction(this::syncWithReadPermission);
   }
 
   static String getAttributeValue(@NotNull Element element,
@@ -365,7 +365,10 @@ public class MergedManifest {
     return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
   }
 
-  protected void syncWithReadPermission() {
+  /**
+   * This method is synchronized to ensure that two simultaneous sync requests from different threads don't interfere with each other.
+   */
+  protected synchronized void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null : "Attempt to obtain manifest info from a non Android module: " + myModule.getName();
 
@@ -380,7 +383,7 @@ public class MergedManifest {
       return;
     }
 
-    myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
+    myActivityAttributesMap = new HashMap<>();
     myManifestTheme = null;
     myTargetSdk = AndroidVersion.DEFAULT;
     myMinSdk = AndroidVersion.DEFAULT;
@@ -416,7 +419,7 @@ public class MergedManifest {
       Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
-      String versionCode = getAttributeValue(root, ANDROID_URI, SdkConstants.ATTR_VERSION_CODE);
+      String versionCode = getAttributeValue(root, ANDROID_URI, ATTR_VERSION_CODE);
       try {
         myVersionCode = Integer.valueOf(versionCode);
       }
@@ -435,6 +438,9 @@ public class MergedManifest {
 
             String debuggable = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_DEBUGGABLE);
             myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
+
+            String hasCode = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_HASCODE);
+            myApplicationHasCode = hasCode == null ? true : VALUE_TRUE.equals(hasCode);
 
             Node child = node.getFirstChild();
             while (child != null) {
@@ -555,7 +561,7 @@ public class MergedManifest {
   @NotNull
   public ImmutableList<MergingReport.Record> getLoggingRecords() {
     sync();
-    return myManifestFile == null ? ImmutableList.<MergingReport.Record>of() : myManifestFile.getLoggingRecords();
+    return myManifestFile == null ? ImmutableList.of() : myManifestFile.getLoggingRecords();
   }
 
   @Nullable
@@ -610,6 +616,11 @@ public class MergedManifest {
     return null;
   }
 
+  @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
   public static class ActivityAttributes {
     @NotNull private final Element myElement;
     @Nullable private final String myIcon;
@@ -624,7 +635,7 @@ public class MergedManifest {
 
       // Get activity name.
       String name = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_NAME);
-      if (name == null || name.length() == 0) {
+      if (name == null || name.isEmpty()) {
         throw new RuntimeException("Activity name cannot be empty.");
       }
       int index = name.indexOf('.');
@@ -635,7 +646,7 @@ public class MergedManifest {
 
       // Get activity icon.
       String value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_ICON);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myIcon = value;
       }
       else {
@@ -644,7 +655,7 @@ public class MergedManifest {
 
       // Get activity label.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_LABEL);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myLabel = value;
       }
       else {
@@ -653,7 +664,7 @@ public class MergedManifest {
 
       // Get activity parent. Also search the meta-data for parent info.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_PARENT_ACTIVITY_NAME);
-      if (value == null || value.length() == 0) {
+      if (value == null || value.isEmpty()) {
         Node child = activity.getFirstChild();
         // TODO: Not sure if meta data can be used for API Level > 16
         while (child != null) {
@@ -674,7 +685,7 @@ public class MergedManifest {
           child = child.getNextSibling();
         }
       }
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myParentActivity = value;
       }
       else {
@@ -683,7 +694,7 @@ public class MergedManifest {
 
       // Get activity theme.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_THEME);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myTheme = value;
       }
       else {
@@ -692,7 +703,7 @@ public class MergedManifest {
 
       // Get UI options.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_UI_OPTIONS);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myUiOptions = value;
       }
       else {
@@ -759,7 +770,7 @@ public class MergedManifest {
     @NotNull
     @Override
     public AndroidVersion getMinSdkVersion() {
-      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
       return androidModuleInfo != null ?
              androidModuleInfo.getMinSdkVersion() : MergedManifest.this.getMinSdkVersion();
     }
@@ -767,7 +778,7 @@ public class MergedManifest {
     @NotNull
     @Override
     public AndroidVersion getTargetSdkVersion() {
-      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
       return androidModuleInfo != null ?
              androidModuleInfo.getTargetSdkVersion() : MergedManifest.this.getTargetSdkVersion();
     }

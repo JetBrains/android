@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -27,6 +26,7 @@ import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -51,6 +51,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.AlarmFactory;
 import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -61,6 +62,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,6 +95,24 @@ public class HtmlLinkManager {
   private int myNextLinkId = 0;
 
   public HtmlLinkManager() {
+  }
+
+  /**
+   * {@link NotificationGroup} used to let the user now that the click on a link did something. This is meant to be used
+   * in those actions that do not trigger any UI updates (like Copy stack trace to clipboard).
+   */
+  private static final NotificationGroup NOTIFICATIONS_GROUP =
+    new NotificationGroup("Render error panel notifications", NotificationDisplayType.BALLOON, false);
+
+
+  public static void showNotification(@NotNull String content) {
+    Notification notification = NOTIFICATIONS_GROUP.createNotification(content, NotificationType.INFORMATION);
+    Notifications.Bus.notify(notification);
+
+    AlarmFactory.getInstance().create().addRequest(
+      notification::expire,
+      TimeUnit.SECONDS.toMillis(2)
+    );
   }
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
@@ -187,24 +207,27 @@ public class HtmlLinkManager {
       if (command != null) {
         command.execute();
       }
-    } else if (url.startsWith(URL_REFRESH_RENDER)) {
+    }
+    else if (url.startsWith(URL_REFRESH_RENDER)) {
       handleRefreshRenderUrl(result);
-    } else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
+    }
+    else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
       // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
       // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
       // of clicking that link that has something to do with the cache being cleared.
       handleRefreshRenderUrl(result);
-      RenderErrorPanel.showNotification("Cache cleared");
+      showNotification("Cache cleared");
     }
     else {
       assert false : "Unexpected URL: " + url;
     }
   }
 
-  /** Creates a file url for the given file and line position
+  /**
+   * Creates a file url for the given file and line position
    *
-   * @param file the file
-   * @param line the line, or -1 if not known
+   * @param file   the file
+   * @param line   the line, or -1 if not known
    * @param column the column, or 0 if not known
    * @return a URL which points to a given position in a file
    */
@@ -215,7 +238,8 @@ public class HtmlLinkManager {
       if (line != -1) {
         if (column > 0) {
           return fileUrl + ':' + line + ':' + column;
-        } else {
+        }
+        else {
           return fileUrl + ':' + line;
         }
       }
@@ -243,7 +267,8 @@ public class HtmlLinkManager {
         line = Integer.parseInt(matcher.group(1));
         column = Integer.parseInt(matcher.group(3));
         url = url.substring(0, matcher.start(1) - 1);
-      } else {
+      }
+      else {
         matcher = Pattern.compile(".*:(\\d+)").matcher(url);
         if (matcher.matches()) {
           line = Integer.parseInt(matcher.group(1));
@@ -368,10 +393,6 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createShowXmlUrl() {
-    return URL_SHOW_XML;
-  }
-
   private static void handleShowXmlUrl(@NotNull String url, @NotNull Module module, @NotNull PsiFile file) {
     assert url.equals(URL_SHOW_XML) : url;
     openEditor(module.getProject(), file, 0, -1);
@@ -385,24 +406,21 @@ public class HtmlLinkManager {
     assert url.startsWith(URL_SHOW_TAG) : url;
     final String tagName = url.substring(URL_SHOW_TAG.length());
 
-    XmlTag first = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-      @Override
-      @Nullable
-      public XmlTag compute() {
-        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-        for (XmlTag tag : xmlTags) {
-          if (tagName.equals(tag.getName())) {
-            return tag;
-          }
+    XmlTag first = ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)() -> {
+      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      for (XmlTag tag : xmlTags) {
+        if (tagName.equals(tag.getName())) {
+          return tag;
         }
-
-        return null;
       }
+
+      return null;
     });
 
     if (first != null) {
       PsiNavigateUtil.navigate(first);
-    } else {
+    }
+    else {
       // Fall back to just opening the editor
       openEditor(module.getProject(), file, 0, -1);
     }
@@ -428,7 +446,8 @@ public class HtmlLinkManager {
       if (packageName == null) {
         return;
       }
-    } else {
+    }
+    else {
       packageName = s.substring(0, index);
       className = s.substring(index + 1);
     }
@@ -517,12 +536,14 @@ public class HtmlLinkManager {
       if (colon != -1) {
         fileName = url.substring(semi + 1, colon);
         line = Integer.decode(url.substring(colon + 1));
-      } else {
+      }
+      else {
         fileName = url.substring(semi + 1);
         line = -1;
       }
       // Attempt to open file
-    } else {
+    }
+    else {
       className = url.substring(start);
       fileName = null;
       line = -1;
@@ -623,26 +644,22 @@ public class HtmlLinkManager {
    */
   @NotNull
   private static String getFragmentClass(@NotNull final Module module, @NotNull final String fqcn) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      @NotNull
-      public String compute() {
-        Project project = module.getProject();
-        JavaPsiFacade finder = JavaPsiFacade.getInstance(project);
-        PsiClass psiClass = finder.findClass(fqcn, module.getModuleScope());
-        if (psiClass == null) {
-          psiClass = finder.findClass(fqcn, GlobalSearchScope.allScope(project));
-        }
-
-        if (psiClass != null) {
-          String jvmClassName = ClassUtil.getJVMClassName(psiClass);
-          if (jvmClassName != null) {
-            return jvmClassName.replace('/', '.');
-          }
-        }
-
-        return fqcn;
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      Project project = module.getProject();
+      JavaPsiFacade finder = JavaPsiFacade.getInstance(project);
+      PsiClass psiClass = finder.findClass(fqcn, module.getModuleScope());
+      if (psiClass == null) {
+        psiClass = finder.findClass(fqcn, GlobalSearchScope.allScope(project));
       }
+
+      if (psiClass != null) {
+        String jvmClassName = ClassUtil.getJVMClassName(psiClass);
+        if (jvmClassName != null) {
+          return jvmClassName.replace('/', '.');
+        }
+      }
+
+      return fqcn;
     });
   }
 
@@ -720,7 +737,8 @@ public class HtmlLinkManager {
       // Only specified activity; pick it
       String activityName = url.substring(start);
       pickLayout(module, xmlFile, activityName);
-    } else {
+    }
+    else {
       // Set directory to specified layoutName
       final String activityName = url.substring(start, layoutStart);
       final String layoutName = url.substring(layoutStart + 1);
@@ -738,7 +756,7 @@ public class HtmlLinkManager {
       .setModule(module)
       .setTypes(EnumSet.of(ResourceType.LAYOUT))
       .setFile(file)
-      .setHideLeftSideActions(true)
+      .setHideLeftSideActions()
       .build();
 
     if (dialog.showAndGet()) {
@@ -761,7 +779,7 @@ public class HtmlLinkManager {
         AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
-          if (tag.getName().equals(VIEW_FRAGMENT) ) {
+          if (tag.getName().equals(VIEW_FRAGMENT)) {
             String name = tag.getAttributeValue(ATTR_CLASS);
             if (name == null || name.isEmpty()) {
               name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
@@ -797,24 +815,21 @@ public class HtmlLinkManager {
     final String attributeName = url.substring(attributeStart, valueStart);
     final String value = url.substring(valueStart + 1);
 
-    XmlAttribute first = ApplicationManager.getApplication().runReadAction(new Computable<XmlAttribute>() {
-      @Override
-      @Nullable
-      public XmlAttribute compute() {
-        Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-        for (XmlAttribute attribute : attributes) {
-          if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
-            return attribute;
-          }
+    XmlAttribute first = ApplicationManager.getApplication().runReadAction((Computable<XmlAttribute>)() -> {
+      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+      for (XmlAttribute attribute : attributes) {
+        if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
+          return attribute;
         }
-
-        return null;
       }
+
+      return null;
     });
 
     if (first != null) {
       PsiNavigateUtil.navigate(first.getValueElement());
-    } else {
+    }
+    else {
       // Fall back to just opening the editor
       openEditor(module.getProject(), file, 0, -1);
     }
@@ -846,7 +861,8 @@ public class HtmlLinkManager {
             }
             if (oldValue.equals(attributeValue)) {
               attribute.setValue(newValue);
-            } else {
+            }
+            else {
               int index = attributeValue.indexOf(oldValue);
               if (index != -1) {
                 if ((index == 0 || attributeValue.charAt(index - 1) == '|') &&
@@ -872,18 +888,20 @@ public class HtmlLinkManager {
     requestRender(result);
 
     Messages.showInfoMessage(module.getProject(),
-         "The custom view rendering sandbox was disabled for this session.\n\n" +
-         "You can turn it off permanently by adding\n" +
-         RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
-         "to {install}/bin/idea.properties.",
-         "Disabled Rendering Sandbox");
+                             "The custom view rendering sandbox was disabled for this session.\n\n" +
+                             "You can turn it off permanently by adding\n" +
+                             RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
+                             "to {install}/bin/idea.properties.",
+                             "Disabled Rendering Sandbox");
   }
 
   public String createRefreshRenderUrl() {
     return URL_REFRESH_RENDER;
   }
 
-  public String createClearCacheUrl() { return URL_CLEAR_CACHE_AND_NOTIFY; }
+  public String createClearCacheUrl() {
+    return URL_CLEAR_CACHE_AND_NOTIFY;
+  }
 
   private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
     if (result != null) {
@@ -903,7 +921,7 @@ public class HtmlLinkManager {
       if (renderTask != null) {
         EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
-          surface.requestRender();
+          surface.forceUserRequestedRefresh();
         }
       }
     }

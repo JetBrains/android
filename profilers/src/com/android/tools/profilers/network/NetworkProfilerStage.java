@@ -15,157 +15,292 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Body;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Request;
-import com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse.Response;
-import com.android.tools.profilers.AspectModel;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
-import com.google.common.collect.ImmutableMap;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.event.EventMonitor;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Objects;
+import java.util.zip.GZIPInputStream;
 
-public class NetworkProfilerStage extends Stage {
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
-
-  // TODO: Way more robust handling of different types. See also:
-  // http://www.iana.org/assignments/media-types/media-types.xhtml
-  // @formatter:off
-  private static final Map<String, String> CONTENT_SUFFIX_MAP = new ImmutableMap.Builder<String, String>().
-    put("/jpeg", ".jpg").
-    put("/json", ".json").
-    put("/xml", ".xml").
-    build();
-  // @formatter:on
-
-  // Whether the connection data screen is active.
-  private boolean myConnectionDataEnabled;
+public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
+  private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
+  private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   // If null, means no connection to show in the details pane.
   @Nullable
-  private HttpData myConnection;
+  private HttpData mySelectedConnection;
 
-  public AspectModel<NetworkProfilerAspect> aspect = new AspectModel<>();
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
+  private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
-  private final NetworkRequestsModel myRequestsModel =
-    new RpcNetworkRequestsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+  StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
 
-  private final NetworkRadioDataSeries myRadioDataSeries =
-    new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+  private final NetworkConnectionsModel myConnectionsModel =
+    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
+                                   getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(),
+                                   getStudioProfilers().getSession());
 
-  public NetworkProfilerStage(StudioProfilers profiler) {
-    super(profiler);
-  }
+  private final DetailedNetworkUsage myDetailedNetworkUsage;
+  private final NetworkStageLegends myLegends;
+  private final NetworkStageLegends myTooltipLegends;
+  private final AxisComponentModel myTrafficAxis;
+  private final AxisComponentModel myConnectionsAxis;
+  private final EventMonitor myEventMonitor;
+  private final StackTraceModel myStackTraceModel;
+  private final SelectionModel mySelectionModel;
+  private final HttpDataFetcher myHttpDataFetcher;
 
-  @Override
-  public ProfilerMode getProfilerMode() {
-    boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
-    return myConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+  public NetworkProfilerStage(StudioProfilers profilers) {
+    super(profilers);
+
+    ProfilerTimeline timeline = profilers.getTimeline();
+    NetworkRadioDataSeries radioDataSeries =
+      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
+    myRadioState = new StateChartModel<>();
+    myRadioState.addSeries(new RangedSeries<>(timeline.getViewRange(), radioDataSeries));
+
+    myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
+
+    myTrafficAxis = new AxisComponentModel(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER);
+    myTrafficAxis.setClampToMajorTicks(true);
+
+    myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
+    myConnectionsAxis.setClampToMajorTicks(true);
+
+    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
+    myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);
+
+    myEventMonitor = new EventMonitor(profilers);
+
+    myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+
+    mySelectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    profilers.addDependency(myAspectObserver)
+      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
+    mySelectionModel.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        setProfilerMode(ProfilerMode.EXPANDED);
+        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+      }
+
+      @Override
+      public void selectionCleared() {
+        setProfilerMode(ProfilerMode.NORMAL);
+      }
+    });
+
+    myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, timeline.getSelectionRange());
   }
 
   @NotNull
-  public NetworkRequestsModel getRequestsModel() {
-    return myRequestsModel;
+  public NetworkConnectionsModel getConnectionsModel() {
+    return myConnectionsModel;
   }
 
   @NotNull
-  public NetworkRadioDataSeries getRadioDataSeries() {
-    return myRadioDataSeries;
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
   }
 
-  public void setEnableConnectionData(boolean enable) {
-    myConnectionDataEnabled = enable;
-    aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
+  @NotNull
+  public StackTraceModel getStackTraceModel() {
+    return myStackTraceModel;
+  }
+
+  @NotNull
+  public HttpDataFetcher getHttpDataFetcher() {
+    return myHttpDataFetcher;
   }
 
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
-  public void setConnection(@Nullable HttpData data) {
-    if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
-      ByteString payload = myRequestsModel.requestResponsePayload(data);
-      File file = null;
+  public boolean setSelectedConnection(@Nullable HttpData data) {
+    if (Objects.equals(mySelectedConnection, data)) {
+      return false;
+    }
+
+    if (data != null && StringUtil.isNotEmpty(data.getResponsePayloadId()) && data.getResponsePayloadFile() == null) {
+      ByteString payload = getConnectionsModel().requestResponsePayload(data);
       try {
-        file = FileUtil.createTempFile(data.getResponsePayloadId(), getFileSuffixFromContentType(data));
-        FileOutputStream outputStream = new FileOutputStream(file);
-        payload.writeTo(outputStream);
-      } catch (IOException e) {
-        return;
-      } finally {
-        if (file != null) {
-          file.deleteOnExit();
-        }
+        File file = getConnectionPayload(payload, data);
+        data.setResponsePayloadFile(file);
       }
-      data.setResponsePayloadFile(file);
-    }
-
-    myConnection = data;
-    myConnectionDataEnabled = true;
-    getStudioProfilers().modeChanged();
-    aspect.changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
-  }
-
-  /**
-   * Returns suffix for creating payload temp file based on the response MIME type.
-   * If type is absent or not supported, returns null.
-   */
-  @Nullable
-  private static String getFileSuffixFromContentType(@NotNull HttpData httpData) {
-    String contentType = httpData.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    if (contentType == null) {
-      return null;
-    }
-    for (Map.Entry<String, String> entry : CONTENT_SUFFIX_MAP.entrySet()) {
-      if (contentType.contains(entry.getKey())) {
-        return entry.getValue();
+      catch (IOException e) {
+        return false;
       }
     }
-    return null;
+    mySelectedConnection = data;
+    getAspect().changed(NetworkProfilerAspect.SELECTED_CONNECTION);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkRequest();
+
+    return true;
   }
 
-  /**
-   * Gets the details of the current connection, or null if none.
-   */
-  public ConnectionDetails getConnectionDetails() {
-    if (myConnection == null) {
-      return null;
+  @VisibleForTesting
+  File getConnectionPayload(@NotNull ByteString payload, @NotNull HttpData data) throws IOException {
+    String extension = (data.getContentType() == null) ? null : data.getContentType().guessFileExtension();
+    File file = FileUtil.createTempFile(data.getResponsePayloadId(), StringUtil.notNullize(extension), true);
+
+    byte[] bytes = payload.toByteArray();
+    String contentEncoding = data.getResponseField("content-encoding");
+    if (contentEncoding != null && contentEncoding.toLowerCase().contains("gzip")) {
+      try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
+        bytes = FileUtil.loadBytes(inputStream);
+      } catch (IOException ignored) {}
     }
-    // TODO: Fetch the data via RPC
-    return new ConnectionDetails(
-        Request.getDefaultInstance(),
-        Response.newBuilder().setCode("404").build(),
-        Body.getDefaultInstance());
-  }
 
-  public boolean isConnectionDataEnabled() {
-    return myConnectionDataEnabled;
+    FileUtil.writeToFile(file, bytes);
+    // We don't expect the following call to fail but don't care if it does
+    //noinspection ResultOfMethodCallIgnored
+    file.setReadOnly();
+    return file;
   }
 
   /**
    * Returns the active connection, or {@code null} if no request is currently selected.
    */
   @Nullable
-  public HttpData getConnection() {
-    return myConnection;
+  public HttpData getSelectedConnection() {
+    return mySelectedConnection;
   }
 
-  private static class ConnectionDetails {
-    public final Request request;
-    public final Response response;
-    public final Body body;
+  @NotNull
+  public AspectModel<NetworkProfilerAspect> getAspect() {
+    return myAspect;
+  }
 
-    private ConnectionDetails(Request request, Response response, Body body) {
-      this.request = request;
-      this.response = response;
-      this.body = body;
+  public StateChartModel<NetworkRadioDataSeries.RadioState> getRadioState() {
+    return myRadioState;
+  }
+
+  @Override
+  public void enter() {
+    myEventMonitor.enter();
+
+    getStudioProfilers().getUpdater().register(myRadioState);
+    getStudioProfilers().getUpdater().register(myDetailedNetworkUsage);
+    getStudioProfilers().getUpdater().register(myTrafficAxis);
+    getStudioProfilers().getUpdater().register(myConnectionsAxis);
+    getStudioProfilers().getUpdater().register(myLegends);
+    getStudioProfilers().getUpdater().register(myTooltipLegends);
+    getStudioProfilers().getUpdater().register(myHttpDataFetcher);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+  }
+
+  @Override
+  public void exit() {
+    myEventMonitor.exit();
+
+    getStudioProfilers().getUpdater().unregister(myRadioState);
+    getStudioProfilers().getUpdater().unregister(myDetailedNetworkUsage);
+    getStudioProfilers().getUpdater().unregister(myTrafficAxis);
+    getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
+    getStudioProfilers().getUpdater().unregister(myLegends);
+    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
+    getStudioProfilers().getUpdater().unregister(myHttpDataFetcher);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
+
+    mySelectionModel.clearListeners();
+  }
+
+  @NotNull
+  public String getName() {
+    return "NETWORK";
+  }
+
+  @NotNull
+  public DetailedNetworkUsage getDetailedNetworkUsage() {
+    return myDetailedNetworkUsage;
+  }
+
+  @NotNull
+  public AxisComponentModel getTrafficAxis() {
+    return myTrafficAxis;
+  }
+
+  @NotNull
+  public AxisComponentModel getConnectionsAxis() {
+    return myConnectionsAxis;
+  }
+
+  @NotNull
+  public NetworkStageLegends getLegends() {
+    return myLegends;
+  }
+
+  @NotNull
+  public NetworkStageLegends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
+  @NotNull
+  public EventMonitor getEventMonitor() {
+    return myEventMonitor;
+  }
+
+  @Override
+  public void onNavigated(@NotNull CodeLocation location) {
+    setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  public static class NetworkStageLegends extends LegendComponentModel {
+
+    private final SeriesLegend myRxLegend;
+    private final SeriesLegend myTxLegend;
+    private final SeriesLegend myConnectionLegend;
+
+    public NetworkStageLegends(DetailedNetworkUsage usage, Range range, boolean tooltip) {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_RECEIVED.getLabel(tooltip),
+                                    Interpolatable.SegmentInterpolator);
+
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_SENT.getLabel(tooltip),
+                                    Interpolatable.SegmentInterpolator);
+      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range,
+                                            Interpolatable.SteppedLineInterpolator);
+
+      add(myRxLegend);
+      add(myTxLegend);
+      add(myConnectionLegend);
+    }
+
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
+
+    public SeriesLegend getConnectionLegend() {
+      return myConnectionLegend;
     }
   }
 }

@@ -83,21 +83,21 @@ class SideModel<T> {
   @NotNull
   public List<AttachedToolWindow> getHiddenTools(@NotNull Side side) {
     return myAllTools.stream()
-      .filter(tool -> tool.isMinimized() && !tool.isFloating() && !tool.isAutoHide() && tool.isLeft() == side.isLeft())
+      .filter(tool -> tool.isMinimized() && !tool.isDetached() && !tool.isAutoHide() && tool.isLeft() == side.isLeft())
       .collect(Collectors.toList());
   }
 
   @NotNull
   public List<AttachedToolWindow> getTopTools(@NotNull Side side) {
     return myAllTools.stream()
-      .filter(tool -> !tool.isFloating() && tool.isLeft() == side.isLeft() && (!tool.isSplit() || tool.isAutoHide()))
+      .filter(tool -> !tool.isDetached() && tool.isLeft() == side.isLeft() && (!tool.isSplit() || tool.isAutoHide()))
       .collect(Collectors.toList());
   }
 
   @NotNull
   public List<AttachedToolWindow> getBottomTools(@NotNull Side side) {
     return myAllTools.stream()
-      .filter(tool -> !tool.isFloating() && tool.isLeft() == side.isLeft() && tool.isSplit() && !tool.isAutoHide())
+      .filter(tool -> !tool.isDetached() && tool.isLeft() == side.isLeft() && tool.isSplit() && !tool.isAutoHide())
       .collect(Collectors.toList());
   }
 
@@ -109,14 +109,14 @@ class SideModel<T> {
   @NotNull
   public List<AttachedToolWindow<T>> getHiddenSliders() {
     return myAllTools.stream()
-      .filter(tool -> tool.isAutoHide() && !tool.isFloating() && tool.isMinimized())
+      .filter(tool -> tool.isAutoHide() && !tool.isDetached() && tool.isMinimized())
       .collect(Collectors.toList());
   }
 
   @NotNull
-  public List<AttachedToolWindow<T>> getFloatingTools() {
+  public List<AttachedToolWindow<T>> getDetachedTools() {
     return myAllTools.stream()
-      .filter(AttachedToolWindow::isFloating)
+      .filter(AttachedToolWindow::isDetached)
       .collect(Collectors.toList());
   }
 
@@ -127,7 +127,7 @@ class SideModel<T> {
 
   private void add(@NotNull AttachedToolWindow<T> tool) {
     myAllTools.add(tool);
-    if (!tool.isMinimized() && !tool.isFloating()) {
+    if (!tool.isMinimized() && !tool.isDetached()) {
       VisiblePair<T> visible = getVisibleTools(tool.isLeft());
       if (!visible.setIfEmpty(tool)) {
         tool.setMinimized(true);
@@ -152,7 +152,7 @@ class SideModel<T> {
   }
 
   public void update(@NotNull AttachedToolWindow<T> tool, @NotNull PropertyType typeOfChange) {
-    update(Collections.singletonList(tool), typeOfChange == PropertyType.FLOATING ? EventType.UPDATE_FLOATING_WINDOW : EventType.UPDATE);
+    update(Collections.singletonList(tool), typeOfChange == PropertyType.DETACHED ? EventType.UPDATE_DETACHED_WINDOW : EventType.UPDATE);
   }
 
   public void updateLocally() {
@@ -168,7 +168,7 @@ class SideModel<T> {
       if (myVisibleAutoHideTool == tool) {
         myVisibleAutoHideTool = null;
       }
-      if (!tool.isMinimized() && !tool.isFloating()) {
+      if (!tool.isMinimized() && !tool.isDetached()) {
         if (tool.isAutoHide()) {
           if (myVisibleAutoHideTool != null) {
             myVisibleAutoHideTool.setMinimized(true);
@@ -267,7 +267,7 @@ class SideModel<T> {
   }
 
   public enum EventType {
-    UPDATE, UPDATE_FLOATING_WINDOW, LOCAL_UPDATE, SWAP, UPDATE_TOOL_ORDER
+    UPDATE, UPDATE_DETACHED_WINDOW, LOCAL_UPDATE, SWAP, UPDATE_TOOL_ORDER
   }
 
   public interface Listener<T> {

@@ -21,6 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintWrongViewCastInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongViewCastInspection() {
-    super(AndroidBundle.message("android.lint.inspections.wrong.view.cast"), ViewTypeDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.wrong.view.cast"), ViewTypeDetector.WRONG_VIEW_CAST);
   }
 }

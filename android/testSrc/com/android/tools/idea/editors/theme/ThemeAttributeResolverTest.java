@@ -18,18 +18,17 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -52,22 +51,19 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
       protected void run(@NotNull Result<Boolean> result) {
         result.setResult(AndroidResourceUtil.
           createValueResource(getProject(), resourceDir, newStyleName, null, ResourceType.STYLE, "styles.xml", folders,
-                              new Processor<ResourceElement>() {
-            @Override
-            public boolean process(ResourceElement element) {
-              assert element instanceof Style;
-              final Style style = (Style)element;
+                              element -> {
+                                assert element instanceof Style;
+                                final Style style = (Style)element;
 
-              style.getParentStyle().setStringValue(parentStyleName);
-              if (colorPrimaryValue != null) {
-                StyleItem styleItem = style.addItem();
-                styleItem.getName().setStringValue("colorPrimary");
-                styleItem.setStringValue(colorPrimaryValue);
-              }
+                                style.getParentStyle().setStringValue(parentStyleName);
+                                if (colorPrimaryValue != null) {
+                                  StyleItem styleItem = style.addItem();
+                                  styleItem.getName().setStringValue("colorPrimary");
+                                  styleItem.setStringValue(colorPrimaryValue);
+                                }
 
-              return true;
-            }
-          }));
+                                return true;
+                              }));
       }
     }.execute().getResultObject();
   }
@@ -79,7 +75,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
     VirtualFile resourceDir = myFile.getParent().getParent();
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-v13", "values-v16"));
     createNewStyle(resourceDir, "ThemeB", "ThemeA", "blue", Lists.newArrayList("values-v12"));
@@ -114,7 +110,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
   public void testResolveAllEnum() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
     VirtualFile resourceDir = myFile.getParent().getParent();
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
     createNewStyle(resourceDir, "ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));

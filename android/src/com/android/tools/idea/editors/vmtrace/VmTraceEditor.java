@@ -21,9 +21,7 @@ import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -35,14 +33,12 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
 
 public class VmTraceEditor implements FileEditor {
   private final TraceViewPanel myTraceViewPanel;
@@ -59,7 +55,8 @@ public class VmTraceEditor implements FileEditor {
         indicator.setIndeterminate(true);
 
         File traceFile = VfsUtilCore.virtualToIoFile(file);
-        VmTraceParser parser = new VmTraceParser(traceFile);
+        VmTraceData.Builder dataBuilder = new VmTraceData.Builder();
+        VmTraceParser parser = new VmTraceParser(traceFile, dataBuilder);
         try {
           parser.parse();
         }
@@ -71,11 +68,11 @@ public class VmTraceEditor implements FileEditor {
               Messages.showErrorDialog(project, "Unexpected error while parsing trace file: " +
                                                 Throwables.getRootCause(throwable).getMessage(), getName());
             }
-          }, ModalityState.defaultModalityState());
+          });
           return;
         }
 
-        final VmTraceData vmTraceData = parser.getTraceData();
+        final VmTraceData vmTraceData = dataBuilder.build();
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {

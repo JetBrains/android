@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -60,4 +60,14 @@ public interface InspectorComponent {
    */
   @NotNull
   List<NlComponentEditor> getEditors();
+
+  /**
+   * If customized handling of field visibility is required, use this method
+   * to set the visibility of the fields.
+   * Filtering in the inspector will change any visibility settings done by this
+   * {@link InspectorComponent}. Use this method to override the visibility when
+   * there is no filter active. When a filter is active this method should not
+   * do anything.
+   */
+  default void updateVisibility() {}
 }

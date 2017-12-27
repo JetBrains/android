@@ -69,7 +69,7 @@ public class NewKeyStoreDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    if (getKeyStorePath().length() == 0) {
+    if (getKeyStorePath().isEmpty()) {
       Messages.showErrorDialog(myPanel, "Specify key store path", CommonBundle.getErrorTitle());
       return;
     }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;

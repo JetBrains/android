@@ -25,7 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
+import static com.android.SdkConstants.*;
 import static com.google.common.base.Charsets.UTF_8;
 
 /**
@@ -46,36 +48,58 @@ public class TagSnapshot {
   @Nullable private TagSnapshot myNext;
   @NotNull public List<TagSnapshot> children;
   @NotNull public List<AttributeSnapshot> attributes;
+  /** Whether this element or any of its children has any aapt:attr definitions */
+  public boolean hasDeclaredAaptAttrs = false;
 
   private TagSnapshot(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix, @Nullable String namespace,
-                      @NotNull List<AttributeSnapshot> attributes, @NotNull List<TagSnapshot> children) {
+                      @NotNull List<AttributeSnapshot> attributes, @NotNull List<TagSnapshot> children, boolean hasDeclaredAaptAttrs) {
     this.tagName = tagName != null ? tagName : "?";
     this.prefix = prefix == null || prefix.isEmpty() ? null : prefix;
     this.namespace = namespace;
     this.tag = tag;
     this.attributes = attributes;
     this.children = children;
+    this.hasDeclaredAaptAttrs = hasDeclaredAaptAttrs;
   }
 
   public static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,
                                                @Nullable String namespace, @NotNull List<AttributeSnapshot> attributes,
                                                @NotNull List<TagSnapshot> children) {
-    return new TagSnapshot(tag, tagName, prefix, namespace, attributes, children);
+    return new TagSnapshot(tag, tagName, prefix, namespace, attributes, children, false);
   }
 
+  /**
+   * Creates a new tag snapshot starting at the given tag
+   * @param tag The root tag to create the snapshot from
+   * @param afterCreate If not null, this will be called for every new {@link TagSnapshot} created by this call
+   */
   @NotNull
-  public static TagSnapshot createTagSnapshot(@NotNull XmlTag tag) {
+  public static TagSnapshot createTagSnapshot(@NotNull XmlTag tag, @Nullable Consumer<TagSnapshot> afterCreate) {
     // Attributes
     List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(tag);
 
     // Children
     List<TagSnapshot> children;
     XmlTag[] subTags = tag.getSubTags();
+    boolean hasDeclaredAaptAttrs = false;
     if (subTags.length > 0) {
       TagSnapshot last = null;
       children = Lists.newArrayListWithCapacity(subTags.length);
       for (XmlTag subTag : subTags) {
-        TagSnapshot child = createTagSnapshot(subTag);
+        if (AAPT_URI.equals(subTag.getNamespace())) {
+          if (ATTR_ATTR.equals(subTag.getLocalName()) && subTag.getAttribute(ATTR_NAME) != null) {
+            AaptAttrAttributeSnapshot aaptAttribute = AaptAttrAttributeSnapshot.createAttributeSnapshot(subTag);
+            if (aaptAttribute != null) {
+              attributes.add(aaptAttribute);
+              hasDeclaredAaptAttrs = true;
+            }
+          }
+          // Since we save the aapt:attr tags as an attribute, we do not save them as a child element. Skip.
+          continue;
+        }
+
+        TagSnapshot child = createTagSnapshot(subTag, afterCreate);
+        hasDeclaredAaptAttrs |= child.hasDeclaredAaptAttrs;
         children.add(child);
         if (last != null) {
           last.myNext = child;
@@ -86,14 +110,38 @@ public class TagSnapshot {
       children = Collections.emptyList();
     }
 
-    return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
+    TagSnapshot newSnapshot =
+      new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children, hasDeclaredAaptAttrs);
+    if (afterCreate != null) {
+      afterCreate.accept(newSnapshot);
+    }
+
+    return newSnapshot;
   }
 
   @NotNull
   public static TagSnapshot createTagSnapshotWithoutChildren(@NotNull XmlTag tag) {
     List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(tag);
-    List<TagSnapshot> children = Collections.emptyList();
-    return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
+
+    boolean hasDeclaredAaptAttrs = false;
+    for (XmlTag subTag : tag.getSubTags()) {
+      if (AAPT_URI.equals(subTag.getNamespace())) {
+        if (ATTR_ATTR.equals(subTag.getLocalName()) && subTag.getAttribute(ATTR_NAME) != null) {
+          AaptAttrAttributeSnapshot aaptAttribute = AaptAttrAttributeSnapshot.createAttributeSnapshot(subTag);
+          if (aaptAttribute != null) {
+            attributes.add(aaptAttribute);
+            hasDeclaredAaptAttrs = true;
+          }
+        }
+      }
+    }
+
+    return new TagSnapshot(
+      tag,
+      tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(),
+      attributes,
+      Collections.emptyList(),
+      hasDeclaredAaptAttrs);
   }
 
   @Nullable
@@ -123,11 +171,20 @@ public class TagSnapshot {
    * there is a short time between the user editing a value to when the rendering is complete during which the
    * snapshot value will be out of date unless it is updated via this API.
    */
-  public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
+  public void setAttribute(@NotNull String name,
+                           @Nullable String namespace,
+                           @Nullable String prefix,
+                           @Nullable String value,
+                           boolean overrideIfExists) {
     for (int i = 0, n = attributes.size(); i < n; i++) {
       AttributeSnapshot attribute = attributes.get(i);
       if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-        attributes.remove(i);
+        if (overrideIfExists) {
+          attributes.remove(i);
+        }
+        else {
+          return;
+        }
         break;
       }
     }
@@ -138,6 +195,16 @@ public class TagSnapshot {
       }
       attributes.add(new AttributeSnapshot(namespace, prefix, name, value));
     }
+  }
+
+  /**
+   * Sets the given attribute in the snapshot; this should <b>only</b> be done during snapshot hierarchy
+   * construction, not later, with the sole exception of the property sheet: In the case of the property sheet,
+   * there is a short time between the user editing a value to when the rendering is complete during which the
+   * snapshot value will be out of date unless it is updated via this API.
+   */
+  public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
+    setAttribute(name, namespace, prefix, value, true);
   }
 
   @Nullable

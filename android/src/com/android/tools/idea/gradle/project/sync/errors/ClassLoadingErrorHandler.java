@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -122,7 +122,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
     hyperlinks.add(syncProjectHyperlink);
     hyperlinks.add(stopDaemonsHyperlink);
 
-    SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
+    GradleSyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
     return true;
   }
 

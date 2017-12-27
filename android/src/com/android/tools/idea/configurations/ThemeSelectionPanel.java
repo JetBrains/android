@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -416,7 +417,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private List<String> getLibraryThemes() {
     if (myLibraryThemes == null) {
       myLibraryThemes = getFilteredPrefixesSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes,
-                                                       Collections.singleton("Base."));
+                                                       ImmutableSet.of("Base.", "Platform."));
     }
 
     return myLibraryThemes;
@@ -511,7 +512,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         topLevel.add(ThemeCategory.PROJECT);
       }
 
-      AndroidModuleInfo info = AndroidModuleInfo.get(myConfiguration.getConfigurationManager().getModule());
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         topLevel.add(ThemeCategory.MATERIAL);
         topLevel.add(ThemeCategory.MATERIAL_LIGHT);

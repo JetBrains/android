@@ -20,6 +20,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
-  public void testResolveBuildPackageConflict() throws Exception {
+  public void ignore_testResolveBuildPackageConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_BUILD_PACKAGE);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
@@ -49,7 +50,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
-  public void testResolveFlavorPackageConflict() throws Exception {
+  public void ignore_testResolveFlavorPackageConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_FLAVOR_PACKAGE);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);

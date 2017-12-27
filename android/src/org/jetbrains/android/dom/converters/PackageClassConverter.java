@@ -56,23 +56,26 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   private final boolean myUseManifestBasePackage;
   private final String[] myExtendClassesNames;
+  private final boolean myCompleteNonModuleClass;
 
   /**
    * @param useManifestBasePackage if true, even when the attribute it's not defined within the manifest, the resolution will use the
    *                               manifest package for completion.
+   * @param completeNonModuleClasses if true, find classes outside of the current module
    * @param extendClassesNames     list of the classes that the searched class can extend
    */
-  public PackageClassConverter(boolean useManifestBasePackage, String... extendClassesNames) {
+  public PackageClassConverter(boolean useManifestBasePackage, boolean completeNonModuleClasses, String... extendClassesNames) {
     myUseManifestBasePackage = useManifestBasePackage;
+    myCompleteNonModuleClass = completeNonModuleClasses;
     myExtendClassesNames = extendClassesNames;
   }
 
   public PackageClassConverter(String... extendClassesNames) {
-    this(false, extendClassesNames);
+    this(false, false, extendClassesNames);
   }
 
   public PackageClassConverter() {
-    this(false, ArrayUtil.EMPTY_STRING_ARRAY);
+    this(false, false, ArrayUtil.EMPTY_STRING_ARRAY);
   }
 
   @Override
@@ -157,7 +160,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     final String[] extendClassesNames = extendClassAnnotation != null
                                         ? new String[]{extendClassAnnotation.value()}
                                         : myExtendClassesNames;
-    final boolean inModuleOnly = domElement.getAnnotation(CompleteNonModuleClass.class) == null;
+    final boolean inModuleOnly = !myCompleteNonModuleClass && domElement.getAnnotation(CompleteNonModuleClass.class) == null;
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes

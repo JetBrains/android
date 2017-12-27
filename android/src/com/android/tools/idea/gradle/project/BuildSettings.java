@@ -39,7 +39,7 @@ public class BuildSettings {
     myProject = project;
   }
 
-  public void removeAll() {
+  public void clear() {
     setModulesToBuild(null);
     setBuildMode(null);
     setRunConfigurationTypeId(null);

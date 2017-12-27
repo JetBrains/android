@@ -33,12 +33,12 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ui.SideBorder.BOTTOM;
 import static com.intellij.util.ui.UIUtil.getButtonFont;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createCompoundBorder;
 import static javax.swing.BorderFactory.createEmptyBorder;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   @NotNull private final PsModule myModule;

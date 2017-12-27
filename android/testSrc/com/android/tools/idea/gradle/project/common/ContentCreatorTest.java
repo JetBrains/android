@@ -15,31 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
+import com.intellij.testFramework.IdeaTestCase;
+import org.mockito.Mock;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.common.GradleInitScripts.ContentCreator}.
  */
-public class ContentCreatorTest {
+public class ContentCreatorTest extends IdeaTestCase {
+  @Mock private GradleInitScripts.JavaLibraryPluginJars myJavaLibraryPluginJars;
   private GradleInitScripts.ContentCreator myContentCreator;
 
-  @Before
-  public void setUp() {
-    myContentCreator = new GradleInitScripts.ContentCreator();
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    initMocks(this);
+
+    myContentCreator = new GradleInitScripts.ContentCreator(myJavaLibraryPluginJars);
   }
 
-  @Test
-  public void createLocalMavenRepoInitScriptContent() {
-    List<File> repoPaths = Lists.newArrayList(new File("path1"), new File("path2"), new File("path3"));
-    String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
-
+  public void testCreateLocalMavenRepoInitScriptContent() {
+    List<File> repoPaths = Arrays.asList(new File("path1"), new File("path2"), new File("path3"));
     String expected = "allprojects {\n" +
                       "  buildscript {\n" +
                       "    repositories {\n" +
@@ -55,6 +57,24 @@ public class ContentCreatorTest {
                       "  }\n" +
                       "}\n";
 
+    String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
+    assertEquals(expected, content);
+  }
+
+  public void testCreateApplyJavaLibraryPluginInitScriptContent() {
+    List<String> jarPaths = Arrays.asList("path1", "path2");
+    when(myJavaLibraryPluginJars.getJarPaths()).thenReturn(jarPaths);
+
+    String expected = "initscript {\n" +
+                      "    dependencies {\n" +
+                      "        classpath files(['path1', 'path2'])\n" +
+                      "    }\n" +
+                      "}\n" +
+                      "allprojects {\n" +
+                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "}\n";
+
+    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
     assertEquals(expected, content);
   }
 }

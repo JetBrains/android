@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android.fileTypes;
 
-import com.android.tools.idea.apk.AndroidApkFileType;
+import com.android.tools.idea.apk.ApkFileType;
+import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.android.tools.idea.fileTypes.PhotoshopFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.android.tools.idea.rendering.webp.WebpImageReaderSpi;
-import com.android.tools.idea.rendering.webp.WebpImageWriterSpi;
 import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
@@ -41,6 +40,7 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
     consumer.consume(PhotoshopFileType.INSTANCE, PhotoshopFileType.EXTENSION);
     WebpMetadata.ensureWebpRegistered();
     consumer.consume(ImageFileTypeManager.getInstance().getImageFileType(), WebpMetadata.EXT_WEBP);
-    consumer.consume(AndroidApkFileType.INSTANCE, AndroidApkFileType.INSTANCE.getDefaultExtension());
+    consumer.consume(ApkFileType.INSTANCE, ApkFileType.INSTANCE.getDefaultExtension());
+    consumer.consume(FontFileType.INSTANCE, FontFileType.fileNameMatchers());
   }
 }

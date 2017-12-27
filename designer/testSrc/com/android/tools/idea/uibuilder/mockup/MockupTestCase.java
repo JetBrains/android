@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

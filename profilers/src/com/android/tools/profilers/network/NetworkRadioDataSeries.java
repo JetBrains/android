@@ -19,9 +19,8 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -32,24 +31,27 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries.RadioState>{
   public enum RadioState{
-    WIFI, IDLE, LOW, HIGH, NONE
+    WIFI, LOW, HIGH, NONE
   }
 
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId) {
+  public NetworkRadioDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int processId, Common.Session session) {
     myClient = client;
     myProcessId = processId;
+    mySession = session;
   }
 
   @Override
   @NotNull
-  public ImmutableList<SeriesData<RadioState>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<RadioState>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setType(NetworkDataRequest.Type.CONNECTIVITY)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
@@ -65,14 +67,11 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
           break;
         case MOBILE:
           switch (data.getConnectivityData().getRadioState()) {
-            case ACTIVE:
+            case HIGH:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.HIGH));
               break;
-            case IDLE:
+            case LOW:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.LOW));
-              break;
-            case SLEEPING:
-              seriesData.add(new SeriesData<>(timestampUs, RadioState.IDLE));
               break;
             default:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.NONE));
@@ -84,7 +83,7 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
           break;
       }
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 
 }

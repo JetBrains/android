@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,12 +31,31 @@ public class AttributeDefinitionEnumSupport extends EnumSupport {
   @Override
   @NotNull
   public List<ValueWithDisplayString> getAllValues() {
+    List<ValueWithDisplayString> values = new ArrayList<>();
+    addAttributeDefinitionValues(values);
+    return values;
+  }
+
+  protected void addAttributeDefinitionValues(@NotNull List<ValueWithDisplayString> values) {
     AttributeDefinition definition = myProperty.getDefinition();
-    String[] stringValues = definition != null ? definition.getValues() : ArrayUtil.EMPTY_STRING_ARRAY;
-    List<ValueWithDisplayString> values = new ArrayList<>(stringValues.length);
-    for (String stringValue : stringValues) {
+    if (definition == null) {
+      return;
+    }
+    for (String stringValue : definition.getValues()) {
       values.add(new ValueWithDisplayString(stringValue, stringValue));
     }
-    return values;
+  }
+
+  protected boolean isEnumValue(@NotNull String value) {
+    AttributeDefinition definition = myProperty.getDefinition();
+    if (definition == null) {
+      return false;
+    }
+    for (String stringValue : definition.getValues()) {
+      if (value.equals(stringValue)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

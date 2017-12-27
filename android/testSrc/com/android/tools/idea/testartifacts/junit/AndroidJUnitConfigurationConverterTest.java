@@ -38,10 +38,27 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
 public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
-  IdeInfo mockIdeInfo;
+  private IdeComponents myIdeComponents;
+  private IdeInfo mockIdeInfo;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myIdeComponents = new IdeComponents(myProject);
+    mockIdeInfo = myIdeComponents.mockService(IdeInfo.class);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {
-    mockIdeInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
     when(mockIdeInfo.isAndroidStudio()).thenReturn(true);
 
     ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();
@@ -58,7 +75,6 @@ public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
   }
 
   public void testConfigurationsAreNotConvertedInIdea() {
-    mockIdeInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
     when(mockIdeInfo.isAndroidStudio()).thenReturn(false);
 
     ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
@@ -22,6 +23,8 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.navigation.NavDestinationElement;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -133,11 +136,11 @@ public class SubtagsProcessingUtil {
     registerSubtags(tag, allAllowedTags, class2Name.values(), type, subtagProcessor);
   }
 
-  private static void registerSubtags(XmlTag tag,
-                                      final Set<String> allowedTags,
-                                      Collection<String> tagsToComplete,
-                                      Type type,
-                                      SubtagProcessor subtagProcessor) {
+  private static void registerSubtags(@NotNull XmlTag tag,
+                                      @NotNull Collection<String> allowedTags,
+                                      @NotNull Collection<String> tagsToComplete,
+                                      @NotNull Type type,
+                                      @NotNull SubtagProcessor subtagProcessor) {
     for (String tagName : tagsToComplete) {
       subtagProcessor.processSubtag(tagName, type);
     }
@@ -158,6 +161,13 @@ public class SubtagsProcessingUtil {
     }
     else if (element instanceof XmlResourceElement) {
       registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
+    }
+    else if (element instanceof NavDestinationElement) {
+      NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+      Multimap<Class<? extends AndroidDomElement>, String> subtags = schema.getDestinationSubtags(element.getXmlTag().getName());
+      for (Class<? extends AndroidDomElement> c : subtags.keys()) {
+        registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor);
+      }
     }
   }
 

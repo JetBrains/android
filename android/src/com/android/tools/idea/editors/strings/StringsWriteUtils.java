@@ -24,10 +24,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -45,9 +47,41 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class StringsWriteUtils {
+  public static void removeLocale(@NotNull Locale locale, @NotNull AndroidFacet facet, @NotNull Object requestor) {
+    FolderConfiguration configuration = new FolderConfiguration();
+    configuration.setLocaleQualifier(locale.qualifier);
+
+    Project project = facet.getModule().getProject();
+    String name = configuration.getFolderName(ResourceFolderType.VALUES);
+
+    new WriteCommandAction.Simple(project, "Remove Locale " + locale) {
+      @Override
+      protected void run() throws Throwable {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
+        facet.getAllResourceDirectories().stream()
+          .map(directory -> directory.findChild(name))
+          .filter(Objects::nonNull)
+          .forEach(directory -> delete(directory, requestor));
+      }
+    }.execute();
+  }
+
+  private static void delete(@NotNull VirtualFile file, @NotNull Object requestor) {
+    try {
+      file.delete(requestor);
+    }
+    catch (IOException exception) {
+      Logger.getInstance(StringsWriteUtils.class).warn(exception);
+    }
+  }
+
   /**
    * Sets the value of an attribute for resource items.  If SdkConstants.ATTR_NAME is set to null or "", the items are deleted.
    *
@@ -77,6 +111,10 @@ public class StringsWriteUtils {
     new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
       @Override
       public void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
         for (XmlTag tag : tags) {
           if (deleteTag) {
             tag.delete();
@@ -109,6 +147,10 @@ public class StringsWriteUtils {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
         public void run() {
+          // Makes the command global even if only one xml file is modified
+          // That way, the Undo is always available from the translation editor
+          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
           // First remove the existing value of the tag (any text and possibly other XML nested tags - like xliff:g).
           for (XmlTagChild child : tag.getValue().getChildren()) {
             child.delete();
@@ -153,6 +195,10 @@ public class StringsWriteUtils {
     new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
       @Override
       public void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
         XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
 
         child.setAttribute(SdkConstants.ATTR_NAME, name);
@@ -168,18 +214,13 @@ public class StringsWriteUtils {
       return getStringResourceItem(facet, name, locale);
     }
     else {
-      return ApplicationManager.getApplication().runReadAction(new Computable<ResourceItem>() {
-        @Override
-        public ResourceItem compute() {
-          return getStringResourceItem(facet, name, locale);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<ResourceItem>)() -> getStringResourceItem(facet, name, locale));
     }
   }
 
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
-    LocalResourceRepository repository = facet.getModuleResources(true);
+    LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
     List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
@@ -210,7 +251,7 @@ public class StringsWriteUtils {
   }
 
   @Nullable
-  private static XmlFile getStringResourceFile(@NotNull Project project, @NotNull final VirtualFile resFolder, @Nullable Locale locale) {
+  static XmlFile getStringResourceFile(@NotNull Project project, @NotNull VirtualFile resFolder, @Nullable Locale locale) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (locale != null) {
       configuration.setLocaleQualifier(locale.qualifier);

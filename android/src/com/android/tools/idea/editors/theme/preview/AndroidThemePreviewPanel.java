@@ -27,7 +27,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
-import com.android.tools.swing.ui.NavigationComponent;
+import com.android.tools.adtui.ui.NavigationComponent;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;

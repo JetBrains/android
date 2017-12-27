@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -71,17 +73,17 @@ public class SceneDeleteWidgetTest extends SceneTest {
   public void testDelete() {
     SceneComponent layout = myScene.getSceneComponent("root");
     NlComponent layoutComponent = layout.getNlComponent();
-    ViewGroupHandler handler = (ViewGroupHandler)layoutComponent.getViewHandler();
+    ViewGroupHandler handler = (ViewGroupHandler)NlComponentHelperKt.getViewHandler(layoutComponent);
     ArrayList<NlComponent> deleted = new ArrayList<>();
     deleted.add(myScene.getSceneComponent("button2").getNlComponent());
     handler.deleteChildren(layoutComponent, deleted);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"8dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"185dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"185dp\" />");
   }
 }

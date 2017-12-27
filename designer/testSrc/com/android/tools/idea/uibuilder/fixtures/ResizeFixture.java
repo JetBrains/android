@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.fixtures.ComponentFixture;
+import com.android.tools.idea.common.fixtures.KeyEventBuilder;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -82,7 +88,7 @@ public class ResizeFixture {
     }
     NlComponent component = componentFixture.getComponent();
     SelectionHandle handle = new SelectionHandle(component, position);
-    myInteraction = new ResizeInteraction(myScreen, component, handle);
+    myInteraction = new ResizeInteraction(myScreen, componentFixture.getSceneComponent(), handle);
 
     int startX = Coordinates.getSwingX(myScreen, handle.getCenterX());
     int startY = Coordinates.getSwingY(myScreen, handle.getCenterY());

@@ -47,4 +47,9 @@ public class UnusedResourcesQuickFix implements AndroidLintQuickFix {
   public String getName() {
     return myResource != null ? "Remove Declarations for " + myResource : "Remove All Unused Resources";
   }
+
+  @Override
+  public boolean startInWriteAction() {
+    return false;
+  }
 }

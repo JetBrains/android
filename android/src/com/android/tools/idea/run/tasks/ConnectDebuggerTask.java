@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -26,43 +26,44 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.xdebugger.XDebuggerManager;
-import com.intellij.xdebugger.breakpoints.XBreakpointManager;
-import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   private static final int POLL_TIMEOUT = 15;
   private static final TimeUnit POLL_TIMEUNIT = TimeUnit.SECONDS;
 
-  @NotNull private final Set<String> myApplicationIds;
+  @NotNull protected final Set<String> myApplicationIds;
   @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
   protected final boolean myMonitorRemoteProcess;
+  protected final boolean myAttachToRunningProcess;
 
   protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
                                 @NotNull AndroidDebugger debugger,
                                 @NotNull Project project,
                                 boolean monitorRemoteProcess) {
+    this(applicationIds, debugger, project, monitorRemoteProcess, false);
+  }
+
+  protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
+                                @NotNull AndroidDebugger debugger,
+                                @NotNull Project project,
+                                boolean monitorRemoteProcess,
+                                boolean attachToRunningProcess) {
     myApplicationIds = applicationIds;
     myDebugger = debugger;
     myProject = project;
     myMonitorRemoteProcess = monitorRemoteProcess;
+    myAttachToRunningProcess = attachToRunningProcess;
   }
 
   @NotNull
@@ -81,58 +82,16 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
                                 @NotNull IDevice device,
                                 @NotNull final ProcessHandlerLaunchStatus state,
                                 @NotNull final ProcessHandlerConsolePrinter printer) {
-    logUnsupportedBreakpoints(device.getVersion(), printer);
-
     final Client client = waitForClient(device, state, printer);
     if (client == null) {
       return null;
     }
 
-    return UIUtil.invokeAndWaitIfNeeded(new Computable<ProcessHandler>() {
-      @Override
-      public ProcessHandler compute() {
-        return launchDebugger(launchInfo, client, state, printer);
-      }
-    });
-  }
-
-  private void logUnsupportedBreakpoints(@NotNull AndroidVersion version, @NotNull final ConsolePrinter printer) {
-    final Set<XBreakpointType<?, ?>> allBpTypes = Sets.newHashSet();
-    for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
-      allBpTypes.addAll(androidDebugger.getSupportedBreakpointTypes(myProject, version));
-    }
-
-    allBpTypes.removeAll(myDebugger.getSupportedBreakpointTypes(myProject, version));
-    if (allBpTypes.isEmpty()) {
-      return;
-    }
-
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        XBreakpointManager bpManager = XDebuggerManager.getInstance(myProject).getBreakpointManager();
-
-        // Try to find breakpoints which are using unsupported breakpoint types.
-        for (XBreakpointType<?, ?> bpType : allBpTypes) {
-          Collection bps = bpManager.getBreakpoints(bpType);
-          if (!bps.isEmpty()) {
-            String warnMsg = String.format(
-              "The currently selected %1$s debugger doesn't support breakpoints of type '%2$s'. As a result, these breakpoints will " +
-              "not be hit.\nThe debugger selection can be modified in the run configuration dialog.",
-              myDebugger.getDisplayName(), bpType.getTitle());
-            printer.stderr(warnMsg);
-            Logger.getInstance(ConnectDebuggerTask.class).info(warnMsg);
-            return;
-          }
-        }
-      }
-    });
+    return UIUtil.invokeAndWaitIfNeeded(() -> launchDebugger(launchInfo, client, state, printer));
   }
 
   @Nullable
   protected Client waitForClient(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
-    Set<Client> instantApps = new HashSet<>();
-
     for (int i = 0; i < POLL_TIMEOUT; i++) {
       if (state.isLaunchTerminated()) {
         return null;
@@ -147,11 +106,6 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
         Client client = device.getClient(name);
         if (client == null) {
           printer.stdout("Waiting for application to come online: " + Joiner.on(" | ").join(myApplicationIds));
-        }
-        else if (instantApps.contains(client) && isReadyForDebugging(client, printer)) {
-          // Eventually the InstantApp runtime should start the instant app in a state where it is waiting for the debugger, so this
-          // check should not be necessary.
-          return client;
         }
         else {
           printer.stdout("Connecting to " + name);
@@ -172,32 +126,23 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
               }
               break;
             default:
+              if (myAttachToRunningProcess && isReadyForDebugging(client, printer)) {
+                return client;
+              }
               printer.stderr("Waiting for application to start debug server");
               break;
           }
         }
       }
-
-      // The Instant App runtime returns a placeholder name for processes when they first start so we need to re-query the name. Once this
-      // behavior is fixed this code can be removed.
-      for (Client client : device.getClients()) {
-        String name = client.getClientData().getClientDescription();
-        if (isNotEmpty(name) && name.startsWith("com.google.android.instantapps.supervisor.isolated")) {
-          try {
-            client.refreshName();
-            instantApps.add(client);
-          }
-          catch (IOException e) {
-            printer.stderr("Cannot update Instant App process");
-            return null;
-          }
-        }
-      }
-
-      Uninterruptibles.sleepUninterruptibly(1, POLL_TIMEUNIT);
+      sleep(1, POLL_TIMEUNIT);
     }
     printer.stderr("Could not connect to remote process. Aborting debug session.");
     return null;
+  }
+
+  @VisibleForTesting // Allow unit tests to avoid actually sleeping.
+  protected void sleep(long sleepFor, @NotNull TimeUnit unit) {
+    Uninterruptibles.sleepUninterruptibly(sleepFor, unit);
   }
 
   public boolean isReadyForDebugging(@NotNull Client client, @NotNull ConsolePrinter printer) {

@@ -17,8 +17,8 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.AppState;
-import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.ir.client.AppState;
+import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
@@ -63,11 +63,13 @@ public class RestartActivityAction extends AnAction {
 
     if (module == null) {
       e.getPresentation().setEnabled(false);
+      e.getPresentation().setDescription(null);
       return;
     }
 
     if (!InstantRunSettings.isInstantRunEnabled()) {
       e.getPresentation().setEnabled(false);
+      e.getPresentation().setDescription("Restart Activity (requires Instant Run to be enabled)");
       return;
     }
 
@@ -78,11 +80,18 @@ public class RestartActivityAction extends AnAction {
     }
 
     Project project = module.getProject();
-    boolean enabled = InstantRunSettings.isInstantRunEnabled() &&
-                      (InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) &&
-                      !getActiveSessions(project).isEmpty() &&
-                      !isDebuggerPaused(project);
+    boolean gradleSupportsIr = InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED;
+    boolean hasActiveSession = !getActiveSessions(project).isEmpty();
+    boolean isPausedInDebugger = isDebuggerPaused(project);
+    boolean enabled = gradleSupportsIr && hasActiveSession && !isPausedInDebugger;
     e.getPresentation().setEnabled(enabled);
+
+    if (!hasActiveSession) {
+      e.getPresentation().setDescription("Restart Activity (requires an active debug session)");
+    }
+    else if (!isPausedInDebugger) {
+      e.getPresentation().setDescription("Restart Activity (requires the app to not be stopped at a breakpoint)");
+    }
   }
 
   private static List<ProcessHandler> getActiveSessions(@Nullable Project project) {
@@ -99,7 +108,7 @@ public class RestartActivityAction extends AnAction {
     return activeHandlers;
   }
 
-  private static boolean isDebuggerPaused(@Nullable Project project) {
+  public static boolean isDebuggerPaused(@Nullable Project project) {
     if (project == null) {
       return false;
     }

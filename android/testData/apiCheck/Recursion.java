@@ -17,7 +17,7 @@ public class Class {
                        PendingIntent contentIntent, PendingIntent fullScreenIntent, Bitmap largeIcon,
                        int mProgressMax, int mProgress, boolean mProgressIndeterminate,
                        boolean useChronometer, int priority, CharSequence subText, Bundle extras) {
-            b = <error descr="Call requires API level 11 (current min is 1): new android.app.Notification.Builder">new Notification.Builder(context)</error>
+            b = <error descr="Call requires API level 11 (current min is 1): new android.app.Notification.Builder">new Notification.Builder</error>(context)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setWhen">setWhen</error>(n.when)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setSmallIcon">setSmallIcon</error>(n.icon, n.iconLevel)
                     .<error descr="Call requires API level 11 (current min is 1): android.app.Notification.Builder#setContent">setContent</error>(n.contentView)

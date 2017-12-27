@@ -4,7 +4,7 @@
   <application android:icon="@drawable/picture1">
     <activity>
       <intent-filter>
-        <category android:name="android.intent.category.t<caret>"/>
+        <category android:name="android.intent.category.i<caret>"/>
       </intent-filter>
     </activity>
   </application>

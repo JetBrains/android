@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-
 import java.awt.image.BufferedImage;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,7 +44,6 @@ import java.util.List;
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
  */
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
-  private static final RenderLogger DRAWABLE_RENDER_LOGGER = new RenderLogger("ThemeEditorLogger", null);
   /**
    * Minimum size in pixels for the drawable preview render. This doesn't need to be exact as the actual icon
    * will be scaled to match the swatch size.
@@ -62,9 +60,11 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    final RenderService service = RenderService.get(facet);
-    RenderTask task = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
+    final RenderService service = RenderService.getInstance(facet);
+    RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
+    RenderTask task = service.createTask(null, configuration, logger, null);
     assert task != null;
+    task.getLayoutlibCallback().setLogger(logger);
     return task;
   }
 
@@ -84,12 +84,12 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
     myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
     List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
-    SwatchComponent.SwatchIcon icon;
+    ResourceSwatchComponent.SwatchIcon icon;
     if (images.isEmpty()) {
-      icon = SwatchComponent.WARNING_ICON;
+      icon = ResourceSwatchComponent.WARNING_ICON;
     }
     else {
-      icon = new SwatchComponent.SquareImageIcon(Iterables.getLast(images));
+      icon = new ResourceSwatchComponent.SquareImageIcon(Iterables.getLast(images));
       icon.setIsStack(images.size() > 1);
     }
     component.setSwatchIcon(icon);

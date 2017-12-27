@@ -16,30 +16,26 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
@@ -53,7 +49,7 @@ import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
  * This pull parser generates {@link com.android.ide.common.rendering.api.ViewInfo}s whose keys
  * are of type {@link XmlTag}.
  */
-public class LayoutPsiPullParser extends LayoutPullParser {
+public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrParser {
   /**
    * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
    * ImageView and all the framework views that inherit from ImageView and support srcCompat.
@@ -75,8 +71,16 @@ public class LayoutPsiPullParser extends LayoutPullParser {
                                                                                  ),
                                                                                  ImmutableList.of());
 
+  private static final Consumer<TagSnapshot> TAG_SNAPSHOT_DECORATOR = (tag) -> {
+    if ("com.google.android.gms.ads.AdView".equals(tag.tagName) || "com.google.android.gms.maps.MapView".equals(tag.tagName)) {
+      tag.setAttribute(ATTR_MIN_WIDTH, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tag.setAttribute(ATTR_MIN_HEIGHT, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tag.setAttribute(ATTR_BACKGROUND, TOOLS_URI, TOOLS_PREFIX, "#AAA", false);
+    }
+  };
+
   @NotNull
-  private final LayoutLog myLogger;
+  private final ILayoutLog myLogger;
 
   @NotNull
   private final List<TagSnapshot> myNodeStack = new ArrayList<>();
@@ -84,16 +88,32 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   protected final TagSnapshot myRoot;
 
-  @Nullable
-  private String myToolsPrefix;
-
-  @Nullable
-  protected String myAndroidPrefix;
+  /** Mapping from URI to namespace prefix for android, app and tools URIs */
+  @NotNull
+  protected final ImmutableMap<String, String> myNamespacePrefixes;
 
   protected boolean myProvideViewCookies = true;
 
   /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
   private boolean myUseSrcCompat;
+
+  private final ImmutableMap<String, TagSnapshot> myDeclaredAaptAttrs;
+
+  /**
+   * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
+   * parsing a layout resource files.
+   *
+   * @param file         The {@link XmlTag} for the root node.
+   * @param logger       The logger to emit warnings too, such as missing fragment associations
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   */
+  @NotNull
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
+      return new MenuPsiPullParser(file, logger);
+    }
+    return new LayoutPsiPullParser(file, logger, honorMergeParentTag);
+  }
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -103,11 +123,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger) {
-    if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
-      return new MenuPsiPullParser(file, logger);
-    }
-    return new LayoutPsiPullParser(file, logger);
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger) {
+    return create(file, logger, true);
   }
 
   /**
@@ -125,59 +142,137 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
-                                           @NotNull RenderLogger logger,
+                                           @NotNull IRenderLogger logger,
                                            @Nullable Set<XmlTag> explodeNodes,
                                            @NotNull Density density) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
       return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density);
     } else {
-      return new LayoutPsiPullParser(file, logger);
+      // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
+      // the tools:parentTag
+      return new LayoutPsiPullParser(file, logger, true);
     }
   }
 
   @NotNull
   public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
                                            @NotNull XmlTag root,
-                                           @NotNull RenderLogger logger) {
+                                           @NotNull IRenderLogger logger) {
     return new AttributeFilteredLayoutParser(root, logger, filter);
   }
 
-  /** Use one of the {@link #create} factory methods instead */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull LayoutLog logger) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger);
+  @NotNull
+  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
+    return new LayoutPsiPullParser(root, log);
   }
 
-  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull LayoutLog logger) {
+  /**
+   * Use one of the {@link #create} factory methods instead
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   */
+  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag);
+  }
+
+  /**
+   * Returns the declared namespaces in the passed {@link TagSnapshot}. If the passed root is null, an empty map is returned.
+   * This method will run in a read action if needed.
+   */
+  @NotNull
+  private static ImmutableMap<String, String> buildNamespacesMap(@Nullable TagSnapshot root) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction((Computable<ImmutableMap<String, String>>)() -> buildNamespacesMap(root));
+    }
+
+    XmlTag rootTag = root != null ? root.tag : null;
+    if (rootTag == null || !rootTag.isValid()) {
+      return ImmutableMap.of();
+    }
+
+    ImmutableMap.Builder<String, String> prefixesBuilder = ImmutableMap.builder();
+    for (String uri : new String[]{ANDROID_URI, TOOLS_URI, AUTO_URI}) {
+      String prefix = rootTag.getPrefixByNamespace(uri);
+      if (prefix != null) {
+        prefixesBuilder.put(uri, prefix);
+      }
+    }
+
+    return prefixesBuilder.build();
+  }
+
+  /**
+   * Use one of the {@link #create} factory methods instead
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   */
+  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
     myLogger = logger;
 
     if (root != null) {
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
         if (root.isValid()) {
-          myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-          myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-          myRoot = createSnapshot(root);
+          return createSnapshot(root, honorMergeParentTag);
         } else {
-          myRoot = EMPTY_LAYOUT;
+          return EMPTY_LAYOUT;
         }
-      } else {
-        myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-          if (root.isValid()) {
-            myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-            myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-            return createSnapshot(root);
-          } else {
-            return EMPTY_LAYOUT;
-          }
-        });
-      }
+      });
     } else {
       myRoot = EMPTY_LAYOUT;
     }
+
+    myNamespacePrefixes = buildNamespacesMap(myRoot);
+    // Obtain a list of all the aapt declared attributes
+    myDeclaredAaptAttrs = findDeclaredAaptAttrs(myRoot);
+  }
+
+  protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
+    myLogger = log;
+    myDeclaredAaptAttrs = ImmutableMap.of();
+    myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+      if (root.tag != null && root.tag.isValid()) {
+        return root;
+      } else {
+        return null;
+      }
+    });
+
+    myNamespacePrefixes = buildNamespacesMap(myRoot);
+  }
+
+  /**
+   * Returns a {@link Map} that contains all the aapt:attr elements declared in this or any children parsers. This list can be used
+   * to resolve @aapt/_aapt references into this parser.
+   */
+  @Override
+  @NotNull
+  public ImmutableMap<String, TagSnapshot> getAaptDeclaredAttrs() {
+    return myDeclaredAaptAttrs;
+  }
+
+  /**
+   * Method that walks the snapshot and finds all the aapt:attr elements declared.
+   */
+  @NotNull
+  private static ImmutableMap<String, TagSnapshot> findDeclaredAaptAttrs(@Nullable TagSnapshot tag) {
+    if (tag == null || !tag.hasDeclaredAaptAttrs) {
+      // Nor tag or any of the children has any aapt:attr declarations, we can stop here.
+      return ImmutableMap.of();
+    }
+
+    ImmutableMap.Builder<String, TagSnapshot> builder = ImmutableMap.builder();
+    tag.attributes.stream()
+      .filter(attr -> attr instanceof AaptAttrAttributeSnapshot)
+      .map(attr -> (AaptAttrAttributeSnapshot)attr)
+      .forEach(attr -> builder.put(attr.getId(), attr.getBundledTag()));
+    for (TagSnapshot child : tag.children) {
+      builder.putAll(findDeclaredAaptAttrs(child));
+    }
+
+    return builder.build();
   }
 
   @Nullable
   protected final TagSnapshot getCurrentNode() {
-    if (myNodeStack.size() > 0) {
+    if (!myNodeStack.isEmpty()) {
       return myNodeStack.get(myNodeStack.size() - 1);
     }
 
@@ -349,52 +444,50 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       String value = null;
       if (namespace == null) {
         value = tag.getAttribute(localName);
-      } else if (namespace.equals(ANDROID_URI)) {
-        if (myAndroidPrefix != null) {
-          if (myToolsPrefix != null) {
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0, n = tag.attributes.size(); i < n; i++) {
-              AttributeSnapshot attribute = tag.attributes.get(i);
-              if (localName.equals(attribute.name)) {
-                if (myToolsPrefix.equals(attribute.prefix)) {
-                  value = attribute.value;
-                  if (value != null && value.isEmpty()) {
-                    // Empty when there is a runtime attribute set means unset the runtime attribute
-                    value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
-                  }
-                  break;
-                } else if (myAndroidPrefix.equals(attribute.prefix)) {
-                  value = attribute.value;
-                  // Don't break: continue searching in case we find a tools design time attribute
-                }
-              }
-            }
-          } else {
-            value = tag.getAttribute(localName, ANDROID_URI);
-          }
-        } else {
-          value = tag.getAttribute(localName, namespace);
-        }
-      } else {
-        // Temporary conversion: ConstraintLayout 1.0 is looking in the app namespace for attributes stored
-        // in tools namespace in the XML
-        if ((ATTR_LAYOUT_EDITOR_ABSOLUTE_X.equals(localName) || ATTR_LAYOUT_EDITOR_ABSOLUTE_Y.equals(localName)) &&
-            AUTO_URI.equals(namespace)) {
-          return getAttributeValue(TOOLS_URI, localName);
+      } else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
+        // tools attributes can override both android and app namespace attributes
+        String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
+        if (toolsPrefix == null) {
+          // tools namespace is not declared
+          return tag.getAttribute(localName, namespace);
         }
 
-        // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
-        // will be for the current application's resource package, e.g.
-        // http://schemas.android.com/apk/res/foo.bar, but the XML document will
-        // be using http://schemas.android.com/apk/res-auto in library projects:
         //noinspection ForLoopReplaceableByForEach
         for (int i = 0, n = tag.attributes.size(); i < n; i++) {
           AttributeSnapshot attribute = tag.attributes.get(i);
-          if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
-                                                   AUTO_URI.equals(attribute.namespace))) {
-            value = attribute.value;
-            break;
+          if (localName.equals(attribute.name)) {
+            if (toolsPrefix.equals(attribute.prefix)) {
+              value = attribute.value;
+              if (value != null && value.isEmpty()) {
+                // Empty when there is a runtime attribute set means unset the runtime attribute
+                value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
+              }
+              break;
+            } else if (namespace.equals(attribute.namespace)) {
+              value = attribute.value;
+              // Don't break: continue searching in case we find a tools design time attribute
+            }
           }
+        }
+      } else {
+        // The namespace is not android, app or null
+        if (!TOOLS_URI.equals(namespace)) {
+          // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
+          // will be for the current application's resource package, e.g.
+          // http://schemas.android.com/apk/res/foo.bar, but the XML document will
+          // be using http://schemas.android.com/apk/res-auto in library projects:
+          //noinspection ForLoopReplaceableByForEach
+          for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+            AttributeSnapshot attribute = tag.attributes.get(i);
+            if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
+                                                     AUTO_URI.equals(attribute.namespace))) {
+              value = attribute.value;
+              break;
+            }
+          }
+        } else {
+          // We are asked specifically to return a tools attribute
+          value = tag.getAttribute(localName, namespace);
         }
       }
 
@@ -435,6 +528,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null; // Should only be called when START_TAG
       String name = currentNode.tagName;
+
+      String viewHandlerTag = currentNode.getAttribute(ATTR_USE_HANDLER, TOOLS_URI);
+      if (StringUtil.isNotEmpty(viewHandlerTag)) {
+        name = viewHandlerTag;
+      }
+
       if (name.equals(VIEW_FRAGMENT)) {
         // Temporarily translate <fragment> to <include> (and in getAttribute
         // we will also provide a layout-attribute for the corresponding
@@ -450,7 +549,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
               fragmentId = currentNode.getAttribute(ATTR_ID, ANDROID_URI);
             }
           }
-          myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", fragmentId);
+          myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", null, fragmentId);
         }
       } else if (name.endsWith("Compat") && name.indexOf('.') == -1) {
         return name.substring(0, name.length() - "Compat".length());
@@ -566,8 +665,57 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     myProvideViewCookies = provideViewCookies;
   }
 
+  /**
+   * Returns the distance from the given tag to the parent {@code layout} tag or -1 if there is no {@code layout} tag
+   */
+  private static int distanceToLayoutTag(@NotNull XmlTag tag) {
+    int distance = 0;
+
+    while ((tag = tag.getParentTag()) != null) {
+      String tagName = tag.getName();
+      // The merge tag does not count for the distance to the layout tag since it will be
+      if (!VIEW_MERGE.equals(tagName)) {
+        distance++;
+      }
+
+      if (TAG_LAYOUT.equals(tagName)) {
+        break;
+      }
+    }
+
+    // We only count the distance to the layout tag
+    return tag != null ? distance : -1;
+  }
+
+  /**
+   * Creates a {@link TagSnapshot} for the given {@link XmlTag} and all its children.
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   */
   @Nullable
-  private static TagSnapshot createSnapshot(@NotNull XmlTag tag) {
+  private static TagSnapshot createSnapshot(@NotNull XmlTag tag, boolean honorMergeParentTag) {
+    Consumer<TagSnapshot> tagDecorator = TAG_SNAPSHOT_DECORATOR;
+    if (tag.getName().equals(TAG_LAYOUT)) {
+      // If we are creating a snapshot of a databinding layout (the root tag is <layout>), we need to emulate some post-processing that
+      // the databinding code does in the layouts.
+      // For all the children of the root tag, it adds a tag that identifies. The tag is "layout/layout_name_<number>"
+      final String layoutRootName = tag.getContainingFile().getVirtualFile().getNameWithoutExtension();
+      tagDecorator = tagDecorator.andThen(new Consumer<TagSnapshot>() {
+        int counter = 0;
+        @Override
+        public void accept(TagSnapshot snapshot) {
+          if (snapshot.tag == null) {
+            return;
+          }
+
+          if (distanceToLayoutTag(snapshot.tag) == 1) {
+            // The tag attribute is only applied to the root immediate children
+            snapshot.setAttribute("tag", ANDROID_URI, ANDROID_NS_NAME, "layout/" + layoutRootName + "_" + counter++, false);
+          }
+        }
+      });
+    }
+
+
     // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
@@ -583,13 +731,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         return createSnapshotForViewFragment(tag);
 
       case FRAME_LAYOUT:
-        return createSnapshotForFrameLayout(tag);
+        return createSnapshotForFrameLayout(tag, tagDecorator);
 
       case VIEW_MERGE:
-        return createSnapshotForMerge(tag);
+        return createSnapshotForMerge(tag, honorMergeParentTag, tagDecorator);
 
       default:
-        TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
+        TagSnapshot root = TagSnapshot.createTagSnapshot(tag, tagDecorator);
 
         // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
         // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
@@ -641,8 +789,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagDecorator) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
 
     // tools:layout on a <FrameLayout> acts like an <include> child. This
     // lets you preview runtime additions on FrameLayouts.
@@ -685,10 +833,16 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     return root;
   }
 
+  /**
+   * Creates a {@link TagSnapshot} for the given {@link XmlTag}.
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   */
   @NotNull
-  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
-    String parentTag = rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
+  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag,
+                                                    boolean honorMergeParentTag,
+                                                    @NotNull Consumer<TagSnapshot> tagDecorator) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
+    String parentTag = honorMergeParentTag ? rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI) : null;
     if (parentTag == null) {
       return root;
     }
@@ -714,17 +868,16 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {
-
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
-      super(root, logger);
+    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
+      super(root, logger, true);
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
-      super(file, logger);
+    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
+      super(file, logger, true);
       this.myFilter = filter;
     }
 

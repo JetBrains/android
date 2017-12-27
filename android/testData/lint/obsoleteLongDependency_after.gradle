@@ -20,6 +20,6 @@ android {
 }
 
 dependencies {
-    freeCompile group: 'com.google.guava', name: 'guava', version: '20.0', transitive: false
+    freeCompile group: 'com.google.guava', name: 'guava', version: '21.0', transitive: false
     compile 'com.android.support:appcompat-v7:13.0.0'
 }

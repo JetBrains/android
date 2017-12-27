@@ -22,6 +22,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+
 public class ProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final ProjectSetupStep[] mySetupSteps;
@@ -50,6 +52,6 @@ public class ProjectSetup {
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(invokeProjectSetupStepsTask);
+    invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(invokeProjectSetupStepsTask));
   }
 }

@@ -19,12 +19,11 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.intellij.pom.java.LanguageLevel;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
 import java.util.*;
@@ -32,118 +31,49 @@ import java.util.*;
 import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
+/**
+ * Base model for Java library modules
+ */
 public class JavaModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
-  @NotNull private String myModuleName;
-  @NotNull private Collection<JavaModuleContentRoot> myContentRoots = new ArrayList<>();
-  @NotNull private Collection<JavaModuleDependency> myJavaModuleDependencies = new ArrayList<>();
-  @NotNull private Collection<JarLibraryDependency> myJarLibraryDependencies = new ArrayList<>();
-  @NotNull private Map<String, Set<File>> myArtifactsByConfiguration;
-  @NotNull private List<String> myConfigurations;
+  @NotNull private final String myModuleName;
+  @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
+  @NotNull private final Collection<JavaModuleDependency> myJavaModuleDependencies;
+  @NotNull private final Collection<JarLibraryDependency> myJarLibraryDependencies;
+  @NotNull private final Map<String, Set<File>> myArtifactsByConfiguration;
+  @NotNull private final List<String> myConfigurations;
 
-  @Nullable private ExtIdeaCompilerOutput myCompilerOutput;
-  @Nullable private File myBuildFolderPath;
-  @Nullable private String myLanguageLevel;
+  @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
+  @Nullable private final File myBuildFolderPath;
+  @Nullable private final String myLanguageLevel;
 
-  private boolean myBuildable;
-  private boolean myAndroidModuleWithoutVariants;
+  private final boolean myBuildable;
+  private final boolean myAndroidModuleWithoutVariants;
 
-  public JavaModuleModel(@NotNull IdeaModule ideaModule, @Nullable ModuleExtendedModel javaModel, boolean androidModuleWithoutVariants) {
-    this(ideaModule.getName(), getContentRoots(ideaModule, javaModel), getDependencies(ideaModule),
-         getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel), ideaModule.getGradleProject().getBuildDirectory(),
-         getLanguageLevel(javaModel), !androidModuleWithoutVariants && isBuildable(ideaModule), androidModuleWithoutVariants);
-  }
-
-  @Nullable
-  private static ExtIdeaCompilerOutput getCompilerOutput(@Nullable ModuleExtendedModel javaModel) {
-    return javaModel != null ? javaModel.getCompilerOutput() : null;
-  }
-
-  @NotNull
-  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
-                                                                       @Nullable ModuleExtendedModel javaModel) {
-    Collection<? extends IdeaContentRoot> contentRoots = javaModel != null ? javaModel.getContentRoots() : null;
-    if (contentRoots == null) {
-      contentRoots = ideaModule.getContentRoots();
-    }
-    return contentRoots != null ? contentRoots : Collections.emptyList();
-  }
-
-  @NotNull
-  private static Map<String, Set<File>> getArtifactsByConfiguration(@Nullable ModuleExtendedModel javaModel) {
-    Map<String, Set<File>> artifactsByConfiguration = Collections.emptyMap();
-    if (javaModel != null) {
-      artifactsByConfiguration = javaModel.getArtifactsByConfiguration();
-    }
-    return artifactsByConfiguration;
-  }
-
-  @NotNull
-  private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule ideaModule) {
-    List<? extends IdeaDependency> dependencies = ideaModule.getDependencies().getAll();
-    if (dependencies != null) {
-      return dependencies;
-    }
-    return Collections.emptyList();
-  }
-
-  private static boolean isBuildable(@NotNull IdeaModule ideaModule) {
-    for (GradleTask task : ideaModule.getGradleProject().getTasks()) {
-      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  private static String getLanguageLevel(@Nullable ModuleExtendedModel javaModel) {
-    return javaModel != null ? javaModel.getJavaSourceCompatibility() : null;
-  }
-
-  public JavaModuleModel(@NotNull String name,
-                         @NotNull Collection<? extends IdeaContentRoot> contentRoots,
-                         @NotNull List<? extends IdeaDependency> dependencies,
-                         @Nullable Map<String, Set<File>> artifactsByConfiguration,
+  public JavaModuleModel(@NotNull String moduleName,
+                         @NotNull Collection<JavaModuleContentRoot> contentRoots,
+                         @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
+                         @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
+                         @NotNull Map<String, Set<File>> artifactsByConfiguration,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
                          @Nullable String languageLevel,
                          boolean buildable,
                          boolean androidModuleWithoutVariants) {
-    myModuleName = name;
-    for (IdeaContentRoot contentRoot : contentRoots) {
-      if (contentRoot != null) {
-        myContentRoots.add(JavaModuleContentRoot.copy(contentRoot));
-      }
-    }
-
-    for (IdeaDependency dependency : dependencies) {
-      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
-        JarLibraryDependency libraryDependency = JarLibraryDependency.copy((IdeaSingleEntryLibraryDependency)dependency);
-        if (libraryDependency != null) {
-          myJarLibraryDependencies.add(libraryDependency);
-        }
-      }
-      else if (dependency instanceof IdeaModuleDependency) {
-        JavaModuleDependency moduleDependency = JavaModuleDependency.copy((IdeaModuleDependency)dependency);
-        if (moduleDependency != null) {
-          myJavaModuleDependencies.add(moduleDependency);
-        }
-      }
-    }
-
-    myArtifactsByConfiguration = artifactsByConfiguration != null ? artifactsByConfiguration : Collections.emptyMap();
-
-    myConfigurations = new ArrayList<>(myArtifactsByConfiguration.keySet());
-    Collections.sort(myConfigurations);
-
+    myModuleName = moduleName;
+    myContentRoots = contentRoots;
+    myJavaModuleDependencies = javaModuleDependencies;
+    myJarLibraryDependencies = jarLibraryDependencies;
+    myArtifactsByConfiguration = artifactsByConfiguration;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myLanguageLevel = languageLevel;
     myBuildable = buildable;
     myAndroidModuleWithoutVariants = androidModuleWithoutVariants;
+    myConfigurations = new ArrayList<>(myArtifactsByConfiguration.keySet());
+    Collections.sort(myConfigurations);
   }
 
   @Override
@@ -233,5 +163,14 @@ public class JavaModuleModel implements ModuleModel {
   @NotNull
   public List<String> getConfigurations() {
     return myConfigurations;
+  }
+
+  public static boolean isBuildable(@NotNull GradleProject gradleProject) {
+    for (GradleTask task : gradleProject.getTasks()) {
+      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

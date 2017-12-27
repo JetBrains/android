@@ -26,29 +26,28 @@ import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.ui.ASGallery;
-import com.android.tools.idea.ui.properties.*;
-import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
-import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.observable.*;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.string.StringExpression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
@@ -78,10 +77,8 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -128,7 +125,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myInternalStorageLabel;
   private JBLabel myMemoryAndStorageLabel;
-  private JLabel myMultiCoreExperimentalLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JComboBox myCoreCount;
   private JComboBox mySpeedCombo;
@@ -167,6 +163,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JPanel myAvdIdRow;
   private JPanel myCustomSkinPanel;
   private JPanel myScrollRootPane;
+  private JPanel myBootOptionPanel;
+  private JRadioButton myColdBootRadioButton;
+  private JRadioButton myFastBootRadioButton;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -178,11 +177,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private String myOriginalName;
   /**
-   * Boolean used to control if we should warn the user about how changing the size of the SD will erase it.
-   */
-  private boolean myCheckSdForChanges;
-  /**
-   * Device's original Sd card
+   * Device's original Sd card size
    */
   private Storage myOriginalSdCard;
   /**
@@ -237,9 +232,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (supportGuest) {
       otherMode = GpuMode.SWIFT;
     }
-    else if (!isMac) {
-      otherMode = GpuMode.MESA;
-    }
     return otherMode;
   }
 
@@ -253,7 +245,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       case HOST:
         myHostGraphics.setSelectedIndex(1);
         break;
-      case MESA:
       case SWIFT:
       case OFF:
       default:
@@ -326,6 +317,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myQemu2CheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
     myInternalStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Internal Flash");
     myHostGraphics.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Graphics Rendering");
+    myBootOptionPanel.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myColdBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myFastBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
     mySkinComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Custom Device Frame");
     myVmHeapStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Virtual Machine Heap");
     myOrientationToggle.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Default Orientation");
@@ -341,7 +335,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
     setAdvanceSettingsVisible(false);
 
-    // Add labelFor property for custom components since its not allowed from the designer
+    // Add labelFor property for custom components since it's not allowed from the designer
     myAvdIdLabel.setLabelFor(myAvdId);
     myDeviceDetails.setLabelFor(myDeviceName);
     mySystemImageDetails.setLabelFor(mySystemImageName);
@@ -367,9 +361,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     updateSystemImageData();
 
-    myOriginalSdCard = getModel().sdCardStorage().getValue();
 
-    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1) : AvdOptionsModel.MAX_NUMBER_OF_CORES;
+    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
+                                                      : AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES;
   }
 
   private void addListeners() {
@@ -440,20 +434,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myListeners.receive(getModel().sdCardStorage(), storage -> {
-      if (myCheckSdForChanges && storage.isPresent() && !storage.get().equals(myOriginalSdCard)) {
-        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
-                                                             "the current contents of the card. Continue?", "Confirm Data Wipe",
-                                              AllIcons.General.QuestionDialog);
-        if (result == Messages.YES) {
-          myCheckSdForChanges = false;
-        }
-        else {
-          getModel().sdCardStorage().setValue(myOriginalSdCard);
-        }
-      }
-    });
-
     myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
@@ -465,26 +445,41 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                         screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
-  private void updateSystemImageData() {
+  @VisibleForTesting
+  void updateSystemImageData() {
     if (getModel().systemImage().get().isPresent()) {
       SystemImageDescription image = getModel().systemImage().getValue();
 
-      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getApiLevel());
+      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getFeatureLevel());
       if (codeName != null) {
         getModel().systemImageName().set(codeName);
       }
+      Icon icon = null;
       try {
-        Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
-        mySystemImageName.setIcon(icon);
+        icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
       }
       catch (RuntimeException ignored) {
       }
+      if (icon == null) {
+        try {
+          icon = IconLoader.findIcon("/icons/versions/Default_32.png", AndroidIcons.class);
+        }
+        catch (RuntimeException ignored) {
+        }
+      }
+      mySystemImageName.setIcon(icon);
 
       getModel().systemImageDetails().set(image.getName() + " " + image.getAbiType());
       myAvdConfigurationOptionHelpPanel.setSystemImageDescription(image);
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  Icon getSystemImageIcon() {
+    return mySystemImageName == null ? null : mySystemImageName.getIcon();
   }
 
   private final ActionListener myToggleAdvancedSettingsListener = new ActionListener() {
@@ -527,6 +522,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
+    myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
 
     myBindings.bindTwoWay(new SelectedItemProperty<File>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
@@ -568,10 +564,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
     myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
-
-    myCheckSdForChanges = true;
   }
 
+  // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
   private void addValidators() {
     myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<Storage>() {
       @NotNull
@@ -614,15 +609,24 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    // If we are not lets make sure it has the right amount of memory
+    // If we are using an internal SD card, make sure it has enough memory.
     myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Storage> value) {
-        return (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
-                getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10)
-               ? new Result(Severity.ERROR, "The SD card must be larger than 10MB")
-               : Result.OK;
+        if (myOriginalSdCard == null) {
+          myOriginalSdCard = getModel().sdCardStorage().getValue();
+        }
+
+        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
+            getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10) {
+          return new Result(Severity.ERROR, "The SD card must be larger than 10MB");
+        }
+        if (!getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
+          return new Result(Severity.WARNING, "Modifying the SD card size will erase the card's contents! " +
+                                              "Click Cancel to abort.");
+        }
+        return Result.OK;
       }
     });
 
@@ -641,6 +645,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
+    myOriginalName = getModel().avdDisplayName().get();
+
     myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<String>() {
       @NotNull
       @Override
@@ -656,7 +662,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           severity = Severity.ERROR;
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
-        else if (!getModel().isInEditMode().get() && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+        else if ( !value.equals(myOriginalName) &&
+            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+          // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
         }
@@ -688,8 +696,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().compatibleSkinSize(),
-      Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
+    myValidatorPanel.registerTest(getModel().getAvdDeviceData().compatibleSkinSize(),
+                                  Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   @Override
@@ -728,6 +736,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     for (JComponent c : myAdvancedOptionsComponents) {
       c.setVisible(show);
     }
+    // Separately handle the Boot Option. It is only
+    // shown if the Emulator supports it.
+    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler()));
+
     toggleSystemOptionals(false);
 
     // The following is necessary to get the scrollpane to realize that its children have been
@@ -737,6 +749,39 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean isAdvancedPanel() {
     return myShowAdvancedSettingsButton.getText().equals(HIDE);
+  }
+
+  /**
+   * Selectively enables or disables certain editing options <br>
+   * If the selected device and system image both support Google Play Store,
+   * restrict most of the configuration to ensure that the final AVD is
+   * Play Store compatible.
+   */
+  private void enforcePlayStore() {
+    boolean deviceIsPresent = getModel().device().isPresent().get();
+    // Enable if NOT Play Store
+    boolean enable = !(deviceIsPresent &&
+                         getModel().device().getValue().hasPlayStore() &&
+                         getModel().systemImage().isPresent().get() &&
+                         getModel().systemImage().getValue().getSystemImage().hasPlayStore());
+
+    // Enforce the restrictions
+    myChangeDeviceButton.setEnabled(enable);
+    myChangeSystemImageButton.setEnabled(enable && deviceIsPresent);
+
+    myHostGraphics.setEnabled(enable);
+    myQemu2CheckBox.setEnabled(enable);
+    myRamStorage.setEnabled(enable);
+    myVmHeapStorage.setEnabled(enable);
+    myInternalStorage.setEnabled(enable);
+    myBuiltInRadioButton.setEnabled(enable);
+    myExternalRadioButton.setEnabled(enable);
+    myBuiltInSdCardStorage.setEnabled(enable);
+    mySkinComboBox.setEnabled(enable);
+    if (!enable) {
+      // Selectively disable, but don't enable
+      myCoreCount.setEnabled(false);
+    }
   }
 
   private void toggleSystemOptionals(boolean useQemu2Changed) {
@@ -749,12 +794,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           getModel().cpuCoreCount().setValue(mySelectedCoreCount);
         }
         else {
-          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.MAX_NUMBER_OF_CORES);
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES);
           getModel().cpuCoreCount().setValue(1);
         }
       }
       myCoreCount.setEnabled(showCores);
     }
+    enforcePlayStore();
   }
 
   private boolean doesSystemImageSupportQemu2() {
@@ -851,7 +897,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     boolean IsDevicePresent = device.isPresent();
     Hardware deviceDefaultHardware = IsDevicePresent ? device.get().getDefaultHardware() : null;
 
-    myChangeSystemImageButton.setEnabled(IsDevicePresent);
     myFrontCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.FRONT) != null);
     myBackCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.BACK) != null);
     myOrientationToggle.setEnabled(IsDevicePresent && device.get().getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
@@ -892,6 +937,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       mySkinComboBox.getComboBox().setSelectedItem(customSkin);
       getModel().getAvdDeviceData().customSkinFile().setValue(customSkin);
     }
+    enforcePlayStore();
   }
 
   private ActionListener myChangeSystemImageButtonListener = new ActionListener() {

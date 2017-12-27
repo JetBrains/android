@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
@@ -67,7 +68,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, new CustomComboBox(), new BrowsePanel(cellEditor, true), false));
+    BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
+    cellEditor.init(new NlEnumEditor(cellEditor, new CustomComboBox(), browsePanel, false), browsePanel);
     return cellEditor;
   }
 
@@ -93,8 +95,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
                        boolean includeBorder) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
-
+    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 
     myCombo = comboBox;
@@ -145,6 +147,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     });
     //noinspection unchecked
     myCombo.setRenderer(new EnumRenderer());
+    myProperty = EmptyProperty.INSTANCE;
   }
 
   @Override
@@ -171,8 +174,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private void setModel(@NotNull NlProperty property) {
     // Do not inline this method. Other classes should not know about EnumSupportFactory.
     assert EnumSupportFactory.supportsProperty(property) : this.getClass().getName() + property;
-    myEnumSupport = EnumSupportFactory.create(property);
     myProperty = property;
+    myEnumSupport = EnumSupportFactory.create(property);
     myApiVersion = getApiVersion(property);
 
     List<ValueWithDisplayString> values = myEnumSupport.getAllValues();
@@ -190,7 +193,17 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         }
         if (object instanceof ValueWithDisplayString) {
           ValueWithDisplayString value = (ValueWithDisplayString)object;
+          ValueWithDisplayString.ValueSelector selector = value.getValueSelector();
+          if (selector != null) {
+            value = selector.selectValue(myProperty.getValue());
+            if (value == null) {
+              return;
+            }
+            String selectedValue = value.getValue();
+            ApplicationManager.getApplication().invokeLater(() -> stopEditing(selectedValue));
+          }
           value.setUseValueForToString(myDisplayRealValue);
+          object = value;
         }
         super.setSelectedItem(object);
       }
@@ -203,15 +216,27 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     myAddedValueIndex = -1; // nothing added
   }
 
+  private void updateModel() {
+    ValueWithDisplayString selected = myCombo.getSelectedItem();
+    ValueWithDisplayString added = myAddedValueIndex >= 0 ? myCombo.getModel().getElementAt(myAddedValueIndex) : null;
+    setModel(myProperty);
+    if (added != null) {
+      DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
+      myAddedValueIndex = findBestInsertionPoint(added);
+      model.insertElementAt(added, myAddedValueIndex);
+    }
+    myCombo.setSelectedItem(selected);
+  }
+
   @Override
-  @Nullable
+  @NotNull
   public NlProperty getProperty() {
     return myProperty;
   }
 
   @NotNull
   private static String getApiVersion(@NotNull NlProperty property) {
-    IAndroidTarget target = property.getModel().getConfiguration().getTarget();
+    IAndroidTarget target = property != EmptyProperty.INSTANCE ? property.getModel().getConfiguration().getTarget() : null;
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
@@ -225,11 +250,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       myAddedValueIndex = findBestInsertionPoint(value);
       model.insertElementAt(value, myAddedValueIndex);
     }
+    value.setUseValueForToString(myDisplayRealValue);
     if (!value.equals(model.getSelectedItem())) {
-      value.setUseValueForToString(myDisplayRealValue);
       model.setSelectedItem(value);
-      myEditor.setText(value.toString());
     }
+    myEditor.setText(value.toString());
     myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
   }
 
@@ -343,11 +368,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
 
     private void setBorders() {
-      int horizontalSpacing = myUseDarculaUI ? 0 : 1;
+      int horizontalSpacing = HORIZONTAL_SPACING + (myUseDarculaUI ? 0 : 1);
       if (myBorderPanel != null) {
-        myBorderPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
+        myBorderPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
       }
-      setBorder(myUseDarculaUI && myBorderPanel != null ? null : BorderFactory.createEmptyBorder(1, 4, 1, 4));
+      setBorder(myUseDarculaUI && myBorderPanel != null ? null : JBUI.Borders.empty(1, 4, 1, 4));
     }
 
     @Override
@@ -407,6 +432,10 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     @Override
     protected void customizeCellRenderer(@NotNull JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value != null) {
+        boolean skipDefault = myEnumSupport.customizeCellRenderer(this, value, selected);
+        if (skipDefault) {
+          return;
+        }
         String displayString = value.getDisplayString();
         String actualValue = value.getValue();
         String hint = value.getHint();
@@ -445,6 +474,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     @Override
     public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
       myPopupValueChanged = false;
+      updateModel();
     }
 
     @Override

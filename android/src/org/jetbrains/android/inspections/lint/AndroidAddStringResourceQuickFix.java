@@ -54,7 +54,7 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
   @NotNull
   static String buildResourceName(@NotNull String value) {
     final String result = DISALLOWED_CHARS.trimAndCollapseFrom(value, '_').toLowerCase(Locale.US);
-    if (result.length() > 0 && CharMatcher.JAVA_DIGIT.matches(result.charAt(0))) {
+    if (!result.isEmpty() && CharMatcher.JAVA_DIGIT.matches(result.charAt(0))) {
       return "_" + result;
     }
     return result;

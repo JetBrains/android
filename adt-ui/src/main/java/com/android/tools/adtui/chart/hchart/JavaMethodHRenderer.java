@@ -86,6 +86,11 @@ public class JavaMethodHRenderer extends HRenderer<Method> {
     return "";
   }
 
+  @Override
+  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
+    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
+    g.drawString(text, rect.x, textPositionY);
+  }
 
   protected String getShortPackageName(String nameSpace) {
     if (nameSpace == null || nameSpace.equals("")) {

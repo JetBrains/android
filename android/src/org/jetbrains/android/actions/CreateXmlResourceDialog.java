@@ -18,7 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -57,8 +58,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     super(module.getProject());
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
-    Function<Module, ResourceNameValidator> nameValidatorFactory =
-      selectedModule -> ResourceNameValidator.create(true, AppResourceRepository.getAppResources(selectedModule, true), resourceType);
+    Function<Module, IdeResourceNameValidator> nameValidatorFactory =
+      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, AppResourceRepository.getOrCreateInstance(module));
     myPanel = newResourceHandler.createNewResourceValuePanel(module, resourceType, ResourceFolderType.VALUES,
                                                              predefinedName, predefinedValue, chooseName, true, true, defaultFile,
                                                              contextFile, nameValidatorFactory);
@@ -79,16 +80,16 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     final Module module = myPanel.getModule();
     final JComponent panel = myPanel.getPanel();
 
-    if (resourceName.length() == 0) {
+    if (resourceName.isEmpty()) {
       Messages.showErrorDialog(panel, "Resource name is not specified", CommonBundle.getErrorTitle());
     }
     else if (!AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
       Messages.showErrorDialog(panel, resourceName + " is not correct resource name", CommonBundle.getErrorTitle());
     }
-    else if (fileName.length() == 0) {
+    else if (fileName.isEmpty()) {
       Messages.showErrorDialog(panel, "File name is not specified", CommonBundle.getErrorTitle());
     }
-    else if (dirNames.size() == 0) {
+    else if (dirNames.isEmpty()) {
       Messages.showErrorDialog(panel, "Directories are not selected", CommonBundle.getErrorTitle());
     }
     else if (module == null) {
@@ -139,12 +140,13 @@ public class CreateXmlResourceDialog extends DialogWrapper {
   public static ValidationInfo checkIfResourceAlreadyExists(@NotNull Project project,
                                                             @NotNull VirtualFile resourceDir,
                                                             @NotNull String resourceName,
+                                                            @Nullable String resourceValue,
                                                             @NotNull ResourceType resourceType,
                                                             @NotNull List<String> dirNames,
                                                             @NotNull String fileName) {
-    if (resourceName.length() == 0 ||
-        dirNames.size() == 0 ||
-        fileName.length() == 0) {
+    if (resourceName.isEmpty() ||
+        dirNames.isEmpty() ||
+        fileName.isEmpty()) {
       return null;
     }
 
@@ -169,9 +171,9 @@ public class CreateXmlResourceDialog extends DialogWrapper {
       }
 
       for (ResourceElement element : AndroidResourceUtil.getValueResourcesFromElement(resourceType, resources)) {
-        if (resourceName.equals(element.getName().getValue())) {
+        if (resourceName.equals(element.getName().getStringValue()) && !StringUtil.equals(resourceValue, element.getStringValue())) {
           return new ValidationInfo("resource '" + resourceName + "' already exists in " + FileUtil.toSystemDependentName(
-            resFile.getPath()));
+            resFile.getPath()) + "with a different value.");
         }
       }
     }

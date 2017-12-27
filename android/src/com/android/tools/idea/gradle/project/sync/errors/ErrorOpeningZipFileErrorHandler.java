@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -39,7 +39,7 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
       hyperlinks.add(syncProjectHyperlink);
       String newText = text + syncProjectHyperlink.toHtml();
-      SyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
+      GradleSyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
       return true;
     }
     return false;

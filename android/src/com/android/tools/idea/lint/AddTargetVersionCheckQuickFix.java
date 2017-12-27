@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder;
 import com.intellij.codeInspection.JavaSuppressionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,6 +30,7 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NonNls;
@@ -66,6 +66,11 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
+    // Don't offer this unless we're in an Android module
+    if (AndroidFacet.getInstance(endElement) == null) {
+      return false;
+    }
+
     PsiExpression expression = PsiTreeUtil.getParentOfType(startElement, PsiExpression.class, false);
     return expression != null;
   }
@@ -89,9 +94,6 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
     Document document = documentManager.getDocument(file);
     if (document == null) {
-      return;
-    }
-    if (!FileModificationService.getInstance().prepareFileForWrite(file)) {
       return;
     }
     PsiElement[] elements = {anchorStatement};

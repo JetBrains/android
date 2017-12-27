@@ -163,7 +163,7 @@ public class GradleSettingsModel extends GradleFileModel {
     if (buildFile == null) {
       return null;
     }
-    return GradleBuildModel.parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(":") + 1));
+    return GradleBuildModel.parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(':') + 1));
   }
 
   @Nullable

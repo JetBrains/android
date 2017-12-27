@@ -193,7 +193,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
         result.add(method);
       }
     }
-    return result.size() == 0 ? PsiMethod.EMPTY_ARRAY : result.toArray(new PsiMethod[result.size()]);
+    return result.isEmpty() ? PsiMethod.EMPTY_ARRAY : result.toArray(new PsiMethod[result.size()]);
   }
 
   @Nullable

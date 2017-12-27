@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.fixture.AbstractContainerFixture;
@@ -35,6 +35,6 @@ public class EditReferenceFixture extends AbstractContainerFixture<EditReference
   }
 
   public @NotNull SwatchComponentFixture getSwatchComponent() {
-    return new SwatchComponentFixture(robot(), robot().finder().findByType(target(), SwatchComponent.class, true));
+    return new SwatchComponentFixture(robot(), robot().finder().findByType(target(), ResourceSwatchComponent.class, true));
   }
 }

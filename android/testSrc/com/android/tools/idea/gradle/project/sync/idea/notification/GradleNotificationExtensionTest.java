@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.notification;
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -34,9 +34,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class GradleNotificationExtensionTest extends IdeaTestCase {
   @Mock private SyncErrorHandler myHandler1;
   @Mock private SyncErrorHandler myHandler2;
+  @Mock private GradleSyncMessages mySyncMessages;
 
   private NotificationData myNotification;
-  private SyncMessages mySyncMessages;
   private GradleNotificationExtension myNotificationExtension;
 
   @Override
@@ -45,7 +45,7 @@ public class GradleNotificationExtensionTest extends IdeaTestCase {
     initMocks(this);
 
     myNotification = new NotificationData("Title", "Message", ERROR, PROJECT_SYNC);
-    mySyncMessages = IdeComponents.replaceServiceWithMock(getProject(), SyncMessages.class);
+    IdeComponents.replaceService(getProject(), GradleSyncMessages.class, mySyncMessages);
     myNotificationExtension = new GradleNotificationExtension(myHandler1, myHandler2);
   }
 

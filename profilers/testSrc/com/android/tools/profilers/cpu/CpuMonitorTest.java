@@ -15,106 +15,34 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TestGrpcChannel;
-import com.intellij.util.containers.ImmutableList;
-import io.grpc.stub.StreamObserver;
-import org.junit.Before;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profilers.*;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
 public class CpuMonitorTest {
   @Rule
-  public TestGrpcChannel myGrpcChannel = new TestGrpcChannel<>("CpuMonitorTestChannel", new CpuServiceMock());
-
-  private CpuMonitor myMonitor;
-
-  @Before
-  public void setUp() throws Exception {
-    myMonitor = new CpuMonitor(myGrpcChannel.getProfilers());
-  }
-
-  @Test
-  public void testThisProcessCpuUsage() throws IOException {
-    CpuUsageDataSeries series = myMonitor.getThisProcessCpuUsage();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size()); // Only current process information.
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(20, (long)seriesData.value);
-  }
-
-  @Test
-  public void testOtherProcessesCpuUsage() throws IOException {
-    CpuUsageDataSeries series = myMonitor.getOtherProcessesCpuUsage();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size()); // Only other processes information.
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(40, (long)seriesData.value);
-  }
-
-  @Test
-  public void testGetThreadsCount() throws IOException {
-    CpuThreadCountDataSeries series = myMonitor.getThreadsCount();
-    ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range());
-    assertEquals(1, seriesDataList.size());
-    SeriesData<Long> seriesData = seriesDataList.get(0);
-    assertNotNull(seriesData);
-    assertEquals(0, (long)seriesData.value); // No active threads
-  }
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuMonitorTestChannel", new FakeCpuService(), new FakeProfilerService());
 
   @Test
   public void testName() {
-    assertEquals("CPU", myMonitor.getName());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    CpuMonitor monitor = new CpuMonitor(profilers);
+    assertEquals("CPU", monitor.getName());
   }
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = myGrpcChannel.getProfilers();
-    assertNull(profilers.getStage());
-    myMonitor.expand();
-    assertNotNull(profilers.getStage());
-  }
-
-  private static class CpuServiceMock extends CpuServiceGrpc.CpuServiceImplBase {
-    @Override
-    public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> responseObserver) {
-      CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-      // Add first usage data
-      CpuProfiler.CpuUsageData.Builder cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
-      cpuUsageData.setElapsedTimeInMillisec(0);
-      cpuUsageData.setSystemCpuTimeInMillisec(0);
-      cpuUsageData.setAppCpuTimeInMillisec(0);
-      CpuProfiler.CpuProfilerData.Builder data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
-      response.addData(data);
-
-      // Add second usage data.
-      cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
-      cpuUsageData.setElapsedTimeInMillisec(100);
-      // Total usage = 60% of elapsed time
-      cpuUsageData.setSystemCpuTimeInMillisec(60);
-      // Current app usage = 20% of elapsed time (i.e. other processes usage is 40%)
-      cpuUsageData.setAppCpuTimeInMillisec(20);
-      data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
-      response.addData(data);
-
-      responseObserver.onNext(response.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
-      responseObserver.onNext(CpuProfiler.GetThreadsResponse.newBuilder().build());
-      responseObserver.onCompleted();
-    }
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers =new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    CpuMonitor monitor = new CpuMonitor(profilers);
+    assertEquals(profilers.getStage().getClass(), NullMonitorStage.class);
+    // One second must be enough for new devices (and processes) to be picked up
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    monitor.expand();
+    assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
   }
 }

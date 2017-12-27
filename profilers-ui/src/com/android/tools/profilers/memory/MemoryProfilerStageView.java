@@ -20,97 +20,225 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.PlatformIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
+  @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
+  @NotNull private final MemoryClassifierView myClassifierView = new MemoryClassifierView(getStage(), getIdeComponents());
+  @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
+  @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
+  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
+  @NotNull private final MemoryStageTooltipView myMemoryStageTooltipView = new MemoryStageTooltipView(getStage());
 
-  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
-  private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
+  @Nullable private CaptureObject myCaptureObject = null;
 
-  @NotNull private final Icon myGcIcon = UIUtil.isUnderDarcula() ?
-                                         IconLoader.findIcon("/icons/garbage-event_dark.png", MemoryProfilerStageView.class) :
-                                         IconLoader.findIcon("/icons/garbage-event.png", MemoryProfilerStageView.class);
+  @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
+  @NotNull private final JBSplitter myChartCaptureSplitter = new JBSplitter(true);
+  @NotNull private final JPanel myCapturePanel;
+  @Nullable private LoadingPanel myCaptureLoadingPanel;
+  @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
 
-  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
-  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
-
-  @NotNull private Splitter myMainSplitter = new Splitter(false);
-  @NotNull private Splitter myChartClassesSplitter = new Splitter(true);
+  @NotNull private JButton myHeapDumpButton;
   @NotNull private JButton myAllocationButton;
+  @NotNull private final JLabel myCaptureElapsedTime;
 
-  public MemoryProfilerStageView(@NotNull MemoryProfilerStage stage) {
-    super(stage);
+  public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
+    super(profilersView, stage);
 
-    myChartClassesSplitter.setFirstComponent(buildMonitorUi());
-    myMainSplitter.setFirstComponent(myChartClassesSplitter);
+    // Turns on the auto-capture selection functionality - this would select the latest user-triggered heap dump/allocation tracking
+    // capture object if an existing one has not been selected.
+    getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
+
+    myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+
+    myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
+    myCapturePanel = buildCaptureUi();
+    myInstanceDetailsSplitter.setOpaque(true);
+    myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
+    myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
+    myMainSplitter.setFirstComponent(myChartCaptureSplitter);
+    myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
+
+
+    myHeapDumpButton = new FlatButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
+    myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
+    myHeapDumpButton.setToolTipText("Dump Java heap");
+    myHeapDumpButton.addActionListener(e -> {
+      getStage().requestHeapDump();
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
+    });
+
+    myCaptureElapsedTime = new JLabel("");
+    myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    myCaptureElapsedTime.setBorder(new EmptyBorder(0, 5, 0, 0));
+    myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
+
+    myAllocationButton = new FlatButton();
+    myAllocationButton.setText("");
+    myAllocationButton
+      .addActionListener(e -> {
+        if (getStage().isTrackingAllocations()) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
+        }
+        getStage().trackAllocations(!getStage().isTrackingAllocations());
+      });
+    myAllocationButton.setVisible(!getStage().useLiveAllocationTracking());
+
+    getStage().getAspect().addDependency(this)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+
     captureObjectChanged();
-
-    myAllocationButton = new JButton("Record");
-    myAllocationButton.addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations()));
-
-    getStage().getAspect().addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE, this::captureObjectChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::classObjectChanged)
-      .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
-
-    legacyAllocationChanged();
+    allocationTrackingChanged();
   }
 
   @Override
   public JComponent getToolbar() {
+    JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
+    JButton forceGarbageCollectionButton = new FlatButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
+    forceGarbageCollectionButton.setToolTipText("Force garbage collection");
+    forceGarbageCollectionButton.addActionListener(e -> {
+      getStage().forceGarbageCollection();
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
+    });
+    toolBar.add(forceGarbageCollectionButton);
 
-    JButton backButton = new JButton();
-    backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
-    backButton.setIcon(AllIcons.Actions.Back);
-
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    toolBar.add(backButton);
+    toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
+    toolBar.add(myCaptureElapsedTime);
 
-    JButton triggerHeapDumpButton = new JButton("Heap Dump");
-    triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump());
-    toolBar.add(triggerHeapDumpButton);
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    Runnable toggleButtons = () -> {
+      forceGarbageCollectionButton.setEnabled(profilers.isProcessAlive());
+      myHeapDumpButton.setEnabled(profilers.isProcessAlive());
+      myAllocationButton.setEnabled(profilers.isProcessAlive());
+    };
+    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleButtons);
+    toggleButtons.run();
 
-    return toolBar;
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(toolBar, BorderLayout.WEST);
+    return panel;
   }
 
-  private void legacyAllocationChanged() {
+  @VisibleForTesting
+  @NotNull
+  public Splitter getMainSplitter() {
+    return myMainSplitter;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public Splitter getChartCaptureSplitter() {
+    return myChartCaptureSplitter;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JPanel getCapturePanel() {
+    return myCapturePanel;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryCaptureView getCaptureView() {
+    return myCaptureView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryHeapView getHeapView() {
+    return myHeapView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryClassGrouping getClassGrouping() {
+    return myClassGrouping;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryClassifierView getClassifierView() {
+    return myClassifierView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryClassSetView getClassSetView() {
+    return myClassSetView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  MemoryInstanceDetailsView getInstanceDetailsView() {
+    return myInstanceDetailsView;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  JLabel getCaptureElapsedTimeLabel() {
+    return myCaptureElapsedTime;
+  }
+
+  private void allocationTrackingChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
-    myAllocationButton.setText(getStage().isTrackingAllocations() ? "Stop" : "Record");
+    if (getStage().isTrackingAllocations()) {
+      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
+      myAllocationButton.setToolTipText("Stop recording");
+      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
+    }
+    else {
+      myCaptureElapsedTime.setText("");
+      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
+      myAllocationButton.setToolTipText("Record memory allocations");
+    }
+  }
+
+  private void updateCaptureElapsedTime() {
+    if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
+      long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
+      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
+    }
   }
 
   @NotNull
@@ -118,155 +246,172 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
-    Range dataRange = getTimeline().getDataRange();
 
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
-    panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(getChoreographer(), timeline, panel);
-    getChoreographer().register(sb);
+    ProfilerScrollbar sb = new ProfilerScrollbar(timeline, panel);
     panel.add(sb, new TabularLayout.Constraint(3, 0));
 
-    AxisComponent timeAxis = buildTimeAxis(profilers);
-    getChoreographer().register(timeAxis);
+    JComponent timeAxis = buildTimeAxis(profilers);
     panel.add(timeAxis, new TabularLayout.Constraint(2, 0));
 
-    EventMonitor events = new EventMonitor(profilers);
-    EventMonitorView eventsView = new EventMonitorView(events);
-    JComponent eventsComponent = eventsView.initialize(getChoreographer());
-    panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
+    EventMonitorView eventsView = new EventMonitorView(getProfilersView(), getStage().getEventMonitor());
+    panel.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
 
-    MemoryMonitor monitor = new MemoryMonitor(profilers);
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
-    final JLabel label = new JLabel(monitor.getName());
+    final JLabel label = new JLabel(getStage().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    Range leftYRange = new Range(0, 0);
-    Range rightYRange = new Range(0, 0);
-
-    RangedContinuousSeries javaSeries = new RangedContinuousSeries("Java", viewRange, leftYRange, monitor.getJavaMemory());
-    RangedContinuousSeries nativeSeries = new RangedContinuousSeries("Native", viewRange, leftYRange, monitor.getNativeMemory());
-    RangedContinuousSeries graphcisSeries = new RangedContinuousSeries("Graphics", viewRange, leftYRange, monitor.getGraphicsMemory());
-    RangedContinuousSeries stackSeries = new RangedContinuousSeries("Stack", viewRange, leftYRange, monitor.getStackMemory());
-    RangedContinuousSeries codeSeries = new RangedContinuousSeries("Code", viewRange, leftYRange, monitor.getCodeMemory());
-    RangedContinuousSeries otherSeries = new RangedContinuousSeries("Others", viewRange, leftYRange, monitor.getOthersMemory());
-    RangedContinuousSeries totalSeries = new RangedContinuousSeries("Total", viewRange, leftYRange, monitor.getTotalMemory());
-    RangedContinuousSeries objectSeries = new RangedContinuousSeries("Allocated", viewRange, rightYRange, monitor.getObjectCount());
-
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart();
-    lineChart.addLine(javaSeries, new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
-    lineChart.addLine(nativeSeries, new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
-    lineChart.addLine(graphcisSeries, new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
-    lineChart.addLine(stackSeries, new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
-    lineChart.addLine(codeSeries, new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
-    lineChart.addLine(otherSeries, new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
-    lineChart.addLine(totalSeries, new LineConfig(ProfilerColors.MEMORY_TOTAL).setFilled(true));
-    lineChart.addLine(objectSeries, new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
 
-    // TODO set proper colors / icons
-    DurationDataRenderer<HeapDumpDurationData> heapDumpRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getHeapDumpSampleDurations()), Color.BLACK)
-        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setStroke(new BasicStroke(2))
-        .setIsBlocking(true)
-        .setLabelProvider(
-          data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
-                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().setFocusedHeapDump(data.getDumpInfo()))
-        .build();
-    DurationDataRenderer<AllocationsDurationData> allocationRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, getStage().getAllocationInfosDurations()), Color.LIGHT_GRAY)
-        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setStroke(new BasicStroke(2))
-        .setLabelProvider(data -> String
-          .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
-                                            TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().setAllocationsTimeRange(data.getStartTimeNs(), data.getEndTimeNs()))
-        .build();
+    DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
+    final LineChart lineChart = new LineChart(memoryUsage);
+    if (getStage().useLiveAllocationTracking()) {
+      // Always show series in their captured state in live allocation mode.
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA_CAPTURED, memoryUsage.getJavaSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE_CAPTURED, memoryUsage.getNativeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS_CAPTURED, memoryUsage.getGraphicsSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK_CAPTURED, memoryUsage.getStackSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE_CAPTURED, memoryUsage.getCodeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS_CAPTURED, memoryUsage.getOtherSeries());
+      lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS_CAPUTRED)
+        .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    }
+    else {
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS, memoryUsage.getGraphicsSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
+      lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
+        .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    }
+    // The "Total" series is only added in the LineChartModel so it can calculate the max Y value across all the series. We don't want to
+    // draw it as an extra line so we hide it by setting it to transparent.
+    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(new Color(0, 0, 0, 0)));
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
+    lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
+    lineChart.setFillEndGap(true);
+
     DurationDataRenderer<GcDurationData> gcRenderer =
-      new DurationDataRenderer.Builder<>(new RangedSeries<>(viewRange, monitor.getGcCount()), Color.BLACK)
-        .setIcon(myGcIcon)
-        .setAttachLineSeries(objectSeries)
+      new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
+        .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
+        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
         .build();
-
-    lineChart.addCustomRenderer(heapDumpRenderer);
-    lineChart.addCustomRenderer(allocationRenderer);
     lineChart.addCustomRenderer(gcRenderer);
 
-    SelectionComponent selection = new SelectionComponent(timeline.getSelectionRange(), timeline.getViewRange());
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(selection);
-    overlay.addDurationDataRenderer(heapDumpRenderer);
-    overlay.addDurationDataRenderer(allocationRenderer);
     overlay.addDurationDataRenderer(gcRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
-    getChoreographer().register(lineChart);
-    getChoreographer().register(heapDumpRenderer);
-    getChoreographer().register(allocationRenderer);
-    getChoreographer().register(gcRenderer);
-    getChoreographer().register(overlay);
-    getChoreographer().register(selection);
+    // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
+    if (!getStage().useLiveAllocationTracking()) {
+      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
+          .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
+          .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
+          .setLabelProvider(
+            data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+                                                            TimeAxisFormatter.DEFAULT
+                                                              .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          .build();
+      allocationRenderer.addCustomLineConfig(memoryUsage.getJavaSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getJavaSeries())).setColor(ProfilerColors.MEMORY_JAVA_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getNativeSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getNativeSeries())).setColor(ProfilerColors.MEMORY_NATIVE_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getGraphicsSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())).setColor(ProfilerColors.MEMORY_GRAPHICS_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getStackSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getStackSeries())).setColor(ProfilerColors.MEMORY_STACK_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getCodeSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getCodeSeries())).setColor(ProfilerColors.MEMORY_CODE_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getOtherSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getOtherSeries())).setColor(ProfilerColors.MEMORY_OTHERS_CAPTURED));
+      lineChart.addCustomRenderer(allocationRenderer);
+      overlay.addDurationDataRenderer(allocationRenderer);
+    }
+
+    DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
+      new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.DARK_GRAY)
+        .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
+        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
+        .setLabelProvider(
+          data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+        .build();
+
+    for (RangedContinuousSeries series : memoryUsage.getSeries()) {
+      LineConfig config = lineChart.getLineConfig(series);
+      int gray = (config.getColor().getBlue() + config.getColor().getRed() + config.getColor().getGreen()) / 3;
+      LineConfig newConfig = LineConfig.copyOf(config).setColor(Gray.get(gray));
+      heapDumpRenderer.addCustomLineConfig(series, newConfig);
+    }
+    lineChart.addCustomRenderer(heapDumpRenderer);
+    overlay.addDurationDataRenderer(heapDumpRenderer);
+
+    RangeTooltipComponent tooltip =
+      new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
+                                myMemoryStageTooltipView.createComponent());
+    // TODO: Probably this needs to be refactored.
+    //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
+    tooltip.registerListenersOn(overlay);
+    tooltip.registerListenersOn(overlayPanel);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent.Builder leftBuilder = new AxisComponent.Builder(leftYRange, MEMORY_AXIS_FORMATTER,
-                                                                  AxisComponent.AxisOrientation.RIGHT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .clampToMajorTicks(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = leftBuilder.build();
-    getChoreographer().register(leftAxis);
-    axisPanel.add(leftAxis, BorderLayout.WEST);
+    final AxisComponent memoryAxis = new AxisComponent(getStage().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
+    memoryAxis.setShowAxisLine(false);
+    memoryAxis.setShowMax(true);
+    memoryAxis.setShowUnitAtMax(true);
+    memoryAxis.setHideTickAtMin(true);
+    memoryAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    memoryAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
+    axisPanel.add(memoryAxis, BorderLayout.WEST);
 
-    AxisComponent.Builder rightBuilder = new AxisComponent.Builder(rightYRange, OBJECT_COUNT_AXIS_FORMATTER,
-                                                                   AxisComponent.AxisOrientation.LEFT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .clampToMajorTicks(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent rightAxis = rightBuilder.build();
-    getChoreographer().register(rightAxis);
+    final AxisComponent rightAxis = new AxisComponent(getStage().getObjectsAxis(), AxisComponent.AxisOrientation.LEFT);
+    rightAxis.setShowAxisLine(false);
+    rightAxis.setShowMax(true);
+    rightAxis.setShowUnitAtMax(true);
+    rightAxis.setHideTickAtMin(true);
+    rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    ArrayList<LegendRenderData> legendData = new ArrayList<>();
-    legendData.add(lineChart.createLegendRenderData(javaSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(nativeSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(graphcisSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(stackSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(codeSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(otherSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(totalSeries, MEMORY_AXIS_FORMATTER, dataRange));
-    legendData.add(lineChart.createLegendRenderData(objectSeries, OBJECT_COUNT_AXIS_FORMATTER, dataRange));
-    legend.setLegendData(legendData);
-    getChoreographer().register(legend);
+    MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
+    legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
+    legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
+    legend.configure(legends.getStackLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getStackSeries())));
+    legend.configure(legends.getCodeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getCodeSeries())));
+    legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
+    legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
+    legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
@@ -276,96 +421,112 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
+  @NotNull
+  private JPanel buildCaptureUi() {
+    JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
+    toolbar.add(myCaptureView.getComponent());
+    toolbar.add(myHeapView.getComponent());
+    toolbar.add(myClassGrouping.getComponent());
+
+    JPanel headingPanel = new JPanel(new BorderLayout());
+    headingPanel.add(toolbar, BorderLayout.WEST);
+    JPanel capturePanel = new JPanel(new BorderLayout());
+    capturePanel.add(headingPanel, BorderLayout.PAGE_START);
+    capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);
+    return capturePanel;
+  }
+
   private void captureObjectChanged() {
-    CaptureObject captureObject = getStage().getSelectedCaptureObject();
-    if (myClassView.getCurrentCapture() != captureObject) {
-      myClassView.reset();
-      myChartClassesSplitter.setSecondComponent(null);
-      myMainSplitter.setSecondComponent(null);
-      if (captureObject != null) {
-        // TODO don't rebuild the component, but update it
-        myChartClassesSplitter.setSecondComponent(myClassView.buildComponent(captureObject));
-      }
+    // Forcefully ends the previous loading operation if it is still ongoing.
+    stopLoadingUi();
+    myCaptureObject = getStage().getSelectedCapture();
+    if (myCaptureObject == null) {
+      myAllocationButton.setEnabled(true);
+      myHeapDumpButton.setEnabled(true);
+      myChartCaptureSplitter.setSecondComponent(null);
+      return;
+    }
+
+    if (myCaptureObject.isDoneLoading()) {
+      // If a capture is initiated on stage enter, we will not have gotten a chance to listen in on the capture done loading event.``
+      captureObjectFinishedLoading();
+    }
+    else {
+      myAllocationButton.setEnabled(false);
+      myHeapDumpButton.setEnabled(false);
+      myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+      myCaptureLoadingPanel.setLoadingText("Fetching results");
+      myCaptureLoadingPanel.startLoading();
+      myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
     }
   }
 
-  private void classObjectChanged() {
-    ClassObject classObject = getStage().getSelectedClass();
-    if (myInstanceView.getCurrentClassObject() != classObject) {
-      myInstanceView.reset();
-      myMainSplitter.setSecondComponent(null);
-      if (classObject != null) {
-        // TODO don't rebuild the component, but update it
-        myMainSplitter.setSecondComponent(myInstanceView.buildComponent(classObject));
-      }
+  private void captureObjectFinishedLoading() {
+    myAllocationButton.setEnabled(true);
+    myHeapDumpButton.setEnabled(true);
+    if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
+      return;
     }
 
-    // TODO setup instance detail view.
+    stopLoadingUi();
+    myChartCaptureSplitter.setSecondComponent(myCapturePanel);
   }
 
-  static class AttributeColumn {
-    private final String myName;
-    private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
-    private final int myHeaderAlignment;
-    private final int myPreferredWidth;
-    private final SortOrder mySortOrder;
-    private final Comparator<MemoryObjectTreeNode> myComparator;
-
-    public AttributeColumn(@NotNull String name,
-                           @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
-                           int headerAlignment,
-                           int preferredWidth,
-                           @NotNull SortOrder sortOrder,
-                           @NotNull Comparator<MemoryObjectTreeNode> comparator) {
-      myName = name;
-      myRendererSuppier = rendererSupplier;
-      myHeaderAlignment = headerAlignment;
-      myPreferredWidth = preferredWidth;
-      mySortOrder = sortOrder;
-      myComparator = comparator;
+  private void stopLoadingUi() {
+    if (myCaptureObject == null || myCaptureLoadingPanel == null) {
+      return;
     }
 
-    @NotNull
-    public ColumnTreeBuilder.ColumnBuilder getBuilder() {
-      return new ColumnTreeBuilder.ColumnBuilder()
-        .setName(myName)
-        .setRenderer(myRendererSuppier.get())
-        .setHeaderAlignment(myHeaderAlignment)
-        .setPreferredWidth(myPreferredWidth)
-        .setInitialOrder(mySortOrder)
-        .setComparator(myComparator);
+    myCaptureLoadingPanel.stopLoading();
+    myCaptureLoadingPanel = null;
+    myChartCaptureSplitter.setSecondComponent(null);
+  }
+
+  private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {
+    chart.configure(series, new LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+  }
+
+  /**
+   * TODO currently we have slightly different icons for the MemoryClassSetView vs the MemoryInstanceDetailsView.
+   * Re-investigate and see if they should share the same conditions.
+   */
+  @NotNull
+  static Icon getValueObjectIcon(@NotNull ValueObject valueObject) {
+    if (valueObject instanceof FieldObject) {
+      FieldObject field = (FieldObject)valueObject;
+      if (field.getValueType() == ValueObject.ValueType.ARRAY) {
+        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
+      }
+      else if (field.getValueType().getIsPrimitive()) {
+        return AllIcons.Debugger.Db_primitive;
+      }
+      else {
+        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
+      }
+    }
+    else if (valueObject instanceof ReferenceObject) {
+      ReferenceObject referrer = (ReferenceObject)valueObject;
+      if (referrer.getReferenceInstance().getIsRoot()) {
+        return AllIcons.Hierarchy.Subtypes;
+      }
+      else if (referrer.getReferenceInstance().getValueType() == ValueObject.ValueType.ARRAY) {
+        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
+      }
+      else {
+        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
+      }
+    }
+    else if (valueObject instanceof InstanceObject) {
+      return getStackedIcon((InstanceObject)valueObject, StudioIcons.Profiler.Overlays.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
+    }
+    else {
+      return PlatformIcons.INTERFACE_ICON;
     }
   }
 
-  static class DetailColumnRenderer extends ColoredTreeCellRenderer {
-    private final Function<MemoryObjectTreeNode, String> myTextGetter;
-    private final Function<MemoryObjectTreeNode, Icon> myIconGetter;
-    private final int myAlignment;
-
-    public DetailColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
-                                @NotNull Function<MemoryObjectTreeNode, Icon> iconGetter,
-                                int alignment) {
-      myTextGetter = textGetter;
-      myIconGetter = iconGetter;
-      myAlignment = alignment;
-    }
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (value instanceof MemoryObjectTreeNode) {
-        append(myTextGetter.apply((MemoryObjectTreeNode)value));
-        Icon icon = myIconGetter.apply((MemoryObjectTreeNode)value);
-        if (icon != null) {
-          setIcon(icon);
-        }
-        setTextAlign(myAlignment);
-      }
-    }
+  private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
+    return (instance == null || instance.getCallStackDepth() == 0)
+           ? nonStackedIcon
+           : stackedIcon;
   }
 }

@@ -16,11 +16,16 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.WrongCaseDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.editor.Document;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
@@ -31,10 +36,15 @@ public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    final String current = WrongCaseDetector.getOldValue(message, RAW);
-    final String proposed = WrongCaseDetector.getNewValue(message, RAW);
-    if (proposed != null && current != null) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    @SuppressWarnings("unchecked")
+    List<String> oldAndNew = LintFix.getData(fixData, List.class);
+    if (oldAndNew != null && oldAndNew.size() == 2) {
+      String current = oldAndNew.get(0);
+      String proposed = oldAndNew.get(1);
       return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed) {
         @Override
         protected void editAfter(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
@@ -47,6 +57,6 @@ public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
       }};
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

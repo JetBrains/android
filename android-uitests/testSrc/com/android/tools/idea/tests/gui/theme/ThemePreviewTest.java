@@ -20,14 +20,18 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.*;
 
 /**
  * Unit test for the theme preview
@@ -36,6 +40,7 @@ import static junit.framework.Assert.*;
 @RunWith(GuiTestRunner.class)
 public class ThemePreviewTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
@@ -47,19 +52,42 @@ public class ThemePreviewTest {
     editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
 
     // No style or theme selected
-    assertFalse(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isFalse();
 
     editor.moveBetween("PreviewTheme", "");
     guiTest.robot().waitForIdle();
-    assertTrue(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isTrue();
 
     // A style is selected but it's not a theme so the preview shouldn't be available
     editor.moveBetween("NotATheme", "");
     guiTest.robot().waitForIdle();
-    assertFalse(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isFalse();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testPreviewAvailabilityDumbModeDelays() throws Exception {
+    // Test that things still work if we force the IDE into dumb mode at certain times.
+    guiTest.importSimpleApplication();
+
+    Project project = guiTest.ideFrame().getProject();
+    Application application =
+      ApplicationManager.getApplication();
+    application.invokeAndWait(() -> DumbServiceImpl.getInstance(project).setDumb(true),
+                              application.getDefaultModalityState());
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
+    editor.moveBetween("PreviewTheme", "");
+    guiTest.robot().waitForIdle();
+    // Still in dumb mode -- knowledge to set availability not yet ready.
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isFalse();
+
+    application.invokeAndWait(() -> DumbServiceImpl.getInstance(project).setDumb(false),
+                              application.getDefaultModalityState());
+    // Now out of dumb mode, so we should detect availability without having moved a caret or anything.
+    guiTest.robot().waitForIdle();
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isTrue();
+  }
+
   @Test
   public void testToolbarState() throws Exception {
     guiTest.importSimpleApplication();
@@ -68,12 +96,12 @@ public class ThemePreviewTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    int savedApiLevel = editor.getLayoutPreview(true).getConfigToolbar().getApiLevel();
+    String savedApiLevel = editor.getLayoutPreview(true).getConfigToolbar().getApiLevel();
 
     editor.open("app/src/main/res/values-v19/styles.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("PreviewTheme", "");
     guiTest.robot().waitForIdle();
-    assertTrue(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
+    assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isTrue();
 
     // There is also a v20 styles.xml so in order to preview v19, it has to be selected in the toolbar
     editor.getThemePreview(true).getPreviewComponent().requireApi(19);

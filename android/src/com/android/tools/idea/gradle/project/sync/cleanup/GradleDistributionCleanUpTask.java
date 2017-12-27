@@ -32,11 +32,11 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -85,7 +85,7 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
         msg = createUseWrapperQuestion("The path of the local Gradle distribution to use is not set.");
       }
       else {
-        File gradleHomePath = new File(toSystemDependentName(gradleHome));
+        File gradleHomePath = toSystemDependentPath(gradleHome);
         if (!gradleHomePath.isDirectory()) {
           String reason = String.format("The path\n'%1$s'\n, set as a local Gradle distribution, does not belong to an existing directory.",
                                         gradleHomePath.getPath());

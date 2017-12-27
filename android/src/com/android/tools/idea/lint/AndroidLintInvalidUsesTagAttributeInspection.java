@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AndroidAutoDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -26,6 +27,7 @@ import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -36,7 +38,8 @@ public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintIns
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                             @Nullable LintFix fixData) {
     final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
     XmlAttributeValue attributeValue = attribute == null ? null : attribute.getValueElement();
     if (attributeValue != null && attributeValue.getTextLength() != 0) {
@@ -50,7 +53,7 @@ public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintIns
       return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
     }
     else {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
+      return super.getQuickFixes(startElement, endElement, message, fixData);
     }
   }
 }

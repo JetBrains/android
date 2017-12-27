@@ -26,7 +26,8 @@
     <orderEntry type="module" module-name="properties" />
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
-    <orderEntry type="module" module-name="android-common" exported="" />
+    <orderEntry type="module" module-name="build-common" exported="" />
+    <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
     <orderEntry type="module" module-name="jps-builders" />
@@ -35,11 +36,10 @@
     <orderEntry type="module" module-name="manifest-merger" />
     <orderEntry type="library" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="images" />
-    <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="eclipse" />
     <orderEntry type="module" module-name="external-system-api" />
-    <orderEntry type="module" module-name="external-system-impl" />
+    <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
@@ -50,7 +50,6 @@
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="adt-ui-model" />
-    <orderEntry type="module" module-name="perfd-host" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -62,17 +61,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Jsr305">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
     <orderEntry type="module" module-name="repository" />
     <orderEntry type="module" module-name="instant-run-client" />
@@ -96,42 +85,30 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="external-system-impl" />
+    <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
-    <orderEntry type="module-library">
-      <library name="dexlib2">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="baksmali" level="project" />
+    <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="binary-resources" />
+    <orderEntry type="module" module-name="analyzer" />
     <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="module-library">
-      <library name="gluegen-rt">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/gluegen-rt.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="sherpa-solver" level="project" />
-    <orderEntry type="library" name="google-analytics-library" level="project" />
-    <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="observable" />
-    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
-    <orderEntry type="module" module-name="profilers" />
     <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
-    <orderEntry type="module" module-name="profilers-ui" />
-    <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="smali" />
+    <orderEntry type="module" module-name="java-lib-model" />
+    <orderEntry type="module" module-name="java-lib-model-builder" />
+    <orderEntry type="module" module-name="layoutinspector" />
+    <orderEntry type="module" module-name="sdk-common" />
+    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="observable-ui" />
+    <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="library" name="analytics-protos" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
   </component>
 </module>

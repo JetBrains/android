@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SelectionHandle.Position;
 
@@ -53,10 +57,13 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
    * @param distance the maximum distance from the handle center to accept
    * @return a {@link SelectionHandle} under the point, or null if not found
    */
-  public SelectionHandle findHandle(@AndroidCoordinate int x, @AndroidCoordinate int y,
-                                    @AndroidCoordinate int distance) {
+  public SelectionHandle findHandle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y,
+                                    @AndroidDpCoordinate int distance) {
+    @AndroidCoordinate int ax = Coordinates.dpToPx(myComponent.getModel(), x);
+    @AndroidCoordinate int ay = Coordinates.dpToPx(myComponent.getModel(), y);
+    @AndroidCoordinate int aDistance = Coordinates.dpToPx(myComponent.getModel(), distance);
     for (SelectionHandle handle : myHandles) {
-      if (handle.contains(x, y, distance)) {
+      if (handle.contains(ax, ay, aDistance)) {
         return handle;
       }
     }
@@ -71,7 +78,7 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
   private void createHandles() {
     ResizePolicy resizability = ResizePolicy.getResizePolicy(myComponent);
     if (resizability.isResizable()) {
-      myHandles = new ArrayList<SelectionHandle>(8);
+      myHandles = new ArrayList<>(8);
       boolean left = resizability.leftAllowed();
       boolean right = resizability.rightAllowed();
       boolean top = resizability.topAllowed();

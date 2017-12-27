@@ -18,23 +18,16 @@ package com.android.tools.idea.stats;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
+import com.android.tools.idea.downloads.DownloadService;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ResourceUtil;
-import com.intellij.util.concurrency.Semaphore;
-import com.intellij.util.download.DownloadableFileDescription;
-import com.intellij.util.download.DownloadableFileService;
 import com.intellij.util.download.FileDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,61 +35,35 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Service for getting information on Android versions, including usage percentages.
  */
-public class DistributionService {
+public class DistributionService extends DownloadService {
   private static final Logger LOG = Logger.getInstance(DistributionService.class);
-  private static final long REFRESH_INTERVAL = TimeUnit.DAYS.toMillis(1);
-  private static final long RETRY_INTERVAL = TimeUnit.HOURS.toMillis(1);
   private static final String STATS_URL = "https://dl.google.com/android/studio/metadata/distributions.json";
   private static final String STATS_FILENAME = "distributions.json";
   private static final String DOWNLOAD_FILENAME = "distributions_temp.json";
   private static final URL FALLBACK_URL = ResourceUtil.getResource(DistributionService.class, "wizardData", STATS_FILENAME);
   private static final File CACHE_PATH = new File(PathManager.getSystemPath(), "stats");
-  private static final String FILE_PATTERN =
-    FileUtil.getNameWithoutExtension(STATS_FILENAME) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(STATS_FILENAME);
 
-  private final Object myLock = new Object();
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  @GuardedBy("myLock")
   private List<Distribution> myDistributions;
-  @GuardedBy("myLock")
-  private final List<Runnable> mySuccesses = Lists.newLinkedList();
-  @GuardedBy("myLock")
-  private final List<Runnable> myFailures = Lists.newArrayList();
-  @GuardedBy("myLock")
-  private volatile boolean myRunning = false;
-  @GuardedBy("myLock")
-  private long myAttemptTime;
-  @GuardedBy("myLock")
-  private long myRefreshTime;
-
-  @NotNull private final FileDownloader myDownloader;
-  @NotNull private final File myCachePath;
-  @NotNull private final URL myFallback;
 
   private static DistributionService ourInstance;
 
+  @NotNull
   public static DistributionService getInstance() {
     if (ourInstance == null) {
-      DownloadableFileDescription description = DownloadableFileService.getInstance().createFileDescription(STATS_URL, DOWNLOAD_FILENAME);
-      FileDownloader downloader =
-        DownloadableFileService.getInstance().createDownloader(ImmutableList.of(description), "Distribution Stats");
-      ourInstance = new DistributionService(downloader, CACHE_PATH, FALLBACK_URL);
+      ourInstance = new DistributionService();
     }
     return ourInstance;
   }
 
   @Nullable
   public List<Distribution> getDistributions() {
-    // No lock is required here since this read must be atomic according to the Java language spec
     return myDistributions;
   }
 
@@ -142,166 +109,17 @@ public class DistributionService {
     return null;
   }
 
-  /**
-   * Loads the latest distributions, and returns when complete.
-   */
-  public void refreshSynchronously() {
-    final Semaphore completed = new Semaphore();
-    completed.down();
-    Runnable complete = new Runnable() {
-      @Override
-      public void run() {
-        completed.up();
-      }
-    };
-    refresh(complete, complete);
-    completed.waitFor();
-  }
-
-  /**
-   * Loads the latest distributions asynchronously. Tries to load from STATS_URL. Failing that they will be loaded from FALLBACK_URL.
-   * Callbacks will be run in a worker thread; you must invokeLater yourself if they need to make UI changes.
-   *
-   * @param success Callback to be run if the remote distributions are loaded successfully.
-   * @param failure Callback to be run if the remote distributions are not successfully loaded.
-   */
-  public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
-    final long time = System.currentTimeMillis();
-    synchronized (myLock) {
-      if (success != null) {
-        mySuccesses.add(success);
-      }
-      if (failure != null) {
-        myFailures.add(failure);
-      }
-      if (myRunning) {
-        if (time < myAttemptTime + RETRY_INTERVAL) {
-          return;
-        }
-      }
-      if (time < myRefreshTime + REFRESH_INTERVAL) {
-        runContinuations(mySuccesses);
-        return;
-      }
-      else if (time < myAttemptTime + RETRY_INTERVAL) {
-        runContinuations(myFailures);
-        return;
-      }
-
-      myAttemptTime = time;
-      myRunning = true;
-    }
-    ProgressManager.getInstance()
-      .run(new Task.Backgroundable(null, "Downloading Stats", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          loadStatsSynchronously(time);
-        }
-
-        @Override
-        public boolean isHeadless() {
-          // Necessary, otherwise runs synchronously in unit tests.
-          return false;
-        }
-      });
-  }
-
-  private void loadStatsSynchronously(long time) {
-    try {
-      File downloaded = null;
-      try {
-        List<Pair<File, DownloadableFileDescription>> result = myDownloader.download(myCachePath);
-        if (!result.isEmpty()) {
-          downloaded = fixupFile(result.get(0).getFirst());
-        }
-      }
-      catch (Exception e) {
-        // ignore -- downloaded will be null, so failure runner will run if we hadn't loaded something previously.
-      }
-      if (downloaded == null) {
-        downloaded = findLatestDownload();
-      }
-      if (downloaded != null) {
-        try {
-          loadFromFile(downloaded.toURI().toURL());
-          myRefreshTime = time;
-        }
-        catch (MalformedURLException e) {
-          // this shouldn't happen. Ignore (myDistributions will be null)
-        }
-      }
-    }
-    finally {
-      List<Runnable> continuations;
-      synchronized (myLock) {
-        if (myDistributions == null) {
-          loadFromFile(myFallback);
-          continuations = new ArrayList<Runnable>(myFailures);
-        }
-        else {
-          continuations = new ArrayList<Runnable>(mySuccesses);
-        }
-        mySuccesses.clear();
-        myFailures.clear();
-        myRunning = false;
-      }
-      runContinuations(continuations);
-    }
-  }
-
-  private File findLatestDownload() {
-    long latestModTime = 0;
-    File latestFile = null;
-    File[] files = myCachePath.listFiles();
-    if (files != null) {
-      for (File f : files) {
-        if (f.getName().matches(FILE_PATTERN)) {
-          if (f.lastModified() > latestModTime) {
-            latestFile = f;
-            latestModTime = f.lastModified();
-          }
-        }
-      }
-    }
-    return latestFile;
-  }
-
-  /**
-   * This is primarily to work around https://youtrack.jetbrains.com/issue/IDEA-145475
-   *
-   * The file is first downloaded as {@code #DOWNLOAD_FILENAME} and then renamed to {@code #STATS_FILENAME}.
-   */
-  private File fixupFile(File downloaded) {
-    File target = new File(myCachePath, STATS_FILENAME).getAbsoluteFile();
-    if (!FileUtil.filesEqual(downloaded.getAbsoluteFile(), target)) {
-      try {
-        if (target.delete()) {
-          if (downloaded.renameTo(target)) {
-            downloaded = target;
-          }
-        }
-      }
-      catch (SecurityException e) {
-        // ignore. Just keep the file that was downloaded.
-      }
-    }
-    return downloaded;
-  }
-
-  private static void runContinuations(List<Runnable> continuations) {
-    for (Runnable r : continuations) {
-      r.run();
-    }
-  }
-
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   DistributionService(@NotNull FileDownloader downloader, @NotNull File cachePath, @NotNull URL fallback) {
-    myDownloader = downloader;
-    myCachePath = cachePath;
-    myFallback = fallback;
+    super(downloader, "Distribution Stats", fallback, cachePath, STATS_FILENAME);
   }
 
-  private void loadFromFile(@NotNull URL url) {
+  private DistributionService() {
+    super("Distribution Stats", STATS_URL, FALLBACK_URL, CACHE_PATH, DOWNLOAD_FILENAME, STATS_FILENAME);
+  }
+
+  @Override
+  public void loadFromFile(@NotNull URL url) {
     try {
       String jsonString = ResourceUtil.loadText(url);
       List<Distribution> distributions = loadDistributionsFromJson(jsonString);
@@ -316,12 +134,9 @@ public class DistributionService {
   private static List<Distribution> loadDistributionsFromJson(String jsonString) {
     Type fullRevisionType = new TypeToken<Revision>() {
     }.getType();
-    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(fullRevisionType, new JsonDeserializer<Revision>() {
-      @Override
-      public Revision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        return Revision.parseRevision(json.getAsString());
-      }
-    });
+    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(
+      fullRevisionType,
+      (JsonDeserializer<Revision>)(json, typeOfT, context) -> Revision.parseRevision(json.getAsString()));
     Gson gson = gsonBuilder.create();
     Type listType = new TypeToken<ArrayList<Distribution>>() {
     }.getType();

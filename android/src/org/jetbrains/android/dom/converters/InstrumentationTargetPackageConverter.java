@@ -69,7 +69,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
     private PsiElement resolveInner() {
       final String value = getValue();
 
-      if (value.length() == 0) {
+      if (value.isEmpty()) {
         return null;
       }
       final Ref<PsiElement> result = Ref.create();
@@ -101,7 +101,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
         public boolean process(GenericAttributeValue<String> domValue) {
           final String value = domValue.getValue();
 
-          if (value != null && value.length() > 0) {
+          if (value != null && !value.isEmpty()) {
             result.add(value);
           }
           return true;

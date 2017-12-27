@@ -321,7 +321,7 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
 
       final ListModel listmodel = comboBox.getModel();
       int i = listmodel.getSize();
-      if (s.length() > 0) {
+      if (!s.isEmpty()) {
         for (int j = 0; j < i; j++) {
           Object obj = listmodel.getElementAt(j);
           if (obj == null) continue;

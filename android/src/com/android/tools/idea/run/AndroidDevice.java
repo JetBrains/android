@@ -62,8 +62,22 @@ public interface AndroidDevice {
   @NotNull
   String getName();
 
-  /** Renders the device name and misc. info to the given component. */
-  void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix);
+  /**
+   * Renders the device name and miscellaneous info to the given component.
+   *
+   * @param component the component to render to
+   * @param isCompatible whether the device satisfies the requirements of the current context
+   * @param searchPrefix the prefix to highlight
+   * @return true is the name was successfully rendered, false if some information for rendering was not readily available and
+   *         the rendered name contained a "..." placeholder
+   */
+  boolean renderLabel(@NotNull SimpleColoredComponent component, boolean isCompatible, @Nullable String searchPrefix);
+
+  /**
+   * Tells the device to prepare all information necessary for rendering its label. This operation may be slow and should not be invoked
+   * on the UI thread.
+   */
+  void prepareToRenderLabel();
 
   /** Returns the {@link IDevice} corresponding to this device, launching it if necessary. */
   @NotNull

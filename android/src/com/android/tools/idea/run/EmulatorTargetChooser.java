@@ -23,13 +23,13 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AvdManagerLog;
@@ -49,7 +49,7 @@ public class EmulatorTargetChooser {
 
   public EmulatorTargetChooser(@NotNull AndroidFacet facet, @Nullable String avd) {
     myFacet = facet;
-    assert avd == null || avd.length() > 0;
+    assert avd == null || !avd.isEmpty();
     myAvd = avd;
   }
 
@@ -72,7 +72,7 @@ public class EmulatorTargetChooser {
       return null;
     }
 
-    AvdManager manager = myFacet.getAvdManagerSilently();
+    AvdManager manager = ModuleAvds.getInstance(myFacet).getAvdManagerSilently();
     if (manager == null) {
       LOG.warn("Could not obtain AVD Manager.");
       return null;
@@ -86,21 +86,22 @@ public class EmulatorTargetChooser {
 
     LaunchableAndroidDevice androidDevice = new LaunchableAndroidDevice(avdInfo);
     androidDevice.launch(myFacet.getModule().getProject()); // LAUNCH EMULATOR
-    return new DeviceFutures(Collections.<AndroidDevice>singletonList(androidDevice));
+    return new DeviceFutures(Collections.singletonList(androidDevice));
   }
 
   @Nullable
   private String chooseAvd() {
     IAndroidTarget buildTarget = myFacet.getConfiguration().getAndroidTarget();
     assert buildTarget != null;
-    AvdInfo[] avds = myFacet.getValidCompatibleAvds();
+    ModuleAvds moduleAvds = ModuleAvds.getInstance(myFacet);
+    AvdInfo[] avds = moduleAvds.getValidCompatibleAvds();
     if (avds.length > 0) {
       return avds[0].getName();
     }
     final Project project = myFacet.getModule().getProject();
     AvdManager manager;
     try {
-      manager = myFacet.getAvdManager(new AvdManagerLog() {
+      manager = moduleAvds.getAvdManager(new AvdManagerLog() {
         @Override
         public void error(Throwable t, String errorFormat, Object... args) {
           super.error(t, errorFormat, args);
@@ -114,31 +115,23 @@ public class EmulatorTargetChooser {
     }
     catch (final AndroidLocation.AndroidLocationException e) {
       LOG.info(e);
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          Messages.showErrorDialog(project, e.getMessage(), CommonBundle.getErrorTitle());
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> Messages.showErrorDialog(project, e.getMessage(), CommonBundle.getErrorTitle()));
       return null;
     }
     final AvdManager finalManager = manager;
     assert finalManager != null;
-    return UIUtil.invokeAndWaitIfNeeded(new Computable<String>() {
-      @Override
-      public String compute() {
-        int result = Messages.showDialog(project, "To run using the emulator, you must have an AVD defined.", "Define AVD",
-                                         new String[]{"Cancel", "Create AVD"}, 1, null);
-        AvdInfo createdAvd = null;
-        if (result == 1) {
-          AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
-          ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel);
-          if (dialog.showAndGet()) {
-            createdAvd = avdOptionsModel.getCreatedAvd();
-          }
+    return UIUtil.invokeAndWaitIfNeeded(() -> {
+      int result = Messages.showDialog(project, "To run using the emulator, you must have an AVD defined.", "Define AVD",
+                                       new String[]{"Cancel", "Create AVD"}, 1, null);
+      AvdInfo createdAvd = null;
+      if (result == 1) {
+        AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
+        ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel);
+        if (dialog.showAndGet()) {
+          createdAvd = avdOptionsModel.getCreatedAvd();
         }
-        return createdAvd == null ? null : createdAvd.getName();
       }
+      return createdAvd == null ? null : createdAvd.getName();
     });
   }
 
@@ -147,7 +140,7 @@ public class EmulatorTargetChooser {
     if (myAvd == null) {
       return ImmutableList.of();
     }
-    AvdManager avdManager = myFacet.getAvdManagerSilently();
+    AvdManager avdManager = ModuleAvds.getInstance(myFacet).getAvdManagerSilently();
     if (avdManager == null) {
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
     }

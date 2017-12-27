@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.PropertyComponentHandler;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +33,9 @@ import static com.android.SdkConstants.*;
 
 public class ViewInspectorProvider implements InspectorProvider {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
-  private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
-  public ViewInspectorProvider(@NotNull Project project) {
-    myViewHandlerManager = ViewHandlerManager.get(project);
+  ViewInspectorProvider() {
     myInspectors = new HashMap<>();
   }
 
@@ -50,14 +46,19 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (components.size() != 1) {
       return false;
     }
-    String tagName = components.get(0).getTagName();
+
+    NlComponent firstComponent = components.get(0);
+    String tagName = firstComponent.getTagName();
+
     if (TAG_EXCEPTIONS.contains(tagName)) {
       return false;
     }
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
-    ViewHandler handler = myViewHandlerManager.getHandler(tagName);
+
+    PropertyComponentHandler handler = NlComponentHelperKt.getViewHandler(firstComponent);
+
     if (handler == null || handler.getInspectorProperties().isEmpty()) {
       return false;
     }
@@ -84,14 +85,6 @@ public class ViewInspectorProvider implements InspectorProvider {
   }
 
   private static class ViewInspectorComponent implements InspectorComponent {
-    // These layout properties should be shown for all child components of layouts that have the property.
-    // Which we can do by simply ask if the property is present.
-    private static final List<String> LAYOUT_PROPERTIES = ImmutableList.of(
-      ATTR_LAYOUT_SCROLL_FLAGS,
-      ATTR_LAYOUT_COLLAPSE_MODE,
-      ATTR_COLLAPSE_PARALLAX_MULTIPLIER,
-      ATTR_LAYOUT_BEHAVIOR);
-
     private final String myComponentName;
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
@@ -102,7 +95,7 @@ public class ViewInspectorProvider implements InspectorProvider {
                                   @NotNull NlPropertiesManager propertiesManager,
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
-      myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
+      myPropertyNames = new ArrayList<>(propertyNames);
       mySrcPropertyIndex = myPropertyNames.indexOf(ATTR_SRC);
       myEditors = new ArrayList<>(myPropertyNames.size());
       createEditors(properties, propertiesManager);
@@ -151,28 +144,18 @@ public class ViewInspectorProvider implements InspectorProvider {
       inspector.addTitle(myComponentName);
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
-        if (property != null) {
-          String propertyName = property.getName();
-          JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
-          if (TOOLS_URI.equals(property.getNamespace())) {
-            label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-          }
-          editor.setLabel(label);
+        String propertyName = property.getName();
+        JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
+        if (TOOLS_URI.equals(property.getNamespace())) {
+          label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
         }
+        editor.setLabel(label);
       }
     }
 
     @Override
     public void refresh() {
       myEditors.forEach(NlComponentEditor::refresh);
-    }
-
-    @NotNull
-    private static List<String> combineLists(@NotNull List<String> list1, @NotNull List<String> list2) {
-      List<String> combined = new ArrayList<>(list1.size() + list2.size());
-      combined.addAll(list1);
-      combined.addAll(list2);
-      return combined;
     }
 
     private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {

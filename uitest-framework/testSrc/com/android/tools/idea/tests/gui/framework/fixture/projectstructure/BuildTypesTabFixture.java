@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
+import com.android.tools.idea.gradle.structure.editors.NamedObjectPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.ui.components.JBList;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +48,18 @@ public class BuildTypesTabFixture extends ProjectStructureDialogFixture {
   public BuildTypesTabFixture setVersionNameSuffix(@NotNull String versionNameSuffix) {
     JTextField textField = robot().finder().findByLabel(target(), "Version Name Suffix", JTextField.class, true);
     new JTextComponentFixture(robot(), textField).deleteText().enterText(versionNameSuffix);
+    return this;
+  }
+
+
+  @NotNull
+  public BuildTypesTabFixture selectBuildType(@NotNull String item) {
+    // Find a JBList inside a NamedObjectPanel, so we get the list that's inside the tab-area.
+    NamedObjectPanel namedObjectPanel = robot().finder().findByType(target(), NamedObjectPanel.class, true);
+
+    JBList list = robot().finder().findByType(namedObjectPanel, JBList.class);
+    JListFixture jListFixture = new JListFixture(robot(), list);
+    jListFixture.clickItem(item);
     return this;
   }
 }

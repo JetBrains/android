@@ -17,7 +17,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -34,27 +36,31 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.awt.event.WindowEvent;
+
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 /**
  * Controls the Avd Manager Dialog for GUI test cases
  */
 public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFixture, JFrame> {
 
-  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target) {
+  private final IdeFrameFixture myIdeFrame;
+
+  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target, @NotNull IdeFrameFixture ideFrame) {
     super(AvdManagerDialogFixture.class, robot, target);
+    myIdeFrame = ideFrame;
   }
 
   @NotNull
-  public static AvdManagerDialogFixture find(@NotNull Robot robot) {
+  public static AvdManagerDialogFixture find(@NotNull Robot robot, @NotNull IdeFrameFixture ideFrame) {
     JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame dialog) {
         return "Android Virtual Device Manager".equals(dialog.getTitle());
       }
     });
-    return new AvdManagerDialogFixture(robot, frame);
+    return new AvdManagerDialogFixture(robot, frame, ideFrame);
   }
 
   public AvdEditWizardFixture createNew() {
@@ -70,24 +76,14 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     final TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
     JTableCellFixture cell = tableFixture.cell(name);
-    final TableCell actionCell = TableCell.row(cell.row()).column(7);
+    final TableCell actionCell = TableCell.row(cell.row()).column(8);
 
     JTableCellFixture actionCellFixture = tableFixture.cell(actionCell);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        tableView.editCellAt(actionCell.row, actionCell.column);
-      }
-    });
+    GuiTask.execute(() -> tableView.editCellAt(actionCell.row, actionCell.column));
 
     JPanel actionPanel = (JPanel)actionCellFixture.editor();
-    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull HyperlinkLabel component) {
-        return "Edit this AVD".equals(component.getToolTipText());
-      }
-    });
+    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Edit this AVD"));
     robot().click(editButtonLabel);
     return AvdEditWizardFixture.find(robot());
   }
@@ -126,7 +122,13 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
   }
 
   public void close() {
-    robot().pressAndReleaseKey(27);  // Esc key, since the dialog has no button or other UI element to close it
+    // HACK: There is no button to close the dialog (eg a "Cancel)
+    // On the build bot the window manager doesn't allow "click to close";
+    // ESC is not reliable
+    // robot().close(target()) sends a WINDOW_CLOSING event, but it may be intercepted by other Components
+    // We send WINDOW_CLOSING directly to the Windows JFrame
+    GuiTask.execute(() -> target().dispatchEvent(new WindowEvent(target(), WindowEvent.WINDOW_CLOSING)));
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    myIdeFrame.requestFocusIfLost();
   }
 }

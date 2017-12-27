@@ -30,6 +30,28 @@ import static com.google.common.truth.Truth.assertThat;
 public class IconPickerDialogTest {
 
   @Test
+  public void initIconCategories() {
+    assertThat(IconPickerDialog.initIconCategories()).isEqualTo(new String[]{
+      "All",
+      "Action",
+      "Alert",
+      "AV",
+      "Communication",
+      "Content",
+      "Device",
+      "Editor",
+      "File",
+      "Hardware",
+      "Image",
+      "Maps",
+      "Navigation",
+      "Notification",
+      "Places",
+      "Social",
+      "Toggle"});
+  }
+
+  @Test
   public void testFiltering() throws InvocationTargetException, InterruptedException {
     SwingUtilities.invokeAndWait(() -> {
       IconPickerDialog dialog = new IconPickerDialog(null);

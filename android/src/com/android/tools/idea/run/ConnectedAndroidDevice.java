@@ -41,12 +41,15 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-public class ConnectedAndroidDevice implements AndroidDevice {
+public final class ConnectedAndroidDevice implements AndroidDevice {
   private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
 
   @NotNull private final IDevice myDevice;
   @Nullable private final String myAvdName;
   @Nullable private final DeviceNameRendererEx myDeviceNameRenderer;
+  private volatile String myDeviceManufacturer;
+  private volatile String myDeviceBuild;
+  private volatile String myDeviceModel;
 
   public ConnectedAndroidDevice(@NotNull IDevice device, @Nullable List<AvdInfo> avdInfos) {
     myDevice = device;
@@ -135,42 +138,92 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
+  public boolean renderLabel(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
     if (myDeviceNameRenderer != null) {
       myDeviceNameRenderer.render(myDevice, renderer);
-      return;
+      return true;
     }
 
     renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.EmulatorDevice : AndroidIcons.Ddms.RealDevice);
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {
-      String name = String.format("%1$s [%2$s", myDevice.getSerialNumber(), myDevice.getState());
-      renderer.append(name, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      StringBuilder buf = new StringBuilder();
+      buf.append(String.format("%1$s [%2$s", myDevice.getSerialNumber(), state));
       if (state == IDevice.DeviceState.UNAUTHORIZED) {
-        renderer.append(" - Press 'OK' in the 'Allow USB Debugging' dialog on your device", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+        buf.append(" - Press 'OK' in the 'Allow USB Debugging' dialog on your device");
       }
-      renderer.append("] ", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      return;
+      buf.append("] ");
+      renderer.append(buf.toString(), SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      return true;
     }
 
-    SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
+    if (myDeviceManufacturer != null && myDeviceModel != null && myDeviceBuild != null) {
+      SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
+      String name = getName();
+      if (name.isEmpty()) {
+        name = "Unknown";
+      }
+      SearchUtil.appendFragments(searchPrefix, name, attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
 
-    String build = DevicePropertyUtil.getBuild(myDevice);
-    if (!build.isEmpty()) {
-      renderer.append(" (" + build + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      String build = getDeviceBuild();
+      if (!build.isEmpty()) {
+        renderer.append(" (" + build + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      }
+      return true;
+    } else {
+      renderer.append("...");
+      return false;
     }
   }
 
+  @NotNull
   private String getDeviceName() {
     StringBuilder name = new StringBuilder(20);
-    name.append(DevicePropertyUtil.getManufacturer(myDevice, ""));
+    name.append(getDeviceManufacturer());
     if (name.length() > 0) {
       name.append(' ');
     }
-    name.append(DevicePropertyUtil.getModel(myDevice, ""));
+    name.append(getDeviceModel());
     return name.toString();
+  }
+
+  /**
+   * Obtains manufacturer, model, and build from the device. This operation is potentially slow and should not be called on the UI thread.
+   */
+  @Override
+  public void prepareToRenderLabel() {
+    assert !isDispatchThread();
+    getDeviceManufacturer();
+    getDeviceModel();
+    getDeviceBuild();
+  }
+
+  @NotNull
+  private String getDeviceManufacturer() {
+    if (myDeviceManufacturer == null) {
+      assert !isDispatchThread();
+      myDeviceManufacturer = DevicePropertyUtil.getManufacturer(myDevice, "");
+    }
+    return myDeviceManufacturer;
+  }
+
+  @NotNull
+  private String getDeviceModel() {
+    if (myDeviceModel == null) {
+      assert !isDispatchThread();
+      myDeviceModel = DevicePropertyUtil.getModel(myDevice, "");
+    }
+    return myDeviceModel;
+  }
+
+  @NotNull
+  private String getDeviceBuild() {
+    if (myDeviceBuild == null) {
+      assert !isDispatchThread();
+      myDeviceBuild = DevicePropertyUtil.getBuild(myDevice);
+    }
+    return myDeviceBuild;
   }
 
   @NotNull
@@ -189,7 +242,6 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   public IDevice getDevice() {
     return myDevice;
   }
-
 
   @Nullable
   private static DeviceNameRendererEx getRendererExtension(@NotNull IDevice device) {
@@ -212,5 +264,10 @@ public class ConnectedAndroidDevice implements AndroidDevice {
                                     @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
                                     @Nullable Set<String> supportedAbis) {
     return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, supportedAbis, this);
+  }
+
+  private boolean isDispatchThread() {
+    Application application = ApplicationManager.getApplication();
+    return application != null && application.isDispatchThread();
   }
 }

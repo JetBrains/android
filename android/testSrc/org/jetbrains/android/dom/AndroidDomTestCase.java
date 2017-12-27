@@ -37,6 +37,7 @@ import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -265,6 +266,17 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
     String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
+    assertNotNull(doc);
+    assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
+  }
+
+  protected final void doTestDoc(String expectedPart) {
+    PsiElement originalElement = myFixture.getFile().findElementAt(
+      myFixture.getEditor().getCaretModel().getOffset());
+    PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    String doc = provider.generateDoc(docTargetElement, originalElement);
     assertNotNull(doc);
     assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }

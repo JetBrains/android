@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -38,21 +38,20 @@ import static org.mockito.Mockito.when;
  * Tests {@link GradleVersionReader}.
  */
 public class GradleVersionReaderTest extends AndroidGradleTestCase {
-  private GradleVersions myOriginalGradleVersions;
+  private IdeComponents myIdeComponents;
   private GradleVersionReader myVersionReader;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myVersionReader = new GradleVersionReader();
+    myIdeComponents = new IdeComponents(getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalGradleVersions != null) {
-        IdeComponents.replaceService(GradleVersions.class, myOriginalGradleVersions);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();
@@ -78,8 +77,7 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
 
-    myOriginalGradleVersions = GradleVersions.getInstance();
-    GradleVersions gradleVersions = IdeComponents.replaceServiceWithMock(GradleVersions.class);
+    GradleVersions gradleVersions = myIdeComponents.mockService(GradleVersions.class);
 
     Project project = getProject();
     GradleVersion gradleVersion = GradleVersion.parse("2.14.1");

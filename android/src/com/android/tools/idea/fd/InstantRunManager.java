@@ -19,13 +19,14 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.fd.client.InstantRunPushFailedException;
-import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.ir.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunClient;
+import com.android.tools.ir.client.InstantRunPushFailedException;
+import com.android.tools.ir.client.UpdateMode;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.utils.ILogger;
+import com.android.tools.log.LogWrapper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
@@ -37,6 +38,7 @@ import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -53,7 +55,7 @@ import java.util.List;
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
-public final class InstantRunManager {
+public final class InstantRunManager implements ProjectComponent {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.3.0-beta1";
   public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
@@ -118,6 +120,28 @@ public final class InstantRunManager {
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache cache = context.getInstalledPatchCache();
     return cache.getInstalledManifestResourcesHash(device, context.getApplicationId()) != null;
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return "InstantRunManager";
+  }
+
+  @Override
+  public void projectOpened() {
+  }
+
+  @Override
+  public void projectClosed() {
+  }
+
+  @Override
+  public void initComponent() {
+  }
+
+  @Override
+  public void disposeComponent() {
   }
 
   @Nullable

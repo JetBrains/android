@@ -1,9 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.net.ConnectivityManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.CONNECTIVITY_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.LinkProperties getLinkProperties(android.net.Network)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.Network getActiveNetwork()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkCapabilities getNetworkCapabilities(android.net.Network)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo getActiveNetworkInfo()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo getNetworkInfo(android.net.Network)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo getNetworkInfo(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo[] getAllNetworkInfo()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager android.net.Network[] getAllNetworks()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager boolean isActiveNetworkMetered()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager int getMultipathPreference(android.net.Network)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.ConnectivityManager.MULTIPATH_PREFERENCE_HANDOVER, android.net.ConnectivityManager.MULTIPATH_PREFERENCE_RELIABILITY, android.net.ConnectivityManager.MULTIPATH_PREFERENCE_PERFORMANCE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager int getNetworkPreference()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
   <item name="android.net.ConnectivityManager int getRestrictBackgroundStatus()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED, android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED, android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED}" />
       <val name="flag" val="false" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager void registerDefaultNetworkCallback(android.net.ConnectivityManager.NetworkCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager void registerDefaultNetworkCallback(android.net.ConnectivityManager.NetworkCallback, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager void registerNetworkCallback(android.net.NetworkRequest, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager void registerNetworkCallback(android.net.NetworkRequest, android.net.ConnectivityManager.NetworkCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.net.ConnectivityManager void registerNetworkCallback(android.net.NetworkRequest, android.net.ConnectivityManager.NetworkCallback, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
     </annotation>
   </item>
   <item name="android.net.LinkProperties java.lang.String getInterfaceName()">

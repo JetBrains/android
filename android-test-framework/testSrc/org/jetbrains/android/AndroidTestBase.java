@@ -59,6 +59,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   protected JavaCodeInsightTestFixture myFixture;
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myFixture = null;
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   protected AndroidTestBase() {
     // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
     // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
@@ -84,14 +94,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return getAndroidPluginHome() + "/testData";
   }
 
-  public static String getAndroidPluginHome() {
+  public static String getAndroidModulePath(String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/" + moduleFolder;
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/" + moduleFolder).getPath();
+  }
+
+  public static String getAndroidPluginHome() {
+    return getAndroidModulePath("android");
   }
 
   protected static Sdk addLatestAndroidSdk(Module module) {
@@ -114,6 +128,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
+
+    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    if (androidSrcFolder != null) {
+      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
+    }
 
     VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
     if (docsFolder != null) {
@@ -157,6 +176,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), TestUtils.getSdk().toString());
     Sdk androidSdk = createLatestAndroidSdk();
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
@@ -164,16 +184,20 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
         return androidPlatform.getSdkData();
-      } else {
+      }
+      else {
         fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
       }
-    } else {
+    }
+    else {
       fail("Could not find data associated with the SDK: " + androidSdk.getName());
     }
     return null;
   }
 
-  /** Returns a description of the given elements, suitable as unit test golden file output */
+  /**
+   * Returns a description of the given elements, suitable as unit test golden file output
+   */
   public static String describeElements(@Nullable PsiElement[] elements) {
     if (elements == null) {
       return "Empty";
@@ -185,7 +209,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return sb.toString();
   }
 
-  /** Appends a description of the given element, suitable as unit test golden file output */
+  /**
+   * Appends a description of the given element, suitable as unit test golden file output
+   */
   public static void appendElementDescription(@NotNull StringBuilder sb, @NotNull PsiElement element) {
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
@@ -200,7 +226,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     appendSourceDescription(sb, file, offset, segment);
   }
 
-  /** Appends a description of the given elements, suitable as unit test golden file output */
+  /**
+   * Appends a description of the given elements, suitable as unit test golden file output
+   */
   public static void appendSourceDescription(@NotNull StringBuilder sb, @Nullable PsiFile file, int offset, @Nullable Segment segment) {
     if (file != null && segment != null) {
       if (ResourceHelper.getFolderType(file) != null) {
@@ -247,13 +275,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       for (int i = lineStart; i < lineEnd; i++) {
         if (i == offset) {
           sb.append('|');
-        } else if (i >= startOffset && i <= endOffset) {
+        }
+        else if (i >= startOffset && i <= endOffset) {
           sb.append('~');
-        } else {
+        }
+        else {
           sb.append(' ');
         }
       }
-    } else {
+    }
+    else {
       sb.append(offset);
       sb.append(":?");
     }

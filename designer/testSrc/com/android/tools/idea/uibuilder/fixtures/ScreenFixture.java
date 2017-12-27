@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.resources.Density;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentFixture;
+import com.android.tools.idea.common.fixtures.ComponentListFixture;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,16 +37,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class ScreenFixture {
-  private final NlModel myModel;
-  private final SurfaceFixture mySurface;
+  private final SyncNlModel myModel;
+  private final NlDesignSurface mySurface;
   private ScreenView myScreen;
   private double myScale = 0.5;
   private int myTranslateX = 0;
   private int myTranslateY = 0;
-  private Density myDensity = Density.MEDIUM;
 
-  ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
-    mySurface = surface;
+  public ScreenFixture(@NotNull SyncNlModel model) {
+    mySurface = (NlDesignSurface)model.getSurface();
     myModel = model;
   }
 
@@ -199,12 +199,6 @@ public class ScreenFixture {
   }
 
   @NotNull
-  public ScreenFixture withDensity(@NotNull Density density) {
-    myDensity = density;
-    return this;
-  }
-
-  @NotNull
   public ScreenFixture withOffset(@SwingCoordinate int x, @SwingCoordinate int y) {
     myTranslateX = x;
     myTranslateY = y;
@@ -214,7 +208,7 @@ public class ScreenFixture {
   @NotNull
   public ScreenView getScreen() {
     if (myScreen == null) {
-      myScreen = createScreen(mySurface.getSurface(), myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY, myDensity);
+      myScreen = createScreen(myModel, myScale, myTranslateX, myTranslateY);
     }
     return myScreen;
   }

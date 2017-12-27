@@ -122,7 +122,7 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
         }
 
         if (className != null) {
-          int i = className.lastIndexOf(".");
+          int i = className.lastIndexOf('.');
           if (i != -1) {
             className = className.substring(i + 1);
           }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.template;
 
+import com.android.tools.adtui.ImageUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -51,7 +52,10 @@ final class IconLoader extends CacheLoader<File, Optional<Icon>> {
       if (iconPath.isFile()) {
         BufferedImage image = ImageIO.read(iconPath);
         if (image != null) {
-          return Optional.of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
+          // Crop away empty space to left of the image.
+          Rectangle imageExtents = ImageUtils.getCropBounds(image, (img, x, y) -> (img.getRGB(x, y) & 0xFF000000) == 0, null);
+          image = image.getSubimage(imageExtents.x, 0, image.getWidth() - imageExtents.x, image.getHeight());
+          return Optional.of(new ImageIcon(image.getScaledInstance((256 * image.getWidth()) / image.getHeight(), 256, Image.SCALE_SMOOTH)));
         }
         else {
           getLog().warn("File " + iconPath.getAbsolutePath() + " exists but is not a valid image");

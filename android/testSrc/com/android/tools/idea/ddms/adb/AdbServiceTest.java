@@ -25,6 +25,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import java.util.concurrent.ExecutionException;
 
 public class AdbServiceTest extends AndroidTestCase {
+
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
     if (SystemInfo.isWindows) {

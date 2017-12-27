@@ -17,13 +17,13 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -47,7 +48,6 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -92,7 +92,8 @@ public class GraphicsLayoutRenderer {
                                  @Nullable RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull List<ResourceValue> resourceLookupChain,
-                                 @NotNull Object credential) {
+                                 @NotNull Object credential,
+                                 @NotNull Project project) {
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
     myImageFactory = new FakeImageFactory();
@@ -102,20 +103,20 @@ public class GraphicsLayoutRenderer {
     sessionParams.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     sessionParams.setImageFactory(myImageFactory);
 
-    myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential);
+    myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential, project);
   }
 
   @VisibleForTesting
   @NotNull
   static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
-                                                 @NotNull AndroidPlatform platform,
-                                                 @NotNull Project project,
-                                                 @NotNull Configuration configuration,
-                                                 @NotNull ILayoutPullParser parser,
-                                                 @Nullable Color backgroundColor,
-                                                 @NotNull SessionParams.RenderingMode renderingMode,
-                                                 boolean useSecurityManager) throws InitializationException {
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+                                       @NotNull AndroidPlatform platform,
+                                       @NotNull Project project,
+                                       @NotNull Configuration configuration,
+                                       @NotNull ILayoutPullParser parser,
+                                       @Nullable Color backgroundColor,
+                                       @NotNull SessionParams.RenderingMode renderingMode,
+                                       boolean useSecurityManager) throws InitializationException {
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     LayoutLibrary layoutLib;
     try {
       IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();
@@ -139,7 +140,7 @@ public class GraphicsLayoutRenderer {
       throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
     }
 
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
 
     final Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
@@ -148,13 +149,13 @@ public class GraphicsLayoutRenderer {
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    final LayoutlibCallbackImpl layoutlibCallback =
-      new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null) {
-        @Override
-        public ActionBarCallback getActionBarCallback() {
-          return actionBarCallback;
-        }
-      };
+    LayoutlibCallbackImpl layoutlibCallback =
+        new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null, null) {
+          @Override
+          public ActionBarCallback getActionBarCallback() {
+            return actionBarCallback;
+          }
+        };
 
     // Load the local project R identifiers.
     boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
@@ -201,7 +202,7 @@ public class GraphicsLayoutRenderer {
     }
 
     RenderSecurityManager mySecurityManager = useSecurityManager ? RenderSecurityManagerFactory.create(module, platform) : null;
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential, project);
   }
 
   /**
@@ -304,6 +305,10 @@ public class GraphicsLayoutRenderer {
   public boolean render(@NotNull final Graphics2D graphics) {
     myRenderSessionLock.readLock().lock();
     try {
+      if (myRenderSession == null) {
+        LOG.warn("Render error: Render session is null ");
+        return false;
+      }
       if (!SystemInfo.isMac) {
         // Do not enable anti-aliasing on MAC. It doesn't improve much and causes has performance issues when filling the background using
         // alpha values.
@@ -322,19 +327,17 @@ public class GraphicsLayoutRenderer {
       Result result = null;
 
       try {
-        result = RenderService.runRenderAction(new Callable<Result>() {
-          @Override
-          public Result call() {
+        final RenderSession renderSession = myRenderSession;
+        result = RenderService.runRenderAction(() -> {
+          if (mySecurityManager != null) {
+            mySecurityManager.setActive(true, myCredential);
+          }
+          try {
+            return renderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
+          }
+          finally {
             if (mySecurityManager != null) {
-              mySecurityManager.setActive(true, myCredential);
-            }
-            try {
-              return myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
-            }
-            finally {
-              if (mySecurityManager != null) {
-                mySecurityManager.setActive(false, myCredential);
-              }
+              mySecurityManager.setActive(false, myCredential);
             }
           }
         });
@@ -376,29 +379,25 @@ public class GraphicsLayoutRenderer {
   private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
                                                  @NotNull final SessionParams sessionParams,
                                                  @Nullable final RenderSecurityManager securityManager,
-                                                 final @NotNull Object credential) {
+                                                 @NotNull final Object credential,
+                                                 @NotNull final Project project) {
     try {
-      RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
-        @Override
-        public RenderSession call() {
+      RenderSession session = RenderService.runRenderAction(() -> {
+        if (securityManager != null) {
+          securityManager.setActive(true, credential);
+        }
+        try {
+          // createSession() might access the PSI tree so we need to run it inside as a read action.
+          // Waiting for smart mode can take a while, so make sure we do not block the dispatch thread
+          assert !ApplicationManager.getApplication().isDispatchThread();
+          return DumbService.getInstance(project).runReadActionInSmartMode(() -> {
+            // createSession will also render the layout for the first time.
+            return layoutLibrary.createSession(sessionParams);
+          });
+        }
+        finally {
           if (securityManager != null) {
-            securityManager.setActive(true, credential);
-          }
-          try {
-            // createSession() might access the PSI tree so we need to run it inside as a read action.
-            return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-              @Override
-              public RenderSession compute() {
-                // createSession will also render the layout for the first time.
-                return layoutLibrary.createSession(sessionParams);
-
-              }
-            });
-          }
-          finally {
-            if (securityManager != null) {
-              securityManager.setActive(false, credential);
-            }
+            securityManager.setActive(false, credential);
           }
         }
       });
@@ -473,6 +472,11 @@ public class GraphicsLayoutRenderer {
     }
 
     return null;
+  }
+
+  @NotNull
+  public List<ViewInfo> getRootViews() {
+    return myRenderSession == null ? Collections.emptyList() : myRenderSession.getRootViews();
   }
 
   /**

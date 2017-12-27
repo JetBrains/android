@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest">
+        <Message>process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
+        <message>process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message>mem_samples {
+  timestamp: 86400000000000
+  java_mem: 1024
+}
+alloc_stats_samples {
+  timestamp: 86400000000000
+}
+gc_stats_samples {
+  start_time: 86400000000000
+  end_time: 86401000000000
+}
+heap_dump_infos {
+  start_time: 86400000000000
+  end_time: 86401000000000
+}
+heap_dump_infos {
+  start_time: 86401000000000
+  end_time: 86402000000000
+}
+heap_dump_infos {
+  start_time: 86402000000000
+  end_time: 9223372036854775807
+}
+allocations_info {
+  start_time: 86400000000000
+  end_time: 86401000000000
+  legacy: true
+}
+allocations_info {
+  start_time: 86401000000000
+  end_time: 9223372036854775807
+  legacy: true
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>mem_samples {
+  timestamp: 86400000000000
+  java_mem: 1024
+}
+alloc_stats_samples {
+  timestamp: 86400000000000
+}
+gc_stats_samples {
+  start_time: 86400000000000
+  end_time: 86401000000000
+}
+heap_dump_infos {
+  start_time: 86400000000000
+  end_time: 86401000000000
+}
+heap_dump_infos {
+  start_time: 86401000000000
+  end_time: 86402000000000
+}
+heap_dump_infos {
+  start_time: 86402000000000
+  end_time: 9223372036854775807
+}
+allocations_info {
+  start_time: 86400000000000
+  end_time: 86401000000000
+  legacy: true
+}
+allocations_info {
+  start_time: 86401000000000
+  end_time: 9223372036854775807
+  legacy: true
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationEvents" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsRequest">
+        <Message>process_id: 1234
+start_time: 86400000000000
+end_time: 86401000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationEvents</functionCalled>
+        <message>process_id: 1234
+start_time: 86400000000000
+end_time: 86401000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationEvents" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationEventsResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationEvents</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
+        <Message>process_id: 1234
+dump_time: 86400000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationDump</functionCalled>
+        <message>process_id: 1234
+dump_time: 86400000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse">
+        <Message>status: SUCCESS
+data: "Test Data"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationDump</functionCalled>
+        <message>status: SUCCESS
+data: "Test Data"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest">
+        <Message>process_id: 1234
+session {
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
+        <message>process_id: 1234
+session {
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
+        <Message>process_id: 1234
+dump_time: 86400000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
+        <message>process_id: 1234
+dump_time: 86400000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse">
+        <Message>status: SUCCESS
+data: "Test Data"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
+        <message>status: SUCCESS
+data: "Test Data"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">
+        <Message>process_id: 1234
+dump_time: 86401000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
+        <message>process_id: 1234
+dump_time: 86401000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse">
+        <Message>status: FAILURE_UNKNOWN
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$DumpDataResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetHeapDump</functionCalled>
+        <message>status: FAILURE_UNKNOWN
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
+        <Message>process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message>process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

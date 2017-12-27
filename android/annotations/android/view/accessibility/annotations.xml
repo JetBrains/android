@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.view.accessibility.AccessibilityManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.ACCESSIBILITY_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.view.accessibility.AccessibilityManager boolean addAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -12,11 +17,28 @@
   <item name="android.view.accessibility.AccessibilityManager boolean removeTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.accessibility.AccessibilityManager void addAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager void addAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager void addTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityManager void addTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction AccessibilityAction(int, java.lang.CharSequence) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.accessibility.AccessibilityWindowInfo java.lang.CharSequence getTitle()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.CaptioningManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.CAPTIONING_SERVICE" />
+    </annotation>
   </item>
   <item name="android.view.accessibility.CaptioningManager android.view.accessibility.CaptioningManager.CaptionStyle getUserStyle()">
     <annotation name="android.support.annotation.NonNull" />

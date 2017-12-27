@@ -7,24 +7,16 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="testFramework" exported="" scope="TEST" />
     <orderEntry type="module" module-name="xml-psi-api" scope="TEST" />
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
     <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jsr305-1.3.9.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
   </component>
 </module>

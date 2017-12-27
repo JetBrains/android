@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

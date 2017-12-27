@@ -19,7 +19,6 @@ import com.android.ide.common.res2.RecordingLogger;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestBase;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -31,7 +30,9 @@ import java.io.FilePermission;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.Permission;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -385,6 +386,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testThread2() throws Exception {
+    final List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
     // Check that when a new thread is created simultaneously from an unrelated
     // thread during rendering, that new thread does not pick up the security manager.
     //
@@ -446,6 +448,7 @@ public class RenderSecurityManagerTest {
             }
           };
           thread4.start();
+          threads.add(thread4);
 
           try {
             System.getProperties();
@@ -522,6 +525,7 @@ public class RenderSecurityManagerTest {
             }
           };
           thread3.start();
+          threads.add(thread3);
 
           barrier3.await();
           barrier4.await();
@@ -545,6 +549,9 @@ public class RenderSecurityManagerTest {
     thread2.start();
     thread1.join();
     thread2.join();
+    for (Thread thread : threads) {
+      thread.join();
+    }
   }
 
   @Test
@@ -646,6 +653,7 @@ public class RenderSecurityManagerTest {
       assertEquals("MyTestSecurityManager", System.getSecurityManager().toString());
       System.setSecurityManager(null);
     }
+    thread.join();
   }
 
   @Test
@@ -716,37 +724,6 @@ public class RenderSecurityManagerTest {
         // pass
         assertEquals("java.lang.NoSuchFieldException: sCredential", e.toString());
       }
-    }
-    finally {
-      manager.dispose(credential);
-    }
-  }
-
-  /**
-   * FIXME b.android.com/204441
-   *
-   * Java 8 broke {@link SecurityManager#checkMemberAccess(Class, int)} by deprecating it and not calling it. As a result, it is possible to
-   * access sCredential via reflection on Java 8 and above. The alternative to {@code checkMemberAccess} is
-   * {@link SecurityManager#checkPermission(Permission)}, which doesn't allow selectively allowing reflection.
-   */
-  @Ignore
-  @Test
-  public void testMemberAccess() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
-    Object credential = new Object();
-    manager.setActive(true, credential);
-    // Try looking up the secret (with getDeclaredField instead of getField)
-    try {
-      Field field = RenderSecurityManager.class.getDeclaredField("sCredential");
-      field.setAccessible(true);
-      Object secret = field.get(null);
-      manager.dispose(secret);
-      fail("Shouldn't be able to find our way to the credential");
-    }
-    catch (Exception e) {
-      // pass
-      assertEquals("Reflection access not allowed during rendering " + "(com.android.ide.common.rendering.RenderSecurityManager)",
-                   e.toString());
     }
     finally {
       manager.dispose(credential);

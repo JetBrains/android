@@ -15,29 +15,29 @@ public class Class {
     if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     if (SDK_INT >= ICE_CREAM_SANDWICH) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     } else {
       new GridLayout(null).getOrientation(); // Not flagged
     }
@@ -45,24 +45,24 @@ public class Class {
     if (Build.VERSION.SDK_INT >= 14) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     if (VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     // Nested conditionals
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
       if (priority) {
-        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
       } else {
-        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
       }
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     }
 
     // Nested conditionals 2
@@ -73,7 +73,7 @@ public class Class {
         new GridLayout(null).getOrientation(); // Not flagged
       }
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
   }
 
@@ -81,41 +81,41 @@ public class Class {
     if (android.os.Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (android.os.Build.VERSION.SDK_INT >= 16) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (android.os.Build.VERSION.SDK_INT >= 13) {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>.<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null).<error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#getOrientation">getOrientation</error>(); // Flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (SDK_INT >= JELLY_BEAN) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     } else {
       new GridLayout(null).getOrientation(); // Not flagged
     }
@@ -123,13 +123,13 @@ public class Class {
     if (Build.VERSION.SDK_INT >= 16) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
 
     if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
       new GridLayout(null).getOrientation(); // Not flagged
     } else {
-      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // Flagged
+      <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // Flagged
     }
   }
 }

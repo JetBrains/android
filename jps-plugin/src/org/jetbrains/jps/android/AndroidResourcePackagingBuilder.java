@@ -144,7 +144,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
         });
 
       AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, moduleName);
-      final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
+      final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
       if (success) {
         final List<String> srcFiles = new ArrayList<String>();

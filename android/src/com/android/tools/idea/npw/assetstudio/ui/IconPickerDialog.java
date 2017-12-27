@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.MaterialDesignIcons;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Generate a dialog to pick a pre-configured material icon in vector format.
@@ -60,8 +61,11 @@ public final class IconPickerDialog extends DialogWrapper {
   private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
   private static final String[] ICON_CATEGORIES = initIconCategories();
 
-  private static String[] initIconCategories() {
-    Collection<String> categories = MaterialDesignIcons.getCategories();
+  @VisibleForTesting
+  static String[] initIconCategories() {
+    Collection<String> categories = MaterialDesignIcons.getCategories().stream()
+      .map(category -> category.equals("av") ? "AV" : StringUtil.capitalize(category))
+      .collect(Collectors.toList());
 
     Collection<String> allAndCategories = new ArrayList<>(categories.size() + 1);
 

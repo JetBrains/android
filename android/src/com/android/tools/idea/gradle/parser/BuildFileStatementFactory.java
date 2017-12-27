@@ -33,8 +33,14 @@ public abstract class BuildFileStatementFactory extends ValueFactory<BuildFileSt
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
     closure = (GrStatementOwner)closure.replace(factory.createClosureFromText("{\n}"));
     for (BuildFileStatement statement : statements) {
+      PsiElement lastElement = null;
       for (PsiElement element : statement.getGroovyElements(factory)) {
         closure.addBefore(element, closure.getLastChild());
+        lastElement = element;
+      }
+      // Make sure that statements are separated by newlines.
+      if (lastElement != null && !lastElement.getText().endsWith("\n")) {
+        closure.addBefore(factory.createLineTerminator("\n"), closure.getLastChild());
       }
     }
     GradleGroovyFile.reformatClosure(closure);

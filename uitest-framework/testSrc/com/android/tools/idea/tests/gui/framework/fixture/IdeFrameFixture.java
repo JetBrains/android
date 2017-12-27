@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
@@ -35,67 +36,54 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.compiler.CompilationStatusListener;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import static com.android.SdkConstants.FD_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static java.awt.event.InputEvent.CTRL_MASK;
+import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -106,7 +94,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
-  @NotNull private final File myProjectPath;
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
@@ -114,24 +101,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   private boolean myIsClosed;
 
   @NotNull
-  public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
-    final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
-      @Override
-      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
-        Project project = frame.getProject();
-        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
-          return projectName == null || projectName.equals(project.getName());
-        }
-        return false;
-      }
-    };
-
-    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, matcher), projectPath);
+  public static IdeFrameFixture find(@NotNull final Robot robot) {
+    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(IdeFrameImpl.class)));
   }
 
-  public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
+  private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(IdeFrameFixture.class, robot, target);
-    myProjectPath = projectPath;
     Project project = getProject();
     myModules = new Modules(project);
 
@@ -141,12 +116,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener = new GradleProjectEventListener();
 
     GradleSyncState.subscribe(project, myGradleProjectEventListener);
-    PostProjectBuildTasksExecutor.subscribe(project, myGradleProjectEventListener);
+    GradleBuildState.subscribe(project, myGradleProjectEventListener);
   }
 
   @NotNull
   public File getProjectPath() {
-    return myProjectPath;
+    return new File(target().getProject().getBasePath());
   }
 
   @NotNull
@@ -156,13 +131,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       names.add(module.getName());
     }
     return names;
-  }
-
-  @NotNull
-  public IdeFrameFixture requireModuleCount(int expected) {
-    Module[] modules = getModuleManager().getModules();
-    assertThat(modules).named("Module count in project " + quote(getProject().getName())).asList().hasSize(expected);
-    return this;
   }
 
   @NotNull
@@ -177,41 +145,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     }
     throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
-  }
-
-  /**
-   * Returns a list of system independent paths
-   */
-  @NotNull
-  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull JpsModuleSourceRootType<?> sourceType) {
-    Set<String> paths = Sets.newHashSet();
-
-    Module module = getModule(moduleName);
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
-            for (SourceFolder folder : contentEntry.getSourceFolders()) {
-              JpsModuleSourceRootType<?> rootType = folder.getRootType();
-              if (rootType.equals(sourceType)) {
-                String path = urlToPath(folder.getUrl());
-                String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
-                paths.add(PathUtil.toSystemIndependentName(relativePath));
-              }
-            }
-          }
-        }
-        finally {
-          rootModel.dispose();
-        }
-      }
-    });
-
-    return paths;
   }
 
   @NotNull
@@ -238,21 +171,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public AndroidModuleModel getAndroidModel(@NotNull String moduleName) {
-    Module module = getModule(moduleName);
-    assertNotNull("Could not find module " + moduleName, module);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertNotNull("Module " + moduleName + " is not an Android module", facet);
-    assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
-
-    return androidModel;
+  public GradleInvocationResult invokeProjectMake() {
+    return invokeProjectMake(null);
   }
 
   @NotNull
-  public GradleInvocationResult invokeProjectMake() {
+  public GradleInvocationResult invokeProjectMake(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
     AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
@@ -264,8 +188,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       });
     selectProjectMakeAction();
 
-    waitForBuildToFinish(COMPILE_JAVA);
+    waitForBuildToFinish(COMPILE_JAVA, wait);
 
+    Wait.seconds(10)
+      .expecting("Listeners to be notified of build-finished event")
+      .until(()->{return resultRef.get() != null;});
     return resultRef.get();
   }
 
@@ -279,64 +206,41 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  @NotNull
-  public CompileContext invokeProjectMakeUsingJps() {
-    Project project = getProject();
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
-
-    AtomicReference<CompileContext> contextRef = new AtomicReference<>();
-    CompilerManager compilerManager = CompilerManager.getInstance(project);
-
-    Disposable disposable = new NoOpDisposable();
-    compilerManager.addCompilationStatusListener(new CompilationStatusListener() {
-      @Override
-      public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-        contextRef.set(compileContext);
-      }
-    }, disposable);
-
-    try {
-      selectProjectMakeAction();
-
-      Wait.seconds(10).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
-        .until(() -> contextRef.get() != null);
-
-      return contextRef.get();
-    }
-    finally {
-      Disposer.dispose(disposable);
-    }
-  }
-
   /**
    * Finds the Run button in the IDE interface.
    *
    * @return ActionButtonFixture for the run button.
    */
   @NotNull
+  public ActionButtonFixture findDebugApplicationButton() {
+    return findActionButtonByActionId("Debug");
+  }
+
+  @NotNull
   public ActionButtonFixture findRunApplicationButton() {
     return findActionButtonByActionId("Run");
   }
 
+  @NotNull
+  public ActionButtonFixture findApplyChangesButton() {
+    return findActionButtonByText("Apply Changes");
+  }
+
   public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
-    findActionButtonByActionId("Debug").click();
+    findDebugApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
   public DeployTargetPickerDialogFixture runApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
-    findActionButtonByActionId("Run").click();
+    findRunApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
-  /** Similar to runApp except doesn't wait for a DeployTargetPickerDialog after. */
   @NotNull
-  public IdeFrameFixture runNonAndroidApp(@NotNull String appName) {
-    selectApp(appName);
-    findActionButtonByActionId("Run").click();
-    return this;
+  public IdeFrameFixture stopApp() {
+    return invokeMenuPath("Run", "Stop \'app\'");
   }
 
   @NotNull
@@ -370,12 +274,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Returns whether a menu path is enabled
+   * Wait till an path is enabled then invokes the action. Used for menu options that might be disabled or not available at first
    *
-   * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
-  public boolean isMenuPathEnabled(@NotNull String... path) {
-    return getMenuFixture().isMenuPathEnabled(path);
+  public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
+    Wait.seconds(10).expecting("Wait until the path " + Arrays.toString(path) + " is ready.")
+      .until(() -> getMenuFixture().isMenuPathEnabled(path));
+    getMenuFixture().invokeMenuPath(path);
+    return this;
   }
 
   @NotNull
@@ -385,13 +292,22 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode) {
+    return waitForBuildToFinish(buildMode, null);
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
     Project project = getProject();
     if (buildMode == SOURCE_GEN && !GradleProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
       return this;
     }
 
-    // http://b.android.com/226797 - Most builds finish in 10 seconds, but GradleBuildTest.compileWithJack was failing.
-    Wait.seconds(20).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+    if (wait == null) {
+      // http://b.android.com/226797 - Most builds finish in 10 seconds, but GradleBuildTest.compileWithJack was failing.
+      wait = Wait.seconds(20);
+    }
+
+    wait.expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
@@ -431,55 +347,33 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture requestProjectSyncAndExpectFailure() {
-    requestProjectSync();
-    return waitForGradleProjectSyncToFail();
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSyncAndSimulateError(@NotNull String error) {
-    registerSyncErrorToSimulate(error);
-    // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
-    // is started.
-    return requestProjectSync();
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSyncAndSimulateError(@NotNull Throwable error) {
-    registerSyncErrorToSimulate(error);
-    // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
-    // is started.
-    return requestProjectSync();
-  }
-
-  @NotNull
   public IdeFrameFixture requestProjectSync() {
+    return requestProjectSync(null);
+  }
+
+  @NotNull
+  public IdeFrameFixture requestProjectSync(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
-    waitForGradleSyncAction();
+    waitForGradleSyncAction(wait);
     invokeMenuPath("Tools", "Android", "Sync Project with Gradle Files");
 
     return this;
   }
 
-  private void waitForGradleSyncAction() {
-    GuiTests.waitForBackgroundTasks(robot());
-    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        AnAction action = button.getAction();
-        return action != null
-               && "Android.SyncProject".equals(ActionManager.getInstance().getId(action))
-               && action.getTemplatePresentation().isEnabledAndVisible()
-               && button.isEnabled();
-      }
-    });
+  private void waitForGradleSyncAction(@Nullable Wait wait) {
+    GuiTests.waitForBackgroundTasks(robot(), wait);
   }
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFail() {
+    return waitForGradleProjectSyncToFail(Wait.seconds(10));
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToFail(@NotNull Wait waitForSync) {
     try {
-      waitForGradleProjectSyncToFinish(true);
+      waitForGradleProjectSyncToFinish(waitForSync, true);
       fail("Expecting project sync to fail");
     }
     catch (RuntimeException expected) {
@@ -502,18 +396,30 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
-    waitForGradleProjectSyncToFinish(false);
+    return waitForGradleProjectSyncToFinish(Wait.seconds(10));
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync) {
+    waitForGradleProjectSyncToFinish(waitForSync, false);
     return this;
   }
 
-  private void waitForGradleProjectSyncToFinish(boolean expectSyncFailure) {
+  @NotNull
+  public IdeFrameFixture waitForGradleImportProjectSync() {
+    Wait.seconds(30).expecting("Project Import Sync to finish")
+      .until(() -> !GradleSyncState.getInstance(getProject()).isSyncInProgress());
+    return this;
+  }
+
+  private void waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync, boolean expectSyncFailure) {
     Project project = getProject();
 
     // ensure GradleInvoker (in-process build) is always enabled.
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    Wait.seconds(10).expecting("Syncing project " + quote(project.getName()) + " to finish")
+    waitForSync.expecting("Syncing project " + quote(project.getName()) + " to finish")
       .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);
         boolean syncFinished =
@@ -524,7 +430,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return syncFinished;
       });
 
-    waitForGradleSyncAction();
+    waitForGradleSyncAction(null);
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
@@ -542,6 +448,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId) {
     return ActionButtonFixture.findByActionId(actionId, robot(), target());
+  }
+
+  @NotNull
+  private ActionButtonFixture findActionButtonByText(@NotNull String text) {
+    return ActionButtonFixture.findByText(text, robot(), target());
   }
 
   @NotNull
@@ -570,11 +481,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public DeviceExplorerToolWindowFixture getDeviceExplorerToolWindow() {
-    return new DeviceExplorerToolWindowFixture(getProject(), robot());
-  }
-
-  @NotNull
   public IdeSettingsDialogFixture openIdeSettings() {
     // Using invokeLater because we are going to show a *modal* dialog via API (instead of clicking a button, for example.) If we use
     // GuiActionRunner the test will hang until the modal dialog is closed.
@@ -584,30 +490,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowSettingsUtilImpl.getConfigurableGroups(project, true));
       });
     return IdeSettingsDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public IdeFrameFixture deleteGradleWrapper() {
-    deleteWrapper(getProjectPath());
-    return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture requireGradleWrapperSet() {
-    File wrapperDirPath = getGradleWrapperDirPath(getProjectPath());
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
-    return this;
-  }
-
-  public static void deleteWrapper(@NotNull File projectDirPath) {
-    File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
-    delete(wrapperDirPath);
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
-  }
-
-  @NotNull
-  private static File getGradleWrapperDirPath(@NotNull File projectDirPath) {
-    return new File(projectDirPath, FD_GRADLE);
   }
 
   @NotNull
@@ -630,16 +512,27 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
-    ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
-    button.requireVisible();
-    button.requireEnabled();
-    button.click();
-    return AvdManagerDialogFixture.find(robot());
+    // The action button is prone to move during rendering so that robot.click() could miss.
+    // So, we use component's click here directly.
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        actionButtonFixture.target().click();
+      }
+    });
+    return AvdManagerDialogFixture.find(robot(), this);
+  }
+
+  @NotNull
+  public IdeSettingsDialogFixture invokeSdkManager() {
+    robot().click(robot().finder().find(Matchers.byTooltip(JComponent.class, "SDK Manager").andIsShowing()));
+    return IdeSettingsDialogFixture.find(robot());
   }
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    return new ProjectViewFixture(getProject(), robot());
+    return new ProjectViewFixture(this);
   }
 
   @NotNull
@@ -667,6 +560,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public DialogFixture findDialog(@NotNull String title) {
+    return new DialogFixture(robot(), robot().finder().find(Matchers.byTitle(JDialog.class, title)));
+  }
+
+  @NotNull
   public IdeFrameFixture setGradleJvmArgs(@NotNull String jvmArgs) {
     Project project = getProject();
 
@@ -686,14 +584,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> {
         AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(getProject());
         AndroidPluginVersionUpdater.UpdateResult result = versionUpdater.updatePluginVersion(GradleVersion.parse(version), null);
         assertTrue("Android Gradle plugin version was not updated", result.isPluginVersionUpdated());
-      }
-    });
+      });
     return this;
   }
 
@@ -731,19 +627,31 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Wait.seconds(1).expecting("a component to have the focus").until(() -> {
-      // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
-      // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
-      if (keyboardFocusManager.getFocusOwner() == null) {
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            target().requestFocus();
-          }
-        });
+    Wait.seconds(5).expecting("a component to have the focus").until(() -> {
+      // Keep requesting focus until it is obtained by a component which is showing. Since there is no guarantee that the request focus will
+      // be granted keep asking until it is. This problem has appeared at least when not using a window manager when running tests. The focus
+      // can sometimes temporarily be held by a component that is not showing, when closing a dialog for example. This is a transition state
+      // and we want to make sure to keep going until the focus is held by a stable component.
+      Component focusOwner = keyboardFocusManager.getFocusOwner();
+      if (focusOwner == null || !focusOwner.isShowing()) {
+        if (SystemInfo.isMac) {
+          robot().click(target(), new Point(1, 1)); // Simulate title bar click
+        }
+        GuiTask.execute(() -> target().requestFocus());
         return false;
       }
       return true;
     });
+  }
+
+  public void selectPreviousEditor() {
+    robot().pressAndReleaseKey(KeyEvent.VK_E, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel header) {
+        return Objects.equals(header.getText(), "Recent Files");
+      }
+    });
+    robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
   }
 }

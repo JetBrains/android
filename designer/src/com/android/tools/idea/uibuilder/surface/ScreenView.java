@@ -17,82 +17,51 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
-import java.util.List;
+import java.awt.geom.AffineTransform;
+
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG_COLOR;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
  */
-public class ScreenView {
-  private final DesignSurface mySurface;
+public class ScreenView extends SceneView {
   private ScreenViewType myType;
-  private final NlModel myModel;
-  private Scene myScene = null;
 
-  public enum ScreenViewType { NORMAL, BLUEPRINT }
+  public enum ScreenViewType {NORMAL, BLUEPRINT}
 
-  @SwingCoordinate private int x;
-  @SwingCoordinate private int y;
-
-  public ScreenView(DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
-    mySurface = surface;
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+    super(surface, model);
     myType = type;
-    myModel = model;
-
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      myScene = Scene.createScene(myModel, this);
-    }
-
-    myModel.getSelectionModel().addListener(new SelectionListener() {
-      @Override
-      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (mySurface!=null) {
-              mySurface.repaint();
-            }
-          }
-        });
-      }
-    });
-  }
-
-  @Nullable
-  public Scene getScene() { return myScene; }
-
-  @Nullable
-  public RenderResult getResult() {
-    return myModel.getRenderResult();
   }
 
   /**
    * Returns the current type of this ScreenView
    */
   @NotNull
-  public ScreenViewType getScreenViewType() { return myType; }
+  public ScreenViewType getScreenViewType() {
+    return myType;
+  }
 
   /**
    * Set the type of this ScreenvVew
-
+   *
    * @param type ScreenViewType (NORMAL or BLUEPRINT)
    */
   public void setType(ScreenViewType type) {
@@ -100,38 +69,12 @@ public class ScreenView {
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
-   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-   *                  returned.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
-    }
-
-    Dimension preferred = getPreferredSize(dimension);
-    double scale = mySurface.getScale();
-
-    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
-    return dimension;
-  }
-
-  /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getSize() {
-    return getSize(null);
-  }
-
-  /**
    * Returns the current preferred size for the view.
+   *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
+  @Override
   @NotNull
   public Dimension getPreferredSize(@Nullable Dimension dimension) {
     if (dimension == null) {
@@ -151,110 +94,107 @@ public class ScreenView {
     return dimension;
   }
 
-  @NotNull
-  public Dimension getPreferredSize() {
-    return getPreferredSize(null);
-  }
-
-  public void switchDevice() {
-    List<Device> devices = myModel.getFacet().getConfigurationManager().getDevices();
-    List<Device> applicable = Lists.newArrayList();
-    for (Device device : devices) {
-      if (HardwareConfigHelper.isNexus(device)) {
-        applicable.add(device);
+  @Override
+  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (getScreenViewType() == ScreenViewType.NORMAL) {
+      Rectangle resizeZone =
+        new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
       }
     }
-    Configuration configuration = getConfiguration();
-    Device currentDevice = configuration.getDevice();
-    for (int i = 0, n = applicable.size(); i < n; i++) {
-      if (applicable.get(i) == currentDevice) {
-        Device newDevice = applicable.get((i + 1) % applicable.size());
-        configuration.setDevice(newDevice, true);
-        break;
-      }
-    }
+    super.updateCursor(x, y);
   }
 
-  public void toggleOrientation() {
-    Configuration configuration = getConfiguration();
-    configuration.getDeviceState();
-
-    State current = configuration.getDeviceState();
-    State flip = configuration.getNextDeviceState(current);
-    if (flip != null) {
-      configuration.setDeviceState(flip);
-    }
+  @Override
+  public LayoutlibSceneManager getSceneManager() {
+    return (LayoutlibSceneManager)super.getSceneManager();
   }
 
   @NotNull
-  public Configuration getConfiguration() {
-    return myModel.getConfiguration();
+  @Override
+  public Color getBgColor() {
+    return getScreenViewType() == ScreenViewType.BLUEPRINT ? BLUEPRINT_BG_COLOR : Color.WHITE;
   }
 
-  @NotNull
-  public NlModel getModel() {
-    return myModel;
-  }
-
-  @NotNull
-  public SelectionModel getSelectionModel() {
-    // For now, the selection model is tied to the model itself.
-    // This is deliberate: rather than having each view have its own
-    // independent selection, when a file is shown multiple times on the screen,
-    // selection is "synchronized" between the views by virtue of them all
-    // sharing the same selection model, currently stashed in the model itself.
-    return myModel.getSelectionModel();
-  }
-
-  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
   @Nullable
-  public Shape getScreenShape() {
-    Device device = getConfiguration().getDevice();
-    if (device == null) {
-      return null;
+  public RenderResult getResult() {
+    return getSceneManager().getRenderResult();
+  }
+
+  public static class BorderPainter {
+
+    private static final int SHADOW_SIZE = JBUI.scale(6);
+    private static final Color COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR;
+    private static final Color COLOR_INSIDE = new JBColor(new Color(70, 70, 70, 10), new Color(10, 10, 10, 20));
+    private static final Paint GRAD_LEFT = new GradientPaint(0, 0, COLOR_OUTSIDE, SHADOW_SIZE, 0, COLOR_INSIDE);
+    private static final Paint GRAD_TOP = new GradientPaint(0, 0, COLOR_OUTSIDE, 0, SHADOW_SIZE, COLOR_INSIDE);
+    private static final Paint GRAD_RIGHT = new GradientPaint(0, 0, COLOR_INSIDE, SHADOW_SIZE, 0, COLOR_OUTSIDE);
+    private static final Paint GRAD_BOTTOM = new GradientPaint(0, 0, COLOR_INSIDE, 0, SHADOW_SIZE, COLOR_OUTSIDE);
+    private static final Paint GRAD_CORNER =
+      new RadialGradientPaint(SHADOW_SIZE, SHADOW_SIZE, SHADOW_SIZE, new float[]{0, 1}, new Color[]{COLOR_INSIDE, COLOR_OUTSIDE});
+
+    public static void paint(Graphics2D g2d, ScreenView screenView) {
+      Dimension size = screenView.getSize();
+      int x = screenView.getX();
+      int y = screenView.getY();
+
+      RenderingHints hints = g2d.getRenderingHints();
+      AffineTransform tx = g2d.getTransform();
+      Paint paint = g2d.getPaint();
+
+      // Left
+      g2d.translate(x - SHADOW_SIZE, y);
+      g2d.scale(1, size.height / (double)SHADOW_SIZE);
+      g2d.setPaint(GRAD_LEFT);
+      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+
+      // Right
+      g2d.translate(size.width + SHADOW_SIZE, 0);
+      g2d.setPaint(GRAD_RIGHT);
+      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+
+      // Reset transform scale and translate to upper left corner
+      g2d.translate(-size.width, 0);
+      g2d.scale(1, SHADOW_SIZE / (double)size.height);
+
+      // Top
+      g2d.translate(0, -SHADOW_SIZE);
+      g2d.scale(size.width / (double)SHADOW_SIZE, 1);
+      g2d.setPaint(GRAD_TOP);
+      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+
+      // Bottom
+      g2d.translate(0, size.height + SHADOW_SIZE);
+      g2d.setPaint(GRAD_BOTTOM);
+      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+
+      // Reset the transform
+      g2d.setTransform(tx);
+
+      // Smoothen the corner shadows
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+      // Paint the corner shadows
+      g2d.setPaint(GRAD_CORNER);
+      // Top Left
+      g2d.translate(x - SHADOW_SIZE, y - SHADOW_SIZE);
+      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 90, 90);
+      // Top Right
+      g2d.translate(size.width, 0);
+      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 0, 90);
+      // Bottom Right
+      g2d.translate(0, size.height);
+      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 270, 90);
+      // Bottom Left
+      g2d.translate(-size.width, 0);
+      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 180, 90);
+
+      g2d.setTransform(tx);
+      g2d.setRenderingHints(hints);
+      g2d.setPaint(paint);
     }
-
-    Screen screen = device.getDefaultHardware().getScreen();
-    if (screen.getScreenRound() != ScreenRound.ROUND) {
-      return null;
-    }
-
-    Dimension size = getSize();
-
-    int chin = screen.getChin();
-    if (chin == 0) {
-      // Plain circle
-      return new Ellipse2D.Double(x, y, size.width, size.height);
-    } else {
-      int height = size.height * chin / screen.getYDimension();
-      Area a1 = new Area(new Ellipse2D.Double(x, y, size.width, size.height + height));
-      Area a2 = new Area(new Rectangle2D.Double(x, y + 2 * (size.height + height) - height, size.width, height));
-      a1.subtract(a2);
-      return a1;
-    }
-  }
-
-  @NotNull
-  public DesignSurface getSurface() {
-    return mySurface;
-  }
-
-  public double getScale() {
-    return mySurface.getScale();
-  }
-
-  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
-    x = screenX;
-    y = screenY;
-  }
-
-  @SwingCoordinate
-  public int getX() {
-    return x;
-  }
-
-  @SwingCoordinate
-  public int getY() {
-    return y;
   }
 }

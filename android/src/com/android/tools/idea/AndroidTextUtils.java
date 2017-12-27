@@ -20,7 +20,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Various utilities for generating user-facing text
@@ -90,5 +92,16 @@ public class AndroidTextUtils {
       return haystack.substring(0, haystack.length() - needle.length());
     }
     return null;
+  }
+
+  /***
+   * Splits the string but includes the delimiter in the resulting list
+   * @param string  the string to be split
+   * @param delimiter separator
+   * @return the string broken into a list split by delimiter including the delimiter
+   */
+  @NotNull
+  public static List<String> splitKeepDelimiter(@NotNull String string, @NotNull String delimiter) {
+    return Arrays.asList(string.split(String.format("((?<=%1$s)|(?=%1$s))", delimiter)));
   }
 }

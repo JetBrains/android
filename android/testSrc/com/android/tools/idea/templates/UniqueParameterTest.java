@@ -188,6 +188,9 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertPasses("com.example.projectwithappandlib.app", myMainSourceProvider, "MainActivity2", UNIQUE, null);
     assertPasses("com.example.projectwithappandlib.app", myPaidSourceProvider, "MainActivity", UNIQUE, null);
+
+    assertViolates("com.example.projectwithappandlib.app", myMainSourceProvider, "dummy", UNIQUE, null);
+    assertPasses("com.example.projectwithappandlib.app", myMainSourceProvider, "dummy2", UNIQUE, null);
   }
 
   public void testUniqueLayoutWithLayoutAlias() throws Exception {

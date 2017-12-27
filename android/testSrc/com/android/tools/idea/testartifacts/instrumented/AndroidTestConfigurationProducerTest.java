@@ -20,6 +20,7 @@ import com.intellij.openapi.util.SystemInfo;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 
 /**
  * Test for {@link AndroidTestConfigurationProducer}
@@ -32,25 +33,34 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    loadSimpleApplication();
-  }
-
   public void testCanCreateAndroidTestConfigurationFromAndroidTestClass() throws Exception {
-    assertNotNull(createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest"));
+    loadSimpleApplication();
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
   }
 
   public void testCannotCreateAndroidTestConfigurationFromJUnitTestClass() throws Exception {
+    loadSimpleApplication();
     assertNull(createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.UnitTest"));
   }
 
   public void testCanCreateAndroidTestConfigurationFromAndroidTestDirectory() throws Exception {
-    assertNotNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java"));
+    loadSimpleApplication();
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(getProject(), "app/src/androidTest/java");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
   }
 
   public void testCannotCreateAndroidTestConfigurationFromJUnitTestDirectory() throws Exception {
+    loadSimpleApplication();
     assertNull(createAndroidTestConfigurationFromDirectory(getProject(), "app/src/test/java"));
+  }
+
+  public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
+    loadProject(TEST_ONLY_MODULE, "test");
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
   }
 }

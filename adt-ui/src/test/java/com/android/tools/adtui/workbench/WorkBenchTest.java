@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
@@ -27,10 +28,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
@@ -46,6 +44,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.android.tools.adtui.workbench.ToolWindowDefinition.DEFAULT_SIDE_WIDTH;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -61,7 +60,7 @@ public class WorkBenchTest {
   private FileEditor myFileEditor2;
 
   private WorkBenchManager myWorkBenchManager;
-  private FloatingToolWindowManager myFloatingToolWindowManager;
+  private DetachedToolWindowManager myFloatingToolWindowManager;
   private JComponent myContent;
   private ThreeComponentsSplitter mySplitter;
   private PropertiesComponent myPropertiesComponent;
@@ -82,7 +81,7 @@ public class WorkBenchTest {
     Project project = ProjectManager.getInstance().getDefaultProject();
     myPropertiesComponent = PropertiesComponent.getInstance();
     myWorkBenchManager = WorkBenchManager.getInstance();
-    myFloatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    myFloatingToolWindowManager = DetachedToolWindowManager.getInstance(project);
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     myModel = new SideModel<>(project);
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
@@ -90,6 +89,7 @@ public class WorkBenchTest {
     myRightMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
     myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
     WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
+    mySplitter.setSize(1000, 600);
     myWorkBench = new WorkBench<>(project, "BENCH", myFileEditor, initParams);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
@@ -132,16 +132,8 @@ public class WorkBenchTest {
     myToolWindow1.setMinimized(false);
     myModel.update(myToolWindow1, PropertyType.AUTO_HIDE);
 
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      myWorkBench.addNotify();
-      try {
-        fireFocusOwnerChange(myContent);
-        assertThat(myToolWindow1.isMinimized()).isTrue();
-      }
-      finally {
-        myWorkBench.removeNotify();
-      }
-    });
+    fireFocusOwnerChange(myContent);
+    assertThat(myToolWindow1.isMinimized()).isTrue();
   }
 
   private static void fireFocusOwnerChange(@NotNull JComponent component) {
@@ -152,12 +144,44 @@ public class WorkBenchTest {
 
   @Test
   public void testComponentResize() {
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(200);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(-1);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(-1);
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(400);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(400));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+  }
+
+  @Test
+  public void testComponentDownSizeWithToolAdjustments() {
+    mySplitter.setSize(1000, 600);
+    mySplitter.setFirstSize(1000);
+    mySplitter.setLastSize(2800);
+    fireComponentResize(myContent);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(300);
+    assertThat(mySplitter.getLastSize()).isEqualTo(474);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(300));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(474));
+  }
+
+  @Test
+  public void testComponentDownSizeToSmallerThanMinimum() {
+    mySplitter.setSize(500, 600);
+    mySplitter.setFirstSize(1000);
+    mySplitter.setLastSize(2800);
+    fireComponentResize(myContent);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(166);
+    assertThat(mySplitter.getLastSize()).isEqualTo(166);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -180,8 +204,8 @@ public class WorkBenchTest {
     myWorkBench.restoreDefaultLayout();
 
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
-    assertThat(mySplitter.getLastSize()).isEqualTo(200);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
+    assertThat(mySplitter.getLastSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
     assertThat(myToolWindow1.isAutoHide()).isFalse();
     assertThat(myToolWindow2.isLeft()).isFalse();
     assertThat(myToolWindow2.isMinimized()).isFalse();
@@ -192,8 +216,8 @@ public class WorkBenchTest {
     myToolWindow1.setAutoHide(true);
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
-    mySplitter.setFirstSize(2000);
-    mySplitter.setLastSize(4000);
+    mySplitter.setFirstSize(300);
+    mySplitter.setLastSize(400);
     fireComponentResize(myContent);
 
     myWorkBench.storeDefaultLayout();
@@ -211,8 +235,8 @@ public class WorkBenchTest {
     myWorkBench.restoreDefaultLayout();
 
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(2000);
-    assertThat(mySplitter.getLastSize()).isEqualTo(4000);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(300);
+    assertThat(mySplitter.getLastSize()).isEqualTo(400);
     assertThat(myToolWindow1.isAutoHide()).isTrue();
     assertThat(myToolWindow2.isLeft()).isTrue();
     assertThat(myToolWindow2.isSplit()).isFalse();
@@ -230,7 +254,7 @@ public class WorkBenchTest {
     assertThat(myToolWindow1.isLeft()).isFalse();
     assertThat(myToolWindow2.isLeft()).isTrue();
     assertThat(myToolWindow3.isLeft()).isTrue();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
     assertThat(mySplitter.getLastSize()).isEqualTo(400);
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
@@ -238,7 +262,8 @@ public class WorkBenchTest {
   @Test
   public void testModelUpdateFloatingStatus() {
     myToolWindow1.setFloating(true);
-    myModel.update(myToolWindow1, PropertyType.FLOATING);
+    myToolWindow1.setDetached(true);
+    myModel.update(myToolWindow1, PropertyType.DETACHED);
 
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
     verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(eq(myWorkBench));
@@ -296,7 +321,7 @@ public class WorkBenchTest {
 
     fireButtonDragged(dragImage, 10, 20, 1052, 40);
     assertThat(dragImage.getParent()).isNotNull();
-    assertThat(dragImage.getX()).isEqualTo(1034);
+    assertThat(dragImage.getX()).isEqualTo(1055 - myToolWindow1.getMinimizedButton().getPreferredSize().width);
     assertThat(dragImage.getY()).isEqualTo(20);
     verify(myRightMinimizePanel).drag(eq(myToolWindow1), eq(20));
 
@@ -308,6 +333,7 @@ public class WorkBenchTest {
     verify(myLeftMinimizePanel).drag(eq(myToolWindow1), eq(75));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void fireButtonDragged(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();
     MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);
@@ -332,6 +358,7 @@ public class WorkBenchTest {
     verify(myRightMinimizePanel).dragDrop(eq(myToolWindow1), eq(20));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void fireButtonDropped(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();
     MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);

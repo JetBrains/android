@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.InstantRunStatus;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
@@ -55,16 +56,9 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
-  public void cleanBuildOnUserRequest() {
-    BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_CLEAN_BUILD, false);
-    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
-    assertEquals(AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"), provider.getNotificationText());
-  }
-
-  @Test
   public void appNotRunningAndHaveChanges() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
-    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap"), provider.getNotificationText());
   }
 
@@ -83,6 +77,13 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
+  public void restartNotification() {
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.RESTART, "");
+    assertEquals(AndroidBundle.message("instant.run.notification.coldswap"), provider.getNotificationText());
+  }
+
+  @Test
   public void hotswapNotification() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.HOTSWAP, "");
@@ -98,7 +99,7 @@ public class InstantRunNotificationProviderTest {
     assertEquals("Instant Run re-installed and restarted the app.", provider.getNotificationText());
 
     // but if we generated cold swap patches, then we should specify that we did so because of multi process
-    provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap.multiprocess"), provider.getNotificationText());
   }
 
@@ -110,9 +111,15 @@ public class InstantRunNotificationProviderTest {
             InstantRunStatus.VerifierStatus.JAVA_RESOURCES_CHANGED.toString());
     assertEquals("Instant Run re-installed and restarted the app. Java Resources Changed.", provider.getNotificationText());
 
+    buildSelection = new BuildSelection(BuildCause.MISMATCHING_TIMESTAMPS, false);
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
+    assertEquals(
+      "Instant Run performed a full build and install since<br>the installation on the device does not match the local build on disk.",
+      provider.getNotificationText());
+
+    // some full build causes shouldn't be shown though..
     buildSelection = new BuildSelection(BuildCause.NO_DEVICE, false);
     provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
-    assertEquals("Instant Run re-installed and restarted the app. BuildCause: NO_DEVICE, BuildMode: FULL.", provider.getNotificationText());
-
+    Truth.assertThat(provider.getNotificationText()).isNull();
   }
 }

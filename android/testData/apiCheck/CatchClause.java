@@ -15,7 +15,7 @@ public class Class {
     }
 
     private void willThrow() throws OperationApplicationException {
-        throw <error descr="Call requires API level 5 (current min is 1): new android.content.OperationApplicationException">new OperationApplicationException()</error>;
+        throw <error descr="Call requires API level 5 (current min is 1): new android.content.OperationApplicationException">new OperationApplicationException</error>();
     }
 
     private class MyException extends <error descr="Class requires API level 5 (current min is 1): android.content.OperationApplicationException">OperationApplicationException</error> {

@@ -17,21 +17,18 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.ide.common.sdk.LoadStatus;
 import com.android.layoutlib.bridge.Bridge;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,11 +41,6 @@ import java.util.Map;
  */
 public class LayoutLibraryLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.LayoutLibraryLoader");
-
-  /**
-   * If true, the loader will dynamically load layoutlib from the platform path and won't use the jar included with Android Studio
-   */
-  public static final boolean USE_SDK_LAYOUTLIB = Boolean.getBoolean("use.sdk.layoutlib");
 
   private LayoutLibraryLoader() {
   }
@@ -84,29 +76,8 @@ public class LayoutLibraryLoader {
 
     LayoutLibrary library;
     final ILogger logger = new LogWrapper(LOG);
-    if (USE_SDK_LAYOUTLIB) {
-      final String resFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.RESOURCES)));
-      final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
-      if (resFolder == null || !resFolder.isDirectory()) {
-        throw new RenderingException(
-          LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(resFolderPath)));
-      }
-
-      final String layoutLibJarPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.LAYOUT_LIB)));
-      final VirtualFile layoutLibJar = LocalFileSystem.getInstance().findFileByPath(layoutLibJarPath);
-      if (layoutLibJar == null || layoutLibJar.isDirectory()) {
-        throw new RenderingException(LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(layoutLibJarPath)));
-      }
-
-      library = LayoutLibrary.load(layoutLibJar.getPath(), logger, ApplicationNamesInfo.getInstance().getFullProductName());
-    } else {
-      // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
-      library = LayoutLibrary.load(new Bridge(), LayoutLibraryLoader.class.getClassLoader());
-    }
-
-    if (library.getStatus() != LoadStatus.LOADED) {
-      throw new RenderingException(library.getLoadMessage());
-    }
+    // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
+    library = LayoutLibrary.load(new Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
 
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final LayoutLog layoutLog = new LayoutLogWrapper(LOG);

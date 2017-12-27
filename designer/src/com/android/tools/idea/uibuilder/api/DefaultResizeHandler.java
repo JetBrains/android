@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Map;
@@ -132,7 +134,9 @@ public class DefaultResizeHandler extends ResizeHandler {
     // Match on fill bounds
     horizontalFillSegment = null;
     fillHeight = false;
-    Rectangle parentBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);
+    Rectangle parentBounds =
+      new Rectangle(NlComponentHelperKt.getX(layout), NlComponentHelperKt.getY(layout), NlComponentHelperKt.getW(layout),
+                    NlComponentHelperKt.getH(layout));
     if (horizontalEdgeType == SegmentType.BOTTOM && !wrapHeight) {
       horizontalFillSegment = new Segment(parentBounds.y + parentBounds.height, newBounds.x,
                                           newBounds.x + newBounds.width,
@@ -165,7 +169,8 @@ public class DefaultResizeHandler extends ResizeHandler {
     if (parent == null) {
       return;
     }
-    setNewSizeBounds(component, parent, new Rectangle(component.x, component.y, component.w, component.h),
+    setNewSizeBounds(component, parent, new Rectangle(NlComponentHelperKt.getX(component), NlComponentHelperKt.getY(component),
+                                                      NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)),
                      newBounds, horizontalEdgeType, verticalEdgeType);
   }
 

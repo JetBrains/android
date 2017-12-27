@@ -26,11 +26,11 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class BuildStopper {
+public class BuildStopper {
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myMap = new ConcurrentHashMap<>();
 
   @NotNull
-  CancellationTokenSource createAndRegisterTokenSource(@NotNull ExternalSystemTaskId id) {
+  public CancellationTokenSource createAndRegisterTokenSource(@NotNull ExternalSystemTaskId id) {
     CancellationTokenSource tokenSource = GradleConnector.newCancellationTokenSource();
     myMap.put(id, tokenSource);
     return tokenSource;
@@ -41,7 +41,7 @@ class BuildStopper {
     myMap.put(id, tokenSource);
   }
 
-  void attemptToStopBuild(@NotNull ExternalSystemTaskId id, @Nullable ProgressIndicator progressIndicator) {
+  public void attemptToStopBuild(@NotNull ExternalSystemTaskId id, @Nullable ProgressIndicator progressIndicator) {
     if (progressIndicator != null) {
       if (progressIndicator.isCanceled()) {
         return;
@@ -58,11 +58,11 @@ class BuildStopper {
   }
 
   @Nullable
-  CancellationTokenSource remove(@NotNull ExternalSystemTaskId taskId) {
+  public CancellationTokenSource remove(@NotNull ExternalSystemTaskId taskId) {
     return myMap.remove(taskId);
   }
 
-  boolean contains(@NotNull ExternalSystemTaskId taskId) {
+  public boolean contains(@NotNull ExternalSystemTaskId taskId) {
     return myMap.containsKey(taskId);
   }
 

@@ -24,11 +24,14 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
+import com.intellij.CommonBundle;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -41,6 +44,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class SdkQuickfixUtils {
   private static final ProgressIndicator REPO_LOGGER = new StudioLoggerProgressIndicator(SdkQuickfixUtils.class);
@@ -56,7 +61,7 @@ public final class SdkQuickfixUtils {
   public static ModelWizardDialog createDialogForPaths(@Nullable Component parent,
                                                        @NotNull Collection<String> requestedPaths,
                                                        boolean backgroundable) {
-    return createDialog(null, parent, requestedPaths, null, null, getSdkHandler(), backgroundable);
+    return createDialog(null, parent, requestedPaths, null, null, getSdkHandler(), null, backgroundable);
   }
 
   /**
@@ -71,7 +76,7 @@ public final class SdkQuickfixUtils {
                                                           @NotNull Collection<UpdatablePackage> requestedPackages,
                                                           @NotNull Collection<LocalPackage> uninstallPackages,
                                                           boolean backgroundable) {
-    return createDialog(null, parent, null, requestedPackages, uninstallPackages, getSdkHandler(), backgroundable);
+    return createDialog(null, parent, null, requestedPackages, uninstallPackages, getSdkHandler(), null, backgroundable);
   }
 
   /**
@@ -82,18 +87,44 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialogForPaths(@Nullable Project project, @NotNull Collection<String> requestedPaths) {
-    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), false);
+    return createDialogForPaths(project, requestedPaths, null);
+  }
+
+  /**
+   * Create an SdkQuickFix dialog.
+   *
+   * @param project        The {@link Project} to use as a parent for the wizard dialog.
+   * @param requestedPaths The paths of packages to install. Callers should ensure that the given packages include remote versions.
+   * @param noOpMessage    Error message to show when nothing is going to be installed or uninstalled after resolving the resolved paths or
+   *                       null if there is no need to show an error.
+   */
+  @Nullable
+  public static ModelWizardDialog createDialogForPaths(@Nullable Project project,
+                                                       @NotNull Collection<String> requestedPaths,
+                                                       @Nullable String noOpMessage) {
+    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), noOpMessage, false);
+  }
+
+  public static void showSdkMissingDialog() {
+    String msg = message("android.sdk.missing.msg");
+    String title = message("android.sdk.missing.title");
+    String okText = message("android.sdk.open.manager");
+    String cancelText = CommonBundle.getCancelButtonText();
+
+    if (Messages.showOkCancelDialog((Project)null, msg, title, okText, cancelText, Messages.getErrorIcon()) == Messages.OK) {
+      showAndroidSdkManager();
+    }
+  }
+
+  public static void showAndroidSdkManager() {
+    ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
   }
 
   private static AndroidSdkHandler getSdkHandler() {
     AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     if (data == null) {
-      String title = "SDK Problem";
-      String msg = "<html>" + "Your Android SDK is missing or out of date." + "<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
-
+      showSdkMissingDialog();
       return null;
     }
 
@@ -108,6 +139,7 @@ public final class SdkQuickfixUtils {
                                         @Nullable Collection<UpdatablePackage> requestedPackages,
                                         @Nullable Collection<LocalPackage> requestedUninstalls,
                                         @Nullable AndroidSdkHandler sdkHandler,
+                                        @Nullable String noOpMessage,
                                         boolean backgroundable) {
     if (sdkHandler == null) {
       return null;
@@ -116,18 +148,15 @@ public final class SdkQuickfixUtils {
     RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
 
     if (mgr.getLocalPath() == null) {
-      String title = "SDK Problem";
-      String msg = "<html>" + "Your Android SDK is missing or out of date." + "<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
-
+      showSdkMissingDialog();
       return null;
     }
 
     List<String> unknownPaths = new ArrayList<>();
     List<UpdatablePackage> resolvedPackages;
-    mgr.loadSynchronously(0, new StudioLoggerProgressIndicator(SdkQuickfixUtils.class),
-                          new StudioDownloader(), StudioSettingsController.getInstance());
+    mgr.load(0, null, null, null,
+             new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+             new StudioDownloader(), StudioSettingsController.getInstance(), true);
     RepositoryPackages packages = mgr.getPackages();
     if (requestedPackages == null) {
       requestedPackages = new ArrayList<>();
@@ -171,6 +200,9 @@ public final class SdkQuickfixUtils {
 
     // If everything was removed, don't continue.
     if (resolvedPackages.isEmpty() && resolvedUninstalls.isEmpty()) {
+      if (noOpMessage != null) {
+        Messages.showErrorDialog(project, noOpMessage, "SDK Manager");
+      }
       return null;
     }
     List<RemotePackage> installRequests = resolvedPackages.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList());

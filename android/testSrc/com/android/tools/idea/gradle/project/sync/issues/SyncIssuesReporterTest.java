@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  */
 public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
   private BaseSyncIssuesReporter myStrategy1;
   private BaseSyncIssuesReporter myStrategy2;
 
@@ -44,7 +44,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
     when(myStrategy1.getSupportedIssueType()).thenReturn(TYPE_BUILD_TOOLS_TOO_LOW);
@@ -130,7 +130,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(4);
+    assertThat(strategies).hasSize(5);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -146,6 +146,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_BUILD_TOOLS_TOO_LOW);
     assertThat(strategy).isInstanceOf(BuildToolsTooLowReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_MISSING_SDK_PACKAGE);
+    assertThat(strategy).isInstanceOf(MissingSdkPackageSyncIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 }

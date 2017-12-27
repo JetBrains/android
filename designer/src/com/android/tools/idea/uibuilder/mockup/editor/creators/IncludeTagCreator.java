@@ -19,15 +19,15 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -54,7 +54,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
@@ -89,7 +89,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
   @Override
   public NlComponent addToModel() {
     NlComponent component = getMockup().getComponent();
-    if (component.isOrHasSuperclass(CLASS_RECYCLER_VIEW)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW)) {
       addListItemAttribute(component);
       return component;
     }
@@ -100,10 +100,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
 
   private void addListItemAttribute(NlComponent component) {
     String newLayoutResource = createNewIncludedLayout();
-    WriteCommandAction.runWriteCommandAction(
-      getModel().getProject(), "Add listitem attribute", null,
-      () -> component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource),
-      getModel().getFile());
+    NlWriteCommandAction.run(component, "Add listitem attribute", () ->
+      component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource));
   }
 
   /**
@@ -132,12 +130,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    NlModel nlModel = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile.getVirtualFile());
+    NlModel nlModel = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile);
     ModelListener listener = new ModelListener() {
-
-      @Override
-      public void modelChanged(@NotNull NlModel model) {
-      }
 
       @Override
       public void modelRendered(@NotNull NlModel model) {
@@ -150,7 +144,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
         addShowInAttribute(transaction);
         addSizeAttributes(transaction, getAndroidBounds());
         addMockupAttributes(transaction, getSelectionBounds());
-        WriteCommandAction.runWriteCommandAction(model.getProject(), (Computable)transaction::commit);
+        NlWriteCommandAction.run(component, "", transaction::commit);
       }
 
       @Override
@@ -159,7 +153,6 @@ public class IncludeTagCreator extends SimpleViewCreator {
       }
     };
     nlModel.addListener(listener);
-    nlModel.requestRender();
     return getResourceName(newFile);
   }
 

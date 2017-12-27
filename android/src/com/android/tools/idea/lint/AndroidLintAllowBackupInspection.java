@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;

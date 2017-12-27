@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="4000001"
+    android:versionName="1.0"
+    package="com.example.SanAngeles"
+    platformBuildVersionCode="23"
+    platformBuildVersionName="6.0-2704002">
+
+    <uses-sdk
+        android:minSdkVersion="4"
+        android:targetSdkVersion="23" />
+
+    <application
+        android:label="@ref/0x7f030000"
+        android:icon="@ref/0x7f020000"
+        android:debuggable="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false">
+
+        <activity
+            android:label="@ref/0x7f030000"
+            android:name="com.example.SanAngeles.DemoActivity">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.intent.action.MAIN" />
+
+                <category
+                    android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

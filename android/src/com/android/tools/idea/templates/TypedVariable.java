@@ -43,11 +43,12 @@ public class TypedVariable {
         return valueOf(name.toUpperCase(Locale.US));
       } catch (IllegalArgumentException e) {
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
-          LOG.error("Unexpected global type '" + name + "'");
-          LOG.error("Expected one of :");
+          StringBuilder stringBuilder = new StringBuilder();
+          stringBuilder.append("Unexpected global type '" + name + "'. Expected one of: \n");
           for (Type s : Type.values()) {
-            LOG.error("  " + s.name().toLowerCase(Locale.US));
+            stringBuilder.append("   " + s.name().toLowerCase(Locale.US) + "\n");
           }
+          LOG.error(stringBuilder.toString());
         }
       }
 

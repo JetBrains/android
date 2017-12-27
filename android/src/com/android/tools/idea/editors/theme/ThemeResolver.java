@@ -110,7 +110,7 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
+    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myConfiguration.getModule());
     if (repository == null) {
       return Collections.emptyList();
     }
@@ -127,11 +127,11 @@ public class ThemeResolver {
     final Module module = myConfiguration.getModule();
     final List<Pair<StyleResourceValue, Module>> result = Lists.newArrayList();
 
-    fillModuleResources(module, ModuleResourceRepository.getModuleResources(module, true), result);
+    fillModuleResources(module, ModuleResourceRepository.getOrCreateInstance(module), result);
 
     final List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
-      fillModuleResources(facet.getModule(), facet.getModuleResources(true), result);
+      fillModuleResources(facet.getModule(), ModuleResourceRepository.getOrCreateInstance(facet), result);
     }
 
     return result;
@@ -154,7 +154,7 @@ public class ThemeResolver {
                                              boolean isFramework) {
     // Collect the themes out of all the styles.
     Collection<ResourceValue> values = styles.values();
-    List<StyleResourceValue> themes = new ArrayList<StyleResourceValue>(values.size());
+    List<StyleResourceValue> themes = new ArrayList<>(values.size());
 
     if (!isFramework) {
       Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());

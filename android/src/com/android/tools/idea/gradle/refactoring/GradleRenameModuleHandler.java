@@ -28,6 +28,7 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
@@ -56,6 +57,7 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
@@ -120,7 +122,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
     @Override
     public boolean checkInput(@Nullable String inputString) {
-      return inputString != null && inputString.length() > 0 && !inputString.equals(myModule.getName()) && !inputString.contains(":");
+      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":");
     }
 
     @Override
@@ -184,8 +186,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             modifiableModel.renameModule(myModule, inputString);
           }
           catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
-            Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
-                                     IdeBundle.message("title.rename.module"));
+            ApplicationManager.getApplication().invokeLater(
+              () -> Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
+                                             IdeBundle.message("title.rename.module")));
             result.setResult(false);
             reset(modifiedBuildModels);
             return;
@@ -197,7 +200,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             moduleRoot.rename(this, inputString);
           }
           catch (IOException e) {
-            Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module"));
+            ApplicationManager.getApplication().invokeLater(
+              () -> Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module")));
             result.setResult(false);
             reset(modifiedBuildModels);
             return;
@@ -235,7 +239,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {

@@ -55,7 +55,7 @@ class AndroidInlineUtil {
     }
     final String styleName = style.getName().getStringValue();
 
-    if (styleName == null || styleName.length() == 0) {
+    if (styleName == null || styleName.isEmpty()) {
       return null;
     }
     return new MyStyleData(styleName, style, nameAttrValue);

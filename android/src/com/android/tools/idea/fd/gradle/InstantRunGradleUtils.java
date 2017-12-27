@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.fd.gradle;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,5 +188,17 @@ public class InstantRunGradleUtils {
     catch (ApkProvisionException e) {
       return null;
     }
+  }
+
+  /**
+   * returns false is application's manifest hasCode is set to false.
+   * default assumption is app has Java code, returns true
+   */
+  public static boolean appHasCode(@Nullable AndroidFacet facet) {
+    if (facet == null) {
+      return true;
+    }
+    MergedManifest mergedManifest = MergedManifest.get(facet);
+    return mergedManifest.getApplicationHasCode();
   }
 }

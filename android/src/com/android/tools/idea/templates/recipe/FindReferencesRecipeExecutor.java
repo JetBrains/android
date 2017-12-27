@@ -83,7 +83,7 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
-  public void updateAndSyncGradle() {
+  public void updateAndSync() {
   }
 
   @Override

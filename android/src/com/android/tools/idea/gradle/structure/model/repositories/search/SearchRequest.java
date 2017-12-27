@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class SearchRequest {
+public final class SearchRequest {
   @NotNull private final String myArtifactName;
 
   @Nullable private final String myGroupId;

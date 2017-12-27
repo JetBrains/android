@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
@@ -204,11 +203,13 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
 
+  @Override
   public File getAaptGenDir() throws IOException {
     File aaptGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_APT, true);
     return aaptGenDir != null ? canonizeFilePath(aaptGenDir) : null;
   }
 
+  @Override
   public File getAidlGenDir() throws IOException {
     File aidlGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL, true);
     return aidlGenDir != null ? canonizeFilePath(aidlGenDir) : null;
@@ -236,7 +237,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Nullable
   private File findFileByRelativeModulePath(String relativePath, boolean checkExistence) {
-    if (relativePath == null || relativePath.length() == 0) {
+    if (relativePath == null || relativePath.isEmpty()) {
       return null;
     }
 
@@ -260,7 +261,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public boolean isLibrary() {
-    return myProperties.PROJECT_TYPE == PROJECT_TYPE_LIBRARY || myProperties.PROJECT_TYPE == PROJECT_TYPE_ATOM;
+    return myProperties.PROJECT_TYPE == PROJECT_TYPE_LIBRARY;
   }
 
   @Override

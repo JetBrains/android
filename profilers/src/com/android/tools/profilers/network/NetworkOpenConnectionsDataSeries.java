@@ -21,12 +21,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,20 +38,23 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id) {
+  public NetworkOpenConnectionsDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
 
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
@@ -64,6 +64,6 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
       NetworkProfiler.ConnectionData connectionData = data.getConnectionData();
       seriesData.add(new SeriesData<>(xTimestamp, (long)connectionData.getConnectionNumber()));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

@@ -20,11 +20,12 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderTestBase;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
@@ -39,7 +40,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static java.io.File.separator;
@@ -56,21 +56,23 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     Palette palette = loadPalette();
     List<Palette.Item> items = new ArrayList<>();
     palette.accept(items::add);
-    myItem = items.get(0);
+    myItem = items.stream().filter(item -> item.getTagName().equals("TextView")).findFirst().orElse(null);
 
-    NlModel model = createModel();
-    myScreenView = surface().screen(model).getScreen();
+    SyncNlModel model = createModel();
+    myScreenView = screen(model).getScreen();
     myFactory = new IconPreviewFactory();
-    myFacet.setRenderService(new MyRenderService(myFacet));
     myFactory.myRenderTimeoutSeconds = Long.MAX_VALUE;
+    RenderService.shutdownRenderExecutor(5);
+    RenderService.initializeRenderExecutor();
+    RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myFacet.setRenderService(null);
-      myFactory.myExecutorService.awaitTermination(60L, TimeUnit.SECONDS);
+      RenderService.setForTesting(myFacet, null);
       Disposer.dispose(myFactory);
+      RenderTestBase.waitForRenderTaskDisposeToFinish();
     }
     finally {
       super.tearDown();
@@ -93,7 +95,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   }
 
   private Palette loadPalette() throws Exception {
-    NlPaletteModel model = NlPaletteModel.get(getProject());
+    NlPaletteModel model = NlPaletteModel.get(myFacet);
 
     try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
@@ -103,7 +105,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)

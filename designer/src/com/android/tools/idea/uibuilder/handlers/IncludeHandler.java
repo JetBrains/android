@@ -15,29 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_VISIBILITY;
-import static com.android.SdkConstants.TOOLS_URI;
 
 /**
  * Handler for the {@code <include>} tag
+ * <p>
+ * <b> {@code layout} attribute does not take any namespace</b>.
  */
 public final class IncludeHandler extends ViewHandler {
   @Override
@@ -65,18 +69,6 @@ public final class IncludeHandler extends ViewHandler {
   public String getTitleAttributes(@NotNull NlComponent component) {
     String layout = component.getAttribute(null, ATTR_LAYOUT);
     return StringUtil.isEmpty(layout) ? "" : "- " + layout;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.Include;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.Include;
   }
 
   @Override
@@ -110,5 +102,40 @@ public final class IncludeHandler extends ViewHandler {
     }
 
     return true;
+  }
+
+  @Override
+  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    openIncludedLayout(editor, component);
+  }
+
+  @Override
+  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
+                                        @NotNull NlComponent component,
+                                        @AndroidCoordinate int x,
+                                        @AndroidCoordinate int y) {
+    openIncludedLayout(editor, component);
+  }
+
+  /**
+   * Open the layout referenced by the attribute {@link SdkConstants#ATTR_LAYOUT} in
+   * the provided {@link SdkConstants#VIEW_INCLUDE}.
+   *
+   * @param viewEditor
+   * @param component  The include component
+   */
+  private static void openIncludedLayout(ViewEditor viewEditor, @NotNull NlComponent component) {
+    NlModel model = component.getModel();
+    String attribute = component.getAttribute(null, ATTR_LAYOUT);
+    if (attribute == null) {
+      return;
+    }
+    Configuration configuration = model.getConfiguration();
+    boolean editorOpened = viewEditor.openResource(configuration, attribute, component.getTag().getContainingFile().getVirtualFile());
+    if (!editorOpened) {
+      Logger.getInstance(IncludeHandler.class).warn(
+        String.format("Cannot open included layout \"%s\" for %s tag with id \"%s\"", attribute, component.getTag(), component.getId())
+      );
+    }
   }
 }

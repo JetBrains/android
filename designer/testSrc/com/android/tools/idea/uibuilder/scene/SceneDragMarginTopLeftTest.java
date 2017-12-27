@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -32,14 +32,14 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
@@ -55,13 +55,13 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(800, 210);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"750dp\"\n" +
-                 "    android:layout_marginTop=\"200dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"748dp\"\n" +
+                 "        android:layout_marginTop=\"200dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 
   public void testDragBottom() {
@@ -69,13 +69,13 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(150, 500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"100dp\"\n" +
-                 "    android:layout_marginTop=\"490dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 
   public void testDragBottomRight() {
@@ -83,12 +83,12 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(800, 500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"750dp\"\n" +
-                 "    android:layout_marginTop=\"490dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"748dp\"\n" +
+                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 }

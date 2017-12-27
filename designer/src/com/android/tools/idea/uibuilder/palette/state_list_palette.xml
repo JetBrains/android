@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<palette>
+  <item tag="item" title="Pressed">
+    <xml><![CDATA[<item android:state_pressed="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Focused">
+    <xml><![CDATA[<item android:state_focused="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Hovered">
+    <xml><![CDATA[<item android:state_hovered="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Selected">
+    <xml><![CDATA[<item android:state_selected="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Checkable">
+    <xml><![CDATA[<item android:state_checkable="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Checked">
+    <xml><![CDATA[<item android:state_checked="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Enabled">
+    <xml><![CDATA[<item android:state_enabled="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Activated">
+    <xml><![CDATA[<item android:state_activated="true" />]]></xml>
+  </item>
+
+  <item tag="item" title="Window Focused">
+    <xml><![CDATA[<item android:state_window_focused="true" />]]></xml>
+  </item>
+</palette>

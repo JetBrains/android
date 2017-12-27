@@ -28,11 +28,6 @@ public final class StringFileAdapter extends XmlAdapter<String, File> {
   @Override
   public File unmarshal(String s) throws Exception {
     String unescapedString = XmlUtils.fromXmlAttributeValue(s);
-    if (unescapedString.startsWith("root://")) {
-      // The construct: new File(String) will strip 1 of the forward slashes in "root://"
-      // Only FreeMarker include directives support the "root://" syntax.
-      throw new UnsupportedOperationException("File cannot start with root://");
-    }
     return new File(FileUtil.toSystemDependentName(unescapedString));
   }
 

@@ -162,9 +162,6 @@
                 <constraints>
                   <grid row="11" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
-                <properties>
-                  <text value="&lt;html&gt;These images are recommended because they run the fastest and include support for Google APIs&lt;br/&gt;&lt;br/&gt;&lt;/html&gt;"/>
-                </properties>
               </component>
             </children>
           </grid>

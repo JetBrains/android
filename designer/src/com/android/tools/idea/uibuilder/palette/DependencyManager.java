@@ -19,17 +19,19 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -47,7 +49,6 @@ public class DependencyManager {
     registerDependencyUpdates(paletteUI, parentDisposable);
   }
 
-
   @NotNull
   public Project getProject() {
     return myProject;
@@ -63,44 +64,49 @@ public class DependencyManager {
     return myMissingLibraries.contains(item.getGradleCoordinateId());
   }
 
-  public boolean ensureLibraryIsIncluded(@NotNull Palette.Item item) {
-    String coordinateId = item.getGradleCoordinateId();
-    assert coordinateId != null;
-    assert myModule != null;
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-    return manager.ensureLibraryIsIncluded(myModule, toGradleCoordinatesFromIds(Collections.singletonList(coordinateId)), null);
-  }
-
   @NotNull
   public Icon createItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getIcon(), AndroidIcons.NeleIcons.Download, componentContext);
+    return createItemIcon(item, item.getIcon(), AndroidIcons.Views.DownloadOverlay, componentContext);
   }
 
   @NotNull
   public Icon createLargeItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getLargeIcon(), AndroidIcons.NeleIcons.DownloadLarge, componentContext);
+    return createItemIcon(item, item.getLargeIcon(), AndroidIcons.Views.DownloadOverlayLarge, componentContext);
   }
 
   @NotNull
-  private Icon createItemIcon(@NotNull Palette.Item item, @NotNull Icon icon, @NotNull Icon download, @NotNull Component componentContext) {
+  private Icon createItemIcon(@NotNull Palette.Item item,
+                              @NotNull Icon icon,
+                              @NotNull Icon downloadIcon,
+                              @NotNull Component componentContext) {
     if (!needsLibraryLoad(item)) {
       return icon;
     }
-    BufferedImage image = UIUtil.createImage(icon.getIconWidth(),
-                                             icon.getIconHeight(),
-                                             BufferedImage.TYPE_INT_ARGB);
+    int width = icon.getIconWidth();
+    int height = icon.getIconHeight();
+    int offset = JBUI.scale(1);
+
+    Polygon triangle = new Polygon();
+    triangle.addPoint(width / 3, height);
+    triangle.addPoint(width, height);
+    triangle.addPoint(width, height / 3);
+
+    BufferedImage image = UIUtil.createImage(width + offset, height + offset, BufferedImage.TYPE_INT_ARGB);
+    Area clip = new Area(new Rectangle(0, 0, width, height));
+    clip.subtract(new Area(triangle));
+
     Graphics2D g2 = (Graphics2D)image.getGraphics();
+    g2.setClip(clip);
     icon.paintIcon(componentContext, g2, 0, 0);
-    int x = icon.getIconWidth() - download.getIconWidth();
-    int y = icon.getIconHeight() - download.getIconHeight();
-    download.paintIcon(componentContext, g2, x, y);
+    g2.setClip(null);
+    downloadIcon.paintIcon(componentContext, g2, offset, offset);
     g2.dispose();
     return new JBImageIcon(UIUtil.isRetina() ? ImageUtils.convertToRetinaIgnoringFailures(image) : image);
   }
 
   private boolean checkForNewMissingDependencies() {
     Set<String> missing = Collections.emptySet();
-    if (myModule != null) {
+    if (myModule != null && !myModule.isDisposed()) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
       List<GradleCoordinate> coordinates = toGradleCoordinatesFromIds(myPalette.getGradleCoordinateIds());
       missing = fromGradleCoordinatesToIds(manager.findMissingDependencies(myModule, coordinates));

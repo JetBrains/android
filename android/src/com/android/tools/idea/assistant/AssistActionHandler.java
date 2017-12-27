@@ -19,6 +19,9 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 /**
  * Extension point to provide custom action handling.
@@ -43,5 +46,4 @@ public interface AssistActionHandler {
    * @param project    The project context for the action.
    */
   void handleAction(@NotNull ActionData actionData, @NotNull Project project);
-
 }

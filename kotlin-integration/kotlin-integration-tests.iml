@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="uast-common" scope="TEST" />
+    <orderEntry type="module" module-name="openapi" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+    <orderEntry type="module" module-name="java-psi-impl" scope="TEST" />
+    <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
+    <orderEntry type="module" module-name="android-plugin" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="adt-branding" scope="RUNTIME" />
+    <orderEntry type="library" scope="RUNTIME" name="KotlinJavaRuntime" level="project" />
+  </component>
+</module>

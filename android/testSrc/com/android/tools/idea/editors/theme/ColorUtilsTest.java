@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -43,7 +44,7 @@ public class ColorUtilsTest extends AndroidTestCase {
 
   public void testContrastWarning() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
 
@@ -83,7 +84,7 @@ public class ColorUtilsTest extends AndroidTestCase {
 
   public void testContrastColors() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
 

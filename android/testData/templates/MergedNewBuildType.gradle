@@ -5,7 +5,7 @@ android {
   buildToolsVersion "19.0.1"
 
   defaultConfig {
-    minSdkVersion 8
+    minSdkVersion 9
     targetSdkVersion 19
     versionCode 1
     versionName "1.0"
@@ -33,7 +33,8 @@ android {
 }
 
 dependencies {
-  compile 'com.android.support:appcompat-v7:+'
+  // Make sure the dependency below has an explicit older version (merging with newer version should result in the existing base version)
+  compile 'com.android.support:appcompat-v7:23.1.1'
   // TODO: Include *.aar once it's supported in the plugin
   compile fileTree(dir: 'libs', include: ['*.jar'])
 }

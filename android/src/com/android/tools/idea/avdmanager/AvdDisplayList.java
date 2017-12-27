@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.io.FileUtilKt;
 import com.android.resources.Density;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
@@ -34,6 +35,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.*;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +50,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -329,6 +332,18 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
+    new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
+      @Nullable
+      @Override
+      public Icon valueOf(AvdInfo avdInfo) {
+        return avdInfo.hasPlayStore() ? AndroidIcons.PlayStore : null;
+      }
+      @NotNull
+      @Override
+      public Comparator<AvdInfo> getComparator() {
+        return (avd1, avd2) -> Boolean.compare(avd2.hasPlayStore(), avd1.hasPlayStore());
+      }
+    },
     new AvdColumnInfo("Resolution") {
       @Nullable
       @Override
@@ -441,6 +456,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JBLabel label = new JBLabel((Icon)value);
+        if (value == AndroidIcons.PlayStore) {
+          // (No accessible name for the Device Type column)
+          AccessibleContextUtil.setName(label, "Play Store");
+        }
         if (table.getSelectedRow() == row) {
           label.setBackground(table.getSelectionBackground());
           label.setForeground(table.getSelectionForeground());
@@ -561,7 +580,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     /**
      * This cell renders an action panel for both the editor component and the display component
      */
-    private final Map<Object, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
+    private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
 
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
@@ -640,8 +659,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       long sizeInBytes = 0;
       if (avdInfo != null) {
         File avdDir = new File(avdInfo.getDataFolderPath());
-        for (File file : WizardUtils.listFiles(avdDir)) {
-          sizeInBytes += file.length();
+        try {
+          sizeInBytes = FileUtilKt.recursiveSize(avdDir.toPath());
+        } catch (IOException ee) {
+          // Just leave the size as zero
         }
       }
       return new Storage(sizeInBytes);

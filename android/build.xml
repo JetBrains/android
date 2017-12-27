@@ -14,25 +14,45 @@
   ~ limitations under the License.
   -->
 
-<project name="android">
-    <dirname property="android.basedir" file="${ant.file.android}"/>
-    <condition property="gradle.wrapper.executable" value="${android.basedir}/../../../gradlew.bat" else="${android.basedir}/../../../gradlew">
+<project name="android" xmlns:unless="ant:unless">
+    <dirname property="workspace" file="${ant.file.android}/../../../.."/>
+    <condition property="gradle.wrapper.executable" value="${workspace}/tools/gradlew.bat" else="${workspace}/tools/gradlew">
         <os family="windows" />
     </condition>
+    <condition property="bazel" value="${workspace}/tools/base/bazel/bazel.cmd" else="${workspace}/tools/base/bazel/bazel">
+        <os family="windows" />
+    </condition>
+    <condition property="bazel_config" value="--config=${config}" else="">
+        <isset property="config"/>
+    </condition>
 
-    <target name="preBuild" depends="profiler">
-    </target>
-    <target name="rebuild">
-        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
-            <arg value="clean" />
-            <arg value="build" />
-            <env key="JAVA_HOME" value="${java.home}"/>
-        </exec>
+    <target name="preBuild" depends="profiler, android-plugin">
     </target>
     <target name="profiler">
-        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
+        <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />
-            <env key="JAVA_HOME" value="${java.home}"/>
+            <arg value="//tools/adt/idea/android:profiler-artifacts" />
+            <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
         </exec>
+    </target>
+
+    <condition property="build.gradle.plugin">
+        <or>
+            <isset property="bundle.gradle.plugin" />
+            <isset property="bundle.gradle.release.plugin" />
+        </or>
+    </condition>
+    <target name="android-plugin" if="${build.gradle.plugin}">
+        <condition property="select.release.args" value="-init-script ${workspace}/tools/buildSrc/base/release.gradle" else="">
+            <isset property="bundle.gradle.release.plugin" />
+        </condition>
+        <exec executable="${gradle.wrapper.executable}" dir="${workspace}/tools" failonerror="true">
+            <env key="JAVA_HOME" value="${java.home}" />
+            <arg line="--no-daemon" />
+            <arg line="-Dorg.gradle.parallel=false" />  <!-- youtrack.jetbrains.com/issue/KT-15562 -->
+            <arg line="${select.release.args}" />
+            <arg value="zipOfflineRepo" />
+        </exec>
+        <unzip src="${workspace}/out/dist/offline_repo.zip" dest="${workspace}/out/studio/repo" />
     </target>
 </project>

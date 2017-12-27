@@ -17,11 +17,17 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Support class for enumerated property types.
+ *
+ * The elements being shown and their display can be controlled with this class.
+ */
 public abstract class EnumSupport {
   protected final NlProperty myProperty;
 
@@ -29,9 +35,26 @@ public abstract class EnumSupport {
     myProperty = property;
   }
 
+  /**
+   * Return the list of values to be shown in a enum editor
+   * @return
+   */
   @NotNull
   public abstract List<ValueWithDisplayString> getAllValues();
 
+  /**
+   * Customize the rendering of an enum value.
+   * @return true if the default rendering should be skipped.
+   */
+  public boolean customizeCellRenderer(@NotNull ColoredListCellRenderer<ValueWithDisplayString> renderer,
+                                       @NotNull ValueWithDisplayString value,
+                                       boolean selected) {
+    return false;
+  }
+
+  /**
+   * Creates a {@link ValueWithDisplayString} which may be customized per property type.
+   */
   @NotNull
   public ValueWithDisplayString createValue(@NotNull String editorValue) {
     if (editorValue.isEmpty()) {
@@ -41,7 +64,7 @@ public abstract class EnumSupport {
     if (StringUtil.isEmpty(resolvedValue)) {
       return ValueWithDisplayString.UNSET;
     }
-    String hint = editorValue == null ? "default" : (!editorValue.equals(resolvedValue) ? editorValue : null);
+    String hint = StringUtil.isEmpty(editorValue) ? "default" : (!editorValue.equals(resolvedValue) ? editorValue : null);
     return createFromResolvedValue(resolvedValue, editorValue, hint);
   }
 

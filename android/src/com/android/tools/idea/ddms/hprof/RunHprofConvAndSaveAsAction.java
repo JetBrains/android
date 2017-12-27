@@ -33,7 +33,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -90,7 +89,7 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
                                        .setKind(AndroidStudioEvent.EventKind.PROFILING_CONVERT_HPROF));
         new RunHprofConvAndSaveTask(e.getProject(), captures[0].getFile(), dialog.getHprofFile()).queue();
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   private static boolean isValidCaptureSelection(@Nullable Capture[] captures) {

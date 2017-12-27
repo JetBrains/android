@@ -16,23 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ManifestDetector;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_ICON;
 
 public class AndroidLintMissingApplicationIconInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingApplicationIconInspection() {
     super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestDetector.APPLICATION_ICON);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set application icon", ATTR_ICON, null)};
   }
 }

@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
+import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.FindPopupPanelFixture;
 import com.google.common.collect.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class FindInPathTest {
 
@@ -36,7 +32,7 @@ public class FindInPathTest {
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
     ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
-      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
+      .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("ActionBarDivider")
       .clickFind()
       .getUsageGroupNames();
@@ -46,7 +42,7 @@ public class FindInPathTest {
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
     ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
-      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
+      .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("DarkActionBar")
       .clickFind()
       .getUsageGroupNames();

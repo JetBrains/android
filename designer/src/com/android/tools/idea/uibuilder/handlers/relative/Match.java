@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.Segment;
 import com.android.tools.idea.uibuilder.model.TextDirection;
 import com.intellij.openapi.util.text.StringUtil;
@@ -92,7 +93,7 @@ class Match {
           // See if it's been set by a different constraint we've already applied
           // to this same node
           if (edge.component != null) {
-            id = edge.component.ensureId();
+            id = NlComponentHelperKt.ensureId(edge.component);
           }
         }
       }
@@ -147,8 +148,10 @@ class Match {
         return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_LEFT, textDirection.getAttrAlignParentLeft());
       case ALIGN_PARENT_RIGHT:
         return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_RIGHT, textDirection.getAttrAlignParentRight());
+      default:
+        // No changes needed
+        return null;
     }
-    return null;
   }
 
   private static String replaceAttribute(String s, String oldName, String newName) {

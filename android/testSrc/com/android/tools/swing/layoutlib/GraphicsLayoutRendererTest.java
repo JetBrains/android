@@ -17,6 +17,7 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -26,19 +27,18 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotEquals;
 
 public class GraphicsLayoutRendererTest extends AndroidTestCase {
   private static Dimension EMPTY_DIMENSION = new Dimension();
 
   public void testInflateAndRender() throws InitializationException, ParserConfigurationException, IOException, SAXException {
     VirtualFile layout = myFixture.copyFileToProject("themeEditor/theme_preview_layout.xml", "res/layout/theme_preview_layout.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(layout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
 
     DomPullParser parser = new DomPullParser(
       DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(layout.getInputStream()).getDocumentElement());

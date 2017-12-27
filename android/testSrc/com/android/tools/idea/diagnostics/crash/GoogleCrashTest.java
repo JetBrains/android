@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
-import com.android.SdkConstants;
-import com.google.common.base.Joiner;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.project.IndexNotReadyException;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.multipart.Attribute;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.*;
@@ -39,15 +31,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.net.ServerSocket;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -66,7 +53,6 @@ public class GoogleCrashTest {
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, IndexNotReadyException.create());
-  private static final Charset UTF_8 = Charset.forName(SdkConstants.UTF_8);
 
   // Most of the tests do a future.get(), but since they are uploaded to a local server, they should complete relatively quickly.
   // This rule enforces a shorter timeout for the tests. If you are debugging, you probably want to comment this out.
@@ -90,81 +76,6 @@ public class GoogleCrashTest {
   @After
   public void tearDown() {
     myTestServer.stop();
-  }
-
-  @Ignore
-  @Test
-  public void checkServerReceivesPostedData() throws Exception {
-    String expectedReportId = "deadcafe";
-    Map<String,String> attributes = new ConcurrentHashMap<>();
-
-    myTestServer.setResponseSupplier(httpRequest -> {
-      if (httpRequest.method() != HttpMethod.POST) {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-      }
-
-      HttpPostRequestDecoder requestDecoder = new HttpPostRequestDecoder(httpRequest);
-      try {
-        for (InterfaceHttpData httpData : requestDecoder.getBodyHttpDatas()) {
-          if (httpData instanceof Attribute) {
-            Attribute attr = (Attribute)httpData;
-            attributes.put(attr.getName(), attr.getValue());
-          }
-        }
-      }
-      catch (IOException e) {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-      }
-      finally {
-        requestDecoder.destroy();
-      }
-
-      return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                                         HttpResponseStatus.OK,
-                                         Unpooled.wrappedBuffer(expectedReportId.getBytes(UTF_8)));
-    });
-
-    CrashReport report = CrashReport.Builder.createForException(ourIndexNotReadyException)
-      .setProduct("AndroidStudioTestProduct")
-      .setVersion("1.2.3.4")
-      .build();
-    CompletableFuture<String> reportId = myReporter.submit(report);
-
-    assertEquals(expectedReportId, reportId.get());
-
-    // assert that the server get the expected data
-    assertEquals("AndroidStudioTestProduct", attributes.get(GoogleCrash.KEY_PRODUCT_ID));
-    assertEquals("1.2.3.4", attributes.get(GoogleCrash.KEY_VERSION));
-
-    // Note: the exception message should have been elided
-    assertEquals("com.intellij.openapi.project.IndexNotReadyException: <elided>\n" + STACK_TRACE,
-                 attributes.get(GoogleCrash.KEY_EXCEPTION_INFO));
-
-    List<String> descriptions = Arrays.asList("2.3.0.0\n1.8.0_73-b02",
-                                              "2.3.0.1\n1.8.0_73-b02");
-    report = CrashReport.Builder.createForCrashes(descriptions)
-      .setProduct("AndroidStudioTestProduct")
-      .setVersion("1.2.3.4")
-      .build();
-
-    attributes.clear();
-
-    reportId = myReporter.submit(report);
-    assertEquals(expectedReportId, reportId.get());
-
-    // check that the crash count and descriptions made through
-    assertEquals(descriptions.size(), Integer.parseInt(attributes.get("numCrashes")));
-    assertEquals("2.3.0.0\n1.8.0_73-b02\n\n2.3.0.1\n1.8.0_73-b02", attributes.get("crashDesc"));
-
-    Path testData = Paths.get(AndroidTestBase.getTestDataPath());
-    List<String> threadDump = Files.readAllLines(testData.resolve(Paths.get("threadDumps", "1.txt")), UTF_8);
-    report = CrashReport.Builder.createForPerfReport("td.txt", Joiner.on('\n').join(threadDump)).build();
-
-    attributes.clear();
-
-    reportId = myReporter.submit(report);
-    assertEquals(expectedReportId, reportId.get());
-    assertEquals(threadDump.stream().collect(Collectors.joining("\n")), attributes.get("td.txt"));
   }
 
   @Test(expected = ExecutionException.class)
@@ -308,13 +219,10 @@ public class GoogleCrashTest {
   @NotNull
   private static String getStackTrace(@NotNull Throwable t) {
     final StringWriter stringWriter = new StringWriter();
-    final PrintWriter writer = new PrintWriter(stringWriter);
-    try {
+    try (PrintWriter writer = new PrintWriter(stringWriter)) {
       t.printStackTrace(writer);
-      return stringWriter.toString();
     }
-    finally {
-      writer.close();
-    }
+
+    return stringWriter.toString().replace("\r", "");
   }
 }

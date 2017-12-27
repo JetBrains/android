@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.PropertyFileDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintUsingHttpInspection extends AndroidLintInspectionBase {
   public AndroidLintUsingHttpInspection() {
     super(AndroidBundle.message("android.lint.inspections.using.http"), PropertyFileDetector.HTTP);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String escaped = PropertyFileDetector.getSuggestedEscape(message, RAW);
-    if (escaped != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, escaped)};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

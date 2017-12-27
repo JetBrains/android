@@ -29,7 +29,7 @@ class ImportSourceRootsDialog extends DialogWrapper {
       public String getItemText(@NotNull JavaModuleSourceRoot sourceRoot) {
         final String packagePrefix = sourceRoot.getPackagePrefix();
         final String path = sourceRoot.getDirectory().getAbsolutePath();
-        return packagePrefix.length() > 0 ? path + " (" + packagePrefix + ")" : path;
+        return !packagePrefix.isEmpty() ? path + " (" + packagePrefix + ")" : path;
       }
     };
     mySourcePathsChooser.setElements(sourceRoots, true);

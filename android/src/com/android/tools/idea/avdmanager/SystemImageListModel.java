@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -107,41 +108,29 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     }
     myIndicator.onRefreshStart("Refreshing...");
     final List<SystemImageDescription> items = Lists.newArrayList();
-    RepoManager.RepoLoadedCallback localComplete = new RepoManager.RepoLoadedCallback() {
-      @Override
-      public void doRun(@NotNull RepositoryPackages packages) {
+    RepoManager.RepoLoadedCallback localComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
         items.addAll(getLocalImages());
         // Update list in the UI immediately with the locally available system images
         setItems(items);
         // Assume the remote has not completed yet
         completedDownload("");
-      }
-    };
-    RepoManager.RepoLoadedCallback remoteComplete = new RepoManager.RepoLoadedCallback() {
-      @Override
-      public void doRun(@NotNull RepositoryPackages packages) {
+      }, ModalityState.any());
+    RepoManager.RepoLoadedCallback remoteComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {
           items.addAll(remotes);
           setItems(items);
         }
         completedDownload("");
-      }
-    };
-    Runnable error = new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            completedDownload("Error loading remote images");
-          }
-        });
-      }
-    };
+      }, ModalityState.any());
+    Runnable error = () -> ApplicationManager.getApplication().invokeLater(
+      () -> completedDownload("Error loading remote images"),
+      ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Images", true, myProject);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Images", myProject);
     mySdkHandler.getSdkManager(LOGGER)
       .load(forceRefresh ? 0 : RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
             ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
@@ -201,6 +190,9 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         AndroidVersion version = systemImage.getVersion();
         String codeName = version.isPreview() ? version.getCodename()
                                               : SdkVersionInfo.getCodeName(version.getApiLevel());
+        if (codeName == null) {
+          codeName = "API " + version.getApiLevel();
+        }
         String maybeDeprecated = systemImage.obsolete() ||
                                  version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
         return codeName + maybeDeprecated;
@@ -227,7 +219,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
         return String.format("%1$s%2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
-                                               String.format(" (with %s)", tag.getDisplay()));
+                                               String.format(" (%s)", tag.getDisplay()));
       }
     },
   };

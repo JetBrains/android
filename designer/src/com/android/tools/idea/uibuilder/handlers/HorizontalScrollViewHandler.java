@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import android.view.View;
+import android.view.ViewGroup;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler.OneChildDragHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <HorizontalScrollView>} widget */
-public class HorizontalScrollViewHandler extends ViewGroupHandler {
+/**
+ * Handler for the {@code <HorizontalScrollView>} widget
+ */
+public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
@@ -36,7 +41,9 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
@@ -51,7 +58,7 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
-      NlComponent linear = node.createChild(editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
+      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
       linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
     }
 
@@ -61,10 +68,28 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
+                                       @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
+  }
+
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    ViewGroup viewGroup = getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
+    }
+
+    int maxScrollableWidth = getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
+
+    if (maxScrollableWidth > 0) {
+      // There is something to scroll
+      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
+    }
+
+    return null;
   }
 
   @Override

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.project.Project;
@@ -37,19 +37,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
-  private Map<VirtualFile,AbstractTreeNode> myFileToNodeMap = Maps.newHashMap();
+  private Map<VirtualFile, AbstractTreeNode> myFileToNodeMap = new HashMap<>();
 
   public AndroidProjectTreeBuilder(@NotNull Project project,
                                    @NotNull JTree tree,
                                    @NotNull DefaultTreeModel treeModel,
-                                   @Nullable Comparator<NodeDescriptor> comparator,
-                                   @NotNull ProjectAbstractTreeStructureBase treeStructure) {
+                                   @NotNull ProjectAbstractTreeStructureBase treeStructure,
+                                   @Nullable Comparator<NodeDescriptor> comparator) {
     super(project, tree, treeModel, comparator, treeStructure);
 
     MessageBusConnection connection = project.getMessageBus().connect(project);
@@ -68,7 +65,12 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
   @Nullable
   @Override
   protected AbstractTreeUpdater createUpdater() {
-    return new AndroidTreeUpdater(getTreeStructure(), this);
+    if (isDisposed()) {
+      return null;
+    }
+    AbstractTreeStructure treeStructure = getTreeStructure();
+    assert treeStructure != null;
+    return new AndroidTreeUpdater(treeStructure, this);
   }
 
   @NotNull
@@ -80,17 +82,18 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
    * Returns the tree node corresponding to a model element.
    * e.g. from a PsiDirectory -> tree node corresponding to that PsiDirectory
    *
-   * When {@link com.intellij.ide.util.treeView.AbstractTreeUi} creates a {@link javax.swing.tree.DefaultMutableTreeNode} for a given
-   * {@link com.intellij.ide.util.treeView.AbstractTreeNode}, it maintains a mapping between. This mapping between the model element to
-   * the tree node is necessary when locating items by their model element (PsiFile or PsiDirectory).
+   * When {@link com.intellij.ide.util.treeView.AbstractTreeUi} creates a {@link DefaultMutableTreeNode} for a given
+   * {@link AbstractTreeNode}, it maintains a mapping between. This mapping between the model element to the tree node is necessary when
+   * locating items by their model element (PsiFile or PsiDirectory).
    *
    * In the Android view, we have virtual nodes that don't correspond to Psi Elements, or a single virtual node corresponding to
    * multiple files/directories. Since such mappings aren't saved by the tree UI, these are handled in this method.
    *
-   * The way this works is that every time a virtual node is created, it calls back to {@link #createMapping()} to save that mapping
-   * between the virtual file and the node that represents it. When we need to map a virtual file to its tree node, we look at the
-   * saved mapping to see if that virtual file corresponds to any node. If so, we obtain the tree node corresponding to the node's parent,
-   * then iterate through its children to locate the tree node corresponding to the element.
+   * The way this works is that every time a virtual node is created, it calls back to
+   * {@link #createMapping(VirtualFile, AbstractTreeNode)}} to save that mapping between the virtual file and the node that represents it.
+   * When we need to map a virtual file to its tree node, we look at the saved mapping to see if that virtual file corresponds to any node.
+   * If so, we obtain the tree node corresponding to the node's parent, then iterate through its children to locate the tree node
+   * corresponding to the element.
    */
   @Nullable
   @Override
@@ -107,7 +110,8 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     VirtualFile virtualFile = null;
     if (element instanceof PsiDirectory) {
       virtualFile = ((PsiDirectory)element).getVirtualFile();
-    } else if (element instanceof PsiFile) {
+    }
+    else if (element instanceof PsiFile) {
       virtualFile = ((PsiFile)element).getVirtualFile();
     }
 
@@ -131,8 +135,8 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     while (children.hasMoreElements()) {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)children.nextElement();
 
-      if (child.getUserObject() instanceof DirectoryGroupNode) {
-        for (PsiDirectory folder : ((DirectoryGroupNode)child.getUserObject()).getDirectories()) {
+      if (child.getUserObject() instanceof FolderGroupNode) {
+        for (PsiDirectory folder : ((FolderGroupNode)child.getUserObject()).getFolders()) {
           if (folder.getVirtualFile().equals(virtualFile)) {
             return child;
           }

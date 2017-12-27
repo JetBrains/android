@@ -15,33 +15,100 @@
  */
 package com.android.tools.profilers.event;
 
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
 import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
 
+  @NotNull
+  private final EventModel<SimpleEventType> mySimpleEvents;
+
+  @NotNull
+  private final EventModel<StackedEventType> myActivityEvents;
+
+  @NotNull
+  private final EventModel<StackedEventType> myFragmentEvents;
+
+  private boolean myEnabled;
+
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
+                                                             myProfilers.getProcessId(),
+                                                             myProfilers.getSession());
+    mySimpleEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
+
+    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
+                                                                     myProfilers.getProcessId(),
+                                                                     myProfilers.getSession(),
+                                                                     false);
+    myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
+
+    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(),
+                                                                     myProfilers.getProcessId(),
+                                                                     myProfilers.getSession(),
+                                                                    true);
+    myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
+
+    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
+    onAgentStatusChanged();
+  }
+
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(mySimpleEvents);
+    myProfilers.getUpdater().register(myActivityEvents);
+    myProfilers.getUpdater().register(myFragmentEvents);
+  }
+
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(mySimpleEvents);
+    myProfilers.getUpdater().unregister(myActivityEvents);
+    myProfilers.getUpdater().unregister(myFragmentEvents);
+  }
+
+  @NotNull
+  public EventModel<SimpleEventType> getSimpleEvents() {
+    return mySimpleEvents;
+  }
+
+  @NotNull
+  public EventModel<StackedEventType> getActivityEvents() {
+    return myActivityEvents;
+  }
+
+  @NotNull
+  public EventModel<StackedEventType> getFragmentEvents() {
+    return myFragmentEvents;
   }
 
   @Override
   public String getName() {
-    return "Events";
+    return "EVENTS";
   }
 
-  @NotNull
-  public SimpleEventDataSeries getSimpleEvents() {
-    return new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+  @Override
+  public boolean canExpand() {
+    return false;
   }
 
-  @NotNull
-  public ActivityEventDataSeries getActivityEvents() {
-    return new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+  @Override
+  public boolean isEnabled() {
+    return myEnabled;
   }
 
-  public void expand() {
-    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+  private void onAgentStatusChanged() {
+    boolean agentAttached = myProfilers.isAgentAttached();
+    if (myEnabled != agentAttached) {
+      myEnabled = agentAttached;
+      changed(Aspect.ENABLE);
+    }
   }
 }

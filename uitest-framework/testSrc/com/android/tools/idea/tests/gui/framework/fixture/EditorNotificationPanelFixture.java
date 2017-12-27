@@ -33,7 +33,13 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
     myIdeFrameFixture = ideFrameFixture;
   }
 
-  public IdeFrameFixture performAction(@NotNull final String label) {
+  public IdeFrameFixture performAction(@NotNull String label) {
+    performActionWithoutWaitingForDisappearance(label);
+    Wait.seconds(5).expecting("notification panel to disappear").until(() -> !target().isShowing());
+    return myIdeFrameFixture;
+  }
+
+  public IdeFrameFixture performActionWithoutWaitingForDisappearance(@NotNull final String label) {
     checkState(target().isShowing(), "cannot click link on hidden notification");
     HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
@@ -44,7 +50,6 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
       }
     });
     driver().click(link);
-    Wait.seconds(5).expecting("notification panel to disappear").until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }
 }

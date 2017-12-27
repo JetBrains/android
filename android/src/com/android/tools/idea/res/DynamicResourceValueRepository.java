@@ -20,38 +20,55 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.Variant;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ResourceNamespaces;
+import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Resource repository which merges in dynamically registered resource items from the model
+ * Resource repository which contains dynamically registered resource items from the model.
+ *
+ * <p>The Gradle plugin allows resources to be created on the fly (e.g. you can create a resource called build_time of type string with a
+ * value set to a Groovy variable computed at build time). These dynamically created resources are computed at Gradle sync time and provided
+ * via the Gradle model.
+ *
+ * <p>Users expect the resources to "exist" too, when using code completion. The {@link DynamicResourceValueRepository} makes this happen:
+ * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
+ * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
   implements GradleSyncListener, BuildVariantView.BuildVariantSelectionChangeListener {
   private final AndroidFacet myFacet;
-  private final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
+  private final ResourceTable myFullTable = new ResourceTable();
+  private final String myNamespace;
 
-  private DynamicResourceValueRepository(@NotNull AndroidFacet facet) {
+  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @Nullable String namespace) {
     super("Gradle Dynamic");
     myFacet = facet;
+    myNamespace = namespace;
     assert facet.requiresAndroidModel();
-    Disposer.register(this, facet.addListener(this));
+    Module module = facet.getModule();
+    MessageBusConnection parent = GradleSyncState.subscribe(module.getProject(), this, module);
+    Disposer.register(parent, this);
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
 
@@ -66,14 +83,17 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   }
 
   @NotNull
+  // TODO: namespaces
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    return new DynamicResourceValueRepository(facet);
+    return new DynamicResourceValueRepository(facet, null);
   }
 
   @NotNull
   @VisibleForTesting
-  public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet, @NotNull Map<String, ClassField> values) {
-    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet);
+  public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
+                                                             @Nullable String namespace,
+                                                             @NotNull Map<String, ClassField> values) {
+    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     repository.addValues(values);
 
     return repository;
@@ -81,12 +101,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
   @Override
   @NonNull
-  protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-    if (mItems.isEmpty()) {
+  protected ResourceTable getFullTable() {
+    if (myFullTable.isEmpty()) {
       // TODO: b/23032391
       AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel == null) {
-        return mItems;
+        return myFullTable;
       }
 
       Variant selectedVariant = androidModel.getSelectedVariant();
@@ -100,12 +120,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
       addValues(selectedVariant.getMergedFlavor().getResValues());
     }
 
-    return mItems;
+    return myFullTable;
   }
 
   private void notifyGradleSynced() {
-    mItems.clear(); // compute lazily in getMap
-    super.invalidateItemCaches();
+    myFullTable.clear(); // compute lazily in getMap
+    super.invalidateParentCaches();
   }
 
   private void addValues(Map<String, ClassField> resValues) {
@@ -119,33 +139,43 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
         LOG.warn("Ignoring field " + name + "(" + field + "): unknown type " + field.getType());
         continue;
       }
-      ListMultimap<String, ResourceItem> map = mItems.get(type);
+      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
       if (map == null) {
         map = ArrayListMultimap.create();
-        mItems.put(type, map);
+        myFullTable.put(myNamespace, type, map);
       }
       else if (map.containsKey(name)) {
         // Masked by higher priority source provider
         continue;
       }
-      ResourceItem item = new DynamicResourceValueItem(type, field);
+      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, field);
       map.put(name, item);
     }
   }
 
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-    if (mItems.isEmpty()) {
-      // Force lazy initialization
-      getMap();
+  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
+    if (!ResourceNamespaces.isSameNamespace(namespace, myNamespace)) {
+      return create ? ArrayListMultimap.create() : null;
     }
-    ListMultimap<String, ResourceItem> multimap = mItems.get(type);
+
+    if (myFullTable.isEmpty()) {
+      // Force lazy initialization
+      getFullTable();
+    }
+    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = ArrayListMultimap.create();
-      mItems.put(type, multimap);
+      myFullTable.put(namespace, type, multimap);
     }
     return multimap;
+  }
+
+  @Override
+  @NotNull
+  public Set<String> getNamespaces() {
+    return Collections.singleton(myNamespace);
   }
 
   // ---- Implements GradleSyncListener ----
@@ -174,7 +204,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
 
   @Override
-  public void buildVariantsConfigChanged() {
+  public void selectionChanged() {
     notifyGradleSynced();
   }
 

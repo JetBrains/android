@@ -114,7 +114,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   public void clearCache() {
     myGeneratorMap.clear();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
+      AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
       if (appResources != null) {
         appResources.resetDynamicIds(false);
       }

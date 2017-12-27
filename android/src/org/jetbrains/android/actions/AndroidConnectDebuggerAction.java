@@ -57,7 +57,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
     super.update(e);
     final Project project = e.getProject();
     e.getPresentation().setVisible(project != null &&
-                                   ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0);
+                                   !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
   }
 
   private static void closeOldSessionAndRun(@NotNull Project project, @NotNull AndroidDebugger androidDebugger, @NotNull Client client) {

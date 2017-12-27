@@ -17,12 +17,12 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
-import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.expressions.value.AsValueExpression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 

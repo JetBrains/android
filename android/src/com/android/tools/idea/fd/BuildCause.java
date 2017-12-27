@@ -18,9 +18,6 @@ package com.android.tools.idea.fd;
 import org.jetbrains.annotations.NotNull;
 
 public enum BuildCause {
-  // reasons for clean build
-  USER_REQUESTED_CLEAN_BUILD(BuildMode.CLEAN),
-
   // reasons for full build
   NO_DEVICE(BuildMode.FULL),
   APP_NOT_INSTALLED(BuildMode.FULL),

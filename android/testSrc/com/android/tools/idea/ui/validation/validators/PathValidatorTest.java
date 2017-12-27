@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.validation.validators;
 
 import com.android.repository.io.FileOp;
 import com.android.repository.testframework.MockFileOp;
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import com.google.common.base.Strings;
 import com.intellij.openapi.util.SystemInfo;
 import org.junit.Assume;

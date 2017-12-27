@@ -15,22 +15,28 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -38,11 +44,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
@@ -51,7 +57,21 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
  * Updates the contents/settings of a module when a build variant changes.
  */
 class BuildVariantUpdater {
-  private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
+  @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
+  @NotNull private final List<AndroidModuleSetupStep> myAndroidModuleSetupSteps;
+  @NotNull private final NdkModuleSetupStep[] myNdkModuleSetupSteps = {new ContentRootModuleSetupStep()};
+
+  BuildVariantUpdater() {
+    this(new IdeModifiableModelsProviderFactory(),
+         Arrays.asList(new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()));
+  }
+
+  @VisibleForTesting
+  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
+                      @NotNull List<AndroidModuleSetupStep> androidModuleSetupSteps) {
+    myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
+    myAndroidModuleSetupSteps = androidModuleSetupSteps;
+  }
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
@@ -67,31 +87,25 @@ class BuildVariantUpdater {
     List<AndroidFacet> affectedAndroidFacets = new ArrayList<>();
     List<NdkFacet> affectedNdkFacets = new ArrayList<>();
     executeProjectChanges(project, () -> {
-      Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
-      if (updatedModule != null) {
-        ConflictSet conflicts = findConflicts(project);
-        conflicts.showSelectionConflicts();
-      }
-
+      doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
       setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
-      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
 
-      generateSourcesIfNeeded(affectedAndroidFacets);
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
+      generateSourcesIfNeeded(project, affectedAndroidFacets);
     });
     return !affectedAndroidFacets.isEmpty() || !affectedNdkFacets.isEmpty();
   }
 
-  @Nullable
-  private Module doUpdate(@NotNull Project project,
-                          @NotNull String moduleName,
-                          @NotNull String variant,
-                          @NotNull List<AndroidFacet> affectedAndroidFacets,
-                          @NotNull List<NdkFacet> affectedNativeAndroidFacets) {
+  private void doUpdate(@NotNull Project project,
+                        @NotNull String moduleName,
+                        @NotNull String variant,
+                        @NotNull List<AndroidFacet> affectedAndroidFacets,
+                        @NotNull List<NdkFacet> affectedNdkFacets) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module '%1$s'.", moduleName));
-      return null;
+      return;
     }
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(moduleToUpdate);
@@ -104,18 +118,17 @@ class BuildVariantUpdater {
     if (ndkFacet != null) {
       NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variant);
       if (ndkModuleModel == null || !updateSelectedVariant(ndkFacet, ndkModuleModel, variant)) {
-        return null;
+        return;
       }
-      affectedNativeAndroidFacets.add(ndkFacet);
+      affectedNdkFacets.add(ndkFacet);
     }
     if (androidFacet != null) {
       AndroidModuleModel androidModel = getAndroidModel(androidFacet, variant);
       if (androidModel == null || !updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
-        return null;
+        return;
       }
       affectedAndroidFacets.add(androidFacet);
     }
-    return moduleToUpdate;
   }
 
   @Nullable
@@ -136,12 +149,12 @@ class BuildVariantUpdater {
     androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
     Module module = setUpModule(androidFacet.getModule(), androidModel);
 
-    for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
-      String gradlePath = library.getProject();
+    for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
+      String gradlePath = library.getProjectPath();
       if (isEmpty(gradlePath)) {
         continue;
       }
-      String projectVariant = library.getProjectVariant();
+      String projectVariant = library.getVariant();
       if (isNotEmpty(projectVariant)) {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
@@ -149,9 +162,9 @@ class BuildVariantUpdater {
     return true;
   }
 
-  private static boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
-                                               @NotNull NdkModuleModel ndkModuleModel,
-                                               @NotNull String variantToSelect) {
+  private boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
+                                        @NotNull NdkModuleModel ndkModuleModel,
+                                        @NotNull String variantToSelect) {
     NdkVariant selectedVariant = ndkModuleModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
@@ -164,22 +177,21 @@ class BuildVariantUpdater {
     return true;
   }
 
-  private static void generateSourcesIfNeeded(@NotNull List<AndroidFacet> affectedFacets) {
+  private static void generateSourcesIfNeeded(@NotNull Project project, @NotNull List<AndroidFacet> affectedFacets) {
     if (!affectedFacets.isEmpty()) {
       // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        Project project = affectedFacets.get(0).getModule().getProject();
-        GradleProjectBuilder.getInstance(project).generateSourcesOnly(false);
+        GradleProjectBuilder.getInstance(project).generateSources();
       }
     }
   }
 
   @NotNull
-  private static Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+  private Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
+    IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
     try {
-      for (AndroidModuleSetupStep setupStep : AndroidModuleSetupStep.getExtensions()) {
+      for (AndroidModuleSetupStep setupStep : myAndroidModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
           setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
         }
@@ -193,11 +205,10 @@ class BuildVariantUpdater {
     return module;
   }
 
-  @NotNull
-  private static Module setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
+  private void setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (NdkModuleSetupStep setupStep : NdkModuleSetupStep.getExtensions()) {
+      for (NdkModuleSetupStep setupStep : myNdkModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
           setupStep.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
         }
@@ -208,7 +219,6 @@ class BuildVariantUpdater {
       modelsProvider.dispose();
       rethrowAllAsUnchecked(t);
     }
-    return module;
   }
 
   private void ensureVariantIsSelected(@NotNull Project project,
@@ -238,7 +248,6 @@ class BuildVariantUpdater {
     affectedFacets.add(facet);
   }
 
-
   @Nullable
   private static AndroidModuleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
@@ -261,8 +270,21 @@ class BuildVariantUpdater {
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
     String prefix = String.format("Unable to select build variant '%1$s':\n", buildVariantName);
     String msg = prefix + reason;
-    LOG.error(msg);
+    getLog().error(msg);
     msg += ".\n\nConsult IDE log for more details (Help | Show Log)";
     Messages.showErrorDialog(msg, "Error");
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(BuildVariantUpdater.class);
+  }
+
+  @VisibleForTesting
+  static class IdeModifiableModelsProviderFactory {
+    @NotNull
+    IdeModifiableModelsProvider create(@NotNull Project project) {
+      return new IdeModifiableModelsProviderImpl(project);
+    }
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -30,7 +29,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
@@ -60,32 +58,5 @@ public class GradleBuildTest {
                    .clickOk();
 
     assertEquals(jdkPath.getPath(), IdeSdks.getInstance().getJdkPath().getPath());
-  }
-
-  /**
-   * Verifies that a simple app is configured to build using Jack and Jill.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TR ID: C14581579
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import the JackAndJillApp project.
-   *   2. Build the project.
-   *   Verify:
-   *   The project builds.
-   *   </pre>
-   * <p>
-   * This test does not try and run the project.
-   */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=226797")
-  @RunIn(TestGroup.QA)
-  @Test
-  public void compileWithJack() throws IOException {
-    GradleInvocationResult buildResult = guiTest.importProjectAndWaitForProjectSyncToFinish("JackAndJillApp")
-      .invokeProjectMake();
-
-    assertThat(buildResult.isBuildSuccessful()).named("Gradle build successful").isTrue();
   }
 }

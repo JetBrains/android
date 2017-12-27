@@ -1,8 +1,5 @@
 buildscript {
     repositories {
-      if (System.getenv("MAVEN_URL") != null) {
-        maven {url System.getenv("MAVEN_URL")}
-      }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.2001` // invalid plugin number

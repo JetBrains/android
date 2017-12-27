@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme.ui;
 
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
@@ -38,7 +38,7 @@ import java.util.List;
 public class ResourceComponent extends JPanel {
   public static final String NAME_LABEL = "Name Label";
 
-  private final SwatchComponent mySwatchComponent;
+  private final ResourceSwatchComponent myResourceSwatchComponent;
   private final JLabel myNameLabel = new JLabel();
   protected final JLabel myWarningLabel = new JLabel();
 
@@ -64,8 +64,8 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
 
-    mySwatchComponent = new SwatchComponent(project, isEditor);
-    add(mySwatchComponent, BorderLayout.SOUTH);
+    myResourceSwatchComponent = new ResourceSwatchComponent(project, isEditor);
+    add(myResourceSwatchComponent, BorderLayout.SOUTH);
 
     ThemeEditorUtils.setInheritsPopupMenuRecursive(this);
   }
@@ -74,7 +74,7 @@ public class ResourceComponent extends JPanel {
   public Dimension getPreferredSize() {
     if (!isPreferredSizeSet()) {
       int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
-      int secondRowHeight = mySwatchComponent.getPreferredSize().height;
+      int secondRowHeight = myResourceSwatchComponent.getPreferredSize().height;
 
       return new Dimension(0, ThemeEditorConstants.ATTRIBUTE_MARGIN +
                               ThemeEditorConstants.ATTRIBUTE_ROW_GAP +
@@ -93,8 +93,8 @@ public class ResourceComponent extends JPanel {
     return new Dimension(super.getMaximumSize().width, getPreferredSize().height);
   }
 
-  public void setSwatchIcon(@NotNull SwatchComponent.SwatchIcon icon) {
-    mySwatchComponent.setSwatchIcon(icon);
+  public void setSwatchIcon(@NotNull ResourceSwatchComponent.SwatchIcon icon) {
+    myResourceSwatchComponent.setSwatchIcon(icon);
   }
 
   public void setNameText(@NotNull String name) {
@@ -125,20 +125,20 @@ public class ResourceComponent extends JPanel {
   }
 
   public void setValueText(@NotNull String value) {
-    mySwatchComponent.setText(value);
+    myResourceSwatchComponent.setText(value);
   }
 
   @NotNull
   public String getValueText() {
-    return mySwatchComponent.getText();
+    return myResourceSwatchComponent.getText();
   }
 
   @Override
   public void setFont(final Font font) {
     super.setFont(font);
     // We need a null check here as this can be called from the setUI that's called from the constructor.
-    if (mySwatchComponent != null) {
-      mySwatchComponent.setFont(font);
+    if (myResourceSwatchComponent != null) {
+      myResourceSwatchComponent.setFont(font);
     }
     if (myNameLabel != null) {
       myNameLabel.setFont(font);
@@ -146,23 +146,23 @@ public class ResourceComponent extends JPanel {
   }
 
   public void addSwatchListener(@NotNull final ActionListener listener) {
-    mySwatchComponent.addSwatchListener(listener);
+    myResourceSwatchComponent.addSwatchListener(listener);
   }
 
   public void addTextListener(@NotNull final ActionListener listener) {
-    mySwatchComponent.addTextListener(listener);
+    myResourceSwatchComponent.addTextListener(listener);
   }
 
   public void addTextDocumentListener(@NotNull final DocumentListener listener) {
-    mySwatchComponent.addTextDocumentListener(listener);
+    myResourceSwatchComponent.addTextDocumentListener(listener);
   }
 
   public void addTextFocusListener(@NotNull final FocusListener listener) {
-    mySwatchComponent.addTextFocusListener(listener);
+    myResourceSwatchComponent.addTextFocusListener(listener);
   }
 
   public void setCompletionStrings(@NotNull List<String> completions) {
-    mySwatchComponent.setCompletionStrings(completions);
+    myResourceSwatchComponent.setCompletionStrings(completions);
   }
 
   @Override
@@ -182,11 +182,11 @@ public class ResourceComponent extends JPanel {
    */
   public Dimension getSwatchIconSize() {
     // Since the icons are square we just use the height of the component.
-    return new Dimension(mySwatchComponent.getHeight(), mySwatchComponent.getHeight());
+    return new Dimension(myResourceSwatchComponent.getHeight(), myResourceSwatchComponent.getHeight());
   }
 
   @Nullable/*if there is no error*/
   public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
-    return mySwatchComponent.doValidate(minApi, androidTargetData);
+    return myResourceSwatchComponent.doValidate(minApi, androidTargetData);
   }
 }

@@ -44,7 +44,7 @@ public class AndroidSourceItemsProvider extends FacetBasedPackagingSourceItemsPr
       final Module module = ((ModuleSourceItemGroup)parent).getModule();
       final Set<AndroidFacet> facets =
         new HashSet<AndroidFacet>(editorContext.getFacetsProvider().getFacetsByType(module, AndroidFacet.ID));
-      if (facets.size() > 0) {
+      if (!facets.isEmpty()) {
         return Collections.singletonList(new FacetBasedSourceItem<AndroidFacet>(this, facets.iterator().next()));
       }
     }

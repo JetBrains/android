@@ -84,9 +84,10 @@ class RDotTxtParser {
   static Integer[] getDeclareStyleableArray(File r, final List<AttrResourceValue> attrs, final String styleableName) {
     try {
       return Files.readLines(r, Charsets.UTF_8, new LineProcessor<Integer[]>() {
+        private static final String ARRAY_STYLEABLE = "int[] styleable ";
         private static final String INT_STYLEABLE = "int styleable ";
 
-        private final String myArrayStart = "int[] styleable " + styleableName + " { ";
+        private final String myArrayStart = ARRAY_STYLEABLE + styleableName + " { ";
         private final String myEntryStart = INT_STYLEABLE + styleableName + "_";
 
         private Integer[] myValuesList;
@@ -114,9 +115,7 @@ class RDotTxtParser {
               myValuesList[idx++] = Integer.decode(s);
             }
             return true;
-          } else if (line.startsWith(myEntryStart)) {
-            assert myValuesList != null : "Entries for a declare-styleable should be after the array declaration.";
-            // line must be of the form "int styleable name value"
+          } else if (myValuesList != null && line.startsWith(myEntryStart)) {
             int lastSpace = line.lastIndexOf(' ');
             String name = line.substring(INT_STYLEABLE.length(), lastSpace);
             int index = Integer.parseInt(line.substring(lastSpace + 1));
@@ -148,7 +147,12 @@ class RDotTxtParser {
                 break;
               }
             }
-            assert myDeclaredAttrs[index].equals(name) : name + " does not equal " + myDeclaredAttrs[index];
+            // b/65813064
+            // Disabled for 3.0 since some Wear support libs are redeclaring styleables with the attribute names
+            // changed from camel case to snake case. The attributes still have the same IDs so, for that case, the
+            // assertion is not needed and it's breaking beta releases (with assertions enabled).
+            // This code does not exist anymore in master
+            //assert myDeclaredAttrs[index].equals(name) : name + " does not equal " + myDeclaredAttrs[index];
             index++;
           }
           return myValuesList;

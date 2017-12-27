@@ -19,29 +19,32 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.templateLanguages.TemplateLanguage;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
+import com.intellij.spellchecker.inspections.BaseSplitter;
+import com.intellij.spellchecker.inspections.PlainTextSplitter;
+import com.intellij.spellchecker.inspections.Splitter;
 import com.intellij.spellchecker.inspections.TextSplitter;
 import com.intellij.spellchecker.tokenizer.TokenConsumer;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
+import com.intellij.spellchecker.tokenizer.TokenizerBase;
 import com.intellij.spellchecker.xml.XmlSpellcheckingStrategy;
+import com.intellij.util.Consumer;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.converters.ConstantFieldConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -122,6 +125,23 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     }
 
     if (inEnglish(element)) {
+      if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
+        // For XML text, we need to use our own tokenizer to properly handle escapes in the XML output in the same
+        // way that AAPT would. But first, filter out common scenarios handled by super.getTokenizer before returning
+        // the TEXT_TOKENIZER:
+        PsiFile file = element.getContainingFile();
+        if (file == null || file.getLanguage() instanceof TemplateLanguage) {
+          return EMPTY_TOKENIZER;
+        }
+        PsiElement injection = InjectedLanguageManager.getInstance(element.getProject()).findInjectedElementAt(element.getContainingFile(),
+                                                                                                               element.getTextOffset());
+        if (injection != null) {
+          return EMPTY_TOKENIZER;
+        }
+
+        return AAPT_TOKENIZER;
+      }
+
       return super.getTokenizer(element);
     }
 
@@ -149,7 +169,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
           if (converter instanceof ResourceReferenceConverter) {
             return myResourceReferenceTokenizer;
           }
-          else if (converter instanceof ConstantFieldConverter) {
+          else if (converter instanceof ConstantFieldConverter || converter instanceof AndroidPermissionConverter) {
             return EMPTY_TOKENIZER;
           }
           else if (converter instanceof ResourceNameConverter || converter instanceof AndroidPackageConverter) {
@@ -281,5 +301,49 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       }
     }
     return true;
+  }
+
+  private static final AaptXmlTextSplitter AAPT_SPLITTER = new AaptXmlTextSplitter();
+  private static final Tokenizer<PsiElement> AAPT_TOKENIZER = new TokenizerBase<>(AAPT_SPLITTER);
+
+  /**
+   * Splitter which splits XML strings up into text chunks, such that for example "word\nword2" will be
+   * be seen as the words "word" and "word2", not "word" and "nword2" as is the case with the PlainTextSplitter.
+   */
+  public static class AaptXmlTextSplitter extends BaseSplitter {
+
+    @Override
+    public void split(@Nullable String text, @NotNull TextRange range, Consumer<TextRange> consumer) {
+      if (text == null || StringUtil.isEmpty(text)) {
+        return;
+      }
+
+      final Splitter ps = PlainTextSplitter.getInstance();
+
+      if (text.indexOf('\\') == -1) {
+        ps.split(text, range, consumer);
+      } else {
+        // For now, just split by the escaped character
+        int length = range.getEndOffset();
+        int start = range.getStartOffset();
+        while (true) {
+          int end = text.indexOf('\\', start);
+          if (end == -1) {
+            end = length;
+          }
+
+          ps.split(text, new TextRange(start, end), consumer);
+
+          start = end + 2; // +2: +1 to skip \\, +1 to skip the escaped character
+          if (start >= length) {
+            break;
+          }
+
+          // Ideally we'd also be able to handle a scenario like "Android\'s" and turn this into "Android's" for the
+          // spell checker, but that's not possible with the splitter/tokenizer API; they can just segment characters
+          // into tokens, not drop characters and combine into a single word.
+        }
+      }
+    }
   }
 }

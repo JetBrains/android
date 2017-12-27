@@ -20,11 +20,11 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -98,7 +98,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
       OpenFileHyperlink hyperlink = new OpenFileHyperlink(filePath, notification.getLine() - 1 /* lines are zero-based */);
       hyperlinks.add(hyperlink);
     }
-    SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+    GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
   }
 
   private static void updateNotificationWithBuildFile(@NotNull Project project,
@@ -130,7 +130,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     hyperlinks.add(applyGradlePluginHyperlink);
     hyperlinks.add(upgradeAndroidPluginHyperlink);
 
-    SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
+    GradleSyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
   }
 
   @NotNull

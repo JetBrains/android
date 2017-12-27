@@ -3,6 +3,12 @@
   <problem>
     <file>MyActivity.java</file>
     <line>13</line>
-    <description><html>Unexpected cast to ImageView: layout tag was TextView</html></description>
+    <description>&lt;html&gt;Unexpected cast to &lt;code&gt;ImageView&lt;/code&gt;: layout tag was &lt;code&gt;TextView&lt;/code&gt;&lt;/html&gt;</description>
+  </problem>
+
+  <problem>
+    <file>MyActivity.java</file>
+    <line>13</line>
+    <description>&lt;html&gt;Unexpected cast to &lt;code&gt;ImageView&lt;/code&gt;: layout tag was &lt;code&gt;TextView&lt;/code&gt; (Id bound to a &lt;code&gt;TextView&lt;/code&gt; in &lt;code&gt;layout.xml&lt;/code&gt;)&lt;/html&gt;</description>
   </problem>
 </problems>

@@ -71,7 +71,7 @@ public class SdkComponentSource implements ExternalComponentSource {
       progress = LOGGER;
     }
     if (mgr
-      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(indicator), getSettingsController())) {
+      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(), getSettingsController())) {
       myPackages = mgr.getPackages();
     }
   }
@@ -84,8 +84,8 @@ public class SdkComponentSource implements ExternalComponentSource {
 
   @VisibleForTesting
   @NotNull
-  Downloader getDownloader(@Nullable ProgressIndicator indicator) {
-    return new StudioDownloader(indicator);
+  Downloader getDownloader() {
+    return new StudioDownloader();
   }
 
   @VisibleForTesting

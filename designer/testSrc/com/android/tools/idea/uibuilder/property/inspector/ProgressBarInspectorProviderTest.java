@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
@@ -42,6 +42,18 @@ public class ProgressBarInspectorProviderTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myProvider = new ProgressBarInspectorProvider();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myProvider = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testIsApplicable() {

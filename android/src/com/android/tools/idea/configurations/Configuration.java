@@ -16,7 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -60,7 +60,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
-import static com.android.tools.idea.layoutlib.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -68,8 +67,6 @@ import static com.android.tools.idea.layoutlib.LayoutLibraryLoader.USE_SDK_LAYOU
  */
 public class Configuration implements Disposable, ModificationTracker {
 
-  /** Min API version that supports preferences API rendering. */
-  public static final int PREFERENCES_MIN_API = 22;
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
@@ -79,7 +76,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @Nullable private PsiFile myPsiFile;
 
   /**
-   * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} representing the state of the UI controls
+   * The {@link FolderConfiguration} representing the state of the UI controls
    */
   @NotNull
   protected final FolderConfiguration myFullConfig = new FolderConfiguration();
@@ -89,7 +86,7 @@ public class Configuration implements Disposable, ModificationTracker {
   protected final ConfigurationManager myManager;
 
   /**
-   * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} being edited.
+   * The {@link FolderConfiguration} being edited.
    */
   @NotNull
   protected final FolderConfiguration myEditedConfig;
@@ -129,7 +126,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * The device state to use. Used to update {@link #getDeviceState()} such that it returns a state
    * suitable with whatever {@link #getDevice()} returns, since {@link #getDevice()} updates dynamically,
    * and the specific {@link State} instances are tied to actual devices (through the
-   * {@link com.android.sdklib.devices.State#getHardware()} accessor).
+   * {@link State#getHardware()} accessor).
    */
   @Nullable
   private String myStateName;
@@ -201,15 +198,6 @@ public class Configuration implements Disposable, ModificationTracker {
         myStateName = orientation.getShortDisplayValue();
       }
     }
-
-    if (file != null) {
-      if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
-        myPsiFile = AndroidPsiUtils.getPsiFileSafely(manager.getProject(), file);
-        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile))) {
-          myTarget = manager.getTarget(PREFERENCES_MIN_API);
-        }
-      }
-    }
   }
 
   /**
@@ -238,7 +226,7 @@ public class Configuration implements Disposable, ModificationTracker {
     // TODO: Figure out whether we need this, or if it should be replaced by
     // a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(base.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(base.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -332,7 +320,7 @@ public class Configuration implements Disposable, ModificationTracker {
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
 
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(source.myManager.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(source.myManager.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -482,7 +470,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+          LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
@@ -491,7 +479,7 @@ public class Configuration implements Disposable, ModificationTracker {
                 // We get instead all the available folders and check that there is one compatible.
                 LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
                 if (resourceManager != null) {
-                  for (PsiFile resourceFile : resourceManager.findResourceFiles("values")) {
+                  for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceFolderType.VALUES)) {
                     if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
                       FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
                       if (currentConfig.isMatchFor(folderConfiguration)) {
@@ -665,7 +653,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns the full, complete {@link com.android.ide.common.resources.configuration.FolderConfiguration}
+   * Returns the full, complete {@link FolderConfiguration}
    *
    * @return the full configuration
    */
@@ -679,19 +667,17 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Copies the full, complete {@link com.android.ide.common.resources.configuration.FolderConfiguration} into the given
-   * folder config instance.
+   * Copies the full, complete {@link FolderConfiguration} into the given folder config instance.
    *
-   * @param dest the {@link com.android.ide.common.resources.configuration.FolderConfiguration} instance to copy into
+   * @param dest the {@link FolderConfiguration} instance to copy into
    */
   public void copyFullConfig(FolderConfiguration dest) {
     dest.set(myFullConfig);
   }
 
   /**
-   * Returns the edited {@link com.android.ide.common.resources.configuration.FolderConfiguration} (this is not a full
-   * configuration, so you can think of it as the "constraints" used by the
-   * {@link ConfigurationMatcher} to produce a full configuration.
+   * Returns the edited {@link FolderConfiguration} (this is not a full configuration, so you can think of it as the "constraints" used by
+   * the {@link ConfigurationMatcher} to produce a full configuration.
    *
    * @return the constraints configuration
    */
@@ -811,7 +797,7 @@ public class Configuration implements Disposable, ModificationTracker {
       // if the list is empty, then all the new states failed. It is considered ok, and
       // we move to the next qualifier anyway. This way, if a qualifier is different for
       // all new states it is simply ignored.
-      if (list2.size() != 0) {
+      if (!list2.isEmpty()) {
         // move the candidates back into list1.
         list1.clear();
         list1.addAll(list2);
@@ -822,7 +808,7 @@ public class Configuration implements Disposable, ModificationTracker {
     // the only way to reach this point is if there's an exact match.
     // (if there are more than one, then there's a duplicate state and it doesn't matter,
     // we take the first one).
-    if (list1.size() > 0) {
+    if (!list1.isEmpty()) {
       return list1.get(0).getName();
     }
 
@@ -1049,7 +1035,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns the currently selected {@link com.android.resources.Density}. This is guaranteed to be non null.
+   * Returns the currently selected {@link Density}. This is guaranteed to be non null.
    *
    * @return the density
    */
@@ -1208,6 +1194,7 @@ public class Configuration implements Disposable, ModificationTracker {
       Device device = getDevice();
       ResourceResolverCache resolverCache = myManager.getResolverCache();
       if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
+        // Remove the old custom device configuration only if it's different from the new one
         resolverCache.replaceCustomConfig(theme, getFullConfig());
       }
       return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
@@ -1254,7 +1241,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
     return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
   }
 
@@ -1291,15 +1278,17 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
-    if (target != null && !USE_SDK_LAYOUTLIB) {
-      try {
-        target = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      }
-      catch (IOException e) {
-        assert false : "Unable to load embedded layoutlib";
-      }
+    if (target == null) {
+      return null;
     }
 
-    return target;
+    try {
+      return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+    }
+    catch (IOException e) {
+      assert false : "Unable to load embedded layoutlib";
+    }
+
+    return null;
   }
 }

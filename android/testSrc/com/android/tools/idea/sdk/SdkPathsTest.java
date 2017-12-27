@@ -83,10 +83,10 @@ public class SdkPathsTest extends TestCase {
     createDirectory(new File(tmpDir, "platforms"));
 
     ValidationResult result = validateAndroidSdk(tmpDir, false);
-    assertTrue(result.success);
+    assertTrue(result.message, result.success);
 
     result = validateAndroidSdk(tmpDir, true);
-    assertTrue(result.success);
+    assertTrue(result.message, result.success);
   }
 
   public void testInvalidNdkDirectory() throws Exception {
@@ -165,9 +165,9 @@ public class SdkPathsTest extends TestCase {
     createDirectory(new File(tmpDir, "toolchains"));
 
     ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertTrue(result.success);
+    assertTrue(result.message, result.success);
 
     result = validateAndroidNdk(tmpDir, true);
-    assertTrue(result.success);
+    assertTrue(result.message, result.success);
   }
 }

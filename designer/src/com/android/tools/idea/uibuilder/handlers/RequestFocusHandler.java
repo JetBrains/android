@@ -17,12 +17,9 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import icons.AndroidIcons;
+import com.android.tools.idea.common.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Handler for the {@code requestFocus} tag.
@@ -39,18 +36,6 @@ public class RequestFocusHandler extends ViewHandler {
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
     return "<requestFocus>";
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.RequestFocus;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.RequestFocus;
   }
 
   @Override

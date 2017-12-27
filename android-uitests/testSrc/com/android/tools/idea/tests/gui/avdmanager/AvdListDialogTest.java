@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ConfigureAvdOptionsStepFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,7 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64486607
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();
@@ -45,7 +44,7 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
+    chooseSystemImageStep.selectSystemImage(new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
     avdEditWizard.clickNext();
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
@@ -64,7 +63,7 @@ public class AvdListDialogTest {
     avdManagerDialog.close();
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @RunIn(TestGroup.QA)
   @Test
   public void testEditAvd() throws Exception {
     guiTest.importSimpleApplication();
@@ -93,7 +92,7 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
+    chooseSystemImageStep.selectSystemImage(new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
     avdEditWizard.clickNext();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();

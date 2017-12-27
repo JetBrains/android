@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -41,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -211,6 +212,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testValidResourceFileName() {
     assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
+    assertEquals("my_file_name.png", AndroidResourceUtil.getValidResourceFileName("My File-Name.png"));
   }
 
   public void testEnsureNamespaceImportedAddAuto() {
@@ -248,5 +250,43 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     }), "", "");
 
     return xmlFile;
+  }
+
+  public void testCreateFrameLayoutFileResource() throws Exception {
+    XmlFile file = AndroidResourceUtil.createFileResource("linear", getLayoutFolder(), FRAME_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    assertThat(file.getName()).isEqualTo("linear.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:layout_width=\"match_parent\" android:layout_height=\"match_parent\">\n" +
+                                         "\n" +
+                                         "</FrameLayout>");
+  }
+
+  public void testCreateLinearLayoutFileResource() throws Exception {
+    XmlFile file = AndroidResourceUtil.createFileResource("linear", getLayoutFolder(), LINEAR_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    assertThat(file.getName()).isEqualTo("linear.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:orientation=\"vertical\" android:layout_width=\"match_parent\"\n" +
+                                         "    android:layout_height=\"match_parent\">\n" +
+                                         "\n" +
+                                         "</LinearLayout>");
+  }
+
+  public void testCreateLayoutFileResource() throws Exception {
+    XmlFile file = AndroidResourceUtil.createFileResource("layout", getLayoutFolder(), TAG_LAYOUT, ResourceType.LAYOUT.getName(), false);
+    assertThat(file.getName()).isEqualTo("layout.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                         "\n" +
+                                         "</layout>");
+  }
+
+  @NotNull
+  private PsiDirectory getLayoutFolder() {
+    PsiFile file = myFixture.configureByText("res/layout/main.xml", "<LinearLayout/>");
+    PsiDirectory folder = file.getParent();
+    assertThat(folder).isNotNull();
+    return folder;
   }
 }

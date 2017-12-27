@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
@@ -30,9 +30,6 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class IdInspectorProviderTest extends PropertyTestCase {
@@ -74,7 +71,7 @@ public class IdInspectorProviderTest extends PropertyTestCase {
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(4);
 
     InspectorPanel panel = mock(InspectorPanel.class);
-    when(panel.addComponent(anyString(), anyString(), any())).thenAnswer(invocation -> new JLabel());
+    when(panel.addComponent(anyString(), nullable(String.class), any())).thenReturn(new JLabel());
     inspector.attachToInspector(panel);
 
     for (NlComponentEditor editor : editors) {

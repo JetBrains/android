@@ -17,10 +17,15 @@ package com.android.tools.idea.model;
 
 import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
@@ -31,27 +36,45 @@ import org.jetbrains.annotations.Nullable;
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
  */
-public class AndroidModuleInfo {
-  private final @NotNull AndroidFacet myFacet;
-
-  private AndroidModuleInfo(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-  }
+public class AndroidModuleInfo extends AndroidFacetScopedService {
+  private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
   @NotNull
-  public static AndroidModuleInfo create(@NotNull AndroidFacet facet) {
-    return new AndroidModuleInfo(facet);
-  }
+  public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
+    AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
+    if (androidModuleInfo == null) {
+      if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+        // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
+        // redirection to the AndroidModuleInfo of the base split.
+        Module baseFeature = findBaseFeature(facet);
+        if (baseFeature != null) {
+          androidModuleInfo = getInstance(baseFeature);
+        }
+      }
 
-  @NotNull
-  public static AndroidModuleInfo get(@NotNull AndroidFacet facet) {
-    return facet.getAndroidModuleInfo();
+      if (androidModuleInfo == null) {
+        androidModuleInfo = new AndroidModuleInfo(facet);
+      }
+      facet.putUserData(KEY, androidModuleInfo);
+    }
+    return androidModuleInfo;
   }
 
   @Nullable
-  public static AndroidModuleInfo get(@NotNull Module module) {
+  public static AndroidModuleInfo getInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getAndroidModuleInfo() : null;
+    return facet != null ? getInstance(facet) : null;
+  }
+
+  private AndroidModuleInfo(@NotNull AndroidFacet facet) {
+    super(facet);
+  }
+
+  /**
+   * @return the minimum SDK version for current Android module.
+   */
+  public int getModuleMinApi() {
+    return getMinSdkVersion().getApiLevel();
   }
 
   /**
@@ -60,13 +83,14 @@ public class AndroidModuleInfo {
    */
   @Nullable
   public String getPackage() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       return androidModel.getApplicationId();
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return MergedManifest.get(myFacet).getApplicationId();
+    return MergedManifest.get(facet).getApplicationId();
   }
 
   /**
@@ -77,7 +101,8 @@ public class AndroidModuleInfo {
    */
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
@@ -86,12 +111,13 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(facet).getMinSdkVersion();
   }
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
@@ -100,12 +126,13 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(facet).getMinSdkVersion();
   }
 
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
@@ -114,14 +141,14 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(myFacet).getTargetSdkVersion();
+    return MergedManifest.get(facet).getTargetSdkVersion();
   }
 
   @Nullable
   public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that
     // the model should have synced the right type of Android SDK to the IntelliJ facet.
-    AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+    AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
     if (platform != null) {
       return platform.getApiVersion();
     }
@@ -135,7 +162,8 @@ public class AndroidModuleInfo {
    */
   @Nullable
   public Boolean isDebuggable() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {
@@ -143,27 +171,7 @@ public class AndroidModuleInfo {
       }
     }
 
-    return MergedManifest.get(myFacet).getApplicationDebuggable();
-  }
-
-  @Nullable
-  public static AndroidVersion getBuildSdkVersion(@Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleInfo moduleInfo = get(facet.getModule());
-        if (moduleInfo != null) {
-          return moduleInfo.getBuildSdkVersion();
-        }
-      }
-    }
-
-    return null;
-  }
-
-  public static int getBuildSdkApiLevel(@Nullable Module module) {
-    AndroidVersion version = getBuildSdkVersion(module);
-    return version != null ? version.getApiLevel() : -1;
+    return MergedManifest.get(facet).getApplicationDebuggable();
   }
 
   @NotNull
@@ -171,7 +179,7 @@ public class AndroidModuleInfo {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
         if (moduleInfo != null) {
           return moduleInfo.getTargetSdkVersion();
         }
@@ -186,7 +194,7 @@ public class AndroidModuleInfo {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
         if (moduleInfo != null) {
           return moduleInfo.getMinSdkVersion();
         }
@@ -194,5 +202,10 @@ public class AndroidModuleInfo {
     }
 
     return AndroidVersion.DEFAULT;
+  }
+
+  @Override
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    facet.putUserData(KEY, null);
   }
 }

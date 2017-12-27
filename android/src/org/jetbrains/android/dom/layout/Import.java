@@ -15,23 +15,23 @@
  */
 package org.jetbrains.android.dom.layout;
 
-import com.intellij.psi.PsiClass;
+import com.android.tools.idea.databinding.DataBindingUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.DataBindingConverter;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 @DefinesXml
 public interface Import extends LayoutElement, DataBindingElement {
   @Attribute("type")
   @Required
   @Convert(value = DataBindingConverter.class, soft = false)
-  GenericAttributeValue<PsiClass> getType();
+  GenericAttributeValue<PsiElement> getType();
 
   /**
    * Optional alias this import should be renamed to in this layout.
    * <p/>
    * If absent, the import behaves like it does in Java. To get the name this import will use in the layout, use
-   * {@link AndroidLayoutUtil#getAlias(Import)}.
+   * {@link DataBindingUtil#getAlias(Import)}.
    */
   @Attribute("alias")
   GenericAttributeValue<String> getAlias();
