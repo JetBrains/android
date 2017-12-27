@@ -43,7 +43,7 @@ public class LibraryDependencyTest extends IdeaTestCase {
     File javadocFile = createTempFile("fakeAndroidLibrary-1.2.3-javadoc.jar", "");
 
     LibraryDependency dependency = new LibraryDependency(aarFile, "fakeAndroidLibraryName-1.2.3", DependencyScope.COMPILE);
-    assertEquals("fakeAndroidLibraryName-1.2.3", dependency.getName());
+    assertEquals("Gradle: fakeAndroidLibraryName-1.2.3", dependency.getName());
     File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
     // Binary paths for aar are populated by DependenciesExtractor.createLibraryDependencyFromAndroidLibrary
     assertEmpty(binaryPaths);
