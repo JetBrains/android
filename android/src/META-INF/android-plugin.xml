@@ -1329,5 +1329,6 @@
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
+    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.SubmitReportAction"/>
   </extensions>
 </idea-plugin>
