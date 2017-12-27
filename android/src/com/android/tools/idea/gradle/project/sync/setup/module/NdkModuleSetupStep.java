@@ -16,15 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.intellij.openapi.extensions.ExtensionPointName;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class NdkModuleSetupStep extends ModuleSetupStep<NdkModuleModel> {
-  private static final ExtensionPointName<NdkModuleSetupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.ndkModuleSetupStep");
-
-  @NotNull
-  public static NdkModuleSetupStep[] getExtensions() {
-    return EXTENSION_POINT_NAME.getExtensions();
-  }
 }

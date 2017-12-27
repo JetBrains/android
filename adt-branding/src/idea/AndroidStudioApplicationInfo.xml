@@ -13,20 +13,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<component>
-  <version major="2" minor="3" micro="0" patch="8" full="{0}.{1}" eap="false" />
+<component xmlns="http://jetbrains.org/intellij/schema/application-info"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
+  <version major="3" minor="0" micro="0" patch="18" full="{0}.{1}" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-162.2228.14"/>
-  <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
-  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-171.4249.39"/>
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="cccccc" progressY="268" progressTailIcon="/artwork/studio_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
-  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
-  <package code="__PACKAGE_CODE__"/>
+  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
+  <package code="AI"/> <!-- used only in adrt -->
   <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
-  <welcome-screen logo-url="/artwork/welcome.png"
-                  caption-url="/welcomeCaption_community.png"
-                  slogan-url="/developSlogan_community.png"/>
+  <welcome-screen logo-url="/artwork/welcome.png"/>
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 

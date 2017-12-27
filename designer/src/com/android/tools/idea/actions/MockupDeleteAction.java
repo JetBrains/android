@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -35,21 +35,15 @@ public class MockupDeleteAction extends AnAction {
   public MockupDeleteAction(@NotNull NlComponent leafComponent) {
     super(TITLE);
     myNlComponent = leafComponent;
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
+    getTemplatePresentation().setEnabledAndVisible(StudioFlags.NELE_MOCKUP_EDITOR.get());
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-        WriteCommandAction.runWriteCommandAction(
-      myNlComponent.getModel().getProject(), "Delete mockup attributes", null,
-      () -> {
-        myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP);
-        myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_CROP);
-        myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_OPACITY);
-      }, myNlComponent.getModel().getFile());
+    NlWriteCommandAction.run(myNlComponent, "Delete mockup attributes", () -> {
+      myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP);
+      myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_CROP);
+      myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_OPACITY);
+    });
   }
 }

@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Wizard to setup Android Studio before the first run
  */
 public class FirstRunWizard extends DynamicWizard {
-  public static final String WIZARD_TITLE = "Android Studio Setup Wizard";
+  private static final String WIZARD_TITLE = "Android Studio Setup Wizard";
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
@@ -66,11 +66,9 @@ public class FirstRunWizard extends DynamicWizard {
       if (initialSdkLocation.isDirectory()) {
         AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkExists = ((AndroidSdkHandler)sdkHandler).getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+        sdkExists = sdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
       }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
-    }
-    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       if (initialSdkLocation.getPath().isEmpty()) {
         // We don't have a default path specified, have to do custom install.
         myState.put(KEY_CUSTOM_INSTALL, true);
@@ -78,7 +76,7 @@ public class FirstRunWizard extends DynamicWizard {
       else {
         addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
       }
-      addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
+      addPath(new SingleStepPath(new SelectThemeStep()));
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
       addPath(new SingleStepPath(new MissingSdkAlertStep()));
@@ -138,7 +136,7 @@ public class FirstRunWizard extends DynamicWizard {
     return "Android Studio Setup Wizard";
   }
 
-  public class FirstRunProgressStep extends ConsolidatedProgressStep {
+  private class FirstRunProgressStep extends ConsolidatedProgressStep {
     public FirstRunProgressStep() {
       super(getDisposable(), myHost);
       setPaths(myPaths);

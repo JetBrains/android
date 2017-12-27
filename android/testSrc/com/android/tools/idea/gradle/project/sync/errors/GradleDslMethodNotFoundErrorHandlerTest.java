@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
@@ -31,6 +31,7 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 
@@ -38,12 +39,12 @@ import static com.intellij.util.SystemProperties.getLineSeparator;
  * Tests for {@link GradleDslMethodNotFoundErrorHandler}.
  */
 public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithMethodNotFoundInSettingsFile() throws Exception {
@@ -55,7 +56,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
 
     requestSyncAndGetExpectedFailure();
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Gradle DSL method not found: 'incude()'");
@@ -69,7 +70,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
 
     // Ensure the error message contains the location of the error.
     OpenFileHyperlink openFileQuickFix = (OpenFileHyperlink)quickFix;
-    assertEquals(settingsFile.getPath(), openFileQuickFix.getFilePath());
+    assertEquals(toSystemIndependentName(settingsFile.getPath()), openFileQuickFix.getFilePath());
     assertEquals(0, openFileQuickFix.getLineNumber());
   }
 
@@ -83,7 +84,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
 
     requestSyncAndGetExpectedFailure();
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Gradle DSL method not found: 'asdf()'");

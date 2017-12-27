@@ -158,10 +158,15 @@ public class AndroidInlineLayoutTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(configureFromIncludedFile ? included : f);
     final AndroidInlineTestConfig config = new AndroidInlineTestConfig(inlineThisOnly);
     AndroidInlineLayoutHandler.setTestConfig(config);
-    myFixture.testAction(new InlineAction());
-    final MultiMap<PsiElement,String> conflicts = config.getConflicts();
-    assertEquals(1, conflicts.keySet().size());
-    assertEquals(1, conflicts.values().size());
+    try {
+      myFixture.testAction(new InlineAction());
+      final MultiMap<PsiElement, String> conflicts = config.getConflicts();
+      assertEquals(1, conflicts.keySet().size());
+      assertEquals(1, conflicts.values().size());
+    }
+    finally {
+      AndroidInlineLayoutHandler.setTestConfig(null);
+    }
   }
 
   private void doTestCommonInlineAction(boolean inlineThisOnly) {

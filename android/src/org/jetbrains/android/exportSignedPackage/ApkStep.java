@@ -159,7 +159,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   @NotNull
   private static String[] parseAndCheckProguardCfgPaths(@NotNull String pathsStr) {
-    if (pathsStr.length() == 0) {
+    if (pathsStr.isEmpty()) {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     final String[] paths = pathsStr.split(File.pathSeparator);
@@ -211,7 +211,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
     final String apkPath = myApkPathField.getText().trim();
-    if (apkPath.length() == 0) {
+    if (apkPath.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.extract.package.specify.apk.path.error"));
     }
 

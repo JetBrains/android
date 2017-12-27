@@ -18,21 +18,33 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.ide.common.blame.Message;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
 
 public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
   @NotNull private final ListMultimap<Message.Kind, Message> myCompilerMessagesByKind = ArrayListMultimap.create();
+  @Nullable private final Object myModel;
   private final boolean myBuildSuccessful;
+  private final boolean myBuildCancelled;
 
-  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, boolean buildSuccessful) {
+  public GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, @Nullable Throwable buildError) {
+    this(tasks, compilerMessages, buildError, null);
+  }
+
+  public GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, @Nullable Throwable buildError, @Nullable Object model) {
     myTasks = tasks;
-    myBuildSuccessful = buildSuccessful;
+    myBuildSuccessful = buildError == null;
+    myBuildCancelled = (buildError != null && hasCause(buildError, BuildCancelledException.class));
     for (Message msg : compilerMessages) {
       myCompilerMessagesByKind.put(msg.getKind(), msg);
     }
+    myModel = model;
   }
 
   @NotNull
@@ -47,5 +59,14 @@ public class GradleInvocationResult {
 
   public boolean isBuildSuccessful() {
     return myBuildSuccessful;
+  }
+
+  public boolean isBuildCancelled() {
+    return myBuildCancelled;
+  }
+
+  @Nullable
+  public Object getModel() {
+    return myModel;
   }
 }

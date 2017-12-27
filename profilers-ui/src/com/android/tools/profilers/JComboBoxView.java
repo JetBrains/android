@@ -15,7 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AspectObserver;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
@@ -32,9 +33,11 @@ public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
   private final JComboBox<T> myCombo;
   private final AspectModel<A> myObject;
   private final A myAspect;
+  private final AspectObserver myAspectObserver;
   private boolean myIgnoreEvents;
 
   public JComboBoxView(JComboBox<T> combo, AspectModel<A> object, A aspect, Supplier<List<T>> list, Supplier<T> get, Consumer<T> set) {
+    myAspectObserver = new AspectObserver();
     myList = list;
     myGet = get;
     mySet = set;
@@ -45,9 +48,7 @@ public class JComboBoxView<T, A extends Enum<A>> implements ItemListener {
 
   public void bind() {
     myCombo.addItemListener(this);
-    myObject.addDependency()
-      .setExecutor(ApplicationManager.getApplication()::invokeLater)
-      .onChange(myAspect, this::changed);
+    myObject.addDependency(myAspectObserver).onChange(myAspect, this::changed);
     changed();
   }
 

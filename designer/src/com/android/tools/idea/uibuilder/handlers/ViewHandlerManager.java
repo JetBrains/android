@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.*;
+import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
@@ -28,12 +31,17 @@ import com.android.tools.idea.uibuilder.handlers.leanback.BrowseFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
+import com.android.tools.idea.uibuilder.menu.GroupHandler;
+import com.android.tools.idea.uibuilder.menu.MenuHandler;
+import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.statelist.ItemHandler;
+import com.android.tools.idea.uibuilder.statelist.SelectorHandler;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -84,7 +92,7 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   /**
-   * Returns the {@link ViewHandlerManager} for the current project
+   * Returns the ViewHandlerManager for the current project
    */
   @NotNull
   public static ViewHandlerManager get(@NotNull AndroidFacet facet) {
@@ -103,13 +111,23 @@ public class ViewHandlerManager implements ProjectComponent {
    */
   @Nullable
   public ViewHandler getHandler(@NotNull NlComponent component) {
-    if (component.getTagName().equalsIgnoreCase(VIEW_MERGE)) {
-      String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
-      if (parentTag != null) {
-        return getHandler(parentTag);
-      }
+    String tag = component.getTagName();
+
+    switch (tag) {
+      case TAG_ITEM:
+        ViewHandler handler = MenuViewHandlerManager.getHandler(component);
+
+        if (handler != null) {
+          return handler;
+        }
+
+        return new ItemHandler();
+      case VIEW_MERGE:
+        String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
+        return getHandler(parentTag == null ? tag : parentTag);
+      default:
+        return getHandler(tag);
     }
-    return getHandler(component.getTagName());
   }
 
   /**
@@ -143,7 +161,7 @@ public class ViewHandlerManager implements ProjectComponent {
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
-        String tag = NlComponent.viewClassToTag(viewTag);
+        String tag = NlComponentHelper.INSTANCE.viewClassToTag(viewTag);
         if (!tag.equals(viewTag)) {
           handler = getHandler(tag);
           if (handler != null) {
@@ -159,6 +177,16 @@ public class ViewHandlerManager implements ProjectComponent {
     }
 
     return handler != NONE ? handler : null;
+  }
+
+  /**
+   * Registers a {@link ViewHandler}
+   *
+   * @param viewTag the tag of the view
+   * @param handler corresponding view handler
+   */
+  public void registerHandler(@NotNull String viewTag, @NotNull ViewHandler handler) {
+    myHandlers.put(viewTag, handler);
   }
 
   /**
@@ -188,14 +216,15 @@ public class ViewHandlerManager implements ProjectComponent {
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
-      case ABS_LIST_VIEW:
-      case ADAPTER_VIEW_FLIPPER:
-      case ADAPTER_VIEW_ANIMATOR:
-      case GRID_VIEW:
-        return new ViewGroupHandler();
       case ABSOLUTE_LAYOUT:
       case WEB_VIEW:
         return new AbsoluteLayoutHandler();
+      case ABS_LIST_VIEW:
+      case ADAPTER_VIEW_ANIMATOR:
+      case ADAPTER_VIEW_FLIPPER:
+      case GRID_VIEW:
+      case VIEW_GROUP:
+        return new ViewGroupHandler();
       case ACTION_MENU_VIEW:
         return new ActionMenuViewHandler();
       case ADAPTER_VIEW:
@@ -207,26 +236,27 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
-      case EDIT_TEXT:
-        return new EditTextHandler();
-      case MULTI_AUTO_COMPLETE_TEXT_VIEW:
-      case TEXT_VIEW:
-        return TEXT_HANDLER;
       case BROWSE_FRAGMENT:
         return new BrowseFragmentHandler();
       case BUTTON:
         return new ButtonHandler();
       case CARD_VIEW:
         return new CardViewHandler();
+      case CHECKED_TEXT_VIEW:
+        return new CheckedTextViewHandler();
       case CHECK_BOX:
       case RADIO_BUTTON:
         return new CheckBoxHandler();
-      case CHECKED_TEXT_VIEW:
-        return new CheckedTextViewHandler();
       case CHRONOMETER:
         return new ChronometerHandler();
-      case TEXT_CLOCK:
-        return STANDARD_HANDLER;
+      case CLASS_CONSTRAINT_LAYOUT_BARRIER:
+        return new ConstraintLayoutBarrierHandler();
+      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
+        return new ConstraintLayoutChainHandler();
+      case CLASS_CONSTRAINT_LAYOUT_HELPER:
+        return new ConstraintHelperHandler();
+      case CLASS_CONSTRAINT_LAYOUT_LAYER:
+        return new ConstraintLayoutLayerHandler();
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
@@ -238,12 +268,21 @@ public class ViewHandlerManager implements ProjectComponent {
       case DIALER_FILTER:
       case FQCN_RELATIVE_LAYOUT:
       case RELATIVE_LAYOUT:
-        return new RelativeLayoutHandler();
+        return StudioFlags.NELE_TARGET_RELATIVE.get() ? new RelativeLayoutHandlerKt() : new RelativeLayoutHandler();
       case DRAWER_LAYOUT:
         return new DrawerLayoutHandler();
+      case EDIT_TEXT:
+        return new EditTextHandler();
       case EXPANDABLE_LIST_VIEW:
         // TODO: Find out why this fails to load by class name
         return new ListViewHandler();
+      case FLEXBOX_LAYOUT:
+        if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
+          return new FlexboxLayoutHandler();
+        }
+        else {
+          return NONE;
+        }
       case FLOATING_ACTION_BUTTON:
         return new FloatingActionButtonHandler();
       case FQCN_LINEAR_LAYOUT:
@@ -265,13 +304,16 @@ public class ViewHandlerManager implements ProjectComponent {
         return new HorizontalScrollViewHandler();
       case IMAGE_BUTTON:
         return new ImageButtonHandler();
+      case IMAGE_SWITCHER:
+        return new ImageSwitcherHandler();
       case IMAGE_VIEW:
       case QUICK_CONTACT_BADGE:
         return new ImageViewHandler();
-      case IMAGE_SWITCHER:
-        return new ImageSwitcherHandler();
       case MAP_VIEW:
         return new MapViewHandler();
+      case MULTI_AUTO_COMPLETE_TEXT_VIEW:
+      case TEXT_VIEW:
+        return TEXT_HANDLER;
       case NAVIGATION_VIEW:
         return new NavigationViewHandler();
       case NESTED_SCROLL_VIEW:
@@ -312,12 +354,12 @@ public class ViewHandlerManager implements ProjectComponent {
         return STANDARD_HANDLER;
       case SPACE:
         return new SpaceHandler();
+      case SPINNER:
+        return new SpinnerHandler();
       case SURFACE_VIEW:
       case TEXTURE_VIEW:
       case VIDEO_VIEW:
         return NO_PREVIEW_HANDLER;
-      case SPINNER:
-        return new SpinnerHandler();
       case SWITCH:
         return new SwitchHandler();
       case TABLE_CONSTRAINT_LAYOUT:
@@ -334,16 +376,20 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TabLayoutHandler();
       case TAG_GROUP:
         return new GroupHandler();
-      case TAG_ITEM:
-        return new ItemHandler();
       case TAG_MENU:
         return new MenuHandler();
+      case TAG_SELECTOR:
+        return new SelectorHandler();
+      case TEXT_CLOCK:
+        return STANDARD_HANDLER;
       case TEXT_INPUT_LAYOUT:
         return new TextInputLayoutHandler();
       case TOGGLE_BUTTON:
         return new ToggleButtonHandler();
       case TOOLBAR_V7:
         return new ToolbarHandler();
+      case VIEW:
+        return STANDARD_HANDLER;
       case VIEW_FRAGMENT:
         return new FragmentHandler();
       case VIEW_INCLUDE:
@@ -389,7 +435,7 @@ public class ViewHandlerManager implements ProjectComponent {
               if (superClass != null) {
                 String fqn = superClass.getQualifiedName();
                 if (fqn != null) {
-                  return getHandler(NlComponent.viewClassToTag(fqn));
+                  return getHandler(NlComponentHelper.INSTANCE.viewClassToTag(fqn));
                 }
               }
             }
@@ -466,8 +512,16 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Override
+  public void projectOpened() {
+  }
+
+  @Override
   public void projectClosed() {
     myHandlers.clear();
+  }
+
+  @Override
+  public void initComponent() {
   }
 
   @Override

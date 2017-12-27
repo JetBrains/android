@@ -106,7 +106,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
     if (name.startsWith(oldPackageName)) {
       final String suffix = name.substring(oldPackageName.length());
 
-      if (suffix.length() == 0 || suffix.charAt(0) == '.') {
+      if (suffix.isEmpty() || suffix.charAt(0) == '.') {
         return newPackageName + suffix;
       }
     }

@@ -62,7 +62,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   @NotNull
   public static RenderProblem createPlain(@NotNull HighlightSeverity severity,
                                           @NotNull String message,
-                                          @NotNull Project project,
+                                          @Nullable Project project,
                                           @NotNull HtmlLinkManager linkManager,
                                           @Nullable Throwable throwable) {
     Html problem = new Html(severity, ourNextOrdinal++);
@@ -229,7 +229,6 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
 
   /** Render error message whose actual status is computed lazily */
   public static class Deferred extends RenderProblem {
-    protected final String myTag;
     protected final String myText;
 
     protected Deferred(@NotNull HighlightSeverity severity,
@@ -238,8 +237,8 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
                        @Nullable Throwable throwable) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       super(severity, ourNextOrdinal++);
-      myTag = tag;
       myText = text;
+      tag(tag);
       throwable(throwable);
     }
 

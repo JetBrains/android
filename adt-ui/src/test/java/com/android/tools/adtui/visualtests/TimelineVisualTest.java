@@ -17,6 +17,8 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,11 +41,14 @@ public class TimelineVisualTest extends VisualTest {
   private TimelineData mData;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     mEvents = new EventData();
     mData = new TimelineData(2, 2000);
     mTimeline = new TimelineComponent(mData, mEvents, 1.0f, 10.0f, 1000.0f, 10.0f);
-    return Collections.singletonList(mTimeline);
+    return ImmutableList.of(
+      mTimeline,
+      elapsed -> mTimeline.repaint()
+    );
   }
 
   @Override

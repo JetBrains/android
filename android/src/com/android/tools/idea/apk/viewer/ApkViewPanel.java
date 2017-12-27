@@ -17,29 +17,41 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.stats.AnonymizerUtil;
+import com.google.common.base.Function;
+import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.Function;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -58,37 +70,40 @@ public class ApkViewPanel implements TreeSelectionListener {
   private Listener myListener;
 
   public interface Listener {
-    void selectionChanged(@Nullable ApkEntry entry);
-
+    void selectionChanged(@Nullable ArchiveTreeNode[] entry);
     void selectApkAndCompare();
   }
 
   public ApkViewPanel(@NotNull ApkParser apkParser) {
     // construct the main tree along with the uncompressed sizes
-    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkParser.constructTreeStructure();
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    ListenableFuture<ArchiveNode> treeStructureFuture = apkParser.constructTreeStructure();
+    FutureCallBackAdapter<ArchiveNode> setRootNode = new FutureCallBackAdapter<ArchiveNode>() {
       @Override
-      public void onSuccess(DefaultMutableTreeNode result) {
+      public void onSuccess(ArchiveNode result) {
         setRootNode(result);
       }
     };
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
 
-    // in parallel, kick off computation of the compressed archive, and once its available, refresh the tree
-    ListenableFuture<DefaultMutableTreeNode> compressedTreeFuture = apkParser.constructTreeStructureWithCompressedSizes();
-    FutureCallBackAdapter<DefaultMutableTreeNode> refreshTree = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    // once we have the tree, kick off computation of the compressed archive, and once its available, refresh the tree
+    ListenableFuture<ArchiveNode> compressedTreeFuture =
+      Futures.transform(treeStructureFuture, (Function<ArchiveNode, ArchiveNode>)input -> {
+        assert input != null;
+        return apkParser.updateTreeWithDownloadSizes(input);
+      }, PooledThreadExecutor.INSTANCE);
+    Futures.addCallback(compressedTreeFuture, new FutureCallBackAdapter<ArchiveNode>() {
       @Override
-      public void onSuccess(DefaultMutableTreeNode result) {
+      public void onSuccess(ArchiveNode result) {
+        ArchiveTreeStructure.sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         refreshTree();
       }
-    };
-    Futures.addCallback(compressedTreeFuture, refreshTree, EdtExecutor.INSTANCE);
+    }, EdtExecutor.INSTANCE);
 
     mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     myCompareWithButton.addActionListener(e -> {
-      if(myListener != null) {
+      if (myListener != null) {
         myListener.selectApkAndCompare();
       }
     });
@@ -96,25 +111,66 @@ public class ApkViewPanel implements TreeSelectionListener {
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
-    Futures.addCallback(apkParser.getApplicationInfo(), new FutureCallBackAdapter<AndroidApplicationInfo>() {
+
+    //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
+    //for APKs, this will always be the APK itself
+    //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
+    ListenableFuture<AndroidApplicationInfo> applicationInfo =
+      Futures.transformAsync(treeStructureFuture,
+                             input -> {
+                               assert input != null;
+                               return apkParser.getApplicationInfo(Archives.getFirstManifestArchive(input));
+                             }, PooledThreadExecutor.INSTANCE);
+
+    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
         setAppInfo(result);
       }
     }, EdtExecutor.INSTANCE);
 
+
     // obtain and set the download size
     mySizeAsyncIcon.setVisible(true);
     mySizeComponent.append("Estimating download size..");
-    Futures.addCallback(Futures.successfulAsList(apkParser.getUncompressedApkSize(), apkParser.getCompressedFullApkSize()),
+    ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
+    ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
+    Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            long uncompressed = result.get(0);
-                            Long compressed = result.get(1);
-                            setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
+                            if (result != null) {
+                              long uncompressed = result.get(0);
+                              Long compressed = result.get(1);
+                              setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
+                            }
                           }
                         }, EdtExecutor.INSTANCE);
+
+    Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
+                        new FutureCallBackAdapter<List<Object>>() {
+                          @Override
+                          public void onSuccess(@Nullable List<Object> result) {
+                            if (result == null) {
+                              return;
+                            }
+
+                            int size = result.size();
+                            long uncompressed = size > 0 && result.get(0) instanceof Long ? (Long)result.get(0) : -1;
+                            long compressed = size > 1 && result.get(1) instanceof Long ? (Long)result.get(1) : -1;
+                            String applicationId =
+                              size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
+                                .get(2)).packageId : "unknown";
+
+                            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                                             .setApkAnalyzerStats(
+                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                                 .setUncompressedSize(uncompressed)
+                                                                 .build()));
+                          }
+                        });
   }
 
   private void createUIComponents() {
@@ -128,26 +184,27 @@ public class ApkViewPanel implements TreeSelectionListener {
     myTree.setPaintBusy(true);
 
     TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, path -> {
-      ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
-      if (e == null) {
+      Object lastPathComponent = path.getLastPathComponent();
+      if (!(lastPathComponent instanceof ArchiveTreeNode)) {
         return null;
       }
-
-      return e.getPath();
+      return ((ArchiveTreeNode)lastPathComponent).getData().getPath().toString();
     }, true);
 
     // Provides the percentage of the node size to the total size of the APK
     PercentRenderer.PercentProvider percentProvider = (jTree, value, row) -> {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      ApkEntry rootEntry = ApkEntry.fromNode(jTree.getModel().getRoot());
-      if (entry == null || rootEntry == null) {
+      if (!(value instanceof ArchiveTreeNode)) {
         return 0;
       }
-      else if (!entry.isCompressedSizeKnown() || !rootEntry.isCompressedSizeKnown()) {
+
+      ArchiveTreeNode entry = (ArchiveTreeNode)value;
+      ArchiveTreeNode rootEntry = (ArchiveTreeNode)jTree.getModel().getRoot();
+
+      if (entry.getData().getDownloadFileSize() < 0) {
         return 0;
       }
       else {
-        return (double)entry.getCompressedSize() / rootEntry.getCompressedSize();
+        return (double)entry.getData().getDownloadFileSize() / rootEntry.getData().getDownloadFileSize();
       }
     };
 
@@ -181,20 +238,20 @@ public class ApkViewPanel implements TreeSelectionListener {
     myListener = listener;
   }
 
-  private void setRootNode(@NotNull DefaultMutableTreeNode root) {
+  private void setRootNode(@NotNull ArchiveNode root) {
     myTreeModel = new DefaultTreeModel(root);
-
-    ApkEntry entry = ApkEntry.fromNode(root);
-    assert entry != null;
-
-    myTree.setPaintBusy(!entry.isCompressedSizeKnown());
+    myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
     myTree.setRootVisible(false);
     myTree.setModel(myTreeModel);
   }
 
   private void refreshTree() {
     myTree.setPaintBusy(false);
+    myTree.removeTreeSelectionListener(this);
+    TreePath[] selected = myTree.getSelectionPaths();
     myTreeModel.reload();
+    myTree.setSelectionPaths(selected);
+    myTree.addTreeSelectionListener(this);
   }
 
   private void setApkSizes(long uncompressed, long compressedFullApk) {
@@ -241,9 +298,22 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   @Override
   public void valueChanged(TreeSelectionEvent e) {
-    ApkEntry selectedEntry = ApkEntry.fromNode(e.getPath().getLastPathComponent());
     if (myListener != null) {
-      myListener.selectionChanged(selectedEntry);
+      TreePath[] paths = ((Tree)e.getSource()).getSelectionPaths();
+      ArchiveTreeNode[] components;
+      if (paths == null){
+        components = null;
+      } else {
+        components = new ArchiveTreeNode[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+          if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)) {
+            myListener.selectionChanged(null);
+            return;
+          }
+          components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
+        }
+      }
+      myListener.selectionChanged(components);
     }
   }
 
@@ -258,10 +328,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     sizeInBytes = Math.abs(sizeInBytes);
 
     if (sizeInBytes > mega) {
-      return formatter.format((sign * sizeInBytes) / (double) mega) + " MB";
+      return formatter.format((sign * sizeInBytes) / (double)mega) + " MB";
     }
     else if (sizeInBytes > kilo) {
-      return formatter.format((sign * sizeInBytes) / (double) kilo) + " KB";
+      return formatter.format((sign * sizeInBytes) / (double)kilo) + " KB";
     }
     else {
       return (sign * sizeInBytes) + " B";
@@ -293,37 +363,44 @@ public class ApkViewPanel implements TreeSelectionListener {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      if (entry == null) {
-        if (value instanceof LoadingNode) {
-          append(value.toString());
-        }
+      if (!(value instanceof ArchiveNode)) {
+        append(value.toString());
         return;
       }
 
-      VirtualFile file = entry.getFile();
-      setIcon(getIconFor(file));
+      ArchiveEntry entry = ((ArchiveNode)value).getData();
+
+      Path path = entry.getPath();
+      setIcon(getIconFor(path));
+
+      Path base = path.getFileName();
+      String name = base == null ? "" : base.toString();
+      name = StringUtil.trimEnd(name, "/");
 
       SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), entry.getName(), attr.getStyle(), attr.getFgColor(),
+      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
                                  attr.getBgColor(), this);
     }
 
     @NotNull
-    private static Icon getIconFor(@NotNull VirtualFile file) {
-      String fileName = file.getName();
+    private static Icon getIconFor(@NotNull Path path) {
+      Path base = path.getFileName();
+      String fileName = base == null ? "" : base.toString();
 
-      if (!file.isDirectory()) {
+      if (!Files.isDirectory(path)) {
         if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
           return AndroidIcons.ManifestFile;
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
         }
-        Icon ftIcon = file.getFileType().getIcon();
+
+        FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
+        Icon ftIcon = fileType.getIcon();
         return ftIcon == null ? AllIcons.FileTypes.Any_type : ftIcon;
       }
       else {
+        fileName = StringUtil.trimEnd(fileName, "/");
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
@@ -332,28 +409,12 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  public static class SizeRenderer extends ColoredTreeCellRenderer {
-    private Function<ApkEntry, Long> mySizeMapper;
+  private static class SizeRenderer extends ColoredTreeCellRenderer {
+    private final boolean myUseDownloadSize;
 
-    public SizeRenderer(boolean useCompressedSize) {
-      this(entry -> {
-        if (useCompressedSize) {
-          if (entry.isCompressedSizeKnown()) {
-            return entry.getCompressedSize();
-          }
-          else {
-            return 0L;
-          }
-        }
-        else {
-          return entry.getSize();
-        }
-      });
-    }
-
-
-    public SizeRenderer(Function<ApkEntry, Long> sizeMapper) {
-      mySizeMapper = sizeMapper;
+    public SizeRenderer(boolean useDownloadSize) {
+      myUseDownloadSize = useDownloadSize;
+      setTextAlign(SwingConstants.RIGHT);
     }
 
     @Override
@@ -364,16 +425,15 @@ public class ApkViewPanel implements TreeSelectionListener {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      ApkEntry root = ApkEntry.fromNode(tree.getModel().getRoot());
-
-      if (entry == null || root == null) {
+      if (!(value instanceof ArchiveTreeNode)) {
         return;
       }
 
-      setTextAlign(SwingConstants.RIGHT);
-
-      append(getHumanizedSize(mySizeMapper.fun(entry)));
+      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      long size = myUseDownloadSize ? data.getDownloadFileSize() : data.getRawFileSize();
+      if (size > 0) {
+        append(getHumanizedSize(size));
+      }
     }
   }
 }

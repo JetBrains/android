@@ -15,76 +15,100 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitor extends ProfilerMonitor {
 
-  private final int myProcessId;
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryMonitor.class);
+  }
 
   @NotNull
-  private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  private final AxisComponentModel myMemoryAxis;
+
+  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
+  private final MemoryUsage myMemoryUsage;
+  private final MemoryLegend myMemoryLegend;
+  private MemoryLegend myTooltipLegend;
 
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-    myProcessId = profilers.getProcessId();
-    myClient = profilers.getClient().getMemoryClient();
-  }
+    myMemoryUsage = new MemoryUsage(profilers);
 
-  @NotNull
-  public MemoryDataSeries getTotalMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getTotalMem);
-  }
+    myMemoryAxis = new AxisComponentModel(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
+    myMemoryAxis.setClampToMajorTicks(true);
 
-  @NotNull
-  public MemoryDataSeries getJavaMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getJavaMem);
-  }
-
-  @NotNull
-  public MemoryDataSeries getNativeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getNativeMem);
-  }
-
-  @NotNull
-  public MemoryDataSeries getGraphicsMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getGraphicsMem);
-  }
-
-  @NotNull
-  public MemoryDataSeries getStackMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getStackMem);
-  }
-
-  @NotNull
-  public MemoryDataSeries getCodeMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getCodeMem);
-  }
-
-  @NotNull
-  public MemoryDataSeries getOthersMemory() {
-    return new MemoryDataSeries(myClient, myProcessId, MemorySample::getOthersMem);
-  }
-
-  @NotNull
-  public VmStatsDataSeries getObjectCount() {
-    return new VmStatsDataSeries(myClient, myProcessId, sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
-  }
-
-  @NotNull
-  public GcStatsDataSeries getGcCount() {
-    return new GcStatsDataSeries(myClient, myProcessId);
+    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
+    myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);
   }
 
   @Override
   public String getName() {
-    return "Memory";
+    return "MEMORY";
   }
 
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(myMemoryUsage);
+    myProfilers.getUpdater().register(myMemoryAxis);
+    myProfilers.getUpdater().register(myMemoryLegend);
+    myProfilers.getUpdater().register(myTooltipLegend);
+  }
+
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(myMemoryUsage);
+    myProfilers.getUpdater().unregister(myMemoryAxis);
+    myProfilers.getUpdater().unregister(myMemoryLegend);
+    myProfilers.getUpdater().unregister(myTooltipLegend);
+    myProfilers.removeDependencies(this);
+  }
+
+  @Override
   public void expand() {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+  }
+
+  public AxisComponentModel getMemoryAxis() {
+    return myMemoryAxis;
+  }
+
+  public MemoryUsage getMemoryUsage() {
+    return myMemoryUsage;
+  }
+
+  public MemoryLegend getMemoryLegend() {
+    return myMemoryLegend;
+  }
+
+  public MemoryLegend getTooltipLegend() {
+    return myTooltipLegend;
+  }
+
+  public static class MemoryLegend extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myTotalLegend;
+
+    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range, int updateFrequencyMs) {
+      super(updateFrequencyMs);
+      myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
+      add(myTotalLegend);
+    }
+
+    @NotNull
+    public Legend getTotalLegend() {
+      return myTotalLegend;
+    }
   }
 }

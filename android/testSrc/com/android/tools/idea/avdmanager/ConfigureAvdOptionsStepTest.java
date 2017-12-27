@@ -16,7 +16,28 @@
 
 package com.android.tools.idea.avdmanager;
 
-import junit.framework.TestCase;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.testframework.FakeRepoManager;
+import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.targets.SystemImageManager;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.intellij.openapi.util.Disposer;
+import org.jetbrains.android.AndroidTestCase;
+
+import javax.swing.*;
+
+import java.io.File;
+import java.util.Map;
 
 import static com.android.sdklib.internal.avd.GpuMode.*;
 import static com.android.sdklib.repository.targets.SystemImage.*;
@@ -24,8 +45,68 @@ import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOther
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
 import static com.google.common.truth.Truth.assertThat;
 
+public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
-public class ConfigureAvdOptionsStepTest extends TestCase {
+  private static final String SDK_LOCATION = "/sdk";
+  private static final String AVD_LOCATION = "/avd";
+
+  private AvdInfo myMarshmallowAvdInfo;
+  private AvdInfo myPreviewAvdInfo;
+  private Map<String, String> myPropertiesMap = Maps.newHashMap();
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    MockFileOp fileOp = new MockFileOp();
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // Marshmallow image (API 23)
+    String marshmallowPath = "system-images;android-23;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath);
+    DetailsTypes.SysImgDetailsType detailsMarshmallow =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsMarshmallow.setAbi("x86");
+    detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
+    detailsMarshmallow.setApiLevel(23);
+    pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
+    pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
+    fileOp.recordExistingFile(new File(pkgMarshmallow.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    // Nougat Preview image (still API 23)
+    String NPreviewPath = "system-images;android-N;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath);
+    DetailsTypes.SysImgDetailsType detailsNPreview =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsNPreview.setAbi("x86");
+    detailsNPreview.setVendor(IdDisplay.create("google", "Google"));
+    detailsNPreview.setApiLevel(23);
+    detailsNPreview.setCodename("N"); // Setting a code name is the key!
+    pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
+    pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
+    fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview));
+
+    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+
+    AndroidSdkHandler sdkHandler =
+      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage marshmallowImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
+    ISystemImage NPreviewImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+
+    myMarshmallowAvdInfo =
+      new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
+    myPreviewAvdInfo =
+      new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
+  }
 
   public void testIsGoogleApiTag() throws Exception {
     assertThat(isGoogleApiTag(GOOGLE_APIS_TAG)).isTrue();
@@ -41,13 +122,39 @@ public class ConfigureAvdOptionsStepTest extends TestCase {
     assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
     assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
 
-    assertEquals(MESA, gpuOtherMode(22, false, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, false, false));
-    assertEquals(MESA, gpuOtherMode(23, true, false, false));
+    assertEquals(OFF, gpuOtherMode(22, false, true, false));
+    assertEquals(OFF, gpuOtherMode(22, true, true, false));
+    assertEquals(OFF, gpuOtherMode(22, true, false, false));
+    assertEquals(OFF, gpuOtherMode(23, true, false, false));
 
     assertEquals(OFF, gpuOtherMode(22, true, true, true));
     assertEquals(OFF, gpuOtherMode(23, true, false, true));
     assertEquals(OFF, gpuOtherMode(23, false, false, true));
+  }
+
+  public void testUpdateSystemImageData() throws Exception {
+    ensureSdkManagerAvailable();
+    AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
+
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    Disposer.register(getTestRootDisposable(), optionsStep);
+
+    optionsStep.updateSystemImageData();
+    Icon icon = optionsStep.getSystemImageIcon();
+    assertNotNull(icon);
+    String iconUrl = icon.toString();
+    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
+
+    optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
+
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    Disposer.register(getTestRootDisposable(), optionsStep);
+    optionsStep.updateSystemImageData();
+    icon = optionsStep.getSystemImageIcon();
+    assertNotNull(icon);
+    iconUrl = icon.toString();
+    // For an actual Preview, the URL will be Default_32.png, but
+    // we now know that N-Preview became Nougat.
+    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
   }
 }

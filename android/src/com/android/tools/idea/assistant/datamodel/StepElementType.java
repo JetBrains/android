@@ -30,5 +30,9 @@ public enum StepElementType {
   /**
    * Code sample.
    */
-  CODE
+  CODE,
+  /**
+   * Image
+   */
+  IMAGE
 }

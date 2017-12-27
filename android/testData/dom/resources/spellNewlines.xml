@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Pressing this button will trigger\nemergency services</string>
+    <string name="typos"><TYPO descr="Typo: In word 'typoh'">typoh</TYPO>\n<TYPO descr="Typo: In word 'typoh'">typoh</TYPO>\'s</string>
+</resources>

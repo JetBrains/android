@@ -1,0 +1,7 @@
+#ifndef NATIVEOPTIMIZEDWARNING_INTERFACE_H
+#define NATIVEOPTIMIZEDWARNING_INTERFACE_H
+
+extern char func1(char);
+extern char func2(char);
+
+#endif //NATIVEOPTIMIZEDWARNING_INTERFACE_H

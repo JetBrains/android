@@ -46,8 +46,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull String libraryName,
                               @NotNull DependencyScope scope,
-                              @NotNull File artifactPath) {
-    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[] {artifactPath}, EMPTY_FILE_ARRAY);
+                              @NotNull File artifactPath,
+                              boolean exported) {
+    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, EMPTY_FILE_ARRAY, exported);
   }
 
   void setUpLibraryDependency(@NotNull Module module,
@@ -56,7 +57,8 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               @NotNull File[] binaryPaths,
-                              @NotNull File[] documentationPaths) {
+                              @NotNull File[] documentationPaths,
+                              boolean exported) {
 
     // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
     // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
@@ -113,6 +115,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       }
     }
 
-    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider);
+    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, exported);
   }
 }

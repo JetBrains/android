@@ -56,6 +56,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION;
 import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
@@ -105,12 +106,6 @@ public class InstantRunConfigurable
   @Override
   public String getId() {
     return "instant.run";
-  }
-
-  @Nullable
-  @Override
-  public Runnable enableSearch(String option) {
-    return null;
   }
 
   @Nls
@@ -271,7 +266,8 @@ public class InstantRunConfigurable
       }
 
       // Request a sync
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(
+        TRIGGER_PROJECT_MODIFIED);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
       return true;
     }

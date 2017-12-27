@@ -204,7 +204,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       }
       final boolean success;
 
-      if (fileSet.size() > 0) {
+      if (!fileSet.isEmpty()) {
         final String[] files = new String[fileSet.size()];
         int i = 0;
         for (String filePath : fileSet) {
@@ -361,7 +361,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     AndroidCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
 
     AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
-    final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
+    final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
     if (success) {
       final List<String> srcFiles = new ArrayList<String>();

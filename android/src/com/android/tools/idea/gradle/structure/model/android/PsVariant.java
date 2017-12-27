@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +34,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myBuildType;
   @NotNull private final List<String> myProductFlavors;
 
-  @Nullable private final Variant myResolvedModel;
+  @Nullable private final IdeVariant myResolvedModel;
 
   private PsAndroidArtifactCollection myArtifactCollection;
 
@@ -42,7 +42,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
                    @NotNull String name,
                    @NotNull String buildType,
                    @NotNull List<String> productFlavors,
-                   @Nullable Variant resolvedModel) {
+                   @Nullable IdeVariant resolvedModel) {
     super(parent);
     myName = name;
     myBuildType = buildType;
@@ -70,7 +70,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
 
   @Override
   @Nullable
-  public Variant getResolvedModel() {
+  public IdeVariant getResolvedModel() {
     return myResolvedModel;
   }
 

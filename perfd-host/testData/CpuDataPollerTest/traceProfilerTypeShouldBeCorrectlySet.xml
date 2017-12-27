@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest">
+        <Message>process_id: 1234
+session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/StartMonitoringApp</functionCalled>
+        <message>process_id: 1234
+session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStartResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/StartMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
+        <Message>process_id: 1234
+start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message>process_id: 1234
+start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse">
+        <Message>data {
+  basic_info {
+    process_id: 1234
+    end_timestamp: 86400000000000
+  }
+  cpu_usage {
+    app_cpu_time_in_millisec: 1000
+    system_cpu_time_in_millisec: 2000
+    elapsed_time_in_millisec: 10000
+  }
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message>data {
+  basic_info {
+    process_id: 1234
+    end_timestamp: 86400000000000
+  }
+  cpu_usage {
+    app_cpu_time_in_millisec: 1000
+    system_cpu_time_in_millisec: 2000
+    elapsed_time_in_millisec: 10000
+  }
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetThreads" Class="class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest">
+        <Message>process_id: 1234
+start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/GetThreads</functionCalled>
+        <message>process_id: 1234
+start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetThreads" Class="class com.android.tools.profiler.proto.CpuProfiler$GetThreadsResponse">
+        <Message>threads {
+  tid: 4321
+  name: "Thread1"
+  activities {
+    timestamp: 86400000000000
+    new_state: WAITING
+  }
+  activities {
+    timestamp: 86404000000000
+    new_state: RUNNING
+  }
+  activities {
+    timestamp: 86405000000000
+    new_state: STOPPED
+  }
+  activities {
+    timestamp: 86415000000000
+    new_state: DEAD
+  }
+}
+threads {
+  tid: 2222
+  name: "Thread2"
+  activities {
+    timestamp: 86403000000000
+    new_state: RUNNING
+  }
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetThreadsResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/GetThreads</functionCalled>
+        <message>threads {
+  tid: 4321
+  name: "Thread1"
+  activities {
+    timestamp: 86400000000000
+    new_state: WAITING
+  }
+  activities {
+    timestamp: 86404000000000
+    new_state: RUNNING
+  }
+  activities {
+    timestamp: 86405000000000
+    new_state: STOPPED
+  }
+  activities {
+    timestamp: 86415000000000
+    new_state: DEAD
+  }
+}
+threads {
+  tid: 2222
+  name: "Thread2"
+  activities {
+    timestamp: 86403000000000
+    new_state: RUNNING
+  }
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
+        <Message>profiler_type: SIMPLE_PERF
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
+        <message>profiler_type: SIMPLE_PERF
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest">
+        <Message>profiler_type: SIMPLE_PERF
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
+        <message>profiler_type: SIMPLE_PERF
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">
+        <Message>trace_id: 1111
+trace: "Test Data"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
+        <message>trace_id: 1111
+trace: "Test Data"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">
+        <Message>process_id: 1234
+session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
+        <message>process_id: 1234
+session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStopResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -52,13 +53,17 @@ public class GradleVersions {
 
   @Nullable
   public GradleVersion getGradleVersion(@NotNull Project project) {
-    GradleVersion gradleVersion = GradleSyncState.getInstance(project).getSummary().getGradleVersion();
-    if (gradleVersion != null) {
-      // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
-      // settings.
-      GradleVersion revision = GradleVersion.tryParse(removeTimestampFromGradleVersion(gradleVersion.toString()));
-      if (revision != null) {
-        return revision;
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (syncState.isSyncNeeded() != ThreeState.YES) {
+      // If Sync is needed we cannot rely on the Gradle version returned by the last sync. It may be stale.
+      GradleVersion gradleVersion = syncState.getSummary().getGradleVersion();
+      if (gradleVersion != null) {
+        // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
+        // settings.
+        GradleVersion revision = GradleVersion.tryParse(removeTimestampFromGradleVersion(gradleVersion.toString()));
+        if (revision != null) {
+          return revision;
+        }
       }
     }
 
@@ -132,5 +137,14 @@ public class GradleVersions {
       return gradleVersion.substring(0, dashIndex);
     }
     return gradleVersion;
+  }
+
+  /**
+   * Verifies if Gradle version used by project is 4.0 or newer
+   * @return {@code true} if version is 4.0 or newer, {@code false} if version is lower or it is {@code null}
+   */
+  public boolean isGradle4OrNewer(@NotNull Project project) {
+    GradleVersion gradleVersion = getInstance().getGradleVersion(project);
+    return gradleVersion != null && gradleVersion.compareIgnoringQualifiers("4.0") >= 0;
   }
 }

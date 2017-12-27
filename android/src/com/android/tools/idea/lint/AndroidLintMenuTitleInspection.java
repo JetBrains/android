@@ -17,21 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.TitleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_TITLE;
 
 public class AndroidLintMenuTitleInspection extends AndroidLintInspectionBase {
   public AndroidLintMenuTitleInspection() {
     super(AndroidBundle.message("android.lint.inspections.menu.title"), TitleDetector.ISSUE);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set title", ATTR_TITLE, null)};
   }
 }

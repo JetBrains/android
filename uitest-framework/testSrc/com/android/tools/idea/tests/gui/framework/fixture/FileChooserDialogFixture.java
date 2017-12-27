@@ -15,44 +15,39 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
-import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.AsyncProcessIcon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.util.Strings.quote;
 
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
-  @NotNull
-  public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
-    return findDialog(robot, Matchers.byTitle(JDialog.class, "Open File or Project"));
-  }
-
-  @NotNull
-  public static FileChooserDialogFixture findImportProjectDialog(@NotNull Robot robot) {
-    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        String title = dialog.getTitle();
-        return title != null && title.startsWith("Select") && title.endsWith("Project to Import");
-      }
-    });
-  }
 
   @NotNull
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
-    return new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
+    FileChooserDialogFixture dialog = new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
+    AsyncProcessIcon progressIcon = GuiTests.waitUntilShowing(robot, dialog.target(), Matchers.byType(AsyncProcessIcon.class));
+    Wait.seconds(5).expecting("the progress icon to stop").until(() -> !progressIcon.isRunning());
+    return dialog;
+  }
+
+  @NotNull
+  public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final String dialogTitle) {
+    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class, true) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog component) {
+        return dialogTitle.equals(component.getTitle());
+      }
+    });
   }
 
   private FileChooserDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<FileChooserDialogImpl> dialogAndWrapper) {
@@ -61,23 +56,9 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
-    final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
-                                                                       .in(getDialogWrapper())
-                                                                       .get();
-    fileSystemTree.showHiddens(true); // Windows: Default temporary folder (../AppData/..) is hidden.
-
-    final AtomicBoolean fileSelected = new AtomicBoolean();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        fileSystemTree.select(file, () -> {
-          fileSelected.set(true);
-        });
-      }
-    });
-
-    Wait.seconds(5).expecting("file " + quote(file.getPath()) + " to be selected").until(fileSelected::get);
-
+    JTextField pathTextField =
+      GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(JTextField.class, "FileChooserDialogImpl.myPathTextField"));
+    new JTextComponentFixture(robot(), pathTextField).enterText(file.getPath());
     return this;
   }
 

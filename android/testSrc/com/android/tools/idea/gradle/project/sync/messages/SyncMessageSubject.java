@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;

@@ -30,6 +30,7 @@ public class UnusedResourcesTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject(BASE_PATH + "TestCode.java", "src/p1/p2/TestCode.java");
+    myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
 
     boolean skipIds = true;
     UnusedResourcesHandler.invoke(getProject(), null, null, true, skipIds);

@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ThemeMenuAction extends FlatAction {
+public class ThemeMenuAction extends AnAction {
   private final ConfigurationHolder myRenderContext;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Theme in Editor");
-    presentation.setIcon(AndroidIcons.NeleIcons.Theme);
+    presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     updatePresentation(presentation);
   }
 
@@ -50,6 +50,13 @@ public class ThemeMenuAction extends FlatAction {
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
+
+      // The tests only have access to the template presentation and not the actual presentation of the
+      // ActionButtonWithText that is create for this action
+      // This is a little hack since the text displayed is taken from the a Presentation that might no be the same as template one.
+      // The order is also important. If the text is set on the template presentation after the current presentation,
+      // the button disappear (Intellij Actions magic)
+      getTemplatePresentation().setText(brief, false);
       presentation.setText(brief, false);
     }
     if (visible != presentation.isVisible()) {

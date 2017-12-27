@@ -1,0 +1,165 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+{
+  // For more details about IDEA's custom language support, read
+  // http://www.jetbrains.org/intellij/sdk/docs/tutorials/custom_language_support_tutorial.html
+
+  classHeader="android_header.txt"
+
+  parserClass="com.android.tools.idea.smali.parser.SmaliParser"
+  parserUtilClass="com.android.tools.idea.smali.parser.SmaliParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Smali"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.smali.psi"
+  psiImplPackage="com.android.tools.idea.smali.psi.impl"
+
+  elementTypeHolderClass="com.android.tools.idea.smali.psi.SmaliTypes"
+  elementTypeClass="com.android.tools.idea.smali.psi.SmaliElementType"
+  tokenTypeClass="com.android.tools.idea.smali.psi.SmaliTokenType"
+
+  tokens = [
+    // Keywords
+    DOT_CLASS='.class'
+    DOT_SUPER='.super'
+    DOT_SOURCE='.source'
+    DOT_FIELD='.field'
+    DOT_METHOD='.method'
+    DOT_METHOD_END='.end method'
+    DOT_ANNOTATION='.annotation'
+    DOT_ANNOTATION_END='.end annotation'
+    DOT_IMPLEMENTS=".implements"
+    DOT_REGISTERS='.registers'
+    DOT_PARAM='.param'
+    DOT_PROLOGUE='.prologue'
+    DOT_LINE='.line'
+    TRUE="true"
+    FALSE="false"
+
+    COMMENT='regexp:#.*'
+    //REGULAR_METHOD_LINE='regexp:[a-zA-Z].*'
+
+    JAVA_IDENTIFIER='regexp:L[_a-zA-Z][_a-zA-Z0-9/$]*;'
+    IDENTIFIER='regexp:[_a-zA-Z][_a-zA-Z0-9]*'
+    CONSTRUCTOR_INIT='regexp:<[_a-zA-Z][_a-zA-Z0-9]*\>'
+    DOUBLE_QUOTED_STRING="regexp:\"([^\\\"\r\n]|\\[^\r\n])*\"?"
+    REGULAR_NUMBER='regexp:-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d*)?(f)?'
+    HEX_NUMBER='regexp:0[xX][0-9a-fA-F]+(L|s|t)?'
+    CHAR="regexp:'\\u[0-9]\d*'"
+    L_CURLY='{'
+    R_CURLY='}'
+    L_PARENTHESIS='('
+    R_PARENTHESIS=')'
+
+    // Access modifiers
+    AM_PUBLIC='public'
+    AM_PRIVATE='private'
+    AM_PROTECTED='protected'
+    AM_STATIC='static'
+    AM_FINAL='final'
+    AM_SYNCHRONIZED='synchronized'
+    AM_VOLATILE='volatile'
+    AM_TRANSIENT='transient'
+    AM_NATIVE='native'
+    AM_INTERFACE='interface'
+    AM_ABSTRACT='abstract'
+    AM_BRIDGE='bridge'
+    AM_SYNTHETIC='synthetic'
+  ]
+}
+
+smali_file ::= class_spec
+               (COMMENT)*
+               super_spec
+               (COMMENT)*
+               (source_spec)?
+               (COMMENT)*
+               (implements_specs)?
+               (annotations_specs)?
+               (COMMENT)*
+               (field_specs)?
+               (COMMENT)*
+               (method_specs)?
+               (COMMENT)*
+
+class_spec ::= DOT_CLASS (access_modifier)* class_name {pin=1}
+
+super_spec ::= DOT_SUPER class_name {pin=1}
+
+source_spec ::= DOT_SOURCE DOUBLE_QUOTED_STRING {pin=1}
+
+private field_specs ::= (field_spec (COMMENT)*)+
+field_spec ::= DOT_FIELD (access_modifier)* field_name':'field_type (field_value)? {pin=1}
+field_name ::= IDENTIFIER
+private field_type ::= class_name | primitive_type
+field_value ::= '=' single_value {pin=1}
+
+private implements_specs ::= (implements_spec (COMMENT)*)+
+implements_spec ::= DOT_IMPLEMENTS class_name {pin=1}
+
+private annotations_specs ::= (annotations_spec (COMMENT)*)+
+annotations_spec ::= DOT_ANNOTATION 'system' class_name
+                     annotation_property*
+                     annotation_end {pin=1}
+annotation_property ::= IDENTIFIER '=' property_value
+property_value ::= single_value | value_array
+value_array ::= L_CURLY (single_values)? R_CURLY {pin=1}
+single_values ::= single_value (',' single_value)*
+single_value ::= DOUBLE_QUOTED_STRING | class_name | REGULAR_NUMBER| HEX_NUMBER | CHAR | bool
+private annotation_end ::= DOT_ANNOTATION_END {pin=1}
+
+private method_specs ::= (method_spec (COMMENT)*)+
+method_spec ::= DOT_METHOD (access_modifier)* method_start
+                method_body
+                method_end {pin=1}
+
+method_start ::= (constructor_start | regular_method_start)
+private constructor_start ::= 'constructor' ('<clinit>'|'<init>') parameter_declaration return_type?
+regular_method_start ::= IDENTIFIER parameter_declaration return_type?
+parameter_declaration ::= L_PARENTHESIS parameterList? R_PARENTHESIS { pin=1 }
+private parameterList ::= class_name | primitive_type
+{
+  recoverWhile='parameterListRecover'
+}
+private parameterListRecover ::= !(')')
+return_type ::= class_name | primitive_type | void_type
+
+method_body ::= {recoverWhile=method_recover}
+//statements ::= REGULAR_METHOD_LINE | instruction | COMMENT
+//instruction ::= (DOT_REGISTERS | DOT_PARAM | DOT_PROLOGUE | DOT_LINE) REGULAR_METHOD_LINE {pin=1}
+
+private method_recover ::= !(method_end)
+private method_end ::= DOT_METHOD_END {pin=1}
+
+access_modifier ::= AM_PUBLIC | AM_PRIVATE | AM_PROTECTED | AM_STATIC | AM_FINAL | AM_SYNCHRONIZED | AM_VOLATILE | AM_TRANSIENT |
+                    AM_NATIVE | AM_INTERFACE | AM_ABSTRACT | AM_BRIDGE | AM_SYNTHETIC
+
+bool ::= TRUE | FALSE
+primitive_type ::= 'Z' /* boolean */ | 'B' /* byte */ | 'C' /* char */ | 'D' /* double */ | 'F' /* float */ | 'I' /* int */ | 'J' /* long */
+                   | 'S' /* short */
+void_type ::= 'V'
+class_name ::= JAVA_IDENTIFIER
+{
+  mixin="com.android.tools.idea.smali.psi.impl.JavaClassRefImpl"
+  implements="com.android.tools.idea.smali.psi.JavaClassRef"
+
+  methods=[
+    getJavaClassName
+  ]
+}
+

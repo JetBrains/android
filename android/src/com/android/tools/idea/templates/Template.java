@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
@@ -28,15 +29,18 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
+import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -221,43 +225,40 @@ public class Template {
    * @return true if the template was rendered without finding any errors and there are no warnings
    * or the user selected to proceed with warnings.
    */
-  public boolean render(@NotNull final RenderingContext context) {
+  public boolean render(@NotNull final RenderingContext context, final boolean dryRun) {
     final Project project = context.getProject();
 
-    boolean success = runWriteCommandAction(project, context.getCommandName(), new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        if (project.isInitialized()) {
-          return doRender(context);
-        }
-        else {
-          return PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(new Computable<Boolean>() {
-            @Override
-            public Boolean compute() {
-              return doRender(context);
-            }
-          });
-        }
-      }
-    });
+    boolean success = project.isInitialized() ?
+      doRender(context) : PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(() -> doRender(context));
 
     String title = myMetadata.getTitle();
-    if (title != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.TEMPLATE)
-                                     .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-                                     .setTemplateRenderer(titleToTemplateRenderer(title))
-      );
+    if (!dryRun && title != null) {
+      Map<String, Object> paramMap = context.getParamMap();
+      Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
+      Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);
+      UsageTracker.getInstance().log(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.TEMPLATE)
+          .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
+          .setTemplateRenderer(titleToTemplateRenderer(title))
+          .setKotlinSupport(
+            KotlinSupport.newBuilder()
+              .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
+              .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown")));
     }
 
     if (context.shouldReformat()) {
-      TemplateUtils.reformatAndRearrange(project, context.getTargetFiles());
+      StartupManager.getInstance(project)
+        .runWhenProjectIsInitialized(() -> TemplateUtils.reformatAndRearrange(project, context.getTargetFiles()));
     }
+
+    ApplicationManager.getApplication().invokeAndWait(PsiDocumentManager.getInstance(project)::commitAllDocuments);
 
     return success;
   }
 
-  private static TemplateRenderer titleToTemplateRenderer(String title) {
+  @VisibleForTesting
+  static TemplateRenderer titleToTemplateRenderer(String title) {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
@@ -337,9 +338,9 @@ public class Template {
   /**
    * Version of runWriteCommandAction missing in {@link WriteCommandAction}.
    */
-  private static <T> T runWriteCommandAction(@NotNull Project project,
-                                             @NotNull String commandName,
-                                             @NotNull final Computable<T> computable) {
+  private static <T, E extends Throwable> T runWriteCommandAction(@NotNull Project project,
+                                                                  @NotNull String commandName,
+                                                                  @NotNull final ThrowableComputable<T, E> computable) throws E {
     RunResult<T> result = new WriteCommandAction<T>(project, commandName) {
       @Override
       protected void run(@NotNull Result<T> result) throws Throwable {
@@ -363,8 +364,16 @@ public class Template {
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {
-      processFile(context, new File(TEMPLATE_XML_NAME));
-      if (!context.showWarnings() || context.getWarnings().isEmpty()) {
+      runWriteCommandAction(context.getProject(), context.getCommandName(), () -> {
+        processFile(context, new File(TEMPLATE_XML_NAME));
+        return null;
+      });
+
+      if (context.getWarnings().isEmpty()) {
+        return true;
+      }
+      if (!context.showWarnings()) {
+        LOG.warn("WARNING: " + context.getWarnings());
         return true;
       }
       if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {

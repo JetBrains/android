@@ -19,14 +19,15 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -136,6 +137,7 @@ public class InstantRunBuilderTest {
       .thenReturn(InstantRunBuildInfo.get(BUILD_INFO_RELOAD_DEX));
     when(myInstantRunContext.getApplicationId()).thenReturn(APPLICATION_ID);
     when(myInstantRunContext.getInstalledPatchCache()).thenReturn(myInstalledPatchCache);
+    when(myInstantRunContext.getGradlePluginVersion()).thenReturn(GradleVersion.parse("3.0.0-alpha4"));
 
     myRunConfigContext = new AndroidRunConfigContext();
     myRunConfigContext.setTargetDevices(DeviceFutures.forDevices(Collections.singletonList(myDevice)));
@@ -145,9 +147,6 @@ public class InstantRunBuilderTest {
     ListMultimap<Path, String> assembleTasks = ArrayListMultimap.create();
     assembleTasks.putAll(Paths.get("project_path"), ASSEMBLE_TASKS);
     when(myTasksProvider.getFullBuildTasks()).thenReturn(assembleTasks);
-    ListMultimap<Path, String> cleanTasks = ArrayListMultimap.create();
-    cleanTasks.putAll(Paths.get("project_path"), CLEAN_TASKS);
-    when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(cleanTasks);
 
     myInstalledApkCache = new InstalledApkCache() {
       @Override
@@ -196,18 +195,7 @@ public class InstantRunBuilderTest {
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK" +
-      " :app:assemble",
-      myTaskRunner.getBuilds());
-  }
-
-  @Test
-  public void cleanRerunForcesClean() throws Exception {
-    myRunConfigContext.setCleanRerun(true);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK clean :app:gen :app:assemble",
+      " --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -218,7 +206,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -228,7 +216,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -245,7 +233,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -258,7 +246,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -271,7 +259,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -283,7 +271,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -298,7 +286,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -312,7 +300,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -328,7 +316,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -343,7 +331,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -360,7 +348,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -375,7 +363,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -394,7 +382,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -406,7 +394,7 @@ public class InstantRunBuilderTest {
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK"
-      + " --info --full-stacktrace :app:assemble",
+      + " --info --full-stacktrace --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -422,7 +410,7 @@ public class InstantRunBuilderTest {
     // normally we'd do a hotswap
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
       myTaskRunner.getBuilds());
 
     // but a full apk is forced if this was launched from the new UI
@@ -432,9 +420,30 @@ public class InstantRunBuilderTest {
       myTaskRunner = new RecordingTaskRunner();
       myBuilder.build(myTaskRunner, Collections.emptyList());
       assertEquals(
-        "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+        "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK --no-build-cache :app:assemble",
         myTaskRunner.getBuilds());
     }
+  }
+
+  @Test
+  public void testBuildCacheOptionWithEarlierVersionsOfGradlePlugin() throws Exception {
+    myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+
+    // Regresssion test for bug 63926980: For plugin versions prior to 3.0.0-alpha4, --no-build-cache should not be passed
+    when(myInstantRunContext.getGradlePluginVersion()).thenReturn(GradleVersion.parse("2.3.2"));
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      myTaskRunner.getBuilds());
+
+    // Test the boundary case at 3.0.0-alpha3
+    when(myInstantRunContext.getGradlePluginVersion()).thenReturn(GradleVersion.parse("3.0.0-alpha3"));
+    myTaskRunner = new RecordingTaskRunner();
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      myTaskRunner.getBuilds());
   }
 
   private void setUpDeviceForHotSwap() {

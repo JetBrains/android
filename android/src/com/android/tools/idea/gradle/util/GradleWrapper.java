@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +38,6 @@ import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 public final class GradleWrapper {
@@ -208,9 +208,17 @@ public final class GradleWrapper {
     return null;
   }
 
+  @VisibleForTesting
   @NotNull
-  private static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
+  static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
+    // See https://code.google.com/p/android/issues/detail?id=357944
+    String folderName = isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
     String suffix = binOnly ? "bin" : "all";
-    return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
+    return String.format("https://services.gradle.org/%1$s/gradle-%2$s-%3$s.zip", folderName, gradleVersion, suffix);
+  }
+
+  @VisibleForTesting
+  static boolean isSnapshot(@NotNull String gradleVersion) {
+    return gradleVersion.indexOf('-') != -1 && gradleVersion.endsWith("+0000");
   }
 }

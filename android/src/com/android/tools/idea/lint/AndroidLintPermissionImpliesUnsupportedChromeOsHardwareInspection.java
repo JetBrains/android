@@ -16,12 +16,13 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ChromeOsDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection extends AndroidLintInspectionBase {
   public AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection() {
@@ -31,13 +32,15 @@ public class AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection e
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    final String hardwareFeatureName = ChromeOsDetector.getHardwareFeature(message, RAW);
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    String hardwareFeatureName = LintFix.getData(fixData, String.class);
     if (hardwareFeatureName != null) {
       return new AndroidLintQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
     }
-    else {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
+
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

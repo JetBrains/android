@@ -35,4 +35,10 @@ public class ContentRootsModuleSetupStepUnitTest {
   public void invokeOnBuildVariantChange() {
     assertTrue(mySetupStep.invokeOnBuildVariantChange());
   }
+
+  @Test
+  public void invokeOnSkippedSync() {
+    // See https://code.google.com/p/android/issues/detail?id=235647
+    assertTrue(mySetupStep.invokeOnSkippedSync());
+  }
 }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -60,7 +60,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
   @NotNull private final Module myModule;
   @NotNull private final AndroidModuleModel myAndroidModel;
 
-  @NotNull private Variant mySelectedVariant;
+  @NotNull private IdeVariant mySelectedVariant;
 
   private mxGraphComponent myGraphComponent;
   private VariantGraph myGraph;
@@ -123,7 +123,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
       setCellsResizable(false);
     }
 
-    void render(@NotNull Module module, @NotNull AndroidModuleModel androidModel, @NotNull Variant variant) {
+    void render(@NotNull Module module, @NotNull AndroidModuleModel androidModel, @NotNull IdeVariant variant) {
       setModel(new mxGraphModel());
 
       mxIGraphModel model = getModel();
@@ -135,8 +135,8 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
         mxCell moduleVertex = createVertex(module);
         moduleVertex.setConnectable(false);
 
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant, androidModel)) {
-          String gradlePath = library.getProject();
+        for (Library library : getModuleDependencies(variant)) {
+          String gradlePath = library.getProjectPath();
           if (gradlePath == null) {
             continue;
           }
@@ -144,7 +144,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
           if (dependency != null) {
             mxCell dependencyVertex = createVertex(dependency);
             dependencyVertex.setConnectable(false);
-            String projectVariant = notNullize(library.getProjectVariant());
+            String projectVariant = notNullize(library.getVariant());
             insertEdge(parent, null, projectVariant, moduleVertex, dependencyVertex);
           }
         }
@@ -274,17 +274,17 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     @NotNull
     protected DefaultActionGroup createPopupActionGroup(JComponent button) {
       List<VariantSelectionAction> actions = Lists.newArrayList();
-      for (Variant variant : myAndroidModel.getAndroidProject().getVariants()) {
+      myAndroidModel.getAndroidProject().forEachVariant(variant -> {
         actions.add(new VariantSelectionAction(variant));
-      }
+      });
       return new DefaultActionGroup(actions);
     }
   }
 
   private class VariantSelectionAction extends DumbAwareAction {
-    @NotNull private final Variant myVariant;
+    @NotNull private final IdeVariant myVariant;
 
-    VariantSelectionAction(@NotNull Variant variant) {
+    VariantSelectionAction(@NotNull IdeVariant variant) {
       super(variant.getName());
       myVariant = variant;
     }

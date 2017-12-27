@@ -18,6 +18,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     final VirtualFile parent = file.getParent();
     final VirtualFile resDir = parent != null ? parent.getParent() : null;
 
-    if (resDir == null || !facet.getLocalResourceManager().isResourceDir(resDir)) {
+    if (resDir == null || !ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(resDir)) {
       return null;
     }
     final CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(myProject);

@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
@@ -53,7 +53,7 @@ public abstract class ResourceEditorTab {
   private final @NotNull String myTabTitle;
 
   public ResourceEditorTab(@NotNull Module module, @NotNull String tabTitle, @NotNull Component centerPanel,
-                           @NotNull ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility, final boolean allowXmlFile,
+                           @NotNull ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility,
                            @NotNull ResourceFolderType folderType, boolean changeFileNameVisible, final @NotNull ResourceType resourceType) {
     myResourceNameVisibility = resourceNameVisibility;
     myTabTitle = tabTitle;
@@ -83,9 +83,10 @@ public abstract class ResourceEditorTab {
     myFullPanel.setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
-    Function<Module, ResourceNameValidator> nameValidatorFactory =
-      selectedModule -> ResourceNameValidator
-        .create(allowXmlFile, AppResourceRepository.getAppResources(selectedModule, true), resourceType, allowXmlFile);
+
+    Function<Module, IdeResourceNameValidator> nameValidatorFactory =
+      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, AppResourceRepository.getOrCreateInstance(selectedModule));
+
     // There is no need to choose the resource name or value here (controlled by parent).
     myLocationSettings = newResourceHandler.createNewResourceValuePanel(module, resourceType, folderType, "", "",
                                                                         false /* chooseName */, false /* chooseValue */,
@@ -138,7 +139,7 @@ public abstract class ResourceEditorTab {
   }
 
   @NotNull
-  public ResourceNameValidator getValidator() {
+  public IdeResourceNameValidator getValidator() {
     return getLocationSettings().getResourceNameValidator();
   }
 

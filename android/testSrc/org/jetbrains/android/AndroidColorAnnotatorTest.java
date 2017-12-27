@@ -15,11 +15,15 @@
  */
 package org.jetbrains.android;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.GutterIconCache;
+import com.android.tools.idea.rendering.TestRenderingUtils;
+import com.google.common.collect.Iterables;
+import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
 import com.intellij.lang.annotation.Annotation;
-import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -30,16 +34,12 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -107,22 +107,33 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     checkAnnotationImage(annotation, "annotator/ic_tick_thumbnail.png");
   }
 
-  private void checkAnnotationImage(Annotation first, String basename) throws IOException {
+  public void testFrameworkDrawable() throws Exception {
+    String layoutPath = "res/layout/color_test.xml";
+    Annotation annotation = findAnnotation(layoutPath, "@android:drawable/ic_lock_lock", XmlAttributeValue.class);
+
+    // Find the icon we should be rendering in layoutlib data
+    Configuration configuration = AndroidColorAnnotator.pickConfiguration(myFacet, myModule, getPsiFile(layoutPath));
+    assertThat(configuration).isNotNull();
+    IAndroidTarget target = configuration.getTarget();
+    assertThat(target).isNotNull();
+    String resPath = target.getPath(IAndroidTarget.RESOURCES);
+
+    checkAnnotationImage(annotation, resPath + "/drawable-ldpi/ic_lock_lock_alpha.png");
+  }
+
+  private void checkAnnotationImage(Annotation first, String imagePath) throws IOException {
     GutterIconRenderer renderer = first.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
+    BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
 
-    @SuppressWarnings("UndesirableClassUsage")
-    BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = image.createGraphics();
-    icon.paintIcon(null, graphics, 0, 0);
-    graphics.dispose();
-
-    File thumbnail = new File(getTestDataPath(), basename);
-    BufferedImage baselineImage = ImageDiffUtil.convertToARGB(ImageIO.read(thumbnail));
-    assertThat(baselineImage).isNotNull();
-
-    ImageDiffUtil.assertImageSimilar(getName(), baselineImage, image, 5.0); // 5% difference allowed
+    File expected = new File(imagePath);
+    if (!expected.isAbsolute()) {
+      expected = new File(getTestDataPath(), imagePath);
+    }
+    // Go through the same process as the real annotator, to handle retina correctly.
+    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expected.getPath(), null));
+    ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.0); // 5% difference allowed
   }
 
   private static void checkAnnotationColor(Annotation annotation, Color expectedColor) {
@@ -137,43 +148,32 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
 
   @NotNull
   private Annotation findAnnotation(String path, String target, Class<? extends PsiElement> elementClass) {
-    VirtualFile virtualFile = myFixture.findFileInTempDir(path);
-    assertThat(virtualFile).isNotNull();
-    return findAnnotation(virtualFile, target, elementClass);
-  }
-
-  @NotNull
-  private Annotation findAnnotation(VirtualFile virtualFile, String target, Class<? extends PsiElement> elementClass) {
-    PsiFile file = PsiManager.getInstance(getProject()).findFile(virtualFile);
-    assertThat(file).isNotNull();
+    PsiFile psiFile = getPsiFile(path);
     int caretOffset = target.indexOf('|');
     if (caretOffset != -1) {
       target = target.substring(0, caretOffset) + target.substring(caretOffset + 1);
     } else {
       caretOffset = 0;
     }
-    String source = file.getText();
+    String source = psiFile.getText();
     int dot = source.indexOf(target);
     assertThat(dot).isNotEqualTo(-1);
     dot += caretOffset;
-    PsiElement element = PsiTreeUtil.findElementOfClassAtOffset(file, dot, elementClass, false);
+    PsiElement element = PsiTreeUtil.findElementOfClassAtOffset(psiFile, dot, elementClass, false);
     assertThat(element).isNotNull();
 
-    final List<Annotation> annotations = Lists.newArrayList();
-    AnnotationHolder holder = Mockito.mock(AnnotationHolder.class);
-    Mockito.when(holder.createInfoAnnotation(Matchers.any(PsiElement.class), Matchers.anyString())).thenAnswer(invocation -> {
-      PsiElement e = (PsiElement)invocation.getArguments()[0];
-      String message = (String)invocation.getArguments()[1];
-      Annotation annotation = new Annotation(e.getTextRange().getStartOffset(), e.getTextRange().getEndOffset(),
-                                             HighlightSeverity.INFORMATION, message, null);
-      annotations.add(annotation);
-      return annotation;
-    });
-
+    AnnotationHolderImpl holder = new AnnotationHolderImpl(new AnnotationSession(psiFile));
     AndroidColorAnnotator annotator = new AndroidColorAnnotator();
     annotator.annotate(element, holder);
-    Mockito.reset(holder);
-    assertThat(annotations).isNotEmpty();
-    return annotations.get(0);
+    return Iterables.getOnlyElement(holder);
+  }
+
+  @NotNull
+  private PsiFile getPsiFile(String path) {
+    VirtualFile virtualFile = myFixture.findFileInTempDir(path);
+    assertThat(virtualFile).isNotNull();
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertThat(psiFile).isNotNull();
+    return psiFile;
   }
 }

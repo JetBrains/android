@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.FeatureEnableService;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public class GradleFeatureEnableService extends FeatureEnableService {
   @Override
   protected boolean isApplicable(@NotNull Project project) {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle() || Projects.isLegacyIdeaAndroidProject(project);
+    return GradleProjectInfo.getInstance(project).isBuildWithGradle() || AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject();
   }
 
   @Override

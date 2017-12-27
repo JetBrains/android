@@ -16,58 +16,63 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.*;
-import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
-import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
-import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.uibuilder.scout.Scout;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.interaction.MouseInteraction;
-import com.android.tools.sherpa.scout.Scout;
-import com.android.tools.sherpa.structure.Selection;
-import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 
 /**
- * Handles interactions for the ConstraintLayout viewgroups
+ * Handles interactions for the ConstraintLayout
  */
-public class ConstraintLayoutHandler extends ViewGroupHandler {
-
-  public static final boolean USE_SOLVER = false;
-  public static final boolean USE_SCENE_INTERACTION = true;
+public class ConstraintLayoutHandler extends ViewGroupHandler implements ComponentProvider {
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
@@ -78,12 +83,30 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * Preference key (used with {@link PropertiesComponent}) for show all constraints mode
    */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
+  public static final String SHOW_MARGINS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowMargins";
+  public static final String FADE_UNSELECTED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeUnselected";
 
-  private boolean myShowAllConstraints = true;
+  private static final NlIcon BASELINE_ICON =
+    new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
 
-  ArrayList<ViewAction> myActions = new ArrayList<>();
-  ArrayList<ViewAction> myPopupActions = new ArrayList<>();
-  ArrayList<ViewAction> myControlActions = new ArrayList<>();
+  private static boolean ourAutoConnect;
+  private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
+  private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
+  private final static String ADD_TO_BARRIER = "Add to Barrier";
+  private final static String ADD_LAYER = "Add Layer";
+  private final static String ADD_GROUP = "Add Group";
+  private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
+  public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
+
+  private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
+
+  static {
+    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
+  }
+
+  // This is used to efficiently test if they are horizontal or vertical.
+  static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
+  private ArrayList<ViewAction> myActions = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -150,11 +173,24 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
+  @NotNull
+  public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
+    Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
+    return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,
+                           ATTR_LAYOUT_HEIGHT, values);
+  }
+
+  @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
-    myControlActions.clear();
 
-    actions.add((new ToggleConstraintModeAction()));
+    actions.add(new NestedViewActionMenu("Show", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
+      Lists.newArrayList(
+        new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
+        new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
+        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected views ", false)
+      )
+    )));
     actions.add((new ToggleAutoConnectAction()));
     actions.add((new ViewActionSeparator()));
     actions.add(new ClearConstraintsAction());
@@ -163,21 +199,20 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add((new MarginSelector()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
-
-    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVerticallyB, Lists.newArrayList(
+    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.newArrayList(
 
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
-                        AndroidIcons.SherpaIcons.PackSelectionHorizontally,
+                        StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
                         "Pack Horizontally"),
         new AlignAction(Scout.Arrange.VerticalPack,
-                        AndroidIcons.SherpaIcons.PackSelectionVertically,
+                        StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
                         "Pack Vertically"),
         new AlignAction(Scout.Arrange.ExpandHorizontally,
-                        AndroidIcons.SherpaIcons.HorizontalExpand,
+                        StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
                         "Expand Horizontally"),
         new AlignAction(Scout.Arrange.ExpandVertically,
-                        AndroidIcons.SherpaIcons.VerticalExpand,
+                        StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
                         "Expand Vertically")),
       Lists.newArrayList(new ViewActionSeparator()),
 
@@ -192,164 +227,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     )));
 
     actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                        AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB,
-                        "Align Left Edges"),
-        new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                        AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB,
-                        "Align Horizontal Centers"),
-        new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                        AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB,
-                        "Align Right Edges")
-      ),
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                        AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB,
-                        "Align Top Edges"),
-        new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                        AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB,
-                        "Align Vertical Centers"),
-        new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                        AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB,
-                        "Align Bottom Edges"),
-        new AlignAction(Scout.Arrange.AlignBaseline,
-                        AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BaselineAlignB,
-                        "Align Baselines")
-      ),
+      ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
+      ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
       Lists.newArrayList(new ViewActionSeparator()),
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.CenterHorizontally,
-                        AndroidIcons.SherpaIcons.HorizontalCenter,
-                        AndroidIcons.SherpaIcons.HorizontalCenterB,
-                        "Center Horizontally"),
-        new AlignAction(Scout.Arrange.CenterVertically,
-                        AndroidIcons.SherpaIcons.VerticalCenter,
-                        AndroidIcons.SherpaIcons.VerticalCenterB,
-                        "Center Vertically"),
-        new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                        AndroidIcons.SherpaIcons.HorizontalCenterParent,
-                        AndroidIcons.SherpaIcons.HorizontalCenterParentB,
-                        "Center Horizontally in Parent"),
-        new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                        AndroidIcons.SherpaIcons.VerticalCenterParent,
-                        AndroidIcons.SherpaIcons.VerticalCenterParent,
-                        "Center Vertically in Parent")
-      )
-    )));
+      ConstraintViewActions.CENTER_ACTIONS)));
 
-    actions.add(new NestedViewActionMenu("Guidelines", AndroidIcons.SherpaIcons.GuidelineVertical, Lists.<List<ViewAction>>newArrayList(
-      Lists.newArrayList(
-        new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
-                             AndroidIcons.SherpaIcons.GuidelineVertical,
-                             "Add Vertical Guideline"),
-        new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
-                             AndroidIcons.SherpaIcons.GuidelineHorizontal,
-                             "Add Horizontal Guideline")
-      ))
-    ));
+    actions.add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
+      ConstraintViewActions.HELPER_ACTIONS)));
   }
 
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ClearConstraintsAction());
-    // Just dumps all the toolbar actions in the context menu under a menu item called "Constraint Layout"
-    String str;
-    ViewAction action;
-
-    str = "Pack Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
-                                         AndroidIcons.SherpaIcons.PackSelectionHorizontally, str));
-    myPopupActions.add(action);
-
-    str = "Pack Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
-                                         AndroidIcons.SherpaIcons.PackSelectionVertically, str));
-    myPopupActions.add(action);
-
-    str = "Expand Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.ExpandHorizontally,
-                                         AndroidIcons.SherpaIcons.HorizontalExpand, str));
-    myPopupActions.add(action);
-
-    str = "Expand Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
-                                         AndroidIcons.SherpaIcons.VerticalExpand, str));
-    myPopupActions.add(action);
-
-    actions.add((new ViewActionSeparator()));
-
-    str = "Align Left Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                                         AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Horizontal Centers";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                                         AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Right Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                                         AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Top Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                                         AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Vertical Centers";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                                         AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Bottom Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                                         AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Baselines";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignBaseline,
-                                         AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
-    myPopupActions.add(action);
-
-    actions.add((new ViewActionSeparator()));
-
-    str = "Center Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontally,
-                                         AndroidIcons.SherpaIcons.HorizontalCenter, AndroidIcons.SherpaIcons.HorizontalCenterB, str));
-    myPopupActions.add(action);
-
-    str = "Center Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
-                                         AndroidIcons.SherpaIcons.VerticalCenter, AndroidIcons.SherpaIcons.VerticalCenterB, str));
-    myPopupActions.add(action);
-
-    str = "Center Horizontally in Parent";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                                         AndroidIcons.SherpaIcons.HorizontalCenterParent, AndroidIcons.SherpaIcons.HorizontalCenterParentB,
-                                         str));
-    myPopupActions.add(action);
-
-    str = "Center Vertically in Parent";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                                         AndroidIcons.SherpaIcons.VerticalCenterParent, AndroidIcons.SherpaIcons.VerticalCenterParentB,
-                                         str));
-    myPopupActions.add(action);
-    addToolbarActionsToMenu("Constraint Layout", actions);
-
-    str = "Add Vertical Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineVertical, str));
-    myPopupActions.add(action);
-
-    str = "Add Horizontal Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineHorizontal, str));
-    myPopupActions.add(action);
+    actions.add(new ViewActionMenu("Organize", StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
+    actions.add(new ViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
+    actions.add(new ViewActionMenu("Chain", AndroidIcons.SherpaIcons.CreateHorizontalChain, ConstraintViewActions.CHAIN_ACTIONS));
+    actions.add(new ViewActionMenu("Center", StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
+    actions.add(new ViewActionMenu("Helpers", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
   }
 
   interface Enableable {
-    void enable(Selection selection);
+    void enable(List<NlComponent> selection);
   }
 
   /**
@@ -357,7 +254,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    *
    * @param selection
    */
-  public void updateActions(Selection selection) {
+  public void updateActions(List<NlComponent> selection) {
     if (myActions == null) {
       return;
     }
@@ -368,7 +265,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    for (ViewAction action : myPopupActions) {
+    for (ViewAction action : ConstraintViewActions.ALL_POPUP_ACTIONS) {
       if (action instanceof Enableable) {
         Enableable e = (Enableable)action;
         e.enable(selection);
@@ -385,70 +282,114 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    if (USE_SCENE_INTERACTION) {
-      return new SceneInteraction(screenView);
-    }
-    return new ConstraintInteraction(screenView, component);
+    return new ConstraintSceneInteraction(screenView, component);
   }
 
   /**
-   * Add resize and anchor targets on the given component
-   *
-   * @param component the component we'll add targets on
-   * @param isParent
+   * Create resize and anchor targets for the given component
    */
   @Override
-  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+    List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
-    NlComponent nlComponent = component.getNlComponent();
-    if (nlComponent.viewInfo != null
-        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
-      String orientation = nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION);
-      boolean isHorizontal = true;
-      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
-        isHorizontal = false;
+    NlComponent nlComponent = component.getAuthoritativeNlComponent();
+    ViewInfo vi = NlComponentHelperKt.getViewInfo(nlComponent);
+    if (vi != null) {
+
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+
+        boolean isHorizontal = true;
+        if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+          isHorizontal = false;
+        }
+        result.add(new GuidelineTarget(isHorizontal));
+        if (isHorizontal) {
+          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
+        }
+        else {
+          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
+        }
+        result.add(new GuidelineCycleTarget(isHorizontal));
+        return result;
       }
-      component.addTarget(new GuidelineTarget(isHorizontal));
-      if (isHorizontal) {
-        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
-      } else {
-        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
+
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
+        @NonNls String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+        boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
+        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT,
+                                           BarrierTarget.parseDirection(side)));
+        result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
+        return result;
       }
-      component.addTarget(new GuidelineCycleTarget(isHorizontal));
-      return;
     }
+
     if (!isParent) {
-      DragTarget dragTarget = new DragTarget();
-      component.addTarget(dragTarget);
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+      component.setComponentProvider(this);
+    }
+    if (showAnchors) {
+      ConstraintDragTarget dragTarget = new ConstraintDragTarget();
+      result.add(dragTarget);
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
       component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
-    } else {
-      component.addTarget(new LassoTarget());
+    }
+    else {
+      result.add(new LassoTarget());
       component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
-    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
-    if (!isParent) {
-      ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
-      int baseline = component.getNlComponent().getBaseline();
-      if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
-        baseline = component.getNlComponent().viewInfo.getBaseLine();
+
+    result.add(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
+    result.add(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
+
+    if (showAnchors) {
+      ActionTarget previousAction = new ClearConstraintsTarget(null);
+      result.add(previousAction);
+
+      int baseline = NlComponentHelperKt.getBaseline(component.getNlComponent());
+      ViewInfo info = NlComponentHelperKt.getViewInfo(component.getNlComponent());
+      if (baseline <= 0 && info != null) {
+        baseline = info.getBaseLine();
       }
       if (baseline > 0) {
-        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
-        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
-          c.setShowBaseline(!c.canShowBaseline()); });
-        baselineActionTarget.setActionType(DrawAction.BASELINE);
-        component.addTarget(baselineActionTarget);
+        result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
+        ActionTarget baselineActionTarget =
+          new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
+            @NotNull
+            @Override
+            public String getToolTipText() {
+              return EDIT_BASELINE_ACTION_TOOLTIP;
+            }
+          };
+        result.add(baselineActionTarget);
         previousAction = baselineActionTarget;
       }
-      component.addTarget(new ChainCycleTarget(previousAction, null));
+      ActionTarget chainCycleTarget = new ChainCycleTarget(previousAction, null);
+      result.add(chainCycleTarget);
     }
+    return result;
+  }
+
+  @Override
+  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
+    SceneComponent childSceneComponent = ((ViewEditorImpl)editor).getSceneView().getScene().getSceneComponent(child);
+
+    if (childSceneComponent == null) {
+      return;
+    }
+
+    AttributesTransaction transaction = child.startAttributeTransaction();
+    ConstraintComponentUtilities.cleanup(transaction, childSceneComponent);
+    transaction.commit();
   }
 
   /**
@@ -457,7 +398,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param component
    */
   @Override
-  public void clearAttributes(SceneComponent component) {
+  public void clearAttributes(@NotNull NlComponent component) {
     ConstraintComponentUtilities.clearAttributes(component);
   }
 
@@ -472,50 +413,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull java.util.List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    if (USE_SCENE_INTERACTION) {
-      return new SceneDragHandler(editor, this, layout, components, type);
-    }
     return new ConstraintDragHandler(editor, this, layout, components, type);
-  }
-
-  /**
-   * Update the mouse cursor if the (x, y) coordinates hit a resize handle or constraint handle
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  @Override
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (USE_SCENE_INTERACTION) {
-      Scene scene = screenView.getScene();
-      int dpX = Coordinates.pxToDp(screenView, x);
-      int dpY = Coordinates.pxToDp(screenView, y);
-      scene.mouseHover(SceneContext.get(screenView), dpX, dpY);
-      int cursor = scene.getMouseCursor();
-
-      // Set the mouse cursor
-      // TODO: we should only update if we are above a component we manage, not simply all component that
-      // is a child of this viewgroup
-      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
-      screenView.getSurface().repaint();
-    } else {
-      DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
-
-      drawConstraintModel.mouseMoved(x, y);
-      int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
-
-      // Set the mouse cursor
-      // TODO: we should only update if we are above a component we manage, not simply all component that
-      // is a child of this viewgroup
-      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
-    }
-    return true;
   }
 
   /**
@@ -539,27 +440,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
-    ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
-    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
-    updateActions(constraintModel.getSelection());
-    ConstraintWidget widget = constraintModel.getScene().getWidget(component);
-    if (USE_SCENE_INTERACTION) {
-      return false;
-    }
-    return drawConstraintModel.paint(gc, screenView, widget,
-                                     Coordinates.getSwingDimension(screenView, component.w),
-                                     Coordinates.getSwingDimension(screenView, component.h),
-                                     myShowAllConstraints);
+    updateActions(component.getModel().getSelectionModel().getSelection());
+    return false;
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
     public ToggleAutoConnectAction() {
-      super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn On Autoconnect", "Turn Off Autoconnect");
+      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect", "Turn Off Autoconnect");
     }
 
     @Override
-    public void enable(Selection selection) {
-
+    public void enable(List<NlComponent> selection) {
+      // FIXME Why is this empty ? Can we remove the Enableable interface and all related code?
     }
 
     @Override
@@ -567,10 +459,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      if (USE_SCENE_INTERACTION) {
-        return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
-      }
-      return ConstraintModel.isAutoConnect();
+      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
     }
 
     @Override
@@ -579,15 +468,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(selected
                    ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
                    : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
-      if (USE_SCENE_INTERACTION) {
-        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
-      } else {
-        ConstraintModel.setAutoConnect(selected);
-      }
+      PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
     }
 
     @Override
@@ -603,15 +488,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
-      ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
-      Scene scene = viewEditor.getScreenView().getScene();
+      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
+      Scene scene = viewEditor.getSceneView().getScene();
       scene.clearAttributes();
+      ensureLayersAreShown(editor, 1000);
     }
 
     @Override
@@ -621,38 +503,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
       presentation.setLabel("Clear All Constraints");
     }
   }
 
-  private static class LockConstraints extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      if (model.getSelection().getWidgets().size() == 1) {
-        WidgetsScene scene = model.getScene();
-        scene.toggleLockConstraints((model.getSelection().getWidgets().get(0)));
-      }
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.LockConstraints);
-      presentation.setLabel("Locks auto inferred constraints");
-    }
+  /**
+   * Make sure to have the SceneLayer on the DesignSurface
+   * are fully painted for the given duration
+   *
+   * @param editor   the ViewEditor holding the DesignSurface
+   * @param duration how long to paint the SceneLayers, in ms
+   */
+  @SuppressWarnings("SameParameterValue") // For duration being always == 1000
+  private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
+    NlDesignSurface designSurface = (NlDesignSurface)((ViewEditorImpl)editor).getSceneView().getSurface();
+    designSurface.forceLayersPaint(true);
+    designSurface.repaint();
+    Timer timer = new Timer(duration, actionEvent -> designSurface.forceLayersPaint(false));
+    timer.setRepeats(false);
+    timer.start();
   }
 
   private static class InferAction extends DirectViewAction {
@@ -662,22 +532,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
-      WidgetsScene scene = model.getScene();
       try {
-        Scout.inferConstraints(scene);
+        Scout.inferConstraintsAndCommit(component);
+        ensureLayersAreShown(editor, 1000);
       }
       catch (Exception e) {
         // TODO show dialog the inference failed
         Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
       }
-      model.saveToXML(true);
-      model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
     }
 
     @Override
@@ -687,15 +551,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
       presentation.setLabel("Infer Constraints");
     }
   }
 
-  private class ToggleConstraintModeAction extends ToggleViewAction {
-    public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.Hide, AndroidIcons.SherpaIcons.Unhide, "Show Constraints", "Hide Constraints");
-      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
+  private static class ToggleVisibilityAction extends ToggleViewAction {
+    String mType;
+
+    public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
+      super(AndroidIcons.SherpaIcons.Unchecked, AndroidIcons.SherpaIcons.Checked, text, text);
+      mType = type;
+      ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type, defaultValue));
     }
 
     @Override
@@ -703,7 +570,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      return myShowAllConstraints;
+      return ourVisibilityFlags.get(mType);
     }
 
     @Override
@@ -712,15 +579,34 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      myShowAllConstraints = selected;
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
-        .logAction(
-          selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
-      PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
+      ourVisibilityFlags.put(mType, selected);
+
+      PropertiesComponent.getInstance().setValue(mType, selected);
+      ensureLayersAreShown(editor, 1000);
     }
   }
 
+  public static boolean getVisualProperty(String prop) {
+    if (ourVisibilityFlags.containsKey(prop)) {
+      return ourVisibilityFlags.get(prop);
+    }
+    boolean selected = PropertiesComponent.getInstance().getBoolean(prop);
+    ourVisibilityFlags.put(prop, selected);
+    return selected;
+  }
+
+  /**
+   * Used in testing
+   */
+  public static void forceDefaultVisualProperties() {
+    ourVisibilityFlags.put(SHOW_CONSTRAINTS_PREF_KEY, true);
+    ourVisibilityFlags.put(SHOW_MARGINS_PREF_KEY, true);
+    ourVisibilityFlags.put(FADE_UNSELECTED_VIEWS, false);
+  }
+
   static class ControlIcon implements Icon {
+    @SuppressWarnings("UseJBColor")
+    public static final Color HIGHLIGHT_COLOR = new Color(0x03a9f4);
     Icon myIcon;
     boolean myHighlight;
 
@@ -737,7 +623,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       myIcon.paintIcon(c, g, x, y);
       if (myHighlight) {
-        g.setColor(new Color(0x03a9f4));
+        g.setColor(HIGHLIGHT_COLOR);
         g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
       }
     }
@@ -756,6 +642,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
+    public static final int HORIZONTAL_BARRIER = 2;
+    public static final int VERTICAL_BARRIER = 3;
+    public static final int GROUP = 4;
+    public static final int CONSTRAINT_SET = 5;
+    public static final int LAYER = 6;
 
     final int myType;
 
@@ -771,23 +662,172 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       NlComponent parent = component;
-      while (parent != null && !parent.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)) {
+      while (parent != null && !NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
       }
       if (parent != null) {
-        NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
-        guideline.ensureId();
-        guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface());
-        if (myType == HORIZONTAL_GUIDELINE) {
-          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
-        }
-        else {
-          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+        ensureLayersAreShown(editor, 1000);
+        switch (myType) {
+          case HORIZONTAL_GUIDELINE: {
+            NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            assert guideline != null;
+            NlComponentHelperKt.ensureId(guideline);
+            guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
+            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+                                   ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+          }
+          break;
+          case VERTICAL_GUIDELINE: {
+            NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            assert guideline != null;
+            NlComponentHelperKt.ensureId(guideline);
+            guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+
+            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
+            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+                                   ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          }
+          break;
+          case GROUP: {
+            NlComponent group = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
+            assert group != null;
+            NlComponentHelperKt.ensureId(group);
+          }
+          break;
+          case CONSTRAINT_SET: {
+            NlComponent constraints =
+              NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
+            assert constraints != null;
+            NlComponentHelperKt.ensureId(constraints);
+            ConstraintReferenceManagement.populateConstraints(constraints);
+          }
+          break;
+          case LAYER: {
+            NlComponent layer = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
+            assert layer != null;
+            NlComponentHelperKt.ensureId(layer);
+          }
+          break;
+          case HORIZONTAL_BARRIER: {
+            int barriers = 0;
+            int other = 0;
+            for (NlComponent child : selectedChildren) {
+              if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                barriers++;
+              }
+              if (!ConstraintComponentUtilities.isLine(child)) {
+                other++;
+              }
+            }
+            if (barriers == 1 && other > 0) {
+              NlComponent barrier = null;
+              for (NlComponent child : selectedChildren) {
+                if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  break;
+                }
+              }
+              if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+                if (barrier != null) {
+                  for (NlComponent child : selectedChildren) {
+                    if (ConstraintComponentUtilities.isLine(child)) {
+                      continue;
+                    }
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                    tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                    tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
+                  }
+                }
+              } // TODO: add views to the barrier when not using the tags approach
+              return;
+            }
+
+            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            assert barrier != null;
+            NlComponentHelperKt.ensureId(barrier);
+            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
+
+            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
+
+            if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+              if (!selectedChildren.isEmpty()) {
+                NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                for (NlComponent child : selectedChildren) {
+                  if (ConstraintComponentUtilities.isLine(child)) {
+                    continue;
+                  }
+                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
+                }
+              }
+            }
+          }
+          break;
+          case VERTICAL_BARRIER: {
+            int barriers = 0;
+            int other = 0;
+            for (NlComponent child : selectedChildren) {
+              if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                barriers++;
+              }
+              if (!ConstraintComponentUtilities.isLine(child)) {
+                other++;
+              }
+            }
+            if (barriers == 1 && other > 0) {
+              NlComponent barrier = null;
+              for (NlComponent child : selectedChildren) {
+                if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  break;
+                }
+              }
+              if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+                if (barrier != null) {
+                  for (NlComponent child : selectedChildren) {
+                    if (ConstraintComponentUtilities.isLine(child)) {
+                      continue;
+                    }
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                    tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                    tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
+                  }
+                }
+              } // TODO: add views to the barrier when not using the tags approach
+              return;
+            }
+            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            assert barrier != null;
+            NlComponentHelperKt.ensureId(barrier);
+            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
+
+            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
+
+            if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+              if (!selectedChildren.isEmpty()) {
+
+                for (NlComponent child : selectedChildren) {
+                  if (ConstraintComponentUtilities.isLine(child)) {
+                    continue;
+                  }
+                  NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -799,7 +839,39 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setVisible(true);
+      boolean show = true;
+      if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+        if (show) {
+          int barriers = 0;
+          int other = 0;
+          for (NlComponent child : selectedChildren) {
+            if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+              barriers++;
+            }
+            if (!ConstraintComponentUtilities.isLine(child)) {
+              other++;
+            }
+          }
+          if (barriers == 1 && other > 0) {
+            presentation.setLabel(ADD_TO_BARRIER);
+          }
+          else {
+            presentation.setLabel(myType == VERTICAL_BARRIER ? ADD_VERTICAL_BARRIER : ADD_HORIZONTAL_BARRIER);
+          }
+        }
+      }
+      if (myType == GROUP) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+      }
+      if (myType == CONSTRAINT_SET) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
+      }
+      if (myType == LAYER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
+      }
+
+      presentation.setVisible(show);
       presentation.setEnabled(true);
     }
   }
@@ -824,7 +896,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       myToolTip = toolTip;
     }
 
-    private boolean isEnabled(int count) {
+    /**
+     * Function is called on right click
+     * It is moderatly compute intensive. (<10ms)
+     *
+     * @param selected
+     * @return
+     */
+    private boolean isEnabled(List<NlComponent> selected) {
+      int count = selected.size();
       switch (myActionType) {
         case AlignVerticallyTop:
         case AlignVerticallyMiddle:
@@ -838,6 +918,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         case HorizontalPack:
         case AlignBaseline:
           return count > 1;
+        case CreateHorizontalChain:
+          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
+        case CreateVerticalChain:
+          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
         case ExpandVertically:
         case ExpandHorizontally:
         case CenterHorizontallyInParent:
@@ -845,6 +929,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         case CenterVertically:
         case CenterHorizontally:
           return count >= 1;
+        case ChainHorizontalMoveLeft:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsTopOfChain);
+        case ChainVerticalMoveDown:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsBottomOfChain);
+        case ChainVerticalMoveUp:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsTopOfChain);
+        case ChainHorizontalMoveRight:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsBottomOfChain);
+        case ChainHorizontalRemove:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
+        case ChainVerticalRemove:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
+        case ChainInsertHorizontal:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearHorizontalChain);
+        case  ChainInsertVertical:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearVerticalChain);
         default:
           return false;
       }
@@ -856,15 +960,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
-      model.saveToXML(true);
+      Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
+      ensureLayersAreShown(editor, 1000);
     }
 
     @Override
@@ -877,11 +977,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0) {
+        if (ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0) {
           icon = myConstrainIcon;
         }
       }
-      presentation.setEnabled(isEnabled(selectedChildren.size()));
+      presentation.setVisible(isEnabled(selectedChildren));
+      presentation.setEnabled(isEnabled(selectedChildren));
       presentation.setIcon(icon);
       presentation.setLabel(myToolTip);
     }
@@ -899,7 +1000,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     public void setMargin() {
       Scout.setMargin(myMarginPopup.getValue());
-      MouseInteraction.setMargin(myMarginPopup.getValue());
     }
 
     private void updateIcon() {
@@ -909,11 +1009,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         myMarginIcon = new Icon() {
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(JBColor.foreground());
             g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
             String m = Integer.toString(margin);
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
-
+            ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
             g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
           }
@@ -930,17 +1031,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         };
       }
     }
+
     @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      DesignSurface surface = ((ViewEditorImpl)editor).getSceneView().getSurface();
       NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
@@ -958,7 +1056,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0);
       }
       presentation.setIcon(myMarginIcon);
     }
@@ -977,7 +1075,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * designer.
    */
   @Override
-  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
     final int count = parent.getChildCount();
     for (int i = 0; i < count; i++) {
       NlComponent component = parent.getChild(i);
@@ -993,15 +1091,231 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * Update the given component if one of its constraint points to one of the component deleted
    *
    * @param component the component we want to check
-   * @param deleted the list of components that are deleted
+   * @param deleted   the list of components that are deleted
    */
-  private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
-    final int count = deleted.size();
-    for (int i = 0; i < count; i++) {
-      NlComponent deletedComponent = deleted.get(i);
+  private static void willDelete(NlComponent component, @NotNull Collection<NlComponent> deleted) {
+    for (NlComponent deletedComponent : deleted) {
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);
+      NlComponent parent = deletedComponent.getParent();
+      if (parent != null && id != null) {
+        ConstraintHelperHandler.willDelete(parent, id);
+      }
     }
   }
 
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT);
+  }
+
+  /**
+   * Returns a component provider instance
+   *
+   * @return the component provider
+   */
+  @Override
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent == null) {
+      return null;
+    }
+    NlComponent nlComponent = parent.getNlComponent();
+    if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CLASS_CONSTRAINT_LAYOUT)) {
+      String attribute = nlComponent.getLiveAttribute(SHERPA_URI, "constraints");
+      if (attribute != null) {
+        return this;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the NlComponent associated with the given SceneComponent.
+   *
+   * @param component a given SceneComponent
+   * @return the associated NlComponent
+   */
+  @Override
+  public NlComponent getComponent(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent == null) {
+      return component.getNlComponent();
+    }
+
+    NlComponent nlComponent = parent.getNlComponent();
+    String attribute = nlComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET);
+    attribute = NlComponent.extractId(attribute);
+    if (attribute == null) {
+      return component.getNlComponent();
+    }
+    // else, let's get the component indicated
+    NlComponent constraints = null;
+    for (SceneComponent child : parent.getChildren()) {
+      String childId = child.getNlComponent().getId();
+      if (Objects.equals(attribute, childId)) {
+        constraints = child.getNlComponent();
+        break;
+      }
+    }
+    if (constraints == null) {
+      return component.getNlComponent();
+    }
+    for (NlComponent child : constraints.getChildren()) {
+      String reference = child.getLiveAttribute(ANDROID_URI, ATTR_ID);
+      reference = NlComponent.extractId(reference);
+      if (reference != null && reference.equals(component.getNlComponent().getId())) {
+        return child;
+      }
+    }
+    return component.getNlComponent();
+  }
+
+  private static class ConstraintViewActions {
+    private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
+                      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
+                      AndroidIcons.SherpaIcons.LeftAlignedB,
+                      "Align Left Edges"),
+      new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
+                      StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_CENTER_ALIGNED,
+                      AndroidIcons.SherpaIcons.CenterAlignedB,
+                      "Align Horizontal Centers"),
+      new AlignAction(Scout.Arrange.AlignHorizontallyRight,
+                      StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED,
+                      AndroidIcons.SherpaIcons.RightAlignedB,
+                      "Align Right Edges"));
+
+    private static final ImmutableList<ViewAction> ALIGN_VERTICALLY_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.AlignVerticallyTop,
+                      StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED,
+                      AndroidIcons.SherpaIcons.TopAlignB,
+                      "Align Top Edges"),
+      new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
+                      StudioIcons.LayoutEditor.Toolbar.VERTICAL_CENTER_ALIGNED,
+                      AndroidIcons.SherpaIcons.MiddleAlignB,
+                      "Align Vertical Centers"),
+      new AlignAction(Scout.Arrange.AlignVerticallyBottom,
+                      StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED,
+                      AndroidIcons.SherpaIcons.BottomAlignB,
+                      "Align Bottom Edges"),
+      new AlignAction(Scout.Arrange.AlignBaseline,
+                      StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED,
+                      AndroidIcons.SherpaIcons.BaselineAlignB, "Align Baselines"));
+
+
+    private static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
+      .addAll(ALIGN_HORIZONTALLY_ACTIONS)
+      .addAll(ALIGN_VERTICALLY_ACTIONS)
+      .build();
+
+    private static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
+
+      new AlignAction(Scout.Arrange.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      "Create Horizontal Chain"),
+      new AlignAction(Scout.Arrange.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "Create Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainInsertHorizontal,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      "Insert in Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainInsertVertical,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "Insert in  Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalRemove,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "remove from Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalRemove,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "remove from Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalMoveUp,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move up Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalMoveDown,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move down Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalMoveLeft,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move left Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalMoveRight,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move right Horizontal Chain")
+    );
+
+
+    private static final ImmutableList<ViewAction> CENTER_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.CenterHorizontally,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL,
+                      AndroidIcons.SherpaIcons.HorizontalCenterB,
+                      "Center Horizontally"),
+      new AlignAction(Scout.Arrange.CenterVertically,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL,
+                      AndroidIcons.SherpaIcons.VerticalCenterB,
+                      "Center Vertically"),
+      new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_PARENT,
+                      AndroidIcons.SherpaIcons.HorizontalCenterParentB,
+                      "Center Horizontally in Parent"),
+      new AlignAction(Scout.Arrange.CenterVerticallyInParent,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_PARENT,
+                      AndroidIcons.SherpaIcons.VerticalCenterParentB,
+                      "Center Vertically in Parent"));
+
+    private static final ImmutableList<ViewAction> ORGANIZE_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.HorizontalPack,
+                      StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
+                      "Pack Horizontally"),
+      new AlignAction(Scout.Arrange.VerticalPack,
+                      StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
+                      "Pack Vertically"),
+      new AlignAction(Scout.Arrange.ExpandHorizontally,
+                      StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
+                      "Expand Horizontally"),
+      new AlignAction(Scout.Arrange.ExpandVertically,
+                      StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
+                      "Expand Vertically"));
+
+    private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
+      new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
+                           StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE,
+                           "Add Vertical Guideline"),
+      new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
+                           StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE,
+                           "Add Horizontal Guideline"),
+      new AddElementAction(AddElementAction.VERTICAL_BARRIER,
+                           AndroidIcons.SherpaIcons.BarrierVertical,
+                           ADD_VERTICAL_BARRIER),
+      new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
+                           AndroidIcons.SherpaIcons.BarrierHorizontal,
+                           ADD_HORIZONTAL_BARRIER),
+      new AddElementAction(AddElementAction.GROUP,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_GROUP),
+      new AddElementAction(AddElementAction.CONSTRAINT_SET,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_CONSTRAINTS_SET),
+      new AddElementAction(AddElementAction.LAYER,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_LAYER));
+
+    private static final ImmutableList<ViewAction> ALL_POPUP_ACTIONS = ImmutableList.<ViewAction>builder()
+      .addAll(ALIGN_HORIZONTALLY_ACTIONS)
+      .addAll(ALIGN_VERTICALLY_ACTIONS)
+      .addAll(ORGANIZE_ACTIONS)
+      .addAll(CENTER_ACTIONS)
+      .addAll(HELPER_ACTIONS)
+      .build();
+  }
 }

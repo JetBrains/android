@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.swing.util.GraphicsUtil;
+import com.android.tools.adtui.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;

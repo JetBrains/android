@@ -22,9 +22,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -131,6 +134,12 @@ public abstract class ViewEditor {
   @NotNull
   public abstract NlModel getModel();
 
+  /**
+   * Returns the SceneManager used to generate a Scene from our model.
+   */
+  @NotNull
+  public abstract LayoutlibSceneManager getSceneBuilder();
+
   @NotNull
   public abstract Collection<ViewInfo> getRootViews();
 
@@ -160,6 +169,16 @@ public abstract class ViewEditor {
 
   @Nullable
   public abstract String displayClassInput(@NotNull Set<String> superTypes,
-                                           @Nullable Predicate<String> filter,
+                                           @Nullable Predicate<PsiClass> filter,
                                            @Nullable String currentValue);
+
+  /**
+   * Opens the resource using the resource resolver in the configuration.
+   *
+   * @param reference   the resource reference
+   * @param currentFile the currently open file. It's pushed onto the file navigation stack under the resource to open.
+   * @return true if the resource was opened
+   * @see RenderResources#findResValue(String, boolean)
+   */
+  public abstract boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @NotNull VirtualFile currentFile);
 }

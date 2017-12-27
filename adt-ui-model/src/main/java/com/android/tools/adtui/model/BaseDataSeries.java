@@ -15,9 +15,12 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public abstract class BaseDataSeries<E> implements DataSeries<E> {
@@ -25,25 +28,16 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
   protected final TLongArrayList mX = new TLongArrayList();
 
   @NotNull
-  private ImmutableList<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
-    return new ImmutableList<SeriesData<E>>() {
-      @Override
-      public int size() {
-        return toIndex - fromIndex;
-      }
-
-      @Override
-      public SeriesData<E> get(int index) {
-        assert index < size();
-        return new SeriesData<>(getX(index + fromIndex), getY(index + fromIndex));
-      }
-    };
+  private List<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
+    return IntStream.range(fromIndex, toIndex).mapToObj(index ->
+      new SeriesData<>(getX(index), getY(index))
+    ).collect(Collectors.toList());
   }
 
   @Override
-  public ImmutableList<SeriesData<E>> getDataForXRange(Range xRange) {
+  public List<SeriesData<E>> getDataForXRange(Range xRange) {
     //If the size of our data is 0, early return an empty list.
-    if(size() == 0) {
+    if(size() == 0 || xRange.isEmpty()) {
       return getDataSubList(0, 0);
     }
 
@@ -52,7 +46,7 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
     return getDataSubList(fromIndex, toIndex);
   }
 
-  public ImmutableList<SeriesData<E>> getAllData() {
+  public List<SeriesData<E>> getAllData() {
     return getDataSubList(0, size());
   }
 

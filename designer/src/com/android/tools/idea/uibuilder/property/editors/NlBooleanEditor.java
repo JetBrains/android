@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +38,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel));
+    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel), browsePanel);
     return cellEditor;
   }
 
@@ -48,17 +50,18 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
-    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+    myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0, HORIZONTAL_SPACING, 0));
 
     myBrowsePanel = browsePanel;
     if (browsePanel != null) {
       myPanel.add(browsePanel, BorderLayout.LINE_END);
     }
+    myProperty = EmptyProperty.INSTANCE;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public NlProperty getProperty() {
     return myProperty;
@@ -89,13 +92,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     return myValue;
   }
 
-  @Override
-  public void activate() {
-    myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
-    stopEditing(myValue);
-  }
-
-  private void checkboxChanged(ActionEvent e) {
+  private void checkboxChanged(@SuppressWarnings("unused") ActionEvent event) {
     myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
     stopEditing(myValue);
   }

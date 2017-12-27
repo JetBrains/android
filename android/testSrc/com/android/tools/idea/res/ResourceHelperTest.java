@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -29,7 +30,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.tools.idea.res.ResourceHelper.getResourceName;
-import static com.android.tools.idea.res.ResourceHelper.getResourceUrl;
 import static com.android.tools.idea.res.ResourceHelper.resolveColor;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -86,9 +86,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("foo1", getResourceName(file1.getVirtualFile()));
     assertEquals("foo2", getResourceName(file2.getVirtualFile()));
     assertEquals("foo3", getResourceName(file3.getVirtualFile()));
-    assertEquals("@layout/foo1", getResourceUrl(file1.getVirtualFile()));
-    assertEquals("@menu/foo2", getResourceUrl(file2.getVirtualFile()));
-    assertEquals("@drawable/foo3", getResourceUrl(file3.getVirtualFile()));
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -235,7 +232,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testResolveEmptyStatelist() {
     VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
-    RenderResources rr = myFacet.getConfigurationManager().getConfiguration(file).getResourceResolver();
+    RenderResources rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     assertNotNull(rr);
     ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
     assertNotNull(rv);

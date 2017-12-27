@@ -265,7 +265,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     if (action == null) {
       throw new IllegalArgumentException("Incorrect directory");
     }
-    if (myRootElement != null && myRootElement.length() > 0) {
+    if (myRootElement != null && !myRootElement.isEmpty()) {
       return action.doCreateAndNavigate(newName, directory, myRootElement, false, myNavigate);
     }
     return action.create(newName, directory);
@@ -297,7 +297,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   }
 
   static String doGetActionName(PsiDirectory directory, String newName) {
-    if (FileUtilRt.getExtension(newName).length() == 0) {
+    if (FileUtilRt.getExtension(newName).isEmpty()) {
       newName += ".xml";
     }
     return AndroidBundle.message("new.resource.action.name", directory.getName() + File.separator + newName);

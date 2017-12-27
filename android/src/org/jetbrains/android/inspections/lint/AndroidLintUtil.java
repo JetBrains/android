@@ -26,9 +26,9 @@ public class AndroidLintUtil {
   }
 
   @Nullable
-  public static Pair<AndroidLintInspectionBase, HighlightDisplayLevel> getHighlighLevelAndInspection(@NotNull Project project,
-                                                                                                     @NotNull Issue issue,
-                                                                                                     @NotNull PsiElement context) {
+  public static Pair<AndroidLintInspectionBase, HighlightDisplayLevel> getHighlightLevelAndInspection(@NotNull Project project,
+                                                                                                      @NotNull Issue issue,
+                                                                                                      @NotNull PsiElement context) {
     final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
     if (inspectionShortName == null) {
       return null;
@@ -41,6 +41,7 @@ public class AndroidLintUtil {
 
     final InspectionProfile profile = InspectionProjectProfileManager.getInstance(context.getProject()).getCurrentProfile();
     if (!profile.isToolEnabled(key, context)) {
+      //noinspection StatementWithEmptyBody
       if (!issue.isEnabledByDefault()) {
         // Lint will skip issues (and not report them) for issues that have been disabled,
         // except for those issues that are explicitly enabled via Gradle. Therefore, if

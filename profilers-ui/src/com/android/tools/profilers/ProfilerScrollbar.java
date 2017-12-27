@@ -15,31 +15,23 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.RangeScrollBarUI;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.timeline.AnimatedPan;
-import com.android.tools.profilers.timeline.AnimatedZoom;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollBar;
-import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
 
 /**
  * A custom toolbar that synchronizes with the data+view ranges from the {@link ProfilerTimeline}.
- *
  * This control sets the timeline into streaming mode if users drags the thumb all the way to the right.
- * Also, any updates back to the timeline object are handled inside {@link #animate(float)} so that
- * view range is synchronized with the {@link Choreographer}. This also means that this control should be
- * registered before/after all {@link Animatable} to ensure the view range does not change in the middle of
- * the animation loop.
  */
-public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
+public final class ProfilerScrollbar extends JBScrollBar {
   /**
    * The percentage of the current view range's length to zoom/pan per mouse wheel click.
    */
@@ -57,87 +49,81 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
   private static final float STREAMING_POSITION_THRESHOLD_PX = 10;
 
   @NotNull private final ProfilerTimeline myTimeline;
+  private final AspectObserver myAspectObserver;
 
-  private boolean myScrolling;
+  private boolean myUpdating;
+  private boolean myCheckStream;
 
-  public ProfilerScrollbar(@NotNull Choreographer choreographer,
-                           @NotNull ProfilerTimeline timeline,
+  public ProfilerScrollbar(@NotNull ProfilerTimeline timeline,
                            @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
+    myAspectObserver = new AspectObserver();
     myTimeline = timeline;
+    myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
+    myTimeline.getDataRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
-    setUI(new ButtonlessScrollBarUI() {
-      /**
-       * The default ButtonlessScrollBarUI contains logic to overlay the scrollbar
-       * and fade in/out on top of a JScrollPane. Because we are using the scrollbar
-       * without a scroll pane, it can fade in and out unexpectedly. This subclass
-       * simply disables the overlay feature.
-       */
-      @Override
-      protected boolean isMacOverlayScrollbar() {
-        return false;
+    ProfilerScrollbarUi scrollbarUi = new ProfilerScrollbarUi();
+    setUI(scrollbarUi);
+    addPropertyChangeListener(evt -> {
+      // preserve RangeScrollbarUI always, otherwise it reverts back to the default UI when switching themes.
+      if (evt.getPropertyName().equals("UI") && !(evt.getNewValue() instanceof RangeScrollBarUI)) {
+        setUI(scrollbarUi);
       }
     });
 
-    // We cannot simply use an AdjustmentListener as the values can be changed in multiple scenarios.
-    // e.g. streaming vs scrolling vs viewing back in time
-    // Here we simply keep track of the state and let the animate loop handles everything.
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        if (!isScrollable()) {
-          return;
+    addAdjustmentListener(e -> {
+      if (!myUpdating) {
+        updateModel();
+        if (!e.getValueIsAdjusting()) {
+          myCheckStream = true;
         }
-
-        myTimeline.setStreaming(false);
-        myTimeline.setCanStream(false);
-        myScrolling = true;
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (!isScrollable()) {
-          return;
-        }
-
-        myScrolling = false;
-        myTimeline.setCanStream(true);
       }
     });
-
     zoomPanComponent.addMouseWheelListener(e -> {
-      int count = e.getWheelRotation();
-      double deltaUs = myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR * count;
-      if (e.isAltDown()) {
-        double anchor = ((float)e.getX() / e.getComponent().getWidth());
-        AnimatedZoom zoom = new AnimatedZoom(choreographer, myTimeline, deltaUs, anchor);
-        choreographer.register(zoom);
-      }
-      else {
-        AnimatedPan pan = new AnimatedPan(choreographer, myTimeline, deltaUs);
-        choreographer.register(pan);
+      if (isScrollable()) {
+        int count = e.getWheelRotation();
+        double deltaUs = getWheelDelta() * count;
+        boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
+        if (isMenuKeyDown) {
+          double anchor = ((float)e.getX() / e.getComponent().getWidth());
+          myTimeline.zoom(deltaUs, anchor);
+          myCheckStream = deltaUs > 0;
+        }
+        else {
+          myTimeline.pan(deltaUs);
+        }
+        myCheckStream = deltaUs > 0;
       }
     });
   }
 
-  @Override
-  public void animate(float frameLength) {
+  @VisibleForTesting
+  public double getWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
+  }
+
+  private void modelChanged() {
+    myUpdating = true;
     Range dataRangeUs = myTimeline.getDataRange();
     Range viewRangeUs = myTimeline.getViewRange();
-    int dataExtentMs = (int)((dataRangeUs.getLength() - myTimeline.getViewBuffer()) / MS_TO_US);
+    int dataExtentMs = (int)((dataRangeUs.getLength()) / MS_TO_US);
     int viewExtentMs = Math.min(dataExtentMs, (int)(viewRangeUs.getLength() / MS_TO_US));
     int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
 
-    if (myScrolling) {
-      int valueMs = getValue();
-      setValues(valueMs, viewExtentMs, 0, dataExtentMs);
-      double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
-      viewRangeUs.shift(deltaUs);
-    }
-    else {
-      setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
-    }
+    setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
+    setBlockIncrement(viewExtentMs);
+    myUpdating = false;
+  }
+
+  private void updateModel() {
+    myTimeline.setStreaming(false);
+    Range dataRangeUs = myTimeline.getDataRange();
+    Range viewRangeUs = myTimeline.getViewRange();
+    int valueMs = getValue();
+    int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
+    double deltaUs = (valueMs - viewRelativeMinMs) * MS_TO_US;
+    viewRangeUs.shift(deltaUs);
   }
 
   @Override
@@ -147,9 +133,12 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     // Change back to streaming mode as needed
     // Note: isCloseToMax() checks for pixel proximity which relies on the scrollbar's dimension, which is why this code snippet
     // is here instead of animate/postAnimate - we wouldn't get the most current size in those places.
-    if (!myTimeline.isStreaming() && isCloseToMax() && myTimeline.canStream()) {
-      myTimeline.setStreaming(true);
+    if (myCheckStream) {
+      if (!myTimeline.isStreaming() && isCloseToMax() && myTimeline.canStream()) {
+        myTimeline.setStreaming(true);
+      }
     }
+    myCheckStream = false;
   }
 
   private boolean isScrollable() {
@@ -161,5 +150,13 @@ public final class ProfilerScrollbar extends JBScrollBar implements Animatable {
     BoundedRangeModel model = getModel();
     float snapPercentage = 1 - (STREAMING_POSITION_THRESHOLD_PX / (float)getWidth());
     return (model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage;
+  }
+
+  private class ProfilerScrollbarUi extends RangeScrollBarUI {
+    @Override
+    protected void doPaintTrack(Graphics g, JComponent c, Rectangle bounds) {
+      g.setColor(ProfilerColors.DEFAULT_BACKGROUND);
+      g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    }
   }
 }

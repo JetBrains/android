@@ -18,10 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -39,16 +38,20 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
 
   private final int myProcessId;
 
-  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id) {
+  private final Common.Session mySession;
+
+  public CpuThreadCountDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
 
@@ -74,7 +77,20 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
       total += entry.getValue();
       data.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(entry.getKey()), total));
     }
-    data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
-    return ContainerUtil.immutableList(data);
+    // When no threads are found within the requested range, we add the threads count (0)
+    // to both range's min and max. Otherwise we wouldn't add any information to the data series
+    // within timeCurrentRangeUs and nothing would be added to the chart.
+    if (count.isEmpty()) {
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMin(), total));
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    }
+    // If the last timestamp added to the data series is less than timeCurrentRangeUs.getMax(),
+    // we need to replicate the last value in timeCurrentRangeUs.getMax(), so the chart renders this value
+    // until the end of the selected range.
+    else if (data.get(data.size() - 1).x < timeCurrentRangeUs.getMax()) {
+      data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
+    }
+
+    return data;
   }
 }

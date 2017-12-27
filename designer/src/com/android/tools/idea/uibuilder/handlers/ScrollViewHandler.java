@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import android.view.View;
+import android.view.ViewGroup;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
 
@@ -47,7 +53,9 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
@@ -62,18 +70,17 @@ public class ScrollViewHandler extends ViewGroupHandler {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
-      NlComponent linear = node.createChild(editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
+      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
       linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
     }
 
     return true;
   }
 
-
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
+                                       @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
@@ -82,26 +89,63 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    int maxScrollableHeight = 0;
-    for (NlComponent child : component.getChildren()) {
-      maxScrollableHeight += child.h;
+    ViewGroup viewGroup = getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
     }
 
-    // Subtract the viewport height from the scrollable size
-    maxScrollableHeight -= component.h;
+    int maxScrollableHeight = getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
-      return new ScrollViewScrollHandler(component, maxScrollableHeight, 10);
+      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
     }
 
     return null;
   }
 
+  /**
+   * Returns the {@link ViewGroup} linked from the passed {@link NlComponent} or null if the {@link View} is not a {@link ViewGroup}.
+   */
+  @Nullable
+  static ViewGroup getViewGroupFromComponent(@NotNull NlComponent component) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
+    Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
+
+    if (viewObject != null && viewObject instanceof ViewGroup) {
+      return (ViewGroup)viewObject;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the maximum distance that the passed view group could scroll
+   *
+   * @param measureGroup    {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
+   * @param measureChildren {@link Function} used to measure the children of the viewGroup (for example {@link View#getMeasuredHeight()})
+   */
+  static int getMaxScrollable(@NotNull ViewGroup viewGroup,
+                              @NotNull Function<ViewGroup, Integer> measureGroup,
+                              @NotNull Function<View, Integer> measureChildren) {
+    int maxScrollable = 0;
+    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+      maxScrollable += measureChildren.apply(viewGroup.getChildAt(i));
+    }
+
+    // Subtract the viewport height from the scrollable size
+    maxScrollable -= measureGroup.apply(viewGroup);
+
+    if (maxScrollable < 0) {
+      maxScrollable = 0;
+    }
+
+    return maxScrollable;
+  }
+
   static class OneChildDragHandler extends DragHandler {
     public OneChildDragHandler(@NotNull ViewEditor editor,
                                @NotNull ViewGroupHandler handler,
-                               @NotNull NlComponent layout,
+                               @NotNull SceneComponent layout,
                                @NotNull List<NlComponent> components,
                                @NotNull DragType type) {
       super(editor, handler, layout, components, type);
@@ -109,10 +153,11 @@ public class ScrollViewHandler extends ViewGroupHandler {
 
     @Nullable
     @Override
-    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
       super.update(x, y, modifiers);
 
-      if (layout.getChildCount() > 0 || components.size() > 1) {
+      // layout will already have the dragged components as child so we need to check if count > 1
+      if (layout.getChildCount() > 1 || components.size() > 1) {
         return "Layout only allows 1 child";
       }
 
@@ -123,7 +168,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     public void paint(@NotNull NlGraphics graphics) {
       if (layout.getChildCount() == 0) {
         graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-        graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
+        graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
       }
     }
   }
@@ -143,7 +188,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      return NlModel.isRenderViewPort();
+      return LayoutlibSceneManager.isRenderViewPort();
     }
 
     @Override
@@ -152,8 +197,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      NlModel.setRenderViewPort(selected);
-      parent.getModel().requestRender();
+      LayoutlibSceneManager.setRenderViewPort(selected);
+      editor.getSceneBuilder().requestRender();
     }
   }
 }

@@ -18,7 +18,10 @@ package org.jetbrains.android.dom.converters;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -28,6 +31,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -40,6 +44,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
@@ -192,7 +197,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
         final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         for (final ResourceType type : recommendedTypes) {
-          addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
+          addResourceReferenceValues(facet, element, prefix, type, resourcePackage, result, explicitResourceType);
         }
       }
       else {
@@ -204,7 +209,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           final String type = resourceType.getName();
           String typePrefix = getTypePrefix(resourcePackage, type);
           if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, prefix, resourceType, resourcePackage, result, true);
+            addResourceReferenceValues(facet, element, prefix, resourceType, resourcePackage, result, true);
           }
           else if (recommendedTypes.contains(resourceType) &&
                    (filteringSet == null || filteringSet.contains(resourceType))) {
@@ -227,7 +232,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private void addVariantsForIdDeclaration(Set<ResourceValue> result, AndroidFacet facet, char prefix, String value) {
-    for (String name : facet.getLocalResourceManager().getIds(false)) {
+    for (String name : ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getIds(false)) {
       final ResourceValue ref = referenceTo(prefix, "+id", null, name, true);
 
       if (!value.startsWith(doToString(ref))) {
@@ -238,14 +243,14 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
     if (StringUtil.startsWith(value, "?attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, false);
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
@@ -254,7 +259,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     Set<ResourceType> result = EnumSet.noneOf(ResourceType.class);
-    AppResourceRepository resourceRepository = facet.getAppResources(true);
+    AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
         if (type == ResourceType.DECLARE_STYLEABLE) {
@@ -293,31 +298,69 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
       }
     }
-    if (types.size() == 0) {
+    if (types.isEmpty()) {
       return VALUE_RESOURCE_TYPES;
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
     }
+    if (StudioFlags.NELE_SAMPLE_DATA.get() && TOOLS_URI.equals(element.getXmlElementNamespace())) {
+      // For tools: attributes, we also add the mock types
+      types.add(ResourceType.SAMPLE_DATA);
+    }
     return types;
   }
 
   private static void addResourceReferenceValues(AndroidFacet facet,
+                                                 @Nullable XmlElement element,
                                                  char prefix,
                                                  ResourceType type,
                                                  @Nullable String resPackage,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
-    final ResourceManager manager = facet.getResourceManager(resPackage);
+    PsiFile file = element != null ? element.getContainingFile() : null;
+    Collection<String> names =
+      type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file) ?
+      ResourceHelper.findIdsInFile(file) : findResourceNames(facet, type, resPackage);
     String typeName = type.getName();
-    if (manager != null) {
-      for (String name : manager.getResourceNames(type, true)) {
-        result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
-      }
+    for (String name : names) {
+      result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
+    }
+  }
+
+  private static boolean isNonValuesResourceFile(@NotNull PsiFile file) {
+    ResourceFolderType resourceType = ResourceHelper.getFolderType(file.getOriginalFile());
+    return resourceType != null && resourceType != ResourceFolderType.VALUES;
+  }
+
+  private static Collection<String> findResourceNames(@NotNull AndroidFacet facet,
+                                                      @NotNull ResourceType type,
+                                                      @Nullable String resPackage) {
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
+    if (manager == null) {
+      return Collections.emptySet();
+    }
+    else {
+      return manager.getResourceNames(type, true);
     }
   }
 
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {
+    if (ResourceType.SAMPLE_DATA.getName().equals(type)) {
+      // Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across
+      // the resources stack
+      List<String> sampleDataResource = Splitter.on(':')
+        .trimResults()
+        .omitEmptyStrings()
+        .limit(2)
+        .splitToList(name);
+
+      if (resPackage == null && sampleDataResource.size() == 2) {
+        resPackage = sampleDataResource.get(0);
+        name = sampleDataResource.get(1);
+      }
+    }
+
     return ResourceValue.referenceTo(prefix, resPackage, explicitResourceType ? type : null, name);
   }
 
@@ -331,6 +374,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     if (parsed == null || !parsed.isReference()) {
       final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+
+      if (myResourceTypes.contains(ResourceType.STRING)) {
+        // Anything is allowed
+        return null;
+      }
 
       if (additionalConverter != null) {
         return additionalConverter.getErrorMessage(s, context);
@@ -542,7 +590,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
               if (VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
                 fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
               }
-              return fixes.toArray(new LocalQuickFix[fixes.size()]);
+              return fixes.toArray(LocalQuickFix.EMPTY_ARRAY);
             }
           }
         }

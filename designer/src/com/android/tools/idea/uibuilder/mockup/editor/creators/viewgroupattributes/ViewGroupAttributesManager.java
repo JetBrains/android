@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes;
 
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.common.model.AttributesTransaction;
 
 /**
  * Implement this interface if the container of the widget created by a

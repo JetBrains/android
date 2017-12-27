@@ -19,14 +19,13 @@ package com.android.tools.idea.diagnostics.error;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.ITNReporterKt;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -39,7 +38,6 @@ import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -58,6 +56,7 @@ import java.util.Map;
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
 
+  @NotNull
   @Override
   public String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
@@ -70,32 +69,28 @@ public class ErrorReporter extends ErrorReportSubmitter {
                         @NotNull Consumer<SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
-    final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    Throwable t = event.getThrowable();
-    if (t != null) {
-      final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
-      if (pluginId != null) {
-        final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
-        if (ideaPluginDescriptor != null && (!ideaPluginDescriptor.isBundled() || ideaPluginDescriptor.allowBundledUpdate())) {
-          bean.setPluginName(ideaPluginDescriptor.getName());
-          bean.setPluginVersion(ideaPluginDescriptor.getVersion());
-        }
-      }
-    }
+    ITNReporterKt.setPluginInfo(event, bean);
 
     Object data = event.getData();
 
     // Early escape (and no UI impact) if these are analytics events being pushed from the platform
-    if (handleAnalyticsReports(t, data)) {
+    if (handleAnalyticsReports(event.getThrowable(), data)) {
       return true;
     }
 
     if (data instanceof AbstractMessage) {
       bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
+    }
+
+    // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
+    // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
+    Consumer<DataContext> submitter = dataContext -> {
+    if (dataContext == null) {
+      return;
     }
 
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
@@ -109,7 +104,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
         .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
         .setImportant(false)
         .notify(project);
-
     };
 
     Consumer<Exception> errorCallback = e -> {
@@ -129,7 +123,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
         .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
                           (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
                           UpdateSettings.getInstance());
-      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, t, pair2map(kv), successCallback, errorCallback);
+      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), successCallback, errorCallback);
     }
 
     if (project == null) {
@@ -137,34 +131,41 @@ public class ErrorReporter extends ErrorReportSubmitter {
     } else {
       ProgressManager.getInstance().run(feedbackTask);
     }
+    };
+
+    if (parentComponent != null) {
+      submitter.consume(DataManager.getInstance().getDataContext(parentComponent));
+    } else {
+      DataManager.getInstance().getDataContextFromFocus().doWhenDone(submitter);
+    }
 
     return true;
   }
 
   private static boolean handleAnalyticsReports(@Nullable Throwable t, @Nullable Object data) {
-    if ("Exception".equals(data)) {
-      if (t != null) {
-        CrashReporter.getInstance().submit(CrashReport.Builder.createForException(t).build());
-      }
-      return true;
-    }
-    else if (data instanceof Map) {
-      Map map = (Map)data;
-      String type = (String)map.get("Type");
-      if ("ANR".equals(type)) {
-        CrashReporter.getInstance().submit(
-          CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
-      }
-      else if ("Crashes".equals(type)) {
-        //noinspection unchecked
-        List<String> descriptions = (List<String>)map.get("descriptions");
-        CrashReporter.getInstance().submit(
-          CrashReport.Builder.createForCrashes(descriptions).build());
-      }
-      return true;
+    if (!(data instanceof Map)) {
+      return false;
     }
 
-    return false;
+    Map map = (Map)data;
+    String type = (String)map.get("Type");
+    if ("Exception".equals(type)) {
+      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
+                                                                 "summary", (String)map.get("summary"));
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForException(t).addProductData(productData).build());
+    }
+    else if ("ANR".equals(type)) {
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
+    }
+    else if ("Crashes".equals(type)) {
+      //noinspection unchecked
+      List<String> descriptions = (List<String>)map.get("descriptions");
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForCrashes(descriptions).build());
+    }
+    return true;
   }
 
   @NotNull

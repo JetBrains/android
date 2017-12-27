@@ -26,6 +26,9 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -58,6 +61,7 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.util.xmlb.annotations.Transient;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -72,10 +76,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
-import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
+
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -86,8 +91,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static final String PROFILERS_ELEMENT_NAME = "Profilers";
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
-
-  public String PREFERRED_AVD = "";
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
@@ -100,6 +103,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
+
+  @NotNull
+  @Transient
+  // This is needed instead of having the output model directly because the apk providers can be created before getting the model.
+  protected transient final DefaultPostBuildModelProvider myOutputProvider = new DefaultPostBuildModelProvider();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -116,17 +124,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     // TODO: Do something with the extra error information? Error count?
     ValidationError topError = Ordering.natural().max(errors);
-    if (topError.isFatal()) {
-      throw new RuntimeConfigurationError(topError.getMessage(), topError.getQuickfix());
+    switch (topError.getSeverity()) {
+      case FATAL:
+        throw new RuntimeConfigurationError(topError.getMessage(), topError.getQuickfix());
+      case WARNING:
+        throw new RuntimeConfigurationWarning(topError.getMessage(), topError.getQuickfix());
+      case INFO:
+      default:
+        break;
     }
-    throw new RuntimeConfigurationWarning(topError.getMessage(), topError.getQuickfix());
   }
 
   /**
    * We collect errors rather than throwing to avoid missing fatal errors by exiting early for a warning.
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
-  private List<ValidationError> validate(@Nullable Executor executor) {
+  public List<ValidationError> validate(@Nullable Executor executor) {
     List<ValidationError> errors = Lists.newArrayList();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
@@ -142,7 +155,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     final Project project = module.getProject();
-    if (requiredAndroidModelMissing(project)) {
+    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
       errors.add(ValidationError.fatal(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
@@ -151,8 +164,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.isAppProject()) {
-      if (facet.isLibraryProject()) {
+    if (!facet.isAppProject() && facet.getProjectType() != PROJECT_TYPE_TEST) {
+      if (facet.isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
@@ -165,7 +178,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (facet.getManifest() == null) {
+    if (facet.getManifest() == null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
@@ -177,6 +190,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (androidDebuggerState != null) {
       errors.addAll(androidDebuggerState.validate(facet, executor));
     }
+
+    errors.addAll(myProfilerState.validate());
 
     return errors;
   }
@@ -241,8 +256,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
+    final boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
     boolean couldHaveHotswapped = false;
+    final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
 
     boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
@@ -256,37 +272,27 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
     // note: we look for this run config with any executor
 
-    if (info != null && supportsInstantRun()) {
-      // if there is an existing previous session, then see if we can detect devices to fast deploy to
-      deviceFutures = getFastDeployDevices(executor, facet, info);
+    if (instantRunEnabled) {
+      if (info != null && supportsInstantRun()) {
+        // if there is an existing previous session, then see if we can detect devices to fast deploy to
+        deviceFutures = getFastDeployDevices(executor, facet, info);
+      }
 
-      // HACK: We also need to support re-run
-      // In the case of re-run, we need to pick the devices from the previous run, but then terminate the app.
-      // This call to destroyProcess doesn't really belong here in the overall flow, but everything else in the flow just fits
-      // without any changes if we can recover the device first and then terminate the process. The alternative would be for
-      // the ReRun action itself to pass in the device just like it happens for the restart device, but that has the complication
-      // that the ReRun is now a global action and doesn't really know much details about each run (and doing that seems like a hack too.)
-      if (InstantRunUtils.isReRun(env)) {
+      if (info != null && deviceFutures == null) {
+        // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
+        // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
+        if (!promptAndKillSession(executor, project, info)) {
+          return null;
+        }
+      }
+      else if (info != null && forceColdswap) {
+        // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
+        couldHaveHotswapped = true;
+
+        // forcibly kill app in case of run action (which forces a cold swap)
+        // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
         killSession(info);
-        info = null;
       }
-    }
-
-    if (info != null && deviceFutures == null) {
-      // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
-      // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
-      boolean continueLaunch = promptAndKillSession(executor, project, info);
-      if (!continueLaunch) {
-        return null;
-      }
-    }
-    else if (info != null && forceColdswap) {
-      // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
-      couldHaveHotswapped = true;
-
-      // forcibly kill app in case of run action (which forces a cold swap)
-      // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
-      killSession(info);
     }
 
     // If we are not fast deploying, then figure out (prompting user if needed) where to deploy
@@ -315,7 +321,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
     InstantRunContext instantRunContext = null;
 
-    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
+    if (supportsInstantRun() && instantRunEnabled) {
       InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
       if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
         AndroidVersion version = deviceFutures.getDevices().get(0).getVersion();
@@ -348,15 +354,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
       else {
         InstantRunManager.LOG.warn("Instant Run enabled, but not doing an instant run build since: " + gradleSupport);
-        String notificationText = gradleSupport.getUserNotification();
-        if (notificationText != null) {
-          InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+        // IR is disabled, we only want to display IR notification on start of session to avoid spamming user on each run.
+        if (!isSameExecutorAsPreviousSession(executor, info)) {
+          String notificationText = gradleSupport.getUserNotification();
+          if (notificationText != null) {
+            InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+          }
         }
       }
     }
     else {
       String msg = "Not using instant run for this launch: ";
-      if (InstantRunSettings.isInstantRunEnabled()) {
+      if (instantRunEnabled) {
         msg += getType().getDisplayName() + " does not support instant run";
       }
       else {
@@ -369,9 +378,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
     env.putCopyableUserData(AndroidRunConfigContext.KEY, runConfigContext);
     runConfigContext.setTargetDevices(deviceFutures);
-    runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
-    runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
-
+    runConfigContext.setSameExecutorAsPreviousSession(isSameExecutorAsPreviousSession(executor, info));
     runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
 
     // Save the instant run context so that before-run task can access it
@@ -395,12 +402,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions, processHandler,
-                                            instantRunContext);
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions,
+                                            processHandler, instantRunContext);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
+  }
+
+  private boolean isSameExecutorAsPreviousSession(@NotNull Executor executor, @Nullable AndroidSessionInfo info) {
+    return info != null && executor.getId().equals(info.getExecutorId());
   }
 
   private static void killSession(@NotNull AndroidSessionInfo info) {
@@ -493,19 +504,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return deployTarget;
   }
 
-  private boolean promptAndKillSession(@NotNull Executor executor, Project project, AndroidSessionInfo info) {
-    String previousExecutor = info.getExecutorId();
-    String currentExecutor = executor.getId();
+  private boolean promptAndKillSession(@NotNull Executor executor, @NotNull Project project, @NotNull AndroidSessionInfo info) {
+    String previousExecutorId = info.getExecutorId();
+    String currentExecutorId = executor.getId();
 
     if (ourKillLaunchOption.isToBeShown()) {
       String msg, noText;
-      if (previousExecutor.equals(currentExecutor)) {
-        msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
+      if (previousExecutorId.equals(currentExecutorId)) {
+        msg = "Restart App?\nThe app is already running. Would you like to kill it and restart the session?";
         noText = "Cancel";
       }
       else {
-        msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
-        noText = "Cancel " + currentExecutor;
+        String previousExecutorActionName = info.getExecutorActionName();
+        String currentExecutorActionName = executor.getActionName();
+        msg = String
+          .format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutorActionName, currentExecutorActionName);
+        noText = "Cancel " + currentExecutorActionName;
       }
 
       String title = "Launching " + getName();
@@ -524,7 +538,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
-      return new GradleApplicationIdProvider(facet);
+      return new GradleApplicationIdProvider(facet, myOutputProvider);
     }
     return new NonGradleApplicationIdProvider(facet);
   }
@@ -597,6 +611,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return irSupportStatus;
     }
 
+    if (!InstantRunGradleUtils.appHasCode(AndroidFacet.getInstance(module))) {
+      return InstantRunGradleSupport.HAS_CODE_FALSE;
+    }
+
     // Gradle will instrument against the runtime android.jar (see commit 353f46cbc7363e3fca44c53a6dc0b4d17347a6ac).
     // This means that the SDK platform corresponding to the device needs to be installed, otherwise the build will fail.
     // We do this as the last check because it is actually possible to recover from this failure. In the future, maybe issues
@@ -618,6 +636,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     return TARGET_PLATFORM_NOT_INSTALLED;
+  }
+
+  public void setOutputModel(@NotNull PostBuildModel outputModel) {
+    myOutputProvider.setOutputModel(outputModel);
   }
 
   @Override
@@ -668,6 +690,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /**
    * Returns the current {@link ProfilerState} for this configuration.
    */
+  @NotNull
   public ProfilerState getProfilerState() {
     return myProfilerState;
   }
@@ -701,6 +724,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     @Override
     public String getDoNotShowMessage() {
       return "Do not ask again";
+    }
+  }
+
+  private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
+    @Nullable
+    @Transient
+    private transient PostBuildModel myBuildOutputs = null;
+
+    public void setOutputModel(@NotNull PostBuildModel postBuildModel) {
+      myBuildOutputs = postBuildModel;
+    }
+
+    @Nullable
+    @Override
+    public PostBuildModel getPostBuildModel() {
+      return myBuildOutputs;
     }
   }
 }

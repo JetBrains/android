@@ -53,7 +53,7 @@ public class ExportDeviceAction extends DeviceUiAction {
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
     VirtualFileWrapper fileWrapper =
-      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project)null).save(parent, "device.xml");
+      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProvider.getProject()).save(parent, "device.xml");
     Device device = myProvider.getDevice();
     if (device != null && fileWrapper != null) {
       DeviceManagerConnection.writeDevicesToFile(ImmutableList.of(device), fileWrapper.getFile());

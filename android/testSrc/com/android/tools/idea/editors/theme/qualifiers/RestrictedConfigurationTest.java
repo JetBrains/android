@@ -61,7 +61,7 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
    * See: http://developer.android.com/guide/topics/resources/providing-resources.html
    */
   public void testRestrict() {
-    assertEquals(21, FolderConfiguration.getQualifierCount());
+    assertEquals(23, FolderConfiguration.getQualifierCount());
 
     checkRestrictFor("en-v21", "en", "ldrtl", "ldltr");
     checkRestrictFor("en", "en", "fr-v23", "fr-v19");

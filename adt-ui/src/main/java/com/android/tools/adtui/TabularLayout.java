@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.google.common.collect.Maps;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -481,7 +482,7 @@ public final class TabularLayout implements LayoutManager2 {
           myPercentages.set(i, rule.getValue() / totalProportionalSize);
         }
         else if (rule.getType() == SizingRule.Type.FIXED) {
-          mySizes.set(i, rule.getValue());
+          mySizes.set(i, JBUI.scale(rule.getValue()));
         }
       }
     }
@@ -541,7 +542,7 @@ public final class TabularLayout implements LayoutManager2 {
      */
     public List<PosSize> getBounds(int start, int totalSpace) {
       List<PosSize> bounds = Stream.generate(PosSize::new).limit(mySizes.size()).collect(Collectors.toList());
-      if (bounds.size() == 0) {
+      if (bounds.isEmpty()) {
         return bounds;
       }
 

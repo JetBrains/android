@@ -17,18 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AlwaysShowActionDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintAlwaysShowActionInspection extends AndroidLintInspectionBase {
   public AndroidLintAlwaysShowActionInspection() {
     super(AndroidBundle.message("android.lint.inspections.always.show.action"), AlwaysShowActionDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with ifRoom", "(always)", "ifRoom")};
   }
 }

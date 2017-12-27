@@ -1,9 +1,7 @@
 package org.jetbrains.android.dom;
 
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
-import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ApplicationManager;
@@ -23,7 +21,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.Processor;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
@@ -107,26 +104,18 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       final Ref<PsiClass> selClassRef = Ref.create();
 
-      ClassInheritorsSearch.search(activityBaseClass, scope, true, true, false).forEach(new Processor<PsiClass>() {
-        @Override
-        public boolean process(PsiClass psiClass) {
-          if (!psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
-            selClassRef.set(psiClass);
-            return false;
-          }
-          return true;
+      ClassInheritorsSearch.search(activityBaseClass, scope, true, true, false).forEach(psiClass -> {
+        if (!psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+          selClassRef.set(psiClass);
+          return false;
         }
+        return true;
       });
       selectedClass = selClassRef.get();
     }
     else {
       final TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project).createInheritanceClassChooser(
-        "Choose Activity to Create the Method", scope, activityBaseClass, null, new ClassFilter() {
-        @Override
-        public boolean isAccepted(PsiClass aClass) {
-          return !converter.findHandlerMethod(aClass, methodName);
-        }
-      });
+        "Choose Activity to Create the Method", scope, activityBaseClass, null, aClass -> !converter.findHandlerMethod(aClass, methodName));
       chooser.showDialog();
       selectedClass = chooser.getSelected();
     }
@@ -155,7 +144,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
                                            @NotNull String methodParamType) {
     final PsiFile file = psiClass.getContainingFile();
 
-    if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
+    if (file == null) {
       return null;
     }
     final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
@@ -177,35 +166,32 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        final PsiMethod method = addHandlerMethod(project, psiClass, methodName, methodParamType);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      final PsiMethod method = addHandlerMethod(project, psiClass, methodName, methodParamType);
 
-        if (method == null) {
-          return;
-        }
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-          PsiNavigateUtil.navigate(method);
-        }
-        final PsiFile javaFile = method.getContainingFile();
+      if (method == null) {
+        return;
+      }
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        PsiNavigateUtil.navigate(method);
+      }
+      final PsiFile javaFile = method.getContainingFile();
 
-        if (javaFile == null) {
-          return;
-        }
-        final Editor javaEditor = PsiUtilBase.findEditor(method);
+      if (javaFile == null) {
+        return;
+      }
+      final Editor javaEditor = PsiUtilBase.findEditor(method);
 
-        if (javaEditor == null) {
-          return;
-        }
-        final PsiCodeBlock body = method.getBody();
+      if (javaEditor == null) {
+        return;
+      }
+      final PsiCodeBlock body = method.getBody();
 
-        if (body != null) {
-          final PsiJavaToken lBrace = body.getLBrace();
+      if (body != null) {
+        final PsiJavaToken lBrace = body.getLBrace();
 
-          if (lBrace != null) {
-            javaEditor.getCaretModel().moveToOffset(lBrace.getTextRange().getEndOffset());
-          }
+        if (lBrace != null) {
+          javaEditor.getCaretModel().moveToOffset(lBrace.getTextRange().getEndOffset());
         }
       }
     });

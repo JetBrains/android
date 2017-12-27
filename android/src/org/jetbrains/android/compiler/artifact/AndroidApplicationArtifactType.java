@@ -70,7 +70,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
       }
     }
 
-    if (facets.size() == 0) {
+    if (facets.isEmpty()) {
       return Collections.emptyList();
     }
     return Collections.singletonList(new MyTemplate(context.getProject(), facets));
@@ -85,7 +85,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
     private final List<AndroidFacet> myFacets;
 
     private MyTemplate(@NotNull Project project, @NotNull List<AndroidFacet> facets) {
-      assert facets.size() > 0;
+      assert !facets.isEmpty();
       myProject = project;
       myFacets = facets;
     }

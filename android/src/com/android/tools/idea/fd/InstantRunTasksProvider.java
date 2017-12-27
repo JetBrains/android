@@ -22,8 +22,5 @@ import java.nio.file.Path;
 
 public interface InstantRunTasksProvider {
   @NotNull
-  ListMultimap<Path, String> getCleanAndGenerateSourcesTasks();
-
-  @NotNull
   ListMultimap<Path, String> getFullBuildTasks();
 }

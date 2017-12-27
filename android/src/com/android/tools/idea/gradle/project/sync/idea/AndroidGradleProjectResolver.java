@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -48,7 +50,6 @@ import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
@@ -76,12 +77,12 @@ import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersion
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
@@ -98,23 +99,33 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
+  @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
+  @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
+  @NotNull private final IdeDependenciesFactory myDependenciesFactory;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(false /* do not generate classpath init script */), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector());
+    this(new CommandLineArgs(false /* do not apply Java library plugin */), new ProjectImportErrorHandler(), new ProjectFinder(),
+         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
+         new IdeDependenciesFactory());
   }
 
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
-                               @NotNull VariantSelector variantSelector) {
+                               @NotNull VariantSelector variantSelector,
+                               @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
+                               @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
+                               @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
     myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
+    myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
+    myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
+    myDependenciesFactory = dependenciesFactory;
   }
 
   @Override
@@ -169,24 +180,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    ImportedModule importedModule = new ImportedModule(gradleModule);
-    ideModule.createChild(IMPORTED_MODULE, importedModule);
-
-    GradleProject gradleProject = gradleModule.getGradleProject();
-    GradleScript buildScript = null;
-    try {
-      buildScript = gradleProject.getBuildScript();
-    }
-    catch (UnsupportedOperationException ignore) {
-    }
-
-    if (buildScript == null || !isAndroidGradleProject()) {
+    if (!IdeInfo.getInstance().isAndroidStudio() && !isAndroidGradleProject()) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
 
+    ImportedModule importedModule = new ImportedModule(gradleModule);
+    ideModule.createChild(IMPORTED_MODULE, importedModule);
+
     // do not derive module root dir based on *.iml file location
-    File moduleRootDirPath = new File(toSystemDependentName(ideModule.getData().getLinkedExternalProjectPath()));
+    File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
@@ -205,19 +208,24 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else {
         String variantName = selectedVariant.getName();
-        AndroidModuleModel model = new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName);
+        AndroidModuleModel model =
+          new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName, myDependenciesFactory);
         ideModule.createChild(ANDROID_MODEL, model);
       }
     }
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, nativeAndroidProject);
+      IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy);
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
-    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null) {
+    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
+        // if the module has artifacts, it is a Java library module.
+        // https://code.google.com/p/android/issues/detail?id=226802
+        !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
       createJavaProject(gradleModule, ideModule, false);
@@ -227,7 +235,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     BuildScriptClasspathModel buildScriptModel = resolverCtx.getExtraProject(BuildScriptClasspathModel.class);
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
-    File buildFilePath = buildScript.getSourceFile();
+    GradleProject gradleProject = gradleModule.getGradleProject();
+    GradleScript buildScript = null;
+    try {
+      buildScript = gradleProject.getBuildScript();
+    }
+    catch (UnsupportedOperationException ignore) {
+    }
+    File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
     GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
@@ -237,12 +252,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
+  private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
+    ModuleExtendedModel javaModel = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
+    return javaModel != null && !javaModel.getArtifacts().isEmpty();
+  }
+
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  boolean androidProjectWithoutVariants) {
-    //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = new JavaModuleModel(gradleModule, model, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -276,18 +295,56 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
+    populateModuleBuildDirs(gradleProject);
+    populateGlobalLibraryMap(gradleProject);
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
   }
 
+  /**
+   * Set map from project path to build directory for all modules.
+   * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
+   */
+  private void populateModuleBuildDirs(@NotNull IdeaProject ideaProject) {
+    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+      GradleProject gradleProject = ideaModule.getGradleProject();
+      if (gradleProject != null) {
+        myDependenciesFactory.findAndAddBuildFolderPath(gradleProject);
+      }
+    }
+  }
+
+  /**
+   * Find and set global library map.
+   */
+  private void populateGlobalLibraryMap(@NotNull IdeaProject ideaProject) {
+    GlobalLibraryMap globalLibraryMap = null;
+    // Since GlobalLibraryMap is requested on each module, we need to find the map that was
+    // requested at the last, which is the one that contains the most of items.
+    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+      GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
+      if (globalLibraryMap == null ||
+          (moduleMap != null && moduleMap.getLibraries().size() > globalLibraryMap.getLibraries().size())) {
+        globalLibraryMap = moduleMap;
+      }
+    }
+    // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
+    if (globalLibraryMap != null) {
+      myDependenciesFactory.setupGlobalLibraryMap(globalLibraryMap);
+    }
+  }
+
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    Set<Class> modelClasses = new HashSet<>();
+    // Use LinkedHashSet to maintain insertion order.
+    // GlobalLibraryMap should be requested after AndroidProject.
+    Set<Class> modelClasses = new LinkedHashSet<>();
     modelClasses.add(AndroidProject.class);
     modelClasses.add(NativeAndroidProject.class);
+    modelClasses.add(GlobalLibraryMap.class);
     return modelClasses;
   }
 
@@ -308,7 +365,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
           // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
           if (androidHomePath != null) {
-            args.add(KeyValue.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+            args.add(Pair.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
           }
         }
       }
@@ -319,7 +376,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private LocalProperties getLocalProperties() {
-    File projectDir = new File(toSystemDependentName(resolverCtx.getProjectPath()));
+    File projectDir = toSystemDependentPath(resolverCtx.getProjectPath());
     try {
       return new LocalProperties(projectDir);
     }
@@ -333,7 +390,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   public List<String> getExtraCommandLineArgs() {
     Project project = myProjectFinder.findProject(resolverCtx);
-    return myCommandLineArgs.get(project  /* do not include classpath init script. It is already done. */);
+    return myCommandLineArgs.get(project);
   }
 
   @NotNull
@@ -343,7 +400,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
     if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      //noinspection ThrowableResultOfMethodCallIgnored
       Throwable rootCause = getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();

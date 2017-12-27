@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.BUTTON;
@@ -36,12 +36,12 @@ public class SceneComplexBaselineConnectionTest extends SceneTest {
     myInteraction.mouseRelease("button2", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button1")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "    android:text=\"Button\"\n" +
-                 "    tools:layout_editor_absoluteX=\"56dp\"\n" +
-                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button2\" />");
+                 "        android:id=\"@id/button1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        android:text=\"Button\"\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button2\"\n" +
+                 "        tools:layout_editor_absoluteX=\"56dp\" />");
   }
 
   @Override

@@ -36,7 +36,6 @@ import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.tree.TreeUtil.expandAll;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertTrue;
 
@@ -51,12 +50,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
     Wait.seconds(1).expecting("tree to be populated").until(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get());
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        expandAll(tasksTree);
-      }
-    });
+    GuiTask.execute(() -> expandAll(tasksTree));
 
     Object root = tasksTree.getModel().getRoot();
     final TreePath treePath = findTaskPath((DefaultMutableTreeNode)root, taskName);

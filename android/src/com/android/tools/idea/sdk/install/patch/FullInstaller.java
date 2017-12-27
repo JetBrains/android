@@ -65,7 +65,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
 
   @Override
   protected boolean doPrepare(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
-    if (!downloadAndUnzip(installTempPath, getDownloader(), progress)) {
+    if (!downloadAndUnzip(installTempPath, getDownloader(), progress.createSubProgress(0.5))) {
+      progress.setFraction(1);
       return false;
     }
     myUnzippedPackage = new File(installTempPath, UNZIP_DIR_FN);
@@ -75,7 +76,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
       myUnzippedPackage = children[0];
     }
 
-    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTempPath, mFop, progress);
+    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTempPath, mFop, progress.createSubProgress(1));
+    progress.setFraction(1);
     return myGeneratedPatch != null;
   }
 
@@ -90,18 +92,22 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
     try {
       File downloadLocation = new File(installTempPath, url.getFile());
       String checksum = archive.getComplete().getChecksum();
-      downloader.downloadFully(url, downloadLocation, checksum, progress);
+      downloader.downloadFully(url, downloadLocation, checksum, progress.createSubProgress(0.5));
+      progress.setFraction(0.5);
       if (progress.isCanceled()) {
+        progress.setFraction(1);
         return false;
       }
       if (!mFop.exists(downloadLocation)) {
+        progress.setFraction(1);
         progress.logWarning("Failed to download package!");
         return false;
       }
       File unzip = new File(installTempPath, UNZIP_DIR_FN);
       mFop.mkdirs(unzip);
       InstallerUtil.unzip(downloadLocation, unzip, mFop,
-                          archive.getComplete().getSize(), progress);
+                          archive.getComplete().getSize(), progress.createSubProgress(1));
+      progress.setFraction(1);
       if (progress.isCanceled()) {
         return false;
       }
@@ -123,6 +129,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
       }
       progress.logWarning(message.toString(), e);
     }
+    progress.setFraction(1);
     return false;
   }
 

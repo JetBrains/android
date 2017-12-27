@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.adtui.common.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -26,14 +29,15 @@ import java.awt.geom.Rectangle2D;
 
 public class ConstraintsLayer extends Layer {
   private final ScreenView myScreenView;
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
 
   private Dimension myScreenViewSize = new Dimension();
   private Rectangle mySizeRectangle = new Rectangle();
   private final boolean showOnSelection;
   private boolean myShowOnHover = false;
+  private boolean myTemporaryShow = false;
 
-  public ConstraintsLayer(DesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
+  public ConstraintsLayer(NlDesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
     myDesignSurface = designSurface;
     myScreenView = screenView;
     this.showOnSelection = showOnSelection;
@@ -68,11 +72,11 @@ public class ConstraintsLayer extends Layer {
 
     NlModel myModel = myScreenView.getModel();
 
-    if (!myShowOnHover && showOnSelection) {
+    if (!myTemporaryShow && !myShowOnHover && showOnSelection) {
       return;
     }
 
-    if (myModel.getComponents().size() == 0) {
+    if (myModel.getComponents().isEmpty()) {
       return;
     }
     NlComponent component = myModel.getComponents().get(0);
@@ -105,9 +109,9 @@ public class ConstraintsLayer extends Layer {
    * @return true if the component needs a repaint (for example when running an application)
    */
   private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component, boolean parentHandlesPainting) {
-    if (component.viewInfo != null) {
+    if (NlComponentHelperKt.getViewInfo(component) != null) {
 
-      ViewHandler handler = component.getViewHandler();
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
       boolean handlesPainting = false;
 
       // Check if the view handler handles the painting
@@ -131,5 +135,22 @@ public class ConstraintsLayer extends Layer {
       needsRepaint |= drawComponent(gc, child, parentHandlesPainting);
     }
     return needsRepaint;
+  }
+
+  @Override
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // For constraint layer, set show on hover if they are above their screen view
+    boolean show = false;
+    if (getScreenView() == myDesignSurface.getHoverSceneView(x, y)) {
+      show = true;
+    }
+    if (isShowOnHover() != show) {
+      setShowOnHover(show);
+      myDesignSurface.repaint();
+    }
+  }
+
+  public void setTemporaryShow(boolean temporaryShow) {
+    myTemporaryShow = temporaryShow;
   }
 }

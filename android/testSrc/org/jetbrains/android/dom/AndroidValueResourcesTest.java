@@ -16,8 +16,8 @@
 
 package org.jetbrains.android.dom;
 
-import com.android.builder.model.AndroidProject;
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -26,6 +26,7 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -253,6 +254,16 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
   }
 
+  public void testBoolResourceReferenceDumbMode() throws Throwable {
+    myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
+    // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference.xml");
+    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
+  }
+
   public void testResourceReferenceAsValueHighlighting() throws Throwable {
     doTestHighlighting();
   }
@@ -355,6 +366,13 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
+  public void testTranslatableAttributeCompletionDumbMode() throws Throwable {
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
+    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+  }
+
   public void testTranslatableFalseCompletion() throws Throwable {
     toTestCompletion("strings_translatable_false.xml", "strings_translatable_false_after.xml");
   }
@@ -438,7 +456,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
@@ -466,7 +485,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
-  public void testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
@@ -494,7 +514,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
-  public void testNavigationInPlatformXml3() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
@@ -562,6 +583,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     VirtualFile file = copyFileToProject("spellchecker6.xml", "res/values/spellchecker6.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testSpellNewlines() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    doTestHighlighting();
   }
 
   public void testDoNotFlagLintXml() throws Throwable {

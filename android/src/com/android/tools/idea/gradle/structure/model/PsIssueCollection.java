@@ -19,17 +19,13 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.PLAIN_TEXT;
 
@@ -37,7 +33,8 @@ public class PsIssueCollection {
   @NotNull private final Object myLock = new Object();
 
   @GuardedBy("myLock")
-  @NotNull private final Multimap<PsPath, PsIssue> myIssues = HashMultimap.create();
+  @NotNull
+  private final Multimap<PsPath, PsIssue> myIssues = HashMultimap.create();
 
   @NotNull private final PsContext myContext;
 
@@ -80,7 +77,7 @@ public class PsIssueCollection {
   public List<PsIssue> findIssues(@NotNull PsPath path, @Nullable Comparator<PsIssue> comparator) {
     List<PsIssue> issueList;
     synchronized (myLock) {
-      issueList = myIssues.get(path).stream().collect(Collectors.toList());
+      issueList = new ArrayList<>(myIssues.get(path));
     }
     if (comparator != null && issueList.size() > 1) {
       Collections.sort(issueList, comparator);
@@ -91,17 +88,21 @@ public class PsIssueCollection {
   @NotNull
   public List<PsIssue> getValues() {
     synchronized (myLock) {
-      return myIssues.values().stream().collect(Collectors.toList());
+      return new ArrayList<>(myIssues.values());
     }
   }
 
   @NotNull
   public List<PsIssue> getValues(@NotNull Class<? extends PsPath> pathType) {
-    Set<PsIssue> issues = Sets.newHashSet();
+    Set<PsIssue> issues = new HashSet<>();
     synchronized (myLock) {
-      myIssues.keySet().stream().filter(pathType::isInstance).forEachOrdered(path -> issues.addAll(myIssues.get(path)));
+      for (PsPath path : myIssues.keySet()) {
+        if (pathType.isInstance(path)) {
+          issues.addAll(myIssues.get(path));
+        }
+      }
     }
-    return issues.stream().collect(Collectors.toList());
+    return new ArrayList<>(issues);
   }
 
   public boolean isEmpty() {
@@ -116,13 +117,13 @@ public class PsIssueCollection {
       return null;
     }
 
-    List<PsIssue> sorted = Lists.newArrayList(issues);
+    List<PsIssue> sorted = new ArrayList<>(issues);
     Collections.sort(sorted, IssuesByTypeAndTextComparator.INSTANCE);
 
     boolean useBullets = issues.size() > 1;
 
     // Removed duplicated lines.
-    Set<String> lines = Sets.newLinkedHashSet();
+    Set<String> lines = new LinkedHashSet<>();
     for (PsIssue issue : sorted) {
       String line = issue.getText();
       if (includePath) {
@@ -175,7 +176,7 @@ public class PsIssueCollection {
   public void remove(@NotNull PsIssueType type) {
     synchronized (myLock) {
       Set<PsPath> paths = myIssues.keySet();
-      List<Pair<PsPath,PsIssue>> toRemove = Lists.newArrayList();
+      List<Pair<PsPath, PsIssue>> toRemove = new ArrayList<>();
       for (PsPath path : paths) {
         Collection<PsIssue> issues = myIssues.get(path);
         for (PsIssue issue : issues) {
@@ -188,13 +189,6 @@ public class PsIssueCollection {
       for (Pair<PsPath, PsIssue> pair : toRemove) {
         myIssues.remove(pair.getFirst(), pair.getSecond());
       }
-    }
-  }
-
-  @TestOnly
-  void clear() {
-    synchronized (myLock) {
-      myIssues.clear();
     }
   }
 }

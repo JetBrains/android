@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -30,15 +31,23 @@ public class ProjectCleanup {
   }
 
   @VisibleForTesting
-  ProjectCleanup(@NotNull ProjectCleanupStep[] cleanupSteps) {
+  ProjectCleanup(@NotNull ProjectCleanupStep... cleanupSteps) {
     myCleanupSteps = cleanupSteps;
   }
 
   public void cleanUpProject(@NotNull Project project,
                              @NotNull IdeModifiableModelsProvider ideModelsProvider,
                              @Nullable ProgressIndicator indicator) {
-    for (ProjectCleanupStep cleanupStep : myCleanupSteps) {
-      cleanupStep.cleanUpProject(project, ideModelsProvider, indicator);
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (syncState.lastSyncFailedOrHasIssues()) {
+      return;
+    }
+    boolean syncSkipped = syncState.isSyncSkipped();
+    for (ProjectCleanupStep step : myCleanupSteps) {
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
+      }
+      step.cleanUpProject(project, ideModelsProvider, indicator);
     }
   }
 }

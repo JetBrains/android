@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.fileEditor.impl.EditorHistoryManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -52,7 +55,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     myRenderContext = renderContext;
   }
 
-  protected void updatePresentation() {
+  protected void updatePresentation(@NotNull Presentation presentation) {
   }
 
   @Override
@@ -64,7 +67,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     manager.fireBeforeActionPerformed(this, dataContext, e);
 
     tryUpdateConfiguration();
-    updatePresentation();
+    updatePresentation(e.getPresentation());
   }
 
   /**
@@ -89,14 +92,15 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         if (module != null) {
           VirtualFile file = myRenderContext.getConfiguration().getFile();
           if (file != null) {
-            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getAppResources(module, true), file);
+            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getOrCreateInstance(module), file);
             List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
             if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
               // Switch files, and leave this configuration alone
               pickedBetterMatch(matchingFiles.get(0), file);
               AndroidFacet facet = AndroidFacet.getInstance(module);
               assert facet != null;
-              updateConfiguration(facet.getConfigurationManager().getConfiguration(matchingFiles.get(0)), true /*commit*/);
+              ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
+              updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
               return;
             }
           }
@@ -113,28 +117,14 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     assert module != null;
     Project project = module.getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
-    FileEditorManager manager = FileEditorManager.getInstance(project);
-    FileEditor selectedEditor = manager.getSelectedEditor(old);
-    List<FileEditor> editors = manager.openEditor(descriptor, true);
+    FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
+    Pair<FileEditor, FileEditorProvider> previousSelection = manager.getSelectedEditorWithProvider(old);
+    manager.openEditor(descriptor, true);
 
-    if (selectedEditor != null) {
-      FileEditorProvider provider = EditorHistoryManager.getInstance(project).getSelectedProvider(old);
+    if (previousSelection != null) {
+      FileEditorProvider provider = previousSelection.getSecond();
       if (provider != null) {
         manager.setSelectedEditor(file, provider.getEditorTypeId());
-      }
-      // Proactively switch to the new editor right away in the layout XML preview, if applicable
-      if (!editors.isEmpty()) {
-        for (FileEditor editor : editors) {
-          if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
-            if (RenderService.NELE_ENABLED) {
-              // TODO
-              //AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
-              //previewManager.notifyFileShown((TextEditor)editor, true);
-              // Notify nele preview manager instead
-            }
-            break;
-          }
-        }
       }
     }
   }
@@ -161,7 +151,8 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         sb.append(FD_RES_LAYOUT);
         sb.append(File.separatorChar);
       }
-    } else {
+    }
+    else {
       if (folderName.startsWith(FD_RES_LAYOUT)) {
         folderName = folderName.substring(FD_RES_LAYOUT.length() + 1);
       }

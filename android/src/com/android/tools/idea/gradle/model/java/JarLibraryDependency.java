@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.model.java;
 
 import org.gradle.tooling.model.GradleModuleVersion;
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,53 +45,21 @@ public class JarLibraryDependency implements Serializable {
   @Nullable private final GradleModuleVersion myModuleVersion;
   private final boolean myResolved;
 
-  @Nullable
-  public static JarLibraryDependency copy(@NotNull IdeaSingleEntryLibraryDependency original) {
-    File binaryPath = original.getFile();
-    if (binaryPath != null) {
-      String scope = null;
-      IdeaDependencyScope originalScope = original.getScope();
-      if (originalScope != null) {
-        scope = originalScope.getScope();
-      }
-      boolean resolved = isResolved(original);
-      String name;
-      if (resolved) {
-        // Gradle API doesn't provide library name at the moment.
-        name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
-      }
-      else {
-        name = getUnresolvedDependencyName(original);
-        if (name == null) {
-          return null;
-        }
-      }
-      return new JarLibraryDependency(name, binaryPath, original.getSource(), original.getJavadoc(), scope,
-                                      original.getGradleModuleVersion(), resolved);
+  @NotNull
+  public static String getDependencyName(@NotNull File binaryPath, boolean resolved) {
+    if (resolved) {
+      // Gradle API doesn't provide library name at the moment.
+      return binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
     }
-    return null;
-  }
-
-  private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    String libraryName = getFileName(dependency);
-    return libraryName != null && !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
-  }
-
-  @Nullable
-  private static String getUnresolvedDependencyName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    String libraryName = getFileName(dependency);
-    if (libraryName == null) {
-      return null;
+    else {
+      // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
+      // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
+      return binaryPath.getName().substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
     }
-    // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
-    // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
-    return libraryName.substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
   }
 
-  @Nullable
-  private static String getFileName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
-    File binaryPath = dependency.getFile();
-    return binaryPath != null ? binaryPath.getName() : null;
+  public static boolean isResolved(@NotNull String libraryName) {
+    return !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
   }
 
   public JarLibraryDependency(@NotNull String name,

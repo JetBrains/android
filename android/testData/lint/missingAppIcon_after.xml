@@ -3,7 +3,7 @@
     package="test.pkg" >
 
     <application android:allowBackup="false"
-        android:icon="">
+        android:icon="@mipmap/">
     </application>
 
 </manifest>

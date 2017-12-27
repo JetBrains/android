@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,9 +30,9 @@ import java.util.List;
  * Action which selects the parent, if possible
  */
 public class SelectParentAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public SelectParentAction(@NotNull DesignSurface surface) {
+  public SelectParentAction(@NotNull NlDesignSurface surface) {
     super("Select Parent", "Select Parent", null);
     mySurface = surface;
   }
@@ -40,7 +40,7 @@ public class SelectParentAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     boolean enabled;
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       List<NlComponent> selection = screenView.getSelectionModel().getSelection();
       enabled = selection.size() == 1 && !selection.get(0).isRoot();
@@ -53,7 +53,7 @@ public class SelectParentAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();

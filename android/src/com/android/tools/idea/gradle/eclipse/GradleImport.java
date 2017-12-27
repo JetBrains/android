@@ -25,9 +25,9 @@ import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
@@ -53,6 +53,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
 import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
 import static com.google.common.base.Charsets.UTF_8;
 import static java.io.File.separator;
@@ -93,10 +94,9 @@ import static java.io.File.separatorChar;
  * </ul>
  */
 public class GradleImport {
-  public static final String NL = SdkUtils.getLineSeparator();
+  public static final String NL = System.lineSeparator();
   public static final int CURRENT_COMPILE_VERSION = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-  public static final String CURRENT_BUILD_TOOLS_VERSION = "25.0.0";
-  public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + GRADLE_PLUGIN_RECOMMENDED_VERSION;
+  public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
   public static final String ECLIPSE_DOT_PROJECT = ".project";
@@ -105,10 +105,6 @@ public class GradleImport {
 
   static {
     String repository = System.getProperty(MAVEN_URL_PROPERTY);
-    if (repository == null) {
-      repository = System.getenv("MAVEN_URL"); // as used by the CI server, and also all other test projects
-    }
-
     if (repository == null) {
       repository = "jcenter()";
     }
@@ -123,7 +119,6 @@ public class GradleImport {
    * Whether we should place the repository definitions in the global build.gradle rather
    * than in each module
    */
-  static final boolean DECLARE_GLOBAL_REPOSITORIES = true;
   private static final String WORKSPACE_PROPERTY = "android.eclipseWorkspace";
   private final List<String> myWarnings = Lists.newArrayList();
   private final List<String> myErrors = Lists.newArrayList();
@@ -158,7 +153,6 @@ public class GradleImport {
    * Whether we should emit per-module repository definitions
    */
   @SuppressWarnings("PointlessBooleanExpression")
-  private boolean myPerModuleRepositories = !DECLARE_GLOBAL_REPOSITORIES;
   private Map<String, File> myPathMap = Maps.newTreeMap();
   /**
    * Map of modules user chose to import with their new names. Can be
@@ -558,22 +552,6 @@ public class GradleImport {
   }
 
   /**
-   * Returns whether the importer emits the repository definitions in each module's build.gradle
-   * rather than at the top level in the shared build.gradle
-   */
-  public boolean isPerModuleRepositories() {
-    return myPerModuleRepositories;
-  }
-
-  /**
-   * Sets whether the importer emits the repository definitions in each module's build.gradle
-   * rather than at the top level in the shared build.gradle
-   */
-  public void setPerModuleRepositories(boolean perModuleRepositories) {
-    myPerModuleRepositories = perModuleRepositories;
-  }
-
-  /**
    * Whether import should lower-case module names from ADT project names
    */
   public boolean isGradleNameStyle() {
@@ -871,15 +849,7 @@ public class GradleImport {
    * <p>
    * <b>NOTE</b>: When performing an import into an existing project, note that
    * you should call {@link #setImportIntoExisting(boolean)} before the call to
-   * read in projects ({@link #importProjects(java.util.List)}. Note also that
-   * you should call {@link #setPerModuleRepositories(boolean)} with a suitable
-   * value based on whether the existing project defines shared repositories.
-   * This is similar to how we pass the "perModuleRepositories" variable to
-   * our Freemarker templates (such as
-   * templates/gradle-projects/NewAndroidModule/root/build.gradle.ftl ) so it
-   * can decide whether to include this info in the new module. In Studio we
-   * set it based on whether $PROJECT/build.gradle contains "repositories" (this
-   * is done in NewModuleWizard).
+   * read in projects ({@link #importProjects(java.util.List)}.
    * </p>
    *
    * @param projectDir     the root directory containing the project to write into
@@ -995,11 +965,6 @@ public class GradleImport {
     StringBuilder sb = new StringBuilder(500);
 
     if (module.isApp() || module.isAndroidLibrary()) {
-      //noinspection PointlessBooleanExpression,ConstantConditions
-      if (myPerModuleRepositories) {
-        appendRepositories(sb, true);
-      }
-
       if (module.isApp()) {
         sb.append("apply plugin: 'com.android.application'").append(NL);
       }
@@ -1008,13 +973,6 @@ public class GradleImport {
         sb.append("apply plugin: 'com.android.library'").append(NL);
       }
       sb.append(NL);
-      //noinspection PointlessBooleanExpression,ConstantConditions
-      if (myPerModuleRepositories) {
-        sb.append("repositories {").append(NL);
-        sb.append("    ").append(MAVEN_REPOSITORY).append(NL);
-        sb.append("}").append(NL);
-        sb.append(NL);
-      }
       sb.append("android {").append(NL);
       AndroidVersion compileSdkVersion = module.getCompileSdkVersion();
       AndroidVersion minSdkVersion = module.getMinSdkVersion();
@@ -1120,11 +1078,6 @@ public class GradleImport {
 
     }
     else if (module.isJavaLibrary()) {
-      //noinspection PointlessBooleanExpression,ConstantConditions
-      if (myPerModuleRepositories) {
-        appendRepositories(sb, false);
-      }
-
       sb.append("apply plugin: 'java'").append(NL);
 
       String languageLevel = module.getLanguageLevel();
@@ -1150,59 +1103,29 @@ public class GradleImport {
   String getBuildToolsVersion() {
     AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(mySdkLocation);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool == null) {
-      buildTool = sdkHandler.getLatestBuildTool(progress, true);
-    }
-    if (buildTool != null) {
-      return buildTool.getRevision().toString();
-    }
-
-    return CURRENT_BUILD_TOOLS_VERSION;
-  }
-
-  private void appendRepositories(@NonNull StringBuilder sb, boolean needAndroidPlugin) {
-    //noinspection PointlessBooleanExpression,ConstantConditions
-    if (myPerModuleRepositories) {
-      //noinspection SpellCheckingInspection
-      sb.append("buildscript {").append(NL);
-      sb.append("    repositories {").append(NL);
-      sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
-      sb.append("    }").append(NL);
-      if (needAndroidPlugin) {
-        sb.append("    dependencies {").append(NL);
-        sb.append("        classpath '" + ANDROID_GRADLE_PLUGIN + "'").append(NL);
-        sb.append("    }").append(NL);
-      }
-      sb.append("}").append(NL);
-    }
+    return getRecommendedBuildToolsRevision(sdkHandler, progress).toString();
   }
 
   private void createProjectBuildGradle(@NonNull File file) throws IOException {
     StringBuilder sb = new StringBuilder();
-    sb.append("// Top-level build file where you can add configuration options common to all sub-projects/modules.");
+    sb.append("// Top-level build file where you can add configuration options common to all sub-projects/modules.").append(NL);
 
-    //noinspection PointlessBooleanExpression,ConstantConditions
-    if (!myPerModuleRepositories) {
-      sb.append(NL);
-      //noinspection SpellCheckingInspection
-      sb.append("buildscript {").append(NL);
-      sb.append("    repositories {").append(NL);
-      sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
-      sb.append("    }").append(NL);
-      sb.append("    dependencies {").append(NL);
-      sb.append("        classpath '" + ANDROID_GRADLE_PLUGIN + "'").append(NL);
-      sb.append("    }").append(NL);
-      sb.append("}").append(NL);
-      sb.append(NL);
-      //noinspection SpellCheckingInspection
-      sb.append("allprojects {").append(NL);
-      sb.append("    repositories {").append(NL);
-      sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
-      sb.append("    }").append(NL);
-      sb.append("}");
-    }
+    //noinspection SpellCheckingInspection
+    sb.append("buildscript {").append(NL);
+    sb.append("    repositories {").append(NL);
+    sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
+    sb.append("    }").append(NL);
+    sb.append("    dependencies {").append(NL);
+    sb.append("        classpath '" + ANDROID_GRADLE_PLUGIN + "'").append(NL);
+    sb.append("    }").append(NL);
+    sb.append("}").append(NL);
     sb.append(NL);
+    //noinspection SpellCheckingInspection
+    sb.append("allprojects {").append(NL);
+    sb.append("    repositories {").append(NL);
+    sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
+    sb.append("    }").append(NL);
+    sb.append("}").append(NL);
     Files.write(sb.toString(), file, UTF_8);
   }
 

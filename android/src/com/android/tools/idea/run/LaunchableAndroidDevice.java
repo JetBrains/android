@@ -36,21 +36,17 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class LaunchableAndroidDevice implements AndroidDevice {
+public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
-    Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
-    Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
-  private final AvdInfo myAvdInfo;
+      Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
+      Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
+  @NotNull private final AvdInfo myAvdInfo;
 
-  private final Object LOCK = new Object();
+  private final Object myLock = new Object();
 
-  @GuardedBy("LOCK")
+  @GuardedBy("myLock")
   private ListenableFuture<IDevice> myLaunchedEmulator;
 
   public LaunchableAndroidDevice(@NotNull AvdInfo avdInfo) {
@@ -126,16 +122,21 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
-    renderer.setIcon(AndroidIcons.Ddms.EmulatorDevice);
+  public boolean renderLabel(@NotNull SimpleColoredComponent component, boolean isCompatible, @Nullable String searchPrefix) {
+    component.setIcon(AndroidIcons.Ddms.EmulatorDevice);
     SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
+    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), component);
+    return true;
+  }
+
+  @Override
+  public void prepareToRenderLabel() {
   }
 
   @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    synchronized (LOCK) {
+    synchronized (myLock) {
       if (myLaunchedEmulator == null) {
         myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
       }
@@ -146,7 +147,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public ListenableFuture<IDevice> getLaunchedDevice() {
-    synchronized (LOCK) {
+    synchronized (myLock) {
       if (myLaunchedEmulator == null) {
         throw new IllegalStateException("Attempt to get device corresponding to an emulator that hasn't been launched yet.");
       }
@@ -161,7 +162,6 @@ public class LaunchableAndroidDevice implements AndroidDevice {
                                     @NotNull IAndroidTarget projectTarget,
                                     @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
                                     @Nullable Set<String> supportedAbis) {
-
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
     if (myAvdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
@@ -177,6 +177,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
     return compatibility.combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, supportedAbis, this));
   }
 
+  @NotNull
   public AvdInfo getAvdInfo() {
     return myAvdInfo;
   }

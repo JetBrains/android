@@ -31,7 +31,7 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JEditorPane myUrlPane;
 
-  private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/tools/devices/emulator.html#vm-linux";
+  private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/r/studio-ui/emulator-kvm-setup.html";
 
   public LinuxHaxmInfoStep() {
     super("Emulator Settings");

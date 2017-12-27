@@ -1,4 +1,6 @@
 dependencies {
   compile 'com.google.guava:guava:19.0'
   testCompile 'junit:junit:4.11'
+  androidTestUtil 'com.android.support.test:orchestrator:1.0.0'
+  androidTestCompile 'com.android.support.test:runner:0.5'
 }

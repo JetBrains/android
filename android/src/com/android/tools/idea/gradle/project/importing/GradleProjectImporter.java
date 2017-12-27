@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -39,7 +41,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static com.android.tools.idea.project.NewProjects.activateProjectView;
+import static com.android.tools.idea.util.ToolWindows.activateProjectView;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
@@ -145,9 +148,11 @@ public class GradleProjectImporter {
     return new NewProjectImportGradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
-        setLastOpenedFile(project, projectFolder);
-        focusProjectWindow(project, false);
-        activateProjectView(project);
+        TransactionGuard.getInstance().submitTransactionLater(project, () -> {
+          setLastOpenedFile(project, projectFolder);
+          focusProjectWindow(project, false);
+          activateProjectView(project);
+        });
       }
     };
   }
@@ -173,15 +178,12 @@ public class GradleProjectImporter {
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
-    Project project = request.getProject();
-    Project newProject = project;
+    Project newProject = request.getProject();
+
     if (newProject == null) {
       newProject = open
                    ? myNewProjectSetup.openProject(projectFolderPath.getPath())
                    : myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
-    }
-
-    if (project == null) {
       GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
       gradleSettings.setGradleVmOptions("");
 
@@ -195,6 +197,8 @@ public class GradleProjectImporter {
         gradleSettings.setLinkedProjectsSettings(projects);
       }
     }
+
+    GradleProjectInfo.getInstance(newProject).setNewOrImportedProject(true);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.getLanguageLevel());
 
@@ -213,7 +217,8 @@ public class GradleProjectImporter {
     request.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
            .setRunInBackground(false)
            .setUseCachedGradleModels(false)
-           .setNewProject(true);
+           .setNewOrImportedProject()
+           .setTrigger(TRIGGER_PROJECT_LOADED);
     // @formatter:on
     return request;
   }

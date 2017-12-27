@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.templates.Parameter.Constraint;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,19 +28,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+
 /**
  * Class which handles setting up the relationships between a bunch of {@link Parameter}s and then
  * resolves them.
  */
 public final class ParameterValueResolver {
 
-  @NotNull private static final Deduplicator DO_NOTHING_DEDUPLICATOR = new Deduplicator() {
-    @Nullable
-    @Override
-    public String deduplicate(@NotNull Parameter parameter, @Nullable String value) {
-      return value;
-    }
-  };
+  @NotNull private static final Deduplicator DO_NOTHING_DEDUPLICATOR = (parameter, value) -> value;
   @NotNull private final Set<Parameter> myComputedParameters = Sets.newHashSet();
   @NotNull private final Set<Parameter> myStaticParameters = Sets.newHashSet();
   @NotNull private final Deduplicator myDeduplicator;
@@ -82,8 +78,8 @@ public final class ParameterValueResolver {
     myUserValues = userValues;
     myAdditionalValues = additionalValues;
     for (Parameter parameter : parameters) {
-      if (parameter != null && !StringUtil.isEmptyOrSpaces(parameter.id)) {
-        if (!StringUtil.isEmptyOrSpaces(parameter.suggest) && !userValues.containsKey(parameter)) {
+      if (parameter != null && !isEmptyOrSpaces(parameter.id)) {
+        if (!isEmptyOrSpaces(getSuggestOrInitial(parameter)) && !userValues.containsKey(parameter)) {
           myComputedParameters.add(parameter);
         }
         else {
@@ -92,6 +88,11 @@ public final class ParameterValueResolver {
       }
     }
     myDeduplicator = deduplicator;
+  }
+
+  @NotNull
+  private static String getSuggestOrInitial(Parameter parameter) {
+    return isEmptyOrSpaces(parameter.suggest) && parameter.constraints.contains(Constraint.UNIQUE) ? parameter.initial : parameter.suggest;
   }
 
   @Nullable
@@ -121,9 +122,9 @@ public final class ParameterValueResolver {
 
   @Nullable
   private Object computeParameterValue(@NotNull Parameter computedParameter, @NotNull Map<String, Object> currentValues) {
-    String suggest = computedParameter.suggest;
+    String suggest = getSuggestOrInitial(computedParameter);
 
-    assert !StringUtil.isEmptyOrSpaces(suggest);
+    assert !isEmptyOrSpaces(suggest);
     String value = myStringEvaluator.evaluate(suggest, currentValues);
     value = myDeduplicator.deduplicate(computedParameter, value);
     return decodeInitialValue(computedParameter, value);

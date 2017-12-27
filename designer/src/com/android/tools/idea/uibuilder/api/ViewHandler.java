@@ -16,11 +16,14 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import icons.AndroidDesignerIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +34,9 @@ import java.util.List;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
-/** A view handler is a tool handler for a given Android view class */
+/**
+ * A view handler is a tool handler for a given Android view class
+ */
 public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
@@ -65,7 +70,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * @return true, or false if the view handler wants to cancel this component
    * creation. This typically happens if for example the view handler tries
    * to customize the component by for example asking the user for a specific
-   * resource (via {@link ViewEditor#displayResourceInput(EnumSet, String)}),
+   * resource (via {@link ViewEditor#displayResourceInput(String, EnumSet)}),
    * and then the user cancels that dialog. At that point we don't want an
    * unconfigured component lingering around, so the component create handler
    * cancels the drop instead by returning false.
@@ -128,7 +133,9 @@ public class ViewHandler extends StructurePaneComponentHandler {
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
   }
 
-  /** Utility method which exposes the toolbar actions in a submenu */
+  /**
+   * Utility method which exposes the toolbar actions in a submenu
+   */
   protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
     List<ViewAction> nestedActions = Lists.newArrayList();
     addToolbarActions(nestedActions);
@@ -136,10 +143,35 @@ public class ViewHandler extends StructurePaneComponentHandler {
   }
 
   protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
-    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, AndroidDesignerIcons.FillWidth,
-                                         AndroidDesignerIcons.WrapWidth).setRank(startRank));
-    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
-                                         AndroidDesignerIcons.WrapHeight).setRank(startRank + 20));
+    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
+                                         StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL).setRank(startRank));
+    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
+                                         StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL).setRank(startRank + 20));
     // TODO: Gravity, etc
+  }
+
+
+  /**
+   * Handles a double click on the component in the component tree
+   */
+  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    // Do nothing
+  }
+
+  /**
+   * Handles a double click on the component in the design surface
+   *
+   * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
+   * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
+   */
+  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
+                                        @NotNull NlComponent component,
+                                        @AndroidCoordinate int x,
+                                        @AndroidCoordinate int y) {
+  }
+
+  @Nullable
+  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return null;
   }
 }

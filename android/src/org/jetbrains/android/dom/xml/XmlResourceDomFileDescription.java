@@ -53,7 +53,7 @@ public class XmlResourceDomFileDescription extends AndroidResourceDomFileDescrip
     }
     final XmlTag rootTag = file.getRootTag();
 
-    if (rootTag == null || rootTag.getNamespace().length() > 0) {
+    if (rootTag == null || !rootTag.getNamespace().isEmpty()) {
       return false;
     }
     for (XmlAttribute attribute : rootTag.getAttributes()) {

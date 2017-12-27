@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.updater.configure;
 
-
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * TreeNode that displays summary information for packages with multiple versions available. It will show as installed if the latest version
@@ -33,21 +37,27 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   private final DetailsTreeNode myMaxVersionNode;
   private final Collection<DetailsTreeNode> myVersionNodes;
 
-  public MultiVersionTreeNode(Collection<DetailsTreeNode> versionNodes) {
+  public MultiVersionTreeNode(@NotNull Collection<DetailsTreeNode> versionNodes) {
     myVersionNodes = versionNodes;
-    myMaxVersionNode = myVersionNodes.stream().max(UpdaterTreeNode::compareTo).orElse(null);
+    RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
+      myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),
+      null,
+      true,
+      GradleVersion::tryParse,
+      Comparator.nullsFirst(Comparator.naturalOrder()));
+    myMaxVersionNode = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
   }
 
-  @Override
-  public PackageNodeModel.SelectedState getInitialState() {
+  @NotNull
+  private PackageNodeModel.SelectedState getState(@NotNull Function<UpdaterTreeNode, PackageNodeModel.SelectedState> childStateGetter) {
     if (myMaxVersionNode == null) {  // can be the case before remote packages are downloaded
       return PackageNodeModel.SelectedState.NOT_INSTALLED;
     }
-    if (myMaxVersionNode.getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
+    if (childStateGetter.apply(myMaxVersionNode) == PackageNodeModel.SelectedState.INSTALLED) {
       return PackageNodeModel.SelectedState.INSTALLED;
     }
     for (UpdaterTreeNode node : myVersionNodes) {
-      if (node.getInitialState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
+      if (childStateGetter.apply(node) != PackageNodeModel.SelectedState.NOT_INSTALLED) {
         return PackageNodeModel.SelectedState.MIXED;
       }
     }
@@ -55,19 +65,15 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   }
 
   @Override
+  @NotNull
+  public PackageNodeModel.SelectedState getInitialState() {
+    return getState(UpdaterTreeNode::getInitialState);
+  }
+
+  @Override
+  @NotNull
   public PackageNodeModel.SelectedState getCurrentState() {
-    if (myMaxVersionNode == null) {
-      return PackageNodeModel.SelectedState.NOT_INSTALLED;
-    }
-    if (myMaxVersionNode.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
-      return PackageNodeModel.SelectedState.INSTALLED;
-    }
-    for (UpdaterTreeNode node : myVersionNodes) {
-      if (node.getCurrentState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
-        return PackageNodeModel.SelectedState.MIXED;
-      }
-    }
-    return PackageNodeModel.SelectedState.NOT_INSTALLED;
+    return getState(UpdaterTreeNode::getCurrentState);
   }
 
   @Override
@@ -98,6 +104,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   }
 
   @Override
+  @NotNull
   public String getStatusString() {
     if (getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
       return "Installed";
@@ -107,6 +114,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
       String revision;
       UpdatablePackage p = myMaxVersionNode.getItem();
       if (p.hasRemote()) {
+        //noinspection ConstantConditions
         revision = p.getRemote().getVersion().toString();
       }
       else {

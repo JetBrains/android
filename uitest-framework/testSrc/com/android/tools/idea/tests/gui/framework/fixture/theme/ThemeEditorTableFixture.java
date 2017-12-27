@@ -57,14 +57,6 @@ public class ThemeEditorTableFixture extends JTableFixture {
     });
   }
 
-  public boolean hasWarningIconAt(@NotNull final TableCell cell) {
-    return GuiQuery.getNonNull(() -> {
-      Component renderer = rendererComponentAt(cell);
-      return (renderer instanceof ResourceComponent)
-             && new ResourceComponentFixture(robot(), (ResourceComponent)renderer).hasWarningIcon();
-    });
-  }
-
   @NotNull
   public List<String> getComboBoxContentsAt(@NotNull final TableCell cell) {
     return GuiQuery.getNonNull(() -> {

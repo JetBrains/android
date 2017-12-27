@@ -5,7 +5,9 @@
     <constraints>
       <xy x="20" y="20" width="715" height="505"/>
     </constraints>
-    <properties/>
+    <properties>
+      <name value="translationsEditor"/>
+    </properties>
     <border type="none"/>
     <children>
       <scrollpane id="9b388" class="com.intellij.ui.components.JBScrollPane">
@@ -17,7 +19,9 @@
         <children>
           <component id="dccf6" class="com.android.tools.idea.editors.strings.table.StringResourceTable" binding="myTable" custom-create="true">
             <constraints/>
-            <properties/>
+            <properties>
+              <name value="table"/>
+            </properties>
           </component>
         </children>
       </scrollpane>
@@ -37,13 +41,16 @@
               <text value="Key:"/>
             </properties>
           </component>
-          <component id="8895c" class="javax.swing.JTextField" binding="myKeyTextField">
+          <component id="8895c" class="javax.swing.JTextField" binding="myKeyTextField" custom-create="true">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
-            <properties/>
+            <properties>
+              <enabled value="false"/>
+              <name value="keyTextField"/>
+            </properties>
           </component>
           <component id="4355b" class="com.intellij.ui.components.JBLabel">
             <constraints>
@@ -68,12 +75,18 @@
             <properties>
               <name value="defaultValueTextField"/>
             </properties>
+            <properties>
+              <enabled value="false"/>
+            </properties>
           </component>
           <component id="60426" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myTranslationTextField" custom-create="true">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <enabled value="false"/>
+              <name value="translationTextField"/>
+            </properties>
           </component>
         </children>
       </grid>

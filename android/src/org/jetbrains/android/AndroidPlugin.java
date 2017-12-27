@@ -49,6 +49,10 @@ public class AndroidPlugin implements ApplicationComponent {
     }
   }
 
+  @Override
+  public void disposeComponent() {
+  }
+
   public static boolean isGuiTestingMode() {
     return ourGuiTestingMode;
   }

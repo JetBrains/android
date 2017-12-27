@@ -49,6 +49,7 @@ public class InspectionsFixture extends ToolWindowFixture {
   public String getResults() {
     activate();
     waitUntilIsVisible();
+    GuiTests.waitForBackgroundTasks(myRobot);
 
     return GuiQuery.getNonNull(
       () -> {

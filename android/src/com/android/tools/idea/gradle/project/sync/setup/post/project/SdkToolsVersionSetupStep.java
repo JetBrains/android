@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
+import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -37,6 +37,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class SdkToolsVersionSetupStep extends ProjectSetupStep {
@@ -63,7 +64,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(MIN_TOOLS_REV);
       String message = "Version " + MIN_TOOLS_REV + " or later is required.";
-      AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
+      AndroidNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       myNewSdkVersionToolsInfoAlreadyShown = true;
     }
   }
@@ -97,7 +98,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
       requested.add(FD_TOOLS);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
       }
     }
 

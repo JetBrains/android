@@ -17,22 +17,17 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class AndroidModuleSetup {
-  private final AndroidModuleSetupStep[] mySetupSteps;
+  @NotNull private final AndroidModuleSetupStep[] mySetupSteps;
 
-  public AndroidModuleSetup() {
-    this(AndroidModuleSetupStep.getExtensions());
-  }
-
-  @VisibleForTesting
-  AndroidModuleSetup(AndroidModuleSetupStep[] setupSteps) {
+  public AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
@@ -40,12 +35,19 @@ public class AndroidModuleSetup {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @Nullable AndroidModuleModel androidModel,
                           @Nullable SyncAction.ModuleModels models,
-                          @Nullable ProgressIndicator indicator) {
+                          @Nullable ProgressIndicator indicator,
+                          boolean syncSkipped) {
     for (AndroidModuleSetupStep step : mySetupSteps) {
-      if (indicator != null) {
-        step.displayDescription(module, indicator);
+      if (syncSkipped && !step.invokeOnSkippedSync()) {
+        continue;
       }
       step.setUpModule(module, ideModelsProvider, androidModel, models, indicator);
     }
+  }
+
+  @TestOnly
+  @NotNull
+  public AndroidModuleSetupStep[] getSetupSteps() {
+    return mySetupSteps;
   }
 }

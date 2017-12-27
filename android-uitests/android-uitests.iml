@@ -11,6 +11,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="wizard" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="module" module-name="community-main" scope="TEST" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
@@ -27,5 +28,11 @@
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
     <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
     <orderEntry type="module" module-name="designer" scope="TEST" />
+    <orderEntry type="module" module-name="flags" scope="TEST" />
+    <orderEntry type="module" module-name="adt-ui" scope="TEST" />
+    <orderEntry type="module" module-name="artwork" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
   </component>
 </module>

@@ -17,30 +17,52 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-public class DevicePickerListModel extends AbstractListModel {
-  private final List<DevicePickerEntry> myEntries = Lists.newArrayList();
-  private boolean myShowSerialNumbers;
+public class DevicePickerListModel extends AbstractListModel<DevicePickerEntry> {
+  private final ImmutableList<DevicePickerEntry> myEntries;
+  private final boolean myShowSerialNumbers;
+  private final int myNumConnectedDevices;
 
-  public void reset(@NotNull List<IDevice> connectedDevices, @NotNull List<AvdInfo> avds) {
-    clear();
+  public DevicePickerListModel() {
+    this(Collections.emptyList(), Collections.emptyList());
+  }
 
+  public DevicePickerListModel(@NotNull List<IDevice> connectedDevices, @NotNull List<AvdInfo> avds) {
     List<AndroidDevice> connected = wrapConnectedDevices(connectedDevices, avds);
-    addEntries(connected, getLaunchableDevices(avds, getRunningAvds(connectedDevices)));
-
+    myEntries = createEntries(connected, getLaunchableDevices(avds, getRunningAvds(connectedDevices)));
+    myNumConnectedDevices = connected.size();
     myShowSerialNumbers = shouldShowSerials(connected);
   }
 
+  /**
+   * Tells the model that the content of one of the list entries has changed.
+   *
+   * @param entry the entry with the changed content
+   */
+  public void entryContentChanged(@NotNull DevicePickerEntry entry) {
+    int index = findEntry(entry);
+    if (index >= 0) {
+      fireContentsChanged(entry, index, index);
+    }
+  }
+
+  private int findEntry(DevicePickerEntry entry) {
+    for (int i = 0; i < myEntries.size(); i++) {
+      if (myEntries.get(i).equals(entry)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @NotNull
   private static List<AndroidDevice> wrapConnectedDevices(@NotNull List<IDevice> connectedDevices, @NotNull List<AvdInfo> avdInfos) {
-    List<AndroidDevice> devices = Lists.newArrayList();
+    List<AndroidDevice> devices = new ArrayList<>(connectedDevices.size());
 
     for (IDevice device : connectedDevices) {
       devices.add(new ConnectedAndroidDevice(device, avdInfos));
@@ -50,7 +72,7 @@ public class DevicePickerListModel extends AbstractListModel {
 
   @NotNull
   private static List<AndroidDevice> getLaunchableDevices(@NotNull List<AvdInfo> avds, @NotNull Set<String> runningAvds) {
-    List<AndroidDevice> launchable = Lists.newArrayList();
+    List<AndroidDevice> launchable = new ArrayList<>();
 
     for (AvdInfo avdInfo : avds) {
       if (!runningAvds.contains(avdInfo.getName())) {
@@ -62,7 +84,7 @@ public class DevicePickerListModel extends AbstractListModel {
   }
 
   private static Set<String> getRunningAvds(@NotNull List<IDevice> connectedDevices) {
-    Set<String> runningAvdNames = Sets.newHashSet();
+    Set<String> runningAvdNames = new HashSet<>();
     for (IDevice device : connectedDevices) {
       if (device.isEmulator()) {
         String avdName = device.getAvdName();
@@ -74,59 +96,64 @@ public class DevicePickerListModel extends AbstractListModel {
     return runningAvdNames;
   }
 
-  private void addEntries(@NotNull List<AndroidDevice> connected, @NotNull List<AndroidDevice> launchable) {
+  @NotNull
+  private static ImmutableList<DevicePickerEntry> createEntries(@NotNull List<AndroidDevice> connected,
+                                                                @NotNull List<AndroidDevice> launchable) {
+    ImmutableList.Builder<DevicePickerEntry> entries = ImmutableList.builder();
     AndroidDeviceComparator comparator = new AndroidDeviceComparator();
     Collections.sort(connected, comparator);
     Collections.sort(launchable, comparator);
 
-    myEntries.add(DevicePickerEntry.CONNECTED_DEVICES_MARKER);
+    entries.add(DevicePickerEntry.CONNECTED_DEVICES_MARKER);
     if (!connected.isEmpty()) {
       for (AndroidDevice device : connected) {
-        myEntries.add(DevicePickerEntry.create(device));
+        entries.add(DevicePickerEntry.create(device));
       }
     }
     else {
-      myEntries.add(DevicePickerEntry.NONE);
+      entries.add(DevicePickerEntry.NONE);
     }
 
     if (!launchable.isEmpty()) {
-      myEntries.add(DevicePickerEntry.LAUNCHABLE_DEVICES_MARKER);
+      entries.add(DevicePickerEntry.LAUNCHABLE_DEVICES_MARKER);
 
       for (AndroidDevice device : launchable) {
-        myEntries.add(DevicePickerEntry.create(device));
+        entries.add(DevicePickerEntry.create(device));
       }
     }
-
-    int size = myEntries.size();
-    if (size > 0) {
-      fireIntervalAdded(this, 0, size - 1);
-    }
+    return entries.build();
   }
 
-  private void clear() {
-    int oldSize = getSize();
-    myEntries.clear();
-    if (oldSize > 0) {
-      fireIntervalRemoved(this, 0, oldSize - 1);
-    }
+  /**
+   * Returns the number of connected devices.
+   */
+  public int getNumberOfConnectedDevices() {
+    return myNumConnectedDevices;
   }
 
-  // Returns whether serial numbers should be displayed for the current set of devices.
-  // We only display serial numbers if there are multiple devices with the same manufacturer + model combination
+  /**
+   * Checks whether serial numbers should be displayed for the current set of devices. The serial numbers
+   * are displayed only if there are multiple devices with the same manufacturer + model combination.
+   */
   private static boolean shouldShowSerials(@NotNull List<AndroidDevice> connectedDevices) {
-    Set<String> myModelNames = Sets.newHashSet();
-
+    int numberOfPhysicalDevices = 0;
     for (AndroidDevice device : connectedDevices) {
-      if (device.isVirtual()) {
-        continue;
+      if (!device.isVirtual()) {
+        numberOfPhysicalDevices++;
       }
+    }
 
-      String name = device.getName();
-      if (myModelNames.contains(name)) {
-        return true;
+    if (numberOfPhysicalDevices > 1) {
+      Set<String> deviceNames = new HashSet<>();
+
+      for (AndroidDevice device : connectedDevices) {
+        if (!device.isVirtual()) {
+          String name = device.getName();
+          if (!deviceNames.add(name)) {
+            return true;
+          }
+        }
       }
-
-      myModelNames.add(name);
     }
 
     return false;
@@ -138,7 +165,7 @@ public class DevicePickerListModel extends AbstractListModel {
   }
 
   @Override
-  public Object getElementAt(int index) {
+  public DevicePickerEntry getElementAt(int index) {
     return myEntries.get(index);
   }
 

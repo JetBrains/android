@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Handles generic build system operations such as syncing and building.
@@ -46,4 +51,17 @@ public abstract class BuildSystemService {
   public abstract void syncProject(@NotNull Project project);
 
   public abstract void addDependency(@NotNull Module module, @NotNull String dependency);
+
+  /**
+   * Merge new dependencies into a (potentially existing) build file.
+   * @param dependencies new dependencies.
+   * @param destinationContents original content of the build file.
+   * @return new content of the build file.
+   */
+  public abstract String mergeBuildFiles(@NotNull String dependencies,
+                                         @NotNull String destinationContents,
+                                         @NotNull Project project,
+                                         @Nullable String supportLibVersionFilter);
+
+  public abstract List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory);
 }

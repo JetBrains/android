@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,9 +34,12 @@ public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
+    List<String> message = getMessageLines(text);
+    if (message.isEmpty()) {
+      return null;
+    }
     String firstLine = message.get(0);
     if (isNotEmpty(firstLine) &&
         firstLine.contains("The newly created daemon process has a different context than expected.") &&
@@ -88,9 +90,7 @@ public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(OpenProjectStructureHyperlink.openJdkSettings(project));
     return hyperlinks;

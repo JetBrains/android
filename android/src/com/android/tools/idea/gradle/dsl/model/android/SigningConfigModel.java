@@ -86,7 +86,7 @@ public class SigningConfigModel extends GradleDslBlockModel {
   @Nullable
   private GradleDslExpression getStoreFileExpression() {
     GradleDslMethodCall methodCall = myDslElement.getPropertyElement(STORE_FILE, GradleDslMethodCall.class);
-    if (methodCall == null || methodCall.getArguments().size() == 0) {
+    if (methodCall == null || methodCall.getArguments().isEmpty()) {
       return null;
     }
     GradleDslElement argument = methodCall.getArguments().get(0);

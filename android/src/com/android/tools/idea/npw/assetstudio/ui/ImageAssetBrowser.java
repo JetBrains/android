@@ -16,19 +16,20 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
@@ -37,23 +38,21 @@ import java.util.List;
 public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<ImageAsset> {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
-  private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
+  private final List<ActionListener> myListeners = new ArrayList(1);
 
   public ImageAssetBrowser() {
-
     addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 
-    final TextProperty imagePathText = new TextProperty(getTextField());
-    myBindings.bind(imagePathText, myImageAsset.imagePath().transform(File::getAbsolutePath));
-    myBindings.bind(myImageAsset.imagePath(), imagePathText.transform(File::new));
+    TextProperty imagePathText = new TextProperty(getTextField());
+    myBindings.bind(imagePathText, myImageAsset.imagePath().transform(file -> file.map(File::getAbsolutePath).orElse("")));
+    myBindings.bind(myImageAsset.imagePath(), imagePathText.transform(s -> {
+      return StringUtil.isEmptyOrSpaces(s) ? Optional.empty() : Optional.of(new File(s.trim()));
+    }));
 
-    InvalidationListener onImageChanged = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(ImageAssetBrowser.this, ActionEvent.ACTION_PERFORMED, null);
-        for (ActionListener listener : myListeners) {
-          listener.actionPerformed(e);
-        }
+    InvalidationListener onImageChanged = sender -> {
+      ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
+      for (ActionListener listener : myListeners) {
+        listener.actionPerformed(e);
       }
     };
     myImageAsset.imagePath().addListener(onImageChanged);

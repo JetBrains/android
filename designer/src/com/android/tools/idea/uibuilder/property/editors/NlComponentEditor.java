@@ -38,7 +38,7 @@ public interface NlComponentEditor {
 
   void setVisible(boolean visible);
 
-  @Nullable
+  @NotNull
   NlProperty getProperty();
 
   void setProperty(@NotNull NlProperty property);

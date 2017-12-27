@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.TailType;
 import com.intellij.codeInsight.completion.*;
@@ -32,7 +33,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.Import;
 import org.jetbrains.android.dom.layout.Layout;
@@ -45,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
  * Used to suggest completions related to data-binding. This is used in the expressions ({@code @{...}}) and in the {@code <data>} tag.
  */
 public class DataBindingCompletionUtil {
-
   public static final String JAVA_LANG = "java.lang.";
 
   public static void addCompletions(@NotNull CompletionParameters params, @NotNull CompletionResultSet resultSet) {
@@ -69,7 +68,7 @@ public class DataBindingCompletionUtil {
   }
 
   /**
-   * Add completion suggestions for classes included via {@code <import>}s.
+   * Adds completion suggestions for classes included via {@code <import>}s.
    * @param resultSet the set to add the suggestions to.
    */
   private static void fillAliases(@NotNull CompletionResultSet resultSet,
@@ -90,7 +89,7 @@ public class DataBindingCompletionUtil {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
         for (Data data : file.getRootElement().getDatas()) {
           for (Import anImport : data.getImports()) {
-            String alias = AndroidLayoutUtil.getAlias(anImport);
+            String alias = DataBindingUtil.getAlias(anImport);
             if (packagePrefix.isEmpty()) {
               XmlAttributeValue type = anImport.getType().getXmlAttributeValue();
               if (type != null && alias != null) {

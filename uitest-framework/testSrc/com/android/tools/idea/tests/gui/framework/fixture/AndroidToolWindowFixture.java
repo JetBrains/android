@@ -16,16 +16,16 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
-import com.android.tools.idea.editors.hierarchyview.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.impl.status.InfoAndProgressPanel;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
@@ -34,13 +34,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
 
   public AndroidToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
-    super(AndroidToolWindowFactory.TOOL_WINDOW_ID, project, robot);
+    super(AndroidToolWindowFactory.getToolWindowId(), project, robot);
     show();
 
     final JPanel contentPanel = getContentPanel();
@@ -70,21 +68,6 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
     selectTab("logcat");
     return this;
-  }
-
-  public void clickTerminateApplication() {
-    ActionButtonFixture action = findAction("Terminate Application");
-    action.waitUntilEnabledAndShowing().click();
-  }
-
-  @NotNull
-  public LayoutInspectorFixture clickLayoutInspector() throws InterruptedException {
-    findAction("Layout Inspector").waitUntilEnabledAndShowing().click();
-    JPanel infoPanel = myRobot.finder().findByType(InfoAndProgressPanel.class);
-    JProgressBar progressBar = myRobot.finder().findByType(infoPanel, JProgressBar.class);
-    Wait.seconds(120).expecting("Progress bar to hide").until(() -> !progressBar.isShowing());
-    ViewNodeActiveDisplay viewNodeActiveDisplay = myRobot.finder().findByType(ViewNodeActiveDisplay.class);
-    return new LayoutInspectorFixture(myRobot, viewNodeActiveDisplay.getParent());
   }
 
   private void selectTab(@NotNull final String tabName) {
@@ -120,7 +103,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      Wait.seconds(1).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(5).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
         ComboBoxModel model = target().getModel();
         int size = model.getSize();
         for (int i = 0; i < size; ++i) {
@@ -139,18 +122,19 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     @NotNull
     public ProcessListFixture selectItem(@Nullable final String packageName) {
       clearSelection();
-      Integer index = GuiQuery.getNonNull(
-        () -> {
+      GuiActionRunner.execute(new GuiTask() {
+        @Override
+        protected void executeInEDT() {
           for (int i = 0; i < target().getModel().getSize(); ++i) {
             Client client = (Client)target().getModel().getElementAt(i);
             if (packageName.equals(client.getClientData().getClientDescription())) {
-              return i;
+              target().getModel().setSelectedItem(client);
+              return;
             }
           }
-          return -1;
-        });
-      assertThat(index).isAtLeast(0);
-      selectItem(index);
+          throw new RuntimeException("Failed to find " + packageName + " in process list.");
+        }
+      });
       return this;
     }
   }

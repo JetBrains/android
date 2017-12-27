@@ -72,7 +72,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
           }
         }
       });
-      if (map.size() > 0) {
+      if (!map.isEmpty()) {
         map.put(MARKER, new HashSet<String>(map.keySet()));
       }
       return map;

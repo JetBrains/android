@@ -29,27 +29,6 @@ public final class ConflictResolution {
   }
 
   /**
-   * Attempts to solve the given "variant selection" conflicts.
-   * <p>
-   * Unlike {@link #solveSelectionConflict(Conflict)}, this method only solves simple conflicts: for example, Module1
-   * depends on Module2-VariantX, but Module2 has currently VariantY selected. To solve this conflict, this method selects VariantX on
-   * Module2.
-   * </p>
-   *
-   * @param conflicts the conflicts to solve.
-   * @return {@code true} if at least one conflict was solved; {@code false} if none of the conflicts were solved.
-   */
-  public static boolean solveSelectionConflicts(@NotNull Collection<Conflict> conflicts) {
-    boolean atLeastOneSolved = false;
-    for (Conflict conflict : conflicts) {
-      if (solveSelectionConflict(conflict, false)) {
-        atLeastOneSolved = true;
-      }
-    }
-    return atLeastOneSolved;
-  }
-
-  /**
    * Attempts to solve the given "variant selection" conflict.
    * <p>
    * The conflict is solved by selecting the expected variant in the module that is the source of such conflict. For example, Module1

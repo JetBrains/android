@@ -17,10 +17,10 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.event.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,10 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 public class EventVisualTest extends VisualTest {
 
-  private static final int IMAGE_WIDTH = 16;
-
-  private static final int IMAGE_HEIGHT = 16;
-
   private static final String[] ACTIVITY_NAMES = {
     "SignInActivity",
     "GameModeActivity",
@@ -44,59 +40,64 @@ public class EventVisualTest extends VisualTest {
     "MultiplayerActivity"
   };
 
-  private static final Map<ActionType, SimpleEventRenderer> MOCK_RENDERERS;
+  private static final Map<ActionType, SimpleEventRenderer<ActionType>> MOCK_RENDERERS;
   static {
-    MOCK_RENDERERS = new HashMap();
-    MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
-    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    MOCK_RENDERERS.put(ActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+    MOCK_RENDERERS = new HashMap<>();
+    MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
+    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
   private static final int AXIS_SIZE = 100;
 
   private ArrayList<MockActivity> myOpenActivities;
 
-  private SimpleEventComponent mySimpleEventComponent;
+  private SimpleEventComponent<ActionType> mySimpleEventComponent;
 
   private StackedEventComponent myStackedEventComponent;
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
+  private DefaultDataSeries<EventAction<ActionType>> myData;
 
-  private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myActivityData;
+  private DefaultDataSeries<EventAction<StackedEventType>> myActivityData;
 
   private AnimatedTimeRange myAnimatedRange;
 
   private AnimatedTimeRange myTimelineRange;
 
+  private AxisComponentModel myTimeAxisModel;
+
+  private EventModel<ActionType> myEventModel;
+  private EventModel<StackedEventType> myStackedEventModel;
+
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    AnimatedRange xRange = new AnimatedRange(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    AnimatedRange xTimelineRange = new AnimatedRange(0, 0);
+    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
+    Range xTimelineRange = new Range(0, 0);
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
-    mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(xRange, myData), MOCK_RENDERERS);
-    myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(xRange, myActivityData));
+    myEventModel = new EventModel<>(new RangedSeries<>(xRange, myData));
+    mySimpleEventComponent = new SimpleEventComponent<>(myEventModel, MOCK_RENDERERS);
+    myStackedEventModel = new EventModel<>(new RangedSeries<>(xRange, myActivityData));
+    myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
 
     // add horizontal time axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
-    myTimeAxis = builder.build();
-    List<Animatable> componentsList = new ArrayList<>();
+    myTimeAxisModel = new AxisComponentModel(xTimelineRange, TimeAxisFormatter.DEFAULT);
+    myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
-    componentsList.add(xRange);
-    componentsList.add(xTimelineRange);
     componentsList.add(myAnimatedRange);
     componentsList.add(myTimelineRange);
-    componentsList.add(myTimeAxis);
-    componentsList.add(mySimpleEventComponent);
-    componentsList.add(myStackedEventComponent);
+    componentsList.add(myTimeAxisModel);
+    componentsList.add(myEventModel);
+    componentsList.add(myStackedEventModel);
     return componentsList;
   }
 
@@ -112,7 +113,7 @@ public class EventVisualTest extends VisualTest {
 
   private void performTapAction() {
     long now = System.currentTimeMillis();
-    EventAction<EventAction.Action, ActionType> event = new EventAction<>(now, now, EventAction.Action.UP, ActionType.TOUCH);
+    EventAction<ActionType> event = new EventAction<>(now, now, ActionType.TOUCH);
     myData.add(now, event);
   }
 
@@ -162,8 +163,8 @@ public class EventVisualTest extends VisualTest {
       @Override
       public void mouseReleased(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        EventAction<EventAction.Action, ActionType> event =
-          new EventAction<>(mDownTime, nowUs, EventAction.Action.UP, ActionType.TOUCH);
+        EventAction<ActionType> event =
+          new EventAction<>(mDownTime, nowUs, ActionType.TOUCH);
         myData.add(nowUs, event);
       }
     });
@@ -243,15 +244,15 @@ public class EventVisualTest extends VisualTest {
 
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<EventAction.ActivityAction, String> event =
-        new EventAction<>(myStartTimeUs, 0, EventAction.ActivityAction.ACTIVITY_STARTED, myName);
+      EventAction<StackedEventType> event =
+        new ActivityAction(myStartTimeUs, 0, StackedEventType.ACTIVITY_STARTED, myName);
       myActivityData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<EventAction.ActivityAction, String> event =
-        new EventAction<>(myStartTimeUs, nowUs, EventAction.ActivityAction.ACTIVITY_COMPLETED, myName);
+      EventAction<StackedEventType> event =
+        new ActivityAction(myStartTimeUs, nowUs, StackedEventType.ACTIVITY_COMPLETED, myName);
       myActivityData.add(nowUs, event);
     }
   }

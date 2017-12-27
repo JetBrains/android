@@ -15,9 +15,10 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -29,8 +30,8 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   public StateChartEntriesRegistrar() {
     registerSimpleStateChart();
     registerMultipleSeriesStateChart();
-    registerArcHeightWidthStateChart();
     registerTextStateChart();
+    registerRepeatedState();
   }
 
   private void registerSimpleStateChart() {
@@ -50,6 +51,35 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // Create a state chart with multiple series
         addSeries();
         addSeries();
+      }
+    });
+  }
+
+  private void registerRepeatedState() {
+    // The similarity threshold is smaller than the default one because ignoring repeated states and not ignoring it
+    // differs only by a tiny border between repeated values, which might not be catch by the default threshold.
+    float thresholdSimilarityOverride = 0.01f;
+
+    register(new StateChartImageDiffEntry("repeated_state_state_chart_baseline.png", thresholdSimilarityOverride) {
+      @Override
+      protected void generateComponent() {
+        myXRange.set(0, 100);
+        myStateChart.setHeightGap(0.4f);
+        addSeries();
+      }
+
+      @Override
+      protected void generateTestData() {
+        DefaultDataSeries<TestState> series = myData.get(0);
+        series.add(0, TestState.STATE1);
+        series.add(5, TestState.STATE1);
+        series.add(7, TestState.STATE1);
+
+        series.add(8, TestState.STATE2);
+        series.add(12, TestState.STATE2);
+        series.add(16, TestState.STATE2);
+        series.add(50, TestState.STATE2);
+        series.add(101, TestState.STATE2);
       }
     });
   }
@@ -77,21 +107,9 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     });
   }
 
-  private void registerArcHeightWidthStateChart() {
-    register(new StateChartImageDiffEntry("arc_height_width_state_chart_baseline.png") {
-      @Override
-      protected void generateComponent() {
-        // Modify arc height and width of state chart
-        myStateChart.setArcHeight(0.75f);
-        myStateChart.setArcWidth(0.75f);
-        addSeries();
-      }
-    });
-  }
-
   private static abstract class StateChartImageDiffEntry extends AnimatedComponentImageDiffEntry {
 
-    private enum TestState {
+    protected enum TestState {
       NONE,
       STATE1,
       STATE2
@@ -120,7 +138,9 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     StateChart<TestState> myStateChart;
 
-    private List<DefaultDataSeries<TestState>> myData;
+    private StateChartModel<TestState> myStateChartModel;
+
+    protected List<DefaultDataSeries<TestState>> myData;
 
     StateChartImageDiffEntry(String baselineFilename, float similarityThreshold) {
       super(baselineFilename, similarityThreshold);
@@ -133,9 +153,10 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new ArrayList<>();
-      myStateChart = new StateChart<>(getTestStateColor());
+      myStateChartModel = new StateChartModel<>();
+      myStateChart = new StateChart<>(myStateChartModel, getTestStateColor());
       myContentPane.add(myStateChart, BorderLayout.CENTER);
-      myComponents.add(myStateChart);
+      myComponents.add(myStateChartModel);
       myNewStateControlArrayIndex = 0;
       myValuesArrayIndex = 0;
     }
@@ -172,7 +193,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       DefaultDataSeries<TestState> series = new DefaultDataSeries<>();
       RangedSeries<TestState> rangedSeries = new RangedSeries<>(myXRange, series);
       myData.add(series);
-      myStateChart.addSeries(rangedSeries);
+      myStateChartModel.addSeries(rangedSeries);
     }
   }
 }

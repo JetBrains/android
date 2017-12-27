@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -47,6 +46,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.ui.navigation.Place.queryFurther;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
@@ -204,7 +204,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       JComponent first = splitter.getFirstComponent();
       if (first instanceof JPanel && myHeader == null) {
         JPanel panel = (JPanel)first;
-        myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, ToolWindowAnchor.LEFT);
+        myHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, panel, ToolWindowAnchor.LEFT);
         myHeader.setPreferredFocusedComponent(myTree);
         myHeader.addMinimizeListener(() -> {
           modulesTreeMinimized();

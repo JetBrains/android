@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import org.jetbrains.annotations.NotNull;
@@ -57,4 +58,11 @@ public interface StepElementData {
    */
   @Nullable
   ActionData getAction();
+
+  /**
+   * Returns Image defination
+   */
+  @Nullable
+  DefaultTutorialBundle.Image getImage();
+
 }

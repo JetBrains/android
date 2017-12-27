@@ -18,13 +18,14 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -90,7 +91,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (surface == null) {
       return null;
     }
-    ScreenView screenView = surface.getCurrentScreenView();
+    SceneView screenView = surface.getCurrentSceneView();
     if (screenView == null) {
       return null;
     }
@@ -280,7 +281,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   private static Rectangle getBounds(@NotNull NlComponent component) {
     NlComponent parent = component.getParent();
     Rectangle parentBounds = parent != null ? getBounds(parent) : new Rectangle(0, 0, 1000, 1000);
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return new Rectangle(parentBounds.x,
                            parentBounds.y,

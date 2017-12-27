@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.editor.NlEditorPanel;
+import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;

@@ -50,6 +50,8 @@ public interface Manifest extends ManifestElement {
 
   List<UsesFeature> getUsesFeatures();
 
+  List<UsesSplit> getUsesSplits();
+
   @SubTagList("supports-gl-texture")
   List<SupportsGlTexture> getSupportsGlTextures();
 

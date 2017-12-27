@@ -42,7 +42,7 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   public boolean isDebuggable() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
@@ -57,56 +57,56 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   public boolean isJniDebuggable() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   public boolean isRenderscriptDebuggable() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   public int getRenderscriptOptimLevel() {
-    throw new UnsupportedOperationException();
+    return 1;
   }
 
   @Override
   @Nullable
   public String getApplicationIdSuffix() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
   @Nullable
   public String getVersionNameSuffix() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
   public boolean isMinifyEnabled() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   public boolean isZipAlignEnabled() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   public boolean isEmbedMicroApp() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
-  @com.android.annotations.Nullable
   @Override
+  @Nullable
   public SigningConfig getSigningConfig() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
@@ -118,31 +118,31 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Collection<File> getProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<File> getConsumerProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<File> getTestProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Map<String, Object> getManifestPlaceholders() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @Nullable
   public Boolean getMultiDexEnabled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.Constraint;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -40,8 +41,9 @@ public final class GuidelinePainter {
   public static void paint(@NotNull NlGraphics g, GuidelineHandler myState) {
     g.useStyle(DRAGGED);
     for (NlComponent dragged : myState.myDraggedNodes) {
-      if (dragged.w > 0 && dragged.h > 0) {
-        g.fillRect(dragged.x, dragged.y, dragged.w, dragged.h);
+      if (NlComponentHelperKt.getW(dragged) > 0 && NlComponentHelperKt.getH(dragged) > 0) {
+        g.fillRect(NlComponentHelperKt.getX(dragged), NlComponentHelperKt.getY(dragged), NlComponentHelperKt.getW(dragged),
+                   NlComponentHelperKt.getH(dragged));
       }
     }
 
@@ -50,26 +52,26 @@ public final class GuidelinePainter {
     Set<NlComponent> deps = new HashSet<NlComponent>(horizontalDeps.size() + verticalDeps.size());
     deps.addAll(horizontalDeps);
     deps.addAll(verticalDeps);
-    if (deps.size() > 0) {
+    if (!deps.isEmpty()) {
       g.useStyle(DEPENDENCY);
       for (NlComponent n : deps) {
         // Don't highlight the selected nodes themselves
         if (myState.myDraggedNodes.contains(n)) {
           continue;
         }
-        g.fillRect(n.x, n.y, n.w, n.h);
+        g.fillRect(NlComponentHelperKt.getX(n), NlComponentHelperKt.getY(n), NlComponentHelperKt.getW(n), NlComponentHelperKt.getH(n));
       }
     }
 
     // If the layout has padding applied, draw the padding bounds to make it obvious what the boundaries are
-    if (!myState.layout.getPadding().isEmpty() || !myState.layout.getMargins().isEmpty()) {
+    if (!NlComponentHelperKt.getPadding(myState.layout).isEmpty() || !NlComponentHelperKt.getMargins(myState.layout).isEmpty()) {
       g.useStyle(NlDrawingStyle.PADDING_BOUNDS);
       NlComponent layout = myState.layout;
-      Insets padding = layout.getPadding();
-      g.drawRect(layout.x + padding.left,
-                           layout.y + padding.top,
-                           Math.max(0, layout.w - padding.left - padding.right),
-                           Math.max(0, layout.h - padding.top - padding.bottom));
+      Insets padding = NlComponentHelperKt.getPadding(layout);
+      g.drawRect(NlComponentHelperKt.getX(layout) + padding.left,
+                           NlComponentHelperKt.getY(layout) + padding.top,
+                           Math.max(0, NlComponentHelperKt.getW(layout) - padding.left - padding.right),
+                           Math.max(0, NlComponentHelperKt.getH(layout) - padding.top - padding.bottom));
     }
 
     if (myState.myBounds != null) {
@@ -127,11 +129,12 @@ public final class GuidelinePainter {
    * Paints a constraint cycle
    */
   private static void paintCycle(GuidelineHandler myState, NlGraphics g, List<Constraint> cycle) {
-    assert cycle.size() > 0;
+    assert !cycle.isEmpty();
 
     NlComponent from = cycle.get(0).from.node;
     assert from != null;
-    Rectangle fromBounds = new Rectangle(from.x, from.y, from.w, from.h);
+    Rectangle fromBounds = new Rectangle(NlComponentHelperKt.getX(from), NlComponentHelperKt.getY(from), NlComponentHelperKt.getW(from),
+                                         NlComponentHelperKt.getH(from));
     if (myState.myDraggedNodes.contains(from)) {
       fromBounds = myState.myBounds;
     }
@@ -144,7 +147,8 @@ public final class GuidelinePainter {
       NlComponent to = constraint.to.node;
       assert to != null;
 
-      Point toCenter = new Point(to.x + to.w / 2, to.y + to.h / 2);
+      Point toCenter = new Point(NlComponentHelperKt.getX(to) + NlComponentHelperKt.getW(to) / 2,
+                                 NlComponentHelperKt.getY(to) + NlComponentHelperKt.getH(to) / 2);
       points.add(toCenter);
 
       // Also go through the dragged node bounds

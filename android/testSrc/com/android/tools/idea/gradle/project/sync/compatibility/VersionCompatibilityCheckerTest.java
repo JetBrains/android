@@ -17,14 +17,15 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.intellij.lang.annotations.Language;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 
@@ -32,12 +33,12 @@ import static com.google.common.truth.Truth.assertAbout;
  * Tests for {@link VersionCompatibilityChecker}.
  */
 public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   @Override
@@ -65,7 +66,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
     GradleVersion currentModelVersion = androidModel.getModelVersion();
     assertNotNull(currentModelVersion);
 
-    String failureMessage = "Please use Android Gradle plugin 1.5.0 or newer.";
+    String failureMessage = "Please use Android Gradle plugin 100 or newer.";
 
     @Language("XML")
     String metadata = "<compatibility version='1'>\n" +
@@ -91,7 +92,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
                                      gradleVersion, currentModelVersion);
 
     // @formatter:off
-    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issues")
+    assertAbout(syncMessage()).that(message).hasGroup(VERSION_COMPATIBILITY_ISSUE_GROUP)
                                             .hasType(ERROR)
                                             .hasMessageLine(firstLine, 0)
                                             .hasMessageLine(failureMessage, 1);

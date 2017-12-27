@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
@@ -61,14 +60,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   }
 
   @Override
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
-  }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "NDK Android Facet setup";
+  public boolean invokeOnSkippedSync() {
+    return true;
   }
 }

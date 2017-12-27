@@ -144,15 +144,17 @@ etc.) at the push of a button. See `Tools > Firebase` for a working example.
    inside of the assistant may be tracked by your code. Examples include tracking the opening
    of the assistant or navigating to/from a tutorial.
    
-1.  Register your (Intellij, not Assistant) action to open your assistant.
+1.  Register your (IntelliJ, not Assistant) action to open your assistant.
     ```xml
     <actions>
-       <!-- TIP: Extend OpenAssistSidePanelAction and override the update method in order to add an icon.
-        ex. public void update(AnActionEvent e) {e.getPresentation().setIcon(MY_ICON);}
+       <!-- TIP: You can reference IntelliJ icons (AllIcons) or AndroidIcons. If you want to declare
+       your own icons, you have to declare your icon file under the package "icons " in order to reference it from xml.
+       (see: http://www.jetbrains.org/intellij/sdk/docs/reference_guide/work_with_icons_and_images.html)
         -->
        <action
            id="ID_RETURNED_FROM_AssistantBundleCreator#getBundleId"
            class="com.android.tools.idea.assistant.OpenAssistSidePanelAction"
+           icon="Icons.ICON_NAME"
            text="Action Label"
            description="Brief description of plugin">
          <add-to-group group-id="GroupToAddTo" />

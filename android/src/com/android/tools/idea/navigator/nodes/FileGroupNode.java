@@ -19,5 +19,6 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public interface FileGroupNode {
-  @NotNull PsiFile[] getFiles();
+  @NotNull
+  PsiFile[] getFiles();
 }

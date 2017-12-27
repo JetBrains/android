@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.adtui.LabelWithEditLink;
-import com.intellij.ui.HyperlinkLabel;
+import com.android.tools.adtui.LabelWithEditButton;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
   protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
@@ -33,37 +29,36 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterApplicationName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application name:");
+    JTextComponent textField = findTextFieldWithLabel("Application name");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Company domain:");
+    JTextComponent textField = findTextFieldWithLabel("Company domain");
     replaceText(textField, text);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAndroidProjectStepFixture setCppSupport(boolean select) {
+    selectCheckBoxWithText("Include C++ support", select);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
-    LabelWithEditLink link = robot().finder().findByType(target(), LabelWithEditLink.class);
+    LabelWithEditButton editLabel = robot().finder().findByType(target(), LabelWithEditButton.class);
 
-    HyperlinkLabel editLabel = robot().finder().findByType(link, HyperlinkLabel.class);
-    robot().click(editLabel);
+    JButton editButton = robot().finder().findByType(editLabel, JButton.class);
+    robot().click(editButton);
 
-    JTextComponent textField = findTextFieldWithLabel("Package name:");
+    JTextComponent textField = findTextFieldWithLabel("Package name");
     replaceText(textField, text);
 
     // click "Done"
-    robot().click(editLabel);
+    robot().click(editButton);
     return this;
-  }
-
-  @NotNull
-  public File getLocationInFileSystem() {
-    String location = findTextFieldWithLabel("Project location:").getText();
-    assertThat(location).isNotEmpty();
-    return new File(location);
   }
 }

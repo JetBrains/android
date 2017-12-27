@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,235 +15,178 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends AndroidGradleTestCase {
-  private GradleTasksExecutorStub myTasksExecutor;
-  private GradleTasksExecutorFactoryStub myTaskExecutorFactory;
-  private GradleBuildInvoker myInvoker;
+public class GradleBuildInvokerTest extends IdeaTestCase {
+  @Mock private FileDocumentManager myFileDocumentManager;
+  @Mock private GradleTasksExecutor myTasksExecutor;
+
+  private IdeComponents myIdeComponents;
+  private GradleTasksExecutorFactoryStub myTasksExecutorFactory;
+  private Module[] myModules;
+  private BuildSettings myBuildSettings;
+  private GradleTaskFinder myTaskFinder;
+  private GradleBuildInvoker myBuildInvoker;
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
 
-    myTasksExecutor = new GradleTasksExecutorStub(getProject());
-    myTaskExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
+    myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
+    myModules = new Module[]{getModule()};
 
-    myInvoker = new GradleBuildInvoker(getProject(), myTaskExecutorFactory);
+    myIdeComponents = new IdeComponents(myProject);
+    myTaskFinder = myIdeComponents.mockService(GradleTaskFinder.class);
+    myBuildSettings = myIdeComponents.mockProjectService(BuildSettings.class);
+
+    myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory);
   }
 
-  // Following are common tests for all GradleInvoker test cases
-  public void testAssembleTranslate() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks("assembleTranslate");
-
-    myInvoker.assembleTranslate();
-
-    assertIsCurrent(ASSEMBLE_TRANSLATE);
-    myTasksExecutor.assertWasExecuted();
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+      myBuildSettings = null;
+      myBuildInvoker = null;
+    }
   }
 
-  public void testCompileJava_forUnitTests() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks(":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies", ":app:generateDebugSources",
-                                           ":app:compileDebugUnitTestSources");
+  public void testCleanUp() {
+    ListMultimap<Path, String> originalTasks = ArrayListMultimap.create();
+    originalTasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
-    myInvoker.compileJava(getAppModule(), TestCompileType.UNIT_TESTS);
+    myBuildInvoker.cleanProject();
 
-    assertIsCurrent(COMPILE_JAVA);
-    myTasksExecutor.assertWasExecuted();
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactly("clean", "sourceGenTask1", "sourceGenTask2");
+    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
+
+    verifyInteractionWithMocks(CLEAN);
   }
 
-  public void testAssembleWithSuccessfulSync() throws Exception {
-    loadSimpleApplication();
-    simulateLastSyncFailed(false);
+  public void testCleanAndGenerateSources() {
+    ListMultimap<Path, String> originalTasks = ArrayListMultimap.create();
+    originalTasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
-    myTaskExecutorFactory.setExpectedTasks(":app:assembleDebug");
+    myBuildInvoker.cleanAndGenerateSources();
 
-    myInvoker.assemble(getAppModule(), TestCompileType.NONE);
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactly("clean", "sourceGenTask1", "sourceGenTask2");
+    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
-    assertIsCurrent(ASSEMBLE);
-    myTasksExecutor.assertWasExecuted();
+    verifyInteractionWithMocks(SOURCE_GEN);
   }
 
-  public void testAssembleWithFailedSync() throws Exception {
-    loadSimpleApplication();
-    simulateLastSyncFailed(true);
+  public void testGenerateSources() {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("sourceGenTask1", "sourceGenTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(tasks);
 
-    myTaskExecutorFactory.setExpectedTasks("assemble");
+    myBuildInvoker.generateSources();
 
-    myInvoker.assemble(getAppModule(), TestCompileType.NONE);
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
+    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
-    assertIsCurrent(ASSEMBLE);
-    myTasksExecutor.assertWasExecuted();
+    verifyInteractionWithMocks(SOURCE_GEN);
   }
 
-  public void testAssemble_forAndroidTests() throws Exception {
-    loadSimpleApplication();
-    simulateLastSyncFailed(false);
+  public void testCompileJava() {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("compileJavaTask1", "compileJavaTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(tasks);
 
-    myTaskExecutorFactory.setExpectedTasks(":app:assembleDebug", ":app:assembleDebugAndroidTest");
+    myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
-    myInvoker.assemble(getAppModule(), TestCompileType.ANDROID_TESTS);
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
+    assertThat(request.getCommandLineArguments()).isEmpty();
 
-    assertIsCurrent(ASSEMBLE);
-    myTasksExecutor.assertWasExecuted();
+    verifyInteractionWithMocks(COMPILE_JAVA);
   }
 
-  private void simulateLastSyncFailed(boolean failed) {
-    GradleSyncState syncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
-    when(syncState.lastSyncFailed()).thenReturn(failed);
+  public void testAssemble() {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("assembleTask1", "assembleTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
+
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL);
+
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
+    assertThat(request.getCommandLineArguments()).isEmpty();
+
+    verifyInteractionWithMocks(ASSEMBLE);
   }
 
-  public void testCleanProject() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
-                                           ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies");
+  public void testAssembleWithCommandLineArgs() {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+    tasks.putAll(Projects.getBaseDirPath(getProject()).toPath(), Arrays.asList("assembleTask1", "assembleTask2"));
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
 
-    myInvoker.cleanProject();
+    List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 
-    // "clean" should be the first task.
-    assertEquals("clean", myTaskExecutorFactory.getRequestedTasks().get(0));
-    assertIsCurrent(CLEAN);
-    myTasksExecutor.assertWasExecuted();
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs);
+
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks.values());
+    assertThat(request.getCommandLineArguments()).containsExactlyElementsIn(commandLineArgs);
+
+    verifyInteractionWithMocks(ASSEMBLE);
   }
 
-  public void testGenerateSources() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:mockableAndroidJar",
-                                           ":app:prepareDebugUnitTestDependencies");
-    myInvoker.generateSources(false /* do not clean */);
-
-    assertIsCurrent(SOURCE_GEN);
-    myTasksExecutor.assertWasExecuted();
+  private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
+    verify(myBuildSettings).setBuildMode(buildMode);
+    verify(myFileDocumentManager).saveAllDocuments();
+    verify(myTasksExecutor).queue();
   }
 
-  public void testGenerateSourcesWithClean() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
-                                           ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies");
-
-    myInvoker.generateSources(true /* clean */);
-
-    // "clean" should be the first task.
-    assertEquals("clean", myTaskExecutorFactory.getRequestedTasks().get(0));
-    assertIsCurrent(SOURCE_GEN);
-    myTasksExecutor.assertWasExecuted();
-  }
-
-  public void testCompileJava() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:mockableAndroidJar",
-                                           ":app:prepareDebugUnitTestDependencies", ":app:compileDebugSources",
-                                           ":app:compileDebugAndroidTestSources", ":app:compileDebugUnitTestSources");
-
-    myInvoker.compileJava(getAppModule(), TestCompileType.NONE);
-
-    assertIsCurrent(COMPILE_JAVA);
-    myTasksExecutor.assertWasExecuted();
-  }
-
-  @NotNull
-  private Module[] getAppModule() {
-    return new Module[]{myModules.getAppModule()};
-  }
-
-  public void testRebuild() throws Exception {
-    loadSimpleApplication();
-    myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
-                                           ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies", ":app:compileDebugSources",
-                                           ":app:compileDebugAndroidTestSources", ":app:compileDebugUnitTestSources");
-
-    myInvoker.rebuild();
-
-    // "clean" should be the first task.
-    assertEquals("clean", myTaskExecutorFactory.getRequestedTasks().get(0));
-
-    assertIsCurrent(REBUILD);
-    myTasksExecutor.assertWasExecuted();
-  }
-
-  public void testNoTaskForAarModule() throws Exception {
-    loadProject(LOCAL_AARS_AS_MODULES);
-    Module module = myModules.getModule("library-debug");
-
-    myInvoker.compileJava(new Module[]{module}, TestCompileType.UNIT_TESTS);
-  }
-
-  private void assertIsCurrent(@NotNull BuildMode buildMode) {
-    assertEquals(buildMode, BuildSettings.getInstance(getProject()).getBuildMode());
-  }
-
-  private static class GradleTasksExecutorFactoryStub extends GradleTasksExecutor.Factory {
+  private static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
     @NotNull private final GradleTasksExecutor myTasksExecutor;
-
-    @NotNull private List<String> myExpectedTasks = Collections.emptyList();
-    @NotNull private List<String> myRequestedTasks = Collections.emptyList();
+    private GradleBuildInvoker.Request myRequest;
 
     GradleTasksExecutorFactoryStub(@NotNull GradleTasksExecutor tasksExecutor) {
       myTasksExecutor = tasksExecutor;
     }
 
-    void setExpectedTasks(@NotNull String... expectedTasks) {
-      myExpectedTasks = Arrays.asList(expectedTasks);
-    }
-
     @Override
     @NotNull
-    GradleTasksExecutor create(@NotNull Request request,
-                               @NotNull BuildStopper buildStopper) {
-      myRequestedTasks = request.getGradleTasks();
-      assertThat(myExpectedTasks).containsExactlyElementsIn(myRequestedTasks);
+    public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request, @NotNull BuildStopper buildStopper) {
+      myRequest = request;
       return myTasksExecutor;
     }
 
-    @NotNull
-    List<String> getRequestedTasks() {
-      return myRequestedTasks;
-    }
-  }
-
-  private static class GradleTasksExecutorStub extends GradleTasksExecutor {
-    private boolean myExecuted;
-
-    private GradleTasksExecutorStub(@NotNull Project project) {
-      super(project);
-    }
-
-    @Override
-    public void queueAndWaitForCompletion() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      myExecuted = true;
-    }
-
-    void assertWasExecuted() {
-      assertTrue("Gradle tasks were executed", myExecuted);
+    GradleBuildInvoker.Request getRequest() {
+      return myRequest;
     }
   }
 }

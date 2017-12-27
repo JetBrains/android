@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-/**
- * Model for the {@link RenderErrorPanel} containing a list of {@link Issue}s.
- */
-public class RenderErrorModel extends AbstractListModel<RenderErrorModel.Issue> {
+public class RenderErrorModel {
+
+  /**
+   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
+   * panel full of errors.
+   */
+  public static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
+    Issue.builder()
+      .setSeverity(HighlightSeverity.INFORMATION)
+      .setSummary("The project is still building")
+      .setHtmlContent(new HtmlBuilder()
+                        .add("The project is still building and the current preview might be inaccurate.")
+                        .newline()
+                        .add("The preview will automatically refresh once the build finishes."))
+      .build()
+  ));
   private ImmutableList<Issue> myIssues = ImmutableList.of();
 
   public RenderErrorModel(@NotNull Collection<Issue> issues) {
@@ -44,27 +56,6 @@ public class RenderErrorModel extends AbstractListModel<RenderErrorModel.Issue> 
   @NotNull
   public ImmutableList<Issue> getIssues() {
     return myIssues;
-  }
-
-  @Override
-  public int getSize() {
-    return myIssues.size();
-  }
-
-  @Override
-  public Issue getElementAt(int index) {
-    return myIssues.get(index);
-  }
-
-  public void setIssues(@NotNull Collection<Issue> issues) {
-    myIssues = ImmutableList.copyOf(issues);
-    fireContentsChanged(this, 0, myIssues.size());
-  }
-
-  @NotNull
-  public HighlightSeverity getHighestSeverity() {
-    return myIssues.stream().map(RenderErrorModel.Issue::getSeverity).sorted(Collections.reverseOrder()).findFirst()
-      .orElse(HighlightSeverity.INFORMATION);
   }
 
   @Override

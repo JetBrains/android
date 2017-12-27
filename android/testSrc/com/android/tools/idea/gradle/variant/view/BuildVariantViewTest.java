@@ -63,7 +63,7 @@ public class BuildVariantViewTest extends AndroidTestCase {
     boolean myWasCalled;
 
     @Override
-    public void buildVariantsConfigChanged() {
+    public void selectionChanged() {
       myWasCalled = true;
     }
   }

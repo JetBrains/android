@@ -52,7 +52,7 @@ public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBas
                           @NotNull AndroidQuickfixContexts.Context context) {
           AndroidFacet facet = AndroidFacet.getInstance(startElement);
           if (facet != null) {
-            AndroidModuleInfo info = AndroidModuleInfo.get(facet);
+            AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
             int minSdkVersion = info.getMinSdkVersion().getApiLevel();
             List<VirtualFile> folders = facet.getResourceFolderManager().getFolders();
             ConvertToWebpAction action = new ConvertToWebpAction();

@@ -588,7 +588,7 @@ public class CFGBuilder {
 
     switchGraph.addCase(curCaseNode);
 
-    if (curWorkingNodeList.size() != 0) {
+    if (!curWorkingNodeList.isEmpty()) {
       connectCurrentWorkingNode(curCaseNode);
     }
     curWorkingNodeList.clear();
@@ -2717,7 +2717,7 @@ public class CFGBuilder {
   private GraphNode connectGeneratedStmt(Stmt stmt) {
     GraphNodeImpl newNode = new GraphNodeImpl(this.mGraph);
     newNode.getStmtList().add(stmt);
-    if (curWorkingNodeList.size() == 0) {
+    if (curWorkingNodeList.isEmpty()) {
       curWorkingNodeList.add(this.mGraph.getUnreachableNodeEntry());
     }
     for (GraphNode parentNode : curWorkingNodeList) {
@@ -2746,7 +2746,7 @@ public class CFGBuilder {
   }
 
   private void checkUnreachable() {
-    if (curWorkingNodeList.size() == 0) {
+    if (curWorkingNodeList.isEmpty()) {
       curWorkingNodeList.add(this.mGraph.getUnreachableNodeEntry());
     }
   }

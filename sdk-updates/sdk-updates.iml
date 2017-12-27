@@ -13,7 +13,8 @@
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="wizard" />
-    <orderEntry type="library" name="google-analytics-library" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="observable-ui" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" name="analytics-protos" level="project" />
   </component>
 </module>

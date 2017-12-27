@@ -17,13 +17,14 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
@@ -42,7 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.lint.detector.api.LintUtils.getChildren;
+import static com.android.utils.XmlUtils.getSubTags;
 
 /**
  * Descriptor for a device frame picture (background, shadow, reflection) which can be
@@ -78,10 +79,10 @@ public class DeviceArtDescriptor {
     // In development environments, search a few other folders
     String basePath = PathManager.getHomePath();
     String[] paths = new String[] {
-      "plugins" + File.separatorChar + "android" + File.separatorChar,
-      ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
-      "android" + File.separatorChar + "android" + File.separatorChar,
-      "community" + File.separatorChar + "android" + File.separatorChar + "android" + File.separatorChar,
+      FileUtil.join("plugins", "android"),
+      FileUtil.join("..", "adt", "idea", "artwork", "resources"),
+      FileUtil.join("android", "artwork", "resources"),
+      FileUtil.join("community", "android", "artwork", "resources"),
     };
 
     for (String p : paths) {
@@ -158,8 +159,7 @@ public class DeviceArtDescriptor {
       myName = element.getAttribute(SdkConstants.ATTR_NAME);
       myFolder = new File(baseFolder, myId);
 
-      List<Element> children = getChildren(element);
-      for (Element child : children) {
+      for (Element child : getSubTags(element)) {
         OrientationData orientation = new OrientationData(this, child);
         if (orientation.isPortrait()) {
           myPortrait = orientation;

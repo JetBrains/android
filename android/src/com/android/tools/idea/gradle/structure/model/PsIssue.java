@@ -26,7 +26,7 @@ import static com.intellij.icons.AllIcons.Actions.Download;
 import static com.intellij.icons.AllIcons.General.*;
 import static com.intellij.ui.JBColor.*;
 
-public class PsIssue {
+public final class PsIssue {
   @NotNull private final String myText;
   @NotNull private final PsPath myPath;
   @NotNull private final PsIssueType myType;
@@ -105,13 +105,14 @@ public class PsIssue {
     PsIssue that = (PsIssue)o;
     return Objects.equal(myText, that.myText)
            && Objects.equal(myDescription, that.myDescription)
-           && Objects.equal(myPath, that.getPath())
+           && Objects.equal(myPath, that.myPath)
+           && Objects.equal(myType, that.myType)
            && mySeverity == that.mySeverity;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myText, myDescription, myPath, mySeverity);
+    return Objects.hashCode(myText, myDescription, myPath, myType, mySeverity);
   }
 
   @Override
@@ -125,11 +126,13 @@ public class PsIssue {
   }
 
   public enum Severity {
-    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2),
+    ERROR("Error", BalloonError, RED, 0),
+    WARNING("Warning", BalloonWarning, YELLOW, 1),
+    INFO("Information", BalloonInformation, GRAY, 2),
     UPDATE("Update", Download, GRAY, 3);
 
-    @NotNull private final Icon myIcon;
     @NotNull private final String myText;
+    @NotNull private final Icon myIcon;
     @NotNull private final Color myColor;
     private final int myPriority;
 

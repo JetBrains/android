@@ -67,7 +67,7 @@ public final class AndroidSdk extends InstallableComponent {
     }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
-      result.add(repository.getRepositoryLocation(new File(""), false).getPath().substring(1)
+      result.add(repository.getRepositoryLocation(new File(""), false, FileOpUtils.create()).getPath().substring(1)
                    .replace(File.separatorChar, RepoPackage.PATH_SEPARATOR));
     }
     return result;

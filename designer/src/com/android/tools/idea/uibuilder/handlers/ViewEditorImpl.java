@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.MaterialDesignIcons;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -26,21 +28,33 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -51,8 +65,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
@@ -64,51 +80,57 @@ import static com.android.SdkConstants.*;
  * to {@link ViewHandler} instances
  */
 public class ViewEditorImpl extends ViewEditor {
-  private final ScreenView myScreen;
+  private final SceneView mySceneView;
 
-  public ViewEditorImpl(@NotNull ScreenView screen) {
-    myScreen = screen;
+  public ViewEditorImpl(@NotNull SceneView scene) {
+    mySceneView = scene;
   }
 
   @Override
   public int getDpi() {
-    return myScreen.getConfiguration().getDensity().getDpiValue();
+    return mySceneView.getConfiguration().getDensity().getDpiValue();
   }
 
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getBuildSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getMinSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getTargetSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getTargetSdkVersion();
   }
 
   @NotNull
   @Override
   public Configuration getConfiguration() {
-    return myScreen.getConfiguration();
+    return mySceneView.getConfiguration();
   }
 
   @NotNull
   @Override
   public NlModel getModel() {
-    return myScreen.getModel();
+    return mySceneView.getModel();
+  }
+
+  @NotNull
+  @Override
+  public LayoutlibSceneManager getSceneBuilder() {
+    return (LayoutlibSceneManager)mySceneView.getSceneManager();
   }
 
   @NotNull
   @Override
   public Collection<ViewInfo> getRootViews() {
-    RenderResult result = myScreen.getModel().getRenderResult();
+    RenderResult result = getSceneBuilder().getRenderResult();
 
     if (result == null) {
       return Collections.emptyList();
@@ -119,20 +141,16 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
-    return myScreen.getModel().getFacet().getModuleResources(true).hasResourceItem(type, name);
+    AndroidFacet facet = mySceneView.getModel().getFacet();
+    return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name);
   }
 
   @Override
   public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
-    Project project = myScreen.getModel().getProject();
-    String message = "Do you want to copy vector asset " + asset + " to your main module source set?";
+    String path = MaterialDesignIcons.getPathForBasename(asset);
 
-    if (Messages.showYesNoDialog(project, message, "Copy Vector Asset", Messages.getQuestionIcon()) == Messages.NO) {
-      return;
-    }
-
-    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(MaterialDesignIcons.getPathForBasename(asset))) {
-      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, ByteStreams.toByteArray(in));
+    try (Reader reader = new InputStreamReader(GraphicGenerator.class.getClassLoader().getResourceAsStream(path), StandardCharsets.UTF_8)) {
+      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader));
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);
@@ -143,14 +161,16 @@ public class ViewEditorImpl extends ViewEditor {
   public void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml) {
     String message = "Do you want to copy layout " + layout + " to your main module source set?";
 
-    if (Messages.showYesNoDialog(myScreen.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
+    if (Messages.showYesNoDialog(mySceneView.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
       return;
     }
 
-    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml.getBytes(StandardCharsets.UTF_8));
+    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml);
   }
 
-  private void createResourceFile(@NotNull String resourceDirectory, @NotNull String resourceFile, @NotNull byte[] resourceFileContent) {
+  private void createResourceFile(@NotNull String resourceDirectory,
+                                  @NotNull String resourceFileName,
+                                  @NotNull CharSequence resourceFileContent) {
     try {
       VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
 
@@ -158,7 +178,10 @@ public class ViewEditorImpl extends ViewEditor {
         return;
       }
 
-      directory.createChildData(this, resourceFile).setBinaryContent(resourceFileContent);
+      Document document = FileDocumentManager.getInstance().getDocument(directory.createChildData(this, resourceFileName));
+      assert document != null;
+
+      document.setText(resourceFileContent);
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);
@@ -167,7 +190,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   private VirtualFile getResourceDirectoryChild(@NotNull String child) throws IOException {
-    VirtualFile resourceDirectory = myScreen.getModel().getFacet().getPrimaryResourceDir();
+    VirtualFile resourceDirectory = mySceneView.getModel().getFacet().getPrimaryResourceDir();
 
     if (resourceDirectory == null) {
       Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
@@ -198,10 +221,10 @@ public class ViewEditorImpl extends ViewEditor {
         tagToComponent.put(child.getTag(), child);
       }
 
-      NlModel model = myScreen.getModel();
+      NlModel model = mySceneView.getModel();
       XmlFile xmlFile = model.getFile();
       AndroidFacet facet = model.getFacet();
-      RenderService renderService = RenderService.get(facet);
+      RenderService renderService = RenderService.getInstance(facet);
       RenderLogger logger = renderService.createLogger();
       final RenderTask task = renderService.createTask(xmlFile, getConfiguration(), logger, null);
       if (task == null) {
@@ -230,7 +253,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
-    NlModel model = myScreen.getModel();
+    NlModel model = mySceneView.getModel();
     ChooseResourceDialog dialog = ChooseResourceDialog.builder()
       .setModule(model.getModule())
       .setTypes(types)
@@ -257,27 +280,66 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayClassInput(@NotNull Set<String> superTypes,
-                                  @Nullable final Predicate<String> filter,
+                                  @Nullable final Predicate<PsiClass> filter,
                                   @Nullable String currentValue) {
-    Module module = myScreen.getModel().getModule();
+    Module module = mySceneView.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    Condition<PsiClass> psiFilter = null;
-    if (filter != null) {
-      psiFilter = psiClass -> {
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName == null) {
-          return false;
-        }
-        return filter.test(qualifiedName);
-      };
-    }
+    Condition<PsiClass> psiFilter = psiClass -> {
+      if (isRestricted(psiClass)) {
+        // All restriction scopes are currently filtered out
+        return false;
+      }
+      if (filter != null) {
+        return filter.test(psiClass);
+      }
+      return true;
+    };
 
     return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
+  public static boolean isRestricted(@NotNull PsiClass psiClass) {
+    PsiModifierList modifiers = psiClass.getModifierList();
+    if (modifiers == null) {
+      return false;
+    }
+    for (PsiAnnotation annotation : modifiers.getAnnotations()) {
+      if (Objects.equals(annotation.getQualifiedName(), SupportAnnotationDetector.RESTRICT_TO_ANNOTATION)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @NotNull
-  public ScreenView getScreenView() {
-    return myScreen;
+  public SceneView getSceneView() {
+    return mySceneView;
+  }
+
+  @Override
+  public boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @Nullable VirtualFile currentFile) {
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver == null) {
+      return false;
+    }
+    ResourceValue resValue = resourceResolver.findResValue(reference, false);
+    File path = ResourceHelper.resolveLayout(resourceResolver, resValue);
+    if (path != null) {
+      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(path);
+      if (file != null) {
+        Project project = mySceneView.getModel().getProject();
+        if (currentFile != null) {
+          return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file);
+        }
+        else {
+          FileEditor[] editors = FileEditorManager.getInstance(project).openFile(file, true, true);
+          if (editors.length > 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

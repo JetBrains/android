@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.service.autofill.AutofillService android.service.autofill.FillEventHistory getFillEventHistory()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onCreate()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onFillRequest(android.service.autofill.FillRequest, android.os.CancellationSignal, android.service.autofill.FillCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onFillRequest(android.service.autofill.FillRequest, android.os.CancellationSignal, android.service.autofill.FillCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onFillRequest(android.service.autofill.FillRequest, android.os.CancellationSignal, android.service.autofill.FillCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onSaveRequest(android.service.autofill.SaveRequest, android.service.autofill.SaveCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.AutofillService void onSaveRequest(android.service.autofill.SaveRequest, android.service.autofill.SaveCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder Builder(android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setAuthentication(android.content.IntentSender)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setAuthentication(android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setId(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setId(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, android.widget.RemoteViews)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, android.widget.RemoteViews) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.Dataset.Builder android.service.autofill.Dataset.Builder setValue(android.view.autofill.AutofillId, android.view.autofill.AutofillValue, android.widget.RemoteViews) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillCallback void onFailure(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillCallback void onSuccess(android.service.autofill.FillResponse) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory android.os.Bundle getClientState()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory java.util.List&lt;android.service.autofill.FillEventHistory.Event&gt; getEvents()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillEventHistory.Event java.lang.String getDatasetId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillRequest android.os.Bundle getClientState()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillRequest int getFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.autofill.FillRequest.FLAG_MANUAL_REQUEST}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.service.autofill.FillRequest java.util.List&lt;android.service.autofill.FillContext&gt; getFillContexts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder addDataset(android.service.autofill.Dataset)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder addDataset(android.service.autofill.Dataset) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setAuthentication(android.view.autofill.AutofillId[], android.content.IntentSender, android.widget.RemoteViews)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setAuthentication(android.view.autofill.AutofillId[], android.content.IntentSender, android.widget.RemoteViews) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setAuthentication(android.view.autofill.AutofillId[], android.content.IntentSender, android.widget.RemoteViews) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setAuthentication(android.view.autofill.AutofillId[], android.content.IntentSender, android.widget.RemoteViews) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setClientState(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setSaveInfo(android.service.autofill.SaveInfo)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.FillResponse.Builder android.service.autofill.FillResponse.Builder setSaveInfo(android.service.autofill.SaveInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder Builder(int, android.view.autofill.AutofillId[]) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.autofill.SaveInfo.SAVE_DATA_TYPE_GENERIC, android.service.autofill.SaveInfo.SAVE_DATA_TYPE_PASSWORD, android.service.autofill.SaveInfo.SAVE_DATA_TYPE_ADDRESS, android.service.autofill.SaveInfo.SAVE_DATA_TYPE_CREDIT_CARD, android.service.autofill.SaveInfo.SAVE_DATA_TYPE_USERNAME, android.service.autofill.SaveInfo.SAVE_DATA_TYPE_EMAIL_ADDRESS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder Builder(int, android.view.autofill.AutofillId[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setDescription(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setDescription(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setFlags(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.autofill.SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setNegativeAction(int, android.content.IntentSender)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setNegativeAction(int, android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.service.autofill.SaveInfo.NEGATIVE_BUTTON_STYLE_CANCEL, android.service.autofill.SaveInfo.NEGATIVE_BUTTON_STYLE_REJECT}" />
+    </annotation>
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setNegativeAction(int, android.content.IntentSender) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setOptionalIds(android.view.autofill.AutofillId[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveInfo.Builder android.service.autofill.SaveInfo.Builder setOptionalIds(android.view.autofill.AutofillId[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.autofill.SaveRequest android.os.Bundle getClientState()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.autofill.SaveRequest java.util.List&lt;android.service.autofill.FillContext&gt; getFillContexts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

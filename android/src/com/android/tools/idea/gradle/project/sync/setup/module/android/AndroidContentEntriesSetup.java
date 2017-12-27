@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -29,9 +32,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
@@ -64,12 +65,12 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   @Override
   public void execute(@NotNull List<ContentEntry> contentEntries) {
-    Variant selectedVariant = myAndroidModel.getSelectedVariant();
+    IdeVariant selectedVariant = myAndroidModel.getSelectedVariant();
 
-    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    IdeAndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(mainArtifact, contentEntries, false);
 
-    for (BaseArtifact artifact : getTestArtifacts(selectedVariant)) {
+    for (IdeBaseArtifact artifact : selectedVariant.getTestArtifacts()) {
       addSourceFolders(artifact, contentEntries, true);
     }
 
@@ -98,7 +99,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
     addOrphans();
   }
 
-  private void addSourceFolders(@NotNull BaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
+  private void addSourceFolders(@NotNull IdeBaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
     addGeneratedSourceFolders(artifact, contentEntries, isTest);
 
     SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
@@ -112,13 +113,13 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
     }
   }
 
-  private void addGeneratedSourceFolders(@NotNull BaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
+  private void addGeneratedSourceFolders(@NotNull IdeBaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
 
     GradleVersion modelVersion = myAndroidModel.getModelVersion();
     if (artifact instanceof AndroidArtifact || (modelVersion != null && modelVersion.compareIgnoringQualifiers("1.2") >= 0)) {
       // getGeneratedSourceFolders used to be in AndroidArtifact only.
-      Collection<File> generatedSourceFolders = getGeneratedSourceFolders(artifact);
+      Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
 
       //noinspection ConstantConditions - this returned null in 1.2
       if (generatedSourceFolders != null) {
@@ -193,7 +194,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   private void addExcludedOutputFolders(@NotNull List<ContentEntry> contentEntries) {
     File buildFolderPath = getAndroidProject().getBuildFolder();
-    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
+    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries.stream());
     if (parentContentEntry != null) {
       List<File> excludedFolderPaths = myAndroidModel.getExcludedFolderPaths();
       for (File folderPath : excludedFolderPaths) {

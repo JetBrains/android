@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.relative;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.Segment;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
@@ -214,7 +214,7 @@ public class RelativeResizeHandler extends GuidelineHandler {
 
     myTopMargin = myBottomMargin = myLeftMargin = myRightMargin = 0;
 
-    if (hEdge != null && myHorizontalEdges.size() > 0) {
+    if (hEdge != null && !myHorizontalEdges.isEmpty()) {
       // Compute horizontal matches
       myHorizontalSuggestions = findClosest(hEdge, myHorizontalEdges);
 
@@ -239,7 +239,7 @@ public class RelativeResizeHandler extends GuidelineHandler {
       }
     }
 
-    if (vEdge != null && myVerticalEdges.size() > 0) {
+    if (vEdge != null && !myVerticalEdges.isEmpty()) {
       myVerticalSuggestions = findClosest(vEdge, myVerticalEdges);
 
       Match match = pickBestMatch(myVerticalSuggestions);

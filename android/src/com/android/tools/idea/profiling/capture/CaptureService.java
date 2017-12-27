@@ -25,8 +25,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -107,14 +105,24 @@ public class CaptureService {
    */
   @NotNull
   public String getSuggestedName(@Nullable Client client) {
-    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH.mm").format(new Date());
+    return getSuggestedName(client, "yyyy.MM.dd_HH.mm");
+  }
+
+  public String getSuggestedName(@Nullable Client client, @NotNull String format) {
+    String timestamp = new SimpleDateFormat(format).format(new Date());
+    String suggestedName = null;
     if (client != null) {
       String name = client.getClientData().getClientDescription();
-      if (name != null && name.length() > 0) {
-        return name + "_" + timestamp;
+      if (name != null && !name.isEmpty()) {
+        suggestedName = name + "_" + timestamp;
       }
     }
-    return myProject.getName() + "_" + timestamp;
+
+    if (suggestedName == null) {
+      suggestedName = myProject.getName() + "_" + timestamp;
+    }
+
+    return suggestedName.replaceAll("[^._A-Za-z0-9]", "");
   }
 
   public void update() {
@@ -353,16 +361,15 @@ public class CaptureService {
   private void deleteBackingFile(@NotNull CaptureHandle captureHandle, @Nullable Capture capture) {
     boolean deleted = false;
     if (capture != null) {
-      AccessToken token = WriteAction.start();
-      try {
-        capture.getFile().delete(this);
-        deleted = true;
-      }
-      catch (Exception ignored) {
-      }
-      finally {
-        token.finish();
-      }
+      deleted = WriteAction.compute(() -> {
+        try {
+          capture.getFile().delete(this);
+          return true;
+        }
+        catch (Exception ignored) {
+          return false;
+        }
+      });
     }
 
     if (!deleted) {

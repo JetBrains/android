@@ -12,6 +12,11 @@
   <item name="android.media.projection.MediaProjection android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, int, android.view.Surface, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 7">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.projection.MediaProjectionManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.MEDIA_PROJECTION_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.media.projection.MediaProjectionManager android.media.projection.MediaProjection getMediaProjection(int, android.content.Intent) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>

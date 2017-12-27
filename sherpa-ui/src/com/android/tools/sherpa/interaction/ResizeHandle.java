@@ -150,8 +150,13 @@ public class ResizeHandle {
             case TOP_SIDE:
             case BOTTOM_SIDE:
                 return true;
+            case LEFT_TOP:
+            case LEFT_BOTTOM:
+            case RIGHT_TOP:
+            case RIGHT_BOTTOM:
+                return false;
         }
-        return false;
+        throw new AssertionError(mType.name());
     }
 
     /**

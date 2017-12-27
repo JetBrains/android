@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.avdmanager.*;
+import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AdbAssistantStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -39,7 +44,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.util.Alarm;
 import com.intellij.util.SmartList;
 import com.intellij.util.ThreeState;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
@@ -51,15 +56,13 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
                                      ActionListener, ListSelectionListener {
   private static final int UPDATE_DELAY_MILLIS = 250;
   private static final String DEVICE_PICKER_LAST_SELECTION = "device.picker.selection";
-  private static final TIntObjectHashMap<Set<String>> ourSelectionsPerConfig = new TIntObjectHashMap<Set<String>>();
+  private static final TIntObjectHashMap<Set<String>> ourSelectionsPerConfig = new TIntObjectHashMap<>();
 
   private JPanel myPanel;
   private JButton myCreateEmulatorButton;
@@ -67,18 +70,17 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @SuppressWarnings("unused") // custom create
   private JScrollPane myScrollPane;
   private JPanel myNotificationPanel;
-  private JBList myDevicesList;
-  private int myDeviceCount;
+  private JBList<DevicePickerEntry> myDevicesList;
+  private final AndroidDeviceRenderer myDeviceRenderer;
   private int myErrorGen;
 
   @NotNull private final AndroidFacet myFacet;
   private final int myRunContextId;
-  @NotNull private final DevicePickerListModel myModel;
+  private DevicePickerListModel myModel;
   @NotNull private final MergingUpdateQueue myUpdateQueue;
   private final LaunchCompatibilityChecker myCompatibilityChecker;
-  private final ListSpeedSearch mySpeedSearch;
 
-  private List<AvdInfo> myAvdInfos = Lists.newArrayList();
+  private List<AvdInfo> myAvdInfos = new ArrayList<>();
 
   public DevicePicker(@NotNull Disposable parent,
                       int runContextId,
@@ -88,19 +90,20 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myRunContextId = runContextId;
     myFacet = facet;
 
-    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics());
+    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
     myCompatibilityChecker = compatibilityChecker;
 
-    mySpeedSearch = new DeviceListSpeedSearch(myDevicesList);
+    ListSpeedSearch speedSearch = new DeviceListSpeedSearch(myDevicesList);
+    myDeviceRenderer = new AndroidDeviceRenderer(myCompatibilityChecker, speedSearch);
 
-    myModel = new DevicePickerListModel();
-    myDevicesList.setModel(myModel);
-    myDevicesList.setCellRenderer(new AndroidDeviceRenderer(myCompatibilityChecker, mySpeedSearch));
+    setModel(new DevicePickerListModel());
+    myDevicesList.setCellRenderer(myDeviceRenderer);
+    //noinspection MagicConstant
     myDevicesList.setSelectionMode(getListSelectionMode(deviceCount));
-    myDevicesList.addKeyListener(new MyListKeyListener(mySpeedSearch));
+    myDevicesList.addKeyListener(new MyListKeyListener(speedSearch));
     myDevicesList.addListSelectionListener(this);
 
-    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, 1));
+    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, BoxLayout.Y_AXIS));
 
     myCreateEmulatorButton.addActionListener(this);
 
@@ -134,7 +137,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void createUIComponents() {
-    myDevicesList = new JBList();
+    myDevicesList = new JBList<>();
     myScrollPane = ScrollPaneFactory.createScrollPane(myDevicesList);
     myHelpHyperlink = new HyperlinkLabel("Don't see your device?");
   }
@@ -154,7 +157,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @Override
   public void valueChanged(ListSelectionEvent e) {
     if (e.getSource() == myDevicesList) {
-      Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
+      Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValuesList());
       ourSelectionsPerConfig.put(myRunContextId, selectedSerials);
       saveSelectionForProject(myFacet.getModule().getProject(), selectedSerials);
     }
@@ -176,16 +179,17 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   @Override
-  public void deviceChanged(IDevice device, int changeMask) {
+  public void deviceChanged(@NonNull IDevice device, int changeMask) {
     postUpdate();
   }
 
-  public void refreshAvds(@Nullable final AvdInfo avdToSelect) {
+  public void refreshAvds(@Nullable AvdInfo avdToSelect) {
     myDevicesList.setPaintBusy(true);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      final List<AvdInfo> avdInfos = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
-      UIUtil.invokeLaterIfNeeded(() -> {
-        if (myDevicesList == null) { // don't update anything post disposal of the dialog
+      List<AvdInfo> avdInfos = ImmutableList.copyOf(AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
+
+      invokeLater(() -> {
+        if (myDevicesList == null) { // Don't update anything after disposal of the dialog.
           return;
         }
 
@@ -203,38 +207,46 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private void updateErrorCheck() {
     myErrorGen++;
     myNotificationPanel.removeAll();
-    if (myDeviceCount == 0) {
+    if (myModel.getNumberOfConnectedDevices() == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("No USB devices or running emulators detected");
-      panel.createActionLabel("Troubleshoot", this::launchDiagnostics);
+      panel.createActionLabel("Troubleshoot", () -> launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
 
       myNotificationPanel.add(panel);
     }
     if (!myAvdInfos.isEmpty()) {
       final int currentErrorGen = myErrorGen;
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
-          if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
-            UIUtil.invokeLaterIfNeeded(new Runnable() {
-              @Override
-              public void run() {
-                if (myErrorGen != currentErrorGen) {
-                  // The notification panel has been reset since we started this update.
-                  // Ignore this error, there is another request coming.
-                  return;
-                }
-                myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(),
-                                                                               () -> updateErrorCheck()));
-                myPanel.revalidate();
-                myPanel.repaint();
-              }
-            });
-          }
+      executeOnPooledThread(() -> {
+        final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
+        if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
+          invokeLater(() -> {
+            if (myErrorGen != currentErrorGen) {
+              // The notification panel has been reset since we started this update.
+              // Ignore this error, there is another request coming.
+              return;
+            }
+            myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(),
+                                                                           this::updateErrorCheck));
+          });
         }
       });
     }
+    myPanel.revalidate();
+    myPanel.repaint();
+  }
+
+  /**
+   * Schedules the given runnable for execution on a background thread.
+   */
+  private static void executeOnPooledThread(Runnable runnable) {
+    ApplicationManager.getApplication().executeOnPooledThread(runnable);
+  }
+
+  /**
+   * Schedules the given runnable for execution on the UI thread.
+   */
+  private static void invokeLater(Runnable runnable) {
+    EdtInvocationManager.getInstance().invokeLater(runnable);
   }
 
   private void postUpdate() {
@@ -277,28 +289,42 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
 
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      UIUtil.invokeLaterIfNeeded(this::updateModel);
+      invokeLater(this::updateModel);
       return;
     }
 
-    if (myDevicesList == null) { // happens if this was scheduled post disposal of the dialog
+    if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
       return;
     }
-    Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
+    Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValuesList());
+    List<AvdInfo> avdInfos = myAvdInfos;
+    myDevicesList.setPaintBusy(true);
+    // Obtaining device list is a potentially long running operation. Execute it on a background thread.
+    executeOnPooledThread(() -> {
+      List<IDevice> connectedDevices = Arrays.asList(bridge.getDevices());
+      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, avdInfos);
 
-    List<IDevice> connectedDevices = Lists.newArrayList(bridge.getDevices());
-    myModel.reset(connectedDevices, myAvdInfos);
-    myDeviceCount = connectedDevices.size();
+      invokeLater(() -> {
+        if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
+          return;
+        }
+        setModel(model);
+        int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
+        myDevicesList.setSelectedIndices(selectedIndices);
 
-    if (selectedSerials.isEmpty()) {
-      selectedSerials = getDefaultSelection();
-    }
-    myDevicesList.setSelectedIndices(getIndices(myModel.getItems(), selectedSerials));
+        // The help hyper link is shown only when there is no inline troubleshoot link.
+        myHelpHyperlink.setVisible(myModel.getNumberOfConnectedDevices() == 0);
 
-    // The help hyper link is shown only when there is no inline troubleshoot link
-    myHelpHyperlink.setVisible(!connectedDevices.isEmpty());
+        updateErrorCheck();
+        myDevicesList.setPaintBusy(false);
+      });
+    });
+  }
 
-    updateErrorCheck();
+  private void setModel(@NotNull DevicePickerListModel model) {
+    myDeviceRenderer.clearCache();
+    myModel = model;
+    myDevicesList.setModel(myModel);
   }
 
   @NotNull
@@ -323,8 +349,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   @NotNull
-  private static Set<String> getSelectedSerials(@NotNull Object[] selectedValues) {
-    Set<String> selection = Sets.newHashSet();
+  private static Set<String> getSelectedSerials(@NotNull List<?> selectedValues) {
+    Set<String> selection = new HashSet<>();
 
     for (Object o : selectedValues) {
       if (o instanceof DevicePickerEntry) {
@@ -398,23 +424,30 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   @NotNull
   public List<AndroidDevice> getSelectedDevices() {
-    SmartList<AndroidDevice> devices = new SmartList<AndroidDevice>();
+    SmartList<AndroidDevice> devices = new SmartList<>();
 
-    for (Object value : myDevicesList.getSelectedValues()) {
-      if (value instanceof DevicePickerEntry) {
-        AndroidDevice device = ((DevicePickerEntry)value).getAndroidDevice();
-        if (device != null) {
-          devices.add(device);
-        }
+    for (DevicePickerEntry value : myDevicesList.getSelectedValuesList()) {
+      AndroidDevice device = value.getAndroidDevice();
+      if (device != null) {
+        devices.add(device);
       }
     }
 
     return devices;
   }
 
-  // TODO: this needs to become a diagnostics dialog
-  public void launchDiagnostics() {
-    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
+  public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
+    UsageTracker.getInstance().log(
+        AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
+            .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
+    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
+      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
+      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
+    }
+    else {
+      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
+    }
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
@@ -424,7 +457,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   private static Set<String> getLastSelectionForProject(@NotNull Project project) {
     String s = PropertiesComponent.getInstance(project).getValue(DEVICE_PICKER_LAST_SELECTION);
-    return s == null ? Collections.<String>emptySet() : Sets.newHashSet(s.split(" "));
+    return s == null ? Collections.emptySet() : ImmutableSet.copyOf(s.split(" "));
   }
 
   private static void saveSelectionForProject(@NotNull Project project, @NotNull Set<String> selectedSerials) {
@@ -453,16 +486,16 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       int keyCode = e.getKeyCode();
       switch (keyCode) {
         case KeyEvent.VK_DOWN:
-          ListScrollingUtil.moveDown(list, e.getModifiersEx());
+          ScrollingUtil.moveDown(list, e.getModifiersEx());
           break;
         case KeyEvent.VK_PAGE_DOWN:
-          ListScrollingUtil.movePageDown(list);
+          ScrollingUtil.movePageDown(list);
           break;
         case KeyEvent.VK_UP:
-          ListScrollingUtil.moveUp(list, e.getModifiersEx());
+          ScrollingUtil.moveUp(list, e.getModifiersEx());
           break;
         case KeyEvent.VK_PAGE_UP:
-          ListScrollingUtil.movePageUp(list);
+          ScrollingUtil.movePageUp(list);
           break;
         default:
           // only interested in up/down actions
@@ -473,10 +506,10 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       DevicePickerEntry entry = (DevicePickerEntry)list.getSelectedValue();
       while (entry.isMarker() && list.getSelectedIndex() != startIndex) {
         if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_UP) {
-          ListScrollingUtil.moveUp(list, e.getModifiersEx());
+          ScrollingUtil.moveUp(list, e.getModifiersEx());
         }
         else {
-          ListScrollingUtil.moveDown(list, e.getModifiersEx());
+          ScrollingUtil.moveDown(list, e.getModifiersEx());
         }
         entry = (DevicePickerEntry)list.getSelectedValue();
       }

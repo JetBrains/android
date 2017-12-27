@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.arsc;
 
-import com.android.tools.idea.apk.viewer.BinaryXmlParser;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableList;
 import com.google.devrel.gmscore.tools.apk.arsc.*;
 import org.jetbrains.annotations.NotNull;

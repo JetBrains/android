@@ -21,21 +21,24 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.SourcelessResourceItem;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A {@link com.android.ide.common.res2.ResourceItem} for an item that is dynamically
- * defined in a Gradle file. This needs a special class because (1) we can't rely
- * on the normal resource value parser to create resource values from XML, and (2) we
- * need to implement getQualifiers since there is no source file.
+ * A {@link ResourceItem} for an item that is dynamically defined in a Gradle file. This needs a special class because (1) we can't rely on
+ * the normal resource value parser to create resource values from XML, and (2) we need to implement getQualifiers since there is no source
+ * file.
  */
 public class DynamicResourceValueItem extends SourcelessResourceItem {
-  public DynamicResourceValueItem(@NonNull ResourceType type, @NonNull ClassField field) {
-    super(field.getName(), type, null, null);
-    mResourceValue = new ResourceValue(type, field.getName(), field.getValue(), false, null);
+  public DynamicResourceValueItem(@Nullable String namespace,
+                                  @NonNull ResourceType type,
+                                  @NonNull ClassField field) {
+    // Dynamic values are always in the "current module", so they don't live in a namespace.
+    super(field.getName(), namespace, type, null, null);
+    mResourceValue = new ResourceValue(ResourceUrl.create(namespace, type, field.getName()), field.getValue());
   }
 
   @NonNull

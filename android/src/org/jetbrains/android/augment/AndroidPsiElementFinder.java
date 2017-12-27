@@ -100,7 +100,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
     final String shortName = qualifiedName.substring(lastDot + 1);
     final String parentName = qualifiedName.substring(0, lastDot);
 
-    if (shortName.length() == 0 || !parentName.endsWith(".R")) {
+    if (shortName.isEmpty() || !parentName.endsWith(".R")) {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> result = new SmartList<PsiClass>();

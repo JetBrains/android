@@ -30,8 +30,9 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
   public void test1() {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
+    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");
 
-    LocalResourceRepository resources = ModuleResourceRepository.getModuleResources(myModule, true);
+    LocalResourceRepository resources = ModuleResourceRepository.getOrCreateInstance(myModule);
     assertNotNull(resources);
 
     Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
@@ -60,14 +61,13 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertEquals(1, drawables.size());
     assertEquals("foo", drawables.iterator().next());
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile4.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, psiFile4::delete);
     drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(0, drawables.size());
+
+    Collection<String> fonts = resources.getItemsOfType(ResourceType.FONT);
+    assertEquals(1, fonts.size());
+    assertEquals("customfont", fonts.iterator().next());
 
     // Try deleting a whole resource directory and ensure we're notified of the missing files within
     /* This does not yet work: We don't respond to resource directory removes;

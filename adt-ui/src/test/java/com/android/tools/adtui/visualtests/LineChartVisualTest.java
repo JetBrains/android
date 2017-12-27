@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.SelectionComponent;
@@ -26,7 +25,8 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
-import com.intellij.util.containers.ImmutableList;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class LineChartVisualTest extends VisualTest {
 
@@ -68,25 +67,26 @@ public class LineChartVisualTest extends VisualTest {
   private DurationDataRenderer<DefaultDurationData> mDurationRendererAttached;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    mLineChart = new LineChart();
+    LineChartModel model = new LineChartModel();
+    mLineChart = new LineChart(model);
+    mLineChart.setBackground(JBColor.background());
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
 
-    List<Animatable> componentsList = new ArrayList<>();
+    List<Updatable> componentsList = new ArrayList<>();
 
-    mySelectionComponent = new SelectionComponent(new Range(0, 0), timeGlobalRangeUs);
+    SelectionModel selection = new SelectionModel(new Range(0, 0), timeGlobalRangeUs);
+    mySelectionComponent = new SelectionComponent(selection);
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(mLineChart);
-    componentsList.add(mySelectionComponent);
-
+    componentsList.add(model);
 
     Range yRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
@@ -95,36 +95,37 @@ public class LineChartVisualTest extends VisualTest {
       }
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =
-        new RangedContinuousSeries("Widgets", timeGlobalRangeUs, yRange, series);
+        new RangedContinuousSeries("Widgets #" + i, timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }
-    mLineChart.addLines(mRangedData);
+    model.addAll(mRangedData);
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
     RangedSeries<DefaultDurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
     RangedSeries<DefaultDurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
-    mDurationRendererBlocking = new DurationDataRenderer.Builder(series1, Color.WHITE)
+    DurationDataModel<DefaultDurationData> model1 = new DurationDataModel<>(series1);
+    mDurationRendererBlocking = new DurationDataRenderer.Builder<>(model1, Color.WHITE)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-      .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
-    mDurationRendererAttached = new DurationDataRenderer.Builder(series2, Color.WHITE)
+    DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
+    model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
+    mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.BLACK)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
-      .setAttachLineSeries(mRangedData.get(0))
+      .setStroke(new BasicStroke(1))
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererAttached);
-    componentsList.add(mDurationRendererBlocking);
-    componentsList.add(mDurationRendererAttached);
-    componentsList.add(myOverlayComponent);
+    componentsList.add(model1);
+    componentsList.add(model2);
 
     return componentsList;
   }
@@ -144,6 +145,7 @@ public class LineChartVisualTest extends VisualTest {
     JPanel layered = new JPanel(new GridBagLayout());
     JPanel controls = VisualTest.createControlledPane(panel, layered);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
+    layered.setBackground(JBColor.background());
     layered.add(myOverlayComponent, GBC_FULL);
     layered.add(mySelectionComponent, GBC_FULL);
     layered.add(mLineChart, GBC_FULL);
@@ -159,7 +161,7 @@ public class LineChartVisualTest extends VisualTest {
             int v = variance.get();
             long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
             for (DefaultDataSeries<Long> series : mData) {
-              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              List<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = ((float)Math.random() - 0.45f) * v;
               // Make sure not to add negative numbers.
@@ -197,6 +199,13 @@ public class LineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
+    controls.add(VisualTest.createVariableSlider("Top padding", 0, 200, new VisualTests.ValueAdapter() {
+      @Override
+      protected void onSet(int v) {
+        mLineChart.setTopPadding(v);
+      }
+    }));
+
     controls.add(VisualTest.createVariableSlider("Line width", 1, 10, new VisualTests.Value() {
       @Override
       public void set(int v) {
@@ -233,6 +242,13 @@ public class LineChartVisualTest extends VisualTest {
         mLineChart.getLineConfig(series).setStroke(stroke);
       }
     }));
+    controls.add(VisualTest.createCheckbox("Adjust Dash", itemEvent -> {
+      boolean isAdjustDash = itemEvent.getStateChange() == ItemEvent.SELECTED;
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
+        mLineChart.getLineConfig(series).setAdjustDash(isAdjustDash);
+      }
+    }));
     controls.add(VisualTest.createCheckbox("Filled lines", itemEvent -> {
       boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Fill only some lines
@@ -256,7 +272,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(Long.MAX_VALUE);
         mDurationData1.add(nowUs, newEvent);
       }
 
@@ -264,7 +280,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
+        List<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
@@ -277,7 +293,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(Long.MAX_VALUE);
         mDurationData2.add(nowUs, newEvent);
       }
 
@@ -285,7 +301,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
+        List<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }

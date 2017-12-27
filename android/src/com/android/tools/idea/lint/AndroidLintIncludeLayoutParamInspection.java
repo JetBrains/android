@@ -16,33 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.IncludeDetector;
-import com.google.common.collect.Lists;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 public class AndroidLintIncludeLayoutParamInspection extends AndroidLintInspectionBase {
   public AndroidLintIncludeLayoutParamInspection() {
     super(AndroidBundle.message("android.lint.inspections.include.layout.param"), IncludeDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(2);
-    if (IncludeDetector.requestsWidth(message)) {
-      fixes.add(new SetAttributeQuickFix("Set layout_width", ATTR_LAYOUT_WIDTH, null));
-    }
-    if (IncludeDetector.requestsHeight(message)) {
-      fixes.add(new SetAttributeQuickFix("Set layout_height", ATTR_LAYOUT_HEIGHT, null));
-    }
-    return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
   }
 }

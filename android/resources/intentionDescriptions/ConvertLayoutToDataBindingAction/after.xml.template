@@ -1,0 +1,7 @@
+<layout <spot>xmlns:android="http://schemas.android.com/apk/res/android"</spot>>
+    <data>
+    </data>
+<spot>    <LinearLayout>
+        <View />
+    </LinearLayout>
+</spot></layout>

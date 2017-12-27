@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.CHECK_BOX;
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -127,10 +127,10 @@ public class StyleEnumSupportTest {
   }
 
   static StyleResourceValue createFrameworkStyle(@NotNull String name) {
-    return new StyleResourceValue(ResourceType.STYLE, name, true);
+    return new StyleResourceValue(ResourceUrl.create(ANDROID_NS_NAME, ResourceType.STYLE, name), null, null);
   }
 
   static StyleResourceValue createStyle(@NotNull String name, @Nullable String libraryName) {
-    return new StyleResourceValue(ResourceType.STYLE, name, false, libraryName);
+    return new StyleResourceValue(ResourceUrl.create(null, ResourceType.STYLE, name), null, libraryName);
   }
 }

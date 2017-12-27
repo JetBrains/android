@@ -16,8 +16,18 @@
 package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class FieldObject extends InstanceObject {
+/**
+ * Transient object that stores field information of a permanent {@link InstanceObject}.
+ */
+public interface FieldObject extends ValueObject {
   @NotNull
-  public abstract String getFieldName();
+  String getFieldName();
+
+  @Nullable
+  InstanceObject getAsInstance();
+
+  @Nullable
+  Object getValue();
 }

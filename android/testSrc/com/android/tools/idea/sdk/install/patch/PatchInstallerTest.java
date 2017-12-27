@@ -94,7 +94,7 @@ public class PatchInstallerTest extends TestCase {
     "</sdk:repository>\n";
 
   public void testRunInstaller() throws Exception {
-    FakeProgressIndicator progress = new FakeProgressIndicator();
+    FakeProgressIndicator progress = new FakeProgressIndicator(true);
     File localPackageLocation = new File("/sdk/pkg");
     ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(new File(localPackageLocation.getPath(), "sourceFile")),
                            "the source to which the diff will be applied");

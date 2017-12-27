@@ -138,14 +138,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     BiMap<String, String> installedApis = apisMapBuilder.build();
     BiMap<String, String> installedCompileApis = compiledApisMapBuilder.build();
 
-    BiMap<String, String> javaCompatibility;
-    if (installedApis.containsKey("N")) {
-      javaCompatibility =
-        ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7", "JavaVersion.VERSION_1_8", "1.8");
-    }
-    else {
-      javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
-    }
+    BiMap<String, String> javaCompatibility =
+      ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7", "JavaVersion.VERSION_1_8", "1.8");
 
     myKeysWithKnownValues = ImmutableMap.<BuildFileKey, BiMap<String, String>>builder()
         .put(BuildFileKey.MIN_SDK_VERSION, installedApis)

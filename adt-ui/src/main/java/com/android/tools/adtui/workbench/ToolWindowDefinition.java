@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.openapi.util.Factory;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,7 +32,7 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BU
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
 public class ToolWindowDefinition<T> {
-  public static final int DEFAULT_SIDE_WIDTH = 200;
+  public static final int DEFAULT_SIDE_WIDTH = JBUI.scale(225);
 
   private final String myTitle;
   private final Icon myIcon;

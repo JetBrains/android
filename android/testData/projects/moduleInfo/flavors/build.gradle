@@ -1,9 +1,6 @@
 buildscript {
   repositories {
     jcenter()
-    if (System.getenv("MAVEN_URL") != null) {
-      maven {url System.getenv("MAVEN_URL")}
-    }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:0.12.+'
@@ -32,6 +29,7 @@ android {
     }
   }
 
+  flavorDimensions 'version'
   productFlavors {
     pro {
       applicationId "com.example.pro"

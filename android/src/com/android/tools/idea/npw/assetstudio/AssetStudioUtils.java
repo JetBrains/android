@@ -20,7 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -140,7 +140,7 @@ public final class AssetStudioUtils {
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {
-    AppResourceRepository repository = facet.getAppResources(true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     return repository.hasResourceItem(resourceType, name);
   }
 

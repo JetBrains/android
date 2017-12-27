@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.Lists;
@@ -182,18 +183,18 @@ public abstract class ImportModule implements Comparable<ImportModule> {
       compileVersion = 18;
     }
 
-    String compileVersionString = Integer.toString(compileVersion);
-
     if (myImporter.getSdkLocation() != null) {
-      @SuppressWarnings("UnnecessaryLocalVariable") String filter = compileVersionString;
+      int requiredVersion = compileVersion;
       GradleCoordinate max =
-        SdkMavenRepository.ANDROID.getHighestInstalledVersion(myImporter.getSdkLocation(), SUPPORT_GROUP_ID, artifact, filter, true);
+          SdkMavenRepository.ANDROID.getHighestInstalledVersion(myImporter.getSdkLocation(), SUPPORT_GROUP_ID, artifact,
+                                                                (v) -> v.getMajor() == requiredVersion, true,
+                                                                FileOpUtils.create());
       if (max != null) {
         return max;
       }
     }
 
-    String coordinate = SUPPORT_GROUP_ID + ':' + artifact + ':' + compileVersionString + ".+";
+    String coordinate = SUPPORT_GROUP_ID + ':' + artifact + ':' + compileVersion + ".+";
     return GradleCoordinate.parseCoordinateString(coordinate);
   }
 

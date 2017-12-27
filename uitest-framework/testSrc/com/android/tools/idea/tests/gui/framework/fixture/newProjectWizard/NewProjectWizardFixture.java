@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.npw.TemplateEntry;
+import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
@@ -26,7 +26,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Optional;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -41,29 +40,37 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureAndroidProjectStepFixture getConfigureAndroidProjectStep() {
-    JRootPane rootPane = findStepWithTitle("Configure your new project");
+    JRootPane rootPane = findStepWithTitle("Create Android Project");
     return new ConfigureAndroidProjectStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
-    JRootPane rootPane = findStepWithTitle("Select the form factors your app will run on");
+    JRootPane rootPane = findStepWithTitle("Target Android Devices");
     return new ConfigureFormFactorStepFixture(robot(), rootPane);
+  }
+
+  public ConfigureInstantModuleStepFixture getConfigureInstantModuleStep() {
+    JRootPane rootPane = findStepWithTitle("Configure the feature module");
+    return new ConfigureInstantModuleStepFixture(robot(), rootPane);
+  }
+
+  @NotNull
+  public ConfigureCppStepFixture getConfigureCppStepFixture() {
+    JRootPane rootPane = findStepWithTitle("Customize C++ Support");
+    return new ConfigureCppStepFixture(robot(), rootPane);
   }
 
   public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((jList, index) -> {
-      TemplateEntry templateEntry = ((Optional<TemplateEntry>) jList.getModel().getElementAt(index)).orElse(null);
-      return templateEntry == null ? "none" : templateEntry.getTitle();
-    });
+    listFixture.replaceCellReader((jList, index) -> String.valueOf(jList.getModel().getElementAt(index)));
     listFixture.clickItem(activity);
     return this;
   }
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle("Customize the Activity");
+    JRootPane rootPane = findStepWithTitle(StudioFlags.NPW_NEW_PROJECT.get() ? "Configure Activity" : "Customize the Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 
@@ -73,7 +80,8 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     super.clickFinish();
 
     // Wait for gradle project importing to finish
-    Wait.seconds(30).expecting("Modal Progress Indicator to finish")
+    // b/66170375
+    Wait.seconds(60).expecting("Modal Progress Indicator to finish")
       .until(() -> {
         robot().waitForIdle();
         return !ProgressManager.getInstance().hasModalProgressIndicator();

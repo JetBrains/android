@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 
 public class ViewHandlerManagerTest extends LayoutTestCase {
@@ -29,5 +32,8 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     assertTrue(viewManager.getHandler("android.widget.RelativeLayout") instanceof RelativeLayoutHandler);
 
     assertSame(viewManager.getHandler("LinearLayout"), viewManager.getHandler("LinearLayout"));
+    if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
+      assertTrue(viewManager.getHandler(SdkConstants.FLEXBOX_LAYOUT) instanceof FlexboxLayoutHandler);
+    }
   }
 }

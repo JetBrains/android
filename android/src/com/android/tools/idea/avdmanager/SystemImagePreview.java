@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
@@ -44,6 +45,8 @@ import java.awt.image.BufferedImage;
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview {
+  public enum ImageRecommendation { RECOMMENDATION_NONE, RECOMMENDATION_X86, RECOMMENDATION_GOOGLE_PLAY, RECOMMENDATION_WEAR };
+
   private JBLabel myReleaseName;
   private JBLabel myReleaseIcon;
   private JBLabel myApiLevel;
@@ -63,6 +66,13 @@ public class SystemImagePreview {
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final String MAIN_CONTENT = "main";
   private static final String NO_IMAGE_CONTENT = "none";
+
+  private static final String PS_RECOMMENDATION = "<html>We recommend these Google Play "
+    + "images because this device is compatible with Google Play.<br><br></html>";
+  private static final String WEAR_RECOMMENDATION = "<html>We recommend these Android Wear "
+    + "images because they run the fastest.<br><br></html>";
+  private static final String NON_PS_RECOMMENDATION = "<html>We recommend these images "
+    + "because they run the fastest and support Google APIs.<br><br></html>";
 
   public SystemImagePreview(@Nullable Disposable disposable) {
     myDisposable = disposable;
@@ -103,7 +113,7 @@ public class SystemImagePreview {
       }
       int apiLevel = version.getApiLevel();
       myApiLevelListener.setApiLevel(apiLevel);
-      String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getApiLevel());
+      String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getFeatureLevel());
       if (codeName != null) {
         myReleaseName.setText(codeName);
       }
@@ -126,8 +136,30 @@ public class SystemImagePreview {
     }
   }
 
-  public void showExplanationForRecommended(boolean show) {
-    myRecommendedExplanation.setVisible(show);
+  @VisibleForTesting
+  @Nullable
+  JBLabel getReleaseIcon() {
+    return myReleaseIcon;
+  }
+
+  public void showExplanationForRecommended(ImageRecommendation recommendationChoice) {
+    switch (recommendationChoice) {
+      case RECOMMENDATION_NONE:
+        myRecommendedExplanation.setVisible(false);
+        break;
+      case RECOMMENDATION_X86:
+        myRecommendedExplanation.setText(NON_PS_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+      case RECOMMENDATION_GOOGLE_PLAY:
+        myRecommendedExplanation.setText(PS_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+      case RECOMMENDATION_WEAR:
+        myRecommendedExplanation.setText(WEAR_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+    }
   }
 
   /**

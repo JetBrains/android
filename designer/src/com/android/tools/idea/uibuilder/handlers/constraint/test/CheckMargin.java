@@ -29,13 +29,13 @@ import java.awt.event.MouseMotionAdapter;
  * Test for margin widget
  */
 public class CheckMargin extends JPanel {
-  ColorSet mColorSet = new BlueprintColorSet();
-  MarginWidget top = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget left = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget right = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget bottom = new MarginWidget(JLabel.LEFT, mColorSet);
+  private final ColorSet mColorSet = new BlueprintColorSet();
+  private final MarginWidget top = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget left = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget right = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget bottom = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
 
-  public CheckMargin() {
+  private CheckMargin() {
     super(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 1;
@@ -50,7 +50,7 @@ public class CheckMargin extends JPanel {
     gbc.gridy = 1;
     add(right, gbc);
     gbc.gridx = 1;
-    gbc.gridy = 02;
+    gbc.gridy = 2;
     add(bottom, gbc);
     setBackground(mColorSet.getBackground());
 
@@ -66,7 +66,7 @@ public class CheckMargin extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseExited(MouseEvent e) {
-        if (getBounds().contains(e.getPoint())){
+        if (getBounds().contains(e.getPoint())) {
           return;
         }
         top.showUI(MarginWidget.Show.OUT_PANEL);
@@ -81,7 +81,6 @@ public class CheckMargin extends JPanel {
   protected void paintComponent(Graphics g) {
     int width = getWidth();
     int height = getHeight();
-    Graphics2D g2d = (Graphics2D)g;
     g.setColor(getBackground());
     g.fillRect(0, 0, width, height);
   }
@@ -89,7 +88,7 @@ public class CheckMargin extends JPanel {
   public static void main(String[] args) {
     JFrame f = new JFrame("CustomTextInput");
     f.setBounds(new Rectangle(800, 800));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     CheckMargin p = new CheckMargin();
     f.setContentPane(p);
     f.validate();

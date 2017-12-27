@@ -19,43 +19,36 @@ import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.highlighting.TooltipLinkHandler;
-import com.intellij.codeInspection.InspectionsBundle;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.LintInspectionDescriptionLinkHandler");
+import java.util.List;
 
+public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
   @Override
   public String getDescription(@NotNull final String refSuffix, @NotNull final Editor editor) {
-    final Project project = editor.getProject();
-    if (project == null) {
-      LOG.error(editor);
-      return null;
-    }
-
-    final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
-    if (file == null) {
-      return null;
-    }
-
     Issue issue = new BuiltinIssueRegistry().getIssue(refSuffix);
     if (issue != null) {
       String html = issue.getExplanation(TextFormat.HTML);
+
       // IntelliJ seems to treat newlines in the HTML as needing to also be converted to <br> (whereas
       // Lint includes these for HTML readability but they shouldn't add additional lines since it has
       // already added <br> as well) so strip these out
       html = html.replace("\n", "");
+
+      List<String> urls = issue.getMoreInfo();
+      if (!urls.isEmpty()) {
+        StringBuilder sb = new StringBuilder(html);
+        sb.append("<br><br>More info:<br>");
+        for (String url : urls) {
+          sb.append("<a href=\"").append(url).append("\">").append(url).append("</a><br>");
+        }
+        html = sb.toString();
+      }
+
       return html;
     }
 
-    // TODO: What about custom registries for custom rules, AARs etc?
-
-    LOG.warn("No description for inspection '" + refSuffix + "'");
-    return InspectionsBundle.message("inspection.tool.description.under.construction.text");
+    return null;
   }
 }

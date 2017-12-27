@@ -35,29 +35,39 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"2.0.0-alpha9", "2.0.0-alpha9", false},
-      {"2.0.0-alpha9", "2.0.0-alpha10", true},
+      {"2.0.0-alpha9", "2.0.0-alpha9-1", true},
+      {"2.0.0-alpha9", "2.0.0-alpha10", false},
       {"2.0.0-alpha9", "2.0.0-beta1", true},
       {"2.0.0-alpha9", "2.0.0", true},
       {"2.0.0", "2.0.1", false},
       {"2.0.0", "3.0.0", false},
       {"1.5.0-beta1", "2.0.0-alpha10", true},
       {"1.5.0", "2.0.0-alpha10", false},
+      {"2.3.0-alpha1", "2.3.0-dev", false},
+      {"2.4.0-alpha7", "2.4.0-alpha8", false},
+      {"2.4.0-alpha6", "2.4.0-alpha8", false},
+      {"2.4.0-alpha8", "2.4.0-alpha8", false},
+      {"2.4.0-alpha9", "2.4.0-alpha8", false},
+      {"2.5.0", "2.4.0-alpha8", false},
+      {"2.5.0-alpha1", "2.4.0-alpha8", false},
+      {"2.3.0-alpha1", "2.4.0-alpha8", true},
     });
   }
 
   @NotNull private final GradleVersion myCurrent;
-  @NotNull private final String myRecommended;
+  @NotNull private final GradleVersion myRecommended;
 
   private final boolean myForceUpgrade;
 
   public ForcedPluginPreviewVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
-    myRecommended = recommended;
+    myRecommended = GradleVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;
   }
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    assertEquals(myForceUpgrade, ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
+    boolean forced = ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
+    assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
   }
 }

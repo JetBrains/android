@@ -16,15 +16,18 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -38,7 +41,6 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Collections;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.listToString;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.tableToString;
@@ -76,6 +78,7 @@ public class ChooseResourceDialogTest {
     resourceComponent.getSwatchButton().click();
 
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    assertThat(dialog.getTitle()).isEqualTo("Select Resource for android:textColorPrimary");
 
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
@@ -174,7 +177,7 @@ public class ChooseResourceDialogTest {
   }
 
   /**
-   * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
+   * Test that the alpha slider and the text field are hidden when we are not in ARGB.
    */
   @Test
   public void testColorPickerAlpha() throws IOException {
@@ -228,12 +231,13 @@ public class ChooseResourceDialogTest {
     textView.click();
 
     // It should be selected now
-    layout.requireSelection(Collections.singletonList(textView));
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
     // Get property sheet, find text property, open customizer
-    layout.getPropertyInspector().findProperty("text").clickCustomizer();
+    NlPropertyFixture property = layout.getPropertiesPanel().openAsInspector().findProperty("text");
+    assert property != null;
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTableFixture nameTable = dialog.getResourceNameTable();
 
     assertEquals("Project                                                     \n" +
@@ -241,7 +245,7 @@ public class ChooseResourceDialogTest {
                  "app_name                      Simple Application            \n" +
                  "cancel                        取消                            \n" +
                  "hello_world                   Hello world!                  \n" +
-                 "android                                                     \n",
+                 "some_id                       12345678                      \n",
                  tableToString(nameTable, 0, 6, 0, 5, 30));
 
     // Search for "app" and confirm that we only show the header nodes as well as resource names
@@ -257,7 +261,7 @@ public class ChooseResourceDialogTest {
 
     JTableFixture valueTable = dialog.getResourceValueTable();
     assertEquals("Default                                 Simple Application                      \n" +
-                 "English                                 Simple Application                      \n" +
+                 "English                                 Simple Application(en)                  \n" +
                  "Hebrew                                                                          \n" +
                  "Tamil                                   Simple Application                      \n" +
                  "English, United Kingdom                 Simple Application                      \n" +
@@ -284,14 +288,15 @@ public class ChooseResourceDialogTest {
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);
     imageView.click();
-    layout.requireSelection(Collections.singletonList(imageView));
+    assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
 
     // Get property sheet, find srcCompat property, open customizer
-    NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
-    NlPropertyFixture property = fixture.findProperty("srcCompat");
-    property.clickCustomizer();
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
+    assert property != null;
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
 
@@ -327,5 +332,73 @@ public class ChooseResourceDialogTest {
     dialog.clickOK();
 
     Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@drawable/ic_launcher"));
+  }
+
+  /**
+   * Test if the color tab is selected by default when selecting a resource for backgroundTint
+   */
+  @Test
+  public void testDefaultProperty() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture textView = layout.findView("Button", 0);
+    textView.click();
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
+    NlPropertyFixture property = fixture.findProperty("backgroundTint");
+    assert property != null;
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color");
+    assertThat(dialog.getSelectedTabTitle()).isEqualTo("Color");
+
+    dialog.clickCancel();
+  }
+
+  @Test
+  public void testSearchExactMatch() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture imageView = layout.findView("ImageView", 0);
+    imageView.click();
+    assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
+    assert property != null;
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+
+    dialog.getSearchField().enterText("ic_launcher ");
+    JListFixture projectList = dialog.getList("Project");
+
+    assertEquals("ic_launcher                             \n",
+                 listToString(projectList));
+
+    dialog.clickCancel();
   }
 }

@@ -15,184 +15,112 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.prefs.AndroidLocation;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.databinding.LightBrClass;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.res.*;
-import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.res.FileResourceRepository;
+import com.android.tools.idea.res.ResourceFolderRegistry;
+import com.android.tools.idea.res.ResourceRepositories;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.utils.ILogger;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.ProjectScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.util.ThreeState;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
+import org.jetbrains.android.ClassMaps;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
-import org.jetbrains.android.sdk.*;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.Contract;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.apk.ApkProjects.isApkProject;
+import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBindingStatus;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ArrayUtilRt.find;
-import static org.jetbrains.android.compiler.AndroidCompileUtil.generate;
-import static org.jetbrains.android.facet.AndroidRootUtil.*;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
  * @author yole
  */
 public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacet");
-
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private static final Object APP_RESOURCES_LOCK = new Object();
-  private static final Object PROJECT_RESOURCES_LOCK = new Object();
-  private static final Object MODULE_RESOURCES_LOCK = new Object();
   private static boolean ourDynamicTemplateMenuCreated;
 
-  private AvdManager myAvdManager = null;
-  private AndroidSdkData mySdkData;
-  private AndroidSdkHandler myHandler;
-  private boolean myDataBindingEnabled = false;
-
-  private SystemResourceManager myPublicSystemResourceManager;
-  private SystemResourceManager myFullSystemResourceManager;
-  private LocalResourceManager myLocalResourceManager;
-
-  private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = Maps.newHashMap();
-
-  private Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newHashMap();
-
-  private final Object myClassMapLock = new Object();
-
-  private final Set<AndroidAutogeneratorMode> myDirtyModes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
-  private final Map<AndroidAutogeneratorMode, Set<String>> myAutogeneratedFiles = Maps.newHashMap();
-
-  private volatile boolean myAutogenerationEnabled = false;
-
-  private ConfigurationManager myConfigurationManager;
-  private LocalResourceRepository myModuleResources;
-  private AppResourceRepository myAppResources;
-  private ProjectResourceRepository myProjectResources;
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
-  private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
-  private RenderService myRenderService;
-  private LightBrClass myLightBrClass;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidFacet facet = getInstance(module);
-    if (facet == null) {
-      // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
-      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-      facet = facetModel.getFacetByType(ID);
-    }
-    return facet;
-  }
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(module).getFacetByType(ID);
+    return modelsProvider.getModifiableFacetModel(module).getFacetByType(ID);
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull ConvertContext context) {
-    Module module = context.getModule();
-    return module != null ? getInstance(module) : null;
+    return findAndroidFacet(context.getModule());
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull PsiElement element) {
-    Module module = getModuleSafely(element);
-    return module != null && !module.isDisposed() ? getInstance(module) : null;
+    return findAndroidFacet(getModuleSafely(element));
   }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull DomElement element) {
-    Module module = element.getModule();
+    return findAndroidFacet(element.getModule());
+  }
+
+  @Nullable
+  private static AndroidFacet findAndroidFacet(@Nullable Module module) {
     return module != null ? getInstance(module) : null;
   }
 
-  public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
-    super(getFacetType(), module, name, configuration, null);
-    configuration.setFacet(this);
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull Module module) {
+    return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
   }
 
-  public boolean isAutogenerationEnabled() {
-    return myAutogenerationEnabled;
+  public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
+    super(getFacetType(), module, name, configuration, null);
+    configuration.setFacet(this);
   }
 
   /**
@@ -202,7 +130,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    return !getProperties().ALLOW_USER_CONFIGURATION && !isApkProject(getModule());
+    return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
   /**
@@ -220,7 +148,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setAndroidModel(@Nullable AndroidModel androidModel) {
     myAndroidModel = androidModel;
-    DataBindingUtil.onIdeaProjectSet(this);
+    refreshDataBindingStatus(this);
   }
 
   public boolean isAppProject() {
@@ -230,7 +158,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public boolean canBeDependency() {
     int projectType = getProjectType();
-    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_ATOM;
+    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
   }
 
   public boolean isLibraryProject() {
@@ -244,6 +172,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void setProjectType(int type) {
     getProperties().PROJECT_TYPE = type;
   }
+
+  public static boolean hasAndroid(@NotNull Project project) {
+    return ReadAction.compute(() -> !project.isDisposed() && ProjectFacetManager.getInstance(project).hasFacets(ID));
+  }
+
   /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.
@@ -256,7 +189,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
     else {
       if (myMainSourceSet == null) {
-        myMainSourceSet = new LegacySourceProvider();
+        myMainSourceSet = new LegacySourceProvider(this);
       }
       return myMainSourceSet;
     }
@@ -279,6 +212,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myMainIdeaSourceSet;
   }
 
+  @NotNull
   public ResourceFolderManager getResourceFolderManager() {
     return myFolderManager;
   }
@@ -290,7 +224,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public List<VirtualFile> getAllResourceDirectories() {
     return myFolderManager.getFolders();
   }
-
 
   /**
    * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
@@ -309,162 +242,13 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
-  public boolean isGeneratedFileRemoved(@NotNull AndroidAutogeneratorMode mode) {
-    synchronized (myAutogeneratedFiles) {
-      Set<String> filePaths = myAutogeneratedFiles.get(mode);
-
-      if (filePaths != null) {
-        for (String path : filePaths) {
-          VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-
-          if (file == null) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+  void androidPlatformChanged() {
+    ModuleAvds.disposeInstance(this);
+    ModuleResourceManagers.getInstance(this).clear();
+    ClassMaps.getInstance(this).clear();
   }
 
-  public void clearAutogeneratedFiles(@NotNull AndroidAutogeneratorMode mode) {
-    synchronized (myAutogeneratedFiles) {
-      Set<String> set = myAutogeneratedFiles.get(mode);
-      if (set != null) {
-        set.clear();
-      }
-    }
-  }
-
-  public void markFileAutogenerated(@NotNull AndroidAutogeneratorMode mode, @NotNull VirtualFile file) {
-    synchronized (myAutogeneratedFiles) {
-      Set<String> set = myAutogeneratedFiles.get(mode);
-
-      if (set == null) {
-        set = Sets.newHashSet();
-        myAutogeneratedFiles.put(mode, set);
-      }
-      set.add(file.getPath());
-    }
-  }
-
-  @NotNull
-  public Set<String> getAutogeneratedFiles(@NotNull AndroidAutogeneratorMode mode) {
-    synchronized (myAutogeneratedFiles) {
-      Set<String> set = myAutogeneratedFiles.get(mode);
-      return set != null ? Sets.newHashSet(set) : Collections.emptySet();
-    }
-  }
-
-  private void activateSourceAutogenerating() {
-    myAutogenerationEnabled = true;
-  }
-
-  private void clearClassMaps() {
-    synchronized (myClassMapLock) {
-      myInitialClassMaps.clear();
-    }
-  }
-
-  public void androidPlatformChanged() {
-    myAvdManager = null;
-    myLocalResourceManager = null;
-    myPublicSystemResourceManager = null;
-    clearClassMaps();
-  }
-
-  @NotNull
-  public AvdInfo[] getAllAvds() {
-    AvdManager manager = getAvdManagerSilently();
-    if (manager != null) {
-      if (reloadAvds(manager)) {
-        return manager.getAllAvds();
-      }
-    }
-    return new AvdInfo[0];
-  }
-
-  private boolean reloadAvds(AvdManager manager) {
-    try {
-      MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-      manager.reloadAvds(log);
-      if (!log.getErrorMessage().isEmpty()) {
-        String message = AndroidBundle.message("cant.load.avds.error.prefix") + ' ' + log.getErrorMessage();
-        Messages.showErrorDialog(getModule().getProject(), message, CommonBundle.getErrorTitle());
-      }
-      return true;
-    }
-    catch (AndroidLocation.AndroidLocationException e) {
-      Messages.showErrorDialog(getModule().getProject(), AndroidBundle.message("cant.load.avds.error"), CommonBundle.getErrorTitle());
-    }
-    return false;
-  }
-
-  @NotNull
-  public AvdInfo[] getValidCompatibleAvds() {
-    AvdManager manager = getAvdManagerSilently();
-    List<AvdInfo> result = Lists.newArrayList();
-    if (manager != null && reloadAvds(manager)) {
-      addCompatibleAvds(result, manager.getValidAvds());
-    }
-    return result.toArray(new AvdInfo[result.size()]);
-  }
-
-  @NotNull
-  private AvdInfo[] addCompatibleAvds(@NotNull List<AvdInfo> to, @NotNull AvdInfo[] from) {
-    AndroidVersion minSdk = AndroidModuleInfo.get(this).getRuntimeMinSdkVersion();
-    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-    if (platform == null) {
-      LOG.error("Android Platform not set for module: " + getModule().getName());
-      return new AvdInfo[0];
-    }
-
-    for (AvdInfo avd : from) {
-      ISystemImage systemImage = avd.getSystemImage();
-      if (systemImage == null ||
-          LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), systemImage).isCompatible() != ThreeState.NO) {
-        to.add(avd);
-      }
-    }
-    return to.toArray(new AvdInfo[to.size()]);
-  }
-
-  @Nullable
-  public AvdManager getAvdManagerSilently() {
-    try {
-      return getAvdManager(new AvdManagerLog());
-    }
-    catch (AndroidLocation.AndroidLocationException ignored) {
-    }
-    return null;
-  }
-
-  public AvdManager getAvdManager(ILogger log) throws AndroidLocation.AndroidLocationException {
-    if (myAvdManager == null) {
-      // ensure the handler is created
-      getSdkData();
-      myAvdManager = AvdManager.getInstance(myHandler, log);
-    }
-    return myAvdManager;
-  }
-
-  @Nullable
-  public AndroidSdkData getSdkData() {
-    if (mySdkData == null) {
-      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        mySdkData = platform.getSdkData();
-        myHandler = mySdkData.getSdkHandler();
-      }
-      else {
-        mySdkData = null;
-        myHandler = AndroidSdkHandler.getInstance(null);
-      }
-    }
-
-    return mySdkData;
-  }
-
-  public static void createDynamicTemplateMenu() {
+  private static void createDynamicTemplateMenu() {
     if (ourDynamicTemplateMenuCreated) {
       return;
     }
@@ -480,31 +264,19 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void initFacet() {
-    StartupManager.getInstance(getModule().getProject()).runWhenProjectIsInitialized(() -> {
+    ResourceRepositories.getOrCreateInstance(this);
+
+    StartupManager.getInstance(getProject()).runWhenProjectIsInitialized(() -> {
       AndroidResourceFilesListener.notifyFacetInitialized(this);
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         return;
       }
 
       addResourceFolderToSdkRootsIfNecessary();
-
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        Module module = getModule();
-        Project project = module.getProject();
-        if (project.isDisposed()) {
-          return;
-        }
-
-        generate(module, AndroidAutogeneratorMode.AAPT);
-        generate(module, AndroidAutogeneratorMode.AIDL);
-        generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
-        generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
-
-        activateSourceAutogenerating();
-      });
+      ModuleSourceAutogenerating.initialize(this);
     });
 
-    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       private Sdk myPrevSdk;
 
       @Override
@@ -519,18 +291,19 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
             androidPlatformChanged();
 
-            synchronized (myDirtyModes) {
-              myDirtyModes.addAll(Arrays.asList(AndroidAutogeneratorMode.values()));
+            ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(AndroidFacet.this);
+            if (autogenerating != null) {
+              autogenerating.resetRegeneratingState();
             }
           }
           else {
             // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
             // from libraries are added
-            clearClassMaps();
+            ClassMaps.getInstance(AndroidFacet.this).clear();
           }
           myPrevSdk = newSdk;
 
-          getLocalResourceManager().invalidateAttributeDefinitions();
+          ModuleResourceManagers.getInstance(AndroidFacet.this).getLocalResourceManager().invalidateAttributeDefinitions();
         });
       }
     });
@@ -556,7 +329,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (resFolderPath == null) {
       return;
     }
-    List<VirtualFile> filesToAdd = Lists.newArrayList();
+    List<VirtualFile> filesToAdd = new ArrayList<>();
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(resFolderPath));
     if (resFolder != null) {
@@ -575,10 +348,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private static void addFilesToSdkIfNecessary(@NotNull Sdk sdk, @NotNull Collection<VirtualFile> files) {
-    List<VirtualFile> newFiles = Lists.newArrayList(files);
+    List<VirtualFile> newFiles = new ArrayList<>(files);
     newFiles.removeAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
 
-    if (newFiles.size() > 0) {
+    if (!newFiles.isEmpty()) {
       SdkModificator modificator = sdk.getSdkModificator();
 
       for (VirtualFile file : newFiles) {
@@ -590,85 +363,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    if (myConfigurationManager != null) {
-      Disposer.dispose(myConfigurationManager);
-    }
     myAndroidModel = null;
-  }
-
-  @Nullable
-  public ResourceManager getResourceManager(@Nullable String resourcePackage) {
-    return getResourceManager(resourcePackage, null);
-  }
-
-  @Nullable
-  public ResourceManager getResourceManager(@Nullable String resourcePackage, @Nullable PsiElement contextElement) {
-    if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
-      return getSystemResourceManager();
-    }
-    if (contextElement != null && isInAndroidSdk(contextElement)) {
-      return getSystemResourceManager();
-    }
-    return getLocalResourceManager();
-  }
-
-  public static boolean isInAndroidSdk(@NonNull PsiElement element) {
-    PsiFile file = element.getContainingFile();
-
-    if (file == null) {
-      return false;
-    }
-    VirtualFile virtualFile = file.getVirtualFile();
-
-    if (virtualFile == null) {
-      return false;
-    }
-    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
-    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(virtualFile);
-
-    for (OrderEntry entry : entries) {
-      if (entry instanceof JdkOrderEntry) {
-        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
-
-        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @NotNull
-  public LocalResourceManager getLocalResourceManager() {
-    if (myLocalResourceManager == null) {
-      myLocalResourceManager = new LocalResourceManager(this);
-    }
-    return myLocalResourceManager;
-  }
-
-  @Nullable
-  public SystemResourceManager getSystemResourceManager() {
-    return getSystemResourceManager(true);
-  }
-
-  @Nullable
-  public SystemResourceManager getSystemResourceManager(boolean publicOnly) {
-    if (publicOnly) {
-      if (myPublicSystemResourceManager == null) {
-        AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-        if (platform != null) {
-          myPublicSystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, true);
-        }
-      }
-      return myPublicSystemResourceManager;
-    }
-    if (myFullSystemResourceManager == null) {
-      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        myFullSystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, false);
-      }
-    }
-    return myFullSystemResourceManager;
   }
 
   @Nullable
@@ -682,223 +377,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  // TODO: correctly support classes from external non-platform jars
-  @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull String className) {
-    CachedValue<Map<String, PsiClass>> value;
-    synchronized (myClassMapLock) {
-      value = myClassMaps.get(className);
-
-      if (value == null) {
-        value = CachedValuesManager.getManager(getModule().getProject()).createCachedValue(
-          () -> {
-            Map<String, PsiClass> map = computeClassMap(className);
-            return CachedValueProvider.Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
-          }, false);
-        myClassMaps.put(className, value);
-      }
-    }
-    return value.getValue();
-  }
-
-  @NotNull
-  private Map<String, PsiClass> computeClassMap(@NotNull String className) {
-    Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, false);
-    Map<String, PsiClass> result = Maps.newHashMap();
-    boolean shouldRebuildInitialMap = false;
-
-    for (String key : classMap.keySet()) {
-      SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-
-      if (!isUpToDate(pointer, key)) {
-        shouldRebuildInitialMap = true;
-        break;
-      }
-      PsiClass aClass = pointer.getElement();
-
-      if (aClass != null) {
-        result.put(key, aClass);
-      }
-    }
-
-    if (shouldRebuildInitialMap) {
-      result.clear();
-      classMap = getInitialClassMap(className, true);
-
-      for (String key : classMap.keySet()) {
-        SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-        PsiClass aClass = pointer.getElement();
-
-        if (aClass != null) {
-          result.put(key, aClass);
-        }
-      }
-    }
-    Project project = getModule().getProject();
-    fillMap(className, ProjectScope.getProjectScope(project), result, false);
-    return result;
-  }
-
-  private static boolean isUpToDate(SmartPsiElementPointer<PsiClass> pointer, String tagName) {
-    PsiClass aClass = pointer.getElement();
-    if (aClass == null) {
-      return false;
-    }
-    String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(aClass, -1);
-    return find(tagNames, tagName) >= 0;
-  }
-
-  @NotNull
-  private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className, boolean forceRebuild) {
-    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
-    if (viewClassMap != null && !forceRebuild) {
-      return viewClassMap;
-    }
-    Map<String, PsiClass> map = Maps.newHashMap();
-
-    if (fillMap(className, getModule().getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
-      viewClassMap = Maps.newHashMapWithExpectedSize(map.size());
-      SmartPointerManager manager = SmartPointerManager.getInstance(getModule().getProject());
-
-      for (Map.Entry<String, PsiClass> entry : map.entrySet()) {
-        viewClassMap.put(entry.getKey(), manager.createSmartPsiElementPointer(entry.getValue()));
-      }
-      myInitialClassMaps.put(className, viewClassMap);
-    }
-    return viewClassMap != null ? viewClassMap : Collections.emptyMap();
-  }
-
-  private boolean fillMap(@NotNull String className, @NotNull GlobalSearchScope scope, Map<String, PsiClass> map, boolean libClassesOnly) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(getModule().getProject());
-    PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
-      PsiClass aClass;
-      // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
-      try {
-        aClass = facade.findClass(className, getModule().getModuleWithDependenciesAndLibrariesScope(true));
-      }
-      catch (IndexNotReadyException e) {
-        aClass = null;
-      }
-      return aClass;
-    });
-    if (baseClass != null) {
-      String[] baseClassTagNames = LayoutViewClassUtils.getTagNamesByClass(baseClass, getModuleMinApi());
-      for (String tagName : baseClassTagNames) {
-        map.put(tagName, baseClass);
-      }
-      try {
-        ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-          if (libClassesOnly && c.getManager().isInProject(c)) {
-            return true;
-          }
-          String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(c, getModuleMinApi());
-          for (String tagName : tagNames) {
-            map.put(tagName, c);
-          }
-          return true;
-        });
-      }
-      catch (IndexNotReadyException e) {
-        LOG.info(e);
-        return false;
-      }
-    }
-    return map.size() > 0;
-  }
-
-  /**
-   * Returns minimum SDK version for current Android module
-   */
-  public int getModuleMinApi() {
-    return getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
-  }
-
-  public void scheduleSourceRegenerating(@NotNull AndroidAutogeneratorMode mode) {
-    synchronized (myDirtyModes) {
-      myDirtyModes.add(mode);
-    }
-  }
-
-  public boolean cleanRegeneratingState(@NotNull AndroidAutogeneratorMode mode) {
-    synchronized (myDirtyModes) {
-      return myDirtyModes.remove(mode);
-    }
-  }
-
-  @NotNull
-  public ConfigurationManager getConfigurationManager() {
-    return getConfigurationManager(true);
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
-    if (myConfigurationManager == null && createIfNecessary) {
-      myConfigurationManager = ConfigurationManager.create(getModule());
-      Disposer.register(this, myConfigurationManager);
-    }
-
-    return myConfigurationManager;
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public AppResourceRepository getAppResources(boolean createIfNecessary) {
-    synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources == null && createIfNecessary) {
-        myAppResources = AppResourceRepository.create(this);
-        Disposer.register(this, myAppResources);
-      }
-      return myAppResources;
-    }
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
-    synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myProjectResources == null && createIfNecessary) {
-        myProjectResources = ProjectResourceRepository.create(this);
-        Disposer.register(this, myProjectResources);
-      }
-      return myProjectResources;
-    }
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
-    synchronized (MODULE_RESOURCES_LOCK) {
-      if (myModuleResources == null && createIfNecessary) {
-        myModuleResources = ModuleResourceRepository.create(this);
-        Disposer.register(this, myModuleResources);
-      }
-      return myModuleResources;
-    }
-  }
-
   public void refreshResources() {
-    synchronized (MODULE_RESOURCES_LOCK) {
-      if (myModuleResources != null) {
-        Disposer.dispose(myModuleResources);
-        myModuleResources = null;
-      }
-    }
-
-    synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myProjectResources != null) {
-        Disposer.dispose(myProjectResources);
-        myProjectResources = null;
-      }
-    }
-
-    synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources != null) {
-        Disposer.dispose(myAppResources);
-        myAppResources = null;
-      }
-    }
-    myConfigurationManager.getResolverCache().reset();
+    ResourceRepositories.getOrCreateInstance(this).refreshResources();
+    ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
   }
@@ -910,173 +391,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return state;
   }
 
-  /**
-   * Returns true if this facet includes data binding library
-   *
-   * @return True if data binding is enabled for this Facet
-   */
-  public boolean isDataBindingEnabled() {
-    return myDataBindingEnabled;
-  }
-
-  /**
-   * Called by the {@linkplain DataBindingUtil} to update whether this facet includes data binding or not.
-   *
-   * @param dataBindingEnabled True if Facet includes data binding, false otherwise.
-   */
-  public void setDataBindingEnabled(boolean dataBindingEnabled) {
-    myDataBindingEnabled = dataBindingEnabled;
-  }
-
-  /**
-   * Adds a new {@link GradleSyncListener}. If you need to remove the listener, the  returned {@link Disposable}
-   * can be used to remove it by using the {@link Disposer}.
-   *
-   * @return A {@link Disposable} that can be used to remove the listener if needed.
-   */
   @NotNull
-  public Disposable addListener(@NotNull GradleSyncListener listener) {
-    Module module = getModule();
-    return GradleSyncState.subscribe(module.getProject(), listener, module);
-  }
-
-  @NotNull
-  public AndroidModuleInfo getAndroidModuleInfo() {
-    return myAndroidModuleInfo;
-  }
-
-  @NotNull
-  public RenderService getRenderService() {
-    if (myRenderService == null) {
-      myRenderService = new RenderService(this);
-    }
-    return myRenderService;
-  }
-
-  @VisibleForTesting
-  public void setRenderService(@Nullable RenderService renderService) {
-    myRenderService = renderService;
-  }
-
-  /**
-   * Set by {@linkplain DataBindingUtil} the first time we need it.
-   *
-   * @param lightBrClass
-   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
-   */
-  public void setLightBrClass(LightBrClass lightBrClass) {
-    myLightBrClass = lightBrClass;
-  }
-
-  /**
-   * Returns the light BR class for this facet if it is aready set.
-   *
-   * @return The BR class for this facet, if exists
-   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
-   */
-  public LightBrClass getLightBrClass() {
-    return myLightBrClass;
-  }
-
-  // Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
-  // been synced.
-  private class LegacySourceProvider implements SourceProvider {
-    @NonNull
-    @Override
-    public String getName() {
-      return "main";
-    }
-
-    @NonNull
-    @Override
-    public File getManifestFile() {
-      Module module = getModule();
-      VirtualFile manifestFile = getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
-      if (manifestFile == null) {
-        VirtualFile root = !requiresAndroidModel() ? getMainContentRoot(AndroidFacet.this) : null;
-        if (root != null) {
-          return new File(virtualToIoFile(root), ANDROID_MANIFEST_XML);
-        }
-        else {
-          return new File(ANDROID_MANIFEST_XML);
-        }
-      }
-      else {
-        return virtualToIoFile(manifestFile);
-      }
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getJavaDirectories() {
-      Set<File> dirs = Sets.newHashSet();
-
-      Module module = getModule();
-      VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-      if (contentRoots.length != 0) {
-        for (VirtualFile root : contentRoots) {
-          dirs.add(virtualToIoFile(root));
-        }
-      }
-      return dirs;
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getResourcesDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getAidlDirectories() {
-      VirtualFile dir = getAidlGenDir(AndroidFacet.this);
-      return dir == null ? Collections.emptySet() : Collections.singleton(virtualToIoFile(dir));
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getRenderscriptDirectories() {
-      VirtualFile dir = getRenderscriptGenDir(AndroidFacet.this);
-      return dir == null ? Collections.emptySet() : Collections.singleton(virtualToIoFile(dir));
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getResDirectories() {
-      String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
-      VirtualFile dir = getFileByRelativeModulePath(getModule(), resRelPath, true);
-      return dir == null ? Collections.emptySet() : Collections.singleton(virtualToIoFile(dir));
-    }
-
-    @NonNull
-    @Override
-    public Set<File> getAssetsDirectories() {
-      VirtualFile dir = getAssetsDir(AndroidFacet.this);
-      return dir == null ? Collections.emptySet() : Collections.singleton(virtualToIoFile(dir));
-    }
-
-    @NonNull
-    @Override
-    public Collection<File> getJniLibsDirectories() {
-      return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<File> getShadersDirectories() {
-      return Collections.emptyList();
-    }
-
-    @NonNull
-    @Override
-    public Collection<File> getCDirectories() {
-      return Collections.emptyList();
-    }
-
-    @NonNull
-    @Override
-    public Collection<File> getCppDirectories() {
-      return Collections.emptyList();
-    }
+  private Project getProject() {
+    return getModule().getProject();
   }
 }

@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -16,7 +17,12 @@
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="perflib" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
   </component>
 </module>

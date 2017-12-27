@@ -15,25 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,70 +37,135 @@ import static com.google.common.truth.Truth.assertThat;
 public class LaunchAndroidApplicationTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
+  private static final String APPLICATION_STARTED = ".*Application started.*";
+  private static final String FATAL_SIGNAL_11 = ".*Fatal signal 11.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
+  private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
+  private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
+  private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
+    ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
-  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Debugger has connected.*debugger has settled.*", Pattern.DOTALL);
-  private static final String AVD_NAME = "device under test";
-
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    // Close a no-window emulator by calling 'adb emu kill'
-    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
-  }
+  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
 
   @RunIn(TestGroup.QA)
-  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/2122")
   @Test
-  public void testRunOnEmulator() throws IOException, ClassNotFoundException {
+  public void testRunOnEmulator() throws Exception {
+    InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
-    createAVD();
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
-
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
+    ideFrameFixture.stopApp();
   }
 
-  @Ignore("http://b/30795134")
+  @RunIn(TestGroup.QA)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
-    createAVD();
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab()
-                                       .selectProcess(PROCESS_NAME)
-                                       .clickTerminateApplication();
+    ideFrameFixture.getAndroidToolWindow()
+      .selectDevicesTab()
+      .selectProcess(PROCESS_NAME);
+    ideFrameFixture.stopApp();
+  }
+
+  /**
+   * To verify NDK project compiles when running two files with same filename in different libs.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 1a36d98e-a0bf-4a4f-8eed-6fd55aa61a30
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import NdkDupeFilename project.
+   *   3. Compile and run on the emulator.
+   *   Verify:
+   *   1. Application can run without errors.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  @Test
+  public void testNdkHandlesDupeFilename() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
+    contentWindow.stop();
+  }
+
+  /**
+   * To verify app crashes if vulkan graphics is not supported.
+   * <p>
+   * The ideal test would launch the app on a real device (Nexus 5X or 6P). Since there
+   * if no current framework support to run the app on a real device, this test reverses
+   * the scenario and verifies the app will crash when the vulcan graphics card is not
+   * present on the emulator when running the app.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 62320838-5ab1-4808-9a56-11e1fe349e1a
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import VulkanCrashes project.
+   *   3. Navigate to the downloaded vulkan directory.
+   *   3. Compile and run build.gradle file on the emulator.
+   *   Verify:
+   *   1. Application crashes in the emulator.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  @Test
+  public void testVulkanCrashes() throws IOException, ClassNotFoundException {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
+    // The app must run under the debugger, otherwise there is a race condition where
+    // the app may crash before Android Studio can connect to the console.
+    ideFrameFixture
+      .debugApp(APP_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    // Look for text indicating a crash. Full text looks something like:
+    // A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x122 in tid 2462 (.tutorials.five)
+    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11, Pattern.DOTALL)), 120);
+    contentWindow.stop();
   }
 
   /**
@@ -118,7 +173,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14578820
+   * TT ID: 1eb26e7c-5127-49aa-83c9-32d9ff160315
    * <p>
    *   <pre>
    *   Test Steps:
@@ -136,22 +191,15 @@ public class LaunchAndroidApplicationTest {
    *   </pre>
    * <p>
    */
-  @Ignore("http://b/30795134")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
-    WelcomeFrameFixture welcomeFrame =  WelcomeFrameFixture.find(guiTest.robot());
-    welcomeFrame.importCodeSample();
-
-    BrowseSamplesWizardFixture samplesWizard = BrowseSamplesWizardFixture.find(guiTest.robot());
-    samplesWizard
-      .selectSample("Ndk/Teapot")
-      .clickNext();
-
-    ConfigureAndroidProjectStepFixture configStep = samplesWizard.getConfigureFormFactorStep();
-    configStep.enterApplicationName("TeapotTest");
-
-    guiTest.setProjectPath(configStep.getLocationInFileSystem());
+    BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
+      .importCodeSample();
+    samplesWizard.selectSample("Ndk/Teapots")
+      .clickNext()
+      .getConfigureFormFactorStep()
+      .enterApplicationName("TeapotTest");
 
     samplesWizard.clickFinish();
 
@@ -166,47 +214,69 @@ public class LaunchAndroidApplicationTest {
       .invokeAction(EditorFixture.EditorAction.GOTO_IMPLEMENTATION)
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT); // Second break point - HandleInput()
 
-      assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
+    assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains("int32_t Engine::HandleInput(");
 
-    createAVD();
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
     // Wait for the UI App to be up and running, by waiting for the first Frame draw to get hit.
     expectBreakPoint("g_engine.DrawFrame()");
 
     // Simulate a screen touch
-    getEmulatorConnection().tapRunningAvd(400, 400);
+    emulator.getEmulatorConnection().tapRunningAvd(400, 400);
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
   }
 
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+  /**
+   * To verify that instrumentation tests can be added and executed.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: c8fc3fd5-1a7d-405d-974f-5e4f0b42e168
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Create a new project
+   *   3. Create an avd
+   *   4. Open the default instrumented test example
+   *   5. Open Run/Debug Configuration Settings
+   *   6. Click on the "+" button and select Android Instrumented Tests
+   *   7. Add a name to the test
+   *   8. Select the app module and click OK"
+   *   9. Run "ExampleInstrumentedTest" with test configuration created previously
+   *   Verify:
+   *   1. Test runs successfully by checking the output of running the instrumented test.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testRunInstrumentationTest() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+        .clickAddNewConfigurationButton()
+        .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
+        .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
+        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
+        .clickOk();
 
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME);
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
 
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+    ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
+        .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
   }
 
   private void expectBreakPoint(String lineText) {
@@ -215,7 +285,7 @@ public class LaunchAndroidApplicationTest {
       .waitForBreakPointHit();
 
     // Check we have the right debug line
-      assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
+    assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains(lineText);
 
     // Remove break point

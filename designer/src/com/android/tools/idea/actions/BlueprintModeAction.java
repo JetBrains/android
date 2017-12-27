@@ -15,47 +15,30 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import icons.AndroidIcons;
+import com.intellij.openapi.actionSystem.ToggleAction;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mode for toggling blueprint mode
  */
-public class BlueprintModeAction extends AnAction {
-  private final DesignSurface mySurface;
+public class BlueprintModeAction extends ToggleAction {
+  private final NlDesignSurface mySurface;
 
-  public BlueprintModeAction(DesignSurface surface) {
-    super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
+  public BlueprintModeAction(@NotNull NlDesignSurface surface) {
+    super("Blueprint", "Show Blueprint Surface", null);
     mySurface = surface;
   }
 
   @Override
-  public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-
-    if (screenView != null) {
-      event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());
-    }
+  public boolean isSelected(AnActionEvent e) {
+    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY;
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    // If we're already in blueprint mode, go to both-mode, otherwise go to blueprint only
-    ScreenMode mode;
-    switch (mySurface.getScreenMode()) {
-      case BLUEPRINT_ONLY:
-        mode = ScreenMode.BOTH;
-        break;
-      case SCREEN_ONLY:
-      case BOTH:
-      default:
-        mode = ScreenMode.BLUEPRINT_ONLY;
-        break;
-    }
-    mySurface.setScreenMode(mode, true);
+  public void setSelected(AnActionEvent e, boolean state) {
+    mySurface.setScreenMode(ScreenMode.BLUEPRINT_ONLY, true);
   }
 }

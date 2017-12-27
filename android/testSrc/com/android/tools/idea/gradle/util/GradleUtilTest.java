@@ -15,24 +15,18 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.BaseArtifact;
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.google.common.io.Files.createTempDir;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -45,25 +39,6 @@ public class GradleUtilTest {
     if (myTempDir != null) {
       delete(myTempDir);
     }
-  }
-
-  @Test
-  public void getGeneratedSources() {
-    Collection<File> folders = Lists.newArrayList(new File(""));
-    BaseArtifact baseArtifact = mock(BaseArtifact.class);
-    when(baseArtifact.getGeneratedSourceFolders()).thenReturn(folders);
-
-    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
-    assertThat(actual).isSameAs(folders);
-  }
-
-  @Test
-  public void getGeneratedSourcesWithOldModel() {
-    BaseArtifact baseArtifact = mock(BaseArtifact.class);
-    when(baseArtifact.getGeneratedSourceFolders()).thenThrow(new UnsupportedMethodException(""));
-
-    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
-    assertThat(actual).isEmpty();
   }
 
   @Test
@@ -150,5 +125,35 @@ public class GradleUtilTest {
     url = "http://myown.com/gradle-2.2.1-bin.zip";
     version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
+  }
+
+  @Test
+  public void mapConfigurationName() {
+    assertEquals("compile", GradleUtil.mapConfigurationName("compile", "2.3.2", false));
+    assertEquals("testCompile", GradleUtil.mapConfigurationName("testCompile", "2.3.2", false));
+    assertEquals("androidTestCompile", GradleUtil.mapConfigurationName("androidTestCompile", "2.3.2", false));
+    assertEquals("provided", GradleUtil.mapConfigurationName("provided", "2.3.2", false));
+    assertEquals("testProvided", GradleUtil.mapConfigurationName("testProvided", "2.3.2", false));
+
+    assertEquals("implementation", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", false));
+    assertEquals("testImplementation", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", false));
+    assertEquals("androidTestImplementation", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", false));
+    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1, false", false));
+    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", false));
+
+    assertEquals("api", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", true));
+    assertEquals("testApi", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", true));
+    assertEquals("androidTestApi", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
+    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
+    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
+  }
+
+  @Test
+  public void useCompatibilityConfigurationNames() {
+    assertTrue(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("2.3.2")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames((GradleVersion)null));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0-alpha1")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("4.0.0")));
   }
 }

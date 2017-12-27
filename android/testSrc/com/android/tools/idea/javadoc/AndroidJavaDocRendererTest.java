@@ -347,11 +347,11 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
                  "<BR/>" +
                  "Inherits from: @android:style/TextAppearance:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = ?textColorLink => #ff33b5e5<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = ?textColorHighlight => 6633b5e5<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary => #ff000000<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = ?textColorHighlight => 6633b5e5<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => #808080<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = ?textColorLink => #ff33b5e5<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
                  "</body></html>");
   }
 

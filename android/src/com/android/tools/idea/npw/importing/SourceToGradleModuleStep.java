@@ -19,12 +19,12 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.AsyncValidator;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.swing.IconProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.ui.IconProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -167,6 +167,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   @Override
   protected JComponent getComponent() {
     return myPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return mySourceLocation;
   }
 
   @NotNull

@@ -18,17 +18,17 @@ package com.android.tools.idea.gradle.structure;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -40,7 +40,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.CommonBundle;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -77,6 +76,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -90,6 +90,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -189,7 +190,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
     }
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
@@ -278,7 +279,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
     }
 
     validateState();
@@ -293,7 +294,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
-                                         .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
+                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
         }
         dataChanged = true;
         configurable.apply();
@@ -301,7 +302,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 
@@ -343,6 +344,15 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
             }
           }
 
+/* Developer services disabled:
+[  55563]   WARN - ture.services.DeveloperService - Caught exception while initializing services
+java.lang.IllegalArgumentException: could not find extension implementation class com.google.services.GoogleServiceLoginListener
+	at com.intellij.openapi.extensions.Extensions.findExtension(Extensions.java:113)
+	at com.google.services.GoogleServiceLoginListener.getInstance(GoogleServiceLoginListener.java:30)
+	at com.google.services.creators.GoogleServiceCreator.initializeContext(GoogleServiceCreator.java:41)
+	at com.android.tools.idea.structure.services.DeveloperServiceCreator.createService(DeveloperServiceCreator.java:174)
+	at com.android.tools.idea.structure.services.DeveloperServices.initializeFor(DeveloperServices.java:65)
+
           if (!myProject.isDefault() && moduleList.getSize() > 0) {
             // This may not be our first time opening the developer services dialog. User may have
             // modified developer service values last time but then pressed cancel. To be safe, we
@@ -369,6 +379,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
               myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
             }
           }
+*/
         }
 
         // Populate the "Modules" section.
@@ -452,7 +463,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
                                      .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
+                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
     }
     JComponent content = configurable.createComponent();
     assert content != null;
@@ -483,12 +494,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull
   public String getId() {
     return "android.project.structure";
-  }
-
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
   }
 
   @Override
@@ -598,7 +603,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         public Icon getIconFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
             Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
-            return module.isDisposed() ? AllIcons.Nodes.Module : GradleUtil.getModuleIcon(module);
+            return module.isDisposed() ? StudioIcons.Shell.Filetree.ANDROID_MODULE : GradleUtil.getModuleIcon(module);
           }
           return null;
         }
@@ -635,7 +640,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
         group.add(new DeleteModuleAction(this));
-        JComponent toolbar = ActionManager.getInstance().createActionToolbar("AndroidProjectStructureConfigurable", group, true).getComponent();
+        JComponent toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
       }
     }
@@ -799,7 +804,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       myConfigurables.remove(configurable);
       mySidePanel.reset();
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
 
     @NotNull

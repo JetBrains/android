@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.intellij.idea.IdeaTestApplication;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.intellij.testFramework.IdeaTestCase;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,69 +28,48 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleInitScripts}.
  */
-public class GradleInitScriptsTest {
-  private File myInitScriptPath;
+public class GradleInitScriptsTest extends IdeaTestCase {
+  @Mock private GradleInitScripts.ContentCreator myContentCreator;
 
-  @Before
-  public void setUp() {
-    IdeaTestApplication.getInstance();
+  private File myInitScriptPath;
+  private GradleInitScripts myInitScripts;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    initMocks(this);
+    myInitScripts = new GradleInitScripts(EmbeddedDistributionPaths.getInstance(), myContentCreator);
   }
 
-  @After
-  public void tearDown() {
-    if (myInitScriptPath != null) {
-      boolean deleted = myInitScriptPath.delete();
-      if (!deleted) {
-        // We need to delete the file, otherwise the file names will end with numbers (e.g. "asLocalRepo1.gradle".
-        fail(String.format("Failed to delete file '%1$s'", myInitScriptPath.getPath()));
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myInitScriptPath != null) {
+        boolean deleted = myInitScriptPath.delete();
+        if (!deleted) {
+          // We need to delete the file, otherwise the file names will end with numbers (e.g. "asLocalRepo1.gradle".
+          fail(String.format("Failed to delete file '%1$s'", myInitScriptPath.getPath()));
+        }
       }
+    }
+    finally {
+      super.tearDown();
     }
   }
 
-  @Test
-  public void createLocalMavenRepoInitScriptFile() throws IOException {
-    GradleInitScripts.ContentCreator contentCreator = Mockito.mock(GradleInitScripts.ContentCreator.class);
-    GradleInitScripts initScripts = new GradleInitScripts(contentCreator);
-
-    String content = "Hello World!";
-    when(contentCreator.createLocalMavenRepoInitScriptContent(anyListOf(File.class))).thenReturn(content);
-
-    myInitScriptPath = initScripts.createLocalMavenRepoInitScriptFile();
-    assertNotNull(myInitScriptPath);
-    assertEquals("asLocalRepo.gradle", myInitScriptPath.getName());
-    assertAbout(file()).that(myInitScriptPath).isFile();
-
-    String actual = loadFile(myInitScriptPath);
-    assertEquals(content, actual);
-
-    verify(contentCreator).createLocalMavenRepoInitScriptContent(anyListOf(File.class));
-  }
-
-  @Test
-  public void createLocalMavenRepoInitScriptFileWithoutContent() throws IOException {
-    GradleInitScripts.ContentCreator contentCreator = Mockito.mock(GradleInitScripts.ContentCreator.class);
-    GradleInitScripts initScripts = new GradleInitScripts(contentCreator);
-
-    when(contentCreator.createLocalMavenRepoInitScriptContent(anyListOf(File.class))).thenReturn(null);
-
-    myInitScriptPath = initScripts.createLocalMavenRepoInitScriptFile();
-    assertNull(myInitScriptPath);
-  }
-
-  @Test
-  public void addLocalMavenRepoInitScriptCommandLineArgTo() {
-    GradleInitScripts initScripts = new GradleInitScripts();
+  public void testAddLocalMavenRepoInitScriptCommandLineArgTo() throws IOException {
+    String content = "Test";
+    when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenReturn(content);
 
     List<String> args = new ArrayList<>();
-    initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(args);
+    myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     assertThat(args).hasSize(2);
 
     assertEquals("--init-script", args.get(0));
@@ -101,6 +78,37 @@ public class GradleInitScriptsTest {
 
     myInitScriptPath = new File(initScriptTextPath);
     assertAbout(file()).that(myInitScriptPath).isFile();
-    assertEquals("asLocalRepo.gradle", myInitScriptPath.getName());
+    assertEquals("sync.local.repo.gradle", myInitScriptPath.getName());
+
+    String actual = loadFile(myInitScriptPath);
+    assertEquals(content, actual);
+  }
+
+  public void testAddLocalMavenRepoInitScriptCommandLineArgToWhenFailedToCreateContent() {
+    when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenReturn(null);
+
+    List<String> args = new ArrayList<>();
+    myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    assertThat(args).isEmpty();
+  }
+
+  public void testAddApplyJavaLibraryPluginInitScriptCommandLineArg() throws IOException {
+    String content = "Test";
+    when(myContentCreator.createApplyJavaLibraryPluginInitScriptContent()).thenReturn(content);
+
+    List<String> args = new ArrayList<>();
+    myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    assertThat(args).hasSize(2);
+
+    assertEquals("--init-script", args.get(0));
+    String initScriptTextPath = args.get(1);
+    assertNotNull(initScriptTextPath);
+
+    myInitScriptPath = new File(initScriptTextPath);
+    assertAbout(file()).that(myInitScriptPath).isFile();
+    assertEquals("sync.java.lib.gradle", myInitScriptPath.getName());
+
+    String actual = loadFile(myInitScriptPath);
+    assertEquals(content, actual);
   }
 }

@@ -7,20 +7,46 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="lang-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android" scope="TEST" />
     <orderEntry type="module" module-name="spellchecker" scope="TEST" />
     <orderEntry type="module" module-name="xml-psi-api" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui-model" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="lang-impl" scope="TEST" />
     <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
-    <orderEntry type="module" module-name="dom-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="external-system-impl" scope="TEST" />
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-groovy-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-core-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-messaging-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-core-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-groovy-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-resources-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-native-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-tooling-api-3.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-wrapper-3.2.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services-groovy/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/core/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/messaging/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/native/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/resources/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/tooling-api/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/wrapper/src/main/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="observable" scope="TEST" />
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
     <orderEntry type="module" module-name="common" scope="TEST" />
@@ -34,48 +60,32 @@
     <orderEntry type="module" module-name="groovy-psi" scope="TEST" />
     <orderEntry type="module" module-name="layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="properties-psi-api" scope="TEST" />
-    <orderEntry type="module" module-name="assetstudio" scope="TEST" />
     <orderEntry type="module" module-name="instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="dexlib2-2.0.8-dev">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
-    <orderEntry type="module" module-name="perfd-host" scope="TEST" />
-    <orderEntry type="module" module-name="junit" scope="TEST" />
+    <orderEntry type="module" module-name="dom-impl" scope="TEST" />
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
-    <orderEntry type="module" module-name="profilers" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="module" module-name="analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="wizard" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="fest" level="project" />
-    <orderEntry type="library" scope="TEST" name="fest-swing" level="project" />
-    <orderEntry type="library" scope="TEST" name="google-analytics-library" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-profiler-grpc-1.0-jarjar" level="project" />
-    <orderEntry type="module" module-name="designer" scope="RUNTIME" />
-    <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="module" module-name="fakeadbserver" scope="TEST" />
+    <orderEntry type="module" module-name="adt-branding" scope="TEST" />
+    <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
+    <orderEntry type="module" module-name="java-lib-model" scope="TEST" />
+    <orderEntry type="module" module-name="layoutinspector" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
+    <orderEntry type="module" module-name="analyzer" scope="TEST" />
+    <orderEntry type="module" module-name="sdk-common" scope="TEST" />
+    <orderEntry type="module" module-name="flags" scope="TEST" />
+    <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
+    <orderEntry type="module" module-name="artwork" scope="TEST" />
+    <orderEntry type="module" module-name="android-common" scope="TEST" />
+    <orderEntry type="module" module-name="junit" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
   </component>
 </module>

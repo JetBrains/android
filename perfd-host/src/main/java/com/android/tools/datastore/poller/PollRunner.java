@@ -15,36 +15,33 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class PollRunner implements RunnableFuture<Void> {
-  interface PollingCallback {
-    void poll();
-  }
+/**
+ * A {@link RunnableFuture} which, while running, triggers a callback at a specified period
+ * (which can be used to poll a target service at some frequency).
+ */
+public abstract class PollRunner implements RunnableFuture<Void> {
 
   public static final long POLLING_DELAY_NS = TimeUnit.MILLISECONDS.toNanos(250);
 
-  private static Logger getLog() { return Logger.getInstance(PollRunner.class); }
-
   private long myPollPeriodNs;
+
+  private boolean myIsRunning = false;
 
   private CountDownLatch myRunning = new CountDownLatch(1);
 
   private CountDownLatch myIsDone = new CountDownLatch(1);
 
-  PollingCallback myPollingCallback;
 
-  public PollRunner(PollingCallback pollCallback, long pollPeriodNs) {
-    myPollingCallback = pollCallback;
+  public PollRunner(long pollPeriodNs) {
     myPollPeriodNs = pollPeriodNs;
-
   }
+
   public void stop() {
     cancel(true);
     try {
@@ -58,23 +55,23 @@ public class PollRunner implements RunnableFuture<Void> {
   @Override
   public void run() {
     try {
+      myIsRunning = true;
       while (myRunning.getCount() > 0) {
         long startTimeNs = System.nanoTime();
-        try {
-          myPollingCallback.poll();
-        }
-        catch (StatusRuntimeException ignored) {}
+        poll();
         long sleepTime = Math.max(myPollPeriodNs - (System.nanoTime() - startTimeNs), 0L);
         myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
       }
     }
-    catch (InterruptedException e) {
+    catch (InterruptedException | StatusRuntimeException e) {
       Thread.currentThread().interrupt();
     }
     finally {
       myIsDone.countDown();
     }
   }
+
+  public abstract void poll();
 
   @Override
   public boolean cancel(boolean mayInterruptIfRunning) {
@@ -94,13 +91,19 @@ public class PollRunner implements RunnableFuture<Void> {
 
   @Override
   public Void get() throws InterruptedException {
-    myIsDone.await();
+    if (myIsRunning) {
+      myIsDone.await();
+    }
+    myIsRunning = !isDone();
     return null;
   }
 
   @Override
   public Void get(long timeout, TimeUnit unit) throws InterruptedException {
-    myIsDone.await(timeout, unit);
+    if (myIsRunning) {
+      myIsDone.await(timeout, unit);
+    }
+    myIsRunning = !isDone();
     return null;
   }
 }

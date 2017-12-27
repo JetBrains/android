@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest">
+        <Message>process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
+        <message>process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>process_id: 1234
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message>allocations_info {
+  start_time: 86401000000000
+  end_time: 9223372036854775807
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
+        <message>allocations_info {
+  start_time: 86401000000000
+  end_time: 9223372036854775807
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
+        <Message>process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message>process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">
+        <Message>process_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message>process_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

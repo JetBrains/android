@@ -497,6 +497,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
 
   // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
   @Nullable
+  @Deprecated
+  // TODO replace with IdeBaseConfig#getVersionNameSuffix
   private static String getVersionNameSuffix(@NotNull BaseConfig config) {
     try {
       return config.getVersionNameSuffix();

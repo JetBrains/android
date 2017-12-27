@@ -17,11 +17,20 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
+import com.android.tools.idea.assistant.view.UIUtils;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.structure.services.DeveloperService;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  * Extension point to add state to action buttons. State should generally be based off of data available from a {@link DeveloperService}
@@ -29,8 +38,8 @@ import org.jetbrains.annotations.Nullable;
  * project scoped service but this is generally discouraged. Please reach out to the Android Studio team about adding capabilities before
  * directly accessing the Project object.
  */
-public interface AssistActionStateManager {
-  ExtensionPointName<AssistActionStateManager> EP_NAME =
+public abstract class AssistActionStateManager {
+  public static ExtensionPointName<AssistActionStateManager> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.assistant.actionStateManager");
 
   /**
@@ -38,17 +47,18 @@ public interface AssistActionStateManager {
    * which extension to use.
    */
   @NotNull
-  String getId();
+  public abstract String getId();
 
   /**
    * Allows you to initialize your instance of your manager if necessary.
    */
-  void init(@NotNull Project project, @NotNull ActionData actionData);
+  public abstract void init(@NotNull Project project, @NotNull ActionData actionData);
 
   /**
    * Returns the current state of the action and any presentation data.
    */
-  ActionState getState(@NotNull Project project, @NotNull ActionData actionData);
+  @NotNull
+  public abstract AssistActionState getState(@NotNull Project project, @NotNull ActionData actionData);
 
   /**
    * Gets the display for a given action button when the action may not be completed. For example, if the action adds a dependency, this
@@ -57,16 +67,21 @@ public interface AssistActionStateManager {
    * When null and isCompletable returns false, defaults to disabling the button.
    */
   @Nullable
-  StatefulButtonMessage getStateDisplay(@NotNull Project project,
+  public abstract StatefulButtonMessage getStateDisplay(@NotNull Project project,
                                         @NotNull ActionData actionData,
                                         @Nullable/*ignored if null*/ String message);
 
-  enum ActionState {
-    INCOMPLETE, // Action is not complete.
-    COMPLETE, // Action is complete and may not be run again.
-    PARTIALLY_COMPLETE, // Action is complete for a subset of cases and may still be run again.
-    IN_PROGRESS,// TODO: Use this to disable the button and indicate the state is being determined.
-    ERROR, // There is a pre-existing error condition that prevents completion.
-    NOT_APPLICABLE // [stub-used in future] Similar to INCOMPLETE but action completion doesn't make sense. e.g. Trigger debug event.
+  /**
+   * Causes state buttons to recheck their state. Affects all buttons within the assistant.
+   */
+  public void refreshDependencyState(@NotNull Project project) {
+    List<Module> modules = GradleProjectInfo.getInstance(project).getAndroidModules();
+    if (!modules.isEmpty()) {
+      for (Module module : modules) {
+        MessageBus bus = module.getMessageBus();
+        StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);
+        publisher.stateUpdated();
+      }
+    }
   }
 }

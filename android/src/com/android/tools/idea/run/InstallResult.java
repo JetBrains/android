@@ -32,7 +32,8 @@ public class InstallResult {
     INSTALL_FAILED_DEXOPT,
     NO_CERTIFICATE,
     INSTALL_FAILED_OLDER_SDK,
-    UNTYPED_ERROR
+    UNTYPED_ERROR,
+    DEVICE_NOT_FOUND
   }
 
   @NotNull public final FailureCode failureCode;

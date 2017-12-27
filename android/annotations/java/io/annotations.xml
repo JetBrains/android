@@ -123,6 +123,9 @@
   <item name="java.io.File java.net.URI toURI()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.io.File java.nio.file.Path toPath()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.io.FileInputStream FileInputStream(java.io.File) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +73,7 @@ public interface NlProperty {
   /**
    * Get the help information about this property.
    */
+  @NotNull
   String getTooltipText();
 
   /**
@@ -90,6 +91,7 @@ public interface NlProperty {
   /**
    * Get the {@link ResourceResolver} for the component this property is associated with.
    */
+  @Nullable
   ResourceResolver getResolver();
 
   /**

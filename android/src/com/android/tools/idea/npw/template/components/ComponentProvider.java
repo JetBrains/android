@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.ui.properties.AbstractProperty;
+import com.android.tools.idea.observable.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

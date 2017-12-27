@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.run.editor.DevicePicker;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Model object for an entry in the {@link DevicePicker}. This is a simple wrapper around either a String, or a {@link AndroidDevice}. */
 public class DevicePickerEntry {

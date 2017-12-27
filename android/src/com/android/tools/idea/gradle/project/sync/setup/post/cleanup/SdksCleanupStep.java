@@ -20,14 +20,14 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,23 +35,31 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.ex.http.HttpFileSystem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
+import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
 
 public class SdksCleanupStep extends ProjectCleanupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
@@ -64,26 +72,26 @@ public class SdksCleanupStep extends ProjectCleanupStep {
   public void cleanUpProject(@NotNull Project project,
                              @NotNull IdeModifiableModelsProvider ideModifiableModelsProvider,
                              @Nullable ProgressIndicator indicator) {
-    Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
+    Set<Sdk> fixedSdks = new HashSet<>();
+    Set<Sdk> invalidSdks = new HashSet<>();
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-
     for (Module module : moduleManager.getModules()) {
-      cleanUpSdk(module, invalidAndroidSdks);
+      cleanUpSdk(module, fixedSdks, invalidSdks);
     }
 
-    if (!invalidAndroidSdks.isEmpty()) {
-      reinstallMissingPlatforms(invalidAndroidSdks, project);
+    if (!invalidSdks.isEmpty()) {
+      reinstallMissingPlatforms(invalidSdks, project);
     }
   }
 
-  public void cleanUpSdk(@NotNull Module module, @NotNull Collection<Sdk> invalidAndroidSdks) {
+  @VisibleForTesting
+  void cleanUpSdk(@NotNull Module module, @NotNull Set<Sdk> fixedSdks, @NotNull Set<Sdk> invalidSdks) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet == null || androidFacet.getAndroidModel() == null) {
       return;
     }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
-      // First try to recreate SDK; workaround for issue 78072
+    if (sdk != null && !invalidSdks.contains(sdk) && !fixedSdks.contains(sdk)) {
       AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
       if (additionalData != null && sdkData != null) {
@@ -95,13 +103,34 @@ public class SdksCleanupStep extends ProjectCleanupStep {
           target = sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
         }
         if (target != null) {
-          SdkModificator sdkModificator = sdk.getSdkModificator();
-          sdkModificator.removeAllRoots();
-          for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, sdk, true)) {
-            sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+          SdkModificator sdkModificator = null;
+          if (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk)) {
+            // First try to recreate SDK; workaround for issue 78072
+            sdkModificator = sdk.getSdkModificator();
+            sdkModificator.removeAllRoots();
+            for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, toSystemDependentPath(sdk.getHomePath()), true)) {
+              sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+            }
+            attachJdkAnnotations(sdkModificator);
           }
-          attachJdkAnnotations(sdkModificator);
-          sdkModificator.commitChanges();
+          if (!myAndroidSdks.hasValidDocs(sdk, target)) {
+            if (sdkModificator == null) {
+              sdkModificator = sdk.getSdkModificator();
+            }
+            VirtualFile documentationPath = HttpFileSystem.getInstance().findFileByPath(DEFAULT_EXTERNAL_DOCUMENTATION_PATH);
+            sdkModificator.addRoot(documentationPath, JavadocOrderRootType.getInstance());
+          }
+          if (!hasSources(sdk)) {
+            // See https://code.google.com/p/android/issues/detail?id=233392
+            if (sdkModificator == null) {
+              sdkModificator = sdk.getSdkModificator();
+            }
+            myAndroidSdks.findAndSetPlatformSources(target, sdkModificator);
+          }
+          if (sdkModificator != null) {
+            ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges);
+            fixedSdks.add(sdk);
+          }
         }
       }
 
@@ -109,7 +138,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
       // (this is a truly corrupt install, as opposed to an incorrectly synced SDK which the
       // above workaround deals with)
       if (isMissingAndroidLibrary(sdk)) {
-        invalidAndroidSdks.add(sdk);
+        invalidSdks.add(sdk);
       }
     }
   }
@@ -159,11 +188,11 @@ public class SdksCleanupStep extends ProjectCleanupStep {
     return false;
   }
 
-  private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks, @NotNull Project project) {
-    List<AndroidVersion> versionsToInstall = Lists.newArrayList();
-    List<String> missingPlatforms = Lists.newArrayList();
+  private void reinstallMissingPlatforms(@NotNull Set<Sdk> invalidSdks, @NotNull Project project) {
+    List<AndroidVersion> versionsToInstall = new ArrayList<>();
+    List<String> missingPlatforms = new ArrayList<>();
 
-    for (Sdk sdk : invalidAndroidSdks) {
+    for (Sdk sdk : invalidSdks) {
       AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       if (additionalData != null) {
         String platform = additionalData.getBuildTargetHashString();
@@ -181,7 +210,12 @@ public class SdksCleanupStep extends ProjectCleanupStep {
       String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
       SyncMessage msg = new SyncMessage(SyncMessage.DEFAULT_GROUP, ERROR, text);
       msg.add(new InstallPlatformHyperlink(versionsToInstall));
-      SyncMessages.getInstance(project).report(msg);
+      GradleSyncMessages.getInstance(project).report(msg);
     }
+  }
+
+  private static boolean hasSources(@NotNull Sdk sdk) {
+    String[] urls = sdk.getRootProvider().getUrls(SOURCES);
+    return urls.length > 0;
   }
 }

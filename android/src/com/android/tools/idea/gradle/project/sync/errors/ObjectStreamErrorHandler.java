@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -73,6 +73,6 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
     notification.setMessage(text);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
 
-    SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
+    GradleSyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
   }
 }

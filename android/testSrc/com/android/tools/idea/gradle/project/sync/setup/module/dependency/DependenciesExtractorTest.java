@@ -15,28 +15,35 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
+import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * Tests for {@link DependenciesExtractor}.
  */
 public class DependenciesExtractorTest extends IdeaTestCase {
-  private AndroidModuleModel myAndroidModel;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
 
@@ -49,9 +56,6 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant = myAndroidProject.getFirstVariant();
     assertNotNull(myVariant);
 
-    File rootDir = myAndroidProject.getRootDir();
-    myAndroidModel = new AndroidModuleModel(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
-
     myDependenciesExtractor = new DependenciesExtractor();
   }
 
@@ -63,124 +67,113 @@ public class DependenciesExtractorTest extends IdeaTestCase {
       }
     }
     finally {
-      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
 
-  public void testExtractFromWithJar() {
+  public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
+    Library javaLibrary = new JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
 
-    myVariant.getMainArtifact().getDependencies().addJar(jarFile);
-    myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
+    myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
+    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
 
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries();
-    assertEquals(1, dependencies.size());
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onLibraries();
+    assertThat(dependencies).hasSize(1);
 
-    LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
+    LibraryDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("Gradle: guava-11.0.2", dependency.getName());
+    assertEquals("Gradle: guava", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
+    assertEquals(COMPILE, dependency.getScope());
 
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+    File[] binaryPaths = dependency.getPaths(BINARY);
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);
   }
 
-  public void testExtractFromWithLibraryProject() {
+  public void testExtractFromAndroidLibraryWithLocalJar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
-    File resFolder = new File(rootDirPath, FileUtil.join("bundle_aar", "res"));
-    String gradlePath = "abc:xyz:library";
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar, gradlePath);
-
-    myVariant.getMainArtifact().getDependencies().addLibrary(library);
-    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
-
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onModules();
-    assertEquals(1, dependencies.size());
-
-    ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
-    assertNotNull(dependency);
-    assertEquals(gradlePath, dependency.getGradlePath());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
-
-    LibraryDependency backup = dependency.getBackupDependency();
-    assertNotNull(backup);
-    assertEquals("Gradle: bundle", backup.getName());
-    assertEquals(DependencyScope.COMPILE, backup.getScope());
-
-    File[] backupBinaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
-    assertThat(backupBinaryPaths).hasLength(2);
-    assertThat(backupBinaryPaths).asList().containsAllOf(libJar, resFolder);
-  }
-
-  public void testExtractFromWithLibraryAar() {
-    String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
-
-    myVariant.getMainArtifact().getDependencies().addLibrary(library);
-    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
-
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries();
-    assertEquals(1, dependencies.size());
-
-    LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
-    assertNotNull(dependency);
-    assertEquals("Gradle: bundle", dependency.getName());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
-
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    assertThat(binaryPaths).hasLength(2);
-    assertThat(binaryPaths).asList().contains(libJar);
-  }
-
-  public void testExtractFromWithLibraryLocalJar() {
-    String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
-    File resFolder = new File(rootDirPath, FileUtil.join("bundle_aar", "res"));
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
-
+    File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
+    File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
-    library.addLocalJar(localJar);
 
-    myVariant.getMainArtifact().getDependencies().addLibrary(library);
-    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
+    AndroidLibraryStub library = new AndroidLibraryStub() {
+      @Override
+      @NotNull
+      public String getJarFile() {
+        return libJar.getPath();
+      }
 
-    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries());
-    assertEquals(1, dependencies.size());
+      @Override
+      @NotNull
+      public String getArtifactAddress() {
+        return "com.android.support:support-core-ui:25.3.1@aar";
+      }
+
+      @Override
+      @NotNull
+      public String getResFolder() {
+        return resFolder.getPath();
+      }
+
+      @Override
+      @NotNull
+      public Collection<String> getLocalJars() {
+        return Collections.singletonList(localJar.getPath());
+      }
+    };
+
+    myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
+    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
+
+    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(myVariant).onLibraries());
+    assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("Gradle: bundle", dependency.getName());
+    assertEquals("Gradle: com.android.support:support-core-ui-25.3.1", dependency.getName());
 
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+    File[] binaryPaths = dependency.getPaths(BINARY);
     assertThat(binaryPaths).hasLength(3);
     assertThat(binaryPaths).asList().containsAllOf(localJar, libJar, resFolder);
   }
 
-  public void testExtractFromWithProject() {
+  public void testExtractFromModuleDependency() {
     String gradlePath = "abc:xyz:library";
-    myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
-    myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onModules();
-    assertEquals(1, dependencies.size());
+    ModuleLibraryStub library = new ModuleLibraryStub() {
+      @Override
+      @NotNull
+      public String getProjectPath() {
+        return gradlePath;
+      }
+    };
+    myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
+    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant).onModules();
+    assertThat(dependencies).hasSize(1);
 
-    ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
+    ModuleDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
     assertEquals(gradlePath, dependency.getGradlePath());
     // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
+    assertEquals(COMPILE, dependency.getScope());
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);
   }
 
+  public void testGetDependencyDisplayName() {
+    Library library1 = new JavaLibraryStub(LIBRARY_JAVA, "com.google.guava:guava:11.0.2@jar", new File(""));
+    assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
+
+    Library library2 = new JavaLibraryStub(LIBRARY_ANDROID, "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""));
+    assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
+
+    Library library3 = new JavaLibraryStub(LIBRARY_ANDROID, "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""));
+    assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
+
+    Library library4 = new JavaLibraryStub(LIBRARY_JAVA, "foo:bar:1.0", new File(""));
+    assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
+  }
 }

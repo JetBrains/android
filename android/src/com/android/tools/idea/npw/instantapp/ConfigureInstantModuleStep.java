@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,93 +15,101 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
-import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.intellij.openapi.Disposable;
-import com.intellij.ui.components.JBLabel;
+import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.validator.ModuleValidator;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.wizard.WizardConstants.*;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 
 /**
  * This class configures Instant App specific data such as the name of the atom to be created and the path to assign to the default Activity
  */
-public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescription {
-  @NotNull private final FormFactor myFormFactor;
-  private JTextField mySupportedDomainsField;
-  private JTextField myAtomNameField;
-  private JTextField mySupportedRoutesField;
+public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleModel> {
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
+
+  @NotNull private StudioWizardStepPanel myRootPanel;
+  @NotNull private ValidatorPanel myValidatorPanel;
+
+  private JTextField mySplitNameField;
   private JPanel myPanel;
-  private JBLabel mySupportedRoutesLabel;
-  private JBLabel myAtomNameLabel;
-  private JBLabel myConfigureAtomLabel;
+  private LabelWithEditButton myPackageName;
 
-  public ConfigureInstantModuleStep(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
-    super(parentDisposable);
-    setBodyComponent(myPanel);
-    myFormFactor = formFactor;
-  }
+  public ConfigureInstantModuleStep(@NotNull NewModuleModel moduleModel, StringProperty projectLocation) {
+    super(moduleModel, message("android.wizard.module.new.instant.app.title"));
 
-  @Override
-  public void init() {
-    super.init();
-    register(APP_DOMAIN_KEY, mySupportedDomainsField);
+    NewModuleModel model = getModel();
+    TextProperty splitFieldText = new TextProperty(mySplitNameField);
+    TextProperty packageNameText = new TextProperty(myPackageName);
 
-    myState.put(APP_DOMAIN_KEY, myState.get(COMPANY_DOMAIN_KEY));
+    BoolProperty isPackageNameSynced = new BoolValueProperty(true);
+    ObservableString computedFeatureModulePackageName = model.computedFeatureModulePackageName();
+    myBindings.bind(model.packageName(), packageNameText, model.instantApp());
+    myBindings.bind(packageNameText, computedFeatureModulePackageName, isPackageNameSynced);
 
-    // TODO: put descriptions in AndroidBundle once UI is finalised
-    setControlDescription(mySupportedDomainsField, "Domain that maps to this instant app");
-    setControlDescription(mySupportedRoutesField, "Regular expression specifying paths that map to created atom");
-    setControlDescription(myAtomNameField, "Name of the atom");
+    myBindings.bindTwoWay(splitFieldText, model.splitName());
+    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
 
-    boolean atomAndIapk = myState.getNotNull(ALSO_CREATE_IAPK_KEY, false);
-    myConfigureAtomLabel.setVisible(atomAndIapk);
-    myAtomNameLabel.setVisible(atomAndIapk);
-    myAtomNameField.setVisible(atomAndIapk);
-    mySupportedRoutesLabel.setVisible(atomAndIapk);
-    mySupportedRoutesField.setVisible(atomAndIapk);
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel.registerValidator(splitFieldText, new ModuleValidator(projectLocation));
 
-    if (atomAndIapk) {
-      ScopedStateStore.Key<String> moduleNameKey = FormFactorUtils.getModuleNameKey(myFormFactor);
-      register(moduleNameKey, myAtomNameField);
-      myState.put(moduleNameKey, "atom");
-
-      register(ATOM_ROUTE_KEY, mySupportedRoutesField);
-      myState.put(ATOM_ROUTE_KEY, ".*");
-    }
-
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @NotNull
   @Override
-  public String getStepName() {
-    return "Configure Instant Module";
-  }
-
-  @NotNull
-  @Override
-  protected String getStepTitle() {
-    return "Configure Instant Module";
+  protected JComponent getComponent() {
+    return myRootPanel;
   }
 
   @Nullable
   @Override
-  protected String getStepDescription() {
-    return null;
+  protected JComponent getPreferredFocusComponent() {
+    return mySplitNameField;
   }
 
   @Override
-  public JComponent getPreferredFocusedComponent() {
-    return mySupportedDomainsField;
+  protected boolean shouldShow() {
+    return getModel().instantApp().get();
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
-  public boolean isStepVisible() {
-    return myState.getNotNull(IS_INSTANT_APP_KEY, false);
+  protected void onEntering() {
+    // Request user to install Instant App SDK, if not installed yet
+    InstantAppSdks.getInstance().getInstantAppSdk(true);
+  }
+
+  @Override
+  protected void onProceeding() {
+    // For instant apps, the Module name is the same as the split name.
+    // Doing the assignment during onProceeding guarantees a valid module name and also that we are an instant app
+    getModel().moduleName().set(getModel().splitName().get());
+  }
+
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
+    myListeners.releaseAll();
   }
 }

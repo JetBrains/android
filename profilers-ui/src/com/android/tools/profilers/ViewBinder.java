@@ -17,36 +17,37 @@ package com.android.tools.profilers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * A class which maintains a mapping between a a model class and a generator of its views.
  * This allows for a reactive UI builder that given an object of an unknown class
  * it can create its associated view.
  *
- * To use, register class associations using {@link bind} and then, later, call
- * {@link build} to cause an instantiation.
+ * To use, register class associations using {@link #bind} and then, later, call
+ * {@link #build} to cause an instantiation.
  *
- * @param M Any type, usually one that represents some model data.
- * @param V Any type, usually one that represents a view associated with a model.
+ * @param <P> Any type, usually one that represents a parent view object.
+ * @param <M> Any type, usually one that represents some model data.
+ * @param <V> Any type, usually one that represents a view associated with a model.
  */
-public class ViewBinder<M, V> {
+public class ViewBinder<P, M, V> {
 
-  private final Map<Class<? extends M>, Function<? extends M, ? extends V>> myBuilders;
+  private final Map<Class<? extends M>, BiFunction<? extends P, ? extends M, ? extends V>> myBuilders;
 
   public ViewBinder() {
     myBuilders = new HashMap<>();
   }
 
-  public <N extends M, W extends V> void bind(Class<N> clazz, Function<N, W> builder) {
+  public <Q extends P, N extends M, W extends V> void bind(Class<N> clazz, BiFunction<Q, N, W> builder) {
     myBuilders.put(clazz, builder);
   }
 
-  public V build(M model) {
+  public V build(P parentView, M model) {
     Class<?> clazz = model.getClass();
     // By construction the function cast is valid as we know that when we added
     // it to the map, the types were checked at compile time.
-    Function<M, V> builder = (Function<M, V>)myBuilders.get(clazz);
-    return builder.apply(model);
+    BiFunction<P, M, V> builder = (BiFunction<P, M, V>)myBuilders.get(clazz);
+    return builder.apply(parentView, model);
   }
 }

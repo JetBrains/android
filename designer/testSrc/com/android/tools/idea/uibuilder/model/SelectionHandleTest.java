@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import junit.framework.TestCase;
 
 import java.awt.*;
@@ -23,11 +25,11 @@ import static org.mockito.Mockito.mock;
 
 public class SelectionHandleTest extends TestCase {
   public void test() {
-    NlComponent component = mock(NlComponent.class);
-    component.x = 100;
-    component.y = 110;
-    component.w = 500;
-    component.h = 400;
+    NlComponent component = LayoutTestUtilities.createMockComponent();
+    NlComponentHelperKt.setX(component, 100);
+    NlComponentHelperKt.setY(component, 110);
+    NlComponentHelperKt.setW(component, 500);
+    NlComponentHelperKt.setH(component, 400);
 
     SelectionHandle handle = new SelectionHandle(component, SelectionHandle.Position.TOP_LEFT);
     assertTrue(handle.contains(100, 110, 2));

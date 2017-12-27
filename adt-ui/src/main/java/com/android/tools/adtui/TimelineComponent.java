@@ -35,7 +35,7 @@ import java.util.List;
  * modifications to it while it's begin rendered, but objects of this class should not be accessed
  * from different threads.
  */
-public final class TimelineComponent extends AnimatedComponent {
+public final class TimelineComponent extends LegacyAnimatedComponent {
 
   private static final int LEFT_MARGIN = 120;
 
@@ -341,6 +341,7 @@ public final class TimelineComponent extends AnimatedComponent {
 
   @Override
   protected void debugDraw(Graphics2D g2d) {
+    super.debugDraw(g2d);
     int drawn = 0;
     g2d.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(5.0f));
     for (int i = 0; i < mSize; ++i) {

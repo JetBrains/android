@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.project.build;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,38 +32,42 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
  */
 public class GradleProjectBuilder {
   @NotNull private final Project myProject;
+  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
+  @NotNull private final BuildSettings myBuildSettings;
+  @NotNull private final GradleBuildInvoker myBuildInvoker;
+  @NotNull private final CompilerManager myCompilerManager;
 
   @NotNull
   public static GradleProjectBuilder getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleProjectBuilder.class);
   }
 
-  public GradleProjectBuilder(@NotNull Project project) {
+  public GradleProjectBuilder(@NotNull Project project,
+                              @NotNull AndroidProjectInfo androidProjectInfo,
+                              @NotNull GradleProjectInfo gradleProjectInfo,
+                              @NotNull BuildSettings buildSettings,
+                              @NotNull GradleBuildInvoker buildInvoker,
+                              @NotNull CompilerManager compilerManager) {
     myProject = project;
-  }
-
-  public void assembleTranslate() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleBuildInvoker.getInstance(myProject).assembleTranslate();
-        return;
-      }
-      buildProjectWithJps(ASSEMBLE_TRANSLATE);
-    }
+    myAndroidProjectInfo = androidProjectInfo;
+    myGradleProjectInfo = gradleProjectInfo;
+    myBuildSettings = buildSettings;
+    myBuildInvoker = buildInvoker;
+    myCompilerManager = compilerManager;
   }
 
   public void compileJava() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (isDirectGradleInvocationEnabled(myProject)) {
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleBuildInvoker.getInstance(myProject).compileJava(modules, GradleBuildInvoker.TestCompileType.NONE);
+        myBuildInvoker.compileJava(modules, TestCompileType.ALL);
         return;
       }
       buildProjectWithJps(COMPILE_JAVA);
@@ -69,36 +75,42 @@ public class GradleProjectBuilder {
   }
 
   public void clean() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleBuildInvoker.getInstance(myProject).cleanProject();
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
+        myBuildInvoker.cleanProject();
         return;
       }
       buildProjectWithJps(CLEAN);
     }
   }
 
-  /**
-   * Generates source code instead of a full compilation. This method does nothing if the Gradle model does not specify the name of the
-   * Gradle task to invoke.
-   * @param cleanProject indicates whether the project should be cleaned before generating sources.
-   */
-  public void generateSourcesOnly(boolean cleanProject) {
+  public void cleanAndGenerateSources() {
+    doGenerateSources(true /* clean project */);
+  }
+
+  public void generateSources() {
+    doGenerateSources(false /* do not clean project */);
+  }
+
+  private void doGenerateSources(boolean cleanProject) {
     if (!isSourceGenerationEnabled()) {
       return;
     }
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleBuildInvoker.getInstance(myProject).generateSources(cleanProject);
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
+      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
+        if (cleanProject) {
+          myBuildInvoker.cleanAndGenerateSources();
+          return;
+        }
+        myBuildInvoker.generateSources();
+        return;
       }
-      else {
-        buildProjectWithJps(SOURCE_GEN);
-      }
+      buildProjectWithJps(SOURCE_GEN);
     }
   }
 
   public boolean isSourceGenerationEnabled() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
+    if (myAndroidProjectInfo.requiresAndroidModel()) {
       int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
       GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
       return isSourceGenerationEnabled(settings, moduleCount);
@@ -113,7 +125,7 @@ public class GradleProjectBuilder {
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {
-    BuildSettings.getInstance(myProject).setBuildMode(buildMode);
-    CompilerManager.getInstance(myProject).make(null);
+    myBuildSettings.setBuildMode(buildMode);
+    myCompilerManager.make(null);
   }
 }

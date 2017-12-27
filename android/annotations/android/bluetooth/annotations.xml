@@ -147,6 +147,11 @@
   <item name="android.bluetooth.BluetoothHealthCallback void onHealthChannelStateChange(android.bluetooth.BluetoothHealthAppConfiguration, android.bluetooth.BluetoothDevice, int, int, android.os.ParcelFileDescriptor, int)">
     <annotation name="android.support.annotation.BinderThread" />
   </item>
+  <item name="android.bluetooth.BluetoothManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.BLUETOOTH_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.bluetooth.BluetoothManager int getConnectionState(android.bluetooth.BluetoothDevice, int)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.BLUETOOTH&quot;" />

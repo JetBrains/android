@@ -205,7 +205,7 @@ public class TraceViewPanel {
     myThreadCombo.setSelectedItem(defaultThread);
     myThreadCombo.setRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         String name = value instanceof ThreadInfo ? ((ThreadInfo)value).getName() : value.toString();
         append(name);
       }

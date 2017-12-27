@@ -58,6 +58,7 @@ public class GradleTestArtifactSyncTest {
   }
 
   @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/64229547
   public void testLoadAllTestArtifacts() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
     EditorFixture editor = guiTest.ideFrame().getEditor();

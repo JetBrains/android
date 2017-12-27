@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.SourceFolderNode;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
@@ -22,13 +27,15 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
@@ -36,11 +43,11 @@ import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JMenuItemFixture;
@@ -48,9 +55,11 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
+import javax.annotation.Nonnull;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -58,39 +67,27 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
-  ProjectViewFixture(@NotNull Project project, @NotNull Robot robot) {
-    super("Project", project, robot);
+
+  @NotNull private final IdeFrameFixture ideFrameFixture;
+
+  public ProjectViewFixture(@NotNull IdeFrameFixture ideFrameFixture) {
+    super("Project", ideFrameFixture.getProject(), ideFrameFixture.robot());
+    this.ideFrameFixture = ideFrameFixture;
   }
 
   @NotNull
   public PaneFixture selectProjectPane() {
-    activate();
-    final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!"ProjectView".equals(projectView.getCurrentViewId())) {
-      changePane("Project");
-    }
-
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    return selectPane(ProjectViewPane.ID, "Project");
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
-    activate();
-    final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!"AndroidView".equals(projectView.getCurrentViewId())) {
-      changePane("Android");
-    }
-
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    return selectPane(AndroidProjectViewPane.ID, "Android");
   }
 
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    selectProjectPane();
-    new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)))
-      .clickPath("External Libraries/" + libraryName, MouseButton.RIGHT_BUTTON);
+    selectProjectPane().clickPath(MouseButton.RIGHT_BUTTON, "External Libraries", libraryName);
     new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot,  Matchers.byText(JMenuItem.class, "Library Properties..."))).click();
     return LibraryPropertiesDialogFixture.find(myRobot, libraryName, myProject);
   }
@@ -108,50 +105,60 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
-    Component projectDropDown = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull BaseLabel component) {
-        return "Project:".equals(component.getText());
-      }
-    });
+    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent());
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
+    // In case the focus is not given to the dropdown at first, use the keyboard shortcut to ensure that it gets it.
+    Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
+    KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
+    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+
     GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
   }
 
-  public static class PaneFixture {
-    @NotNull private final AbstractProjectViewPane myPane;
+  private static void waitForTreeToFinishLoading(@NotNull Robot robot, @NotNull Container root) {
+    GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
+      @Override
+      protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
+        return !component.isRunning();
+      }
+    });
+  }
 
-    PaneFixture(@NotNull AbstractProjectViewPane pane) {
+  @NotNull
+  public String  getCurrentViewId() {
+    return ProjectView.getInstance(myProject).getCurrentViewId();
+  }
+
+  @NotNull public PaneFixture selectPane(String viewId, String name) {
+    activate();
+    final ProjectView projectView = ProjectView.getInstance(myProject);
+
+    if (!viewId.equals(projectView.getCurrentViewId())) {
+      changePane(name);
+    }
+
+    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot);
+  }
+
+  public static class PaneFixture {
+    @NotNull private final IdeFrameFixture myIdeFrameFixture;
+    @NotNull private final AbstractProjectViewPane myPane;
+    @NotNull private final Robot myRobot;
+    @NotNull private final JTreeFixture myTree;
+
+    PaneFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull AbstractProjectViewPane pane, @NotNull Robot robot) {
+      myIdeFrameFixture = ideFrameFixture;
       myPane = pane;
+      myRobot = robot;
+      myTree = new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)));
     }
 
     @NotNull
     public PaneFixture expand() {
-      GuiActionRunner.execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
-          TreeUtil.expandAll(myPane.getTree());
-        }
-      });
+      GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
       return this;
-    }
-
-    /* Returns {@code true} if the tree root has a child {@link Module} with {@code name}, {@code false} otherwise. */
-    public boolean hasModuleRootNode(@NotNull String name) {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
-      return GuiQuery.getNonNull(
-        () -> {
-          Object[] childElements = treeStructure.getChildElements(treeStructure.getRootElement());
-          for (Object child : childElements) {
-            ProjectViewNode childNode = (ProjectViewNode)child;
-            Object value = childNode.getValue();
-            if (value instanceof Module && ((Module)value).getName().equals(name)) {
-              return true;
-            }
-          }
-          return false;
-        });
     }
 
     @NotNull
@@ -185,47 +192,62 @@ public class ProjectViewFixture extends ToolWindowFixture {
       return new NodeFixture(node, treeStructure);
     }
 
-    public void selectByPath(@NotNull final String... paths) {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
+    @NotNull
+    private NodeFixture findApkNode() {
+      AbstractTreeStructure treeStructure = getTreeStructure();
 
-      PsiDirectoryNode node = GuiQuery.getNonNull(
-        () -> {
-          Object root = treeStructure.getRootElement();
-          final List<Object> treePath = Lists.newArrayList(root);
+      ApkModuleNode apkNode = GuiQuery.getNonNull(() -> {
+        for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
+          if(child instanceof ApkModuleNode) {
+            return (ApkModuleNode)child;
+          }
+        }
+        throw new IllegalStateException("Unable to find 'APK module' node");
+      });
 
-          for (String path : paths) {
-            Object[] childElements = treeStructure.getChildElements(root);
-            Object newRoot = null;
-            for (Object child : childElements) {
-              if (child instanceof PsiDirectoryNode) {
-                PsiDirectory dir = ((PsiDirectoryNode)child).getValue();
-                if (dir != null && path.equals(dir.getName())) {
-                  newRoot = child;
-                  treePath.add(newRoot);
-                  break;
-                }
-              }
-            }
-            if (newRoot != null) {
-              root = newRoot;
-            }
-            else {
-              return null;
+      return new NodeFixture(apkNode, treeStructure);
+    }
+
+    @NotNull
+    private NodeFixture findNativeLibrariesNode(@NotNull NodeFixture parentNode) {
+      for (NodeFixture child : parentNode.getChildren()) {
+        if (child.myNode instanceof LibFolderNode) {
+          return child;
+        }
+      }
+      throw new IllegalStateException("Unable to find the child native library node under given parent node");
+    }
+
+    @NotNull
+    public NodeFixture findNativeLibraryNodeFor(@NotNull String libraryName) {
+      List<NodeFixture> nativeLibs = findNativeLibrariesNode(findApkNode()).getChildren();
+
+      for (NodeFixture child : nativeLibs) {
+        if (child.myNode instanceof LibraryNode) {
+          String libName = child.myNode.toTestString(null);
+          if(libName != null) {
+            if(libraryName.equals(libName)) {
+              return child;
             }
           }
-          if (root == treeStructure.getRootElement()) {
-            return null;
-          }
+        }
+      }
+      throw new IllegalStateException("Unable to find native library node for " + libraryName);
+    }
 
-          myPane.expand(treePath.toArray(), true);
-          myPane.select(root, ((PsiDirectoryNode)root).getVirtualFile(), true);
-          return (PsiDirectoryNode)root;
-        });
+    public IdeFrameFixture clickPath(@NotNull final String... paths) {
+      return clickPath(MouseButton.LEFT_BUTTON, paths);
+    }
 
-      Wait.seconds(1).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
-        DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
-        return (selectedNode != null) && node.equals(selectedNode.getUserObject());
-      }));
+    public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
+      waitForTreeToFinishLoading(myRobot, myTree.target());
+      StringBuilder totalPath = new StringBuilder(paths[0]);
+      for (int i = 1; i < paths.length; i++) {
+        myTree.expandPath(totalPath.toString());
+        totalPath.append('/').append(paths[i]);
+      }
+      myTree.clickPath(totalPath.toString(), button);
+      return myIdeFrameFixture;
     }
   }
 
@@ -241,16 +263,14 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     public List<NodeFixture> getChildren() {
       final List<NodeFixture> children = Lists.newArrayList();
-      GuiActionRunner.execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
+      GuiTask.execute(
+        () -> {
           for (Object child : myTreeStructure.getChildElements(myNode)) {
             if (child instanceof ProjectViewNode) {
               children.add(new NodeFixture((ProjectViewNode<?>)child, myTreeStructure));
             }
           }
-        }
-      });
+        });
       return children;
     }
 
@@ -263,6 +283,23 @@ public class ProjectViewFixture extends ToolWindowFixture {
         }
       }
       return false;
+    }
+
+    public boolean isSourceFolder() {
+      return myNode instanceof SourceFolderNode;
+    }
+
+    @NotNull
+    public String getSourceFolderName() {
+      if(!isSourceFolder()) {
+        throw new IllegalStateException("The node in this NodeFixture is not a SourceFolderNode");
+      }
+
+      PsiDirectory folder = ((SourceFolderNode) myNode).getValue();
+      if(folder == null) {
+        return "";
+      }
+      return folder.getName();
     }
 
     @NotNull

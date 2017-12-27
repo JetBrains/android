@@ -1,3 +1,4 @@
 FILE(0,16)
-  PsiDbIdExprImpl(ID_EXPR)(0,16)
-    PsiElement(IDENTIFIER)('aValidIdentifier')(0,16)
+  PsiDbRefExprImpl(REF_EXPR)(0,16)
+    PsiDbIdImpl(ID)(0,16)
+      PsiElement(IDENTIFIER)('aValidIdentifier')(0,16)

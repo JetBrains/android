@@ -79,8 +79,14 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
 
   @NotNull
   @Override
-  protected Dimension getWizardSize() {
+  protected Dimension getWizardMinimumSize() {
     return JBUI.size(700, 500);
+  }
+
+  @NotNull
+  @Override
+  protected Dimension getWizardPreferredSize() {
+    return getWizardMinimumSize();
   }
 
   @Nullable

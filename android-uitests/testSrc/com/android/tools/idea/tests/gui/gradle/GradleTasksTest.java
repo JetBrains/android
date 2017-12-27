@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
+import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -29,7 +30,6 @@ import com.intellij.util.Consumer;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -125,30 +125,5 @@ public class GradleTasksTest {
     String regex = ".*SimpleApplication \\[" + taskName + "\\].*";
     PatternTextMatcher matcher = new PatternTextMatcher(Pattern.compile(regex, DOTALL));
     closure.consume(guiTest.ideFrame().getRunToolWindow().findContent(matcher));
-  }
-
-  private static class NotMatchingPatternMatcher implements TextMatcher {
-    @NotNull private final Pattern myPattern;
-
-    NotMatchingPatternMatcher(@NotNull Pattern pattern) {
-      myPattern = pattern;
-    }
-
-    @Override
-    public boolean isMatching(String text) {
-      return !match(myPattern, text);
-    }
-
-    @Override
-    @NotNull
-    public String description() {
-      return "not matching pattern";
-    }
-
-    @Override
-    @NotNull
-    public String formattedValues() {
-      return myPattern.pattern();
-    }
   }
 }

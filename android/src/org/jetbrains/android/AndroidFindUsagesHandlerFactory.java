@@ -32,6 +32,8 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,12 +64,12 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       final AndroidFacet facet = AndroidFacet.getInstance(element1);
 
       if (facet != null) {
+        LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
         if (element1 instanceof PsiFile) {
-          return facet.getLocalResourceManager().getFileResourceFolderType((PsiFile)element1) != null;
+          return resourceManager.getFileResourceFolderType((PsiFile)element1) != null;
         }
         else {
-          final ResourceFolderType fileResType = facet.getLocalResourceManager().getFileResourceFolderType(element1.getContainingFile());
-
+          ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(element1.getContainingFile());
           if (ResourceFolderType.VALUES == fileResType) {
             return AndroidResourceUtil.getResourceTypeByValueResourceTag((XmlTag)element1) != null;
           }
@@ -160,7 +162,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     else if (e instanceof PsiField) {
       PsiField field = (PsiField)e;
       List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
-      if (resources.size() == 0) {
+      if (resources.isEmpty()) {
         return new MyFindUsagesHandler(e);
       }
 

@@ -1,31 +1,9 @@
 [
 {
-  "name": "Gingerbread",
-  "version": "2.3",
-  "apiLevel": 10,
-  "distributionPercentage": 0.017,
-  "url": "https://developer.android.com/about/versions/android-2.3.3.html",
-  "descriptionBlocks" :[
-                           {
-                               "title": "Connectivity",
-                               "body": "Improved NFC support<br>Non-secure Bluetooth connections"
-                           },
-                           {
-                               "title": "Multimedia",
-                               "body": "Retrieve frame and metadata from input media files<br>Improved speech recognition API<br>Improved graphics support"
-
-                           },
-                           {
-                               "title": "Peripherals",
-                               "body": "Open Accessory Library from USB"
-                           }
-                       ]
-},
-{
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.016,
+  "distributionPercentage": 0.008,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -74,7 +52,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.060,
+  "distributionPercentage": 0.032,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -123,7 +101,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.083,
+  "distributionPercentage": 0.046,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -156,7 +134,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.024,
+  "distributionPercentage": 0.013,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -213,7 +191,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.292,
+  "distributionPercentage": 0.188,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -254,7 +232,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.141,
+  "distributionPercentage": 0.087,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -316,7 +294,7 @@
   "name": "Lollipop",
   "version": "5.1",
   "apiLevel": 22,
-  "distributionPercentage": 0.214,
+  "distributionPercentage": 0.233,
   "url": "https://developer.android.com/about/versions/android-5.1.html",
   "descriptionBlocks" : [
                           {
@@ -333,7 +311,7 @@
   "name": "Marshmallow",
   "version": "6.0",
   "apiLevel": 23,
-  "distributionPercentage": 0.152,
+  "distributionPercentage": 0.312,
   "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
   "descriptionBlocks" : [
                           {
@@ -364,6 +342,92 @@
                             "title": "Android for Work",
                             "body": "Controls for Corporate-Owned, Single-Use devices<br>Silent install and uninstall of apps by Device Owner<br>Silent enterprise certificate access<br>Auto-acceptance of system updates<br>Delegated certificate installation<br>Data usage tracking<br>Runtime permission management<br>Work status notification"
                           }
+  ]
+},
+{
+  "name": "Nougat",
+  "version": "7.0",
+  "apiLevel": 24,
+  "distributionPercentage": 0.066,
+  "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
+  "descriptionBlocks" : [
+    {
+      "title": "User Interface",
+      "body": "Multi-window Support<br>Notifications<br>Quick Settings Tile API<br>Custom Pointer API"
+    },
+    {
+      "title": "Performance",
+      "body": "Profile-guided JIT/AOT Compilation<br>Quick Path to App Install<br>Sustained Performance API<br>Frame Metrics API"
+    },
+    {
+      "title": "Battery Life",
+      "body": "Doze on the Go<br>Project Svelte: Background Optimizations<br>SurfaceView"
+    },
+    {
+      "title": "Wireless & Connectivity",
+      "body": "Data Saver<br>Number Blocking<br>Call Screening"
+    },
+    {
+      "title": "Graphics",
+      "body": "Vulcan API"
+    },
+    {
+      "title": "System",
+      "body": "Direct Boot<br>Multi-locale Support, More Languages<br>ICU4J APIs in Android<br>APK Signature Scheme v2<br>Scoped Directory Access<br>Keyboard Shortcuts Helper<br>Virtual Files"
+    },
+    {
+      "title": "Android for Work",
+      "body": "Work profile security challenge<br>Turn off work<br>Always on VPN<br>Customized provisioning"
+    },
+    {
+      "title": "Accessiblity",
+      "body": "Vision Settings on the Welcome screen"
+    },
+    {
+      "title": "Security",
+      "body": "Key Attestation<br>Network Security Config<br>Default Trusted Certificate Authority"
+    },
+    {
+      "title": "VR",
+      "body": "Platform support and optimizations for VR Mode"
+    },
+    {
+      "title": "Printing Framework",
+      "body": "Print service enhancements"
+    }
+  ]
+},
+{
+  "name": "Nougat",
+  "version": "7.1",
+  "apiLevel": 25,
+  "distributionPercentage": 0.005,
+  "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
+  "descriptionBlocks" : [
+    {
+      "title": "System",
+      "body": "Enhanced Live Wallpaper Metadata<br>Storage Manager Intent<br>Demo User Hint"
+    },
+    {
+      "title": "VR",
+      "body": "Improved VR Thread Scheduling"
+    },
+    {
+      "title": "User Interface",
+      "body": "App Shortcuts<br>Round Icon Resources"
+    },
+    {
+      "title": "User Input",
+      "body": "Image Keyboard Support<br>New Professional Emoji"
+    },
+    {
+      "title": "Wireless & Connectivity",
+      "body": "APIs for Carriers and Calling Apps"
+    },
+    {
+      "title": "Wear",
+      "body": "New Screen Densities for Wear Devices"
+    }
   ]
 }
 ]

@@ -41,9 +41,9 @@ public class ConfigurationTest extends AndroidTestCase {
   public void test() throws Exception {
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
     assertNotNull(configuration);
@@ -114,20 +114,17 @@ public class ConfigurationTest extends AndroidTestCase {
   public void testListener() throws Exception {
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
     assertNotNull(configuration);
 
-    ConfigurationListener listener = new ConfigurationListener() {
-      @Override
-      public boolean changed(int flags) {
-        myFlags = flags;
-        myChangeCount++;
-        return true;
-      }
+    ConfigurationListener listener = flags -> {
+      myFlags = flags;
+      myChangeCount++;
+      return true;
     };
     configuration.addListener(listener);
     myChangeCount = 0;
@@ -176,15 +173,15 @@ public class ConfigurationTest extends AndroidTestCase {
 
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     // Default locale in the project: se
     manager.setLocale(Locale.create("se"));
 
     Configuration configuration1 = manager.getConfiguration(file1);
-    /** This is not yet working; we need to sync all getLocale calls to getProject unless in a locale folder
+    /* This is not yet working; we need to sync all getLocale calls to getProject unless in a locale folder
     assertEquals(Locale.create("se"), configuration1.getLocale());
      */
 
@@ -208,9 +205,9 @@ public class ConfigurationTest extends AndroidTestCase {
 
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     Configuration configuration1 = manager.getConfiguration(file1);
     configuration1.getConfigurationManager().setLocale(Locale.create("en"));
@@ -248,9 +245,9 @@ public class ConfigurationTest extends AndroidTestCase {
   public void testTargetSpecificFolder() throws Exception {
     final AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     for (IAndroidTarget target : manager.getTargets()) {
       if (ConfigurationManager.isLayoutLibTarget(target)) {

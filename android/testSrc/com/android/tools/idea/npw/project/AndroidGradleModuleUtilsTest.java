@@ -15,31 +15,38 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.npw.importing.AndroidGradleImportTestCase;
-import com.intellij.openapi.module.ModuleManager;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 
 import java.io.File;
 
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
+import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class AndroidGradleModuleUtilsTest extends AndroidGradleImportTestCase {
+public class AndroidGradleModuleUtilsTest extends AndroidGradleTestCase {
 
-  public void testGetContainingModule() {
+  public void testGetContainingModule() throws Exception {
     Project project = getProject();
-    File archiveToImport = createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
-    assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
+    loadProject(IMPORTING);
+    File archiveToImport = new File(project.getBasePath(), join("simple", "lib", "library.jar"));
+
+    assertEquals(getModule("simple"), getContainingModule(archiveToImport, project));
   }
 
-  public void testGetContainingModuleNested() {
+  public void testGetContainingModuleNested() throws Exception {
     Project project = getProject();
-    File archiveToImport = createArchiveInModuleWithinCurrentProject(true, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
-    assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
+    loadProject(IMPORTING);
+    File archiveToImport = new File(project.getBasePath(), join("nested", "sourcemodule", "lib", "library.jar"));
+
+    assertEquals(getModule("sourcemodule"), getContainingModule(archiveToImport, project));
   }
 
-  public void testGetContainingModuleNotInModule() {
-    assertEquals(getContainingModule(getJarNotInProject(), getProject()), null);
+  public void testGetContainingModuleNotInModule() throws Exception {
+    Module module = getContainingModule(new File(getTestDataPath(), join(IMPORTING, "simple", "lib", "library.jar")), getProject());
+    assertEquals(null, module);
   }
 }

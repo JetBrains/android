@@ -93,17 +93,48 @@ public class RecipeMergeUtils {
    * Returns the resulting xml if it still needs to be written to targetFile,
    * or null if the file has already been/doesn't need to be updated.
    */
-  @Nullable
+  @NotNull
   public static String mergeXml(@NotNull RenderingContext context, String sourceXml, String targetXml, File targetFile) {
     boolean ok;
     String fileName = targetFile.getName();
     String contents;
+    String errors = null;
     if (fileName.equals(FN_ANDROID_MANIFEST_XML)) {
       Document currentDocument = XmlUtils.parseDocumentSilently(targetXml, true);
       assert currentDocument != null : targetXml + " failed to parse";
       Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
       assert fragment != null : sourceXml + " failed to parse";
-      contents = mergeManifest(context.getModuleRoot(), targetFile, targetXml, sourceXml);
+      MergingReport report = mergeManifest(context.getModuleRoot(), targetFile, targetXml, sourceXml);
+      if (report != null && report.getResult().isSuccess()) {
+        contents = report.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
+      } else {
+        contents = null;
+        if (report != null) {
+          // report.getReportString() isn't useful, it just says to look at the logs
+          StringBuilder sb = new StringBuilder();
+          for (MergingReport.Record record : report.getLoggingRecords()) {
+            MergingReport.Record.Severity severity = record.getSeverity();
+            if (severity != MergingReport.Record.Severity.ERROR) {
+              // Some of the warnings are misleading -- e.g. "missing package declaration";
+              // that's deliberate. Users only have to deal with errors to get the
+              // manifest merge to succeed.
+              continue;
+            }
+            sb.append("* ");
+            sb.append(record.getMessage());
+            sb.append("\n\n");
+          }
+
+          errors = sb.toString();
+          // Error messages may refer to our internal temp name for the target manifest file
+          //noinspection DynamicRegexReplaceableByCompiledPattern // Infrequent
+          errors = errors.replace("AndroidManifest.xml", "current AndroidManifest.xml");
+          //noinspection DynamicRegexReplaceableByCompiledPattern // Infrequent
+          errors = errors.replace("nevercreated.xml", "template AndroidManifest.xml");
+          errors = errors.trim();
+        }
+      }
+
       ok = contents != null;
     }
     else {
@@ -123,7 +154,8 @@ public class RecipeMergeUtils {
       contents = wrapWithMergeConflict(targetXml, sourceXml);
 
       // Report the conflict as a warning:
-      context.getWarnings().add(String.format("Merge conflict for: %1$s this file must be fixed by hand", targetFile.getName()));
+      context.getWarnings().add(String.format("Merge conflict for: %1$s\nThis file must be fixed by hand. The errors " +
+                                              "encountered during the merge are:\n\n%2$s", targetFile.getName(), errors));
     }
     return contents;
   }
@@ -245,15 +277,17 @@ public class RecipeMergeUtils {
    * Merges the given manifest fragment into the given manifest file
    */
   @Nullable
-  private static String mergeManifest(@NotNull File moduleRoot, @NotNull final File targetManifest,
+  private static MergingReport mergeManifest(@NotNull File moduleRoot, @NotNull final File targetManifest,
                                       @NotNull final String targetXml, @NotNull final String mergeText) {
     try {
       boolean isMasterManifest = FileUtil.filesEqual(moduleRoot, targetManifest.getParentFile());
       //noinspection SpellCheckingInspection
       final File tempFile2 = new File(targetManifest.getParentFile(), "nevercreated.xml");
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
-      MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
-        .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
+      return ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
+        .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
+                      ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
+                      ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
         .addLibraryManifest(tempFile2)
         .asType(isMasterManifest ? XmlDocument.Type.MAIN : XmlDocument.Type.OVERLAY)
         .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
@@ -264,17 +298,12 @@ public class RecipeMergeUtils {
           }
         })
         .merge();
-      if (mergeReport.getResult().isSuccess()) {
-        return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
-      }
-      return null;
     }
     catch (ManifestMerger2.MergeFailureException e) {
       LOG.warn(e);
       return null;
     }
   }
-
 
   private static String getResourceId(@NotNull XmlTag tag) {
     String name = tag.getAttributeValue(ATTR_NAME);

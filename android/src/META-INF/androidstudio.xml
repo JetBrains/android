@@ -27,11 +27,19 @@
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
+    <applicationService serviceImplementation="com.android.tools.idea.welcome.whatsnew.WhatsNew$WhatsNewService"/>
+    <postStartupActivity implementation="com.android.tools.idea.welcome.whatsnew.WhatsNew"
+                         order="before TipOfTheDayManager"/>
   </extensions>
 
   <actions>
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
+    </action>
+
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
+      <add-to-group group-id="RefactoringMenu"/>
     </action>
 
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
@@ -50,6 +58,15 @@
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </group>
 
+    <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
+            class="com.android.tools.idea.apk.ImportApkAction">
+      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
+    </action>
+
+    <action id="ImportApkAction"
+            class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
+      <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -62,6 +79,71 @@
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                         overrides="true"/>
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
+
+    <localInspection groupPath="Java" language="JAVA" shortName="TryWithIdenticalCatches" bundle="com.siyeh.InspectionGadgetsBundle"
+                     key="try.with.identical.catches.display.name" groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidTryWithIdenticalCatchesInspection"/>
+
+    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
+                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
+                     enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Convert2streamapi"
+                     displayName="Loop can be collapsed with Stream API"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8"
+                     groupBundle="messages.InspectionsBundle" enabledByDefault="true" level="INFORMATION"
+                     implementationClass="org.jetbrains.android.inspections.AndroidStreamApiMigrationInspection"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="StaticPseudoFunctionalStyleMethod"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidStaticPseudoFunctionalStyleMethodInspection"
+                     displayName="Pseudo functional expression using static class"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="ComparatorCombinators"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidComparatorCombinatorsInspection"
+                     displayName="Use Comparator combinators"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="AnonymousHasLambdaAlternative"
+                     displayName="Anonymous type has shorter lambda alternative"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" groupBundle="messages.InspectionsBundle"
+                     enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidAnonymousHasLambdaAlternativeInspection"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Java8ListSort"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidJava8ListSortInspection"
+                     displayName="Collections.sort() can be replaced with List.sort()"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Java8ArraySetAll"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="INFORMATION"
+                     implementationClass="org.jetbrains.android.inspections.AndroidJava8ArraySetAllInspection"
+                     displayName="Loop can be replaced with Arrays.setAll()"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Java8CollectionRemoveIf"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidJava8CollectionRemoveIfInspection"
+                     displayName="Loop can be replaced with Collection.removeIf()"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Java8MapApi"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidJava8MapApiInspection"
+                     displayName="Replace with single Map method"/>
+
+    <localInspection groupPath="Java,Java language level migration aids" language="JAVA" shortName="Java8MapForEach"
+                     groupBundle="messages.InspectionsBundle"
+                     groupKey="group.names.language.level.specific.issues.and.migration.aids8" enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidJava8MapForEachInspection"
+                     displayName="Replace with Map.forEach"/>
+
   </extensions>
 
 </idea-plugin>

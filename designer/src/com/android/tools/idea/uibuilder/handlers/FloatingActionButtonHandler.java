@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.XmlBuilder;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +58,6 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
 
     if (xmlType.equals(XmlType.PREVIEW_ON_PALETTE)) {
       builder.attribute(APP_PREFIX, "elevation", "0dp");
-    }
-    else {
-      builder.attribute(APP_PREFIX, "fabSize", "mini");
     }
 
     return builder

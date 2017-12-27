@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -76,6 +77,21 @@ public class GradleFiles {
       return true;
     }
 
+    GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+    if (gradleWrapper != null) {
+      File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
+      if (propertiesFilePath.exists()) {
+        long modified = propertiesFilePath.lastModified();
+        if (modified > referenceTimeInMillis) {
+          return true;
+        }
+        VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
+        if (propertiesFile != null && myDocumentManager.isFileModified(propertiesFile)) {
+          return true;
+        }
+      }
+    }
+
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
@@ -119,8 +135,8 @@ public class GradleFiles {
         }
         VirtualFile rootFolder = myProject.getBaseDir();
         assert rootFolder != null;
-        VirtualFile settingsFile = rootFolder.findChild(fileName);
-        if (settingsFile != null && myDocumentManager.isFileModified(settingsFile)) {
+        VirtualFile virtualFile = rootFolder.findChild(fileName);
+        if (virtualFile != null && myDocumentManager.isFileModified(virtualFile)) {
           return true;
         }
       }
@@ -145,7 +161,7 @@ public class GradleFiles {
     }
     if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
       VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && FN_GRADLE_PROPERTIES.equals(file.getName())) {
+      if (file != null && (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName()))) {
         return true;
       }
     }

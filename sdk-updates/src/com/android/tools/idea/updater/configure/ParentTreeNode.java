@@ -18,9 +18,12 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Enumeration;
+import java.util.function.Function;
 
 /**
  * A tree node used in {@link SdkUpdaterConfigurable}. Represents a summary view of several packages.
@@ -30,55 +33,27 @@ class ParentTreeNode extends UpdaterTreeNode {
   private final String myTitle;
   private PackageNodeModel.SelectedState myInitialState;
 
-  public ParentTreeNode(AndroidVersion version) {
+  public ParentTreeNode(@NotNull AndroidVersion version) {
     myVersion = version;
     myTitle = null;
   }
 
-  public ParentTreeNode(String title) {
+  public ParentTreeNode(@NotNull String title) {
     myTitle = title;
     myVersion = null;
   }
 
-  @Override
-  public PackageNodeModel.SelectedState getInitialState() {
-    if (myInitialState == null) {
-      boolean hasInstalled = false;
-      boolean hasNotInstalled = false;
-      for (Enumeration children = children(); children.hasMoreElements(); ) {
-        UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
-        if (child.getInitialState() == PackageNodeModel.SelectedState.MIXED) {
-          return PackageNodeModel.SelectedState.MIXED;
-        }
-        else if (child.getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
-          hasInstalled = true;
-        }
-        else {
-          hasNotInstalled = true;
-        }
-      }
-      myInitialState = hasInstalled
-                       ? (hasNotInstalled ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED)
-                       : PackageNodeModel.SelectedState.NOT_INSTALLED;
-    }
-    return myInitialState;
-  }
-
-  @Override
-  protected boolean canHaveMixedState() {
-    return getInitialState() == PackageNodeModel.SelectedState.MIXED;
-  }
-
-  @Override
-  public PackageNodeModel.SelectedState getCurrentState() {
+  @NotNull
+  private PackageNodeModel.SelectedState getState(@NotNull Function<UpdaterTreeNode, PackageNodeModel.SelectedState> childStateGetter) {
     boolean foundInstalled = false;
     boolean foundNotInstalled = false;
     for (Enumeration children = children(); children.hasMoreElements(); ) {
       UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
-      if (child.getCurrentState() != PackageNodeModel.SelectedState.INSTALLED) {
+      PackageNodeModel.SelectedState childState = childStateGetter.apply(child);
+      if (childState != PackageNodeModel.SelectedState.INSTALLED) {
         foundNotInstalled = true;
       }
-      if (child.getCurrentState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
+      if (childState != PackageNodeModel.SelectedState.NOT_INSTALLED) {
         foundInstalled = true;
       }
     }
@@ -94,15 +69,41 @@ class ParentTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  public int compareTo(UpdaterTreeNode o) {
-    if (!(o instanceof ParentTreeNode)) {
-      return super.compareTo(o);
+  @NotNull
+  public PackageNodeModel.SelectedState getInitialState() {
+    if (myInitialState == null) {
+      myInitialState = getState(UpdaterTreeNode::getInitialState);
     }
-    return myVersion.compareTo(((ParentTreeNode)o).myVersion);
+    return myInitialState;
   }
 
   @Override
-  public boolean equals(Object obj) {
+  protected boolean canHaveMixedState() {
+    return getInitialState() == PackageNodeModel.SelectedState.MIXED;
+  }
+
+  @Override
+  @NotNull
+  public PackageNodeModel.SelectedState getCurrentState() {
+    return getState(UpdaterTreeNode::getCurrentState);
+  }
+
+  @Override
+  public int compareTo(@NotNull UpdaterTreeNode other) {
+    if (!(other instanceof ParentTreeNode)) {
+      return super.compareTo(other);
+    }
+    if (myVersion == null) {
+      return ((ParentTreeNode)other).myVersion == null ? 0 : -1;
+    }
+    if (((ParentTreeNode)other).myVersion == null) {
+      return 1;
+    }
+    return myVersion.compareTo(((ParentTreeNode)other).myVersion);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object obj) {
     if (!(obj instanceof ParentTreeNode)) {
       return false;
     }

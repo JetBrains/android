@@ -17,7 +17,9 @@ package org.jetbrains.android.refactoring;
 
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
 
 /**
@@ -25,6 +27,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
  * tested in {@link UnusedResourcesTest}.
  */
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
+
   public void test() throws Exception {
     loadProject(UNUSED_RESOURCES);
 
@@ -40,7 +43,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "\n" +
                  "android {\n" +
                  "  compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "  buildToolsVersion '" + GradleImport.CURRENT_BUILD_TOOLS_VERSION + "'\n" +
+                 "  buildToolsVersion '" + CURRENT_BUILD_TOOLS_VERSION + "'\n" +
                  "\n" +
                  "  defaultConfig {\n" +
                  "    minSdkVersion 15\n" +
@@ -49,7 +52,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + getLocalRepositories() +
+                 "repositories {\n" + AndroidGradleTests.getLocalRepositories() +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }

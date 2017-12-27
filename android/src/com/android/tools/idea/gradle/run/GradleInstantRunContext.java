@@ -19,8 +19,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceUrl;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.resources.ResourceUrl;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
@@ -39,7 +39,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,24 +110,17 @@ public class GradleInstantRunContext implements InstantRunContext {
 
     final Hasher hasher = Hashing.goodFastHash(32).newHasher();
     SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
 
     // read action needed when reading the values for app resources
-    ApplicationManager.getApplication().runReadAction(() -> {
-      hashResources(appResourceReferences, appResources, hasher);
-    });
+    ApplicationManager.getApplication().runReadAction(() -> hashResources(appResourceReferences, appResources, hasher));
 
     return hasher.hash();
   }
 
   @VisibleForTesting
   static SortedSet<ResourceUrl> getAppResourceReferences(@NotNull Element element) {
-    SortedSet<ResourceUrl> refs = new TreeSet<>(new Comparator<ResourceUrl>() {
-      @Override
-      public int compare(ResourceUrl o1, ResourceUrl o2) {
-        return o1.toString().compareTo(o2.toString());
-      }
-    });
+    SortedSet<ResourceUrl> refs = new TreeSet<>(Comparator.comparing(ResourceUrl::toString));
     addAppResourceReferences(element, refs);
     return refs;
   }
@@ -204,7 +196,7 @@ public class GradleInstantRunContext implements InstantRunContext {
   @NotNull
   @Override
   public List<String> getCustomBuildArguments() {
-    if (myModel.getProjectType() != PROJECT_TYPE_APP) {
+    if (myModel.getAndroidProject().getProjectType() != PROJECT_TYPE_APP) {
       return Collections.emptyList();
     }
 

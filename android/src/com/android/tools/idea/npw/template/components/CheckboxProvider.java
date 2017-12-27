@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

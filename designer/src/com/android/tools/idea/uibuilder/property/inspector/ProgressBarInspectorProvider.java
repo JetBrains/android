@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
@@ -63,6 +63,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
    * ProgressBar inspector component. Has a dual view depending on the value of determinate.
    */
   private static class ProgressBarInspectorComponent implements InspectorComponent {
+    private final InspectorPanel myInspector;
     private final NlEnumEditor myStyleEditor;
     private final NlReferenceEditor myDrawableEditor;
     private final NlReferenceEditor myIndeterminateDrawableEditor;
@@ -86,6 +87,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     private NlProperty myIndeterminate;
 
     public ProgressBarInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
+      myInspector = propertiesManager.getInspector();
       Project project = propertiesManager.getProject();
       myStyleEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myDrawableEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
@@ -122,6 +124,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      // Call refresh first to hide the indeterminate/determinate fields without flicker
       refresh();
       inspector.addTitle("ProgressBar");
       inspector.addComponent(ATTR_STYLE, myStyle.getTooltipText(), myStyleEditor.getComponent());
@@ -149,14 +152,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myVisibilityEditor.setProperty(myVisibility);
       myDesignVisibilityEditor.setProperty(myDesignVisibility);
       myIndeterminateEditor.setProperty(myIndeterminate);
-
-      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
-      myDrawableEditor.setVisible(!indeterminate);
-      myTintEditor.setVisible(!indeterminate);
-      myIndeterminateDrawableEditor.setVisible(indeterminate);
-      myIndeterminateTintEditor.setVisible(indeterminate);
-      myMaxEditor.setVisible(!indeterminate);
-      myProgressEditor.setVisible(!indeterminate);
+      updateVisibility();
     }
 
     @Override
@@ -173,6 +169,20 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
         myVisibilityEditor,
         myDesignVisibilityEditor,
         myIndeterminateEditor);
+    }
+
+    @Override
+    public void updateVisibility() {
+      if (!myInspector.getFilter().isEmpty()) {
+        return;
+      }
+      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
+      myDrawableEditor.setVisible(!indeterminate);
+      myTintEditor.setVisible(!indeterminate);
+      myIndeterminateDrawableEditor.setVisible(indeterminate);
+      myIndeterminateTintEditor.setVisible(indeterminate);
+      myMaxEditor.setVisible(!indeterminate);
+      myProgressEditor.setVisible(!indeterminate);
     }
 
     private NlEditingListener createIndeterminateListener() {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.app.assist.AssistStructure.ViewNode android.os.LocaleList getLocaleList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode android.view.ViewStructure.HtmlInfo getHtmlInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode android.view.autofill.AutofillId getAutofillId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode android.view.autofill.AutofillValue getAutofillValue()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode java.lang.CharSequence[] getAutofillOptions()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode java.lang.String getWebDomain()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode java.lang.String[] getAutofillHints()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

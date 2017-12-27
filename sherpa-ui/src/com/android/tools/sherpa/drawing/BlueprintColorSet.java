@@ -44,6 +44,7 @@ public class BlueprintColorSet extends ColorSet {
         //mConstraints = new Color(102, 129, 204);
         mConstraints = new Color(106, 161, 211);
         mSoftConstraintColor = new Color(102, 129, 204, 80);
+        mButtonBackground  = new Color(51, 105, 153, 160);
         mMargins = new Color(150, 150, 180);
         mText = new Color(220, 220, 220);
         mSnapGuides = new Color(220, 220, 220);
@@ -79,8 +80,8 @@ public class BlueprintColorSet extends ColorSet {
 
         mAnchorCircle = Color.white;
         mAnchorCreationCircle = Color.white;
-        mAnchorDisconnectionCircle = new Color(180, 0, 0);
-        mAnchorConnectionCircle = new Color(10, 130, 10);
+        mAnchorDisconnectionCircle = new Color(0xE45245);
+        mAnchorConnectionCircle = new Color(0xE3F3FF);
 
         mSelectionColor = Color.white;
 

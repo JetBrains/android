@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -32,14 +32,14 @@ public class SceneGuidelineConnectionTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 500, 500)
+                                   .withBounds(0, 0, 1000, 1000)
                                    .width("500dp")
                                    .height("500dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(CONSTRAINT_LAYOUT_GUIDELINE)
                                        .id("@id/guideline")
-                                       .withBounds(150, 0, 1, 500)
+                                       .withBounds(300, 0, 2, 1000)
                                        .width("0dp")
                                        .height("500dp")
                                        .withAttribute("android:orientation", "vertical")
@@ -48,7 +48,7 @@ public class SceneGuidelineConnectionTest extends SceneTest {
                                        .withAttribute("tools:layout_editor_absoluteY", "0dp"),
                                      component(BUTTON)
                                        .id("@id/button")
-                                       .withBounds(250, 200, 100, 20)
+                                       .withBounds(500, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "250dp")
@@ -72,11 +72,11 @@ public class SceneGuidelineConnectionTest extends SceneTest {
     myInteraction.mouseRelease(150, myInteraction.getLastY()); // should connect to the guideline
     myScreen.get("@id/button")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"8dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"@+id/guideline\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginStart=\"8dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/guideline\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
 }

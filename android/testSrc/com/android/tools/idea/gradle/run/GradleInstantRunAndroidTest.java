@@ -41,7 +41,7 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
     HashCode hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
 
     // change a resource not referenced from manifest
-    AppResourceRepository repository = AppResourceRepository.create(myFacet);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
     ResourceValue resValue = repository.getConfiguredValue(ResourceType.STRING, "title_section1", new FolderConfiguration());
     resValue.setValue("foo");
     assertEquals("Hash should not change if a resource not referenced from the manifest is changed",

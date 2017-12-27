@@ -16,7 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -50,7 +50,7 @@ class SetAndGenerateBackupDescriptor extends DefaultLintQuickFix {
 
   public SetAndGenerateBackupDescriptor() {
     super("Set fullBackupContent attribute and generate descriptor");
-    ResourceUrl resourceUrl = ResourceUrl.create(ResourceType.XML, RESOURCE_URL_NAME, false, false);
+    ResourceUrl resourceUrl = ResourceUrl.create(ResourceType.XML, RESOURCE_URL_NAME, false);
     mySetAttributeQuickFix =
       new SetAttributeQuickFix(myName, ATTR_FULL_BACKUP_CONTENT, resourceUrl.toString());
     myGenerateDescriptorFix = new GenerateBackupDescriptorFix(resourceUrl);

@@ -15,37 +15,104 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: This class needs to be covered by tests
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
+
 public class NetworkMonitor extends ProfilerMonitor {
+
+  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
+  private final NetworkUsage myNetworkUsage;
+  private final NetworkLegends myLegends;
+  private final AxisComponentModel myTrafficAxis;
+  private final NetworkLegends myTooltipLegends;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+
+    myNetworkUsage = new NetworkUsage(profilers);
+
+    myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
+    myTrafficAxis.setClampToMajorTicks(true);
+
+    myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange(), false);
+    myTooltipLegends = new NetworkLegends(myNetworkUsage, getTimeline().getTooltipRange(), true);
   }
 
-  @NotNull
-  public NetworkTrafficDataSeries getSpeedSeries(NetworkTrafficDataSeries.Type trafficType) {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
-    return new NetworkTrafficDataSeries(client, myProfilers.getProcessId(), trafficType);
-  }
-
-  @NotNull
-  public NetworkOpenConnectionsDataSeries getOpenConnectionsSeries() {
-    NetworkServiceGrpc.NetworkServiceBlockingStub client = myProfilers.getClient().getNetworkClient();
-    return new NetworkOpenConnectionsDataSeries(client, myProfilers.getProcessId());
-  }
-
-  @NotNull
   @Override
+  @NotNull
   public String getName() {
-    return "Network";
+    return "NETWORK";
   }
 
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(myNetworkUsage);
+    myProfilers.getUpdater().unregister(myTrafficAxis);
+    myProfilers.getUpdater().unregister(myLegends);
+    myProfilers.getUpdater().unregister(myTooltipLegends);
+  }
+
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(myNetworkUsage);
+    myProfilers.getUpdater().register(myTrafficAxis);
+    myProfilers.getUpdater().register(myLegends);
+    myProfilers.getUpdater().register(myTooltipLegends);
+  }
+
+  @Override
   public void expand() {
     myProfilers.setStage(new NetworkProfilerStage(myProfilers));
+  }
+
+  public AxisComponentModel getTrafficAxis() {
+    return myTrafficAxis;
+  }
+
+  public NetworkUsage getNetworkUsage() {
+    return myNetworkUsage;
+  }
+
+  public NetworkLegends getLegends() {
+    return myLegends;
+  }
+
+  public NetworkLegends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
+  public static class NetworkLegends extends LegendComponentModel {
+
+    @NotNull private final SeriesLegend myRxLegend;
+    @NotNull private final SeriesLegend myTxLegend;
+
+    public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range, boolean hightlight) {
+      super(hightlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight),
+                                    Interpolatable.SegmentInterpolator);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight),
+                                    Interpolatable.SegmentInterpolator);
+      add(myTxLegend);
+      add(myRxLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    @NotNull
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
   }
 }

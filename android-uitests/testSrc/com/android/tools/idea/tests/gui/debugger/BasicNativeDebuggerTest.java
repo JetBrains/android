@@ -15,241 +15,207 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
-import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
-import com.google.common.collect.Lists;
-import com.intellij.util.containers.HashMap;
-import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
-import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.tree.TreeNode;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
-public class BasicNativeDebuggerTest {
+@Ignore("https://android-devtools-builder.corp.google.com/builders/studio-unreliable_nightly/builds/34")
+public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
-  private static final String DEBUG_CONFIG_NAME = "app";
-  private static final String AVD_NAME = "debugger_test_avd";
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testSessionRestart() throws Exception{
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
-  }
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Auto")
+      .clickOk();
 
-  @After
-  public void tearDown() throws Exception {
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
-  }
+    // Setup breakpoints
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
 
-  @NotNull
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.findDebugApplicationButton().click();
+
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Launching " + DEBUG_CONFIG_NAME);
+    errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
+
+    DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
+    deployTargetPicker.selectDevice(emulator.getDefaultAvdName()).clickOk();
+
+    waitUntilDebugConsoleCleared(debugToolWindowFixture);
+    waitForSessionStart(debugToolWindowFixture);
+    stopDebugSession(debugToolWindowFixture);
   }
 
   @Test
-  public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
-    createAVD();
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testMultiBreakAndResume() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-    // Setup breakpoints
-    final String[] breakPoints = {
-      "return sum;",
-      "return product;",
-      "return quotient;",
-      "return (*env)->NewStringUTF(env, message);",
-    };
-    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
-
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
-    final Map<String, String[]> breakpointToExpectedPatterns = new HashMap<>();
-    breakpointToExpectedPatterns.put(
-      breakPoints[0], new String[] {
-        variableToSearchPattern("x1", "int", "1"),
-        variableToSearchPattern("x2", "int", "2"),
-        variableToSearchPattern("x3", "int", "3"),
-        variableToSearchPattern("x4", "int", "4"),
-        variableToSearchPattern("x5", "int", "5"),
-        variableToSearchPattern("x6", "int", "6"),
-        variableToSearchPattern("x7", "int", "7"),
-        variableToSearchPattern("x8", "int", "8"),
-        variableToSearchPattern("x9", "int", "9"),
-        variableToSearchPattern("x10", "int", "10"),
-        variableToSearchPattern("sum", "int", "55")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[1], new String[] {
-        variableToSearchPattern("x1", "int", "1"),
-        variableToSearchPattern("x2", "int", "2"),
-        variableToSearchPattern("x3", "int", "3"),
-        variableToSearchPattern("x4", "int", "4"),
-        variableToSearchPattern("x5", "int", "5"),
-        variableToSearchPattern("x6", "int", "6"),
-        variableToSearchPattern("x7", "int", "7"),
-        variableToSearchPattern("x8", "int", "8"),
-        variableToSearchPattern("x9", "int", "9"),
-        variableToSearchPattern("x10", "int", "10"),
-        variableToSearchPattern("product", "int", "3628800")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[2], new String[] {
-        variableToSearchPattern("x1", "int", "1024"),
-        variableToSearchPattern("x2", "int", "2"),
-        variableToSearchPattern("quotient", "int", "512")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[3], new String[] {
-        variableToSearchPattern("sum_of_10_ints", "int", "55"),
-        variableToSearchPattern("product_of_10_ints", "int", "3628800"),
-        variableToSearchPattern("quotient", "int", "512")});
-
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(AVD_NAME)
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
       .clickOk();
 
-    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
+    // Set breakpoint in java code, but it wouldn't be hit when it is native debugger type.
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/java/com/example/basiccmakeapp/MainActivity.java",
+                             "setContentView(tv);");
+
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return sum;",
+                             "return product;",
+                             "return quotient;",
+                             "return (*env)->NewStringUTF(env, message);"
+    );
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    {
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 50);
-    }
+    waitForSessionStart(debugToolWindowFixture);
 
-    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
-    // breakpointToExpectedPatterns.
-    for (int i = 0; i < breakPoints.length; ++i) {
-      if (i > 0) {
-        resumeProgram();
-      }
-      final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
-      Wait.seconds(1).expecting("the debugger tree to appear")
-        .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
-    }
+    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
+    String[] expectedPatterns = new String[]{
+      variableToSearchPattern("x1", "int", "1"),
+      variableToSearchPattern("x2", "int", "2"),
+      variableToSearchPattern("x3", "int", "3"),
+      variableToSearchPattern("x4", "int", "4"),
+      variableToSearchPattern("x5", "int", "5"),
+      variableToSearchPattern("x6", "int", "6"),
+      variableToSearchPattern("x7", "int", "7"),
+      variableToSearchPattern("x8", "int", "8"),
+      variableToSearchPattern("x9", "int", "9"),
+      variableToSearchPattern("x10", "int", "10"),
+      variableToSearchPattern("sum", "int", "55"),
+    };
+    checkAppIsPaused(projectFrame, expectedPatterns);
+    resume("app", projectFrame);
 
-    {
-      // We cannot reuse the context fixture we got above, as its windows could have been repurposed for other things.
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.stop();
-      contentFixture.waitForExecutionToFinish();
-    }
-  }
+    expectedPatterns = new String[]{
+      variableToSearchPattern("x1", "int", "1"),
+      variableToSearchPattern("x2", "int", "2"),
+      variableToSearchPattern("x3", "int", "3"),
+      variableToSearchPattern("x4", "int", "4"),
+      variableToSearchPattern("x5", "int", "5"),
+      variableToSearchPattern("x6", "int", "6"),
+      variableToSearchPattern("x7", "int", "7"),
+      variableToSearchPattern("x8", "int", "8"),
+      variableToSearchPattern("x9", "int", "9"),
+      variableToSearchPattern("x10", "int", "10"),
+      variableToSearchPattern("product", "int", "3628800"),
+    };
+    checkAppIsPaused(projectFrame, expectedPatterns);
+    resume("app", projectFrame);
 
-  /////////////////////////////////////////////////////////////////
-  ////     Methods to help control debugging under a test.  ///////
-  /////////////////////////////////////////////////////////////////
+    expectedPatterns = new String[]{
+      variableToSearchPattern("x1", "int", "1024"),
+      variableToSearchPattern("x2", "int", "2"),
+      variableToSearchPattern("quotient", "int", "512"),
+    };
+    checkAppIsPaused(projectFrame, expectedPatterns);
+    resume("app", projectFrame);
 
-  private void resumeProgram() {
-    MiscUtils.invokeMenuPathOnRobotIdle(guiTest.ideFrame(), "Run", "Resume Program");
-  }
-
-  /**
-   * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
-   */
-  private void openAndToggleBreakPoints(String fileName, String[] lines) {
-    EditorFixture editor = guiTest.ideFrame().getEditor().open(fileName);
-    for (String line : lines) {
-      editor.moveBetween("", line);
-      editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
-    }
-  }
-
-  @NotNull
-  private static String[] debuggerTreeRootToChildrenTexts(XDebuggerTreeNode treeRoot) {
-    List<? extends TreeNode> children = treeRoot.getChildren();
-    String[] childrenTexts = new String[children.size()];
-    int i = 0;
-    for (TreeNode child : children) {
-      childrenTexts[i] = ((XDebuggerTreeNode)child).getText().toString();
-      ++i;
-    }
-    return childrenTexts;
-  }
-
-  /**
-   * Returns the subset of {@code expectedPatterns} which do not match any of the children (just the first level children, not recursive) of
-   * {@code treeRoot} .
-   */
-  @NotNull
-  private static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
-    String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
-    List<String> unmatchedPatterns = Lists.newArrayList();
-    for (String expectedPattern : expectedPatterns) {
-      boolean matched = false;
-      for (String childText : childrenTexts) {
-        if (childText.matches(expectedPattern)) {
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        unmatchedPatterns.add(expectedPattern);
-      }
-    }
-    return unmatchedPatterns;
+    expectedPatterns = new String[]{
+      variableToSearchPattern("sum_of_10_ints", "int", "55"),
+      variableToSearchPattern("product_of_10_ints", "int", "3628800"),
+      variableToSearchPattern("quotient", "int", "512")
+    };
+    checkAppIsPaused(projectFrame, expectedPatterns);
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNull();
+    stopDebugSession(debugToolWindowFixture);
   }
 
   /**
-   * Returns the appropriate pattern to look for a variable named {@code name} with the type {@code type} and value {@code value} appearing
-   * in the Variables window in Android Studio.
+   * Verifies that instant run hot swap works as expected on a C++ support project.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 54d17691-48b8-4bf2-9ac2-9ff179327418
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI.
+   *   2. Select auto debugger on Edit Configurations dialog.
+   *   3. Set breakpoints both in Java and C++ code.
+   *   4. Debug on a device running M or earlier.
+   *   5. When the C++ breakpoint is hit, verify variables and resume
+   *   6. When the Java breakpoint is hit, verify variables
+   *   7. Stop debugging
+   *   </pre>
    */
-  @NotNull
-  private static String variableToSearchPattern(String name, String type, String value) {
-    return String.format("%s = \\{%s\\} %s", name, type, value);
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testCAndJavaBreakAndResume() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Dual")
+      .clickOk();
+
+    // Setup C++ and Java breakpoints.
+    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
+    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
+
+    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
+    waitForSessionStart(debugToolWindowFixture);
+
+    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
+    String[] expectedPatterns = new String[]{
+      variableToSearchPattern("sum_of_10_ints", "int", "55"),
+      variableToSearchPattern("product_of_10_ints", "int", "3628800"),
+      variableToSearchPattern("quotient", "int", "512"),
+    };
+    checkAppIsPaused(ideFrameFixture, expectedPatterns);
+    resume("app", ideFrameFixture);
+
+    expectedPatterns = new String[]{
+      variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
+    };
+    checkAppIsPaused(ideFrameFixture, expectedPatterns);
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNotNull();
+    // TODO Stop the session.
   }
 
-  private boolean verifyVariablesAtBreakpoint(String[] expectedVariablePatterns, String debugConfigName) {
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(guiTest.ideFrame());
-    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
-
-    contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(1).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
-
-    // Get the debugger tree and print it.
-    XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
-    if (debuggerTreeRoot == null) {
-      return false;
-    }
-
-    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot);
-    return unmatchedPatterns.isEmpty();
+  private void waitUntilDebugConsoleCleared(DebugToolWindowFixture debugToolWindowFixture) {
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForOutput(new NotMatchingPatternMatcher(DEBUGGER_ATTACHED_PATTERN), 10);
   }
 
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5X");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .showAdvancedSettings()
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
 }

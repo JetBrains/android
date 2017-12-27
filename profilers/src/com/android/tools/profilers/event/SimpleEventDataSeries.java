@@ -15,12 +15,17 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.KeyboardAction;
+import com.android.tools.adtui.model.event.KeyboardData;
+import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -30,40 +35,49 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction.Action, EventActionType>> {
-
-  private static final int ACTION_DOWN = 0;
-  private static final int ACTION_UP = 1;
+public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEventType>> {
 
   @NotNull
   private ProfilerClient myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public SimpleEventDataSeries(@NotNull ProfilerClient client, int id) {
+  public SimpleEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<EventAction.Action, EventActionType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> seriesData = new ArrayList<>();
+  public List<SeriesData<EventAction<SimpleEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<SimpleEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.SystemDataResponse response = eventService.getSystemData(dataRequestBuilder.build());
     for (EventProfiler.SystemData data : response.getDataList()) {
-      EventAction.Action action = EventAction.Action.NONE;
       long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getStartTimestamp());
       long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
-      if (data.getType() == EventProfiler.SystemData.SystemEventType.ROTATION) {
-        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.ROTATION)));
-      }
-      else {
-        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.TOUCH)));
+      switch (data.getType()) {
+        case ROTATION:
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.ROTATION)));
+          break;
+        case UNSPECIFIED:
+          break;
+        case TOUCH:
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.TOUCH)));
+          break;
+        case KEY:
+          seriesData.add(
+            new SeriesData<>(actionStart, new KeyboardAction(actionStart, actionEnd, new KeyboardData(data.getEventData()))));
+          break;
+        case UNRECOGNIZED:
+          break;
       }
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

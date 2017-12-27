@@ -6,6 +6,67 @@
   <item name="android.appwidget.AppWidgetHost void startAppWidgetConfigureActivityForResult(android.app.Activity, int, int, int, android.os.Bundle) 4">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.appwidget.AppWidgetManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.APPWIDGET_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_DELETED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_DISABLED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_ENABLED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_HOST_RESTORED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_OPTIONS_CHANGED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_RESTORED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_UPDATE">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetManager boolean requestPinAppWidget(android.content.ComponentName, android.os.Bundle, android.app.PendingIntent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager boolean requestPinAppWidget(android.content.ComponentName, android.os.Bundle, android.app.PendingIntent) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager boolean requestPinAppWidget(android.content.ComponentName, android.os.Bundle, android.app.PendingIntent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForPackage(java.lang.String, android.os.UserHandle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForPackage(java.lang.String, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForPackage(java.lang.String, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForProfile(android.os.UserHandle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForProfile(android.os.UserHandle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>

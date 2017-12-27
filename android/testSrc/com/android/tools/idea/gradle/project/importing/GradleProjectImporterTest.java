@@ -16,8 +16,9 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.options.ConfigurationException;
@@ -27,36 +28,40 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
 
 import java.io.File;
 import java.io.IOException;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleProjectImporter}.
  */
 public class GradleProjectImporterTest extends IdeaTestCase {
+  @Mock private GradleSyncInvoker mySyncInvoker;
+  @Mock private NewProjectSetup myProjectSetup;
+  @Mock private ProjectFolder myProjectFolder;
+  @Mock private GradleSettings myGradleSettings;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
+
   private String myProjectName;
   private File myProjectFolderPath;
-  private GradleSyncInvoker mySyncInvoker;
-  private NewProjectSetup myProjectSetup;
-  private GradleSettings myGradleSettings;
-  private ProjectFolder myProjectFolder;
 
   private GradleProjectImporter myProjectImporter;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+
     myProjectName = "testProject";
 
     SdkSync sdkSync = mock(SdkSync.class);
-    mySyncInvoker = mock(GradleSyncInvoker.class);
-    myProjectSetup = mock(NewProjectSetup.class);
-    myProjectFolder = mock(ProjectFolder.class);
 
     Project project = getProject();
     String projectFolderPathText = project.getBasePath();
@@ -67,9 +72,10 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(projectFolderFactory.create(myProjectFolderPath)).thenReturn(myProjectFolder);
 
     // Replace GradleSettings service with a mock.
-    myGradleSettings = mock(GradleSettings.class);
     IdeComponents.replaceService(project, GradleSettings.class, myGradleSettings);
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
+
+    IdeComponents.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo);
 
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }
@@ -92,6 +98,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     verifyGradleVmOptionsCleanup(times(1));
 
     verify(myProjectSetup, times(1)).openProject(myProjectFolderPath.getPath());
+    verifyProjectWasMarkedAsNewOrImported();
   }
 
   public void testImportProjectWithDefaultSettings() throws Exception {
@@ -171,10 +178,16 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     // @formatter:off
     syncRequest.setGenerateSourcesOnSuccess(importSettings.isGenerateSourcesOnSuccess())
-               .setNewProject(true)
-               .setRunInBackground(false);
+               .setNewOrImportedProject()
+               .setRunInBackground(false)
+               .setTrigger(TRIGGER_PROJECT_LOADED);
     // @formatter:on
 
     verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), syncRequest, syncListener);
+    verifyProjectWasMarkedAsNewOrImported();
+  }
+
+  private void verifyProjectWasMarkedAsNewOrImported() {
+    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(true);
   }
 }

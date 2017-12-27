@@ -63,7 +63,7 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
         PsPath path = new PsLibraryDependencyNavigationPath(getContext(), libraryDependency);
 
         PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
-        String issueKey = resolvedSpec.group + GRADLE_PATH_SEPARATOR + resolvedSpec.name;
+        String issueKey = resolvedSpec.getGroup() + GRADLE_PATH_SEPARATOR + resolvedSpec.getName();
         Collection<SyncIssue> librarySyncIssues = issuesByData.get(issueKey);
         for (SyncIssue syncIssue : librarySyncIssues) {
           PsIssue issue = createIssueFrom(syncIssue, path, modulePath);

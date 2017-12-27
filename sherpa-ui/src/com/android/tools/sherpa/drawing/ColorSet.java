@@ -87,6 +87,7 @@ public class ColorSet {
 
     protected Color mWidgetActionBackground;
     protected Color mWidgetActionSelectedBackground;
+    protected Color mButtonBackground;
 
     protected Color mSelectionColor;
 
@@ -101,6 +102,9 @@ public class ColorSet {
 
     private Paint mBackgroundPaint;
     protected Color myUnconstrainedColor;
+
+    protected Color mDragReceiverFrames = new Color(135, 195, 77);
+    protected Color mDragReceiverBackground = new Color(154, 221, 140, 60);
 
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 
@@ -126,9 +130,15 @@ public class ColorSet {
 
     public Color getSelectedFrames() { return mSelectedFrames; }
 
+    public Color getDragReceiverFrames() { return mDragReceiverFrames; }
+
+    public Color getDragReceiverBackground() { return mDragReceiverBackground; }
+
     public Color getBackground() { return mBackground; }
 
     public Color getComponentBackground() { return mComponentBackground; }
+
+    public Color getButtonBackground() { return mButtonBackground; }
 
     public Color getComponentObligatoryBackground() { return mComponentObligatoryBackground; }
 
@@ -249,4 +259,5 @@ public class ColorSet {
     public Color getUnconstrainedColor() {
         return myUnconstrainedColor;
     }
+
 }

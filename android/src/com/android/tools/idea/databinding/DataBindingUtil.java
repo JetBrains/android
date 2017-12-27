@@ -17,8 +17,8 @@ package com.android.tools.idea.databinding;
 
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.config.DataBindingConfiguration;
 import com.android.tools.idea.lang.databinding.DbFile;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
@@ -28,6 +28,8 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,6 +49,8 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.FileContentUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.layout.Import;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +63,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.ATTR_ALIAS;
 
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
@@ -93,7 +99,7 @@ public class DataBindingUtil {
       if (tracker instanceof PsiModificationTrackerImpl) {
         ((PsiModificationTrackerImpl) tracker).incCounter();
       }
-      FileContentUtil.reparseFiles(project, Collections.EMPTY_LIST, true);
+      FileContentUtil.reparseFiles(project, Collections.emptyList(), true);
 
     }
     ourDataBindingEnabledModificationCount.incrementAndGet();
@@ -102,7 +108,7 @@ public class DataBindingUtil {
   public static boolean invalidateAllSources(DataBindingProjectComponent component) {
     boolean invalidated = false;
     for (AndroidFacet facet : component.getDataBindingEnabledFacets()) {
-      LocalResourceRepository moduleResources = facet.getModuleResources(true);
+      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
       Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
@@ -134,9 +140,7 @@ public class DataBindingUtil {
     boolean oldValue = ourCreateInMemoryClasses.getAndSet(newValue);
     if (newValue != oldValue) {
       LOG.debug("Data binding in memory completion value change. (old, new)", oldValue, newValue);
-      ApplicationManager.getApplication().invokeLater(() -> {
-        ApplicationManager.getApplication().runWriteAction(DataBindingUtil::invalidateJavaCodeOnOpenDataBindingProjects);
-      });
+      ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(DataBindingUtil::invalidateJavaCodeOnOpenDataBindingProjects));
     }
   }
 
@@ -152,14 +156,17 @@ public class DataBindingUtil {
    * @return The LightBRClass that belongs to the given AndroidFacet
    */
   static LightBrClass getOrCreateBrClassFor(AndroidFacet facet) {
-    LightBrClass existing = facet.getLightBrClass();
+    ModuleDataBinding dataBinding = ModuleDataBinding.getInstance(facet);
+    assert dataBinding != null;
+
+    LightBrClass existing = dataBinding.getLightBrClass();
     if (existing == null) {
       //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (facet) {
-        existing = facet.getLightBrClass();
+        existing = dataBinding.getLightBrClass();
         if (existing == null) {
           existing = new LightBrClass(PsiManager.getInstance(facet.getModule().getProject()), facet);
-          facet.setLightBrClass(existing);
+          dataBinding.setLightBrClass(existing);
         }
       }
     }
@@ -231,7 +238,7 @@ public class DataBindingUtil {
     if (layout == null) {
       return null;
     }
-    LocalResourceRepository moduleResources = facet.getModuleResources(false);
+    LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(facet);
     if (moduleResources == null) {
       return null;
     }
@@ -342,13 +349,18 @@ public class DataBindingUtil {
    *
    * @param facet the {@linkplain AndroidFacet} whose IdeaProject is just set.
    */
-  public static void onIdeaProjectSet(AndroidFacet facet) {
+  public static void refreshDataBindingStatus(@NotNull AndroidFacet facet) {
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      boolean wasEnabled = facet.isDataBindingEnabled();
+      boolean wasEnabled = ModuleDataBinding.isEnabled(facet);
       boolean enabled = androidModel.getDataBindingEnabled();
       if (enabled != wasEnabled) {
-        facet.setDataBindingEnabled(enabled);
+        if (enabled) {
+          ModuleDataBinding.enable(facet);
+        }
+        else {
+          ModuleDataBinding.disable(facet);
+        }
         ourDataBindingEnabledModificationCount.incrementAndGet();
       }
     }
@@ -410,6 +422,44 @@ public class DataBindingUtil {
   public static boolean isBindingExpression(@NotNull String string) {
     return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
+
+  @Nullable/*invalid type*/
+  public static String getAlias(@NotNull Import anImport) {
+    String aliasValue = null;
+    String typeValue = null;
+    GenericAttributeValue<String> alias = anImport.getAlias();
+    if (alias != null && alias.getXmlAttributeValue() != null) {
+      aliasValue = alias.getXmlAttributeValue().getValue();
+    }
+    GenericAttributeValue<PsiElement> type = anImport.getType();
+    if (type != null) {
+      XmlAttributeValue value = type.getXmlAttributeValue();
+      if (value != null) {
+        typeValue = value.getValue();
+      }
+    }
+    return getAlias(typeValue, aliasValue);
+  }
+
+  @Nullable
+  public static String getAlias(@NotNull PsiDataBindingResourceItem anImport) {
+    return getAlias(anImport.getTypeDeclaration(), anImport.getExtra(ATTR_ALIAS));
+  }
+
+  private static String getAlias(@Nullable String type, @Nullable String alias) {
+    if (alias != null || type == null) {
+      return alias;
+    }
+    int i = type.lastIndexOf('.');
+    int d = type.lastIndexOf('$');
+    i = i > d ? i : d;
+    if (i < 0) {
+      return type;
+    }
+    // Return null in case of an invalid type.
+    return type.length() > i + 1 ? type.substring(i + 1) : null;
+  }
+
   /**
    * Tracker that changes when a facet's data binding enabled value changes
    */

@@ -1,0 +1,7 @@
+Alley
+Avenue
+Road
+Street
+Way
+Drive
+Parkway

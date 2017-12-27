@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_METHOD_NAME;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -36,13 +40,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
-    RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
-    JCenterDefaultRepositoryModel repository = (JCenterDefaultRepositoryModel)repositoryModel;
-    assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "BintrayJCenter2", repository.name().value());
-    assertNull("url", repository.url().getPsiElement());
-    assertEquals("url", "https://jcenter.bintray.com/", repository.url().value());
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
   public void testParseJCenterCustomRepository() throws IOException {
@@ -265,13 +263,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(2);
-    RepositoryModel jcenter = repositories.get(0);
-    assertTrue(jcenter instanceof JCenterDefaultRepositoryModel);
-    JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
-    assertNull("name", jCenterRepository.name().getPsiElement());
-    assertEquals("name", "BintrayJCenter2", jCenterRepository.name().value());
-    assertNull("url", jCenterRepository.url().getPsiElement());
-    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().value());
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
 
     RepositoryModel mavenCentral = repositories.get(1);
     assertTrue(mavenCentral instanceof MavenCentralRepositoryModel);
@@ -279,4 +271,182 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("name", "MavenRepo", mavenCentralRepository.name());
     assertEquals("url", "https://repo1.maven.org/maven2/", mavenCentralRepository.url());
   }
+
+  public void testParseGoogleDefaultRepository() throws IOException {
+    String text = "repositories {\n" +
+                  "  google()\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    verifyGoogleDefaultRepositoryModel(repositories.get(0));
+  }
+
+  public void testAddGoogleRepositoryByMethodCall() throws IOException {
+    String text = "repositories {\n" +
+                  "  jcenter()\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(1);
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
+    verifyAddGoogleRepositoryByMethodCall();
+    repositories = buildModel.repositories().repositories();
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
+  }
+
+  public void testAddGoogleRepositoryByMethodCallEmpty() throws IOException {
+    String text = "repositories {\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(0);
+    verifyAddGoogleRepositoryByMethodCall();
+  }
+
+  public void testAddGoogleRepositoryToEmptyBuildscript() throws IOException {
+    String text = "buildscript {\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(0);
+
+    repositoriesModel.addRepositoryByMethodName(GOOGLE_METHOD_NAME);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    assertFalse(buildModel.isModified());
+
+    repositoriesModel = buildModel.buildscript().repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    verifyGoogleDefaultRepositoryModel(repositories.get(0));
+  }
+
+  public void testAddGoogleRepositoryByMethodCallPresent() throws IOException {
+    String text = "repositories {\n" +
+                  "  google()\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    verifyGoogleDefaultRepositoryModel(repositories.get(0));
+
+    repositoriesModel.addRepositoryByMethodName(GOOGLE_METHOD_NAME);
+    assertFalse(buildModel.isModified());
+  }
+
+  public void testAddGoogleRepositoryByUrl() throws IOException {
+    String text = "repositories {\n" +
+                  "  jcenter()\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(1);
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
+    verifyAddGoogleRepositoryByUrl();
+    repositories = buildModel.repositories().repositories();
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
+  }
+
+  public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
+    String text = "repositories {\n" +
+                  "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(0);
+    verifyAddGoogleRepositoryByUrl();
+  }
+
+  public void testAddGoogleRepositoryByUrlPresent() throws IOException {
+    String text = "repositories {\n" +
+                  "  maven {\n" +
+                  "    url \"" + GOOGLE_DEFAULT_REPO_URL + "\"\n" +
+                  "    name \"" + GOOGLE_DEFAULT_REPO_NAME + "\"\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    verifyGoogleMavenRepositoryModel(repositories.get(0));
+
+    repositoriesModel.addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
+    assertFalse(buildModel.isModified());
+  }
+
+  private static void verifyGoogleDefaultRepositoryModel(RepositoryModel google) {
+    assertTrue(google instanceof GoogleDefaultRepositoryModel);
+    GoogleDefaultRepositoryModel googleRepository = (GoogleDefaultRepositoryModel)google;
+    assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, googleRepository.name());
+    assertEquals("url", GOOGLE_DEFAULT_REPO_URL, googleRepository.url());
+  }
+
+  private static void verifyJCenterDefaultRepositoryModel(RepositoryModel jcenter) {
+    assertTrue(jcenter instanceof JCenterDefaultRepositoryModel);
+    JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
+    assertNull("name", jCenterRepository.name().getPsiElement());
+    assertEquals("name", "BintrayJCenter2", jCenterRepository.name().value());
+    assertNull("url", jCenterRepository.url().getPsiElement());
+    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().value());
+  }
+
+  private void verifyAddGoogleRepositoryByMethodCall() {
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    int prevSize = repositories.size();
+
+    repositoriesModel.addRepositoryByMethodName(GOOGLE_METHOD_NAME);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    assertFalse(buildModel.isModified());
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(prevSize + 1);
+    verifyGoogleDefaultRepositoryModel(repositories.get(prevSize));
+  }
+
+  private void verifyAddGoogleRepositoryByUrl() {
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    int prevSize = repositories.size();
+
+    repositoriesModel.addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    assertFalse(buildModel.isModified());
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(prevSize + 1);
+    verifyGoogleMavenRepositoryModel(repositories.get(prevSize));
+  }
+
+   private static void verifyGoogleMavenRepositoryModel(RepositoryModel repository) {
+     assertTrue(repository instanceof MavenRepositoryModel);
+     MavenRepositoryModel mavenRepository = (MavenRepositoryModel)repository;
+     assertNotNull("url", mavenRepository.url().getPsiElement());
+     assertEquals("url", GOOGLE_DEFAULT_REPO_URL, mavenRepository.url().value());
+     assertNotNull("name", mavenRepository.name().getPsiElement());
+     assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().value());
+   }
 }

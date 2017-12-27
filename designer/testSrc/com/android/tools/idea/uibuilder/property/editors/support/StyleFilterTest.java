@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
@@ -48,10 +49,23 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     generateSources();
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    Configuration configuration = myAndroidFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myAndroidFacet).getConfiguration(file);
     myResolver = configuration.getResourceResolver();
     assertNotNull(myResolver);
     myFilter = new StyleFilter(getProject(), myResolver);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myResolver = null;
+      myFilter = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testTextAppearances() {

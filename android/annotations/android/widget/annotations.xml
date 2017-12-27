@@ -39,6 +39,11 @@
   <item name="android.widget.AbsSeekBar void setTickMarkTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.AbsSpinner int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
   <item name="android.widget.ActionMenuView android.graphics.drawable.Drawable getOverflowIcon()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -48,11 +53,19 @@
   <item name="android.widget.ActionMenuView void setPopupTheme(int) 0">
     <annotation name="android.support.annotation.StyleRes" />
   </item>
+  <item name="android.widget.Adapter java.lang.CharSequence[] getAutofillOptions()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.AdapterView android.widget.AdapterView.OnItemClickListener getOnItemClickListener()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.AdapterView android.widget.AdapterView.OnItemSelectedListener getOnItemSelectedListener()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.AdapterView void setFocusable(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.NOT_FOCUSABLE, android.view.View.FOCUSABLE, android.view.View.FOCUSABLE_AUTO}" />
+    </annotation>
   </item>
   <item name="android.widget.AdapterView void setOnItemClickListener(android.widget.AdapterView.OnItemClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -294,6 +307,11 @@
   <item name="android.widget.CompoundButton boolean verifyDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.CompoundButton int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
   <item name="android.widget.CompoundButton void setButtonDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -306,8 +324,16 @@
   <item name="android.widget.CompoundButton void setButtonTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.CompoundButton void setOnCheckedChangeListener(android.widget.CompoundButton.OnCheckedChangeListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CursorAdapter android.database.Cursor runQueryOnBackgroundThread(java.lang.CharSequence)">
     <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.widget.DatePicker int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
   </item>
   <item name="android.widget.EdgeEffect int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
@@ -558,9 +584,6 @@
   <item name="android.widget.ListView android.graphics.drawable.Drawable getDivider()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.widget.ListView android.view.View findViewTraversal(int) 0">
-    <annotation name="android.support.annotation.IdRes" />
-  </item>
   <item name="android.widget.ListView void setDivider(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -593,11 +616,23 @@
   <item name="android.widget.PopupWindow int getMaxAvailableHeight(android.view.View, int, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.PopupWindow int getSoftInputMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.widget.PopupWindow void setEnterTransition(android.transition.Transition) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.PopupWindow void setExitTransition(android.transition.Transition) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.PopupWindow void setSoftInputMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.widget.ProgressBar android.content.res.ColorStateList getIndeterminateTintList()">
     <annotation name="android.support.annotation.Nullable" />
@@ -656,6 +691,11 @@
   <item name="android.widget.ProgressBar void setSecondaryProgressTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.RadioGroup int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
   <item name="android.widget.RadioGroup int getCheckedRadioButtonId()">
     <annotation name="android.support.annotation.IdRes" />
   </item>
@@ -673,6 +713,12 @@
   </item>
   <item name="android.widget.SearchView void setQueryHint(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.SimpleAdapter SimpleAdapter(android.content.Context, java.util.List&lt;? extends java.util.Map&lt;java.lang.String,?&gt;&gt;, int, java.lang.String[], int[]) 2">
+    <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.widget.SimpleAdapter SimpleAdapter(android.content.Context, java.util.List&lt;? extends java.util.Map&lt;java.lang.String,?&gt;&gt;, int, java.lang.String[], int[]) 4">
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.widget.Spinner void setPopupBackgroundResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -779,8 +825,27 @@
       <val name="min" val="1" />
     </annotation>
   </item>
+  <item name="android.widget.TextView android.view.autofill.AutofillValue getAutofillValue()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TextView android.view.textclassifier.TextClassifier getTextClassifier()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView boolean setFontVariationSettings(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.TextView boolean verifyDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView int getAutoSizeTextType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.widget.TextView.AUTO_SIZE_TEXT_TYPE_NONE, android.widget.TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TextView int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
   </item>
   <item name="android.widget.TextView int getBreakStrategy()">
     <annotation name="android.support.annotation.IntDef">
@@ -801,10 +866,18 @@
       <val name="value" val="{android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, android.text.Layout.HYPHENATION_FREQUENCY_FULL, android.text.Layout.HYPHENATION_FREQUENCY_NONE}" />
     </annotation>
   </item>
+  <item name="android.widget.TextView int getJustificationMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.JUSTIFICATION_MODE_NONE, android.text.Layout.JUSTIFICATION_MODE_INTER_WORD}" />
+    </annotation>
+  </item>
   <item name="android.widget.TextView int getShadowColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.widget.TextView java.lang.String getFontFeatureSettings()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TextView java.lang.String getFontVariationSettings()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TextView java.util.Locale getTextLocale()">
@@ -812,6 +885,14 @@
   </item>
   <item name="android.widget.TextView void invalidateDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView void setAutoSizeTextTypeUniformWithPresetSizes(int[], int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView void setAutoSizeTextTypeWithDefaults(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.widget.TextView.AUTO_SIZE_TEXT_TYPE_NONE, android.widget.TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM}" />
+    </annotation>
   </item>
   <item name="android.widget.TextView void setBreakStrategy(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -919,6 +1000,16 @@
   <item name="android.widget.TextView void setInputExtras(int) 0">
     <annotation name="android.support.annotation.XmlRes" />
   </item>
+  <item name="android.widget.TextView void setJustificationMode(int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.JUSTIFICATION_MODE_NONE, android.text.Layout.JUSTIFICATION_MODE_INTER_WORD}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TextView void setJustificationMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.JUSTIFICATION_MODE_NONE, android.text.Layout.JUSTIFICATION_MODE_INTER_WORD}" />
+    </annotation>
+  </item>
   <item name="android.widget.TextView void setLinkTextColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -946,6 +1037,9 @@
   <item name="android.widget.TextView void setTextAppearance(int) 0">
     <annotation name="android.support.annotation.StyleRes" />
   </item>
+  <item name="android.widget.TextView void setTextClassifier(android.view.textclassifier.TextClassifier) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.TextView void setTextColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -963,6 +1057,11 @@
   </item>
   <item name="android.widget.ThemedSpinnerAdapter void setDropDownViewTheme(android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TimePicker int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
   </item>
   <item name="android.widget.TimePicker java.lang.Integer getCurrentHour()">
     <annotation name="android.support.annotation.NonNull" />
@@ -1077,6 +1176,9 @@
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.widget.Toolbar.LayoutParams LayoutParams(android.content.Context, android.util.AttributeSet) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.VideoView void setAudioAttributes(android.media.AudioAttributes) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.ViewAnimator void setInAnimation(android.content.Context, int) 1">

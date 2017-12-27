@@ -111,7 +111,9 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       }
 
       FileType type = getKnownFileTypeOrAssociate(file, project);
-      if (type == null) return;
+      if (type == null) {
+        return;
+      }
 
       if (project != null) {
         openFile(file, project);

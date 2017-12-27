@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,8 +27,6 @@ public class OpenAndroidSdkManagerHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction sdkManagerAction = actionManager.getAction("Android.RunAndroidSdkManager");
-    sdkManagerAction.actionPerformed(null);
+    SdkQuickfixUtils.showAndroidSdkManager();
   }
 }

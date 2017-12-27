@@ -18,6 +18,8 @@ package com.android.tools.idea.run.activity;
 import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.instantapp.InstantApps.isPostO;
+
 public class InstantAppStartActivityFlagsProvider implements StartActivityFlagsProvider {
 
   public InstantAppStartActivityFlagsProvider() {
@@ -27,6 +29,6 @@ public class InstantAppStartActivityFlagsProvider implements StartActivityFlagsP
   @NotNull
   public String getFlags(@NotNull IDevice device) {
     // currently no way to add extra flags to instant apps or to get instant apps to wait for debugger.
-    return "-n \"com.google.android.instantapps.supervisor/.UrlHandler\"";
+    return isPostO(device) ? "" : "-n \"com.google.android.instantapps.supervisor/.UrlHandler\"";
   }
 }

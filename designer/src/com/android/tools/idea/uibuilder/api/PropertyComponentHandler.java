@@ -16,14 +16,17 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_SUPPORT_DESIGN_PKG;
+import static com.android.SdkConstants.ATTR_ID;
 
 /**
  * Methods for handling of a component's properties.
@@ -39,6 +42,25 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return Collections.emptyList();
+  }
+
+  /**
+   * @return the properties that should be shown in the inspector for a child of this component.
+   */
+  @NotNull
+  public List<String> getLayoutInspectorProperties() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * Return the values that should be presented in the inspector and property table for a given property name.
+   * If specified this would override the values determined by the system.
+   * The values must be specified in pairs: xmlValue -> displayValue in the order they should appear.
+   * Warning: Use a map that preserves the order for the value map.
+   */
+  @NotNull
+  public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
+    return Collections.emptyMap();
   }
 
   /**

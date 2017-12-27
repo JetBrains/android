@@ -42,6 +42,15 @@ public class ThemeSelectionDialogFixture extends IdeaDialogFixture<ThemeSelectio
     return new JListFixture(robot(), robot().finder().findByType(this.target(), JBList.class));
   }
 
+  @NotNull
+  public ThemeSelectionDialogFixture selectsTheme(@NotNull String category, @NotNull String theme) {
+    getCategoriesTree().clickPath(category);
+    robot().waitForIdle();
+    getThemeList().clickItem(theme);
+    robot().waitForIdle();
+    return this;
+  }
+
   public void clickOk() {
     GuiTests.findAndClickOkButton(this);
   }

@@ -101,7 +101,7 @@ public class ImportUIUtil {
         StringBuilder builder = new StringBuilder(basePath.length());
         String prefix = Strings.commonPrefix(path, basePath);
         if (!prefix.endsWith("/")) {
-          prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
+          prefix = prefix.substring(0, prefix.lastIndexOf('/') + 1);
         }
         if (!path.startsWith(basePath)) {
           Iterable<String> segments = Splitter.on("/").split(basePath.substring(prefix.length()));

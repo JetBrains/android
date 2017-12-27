@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -40,7 +40,7 @@ public class GenericErrorHandler extends SyncErrorHandler {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, text);
       if (!hyperlinks.isEmpty()) {
         updateUsageTracker();
-        SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+        GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
         return true;
       }
     }
@@ -50,9 +50,9 @@ public class GenericErrorHandler extends SyncErrorHandler {
   @NotNull
   private List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
-    String lastLine = message.get(message.size() - 1);
-    if (lastLine != null) {
+    List<String> message = getMessageLines(text);
+    if (!message.isEmpty()) {
+      String lastLine = message.get(message.size() - 1);
       Pair<String, Integer> errorLocation = getErrorLocation(lastLine);
       if (errorLocation != null) {
         String filePath = errorLocation.getFirst();

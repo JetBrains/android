@@ -24,12 +24,16 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.updater.AndroidSdkUpdaterPlugin;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.credentialStore.CredentialAttributes;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -43,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -223,7 +229,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     if (input.isOK()) {
       // Actual source names and URLs are immutable; we have to recreate here.
       removeRow(index);
-      createSource(input.getUrl(), input.getUiName());
+      createSource(input.getUrl(), input.getUiName(), input.getCredentials());
     }
   }
 
@@ -234,7 +240,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   public void addRow() {
     EditSourceDialog input = showEditDialog(null);
     if (input.isOK()) {
-      createSource(input.getUrl(), input.getUiName());
+      createSource(input.getUrl(), input.getUiName(), input.getCredentials());
     }
   }
 
@@ -256,7 +262,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   /**
    * Creates a new source with the given URL and display name.
    */
-  private void createSource(@NotNull String url, @Nullable String uiName) {
+  private void createSource(@NotNull String url, @Nullable String uiName, @Nullable Credentials credentials) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
     // we know it won't be null since otherwise we shouldn't have been editable
     assert userSourceProvider != null;
@@ -264,6 +270,15 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
       .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule(), RepoManager.getCommonModule()), userSourceProvider);
     userSourceProvider.addSource(newSource);
+    PasswordSafe.getInstance().set(new CredentialAttributes(AndroidSdkUpdaterPlugin.getCredentialServiceName(url)), credentials);
+    try {
+      PasswordSafe.getInstance().set(
+        new CredentialAttributes(AndroidSdkUpdaterPlugin.getCredentialServiceName(new URL(url).getHost())), credentials);
+    }
+    catch (MalformedURLException e) {
+      // shouldn't happen: validation is done in the dialog
+      throw new AssertionError(e);
+    }
     refreshUi();
   }
 

@@ -74,7 +74,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
                                   ? proguardCfgOptionElement.getAttributeValue(AndroidConversionUtil.OPTION_VALUE_ATTRIBUTE)
                                   : null;
 
-      if (proguardCfgRelPath == null || proguardCfgRelPath.length() == 0) {
+      if (proguardCfgRelPath == null || proguardCfgRelPath.isEmpty()) {
         proguardCfgRelPath = "/" + AndroidCommonUtils.PROGUARD_CFG_FILE_NAME;
       }
       if (proguardCfgOptionElement != null) {
@@ -151,11 +151,11 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (Boolean.parseBoolean(includeSystemCfgStr)) {
         proguardCfgUrls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
       }
-      if (proguardCfgFileUrl != null && proguardCfgFileUrl.length() > 0) {
+      if (proguardCfgFileUrl != null && !proguardCfgFileUrl.isEmpty()) {
         proguardCfgUrls.add(proguardCfgFileUrl);
       }
 
-      if (proguardCfgUrls.size() == 0) {
+      if (proguardCfgUrls.isEmpty()) {
         return;
       }
       final Element listElement = new Element("list");

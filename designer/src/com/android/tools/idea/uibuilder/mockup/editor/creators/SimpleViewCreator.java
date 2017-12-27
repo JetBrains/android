@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +50,7 @@ public class SimpleViewCreator extends WidgetCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
@@ -59,8 +60,8 @@ public class SimpleViewCreator extends WidgetCreator {
 
     Rectangle cropping = getMockup().getComputedCropping();
     final NlComponent component = getMockup().getComponent();
-    final float xScale = component.w / (float)cropping.width;
-    final float yScale = component.h / (float)cropping.height;
+    final float xScale = NlComponentHelperKt.getW(component) / (float)cropping.width;
+    final float yScale = NlComponentHelperKt.getH(component) / (float)cropping.height;
     myAndroidBounds.setBounds(Math.round(xScale * mySelectionBounds.x),
                               Math.round(yScale * mySelectionBounds.y),
                               Math.round(xScale * mySelectionBounds.width),

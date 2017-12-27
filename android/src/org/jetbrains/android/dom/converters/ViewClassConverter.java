@@ -23,6 +23,6 @@ import org.jetbrains.android.util.AndroidUtils;
  */
 public class ViewClassConverter extends PackageClassConverter {
   public ViewClassConverter() {
-    super(AndroidUtils.VIEW_CLASS_NAME);
+    super(false, true, AndroidUtils.VIEW_CLASS_NAME);
   }
 }

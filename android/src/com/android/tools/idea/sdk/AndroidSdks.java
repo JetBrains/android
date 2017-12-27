@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
@@ -29,13 +30,14 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -49,12 +51,13 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -96,7 +99,7 @@ public class AndroidSdks {
         if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
           String homePath = moduleSdk.getHomePath();
           if (homePath != null) {
-            File sdkHomePath = new File(toSystemDependentName(homePath));
+            File sdkHomePath = toSystemDependentPath(homePath);
             if (isMissingAddonsFolder(sdkHomePath)) {
               return sdkHomePath;
             }
@@ -151,6 +154,32 @@ public class AndroidSdks {
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
     return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+  }
+
+  /**
+   * Determines if the specified {@link Sdk} has valid docs for the Android Platform specified by the given {@link IAndroidTarget}. If
+   * docs are installed for that platform locally then we check that there is at least one reference to the local documentation in the
+   * sdk roots. If not then we check that there is at least one link to the web docs in the sdk roots.
+   */
+  public boolean hasValidDocs(@NotNull Sdk sdk, @NotNull IAndroidTarget target) {
+    File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
+
+    if (javaDocPath == null) {
+      File sdkDir = toSystemDependentPath(sdk.getHomePath());
+      if (sdkDir != null) {
+        javaDocPath = findJavadocFolder(sdkDir);
+      }
+    }
+
+    String javaDocUrl = javaDocPath == null ? DEFAULT_EXTERNAL_DOCUMENTATION_URL : pathToIdeaUrl(javaDocPath);
+    for (String rootUrl : sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance())) {
+      // We can't tell if Urls that don't match are valid or not, all we can check is whether there is at least one valid link to
+      // the documentation we know about.
+      if (javaDocUrl.equals(rootUrl)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -247,10 +276,9 @@ public class AndroidSdks {
 
     Sdk sdk = table.createSdk(tempName, AndroidSdkType.getInstance());
 
-    SdkModificator sdkModificator = sdk.getSdkModificator();
+    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target, jdk);
     sdkModificator.setHomePath(sdkPath.getPath());
-    setUpSdk(sdk, sdkModificator, target, sdkName, Arrays.asList(table.getAllJdks()), jdk, addRoots);
-    sdkModificator.commitChanges();
+    setUpSdkAndCommit(sdkModificator, sdkName, Arrays.asList(table.getAllJdks()), addRoots);
 
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
     return sdk;
@@ -260,43 +288,50 @@ public class AndroidSdks {
                        @NotNull IAndroidTarget target,
                        @NotNull String sdkName,
                        @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk,
-                       boolean addRoots) {
-    SdkModificator sdkModificator = androidSdk.getSdkModificator();
-    setUpSdk(androidSdk, sdkModificator, target, sdkName, allSdks, jdk, addRoots);
-    sdkModificator.commitChanges();
+                       @Nullable Sdk jdk) {
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, true /* add roots */);
   }
 
-  public void setUpSdk(@NotNull Sdk androidSdk,
-                       @NotNull SdkModificator androidSdkModificator,
-                       @NotNull IAndroidTarget target,
-                       @NotNull String sdkName,
-                       @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk,
-                       boolean addRoots) {
+  @NotNull
+  private static SdkModificator getAndInitialiseSdkModificator(@NotNull Sdk androidSdk,
+                                                               @NotNull IAndroidTarget target,
+                                                               @Nullable Sdk jdk) {
+    SdkModificator sdkModificator = androidSdk.getSdkModificator();
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
     data.setBuildTarget(target);
+    sdkModificator.setSdkAdditionalData(data);
+    if (jdk != null) {
+      sdkModificator.setVersionString(jdk.getVersionString());
+    }
+    return sdkModificator;
+  }
+
+  private void setUpSdkAndCommit(@NotNull SdkModificator sdkModificator,
+                                 @NotNull String sdkName,
+                                 @NotNull Collection<Sdk> allSdks,
+                                 boolean addRoots) {
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdkModificator.getSdkAdditionalData();
+    assert data != null;
+    AndroidSdkData androidSdkData = getSdkData(sdkModificator.getHomePath());
+    assert androidSdkData != null;
+    IAndroidTarget target = data.getBuildTarget(androidSdkData);
+    assert target != null;
 
     String name = createUniqueSdkName(sdkName, allSdks);
-    androidSdkModificator.setName(name);
-    if (jdk != null) {
-      androidSdkModificator.setVersionString(jdk.getVersionString());
-    }
-    androidSdkModificator.setSdkAdditionalData(data);
+    sdkModificator.setName(name);
 
     if (addRoots) {
-      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, androidSdk, true);
-      androidSdkModificator.removeAllRoots();
+      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
+      sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : newRoots) {
-        androidSdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+        sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }
-      // TODO move this method to Jdks.
-      attachJdkAnnotations(androidSdkModificator);
-    }
+      findAndSetPlatformSources(target, sdkModificator);
 
-    // Add sources at the end, otherwise if 'addRoots' is true, removing all existing roots will delete sources as well.
-    // https://code.google.com/p/android/issues/detail?id=233221
-    findAndSetPlatformSources(target, androidSdkModificator);
+      // TODO move this method to Jdks.
+      attachJdkAnnotations(sdkModificator);
+    }
+    sdkModificator.commitChanges();
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -331,19 +366,8 @@ public class AndroidSdks {
 
   @NotNull
   public List<OrderRoot> getLibraryRootsForTarget(@NotNull IAndroidTarget target,
-                                                  @NotNull Sdk androidSdk,
+                                                  @Nullable File sdkPath,
                                                   boolean addPlatformAndAddOnJars) {
-    return getLibraryRootsForTarget(target, getHomePath(androidSdk), addPlatformAndAddOnJars);
-  }
-
-  @Nullable
-  private static File getHomePath(@NotNull Sdk androidSdk) {
-    String sdkPathValue = androidSdk.getHomePath();
-    return isNotEmpty(sdkPathValue) ? new File(sdkPathValue) : null;
-  }
-
-  @NotNull
-  public List<OrderRoot> getLibraryRootsForTarget(@NotNull IAndroidTarget target, @Nullable File sdkPath, boolean addPlatformAndAddOnJars) {
     List<OrderRoot> result = new ArrayList<>();
 
     if (addPlatformAndAddOnJars) {
@@ -435,12 +459,14 @@ public class AndroidSdks {
     return result;
   }
 
+  @NotNull
+  private static String getPlatformPath(@NotNull IAndroidTarget target) {
+    return target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
+  }
+
   @Nullable
   private static VirtualFile getPlatformFolder(@NotNull IAndroidTarget target) {
-    String platformPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
-    if (platformPath == null) {
-      return null;
-    }
+    String platformPath = getPlatformPath(target);
     return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
   }
 
@@ -474,6 +500,12 @@ public class AndroidSdks {
   private static VirtualFile findJavadocFolder(@NotNull VirtualFile folder) {
     VirtualFile docsFolder = folder.findChild(FD_DOCS);
     return docsFolder != null ? docsFolder.findChild(FD_DOCS_REFERENCE) : null;
+  }
+
+  @Nullable
+  private static File findJavadocFolder(@NotNull File folder) {
+    File docsFolder = new File(folder, join(FD_DOCS, FD_DOCS_REFERENCE));
+    return docsFolder.isDirectory() ? docsFolder : null;
   }
 
   @Nullable
@@ -513,6 +545,34 @@ public class AndroidSdks {
   }
 
   /**
+   * Refreshes the docs for a given SDK if required
+   *
+   * After installing or uninstalling docs we need to check if the doc roots need updating to reflect the new status of the installed
+   * documentation
+   */
+  public void refreshDocsIn(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkData sdkData = getSdkData(sdk);
+    if (additionalData != null && sdkData != null) {
+      IAndroidTarget target = additionalData.getBuildTarget(sdkData);
+      if (target != null && !hasValidDocs(sdk, target)) {
+        OrderRootType javaDocType = JavadocOrderRootType.getInstance();
+        SdkModificator sdkModificator = sdk.getSdkModificator();
+
+        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
+        sdkModificator.removeRoots(javaDocType);
+        for (OrderRoot orderRoot : newRoots) {
+          if (orderRoot.getType() == javaDocType) {
+            sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+          }
+        }
+
+        sdkModificator.commitChanges();
+      }
+    }
+  }
+
+  /**
    * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
    *
    * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
@@ -534,5 +594,31 @@ public class AndroidSdks {
       sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
+  }
+
+  public boolean isInAndroidSdk(@NonNull PsiElement element) {
+    VirtualFile file = getVirtualFile(element);
+    if (file == null) {
+      return false;
+    }
+
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
+    for (OrderEntry entry : entries) {
+      if (entry instanceof JdkOrderEntry) {
+        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+
+        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    return file != null ? file.getVirtualFile() : null;
   }
 }

@@ -19,14 +19,21 @@ import com.android.repository.api.ConstantSourceProvider;
 import com.android.repository.api.RepositorySourceProvider;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.credentialStore.CredentialAttributes;
+import com.intellij.credentialStore.Credentials;
+import com.intellij.credentialStore.OneTimeString;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
+import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.util.proxy.CommonProxy;
+import com.intellij.util.proxy.NonStaticAuthenticator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +49,7 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
     if (isAndroidSdkManagerEnabled()) {
+      setUpAuthenticator();
       ExternalComponentManager.getInstance().registerComponentSource(new SdkComponentSource());
 
       URL offlineRepo = getOfflineRepoDir();
@@ -68,9 +76,47 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
     return null;
   }
 
+  private void setUpAuthenticator() {
+    CommonProxy.getInstance().setCustomAuth(getClass().getName(), new AndroidAuthenticator());
+  }
+
+  @Override
+  public void disposeComponent() {
+    // nothing
+  }
+
   @NotNull
   @Override
   public String getComponentName() {
     return "Android Sdk Updater";
+  }
+
+  public static String getCredentialServiceName(@NotNull String host) {
+    return "AndroidSdk:" + host;
+  }
+
+  private static class AndroidAuthenticator extends NonStaticAuthenticator {
+    @Override
+    @Nullable
+    public PasswordAuthentication getPasswordAuthentication() {
+      String host = getRequestingURL().toString();
+      PasswordAuthentication result = getAuthentication(host);
+      if (result != null) {
+        return result;
+      }
+      return getAuthentication(CommonProxy.getHostNameReliably(getRequestingHost(), getRequestingSite(), getRequestingURL()));
+    }
+  }
+
+  @Nullable
+  public static PasswordAuthentication getAuthentication(@NotNull String host) {
+    Credentials credentials = PasswordSafe.getInstance().get(new CredentialAttributes(getCredentialServiceName(host)));
+    if (credentials != null) {
+      OneTimeString password = credentials.getPassword();
+      if (password != null) {
+        return new PasswordAuthentication(credentials.getUserName(), password.toCharArray());
+      }
+    }
+    return null;
   }
 }

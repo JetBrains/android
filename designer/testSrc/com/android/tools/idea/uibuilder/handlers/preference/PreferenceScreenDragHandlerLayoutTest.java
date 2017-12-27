@@ -15,29 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import android.widget.ListView;
 import com.android.SdkConstants.PreferenceTags;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.util.XmlTagUtil;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.FQCN_LIST_VIEW;
-
-public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase {
+public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScreenTestCase {
   public void testCommit() {
-    NlModel model = buildModel();
+    SyncNlModel model = buildModel();
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
+    Scene scene = builder.build();
+    scene.buildDisplayList(new DisplayList(), 0);
+
     NlComponent screen = model.getComponents().get(0);
     List<NlComponent> actualCategoryChildren = screen.getChildren().get(1).getChildren();
-    NlComponent preference = new NlComponent(model, NlModel.createTag(myModule.getProject(), "<CheckBoxPreference />"));
+    NlComponent preference = model.createComponent(XmlTagUtil.createTag(myModule.getProject(), "<CheckBoxPreference />"));
 
     List<NlComponent> expectedCategoryChildren = Arrays.asList(
       actualCategoryChildren.get(0),
@@ -45,17 +53,18 @@ public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase 
       actualCategoryChildren.get(1),
       actualCategoryChildren.get(2));
 
-    DragHandler handler = new PreferenceScreenDragHandler(mockEditor(model), new ViewGroupHandler(), screen,
-                                                          Collections.singletonList(preference), DragType.MOVE);
+    DragHandler handler =
+      new PreferenceScreenDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent(screen),
+                                      Collections.singletonList(preference), DragType.MOVE);
 
-    handler.update(360, 502, 0);
+    handler.update(180, 251, 0);
     handler.commit(360, 502, 0, InsertType.CREATE);
 
     assertEquals(expectedCategoryChildren, actualCategoryChildren);
   }
 
   @NotNull
-  private NlModel buildModel() {
+  private SyncNlModel buildModel() {
     ComponentDescriptor screen = component(PreferenceTags.PREFERENCE_SCREEN)
       .withBounds(0, 162, 768, 755)
       .children(
@@ -71,27 +80,5 @@ public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase 
 
     return model("pref_general.xml", screen)
       .build();
-  }
-
-  @NotNull
-  @SuppressWarnings("SameParameterValue")
-  private ComponentDescriptor checkBoxPreference(int x, int y, int width, int height) {
-    return component(PreferenceTags.CHECK_BOX_PREFERENCE)
-      .withBounds(x, y, width, height);
-  }
-
-  @NotNull
-  private static ViewEditor mockEditor(@NotNull NlModel model) {
-    ListView listView = Mockito.mock(ListView.class);
-    Mockito.when(listView.getDividerHeight()).thenReturn(2);
-
-    ViewInfo view = new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, listView, null);
-
-    ViewEditor editor = Mockito.mock(ViewEditor.class);
-
-    Mockito.when(editor.getModel()).thenReturn(model);
-    Mockito.when(editor.getRootViews()).thenReturn(Collections.singletonList(view));
-
-    return editor;
   }
 }

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.view.textclassifier.TextClassification android.content.Intent getIntent()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification android.graphics.drawable.Drawable getIcon()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification android.view.View.OnClickListener getOnClickListener()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification float getConfidenceScore(java.lang.String)">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification float getConfidenceScore(java.lang.String) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification int getEntityCount()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification java.lang.CharSequence getLabel()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification java.lang.String getEntity(int)">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification java.lang.String getText()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setEntityType(java.lang.String, float) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setEntityType(java.lang.String, float) 1">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setIcon(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setIntent(android.content.Intent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setLabel(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setOnClickListener(android.view.View.OnClickListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassification.Builder android.view.textclassifier.TextClassification.Builder setText(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassificationManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.TEXT_CLASSIFICATION_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassificationManager void setTextClassifier(android.view.textclassifier.TextClassifier) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextClassification classifyText(java.lang.CharSequence, int, int, android.os.LocaleList)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextClassification classifyText(java.lang.CharSequence, int, int, android.os.LocaleList) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextClassification classifyText(java.lang.CharSequence, int, int, android.os.LocaleList) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextClassification classifyText(java.lang.CharSequence, int, int, android.os.LocaleList) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextClassification classifyText(java.lang.CharSequence, int, int, android.os.LocaleList) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextSelection suggestSelection(java.lang.CharSequence, int, int, android.os.LocaleList)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextSelection suggestSelection(java.lang.CharSequence, int, int, android.os.LocaleList) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextSelection suggestSelection(java.lang.CharSequence, int, int, android.os.LocaleList) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextSelection suggestSelection(java.lang.CharSequence, int, int, android.os.LocaleList) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextClassifier android.view.textclassifier.TextSelection suggestSelection(java.lang.CharSequence, int, int, android.os.LocaleList) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.textclassifier.TextSelection float getConfidenceScore(java.lang.String)">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection float getConfidenceScore(java.lang.String) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection int getEntityCount()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection java.lang.String getEntity(int)">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection.Builder Builder(int, int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection.Builder Builder(int, int) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection.Builder android.view.textclassifier.TextSelection.Builder setEntityType(java.lang.String, float) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.view.textclassifier.TextClassifier.TYPE_OTHER, android.view.textclassifier.TextClassifier.TYPE_EMAIL, android.view.textclassifier.TextClassifier.TYPE_PHONE, android.view.textclassifier.TextClassifier.TYPE_ADDRESS, android.view.textclassifier.TextClassifier.TYPE_URL}" />
+    </annotation>
+  </item>
+  <item name="android.view.textclassifier.TextSelection.Builder android.view.textclassifier.TextSelection.Builder setEntityType(java.lang.String, float) 1">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+</root>
+

@@ -21,7 +21,7 @@ import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -31,11 +31,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
-  private final ResourceNameValidator myResourceNameValidator;
+  private final IdeResourceNameValidator myResourceNameValidator;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
   private JLabel myMessageLabel;
@@ -70,7 +68,7 @@ public class NewStyleDialog extends DialogWrapper {
 
     final Configuration configuration = context.getConfiguration();
     myResourceNameValidator =
-      ResourceNameValidator.create(false, AppResourceRepository.getAppResources(configuration.getModule(), true), ResourceType.STYLE);
+      IdeResourceNameValidator.forResourceName(ResourceType.STYLE, AppResourceRepository.getOrCreateInstance(configuration.getModule()));
 
     String styleTypeString = isTheme ? "theme"  : "style";
     setTitle("New " + StringUtil.capitalize(styleTypeString));
@@ -86,33 +84,30 @@ public class NewStyleDialog extends DialogWrapper {
     myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context, myParentStyleComboBox));
     final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemeNames, defaultParentName);
     myParentStyleComboBox.setModel(parentThemesListModel);
-    myParentStyleComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
-        if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
-          myParentStyleComboBox.hidePopup();
-          final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
+    myParentStyleComboBox.addActionListener(e -> {
+      String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
+      if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
+        myParentStyleComboBox.hidePopup();
+        final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
-          if (myThemeChangedListener != null) {
-            dialog.setThemeChangedListener(myThemeChangedListener);
-          }
-
-          dialog.show();
-          selectedValue = dialog.isOK() ? dialog.getTheme() : null;
-        }
-        if (selectedValue == null) {
-          selectedValue = (String)parentThemesListModel.getElementAt(0);
-        }
-        else if (!defaultThemeNames.contains(selectedValue)) {
-            parentThemesListModel.removeElement(selectedValue);
-            parentThemesListModel.insertElementAt(selectedValue, 0);
-        }
-        myParentStyleComboBox.setSelectedItem(selectedValue);
-        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
         if (myThemeChangedListener != null) {
-          myThemeChangedListener.themeChanged(selectedValue);
+          dialog.setThemeChangedListener(myThemeChangedListener);
         }
+
+        dialog.show();
+        selectedValue = dialog.isOK() ? dialog.getTheme() : null;
+      }
+      if (selectedValue == null) {
+        selectedValue = (String)parentThemesListModel.getElementAt(0);
+      }
+      else if (!defaultThemeNames.contains(selectedValue)) {
+          parentThemesListModel.removeElement(selectedValue);
+          parentThemesListModel.insertElementAt(selectedValue, 0);
+      }
+      myParentStyleComboBox.setSelectedItem(selectedValue);
+      myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
+      if (myThemeChangedListener != null) {
+        myThemeChangedListener.themeChanged(selectedValue);
       }
     });
 

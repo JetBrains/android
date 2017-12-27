@@ -19,8 +19,8 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -57,21 +57,29 @@ public final class ComponentInstaller {
     return result;
   }
 
-  public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
+  public void installPackages(@NotNull List<RemotePackage> packages, @NotNull Downloader downloader, @NotNull ProgressIndicator progress)
+    throws WizardException {
+    progress = new ThrottledProgressWrapper(progress);
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    double progressMax = 0;
+    double progressIncrement = 0.9 / (packages.size() * 2.);
     for (RemotePackage request : packages) {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       InstallerFactory factory = new BasicInstallerFactory();
-      Installer installer = factory.createInstaller(request, sdkManager, new StudioDownloader(), mySdkHandler.getFileOp());
-      if (installer.prepare(progress)) {
-        installer.complete(progress);
+      Installer installer = factory.createInstaller(request, sdkManager, downloader, mySdkHandler.getFileOp());
+      progressMax += progressIncrement;
+      if (installer.prepare(progress.createSubProgress(progressMax))) {
+        installer.complete(progress.createSubProgress(progressMax + progressIncrement));
       }
+      progressMax += progressIncrement;
+      progress.setFraction(progressMax);
     }
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1), null, null);
   }
 
-  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, ProgressIndicator progress) throws WizardException {
+  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, @NotNull ProgressIndicator progress)
+    throws WizardException {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     RepositoryPackages packages = sdkManager.getPackages();
     Map<String, LocalPackage> localPackages = packages.getLocalPackages();
@@ -86,7 +94,8 @@ public final class ComponentInstaller {
         progress.logInfo(String.format("Package '%1$s' does not appear to be installed - ignoring", packageName));
       }
     }
-
+    double progressMax = 0;
+    double progressIncrement = 0.9 / (packagesToUninstall.size() * 2.);
     for (LocalPackage request : packagesToUninstall) {
       // This is pretty much symmetric to the installPackages() method above, so the same comments apply.
       // Should we have registered listeners, HaxmInstallListener would have invoked another instance of HaxmWizard.
@@ -100,10 +109,14 @@ public final class ComponentInstaller {
       // like stack unwinding after an exception.
       InstallerFactory factory = new BasicInstallerFactory();
       Uninstaller uninstaller = factory.createUninstaller(request, sdkManager, mySdkHandler.getFileOp());
-      if (uninstaller.prepare(progress)) {
-        uninstaller.complete(progress);
+      progressMax += progressIncrement;
+      if (uninstaller.prepare(progress.createSubProgress(progressMax))) {
+        uninstaller.complete(progress.createSubProgress(progressMax + progressIncrement));
       }
+      progressMax += progressIncrement;
+      progress.setFraction(progressMax);
     }
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1), null, null);
+    progress.setFraction(1);
   }
 }

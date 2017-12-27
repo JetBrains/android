@@ -33,8 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
 
 /**
  * A reference to a particular file in the project
@@ -42,9 +41,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 public class IncludeReference {
   @SuppressWarnings("ConstantConditions")
   public static final IncludeReference NONE = new IncludeReference(null, null, null);
-
-  /** Tools namespace attribute for declaring a surrounding layout to be used */
-  public static final String ATTR_RENDER_IN = "showIn";
 
   /**
    * The source file of the reference (included from)
@@ -67,7 +63,7 @@ public class IncludeReference {
   /**
    * Creates a new include reference
    */
-  private IncludeReference(@NonNull Module module, @NonNull VirtualFile fromFile,  @Nullable VirtualFile toFile) {
+  private IncludeReference(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
     myModule = module;
     myFromFile = fromFile;
     myToFile = toFile;
@@ -76,12 +72,13 @@ public class IncludeReference {
   /**
    * Creates a new include reference
    */
-  public static IncludeReference create(@NonNull Module module, @NonNull VirtualFile fromFile,  @Nullable VirtualFile toFile) {
+  public static IncludeReference create(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
     return new IncludeReference(module, fromFile, toFile);
   }
 
   /**
    * Returns the associated module
+   *
    * @return the module
    */
   @NotNull
@@ -91,6 +88,7 @@ public class IncludeReference {
 
   /**
    * Returns the file for the include reference
+   *
    * @return the file
    */
   @NotNull
@@ -100,6 +98,7 @@ public class IncludeReference {
 
   /**
    * Returns the path for the include reference
+   *
    * @return the path
    */
   @NotNull
@@ -109,6 +108,7 @@ public class IncludeReference {
 
   /**
    * Returns the destination file for the include reference
+   *
    * @return the destination file
    */
   @Nullable
@@ -118,6 +118,7 @@ public class IncludeReference {
 
   /**
    * Returns the destination path for the include reference
+   *
    * @return the destination path, if known
    */
   @Nullable
@@ -166,17 +167,11 @@ public class IncludeReference {
   @Nullable
   public static String getIncludingLayout(@NotNull final XmlFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return getIncludingLayout(file);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> getIncludingLayout(file));
     }
     XmlTag rootTag = file.getRootTag();
     if (rootTag != null && rootTag.isValid()) {
-      return rootTag.getAttributeValue(ATTR_RENDER_IN, TOOLS_URI);
+      return rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
     }
 
     return null;
@@ -185,29 +180,25 @@ public class IncludeReference {
   public static void setIncludingLayout(@NotNull Project project, @NotNull XmlFile xmlFile, @Nullable String layout) {
     XmlTag tag = xmlFile.getRootTag();
     if (tag != null) {
-      SetAttributeFix fix = new SetAttributeFix(project, tag, ATTR_RENDER_IN, TOOLS_URI, layout);
+      SetAttributeFix fix = new SetAttributeFix(project, tag, ATTR_SHOW_IN, TOOLS_URI, layout);
       fix.execute();
     }
   }
 
-  /** Returns an {link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
-   * given file */
+  /**
+   * Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
+   * given file
+   */
   @NotNull
   public static IncludeReference get(@NotNull final Module module, @NotNull final XmlFile file, @NotNull final RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<IncludeReference>() {
-        @NotNull
-        @Override
-        public IncludeReference compute() {
-          return get(module, file, resolver);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(module, file, resolver));
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
     XmlTag rootTag = file.getRootTag();
     if (rootTag != null) {
-      String layout = rootTag.getAttributeValue(ATTR_RENDER_IN, TOOLS_URI);
+      String layout = rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
       if (layout != null) {
         ResourceValue resValue = resolver.findResValue(layout, false);
         if (resValue != null) {

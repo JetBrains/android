@@ -28,7 +28,7 @@ import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PropertyUtilBase;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.android.inspections.ResourceTypeInspection;
+import org.jetbrains.android.inspections.ResourceTypeCompletionContributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -230,7 +230,7 @@ public class AndroidResolveHelper {
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope searchScope = getSearchScope(owner);
 
-    for (PsiAnnotation a : ResourceTypeInspection.getAllAnnotations(owner)) {
+    for (PsiAnnotation a : ResourceTypeCompletionContributor.getAllAnnotations(owner)) {
       String qualifiedName = a.getQualifiedName();
       if (qualifiedName == null || qualifiedName.startsWith("java")) {
         continue;

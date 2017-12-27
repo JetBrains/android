@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Android
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +34,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon;
 
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidModuleModel myGradleModel;
@@ -63,7 +63,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   public boolean isLibrary() {
-    return myGradleModel.getProjectType() != PROJECT_TYPE_APP;
+    return myGradleModel.getAndroidProject().getProjectType() != PROJECT_TYPE_APP;
   }
 
   @Nullable
@@ -143,7 +143,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Override
   public Icon getIcon() {
-    return myGradleModel.getProjectType() == PROJECT_TYPE_APP ?  AndroidIcons.AppModule : AndroidIcons.LibraryModule;
+    return getAndroidModuleIcon(myGradleModel);
   }
 
   @Override

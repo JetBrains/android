@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.ide.util.DirectoryChooserUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -157,8 +158,14 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       }
     }.execute();
 
-    PsiClass aClass = result.getResultObject();
-    OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
-    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
+    final PsiClass aClass = result.getResultObject();
+    // Open a created class in the editor
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        final OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
+        FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
+      }
+    }, project.getDisposed());
   }
 }

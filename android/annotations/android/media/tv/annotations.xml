@@ -25,8 +25,21 @@
   <item name="android.media.tv.TvContract.Channels java.lang.String getVideoResolution(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.tv.TvContract.Channels java.lang.String getVideoResolution(java.lang.String) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.tv.TvContract.Channels.VIDEO_FORMAT_240P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_360P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_480I, android.media.tv.TvContract.Channels.VIDEO_FORMAT_576I, android.media.tv.TvContract.Channels.VIDEO_FORMAT_576P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_720P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_1080I, android.media.tv.TvContract.Channels.VIDEO_FORMAT_1080P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_2160P, android.media.tv.TvContract.Channels.VIDEO_FORMAT_4320P}" />
+    </annotation>
+  </item>
   <item name="android.media.tv.TvContract.Programs.Genres java.lang.String encode(java.lang.String...) 0">
     <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.tv.TvContract.Programs.Genres.FAMILY_KIDS, android.media.tv.TvContract.Programs.Genres.SPORTS, android.media.tv.TvContract.Programs.Genres.SHOPPING, android.media.tv.TvContract.Programs.Genres.MOVIES, android.media.tv.TvContract.Programs.Genres.COMEDY, android.media.tv.TvContract.Programs.Genres.TRAVEL, android.media.tv.TvContract.Programs.Genres.DRAMA, android.media.tv.TvContract.Programs.Genres.EDUCATION, android.media.tv.TvContract.Programs.Genres.ANIMAL_WILDLIFE, android.media.tv.TvContract.Programs.Genres.NEWS, android.media.tv.TvContract.Programs.Genres.GAMING, android.media.tv.TvContract.Programs.Genres.ARTS, android.media.tv.TvContract.Programs.Genres.ENTERTAINMENT, android.media.tv.TvContract.Programs.Genres.LIFE_STYLE, android.media.tv.TvContract.Programs.Genres.MUSIC, android.media.tv.TvContract.Programs.Genres.PREMIER, android.media.tv.TvContract.Programs.Genres.TECH_SCIENCE}" />
+    </annotation>
+  </item>
+  <item name="android.media.tv.TvContract.Programs.Genres java.lang.String[] decode(java.lang.String)">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.tv.TvContract.Programs.Genres.FAMILY_KIDS, android.media.tv.TvContract.Programs.Genres.SPORTS, android.media.tv.TvContract.Programs.Genres.SHOPPING, android.media.tv.TvContract.Programs.Genres.MOVIES, android.media.tv.TvContract.Programs.Genres.COMEDY, android.media.tv.TvContract.Programs.Genres.TRAVEL, android.media.tv.TvContract.Programs.Genres.DRAMA, android.media.tv.TvContract.Programs.Genres.EDUCATION, android.media.tv.TvContract.Programs.Genres.ANIMAL_WILDLIFE, android.media.tv.TvContract.Programs.Genres.NEWS, android.media.tv.TvContract.Programs.Genres.GAMING, android.media.tv.TvContract.Programs.Genres.ARTS, android.media.tv.TvContract.Programs.Genres.ENTERTAINMENT, android.media.tv.TvContract.Programs.Genres.LIFE_STYLE, android.media.tv.TvContract.Programs.Genres.MUSIC, android.media.tv.TvContract.Programs.Genres.PREMIER, android.media.tv.TvContract.Programs.Genres.TECH_SCIENCE}" />
+    </annotation>
   </item>
   <item name="android.media.tv.TvContract.Programs.Genres java.lang.String[] decode(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -44,6 +57,11 @@
   </item>
   <item name="android.media.tv.TvInputInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvInputManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.TV_INPUT_SERVICE" />
+    </annotation>
   </item>
   <item name="android.media.tv.TvInputManager android.media.tv.TvInputInfo getTvInputInfo(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />

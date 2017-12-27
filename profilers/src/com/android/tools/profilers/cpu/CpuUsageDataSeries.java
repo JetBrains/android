@@ -21,12 +21,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,30 +36,29 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
 
   private boolean myOtherProcesses;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, Common.Session session) {
     myClient = client;
     myOtherProcesses = otherProcesses;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
     // Get an extra padding on each side, to have a smooth rendering at the edges.
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
     CpuProfiler.CpuProfilerData lastCpuData = null;
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.CPU_USAGE) {
-        // No data to be handled.
-        continue;
-      }
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
 
       // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.
@@ -79,7 +75,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
       }
       lastCpuData = data;
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 
   private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {
@@ -89,9 +85,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     double system =
       100.0 * (data.getCpuUsage().getSystemCpuTimeInMillisec() - lastData.getCpuUsage().getSystemCpuTimeInMillisec()) / elapsed;
 
-    // System and app usages are read from them device in slightly different times. Make sure that appUsage <= systemUsage <= 100%
-    system = Math.min(system, 100.0);
-    app = Math.min(app, system);
+    // System and app usages are read from them device in slightly different times. That can cause app usage to be slightly higher than
+    // system usage and we need to adjust our values to cover these scenarios. Also, we use iowait (time waiting for I/O to complete) when
+    // calculating the total elapsed CPU time. The problem is this value is not reliable (http://man7.org/linux/man-pages/man5/proc.5.html)
+    // and can actually decrease. In these case we could end up with slightly negative system and app usages. That also needs adjustment and
+    // we should make sure that 0% <= appUsage <= systemUsage <= 100%
+    system = Math.max(0, Math.min(system, 100.0));
+    app = Math.max(0, Math.min(app, system));
 
     return new CpuUsageDataSeries.CpuUsageData(app, system);
   }

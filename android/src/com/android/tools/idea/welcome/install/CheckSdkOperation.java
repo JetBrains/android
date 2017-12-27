@@ -37,13 +37,13 @@ import java.util.List;
  * This ensures that the tools are installed and that necessary shared libraries are present.</p>
  */
 public class CheckSdkOperation extends InstallOperation<File, File> {
-  public static final String ERROR_CANT_EXECUTE = "%1$s file is not a valid executable";
-  public static final String ERROR_NO_TOOLS_DIR = "SDK tools directory is missing";
-  public static final String MESSAGE_CANT_RUN_TOOL;
-  public static final String ERROR_CANT_RUN_TOOL;
-  public static final String URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries";
-  public static final String LINK_MISSING_LIBRARIES = "Show Android SDK web page";
-  public static final String TOOL_NAME = "mksdcard" + (SystemInfo.isWindows ? ".exe" : "");
+  private static final String ERROR_CANT_EXECUTE = "%1$s file is not a valid executable";
+  private static final String ERROR_NO_TOOLS_DIR = "SDK tools directory is missing";
+  private static final String MESSAGE_CANT_RUN_TOOL;
+  private static final String ERROR_CANT_RUN_TOOL;
+  private static final String URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries";
+  private static final String LINK_MISSING_LIBRARIES = "Show Android SDK web page";
+  private static final String TOOL_NAME = "mksdcard" + (SystemInfo.isWindows ? ".exe" : "");
 
   static {
     ERROR_CANT_RUN_TOOL = "Unable to run " + TOOL_NAME + " SDK tool.";
@@ -95,14 +95,8 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   private static boolean checkRuns(File executable) {
     try {
       while (!checkCanRunSdkTool(executable)) {
-        final boolean[] shouldRetry = {false};
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            shouldRetry[0] = retryPrompt();
-          }
-        });
-        if (!shouldRetry[0]) {
+        boolean shouldRetry = UIUtil.invokeAndWaitIfNeeded(CheckSdkOperation::retryPrompt);
+        if (!shouldRetry) {
           return false;
         }
       }

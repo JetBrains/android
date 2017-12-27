@@ -36,8 +36,8 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final static Pattern FLOAT_PATTERN = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)"); //$NON-NLS-1$
   private final static int PADDING_VALUE = 10;
 
-  private boolean myZeroAttributeIsPadding = false;
-  private boolean myIncreaseExistingPadding = false;
+  private boolean myZeroAttributeIsPadding;
+  private boolean myIncreaseExistingPadding;
 
   @NotNull
   private final Density myDensity;
@@ -61,12 +61,11 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final Set<XmlTag> myExplodeNodes;
 
   /**
-   * Use the {@link LayoutPsiPullParser#create(com.intellij.psi.xml.XmlFile, RenderLogger, java.util.Set,
-   * com.android.resources.Density)} factory instead
+   * Use the {@link LayoutPsiPullParser#create(XmlFile, IRenderLogger, Set, Density)} factory instead.
    */
-  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
+  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull IRenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
                              @NotNull Density density) {
-    super(file, logger);
+    super(file, logger, true);
     myExplodeNodes = explodeNodes;
     myDensity = density;
   }
@@ -136,7 +135,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
     if (myZeroAttributeIsPadding) {
       if (i == 0) {
         assert myRoot != null;
-        return myAndroidPrefix;
+        return myNamespacePrefixes.get(ANDROID_URI);
       }
       else {
         i--;
@@ -321,7 +320,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
         return false;
       }
 
-      if (end.length() > 0 && end.charAt(0) != ' ') {
+      if (!end.isEmpty() && end.charAt(0) != ' ') {
         // We only support dimension-type values, so try to parse the unit for dimension
         DimensionEntry dimension = parseDimension(end);
         if (dimension != null) {

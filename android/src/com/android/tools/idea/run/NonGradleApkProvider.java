@@ -76,7 +76,7 @@ public class NonGradleApkProvider implements ApkProvider {
     final Module module = facet.getModule();
     String localPath;
 
-    if (myArtifactName != null && myArtifactName.length() > 0) {
+    if (myArtifactName != null && !myArtifactName.isEmpty()) {
       final Artifact artifact = ArtifactManager.getInstance(facet.getModule().getProject()).findArtifact(myArtifactName);
 
       if (artifact == null) {
@@ -91,7 +91,7 @@ public class NonGradleApkProvider implements ApkProvider {
       }
       final String artifactOutPath = artifact.getOutputFilePath();
 
-      if (artifactOutPath == null || artifactOutPath.length() == 0) {
+      if (artifactOutPath == null || artifactOutPath.isEmpty()) {
         throw new ApkProvisionException("ERROR: output path is not specified for artifact \"" + myArtifactName + '"');
       }
       localPath = FileUtil.toSystemDependentName(artifactOutPath);

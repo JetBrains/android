@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -24,10 +24,16 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
+import com.google.common.html.HtmlEscapers;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.openapi.wm.IdeGlassPaneUtil;
+import com.intellij.ui.AbstractExpandableItemsHandler;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -43,25 +49,32 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final int HORIZONTAL_SPACING = 6;
+  private static final int COLUMN_COUNT = 2;
 
   private final JComponent myAllPropertiesLink;
-  private final NlInspectorProviders myProviders;
+  private final NlPropertiesManager myPropertiesManager;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
-  private final JPanel myInspector;
+  private final GridInspectorPanel myInspector;
   private final SpeedSearchComparator myComparator;
   private final Map<Component, ExpandableGroup> mySource2GroupMap = new IdentityHashMap<>(4);
   private final Map<JLabel, ExpandableGroup> myLabel2GroupMap = new IdentityHashMap<>(4);
   private final Multimap<JLabel, Component> myLabel2ComponentMap = HashMultimap.create();
   private final JLabel myDefaultLabel = new JLabel();
+  private final InspectorExpandableItemsHandler myExpandableItemsHandler;
+  private final Disposable myParentDisposable;
+
+  private InspectorProviders myInspectorProviders;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
@@ -76,11 +89,13 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     super(new BorderLayout());
     myAllPropertiesLink = allPropertiesLink;
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myProviders = new NlInspectorProviders(propertiesManager, parentDisposable);
+    myPropertiesManager = propertiesManager;
+    myParentDisposable = parentDisposable;
     myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     myComparator = new SpeedSearchComparator(false);
+    myExpandableItemsHandler = new InspectorExpandableItemsHandler(this);
     myFilter = "";
     add(myInspector, BorderLayout.CENTER);
   }
@@ -99,12 +114,14 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   public void addNotify() {
     super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+    myExpandableItemsHandler.install(myParentDisposable);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+    myExpandableItemsHandler.remove();
   }
 
   @Override
@@ -130,6 +147,28 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   public void setFilter(@NotNull String filter) {
     myFilter = filter;
     ApplicationManager.getApplication().invokeLater(this::updateAfterFilterChange);
+  }
+
+  @NotNull
+  public String getFilter() {
+    return myFilter;
+  }
+
+  public void enterInFilter(@NotNull KeyEvent event) {
+    if (myFilter.isEmpty()) {
+      return;
+    }
+    Set<JLabel> visibleLabels = myLabel2ComponentMap.keySet().stream().filter(Component::isVisible).collect(Collectors.toSet());
+    if (visibleLabels.size() != 1) {
+      return;
+    }
+    Collection<Component> components = myLabel2ComponentMap.get(visibleLabels.iterator().next());
+    if (components.size() != 1) {
+      return;
+    }
+    Component editor = components.iterator().next();
+    editor.transferFocus();
+    event.consume();
   }
 
   private void updateAfterFilterChange() {
@@ -162,22 +201,25 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       group.setExpanded(group.isExpanded(), false);
     }
     toShow.forEach(component -> component.setVisible(true));
+    myInspectors.forEach(InspectorComponent::updateVisibility);
   }
 
   private boolean isMatch(@NotNull JLabel label) {
     if (myFilter.isEmpty()) {
       return true;
     }
-    if (StringUtil.isEmpty(label.getText()) || label.getFont() == myBoldLabelFont) {
+    String text = StringUtil.removeHtmlTags(label.getText());
+    if (StringUtil.isEmpty(text) || label.getFont() == myBoldLabelFont) {
       return false;
     }
-    return myComparator.matchingFragments(myFilter, label.getText()) != null;
+    return myComparator.matchingFragments(myFilter, text) != null;
   }
 
-  private static GridLayoutManager createLayoutManager(int rows, int columns) {
+  @NotNull
+  private static GridLayoutManager createLayoutManager(int rows) {
     Insets margin = new JBInsets(0, 0, 0, 0);
     // Hack: Use this constructor to get myMinCellSize = 0 which is not possible in the recommended constructor.
-    return new GridLayoutManager(rows, columns, margin, 0, 0);
+    return new GridLayoutManager(rows, COLUMN_COUNT, margin, 0, 0);
   }
 
   public void setComponent(@NotNull List<NlComponent> components,
@@ -202,11 +244,15 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         propertiesByName.put(property.getName(), property);
       }
       // Add access to known design properties
-      for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
+      for (NlProperty property : myDesignProperties.getKnownProperties(components, propertiesManager)) {
         propertiesByName.putIfAbsent(property.getName(), property);
       }
 
-      myInspectors = myProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
+      if (myInspectorProviders != null) {
+        Disposer.dispose(myInspectorProviders);
+      }
+      myInspectorProviders = myPropertiesManager.getDesignSurface().getInspectorProviders(myPropertiesManager, myParentDisposable);
+      myInspectors = myInspectorProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
 
       int rows = 0;
       for (InspectorComponent inspector : myInspectors) {
@@ -215,7 +261,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       rows += myInspectors.size(); // 1 row for each divider (including 1 after the last property)
       rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
-      myInspector.setLayout(createLayoutManager(rows, 2));
+      myInspector.setLayout(createLayoutManager(rows));
       for (InspectorComponent inspector : myInspectors) {
         addSeparator();
         inspector.attachToInspector(this);
@@ -231,12 +277,19 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       addLineComponent(myAllPropertiesLink, myRow++);
     }
 
-    // These are both important to render the controls correctly the first time:
+    // Update the grid constraints after all components are added.
+    // This fixes a problem where the labels were rendered over the value fields.
+    // See http://b.android.com/235063
+    myInspector.updateGridConstraints();
+
     ApplicationManager.getApplication().invokeLater(() -> {
-      updateAfterFilterChange();
+      if (!myFilter.isEmpty()) {
+        applyFilter();
+      }
       if (myActivateEditorAfterLoad) {
         activatePreferredEditor(myPropertyNameForActivation);
       }
+      repaint();
     });
   }
 
@@ -244,7 +297,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     ApplicationManager.getApplication().invokeLater(() -> myInspectors.forEach(InspectorComponent::refresh));
   }
 
-  public boolean activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {
+  public void activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {
     if (activateAfterLoading) {
       myActivateEditorAfterLoad = true;
       myPropertyNameForActivation = propertyName;
@@ -252,7 +305,6 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     else {
       activatePreferredEditor(propertyName);
     }
-    return true;
   }
 
   private void activatePreferredEditor(@NotNull String propertyName) {
@@ -263,8 +315,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     for (InspectorComponent component : myInspectors) {
       for (NlComponentEditor editor : component.getEditors()) {
         NlProperty property = editor.getProperty();
-        if (property != null &&
-            propertyName.equals(property.getName()) &&
+        if (propertyName.equals(property.getName()) &&
             !(designPropertyRequired && !TOOLS_URI.equals(property.getNamespace()))) {
           editor.requestFocus();
           return;
@@ -331,9 +382,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   }
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
-    JBLabel label = new JBLabel(labelText);
+    // Use html such that we avoid ellipses in JLabels when the text is too large to fit on the left side of the inspector.
+    JLabel label = new JBLabel("<html>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</html>");
     label.setLabelFor(component);
     label.setToolTipText(tooltip);
+    label.setSize(label.getPreferredSize());
     return label;
   }
 
@@ -387,7 +440,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     public ExpandableGroup(@NotNull JLabel label) {
       myLabel = label;
       myComponents = new ArrayList<>(4);
-      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
+      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()));
       label.setIcon(myExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
       label.addMouseListener(new MouseAdapter() {
         @Override
@@ -413,7 +466,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
       myComponents.forEach(component -> component.setVisible(expanded));
       if (updateProperties) {
-        PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+        PropertiesComponent.getInstance().setValue(KEY_PREFIX + StringUtil.removeHtmlTags(myLabel.getText()), expanded);
       }
     }
   }
@@ -429,6 +482,12 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     public void setLayout(LayoutManager layoutManager) {
       myWidth = -1;
       super.setLayout(layoutManager);
+    }
+
+    @Override
+    public void invalidate() {
+      myWidth = -1;
+      super.invalidate();
     }
 
     @Override
@@ -460,6 +519,63 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         }
         else if (constraints.getColumn() == 1) {
           constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .6, -1);
+        }
+      }
+    }
+  }
+
+  private static class InspectorExpandableItemsHandler extends AbstractExpandableItemsHandler<JLabel, JPanel> {
+    private final MousePreprocessor myMousePreprocessor;
+    private final JLabel myRenderer;
+
+    protected InspectorExpandableItemsHandler(@NotNull InspectorPanel component) {
+      super(component.myInspector);
+      myMousePreprocessor = new MousePreprocessor();
+      myRenderer = new JLabel();
+    }
+
+    private void install(@NotNull Disposable parent) {
+      IdeGlassPane glassPane = IdeGlassPaneUtil.find(myComponent);
+      glassPane.addMouseMotionPreprocessor(myMousePreprocessor, parent);
+    }
+
+    private void remove() {
+      IdeGlassPane glassPane = IdeGlassPaneUtil.find(myComponent);
+      glassPane.removeMouseMotionPreprocessor(myMousePreprocessor);
+    }
+
+    @Nullable
+    @Override
+    protected Pair<Component, Rectangle> getCellRendererAndBounds(@NotNull JLabel key) {
+      myRenderer.setText(key.getText());
+      myRenderer.setFont(key.getFont());
+      myRenderer.setForeground(key.getForeground());
+      myRenderer.setBackground(key.getBackground());
+      Rectangle bounds = new Rectangle(key.getLocation(), key.getPreferredSize());
+      return Pair.create(myRenderer, bounds);
+    }
+
+    @Override
+    @NotNull
+    protected Rectangle getVisibleRect(@NotNull JLabel key) {
+      return SwingUtilities.convertRectangle(key, key.getVisibleRect(), myComponent);
+    }
+
+    @Nullable
+    @Override
+    protected JLabel getCellKeyForPoint(@NotNull Point point) {
+      return null;
+    }
+
+    private class MousePreprocessor extends MouseMotionAdapter {
+      @Override
+      public void mouseMoved(@NotNull MouseEvent event) {
+        Point point = SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), myComponent);
+        if (myComponent.contains(point)) {
+          Component component = myComponent.getComponentAt(point.x, point.y);
+          if (component instanceof JLabel) {
+            handleSelectionChange((JLabel)component, true);
+          }
         }
       }
     }

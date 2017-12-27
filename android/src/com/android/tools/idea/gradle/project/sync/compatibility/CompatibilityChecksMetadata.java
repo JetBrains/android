@@ -19,7 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFileComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
@@ -42,9 +42,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.*;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 class CompatibilityChecksMetadata {
   @NonNls private static final String BUILD_FILE_PREFIX = "buildFile:";
@@ -108,7 +108,7 @@ class CompatibilityChecksMetadata {
 
   @NotNull
   static File getSourceFilePath() {
-    File configPath = new File(toSystemDependentName(PathManager.getConfigPath()));
+    File configPath = toSystemDependentPath(PathManager.getConfigPath());
     return new File(configPath, METADATA_FILE_NAME);
   }
 

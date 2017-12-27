@@ -38,6 +38,11 @@ import java.awt.event.ActionListener;
  */
 public class TutorialCard extends CardViewPanel {
 
+  private final TutorialData myTutorial;
+  private final FeatureData myFeature;
+  private final Project myProject;
+  private final boolean myHideChooserAndNavigationBar;
+  private boolean myIsStepByStep;
   JBScrollPane myContentsScroller = new JBScrollPane();
 
   /**
@@ -45,18 +50,43 @@ public class TutorialCard extends CardViewPanel {
    */
   String myTutorialsTitle;
 
+  private int myStepIndex;
+
   TutorialCard(@NotNull ActionListener listener,
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
                @NotNull String tutorialsTitle,
                @NotNull Project project,
-               boolean hideChooserAndNavigationalBar) {
+               boolean hideChooserAndNavigationalBar,
+               boolean isStepByStep) {
     super(listener);
     myTutorialsTitle = tutorialsTitle;
+    myTutorial = tutorial;
+    myFeature = feature;
+    myProject = project;
+    myHideChooserAndNavigationBar = hideChooserAndNavigationalBar;
+    myIsStepByStep = isStepByStep;
+    myStepIndex = 0;
+    redraw();
+  }
 
-    if (!hideChooserAndNavigationalBar) {
+  /**
+   * Using the visibility being enabled on card change as a cheap way to do re-init of of the component.
+   */
+  @Override
+  public void setVisible(boolean aFlag) {
+    super.setVisible(aFlag);
+    JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
+    JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
+    verticalScrollBar.setValue(verticalScrollBar.getMinimum());
+    horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
+  }
+
+  // update the view
+  private void redraw() {
+    if (!myHideChooserAndNavigationBar) {
       // TODO: Add a short label to the xml and use that here instead.
-      add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
+      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
     }
 
     JPanel contents = new JPanel();
@@ -71,20 +101,21 @@ public class TutorialCard extends CardViewPanel {
     c.anchor = GridBagConstraints.NORTHWEST;
     c.insets = JBUI.insetsBottom(5);
 
-    JBLabel title = new JBLabel(tutorial.getLabel());
+    JBLabel title = new JBLabel(myTutorial.getLabel());
     title.setFont(title.getFont().deriveFont(Font.BOLD, 16F));
     title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-    if (tutorial.getIcon() != null) {
-      title.setIcon(tutorial.getIcon());
+    if (myTutorial.getIcon() != null) {
+      title.setIcon(myTutorial.getIcon());
     }
     contents.add(title, c);
     c.gridy++;
 
     TutorialDescription description = new TutorialDescription();
     StringBuffer sb = new StringBuffer();
-    sb.append("<p class=\"description\">").append(tutorial.getDescription());
-    if (tutorial.getRemoteLink() != null && tutorial.getRemoteLinkLabel() != null) {
-      sb.append("<br><br><a href=\"").append(tutorial.getRemoteLink()).append("\" target=\"_blank\">").append(tutorial.getRemoteLinkLabel()).append("</a>");
+    sb.append("<p class=\"description\">").append(myTutorial.getDescription());
+    if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
+      sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
+        .append(myTutorial.getRemoteLinkLabel()).append("</a>");
     }
     sb.append("</p>");
     UIUtils.setHtml(description, sb.toString(), ".description { margin: 10px;}");
@@ -95,23 +126,46 @@ public class TutorialCard extends CardViewPanel {
     // Add extra padding for tutorial steps.
     c.insets = JBUI.insets(0, 5, 5, 5);
 
-    // Add each of the tutorial steps in order.
-    int numericLabel = 1;
-    for (StepData step : tutorial.getSteps()) {
-      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, project);
-      contents.add(stepDisplay, c);
+    if (myIsStepByStep) {
+      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject), c);
       c.gridy++;
-      numericLabel++;
+    }
+    else {
+      // Add each of the tutorial steps in order.
+      int numericLabel = 0;
+
+      for (StepData step : myTutorial.getSteps()) {
+        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject);
+        contents.add(stepDisplay, c);
+        c.gridy++;
+        numericLabel++;
+      }
     }
 
     GridBagConstraints glueConstraints = UIUtils.getVerticalGlueConstraints(c.gridy);
     contents.add(Box.createVerticalGlue(), glueConstraints);
     c.gridy++;
 
-    if (!hideChooserAndNavigationalBar) {
+    if (!myHideChooserAndNavigationBar) {
       // remove insets for footer.
       c.insets = JBUI.emptyInsets();
       contents.add(new FooterNav(), c);
+    }
+
+    // add nav for step by step tutorials
+    if (myIsStepByStep) {
+      contents.add(new StepByStepFooter(myTutorial, e -> {
+        Object source = e.getSource();
+        StepButton stepButton = (StepButton)source;
+        if (stepButton.myDirection == StepButton.Direction.NEXT) {
+          myStepIndex++;
+        }
+        else {
+          myStepIndex--;
+        }
+
+        redraw();
+      }), c);
     }
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
@@ -126,18 +180,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     add(myContentsScroller, BorderLayout.CENTER);
-  }
-
-  /**
-   * Using the visibility being enabled on card change as a cheap way to do re-init of of the component.
-   */
-  @Override
-  public void setVisible(boolean aFlag) {
-    super.setVisible(aFlag);
-    JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
-    JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
-    verticalScrollBar.setValue(verticalScrollBar.getMinimum());
-    horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
   }
 
   private static class TutorialDescription extends JTextPane {
@@ -181,7 +223,54 @@ public class TutorialCard extends CardViewPanel {
       setOpaque(false);
       add(new BackButton(BACK_LABEL));
     }
+  }
 
+  private class StepByStepFooter extends JPanel {
+    StepByStepFooter(TutorialData tutorial, ActionListener listener) {
+      super(new BorderLayout());
+      setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
+      setOpaque(false);
+
+      if (myStepIndex > 0) {
+        add(new StepButton("Prev Step", StepButton.Direction.PREV, listener), BorderLayout.LINE_START);
+      }
+
+      if (myStepIndex < tutorial.getSteps().size() - 1) {
+        add(new StepButton("Next Step", StepButton.Direction.NEXT, listener), BorderLayout.LINE_END);
+      }
+    }
+  }
+
+  private static class StepButton extends NavigationButton {
+    public enum Direction {
+      NEXT,
+      PREV
+    }
+
+    public Direction myDirection;
+
+    public StepButton(String label, Direction direction, ActionListener listener) {
+      super(label, TutorialChooser.NAVIGATION_KEY, listener);
+      myDirection = direction;
+      setContentAreaFilled(false);
+      setBorderPainted(false);
+      setBorder(null);
+      setOpaque(false);
+      if (Direction.NEXT == direction) {
+        setIcon(AllIcons.Diff.CurrentLine);
+        setHorizontalTextPosition(LEFT);
+      }
+      else {
+        setIcon(AllIcons.Actions.Back);
+        setHorizontalTextPosition(RIGHT);
+      }
+
+      setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+      // As the button is presented as a label, use the label font.
+      Font font = new JBLabel().getFont();
+      setFont(font.deriveFont(Font.PLAIN, font.getSize()));
+    }
   }
 
   // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.

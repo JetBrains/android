@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -81,6 +82,15 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     catch (IllegalArgumentException expected) {
       // expected
     }
+  }
+
+  public void testAreGradleFilesModifiedWithModifiedWrapperPropertiesFile() throws IOException {
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    VirtualFile propertiesFile = wrapper.getPropertiesFile();
+    simulateUnsavedChanges(propertiesFile);
+
+    boolean filesModified = myGradleFiles.areGradleFilesModified(myLastSyncTime);
+    assertTrue(filesModified);
   }
 
   public void testAreGradleFilesModifiedWithModifiedSettingsDotGradleFile() {
@@ -154,9 +164,21 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertTrue(myGradleFiles.isGradleFile(psiFile));
   }
 
+  public void testIsGradleFileWithWrapperPropertiesFile() throws IOException {
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    VirtualFile propertiesFile = wrapper.getPropertiesFile();
+    PsiFile psiFile = findPsiFile(propertiesFile);
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
   @NotNull
   private PsiFile findOrCreatePsiFileInProjectRootFolder(@NotNull String fileName) {
     VirtualFile file = findOrCreateFileInProjectRootFolder(fileName);
+    return findPsiFile(file);
+  }
+
+  @NotNull
+  private PsiFile findPsiFile(@NotNull VirtualFile file) {
     PsiFile psiFile = PsiManagerEx.getInstanceEx(getProject()).findFile(file);
     assertNotNull(psiFile);
     return psiFile;

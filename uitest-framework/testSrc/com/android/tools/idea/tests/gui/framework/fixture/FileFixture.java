@@ -30,20 +30,16 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class FileFixture {
   @NotNull private final Project myProject;
-  @NotNull private final File myPath;
   @NotNull private final VirtualFile myVirtualFile;
 
   public FileFixture(@NotNull Project project, @NotNull VirtualFile file) {
     myProject = project;
-    myPath = virtualToIoFile(file);
     myVirtualFile = file;
   }
 

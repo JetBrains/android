@@ -24,6 +24,10 @@
 //   - Run runflex.sh to generate _DbLexer.java
 //
 // After lexer, to generate the parser, right click on file and click "Generate Parser Code".
+//
+// See https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
+// and https://github.com/JetBrains/Grammar-Kit/blob/master/testData/generator/ExprParser.bnf
+
 {
   parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
   extends="com.android.tools.idea.lang.databinding.DataBindingPsiElement"
@@ -36,6 +40,8 @@
   elementTypeHolderClass="com.android.tools.idea.lang.databinding.psi.DbTokenTypes"
   elementTypeClass="com.android.tools.idea.lang.databinding.psi.DbElementType"
   tokenTypeClass="com.android.tools.idea.lang.databinding.psi.DbTokenType"
+
+  classHeader='generatedFilesHeader.txt'
 
   extends(".*Expr")=expr
 
@@ -125,17 +131,20 @@ expr
   |   negationExpr         //  '!' and '~'
   |   signChangeExpr
   |   castExpr
-  |   methodExpr
+  |   callExpr
+  |   qualRefExpr          //  field access
+  |   simpleRefExpr
   |   bracketExpr          //  array op - []
   |   functionRefExpr      //  method reference using '::'
-  |   dotExpr              //  field access
   |   resourcesExpr
   |   classExtractionExpr
-  |   idExpr
   |   voidExpr
   |   literalExpr
   |   parenExpr           //  (grouping)
 
+fake refExpr ::= expr? '.' id
+simpleRefExpr ::= id {extends=refExpr elementType=refExpr}
+qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}
 nullCoalesceExpr ::= expr '??' expr
 ternaryExpr ::= expr '?' expr ':' expr
 logicalOrExpr ::= expr '||' expr
@@ -152,15 +161,13 @@ mulExpr ::= expr mulOp expr
 negationExpr ::= negationOp expr
 signChangeExpr ::= signOp expr
 castExpr ::= '(' type ')' expr
-methodExpr ::= expr '.' methodName '(' expressionList? ')'
+callExpr ::= refExpr '(' expressionList? ')'
 bracketExpr ::= expr '[' expr ']'
-functionRefExpr ::= expr '::' methodName
-dotExpr ::= expr '.' fieldName
+functionRefExpr ::= expr '::' id
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
 classExtractionExpr ::= type '.' 'class'
 voidExpr ::= voidLiteral
 literalExpr ::= literal
-idExpr ::= IDENTIFIER
 parenExpr ::= '(' expr ')'
 
 private eqComparisonOp ::= '==' | '!='
@@ -191,8 +198,7 @@ typeArguments ::= '<' type (',' type)* '>'
 
 type ::= primitiveType ('[' ']')* | classOrInterfaceType ('[' ']')*
 
-methodName ::= IDENTIFIER
-fieldName ::= IDENTIFIER
+id ::= IDENTIFIER
 
 classOrInterfaceType ::= IDENTIFIER typeArguments? ('.' IDENTIFIER typeArguments? )*
 

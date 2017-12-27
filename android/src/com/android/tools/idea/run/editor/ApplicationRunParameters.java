@@ -278,7 +278,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       }
     }
     if (add) {
-      if (makeTasks.size() == 0) {
+      if (makeTasks.isEmpty()) {
         editor.addBeforeLaunchStep(new CompileStepBeforeRun.MakeBeforeRunTask());
       }
       else {
@@ -323,7 +323,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     // Lock and hide subset of UI when attached to an instantApp
     AndroidModuleModel model = AndroidModuleModel.get(currentModule);
     boolean isInstantApp = false;
-    if (model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       myLaunchOptionCombo.setSelectedItem(LAUNCH_DEEP_LINK);
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
       isInstantApp = true;

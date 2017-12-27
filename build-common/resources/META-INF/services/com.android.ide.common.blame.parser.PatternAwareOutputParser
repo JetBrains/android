@@ -1,0 +1,13 @@
+com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.AndroidPluginOutputParser
+com.android.tools.idea.gradle.output.parser.GradleOutputParser
+com.android.ide.common.blame.parser.aapt.AaptOutputParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.XmlValidationErrorParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser
+com.android.tools.idea.gradle.output.parser.BuildFailureParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.ManifestMergeFailureParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.DexExceptionParser
+com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser
+com.android.tools.idea.gradle.output.parser.androidPlugin.MergingExceptionParser
+com.android.ide.common.blame.parser.LegacyNdkOutputParser
+com.android.ide.common.blame.parser.CmakeOutputParser

@@ -28,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Hashtable;
 
 import static com.android.tools.idea.welcome.install.Haxm.UI_UNITS;
@@ -68,12 +66,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(memorySize, myMemorySlider, myMemorySize);
     setComponent(myRoot);
-    myRecommended.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myState.put(myKeyEmulatorMemory, myRecommendedMemorySize);
-      }
-    });
+    myRecommended.addActionListener(e -> myState.put(myKeyEmulatorMemory, myRecommendedMemorySize));
   }
 
   @SuppressWarnings({"UseOfObsoleteCollectionType", "unchecked"})

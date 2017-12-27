@@ -17,19 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.CommentDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintStopShipInspection extends AndroidLintInspectionBase {
   public AndroidLintStopShipInspection() {
     super(AndroidBundle.message("android.lint.inspections.stop.ship"), CommentDetector.STOP_SHIP);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    // TODO: Remove comment if that's all that remains
-    return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Remove STOPSHIP", "(\\s*STOPSHIP)", "")};
   }
 }

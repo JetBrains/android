@@ -16,7 +16,9 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.updater.Updater;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +34,7 @@ import java.util.List;
  */
 public class VisualTestsDialog extends JDialog {
 
-  private List<Choreographer> mChoreographers = new LinkedList<>();
+  private List<Updater> myUpdaters = new LinkedList<>();
 
   @NotNull
   protected List<VisualTest> mTests = new LinkedList<>();
@@ -89,7 +91,7 @@ public class VisualTestsDialog extends JDialog {
     darculaCheckbox = new JCheckBox("Darcula");
     darculaCheckbox.addActionListener(actionEvent -> setDarculaMode(darculaCheckbox.isSelected()));
 
-    stepButton = createButton("Step", actionEvent -> mChoreographers.forEach(Choreographer::step));
+    stepButton = createButton("Step", actionEvent -> myUpdaters.forEach(c -> c.getTimer().tick(FpsTimer.ONE_FRAME_IN_NS)));
 
     updateCheckbox = new JCheckBox("Update");
     updateCheckbox.addActionListener(actionEvent -> setUpdateMode(updateCheckbox.isSelected()));
@@ -126,11 +128,11 @@ public class VisualTestsDialog extends JDialog {
   private void resetTabs() {
     int currentTabIndex = mTabs.getSelectedIndex();
     mTabs.removeAll();
-    mChoreographers.clear();
+    myUpdaters.clear();
     for (VisualTest test : mTests) {
       test.reset();
       mTabs.addTab(test.getName(), test.getPanel());
-      mChoreographers.add(test.getChoreographer());
+      myUpdaters.add(test.getUpdater());
     }
     // Return to previous selected tab if there was one
     if (currentTabIndex != -1) {
@@ -160,7 +162,15 @@ public class VisualTestsDialog extends JDialog {
   }
 
   private void setUpdateMode(boolean continuousUpdate) {
-    mChoreographers.forEach(c -> c.setUpdate(continuousUpdate));
+    for (Updater updater : myUpdaters) {
+      StopwatchTimer timer = updater.getTimer();
+      if (continuousUpdate) {
+        timer.start();
+      }
+      else {
+        timer.stop();
+      }
+    }
     stepButton.setEnabled(!continuousUpdate);
   }
 

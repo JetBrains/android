@@ -20,6 +20,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
@@ -29,6 +32,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -41,54 +45,47 @@ import java.util.Set;
 
 public class NlDefaultRenderer extends NlAttributeRenderer {
   public static final int ICON_SIZE = 14;
-  private final SimpleColoredComponent myLabel;
-
-  public NlDefaultRenderer() {
-    JPanel panel = getContentPanel();
-
-    myLabel = new SimpleColoredComponent();
-    panel.add(myLabel, BorderLayout.CENTER);
-  }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
-    myLabel.clear();
-    customize(p, col);
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                       boolean selected, boolean hasFocus, int row, int col) {
+    if (value instanceof NlProperty) {
+      customize((NlProperty)value, col, selected);
+    }
   }
 
   @VisibleForTesting
-  void customize(NlProperty property, int column) {
+  void customize(NlProperty property, int column, boolean selected) {
     if (column == 0) {
       appendName(property);
     } else {
-      appendValue(property);
+      appendValue(property, selected);
     }
   }
 
-  private void appendValue(@NotNull NlProperty property) {
+  private void appendValue(@NotNull NlProperty property, boolean selected) {
     String value = property.getValue();
     String text = StringUtil.notNullize(value);
-    Icon icon = getIcon(property);
+    Icon icon = getIcon(property, ICON_SIZE);
     if (icon != null) {
-      myLabel.setIcon(icon);
+      setIcon(icon);
     }
-    if (!property.isDefaultValue(value)) {
-      myLabel.setForeground(JBColor.BLUE);
+    if (!selected && !property.isDefaultValue(value)) {
+      setForeground(JBColor.BLUE);
     }
-
-    myLabel.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myLabel.setToolTipText(text);
+    append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    setToolTipText(text);
   }
 
   @Nullable
-  public static Icon getIcon(@NotNull NlProperty property) {
+  public static Icon getIcon(@NotNull NlProperty property, int iconSize) {
     String text = property.getResolvedValue();
     if (text == null) {
       return null;
     }
 
     if (isColorValue(text)) {
-      return getColorIcon(text);
+      return getColorIcon(text, iconSize);
     }
 
     Configuration configuration = property.getModel().getConfiguration();
@@ -104,7 +101,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
     if (text.startsWith(SdkConstants.COLOR_RESOURCE_PREFIX)
       || text.startsWith(SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX)) {
-      return getColorIcon(resolver, property, text);
+      return getColorIcon(resolver, property, text, iconSize);
     }
 
     if (text.startsWith(SdkConstants.DRAWABLE_PREFIX) ||
@@ -118,9 +115,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
-    boolean isFrameworkRes = value.startsWith(SdkConstants.ANDROID_PREFIX);
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
-    ResourceValue drawable = resolver.resolveValue(type, property.getName(), value, isFrameworkRes);
+    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(type, property.getName(), false), value));
     if (drawable == null) {
       return null;
     }
@@ -130,16 +126,18 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Nullable
-  private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
-    boolean isFrameworkRes = value.startsWith(SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX);
-    ResourceValue resourceValue = resolver.resolveValue(ResourceType.COLOR, property.getName(), value, isFrameworkRes);
+  private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
+    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(ResourceType.COLOR,
+                                                                                                property.getName(),
+                                                                                                false),
+                                                                             value));
     if (resourceValue == null) {
       return null;
     }
 
     String resolvedValue = resourceValue.getValue();
     if (isColorValue(resolvedValue)) {
-      return getColorIcon(resolvedValue);
+      return getColorIcon(resolvedValue, iconSize);
     }
 
     return null;
@@ -150,14 +148,14 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Nullable
-  private static Icon getColorIcon(@NotNull String hexColor) {
+  private static Icon getColorIcon(@NotNull String hexColor, int iconSize) {
     Color color = ResourceHelper.parseColor(hexColor);
-    return color == null ? null : new ColorIcon(ICON_SIZE, color, true);
+    return color == null ? null : JBUI.scale(new ColorIcon(iconSize, color, true));
   }
 
   private void appendName(@NotNull NlProperty property) {
-    myLabel.append(property.getName());
-    myLabel.setToolTipText(property.getTooltipText());
+    append(property.getName());
+    setToolTipText(property.getTooltipText());
   }
 
   @Override
@@ -167,6 +165,6 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @VisibleForTesting
   SimpleColoredComponent getLabel() {
-    return myLabel;
+    return this;
   }
 }

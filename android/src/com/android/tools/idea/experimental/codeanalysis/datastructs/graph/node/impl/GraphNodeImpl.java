@@ -48,7 +48,7 @@ public class GraphNodeImpl implements GraphNode {
   @Override
   public String getSimpleName() {
     StringBuilder sb = new StringBuilder();
-    if (this.mStmtList != null && this.mStmtList.size() > 0) {
+    if (this.mStmtList != null && !this.mStmtList.isEmpty()) {
       for (Stmt stmt : this.mStmtList) {
         sb.append(stmt.getSimpleName() + "\\n");
       }

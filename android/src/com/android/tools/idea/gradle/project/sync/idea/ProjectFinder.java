@@ -23,8 +23,8 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 class ProjectFinder {
@@ -32,7 +32,7 @@ class ProjectFinder {
   Project findProject(@NotNull ProjectResolverContext context) {
     String projectPath = context.getProjectPath();
     if (isNotEmpty(projectPath)) {
-      File projectDirPath = new File(toSystemDependentName(projectPath));
+      File projectDirPath = toSystemDependentPath(projectPath);
       Project[] projects = ProjectManager.getInstance().getOpenProjects();
       for (Project project : projects) {
         String basePath = project.getBasePath();

@@ -18,7 +18,6 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
@@ -36,7 +35,7 @@ public abstract class HRenderer<T> {
   protected static final JBColor bordAppColor = new JBColor(new Color(235, 163, 63), new Color(235, 163, 63));
 
   // To limit the number of object allocation we reuse the same Rectangle.
-  @NonNull protected Rectangle2D.Float mRect;
+  @NonNull private Rectangle2D.Float mRect;
 
   Font mFont;
 
@@ -68,15 +67,11 @@ public abstract class HRenderer<T> {
     // Draw text
     FontMetrics fontMetrics = g.getFontMetrics(mFont);
     String text = generateFittingText(node, drawingArea, fontMetrics);
-    int textWidth = fontMetrics.stringWidth(text);
-    long middle = (long)drawingArea.getCenterX();
-    long textPositionX = middle - textWidth / 2;
-    int textPositionY = (int)(drawingArea.getY() + fontMetrics.getAscent());
 
     Font prevFont = g.getFont();
     g.setFont(mFont);
-    g.setPaint(AdtUiUtils.DEFAULT_FONT_COLOR);
-    g.drawString(text, textPositionX, textPositionY);
+    g.setPaint(Color.BLACK);
+    renderText(g, text, mRect, fontMetrics);
     g.setFont(prevFont);
   }
 
@@ -84,4 +79,8 @@ public abstract class HRenderer<T> {
   protected abstract Color getFillColor(T t);
   protected abstract Color getBordColor(T t);
 
+  /**
+   * Renders a text inside a node rectangle according to the renderer constraints.
+   */
+  protected abstract void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics);
 }

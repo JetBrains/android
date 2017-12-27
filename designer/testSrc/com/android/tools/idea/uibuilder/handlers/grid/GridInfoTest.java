@@ -35,6 +35,12 @@ public final class GridInfoTest {
 
   @Test
   public void getIndex() {
-    assertEquals(1, GridInfo.getIndex(new int[]{0, 248, 248, 248, 248, 248, 248, 248, 248, 520, 767}, 380, true));
+    final int[] lineLocatoin = {100, 248, 248, 248, 248, 248, 248, 248, 248, 520, 767};
+
+    assertEquals(1, GridInfo.getIndex(lineLocatoin, 380, true));
+    assertEquals(2, GridInfo.getIndex(lineLocatoin, 600, true));
+    assertEquals(8, GridInfo.getIndex(lineLocatoin, 380, false));
+    assertEquals(-1, GridInfo.getIndex(lineLocatoin, 50, true));
+    assertEquals(-1, GridInfo.getIndex(lineLocatoin, 800, true));
   }
 }

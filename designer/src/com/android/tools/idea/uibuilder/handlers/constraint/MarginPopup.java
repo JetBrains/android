@@ -56,7 +56,7 @@ public class MarginPopup extends JPanel {
         myValue = 0;
         s = "0";
       }
-      if (s.length() > 0) {
+      if (!s.isEmpty()) {
         myTextField.setText(s);
       }
       if (myListener != null) {

@@ -16,54 +16,55 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
+import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
-import com.intellij.codeInsight.completion.PrefixMatcher;
-import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
-import com.intellij.openapi.command.undo.UndoConstants;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
-import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.codeInsight.AutoPopupController;
+import com.intellij.codeInsight.lookup.LookupAdapter;
+import com.intellij.codeInsight.lookup.LookupEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.TextFieldWithAutoCompletion;
-import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import com.intellij.ui.components.JBLabel;
-import icons.AndroidIcons;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
-import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
+  private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
-  private final TextEditor myTextFieldWithAutoCompletion;
-  private final CompletionProvider myCompletionProvider;
+  private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private final BrowsePanel myBrowsePanel;
+  private final boolean myHasSliderSupport;
+  private final boolean myIsInspector;
 
   private NlProperty myProperty;
   private boolean myPropertyHasSlider;
@@ -75,53 +76,79 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false));
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, VERTICAL_PADDING), browsePanel);
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true);
+    return new NlReferenceEditor(project, listener, null, true, true, true, VERTICAL_SPACING);
+  }
+
+  @TestOnly
+  public static NlReferenceEditor createForTableTesting(@NotNull Project project,
+                                                        @NotNull NlEditingListener listener,
+                                                        @NotNull BrowsePanel browsePanel) {
+    return new NlReferenceEditor(project, listener, browsePanel, false, true, false, VERTICAL_SPACING);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
     BrowsePanel.ContextDelegate delegate = new BrowsePanel.ContextDelegate();
     BrowsePanel browsePanel = new BrowsePanel(delegate, false);
-    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true);
+    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true, true, true, VERTICAL_SPACING);
     delegate.setEditor(editor);
     return editor;
   }
 
-  private NlReferenceEditor(@NotNull Project project,
-                            @NotNull NlEditingListener listener,
-                            @Nullable BrowsePanel browsePanel,
-                            boolean includeBorder) {
+  protected NlReferenceEditor(@NotNull Project project,
+                              @NotNull NlEditingListener listener,
+                              @Nullable BrowsePanel browsePanel,
+                              boolean includeBorder,
+                              boolean includeSliderSupport,
+                              boolean isInspector,
+                              int verticalSpacing) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+    myPanel = new JPanel(new BorderLayout());
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
+    myPanel.setFocusable(false);
     myIconLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
-        displayResourcePicker();
+        showBrowseDialog();
       }
     });
+    myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
 
-    mySlider = new JSlider();
+    mySlider = new SliderWithTimeDelay();
     myPanel.add(mySlider, BorderLayout.LINE_START);
     mySlider.addChangeListener(event -> sliderChange());
     Dimension size = mySlider.getMinimumSize();
     size.setSize(size.width * 2, size.height);
     mySlider.setPreferredSize(size);
+    mySlider.setVisible(includeSliderSupport);
 
-    myCompletionProvider = new CompletionProvider();
-    myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
+    //noinspection UseDPIAwareInsets
+    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
+                                                                                              HORIZONTAL_PADDING,
+                                                                                              verticalSpacing,
+                                                                                              HORIZONTAL_PADDING));
     if (includeBorder) {
-      myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+      myTextEditorWithAutoCompletion.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0));
+      myPanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_SPACING));
     }
+
+    myTextEditorWithAutoCompletion.addLookupListener(new LookupAdapter() {
+      @Override
+      public void itemSelected(@NotNull LookupEvent event) {
+        stopEditing(getText());
+      }
+    });
+
     myBrowsePanel = browsePanel;
-    myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
+    myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
+      myBrowsePanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_COMPONENT_GAP));
       myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
     }
     myPanel.addComponentListener(new ComponentAdapter() {
@@ -130,51 +157,105 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         updateSliderVisibility();
       }
     });
-    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
-                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myProperty.getValue()),
-                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextEditorWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
+                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextEditorWithAutoCompletion.registerKeyboardAction(event -> cancel(),
+                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-    myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
+    myTextEditorWithAutoCompletion.addFocusListener(new FocusAdapter() {
       @Override
-      public void focusGained(FocusEvent focusEvent) {
-        if (!myCompletionsUpdated) {
-          myCompletionProvider.updateCompletions(myProperty);
-          myCompletionsUpdated = true;
-        }
-        myTextFieldWithAutoCompletion.selectAll();
+      public void focusGained(@NotNull FocusEvent event) {
+        editorFocusGain(event);
       }
 
       @Override
-      public void focusLost(FocusEvent event) {
-        stopEditing(getText());
-        // Remove the selection after we lose focus for feedback on which editor is the active editor
-        myTextFieldWithAutoCompletion.removeSelection();
+      public void focusLost(@NotNull FocusEvent event) {
+        editorFocusLost(event);
       }
     });
+    myProperty = EmptyProperty.INSTANCE;
+    myHasSliderSupport = includeSliderSupport;
+    myIsInspector = isInspector;
+  }
+
+  protected TextEditorWithAutoCompletion getTextEditor() {
+    return myTextEditorWithAutoCompletion;
+  }
+
+  protected void editorFocusGain(@NotNull FocusEvent event) {
+    if (event.getOppositeComponent() != mySlider) {
+      if (!myCompletionsUpdated && myProperty != EmptyProperty.INSTANCE) {
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          NlProperty property = myProperty;
+          AndroidFacet facet = myProperty.getModel().getFacet();
+          List<String> completions = TextEditorWithAutoCompletion.loadCompletions(facet, getResourceTypes(myProperty), myProperty);
+          if (property == myProperty) {
+            myTextEditorWithAutoCompletion.updateCompletions(completions);
+            myCompletionsUpdated = true;
+
+            // Auto completions may have failed to load because the completions were not computed yet.
+            // Display them now to make auto completions more predictable.
+            // This also allows us to test this consistently in a ui test see NlPropertyTableTest.
+            UIUtil.invokeLaterIfNeeded(() -> {
+              if (!getText().equals(StringUtil.notNullize(property.getValue()))) {
+                Project project = property.getModel().getProject();
+                AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+              }
+            });
+          }
+        });
+      }
+    }
+    myTextEditorWithAutoCompletion.selectAll();
+  }
+
+  protected void editorFocusLost(@NotNull FocusEvent event) {
+    if (event.getOppositeComponent() != mySlider) {
+      stopEditing(getText());
+      // Remove the selection after we lose focus for feedback on which editor is the active editor
+      myTextEditorWithAutoCompletion.removeSelection();
+    }
+  }
+
+  private static EnumSet<ResourceType> getResourceTypes(@NotNull NlProperty property) {
+    AttributeDefinition definition = property.getDefinition();
+    if (definition == null || SdkConstants.ATTR_ID.equals(property.getName())) {
+      // Don't offer code completion on id's; you typically want to specify a new, unique
+      // one here, not reference an existing one
+      return EnumSet.noneOf(ResourceType.class);
+    }
+
+    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
+    if (TOOLS_URI.equals(property.getNamespace())) {
+      // Tools attributes can use sample data as source
+      resourceTypes.add(ResourceType.SAMPLE_DATA);
+    }
+
+    return resourceTypes;
   }
 
   @NotNull
   private String getText() {
-    String text = myTextFieldWithAutoCompletion.getDocument().getText();
+    String text = myTextEditorWithAutoCompletion.getDocument().getText();
     return Quantity.addUnit(myProperty, text);
   }
 
   @Override
   public void setEnabled(boolean enabled) {
-    myTextFieldWithAutoCompletion.setEnabled(enabled);
+    myTextEditorWithAutoCompletion.setEnabled(enabled);
     if (myBrowsePanel != null) {
       myBrowsePanel.setVisible(enabled);
     }
     if (!enabled) {
       myLastReadValue = "";
       myLastWriteValue = "";
-      myTextFieldWithAutoCompletion.setText("");
+      myTextEditorWithAutoCompletion.setText("");
     }
   }
 
+  @NotNull
   @Override
   public NlProperty getProperty() {
     return myProperty;
@@ -197,23 +278,26 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       if (myPropertyHasSlider) {
         myPanel.remove(myIconLabel);
         myPanel.add(mySlider, BorderLayout.LINE_START);
+        updateSliderVisibility();
       }
       else {
         myPanel.remove(mySlider);
         myPanel.add(myIconLabel, BorderLayout.LINE_START);
-        Icon icon = NlDefaultRenderer.getIcon(myProperty);
+        int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
+        Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
         myIconLabel.setIcon(icon);
         myIconLabel.setVisible(icon != null);
+        myIconLabel.setToolTipText("Pick a Resource");
       }
 
       String propValue = StringUtil.notNullize(myProperty.getValue());
       if (!propValue.equals(myLastReadValue)) {
         myLastReadValue = propValue;
         myLastWriteValue = propValue;
-        myTextFieldWithAutoCompletion.setText(propValue);
+        myTextEditorWithAutoCompletion.setText(propValue);
       }
       Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
-      myTextFieldWithAutoCompletion.setTextColor(color);
+      myTextEditorWithAutoCompletion.setTextColor(color);
     }
     finally {
       myUpdatingProperty = false;
@@ -222,13 +306,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   private void updateSliderVisibility() {
     if (myPropertyHasSlider) {
-      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
-      mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+      int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
+      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
+      mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
     }
   }
 
   private boolean configureSlider() {
-    if (myProperty == null) {
+    if (myProperty == null || !myHasSliderSupport) {
       return false;
     }
     AttributeDefinition definition = myProperty.getDefinition();
@@ -271,8 +356,12 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (valueAsString == null) {
       return defaultValue;
     }
+    ResourceResolver resolver = myProperty.getResolver();
+    if (resolver == null) {
+      return defaultValue;
+    }
     Configuration configuration = myProperty.getModel().getConfiguration();
-    Integer value = resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
+    Integer value = resolveDimensionPixelSize(resolver, valueAsString, configuration);
     if (value == null) {
       return defaultValue;
     }
@@ -311,17 +400,22 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (myUpdatingProperty) {
       return;
     }
-    myTextFieldWithAutoCompletion.setText(getSliderValue());
-    if (!mySlider.getValueIsAdjusting()) {
+    myTextEditorWithAutoCompletion.setText(getSliderValue());
+    if (myIsInspector && !mySlider.getValueIsAdjusting()) {
+      // For an editor in the inspector we want to update the value after the user
+      // stops dragging the slider knob.
+      // For an editor in the property table we don't want to update, since that
+      // would remove the cell editor. We will update when the user stops editing
+      // the cell.
       stopEditing(getText());
     }
   }
 
   @Override
   public void requestFocus() {
-    myTextFieldWithAutoCompletion.requestFocus();
-    myTextFieldWithAutoCompletion.selectAll();
-    myTextFieldWithAutoCompletion.scrollRectToVisible(myTextFieldWithAutoCompletion.getBounds());
+    myTextEditorWithAutoCompletion.requestFocus();
+    myTextEditorWithAutoCompletion.selectAll();
+    myTextEditorWithAutoCompletion.scrollRectToVisible(myTextEditorWithAutoCompletion.getBounds());
   }
 
   @NotNull
@@ -339,10 +433,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   @Override
   public void stopEditing(@Nullable Object newValue) {
     // Update the selected value for immediate feedback from resource editor.
-    myTextFieldWithAutoCompletion.setText((String)newValue);
+    myTextEditorWithAutoCompletion.setText((String)newValue);
     // Select all the text to give visual confirmation that the value has been applied.
-    if (hasFocus()) {
-      myTextFieldWithAutoCompletion.selectAll();
+    if (myTextEditorWithAutoCompletion.editorHasFocus()) {
+      myTextEditorWithAutoCompletion.selectAll();
     }
 
     if (!Objects.equals(newValue, myLastWriteValue)) {
@@ -352,118 +446,41 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     }
   }
 
-  private boolean hasFocus() {
-    if (myTextFieldWithAutoCompletion.hasFocus()) {
-      return true;
-    }
-    Editor editor = myTextFieldWithAutoCompletion.getEditor();
-    return editor != null && editor.getContentComponent().hasFocus();
+  protected void cancel() {
+    // Update the selected value for immediate feedback from resource editor.
+    myTextEditorWithAutoCompletion.setText(myProperty.getValue());
+    myTextEditorWithAutoCompletion.selectAll();
+    cancelEditing();
   }
 
-  private static class TextEditor extends TextFieldWithAutoCompletion<String> {
-    private final TextAttributes myTextAttributes;
+  // This is a workaround to avoid the problem where a click on an activate editor
+  // in a table also causes the slider to change value. The workaround is simply
+  // to delay all mouse events until a short time after the editor is created.
+  public static class SliderWithTimeDelay extends JSlider {
+    private static final long SHORT_WAIT_MILLIS = 300;
+    private Clock myClock;
+    private long myLastAddNotifyMillis;
 
-    public TextEditor(@NotNull Project project, @NotNull CompletionProvider provider) {
-      super(project, provider, true, null);
-      myTextAttributes = new TextAttributes(DEFAULT_VALUE_TEXT_COLOR, null, null, null, Font.PLAIN);
+    private SliderWithTimeDelay() {
+      myClock = Clock.systemUTC();
+    }
+
+    @TestOnly
+    public void setClock(@NotNull Clock clock) {
+      myClock = clock;
     }
 
     @Override
     public void addNotify() {
       super.addNotify();
-      EditorEx editor = (EditorEx)getEditor();
-      assert editor != null;
-      editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
-      editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
-      editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-      editor.setBorder(new DarculaEditorTextFieldBorder() {
-        @Override
-        public Insets getBorderInsets(Component c) {
-          return new InsetsUIResource(VERTICAL_SPACING + VERTICAL_PADDING,
-                                      HORIZONTAL_PADDING,
-                                      VERTICAL_SPACING + VERTICAL_PADDING,
-                                      HORIZONTAL_PADDING);
-        }
-      });
+      myLastAddNotifyMillis = myClock.millis();
     }
 
-    public void setTextColor(@NotNull Color color) {
-      myTextAttributes.setForegroundColor(color);
-      EditorEx editor = (EditorEx)getEditor();
-      if (editor != null) {
-        editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
-        editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
+    @Override
+    protected void processMouseEvent(@NotNull MouseEvent event) {
+      if (myClock.millis() - myLastAddNotifyMillis > SHORT_WAIT_MILLIS) {
+        super.processMouseEvent(event);
       }
-    }
-  }
-
-  private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {
-    protected CompletionProvider() {
-      super(null);
-    }
-
-    @Nullable
-    @Override
-    public PrefixMatcher createPrefixMatcher(@NotNull String prefix) {
-      return new CamelHumpMatcher(prefix);
-    }
-
-    @Nullable
-    @Override
-    protected Icon getIcon(@NotNull String item) {
-      return item.startsWith(SdkConstants.ANDROID_PREFIX) ? AndroidIcons.Android : null;
-    }
-
-    @NotNull
-    @Override
-    protected String getLookupString(@NotNull String item) {
-      return item;
-    }
-
-    @Nullable
-    @Override
-    protected String getTailText(@NotNull String item) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    protected String getTypeText(@NotNull String item) {
-      return null;
-    }
-
-    @Override
-    public int compare(String item1, String item2) {
-      return ResourceHelper.compareResourceReferences(item1, item2);
-    }
-
-    public void updateCompletions(@NotNull NlProperty property) {
-      AttributeDefinition definition = property.getDefinition();
-      if (definition == null) {
-        setItems(null);
-        return;
-      }
-
-      EnumSet<ResourceType> types = BrowsePanel.getResourceTypes(property.getName(), definition);
-
-      // We include mipmap directly in the drawable maps
-      if (types.contains(ResourceType.MIPMAP)) {
-        types = types.clone();
-        types.remove(ResourceType.MIPMAP);
-        types.add(ResourceType.DRAWABLE);
-      }
-
-      if (types.contains(ResourceType.ID) && SdkConstants.ATTR_ID.equals(property.getName())) {
-        // Don't offer code completion on id's; you typically want to specify a new, unique
-        // one here, not reference an existing one
-        setItems(null);
-        return;
-      }
-
-      AndroidFacet facet = property.getModel().getFacet();
-      // No point sorting: TextFieldWithAutoCompletionListProvider performs its
-      // own sorting afterwards (by calling compare() above)
-      setItems(ResourceHelper.getCompletionFromTypes(facet, types, false));
     }
   }
 }

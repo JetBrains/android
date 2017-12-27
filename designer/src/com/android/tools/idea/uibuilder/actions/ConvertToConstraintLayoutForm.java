@@ -32,6 +32,7 @@ public class ConvertToConstraintLayoutForm extends DialogWrapper {
   private JPanel myPanel;
   private JBCheckBox myFlattenCheckBox;
   private JBCheckBox myFlattenReferencedCheckBox;
+  private JBCheckBox myIncludeCustomViewCheckBox;
 
   protected ConvertToConstraintLayoutForm(@Nullable Project project) {
     super(project);
@@ -51,5 +52,9 @@ public class ConvertToConstraintLayoutForm extends DialogWrapper {
 
   public boolean getFlattenReferenced() {
     return myFlattenReferencedCheckBox.isSelected();
+  }
+
+  public boolean getIncludeCustomViews() {
+    return myIncludeCustomViewCheckBox.isSelected();
   }
 }

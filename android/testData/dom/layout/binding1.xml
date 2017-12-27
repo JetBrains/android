@@ -19,8 +19,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
     <data>
+        <import type="java.util.List"/>
+        <import type="java.util.Map" alias="MyMap"/>
         <variable name="user" type="com.android.example.bindingdemo.vo.User"/>
         <variable name="clickListener" type="android.view.View.OnClickListener"/>
+        <variable name="boxedBoolean" type="Boolean"/>
+        <variable name="list" type="List&lt;String&gt;"/>
+        <variable name="map" type="MyMap&lt;String, Integer&gt;"/>
+        <variable name="unresolvedType1" type="<error descr="Cannot resolve symbol 'Map'">Map&lt;String, Integer&gt;</error>"/>
+        <variable name="unresolvedType2" type="<error descr="Cannot resolve symbol 'Bogus'">List&lt;Bogus&gt;</error>"/>
+        <variable name="unresolvedType3" type="<error descr="Cannot resolve symbol 'Bogus'">Bogus&lt;String&gt;</error>"/>
     </data>
     <LinearLayout
         android:orientation="horizontal" android:layout_width="wrap_content"
@@ -47,6 +55,7 @@
             android:id="@+id/fullname"
             android:gravity="center"
             android:text='@{user.name.substring(0,1).toUpperCase() + "." + user.lastName}'
+            android:layout_weight="@{safeUnbox(boxedBoolean) ? 2 : 3}"
             android:layout_width="wrap_content"
             android:layout_height="match_parent" />
     </LinearLayout>

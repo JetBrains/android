@@ -18,12 +18,12 @@ package com.android.tools.idea.sdk.wizard;
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
@@ -82,7 +82,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // True when all the visible licenses have been accepted.
   private BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  protected LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
+  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
     super(model, "License Agreement");
     myInstallRequests = installRequests;
   }
@@ -249,7 +249,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
 
   @Override
   protected boolean shouldShow() {
-    return myVisibleLicenses.size() > 0 && !getModel().getLicenses().isEmpty();
+    return !myVisibleLicenses.isEmpty() && !getModel().getLicenses().isEmpty();
   }
 
   @Nullable

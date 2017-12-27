@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

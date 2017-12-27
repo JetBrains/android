@@ -57,10 +57,10 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.EXT_GRADLE;
 
 /**
  * Static utility methods pertaining to templates for projects, modules, and activities.
@@ -68,6 +68,7 @@ import java.util.List;
 @SuppressWarnings("restriction") // WST API
 public class TemplateUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.DomUtilities");
+  private static final Pattern WINDOWS_NEWLINE = Pattern.compile("\r\n");
 
   /**
    * Creates a Java class name out of the given string, if possible. For
@@ -298,7 +299,7 @@ public class TemplateUtils {
   /**
    * Reformats and rearranges the part of the File concerning the PsiElement received
    *
-   * @param project The project which contains the given element
+   * @param project    The project which contains the given element
    * @param psiElement The element to be reformated and rearranged
    */
   public static void reformatAndRearrange(@NotNull Project project, @NotNull PsiElement psiElement) {
@@ -317,9 +318,9 @@ public class TemplateUtils {
    *
    * Note: reformatting the PSI file requires that this be wrapped in a write command.
    *
-   * @param project The project which contains the given element
-   * @param virtualFile Virtual file to be reformatted and rearranged, if null, the entire file will be considered
-   * @param psiElement The element in the file to be reformatted and rearranged
+   * @param project            The project which contains the given element
+   * @param virtualFile        Virtual file to be reformatted and rearranged, if null, the entire file will be considered
+   * @param psiElement         The element in the file to be reformatted and rearranged
    * @param keepDocumentLocked True if the document will still be modified in the same write action
    */
   private static void reformatAndRearrange(@NotNull Project project,
@@ -327,14 +328,21 @@ public class TemplateUtils {
                                            @Nullable PsiElement psiElement,
                                            boolean keepDocumentLocked) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+
+    if (Objects.equals(virtualFile.getExtension(), EXT_GRADLE)) {
+      // Do not format Gradle files. Otherwise we get spurious "Gradle files have changed since last project sync" warnings that make UI
+      // tests flaky.
+      return;
+    }
 
     Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
+
     if (document == null) {
       // The file could be a binary file with no editing support...
       return;
     }
 
+    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
     psiDocumentManager.commitDocument(document);
 
     PsiFile psiFile = psiDocumentManager.getPsiFile(document);
@@ -362,12 +370,12 @@ public class TemplateUtils {
    * @return true if all files were opened
    */
   public static boolean openEditors(@NotNull Project project, @NotNull Collection<File> files, boolean select) {
-    if (files.size() > 0) {
+    if (!files.isEmpty()) {
       boolean result = true;
       VirtualFile last = null;
       for (File file : files) {
         if (file.exists()) {
-          VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
+          VirtualFile vFile = VfsUtil.findFileByIoFile(file, true);
           if (vFile != null) {
             result &= openEditor(project, vFile);
             last = vFile;
@@ -393,7 +401,6 @@ public class TemplateUtils {
    *
    * @param project The project which contains the given file.
    * @param vFile   The file to open
-   * @return
    */
   public static boolean openEditor(@NotNull Project project, @NotNull VirtualFile vFile) {
     OpenFileDescriptor descriptor;
@@ -506,7 +513,7 @@ public class TemplateUtils {
     }
     Document document = FileDocumentManager.getInstance().getDocument(vf);
     if (document != null) {
-      document.setText(contents.replaceAll("\r\n", "\n"));
+      document.setText(WINDOWS_NEWLINE.matcher(contents).replaceAll("\n"));
       FileDocumentManager.getInstance().saveDocument(document);
     }
     else {
@@ -537,6 +544,7 @@ public class TemplateUtils {
 
   /**
    * Find the first parent directory that exists and check if this directory is writeable.
+   *
    * @throws IOException if the directory is not writable.
    */
   public static void checkDirectoryIsWriteable(@NotNull File directory) throws IOException {

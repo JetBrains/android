@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -133,7 +133,7 @@ public class ResourceNotificationManager {
 
   @NotNull
   public ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file, @Nullable Configuration configuration) {
-    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -268,33 +268,27 @@ public class ResourceNotificationManager {
       }
       myPendingNotify = true;
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        synchronized (CHANGE_PENDING_LOCK) {
-          if (!myPendingNotify) {
-            return;
-          }
-          myPendingNotify = false;
+    ApplicationManager.getApplication().invokeLater(() -> {
+      synchronized (CHANGE_PENDING_LOCK) {
+        if (!myPendingNotify) {
+          return;
         }
-        // Ensure that the notify happens after all pending Swing Runnables
-        // have been processed, including any created *after* the initial notice()
-        // call which scheduled this runnable, since they could for example be
-        // ResourceFolderRepository#rescan() Runnables, and we want those to finish
-        // before the final notify. Notice how we clear the pending notify flag
-        // above though, such that if another event appears between the first
-        // invoke later and the second, it will schedule another complete notification
-        // event.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            EnumSet<Reason> reason = myEvents;
-            myEvents = EnumSet.noneOf(Reason.class);
-            notifyListeners(reason);
-            myEvents.clear();
-          }
-        });
+        myPendingNotify = false;
       }
+      // Ensure that the notify happens after all pending Swing Runnables
+      // have been processed, including any created *after* the initial notice()
+      // call which scheduled this runnable, since they could for example be
+      // ResourceFolderRepository#rescan() Runnables, and we want those to finish
+      // before the final notify. Notice how we clear the pending notify flag
+      // above though, such that if another event appears between the first
+      // invoke later and the second, it will schedule another complete notification
+      // event.
+      ApplicationManager.getApplication().invokeLater(() -> {
+        EnumSet<Reason> reason1 = myEvents;
+        myEvents = EnumSet.noneOf(Reason.class);
+        notifyListeners(reason1);
+        myEvents.clear();
+      });
     });
   }
 
@@ -318,7 +312,7 @@ public class ResourceNotificationManager {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = AppResourceRepository.getAppResources(facet, true).getModificationCount();
+      myGeneration = AppResourceRepository.getOrCreateInstance(facet).getModificationCount();
     }
 
     @Override
@@ -347,7 +341,7 @@ public class ResourceNotificationManager {
         // we want it to add its own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
-        ModuleResourceRepository.getModuleResources(myFacet, true /*createIfNecessary*/);
+        ModuleResourceRepository.getOrCreateInstance(myFacet);
         myFacet.getResourceFolderManager().addListener(this);
       }
     }
@@ -359,7 +353,7 @@ public class ResourceNotificationManager {
     }
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
-      long generation = myFacet.getAppResources(true).getModificationCount();
+      long generation = AppResourceRepository.getOrCreateInstance(myFacet).getModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
@@ -609,13 +603,16 @@ public class ResourceNotificationManager {
     }
 
     private boolean isIgnorable(PsiTreeChangeEvent event) {
-      // We can ignore edits in whitespace, and in XML error nodes, and in comments
+      // We can ignore edits in whitespace, XML error nodes, and modification in comments.
       // (Note that editing text in an attribute value, including whitespace characters,
       // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
+      // Moreover, We only ignore the modification of commented texts (in such case the type of
+      // parent is XmlComment), because the user may *mark* some components/attributes as comments
+      // for debugging purpose. In that case the child is instance of XmlComment but parent isn't,
+      // so we will NOT ignore the event.
       PsiElement child = event.getChild();
       PsiElement parent = event.getParent();
       if (child instanceof PsiErrorElement ||
-          child instanceof XmlComment ||
           parent instanceof XmlComment) {
         return true;
       }

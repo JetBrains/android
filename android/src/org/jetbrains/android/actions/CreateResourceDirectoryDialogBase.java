@@ -90,7 +90,7 @@ public abstract class CreateResourceDirectoryDialogBase extends DialogWrapper {
                                .getHtml());
           directoryNameTextField.setText("");
         }
-        setOKActionEnabled(directoryNameTextField.getText().length() > 0);
+        setOKActionEnabled(!directoryNameTextField.getText().isEmpty());
       }
     };
   }

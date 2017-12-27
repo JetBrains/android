@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.XmlBuilder;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,11 +38,11 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
           .startTag(tagName)
           .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
           .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
-            .startTag(EDIT_TEXT)
+            .startTag(TEXT_INPUT_EDIT_TEXT)
             .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
             .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
             .androidAttribute(ATTR_HINT, "hint")
-            .endTag(EDIT_TEXT)
+            .endTag(TEXT_INPUT_EDIT_TEXT)
           .endTag(tagName)
           .toString();
       default:

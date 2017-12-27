@@ -16,25 +16,19 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.truth.Truth.assertThat;
-
-public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubject, Module> {
+public class LibraryDependenciesSubject extends DependenciesSubject<LibraryOrderEntry> {
   @NotNull
-  public static SubjectFactory<LibraryDependenciesSubject, Module> libraryDependencies() {
-    return new SubjectFactory<LibraryDependenciesSubject, Module>() {
+  public static SubjectFactory<DependenciesSubject<LibraryOrderEntry>, Module> libraryDependencies() {
+    return new SubjectFactory<DependenciesSubject<LibraryOrderEntry>, Module>() {
       @Override
       public LibraryDependenciesSubject getSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
         return new LibraryDependenciesSubject(failureStrategy, subject);
@@ -42,54 +36,19 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     };
   }
 
-  private final Map<String, LibraryOrderEntry> myLibraryDependenciesByName = new HashMap<>();
-
   public LibraryDependenciesSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
     super(failureStrategy, subject);
-    if (subject != null) {
-      collectLibraryDependencies(subject);
-    }
   }
 
-  private void collectLibraryDependencies(@NotNull Module module) {
+  @Override
+  protected void collectDependencies(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-
-    // Collect direct dependencies first.
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-        if (libraryOrderEntry.isExported()) {
-          myLibraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
-        }
+        DependencyScope scope = libraryOrderEntry.getScope();
+        getOrCreateMappingFor(scope).put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
       }
     }
-
-    // Collect transitive library dependencies.
-    for (Module dependency : rootManager.getModuleDependencies()) {
-      collectLibraryDependencies(dependency);
-    }
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject contains(@NotNull String libraryName) {
-    assertThat(getLibraryNames()).contains(libraryName);
-    return this;
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject doesNotContain(@NotNull String libraryName) {
-    assertThat(getLibraryNames()).doesNotContain(libraryName);
-    return this;
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject isEmpty() {
-    assertThat(getLibraryNames()).isEmpty();
-    return this;
-  }
-
-  @NotNull
-  private Set<String> getLibraryNames() {
-    return myLibraryDependenciesByName.keySet();
   }
 }

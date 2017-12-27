@@ -1,6 +1,6 @@
 package org.jetbrains.android.dom;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
@@ -33,6 +33,7 @@ import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
@@ -98,7 +99,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           // Figure out if this resource is a framework file.
           // We really should store that info in the ValueResourceInfo instances themselves.
           // For now, attempt to figure it out
-          SystemResourceManager systemResourceManager = facet.getSystemResourceManager();
+          SystemResourceManager systemResourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
           VirtualFile containingFile = resourceInfo.getContainingFile();
           if (systemResourceManager != null) {
             VirtualFile parent = containingFile.getParent();
@@ -111,7 +112,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
         }
 
-        url = ResourceUrl.create(type, name, isFramework, false);
+        url = ResourceUrl.create(type, name, isFramework);
       }
       return generateDoc(element, url);
     } else if (element instanceof MyResourceElement) {
@@ -212,9 +213,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
             targetValue = attribute.getValue();
           }
 
-          if (targetValue.startsWith(ANDROID_NS_NAME_PREFIX)) {
-            targetValue = targetValue.substring(ANDROID_NS_NAME_PREFIX.length());
-          }
+          targetValue = StringUtil.trimStart(targetValue, ANDROID_NS_NAME_PREFIX);
 
           // Handle style item definitions, http://developer.android.com/guide/topics/resources/style-resource.html
           AttributeDefinition attributeDefinition = getAttributeDefinitionForElement(element, targetValue);
@@ -249,14 +248,14 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (facet == null) {
       return null;
     }
-    AttributeDefinitions definitions = getAttributeDefinitions(facet.getSystemResourceManager());
+    AttributeDefinitions definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getSystemResourceManager());
     if (definitions == null) {
       return null;
     }
     AttributeDefinition attributeDefinition = definitions.getAttrDefByName(name);
     if (attributeDefinition == null) {
       // Try to get the attribute definition using the local resource manager instead
-      definitions = getAttributeDefinitions(facet.getLocalResourceManager());
+      definitions = getAttributeDefinitions(ModuleResourceManagers.getInstance(facet).getLocalResourceManager());
       if (definitions == null) {
         return null;
       }
@@ -303,14 +302,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       final String finalNamespace = namespace;
 
       final CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(
-        new CachedValueProvider<String>() {
-          @Nullable
-          @Override
-          public Result<String> compute() {
-            final Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, finalNamespace, localName);
-            final String doc = pair != null ? generateDocForXmlAttribute(pair.getFirst(), pair.getSecond()) : null;
-            return Result.create(doc, PsiModificationTracker.MODIFICATION_COUNT);
-          }
+        () -> {
+          final Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, finalNamespace, localName);
+          final String doc = pair != null ? generateDocForXmlAttribute(pair.getFirst(), pair.getSecond()) : null;
+          return CachedValueProvider.Result.create(doc, PsiModificationTracker.MODIFICATION_COUNT);
         }, false);
       if (cachedDocsMap == null) {
         cachedDocsMap = new HashMap<>();
@@ -370,13 +365,13 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
                                                                      @NotNull String localName) {
     ResourceManager resourceManager;
     if (ANDROID_URI.equals(namespace) || TOOLS_URI.equals(namespace)) {
-      resourceManager = facet.getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
     }
     else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
-        resourceManager = facet.getLocalResourceManager();
+        resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     }
     else {
-      resourceManager = facet.getSystemResourceManager();
+      resourceManager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
     }
 
     if (resourceManager != null) {
@@ -393,7 +388,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     final StringBuilder builder = new StringBuilder("<html><body>");
     final Set<AttributeFormat> formats = definition.getFormats();
 
-    if (formats.size() > 0) {
+    if (!formats.isEmpty()) {
       builder.append("Formats: ");
       final List<String> formatLabels = new ArrayList<>(formats.size());
 
@@ -431,7 +426,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     final String docValue = definition.getDocValue(parentStyleable);
 
-    if (docValue != null && docValue.length() > 0) {
+    if (docValue != null && !docValue.isEmpty()) {
       if (builder.length() > 0) {
         builder.append("<br><br>");
       }

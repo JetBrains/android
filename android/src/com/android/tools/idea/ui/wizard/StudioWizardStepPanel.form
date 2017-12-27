@@ -5,15 +5,9 @@
       <xy x="20" y="20" width="500" height="400"/>
     </constraints>
     <properties/>
-    <border type="none"/>
-    <children>
-      <component id="3d8ae" class="com.intellij.ui.components.JBLabel" binding="myDescriptionLabel">
-        <constraints border-constraint="North"/>
-        <properties>
-          <font size="16" style="1"/>
-          <text value="(Step description)"/>
-        </properties>
-      </component>
-    </children>
+    <border type="empty">
+      <size top="0" left="72" bottom="0" right="72"/>
+    </border>
+    <children/>
   </grid>
 </form>

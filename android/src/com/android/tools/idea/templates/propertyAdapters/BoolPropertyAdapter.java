@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates.propertyAdapters;
 
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
 import freemarker.template.*;
 import org.jetbrains.annotations.NotNull;
 

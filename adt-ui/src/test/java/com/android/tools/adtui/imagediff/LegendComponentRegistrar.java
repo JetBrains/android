@@ -15,23 +15,19 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.AnimatedRange;
 import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendRenderData;
-import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
-import com.android.tools.adtui.model.*;
-import com.intellij.util.containers.ImmutableList;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 
-import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
@@ -39,82 +35,63 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
   private static final BaseAxisFormatter NETWORK_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 2, 5);
 
   public LegendComponentRegistrar() {
-    registerSimpleLineChart();
+    registerSimpleLegendComponent();
   }
-  private void registerSimpleLineChart() {
-    register(new LegendComponentImageDiffEntry("simple_legend_component.png") {
+  private void registerSimpleLegendComponent() {
+    // As a good portion of the legend component is composed by text, the similarity threshold needs to be increased.
+    // 2% is a reasonable value because make the test not to fail because of different text rendering on different JDKs,
+    // but also make it fail when something odd happens with the legend (e.g. when one of the icons doesn't render).
+    float similarityThreshold = 2;
+    register(new LegendComponentImageDiffEntry("simple_legend_component_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
-        // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
-        addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)), MEMORY_AXIS_FORMATTER);
-        addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)).setLegendIconType(
-          LegendRenderData.IconType.BOX), NETWORK_AXIS_FORMATTER);
+        // Create a simple legend component with different icon types.
+        addLine("", new LineConfig(Color.YELLOW).setLegendIconType(LegendConfig.IconType.NONE), MEMORY_AXIS_FORMATTER);
+        addLine("L", new LineConfig(Color.BLUE).setLegendIconType(LegendConfig.IconType.LINE), MEMORY_AXIS_FORMATTER);
+        addLine("B", new LineConfig(Color.RED).setLegendIconType(LegendConfig.IconType.BOX), NETWORK_AXIS_FORMATTER);
+        addLine("Z", new LineConfig(Color.GREEN).setLegendIconType(LegendConfig.IconType.DASHED_LINE), NETWORK_AXIS_FORMATTER);
       }
     });
   }
 
   private static abstract class LegendComponentImageDiffEntry extends AnimatedComponentImageDiffEntry {
 
-    private static final int LINE_CHART_INITIAL_VALUE = 20;
+    private static final int COMPONENT_HEIGHT_PX = 25;
 
-    private static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
-
-    /**
-     * Array of integers used to represent the delta between the current and the new values of the line chart.
-     */
-    private static final int[] VARIANCE_ARRAY = {5, 4, -4, 7, -6, 1, 5, -4, 7, 5, 3, -10, -8};
-
-    private int myVarianceArrayIndex;
-
-    private LineChart myLineChart;
+    private static final int COMPONENT_WIDTH_PX = 275;
 
     private LegendComponent myLegend;
 
-    private List<DefaultDataSeries<Long>> myData;
+    private LegendComponentModel myLegendModel;
 
-    private List<LegendRenderData> myRenderData = new ArrayList<>();
-
-    private LegendComponentImageDiffEntry(String baselineFilename) {
-      super(baselineFilename);
+    private LegendComponentImageDiffEntry(String baselineFilename, float similarityThreshold) {
+      super(baselineFilename, similarityThreshold);
     }
 
     @Override
     protected void setUp() {
-      myLegend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-      myLineChart = new LineChart();
-      myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
-      myData = new ArrayList<>();
+      myLegendModel = new LegendComponentModel(100);
+      myLegend = new LegendComponent(myLegendModel);
+      myLegend.setFont(ImageDiffUtil.getDefaultFont());
       myContentPane.add(myLegend, BorderLayout.CENTER);
-      myComponents.add(myLineChart);
-      myComponents.add(myLegend);
-      myVarianceArrayIndex = 0;
+      myContentPane.setSize(COMPONENT_WIDTH_PX, COMPONENT_HEIGHT_PX);
+      myComponents.add(myLegendModel);
     }
 
     @Override
     protected void generateTestData() {
-      for (int i = 0; i < TOTAL_VALUES; i++) {
-        for (DefaultDataSeries<Long> series : myData) {
-          ImmutableList<SeriesData<Long>> data = series.getAllData();
-          long last = data.isEmpty() ? LINE_CHART_INITIAL_VALUE : data.get(data.size() - 1).value;
-          long delta = VARIANCE_ARRAY[myVarianceArrayIndex++];
-          // Make sure not to add negative numbers.
-          long current = Math.max(last + delta, 0);
-          series.add(myCurrentTimeUs, current);
-          myVarianceArrayIndex %= VARIANCE_ARRAY.length;
-        }
-        myCurrentTimeUs += TIME_DELTA_US;
-      }
+      // Nothing to do
     }
 
-    protected void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig, BaseAxisFormatter formatter) {
-      AnimatedRange yRange = new AnimatedRange(rangeMin, rangeMax);
-      myComponents.add(yRange);
+    protected void addLine(String seriesLabel, LineConfig lineConfig, BaseAxisFormatter formatter) {
+      Range yRange = new Range();
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
-      myData.add(series);
-      myLineChart.addLine(rangedSeries, lineConfig);
-      myRenderData.add(myLineChart.createLegendRenderData(rangedSeries, formatter, myXRange));
-      myLegend.setLegendData(myRenderData);
+      series.add(0, 999L);
+
+      SeriesLegend legend = new SeriesLegend(rangedSeries, formatter, myXRange);
+      myLegend.configure(legend, new LegendConfig(lineConfig));
+      myLegendModel.add(legend);
     }
   }
 }

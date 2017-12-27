@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierOpen(android.net.wifi.aware.PeerHandle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(android.net.wifi.aware.PeerHandle, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(android.net.wifi.aware.PeerHandle, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySession void sendMessage(android.net.wifi.aware.PeerHandle, int, byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySession void sendMessage(android.net.wifi.aware.PeerHandle, int, byte[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySessionCallback void onPublishStarted(android.net.wifi.aware.PublishDiscoverySession) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.DiscoverySessionCallback void onSubscribeStarted(android.net.wifi.aware.SubscribeDiscoverySession) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.PublishConfig.Builder android.net.wifi.aware.PublishConfig.Builder setMatchFilter(java.util.List&lt;byte[]&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.PublishConfig.Builder android.net.wifi.aware.PublishConfig.Builder setPublishType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.wifi.aware.PublishConfig.PUBLISH_TYPE_UNSOLICITED, android.net.wifi.aware.PublishConfig.PUBLISH_TYPE_SOLICITED}" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.aware.PublishConfig.Builder android.net.wifi.aware.PublishConfig.Builder setServiceName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.PublishConfig.Builder android.net.wifi.aware.PublishConfig.Builder setServiceSpecificInfo(byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.PublishDiscoverySession void updatePublish(android.net.wifi.aware.PublishConfig) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.SubscribeConfig.Builder android.net.wifi.aware.SubscribeConfig.Builder setMatchFilter(java.util.List&lt;byte[]&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.SubscribeConfig.Builder android.net.wifi.aware.SubscribeConfig.Builder setServiceName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.SubscribeConfig.Builder android.net.wifi.aware.SubscribeConfig.Builder setServiceSpecificInfo(byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.SubscribeConfig.Builder android.net.wifi.aware.SubscribeConfig.Builder setSubscribeType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.wifi.aware.SubscribeConfig.SUBSCRIBE_TYPE_PASSIVE, android.net.wifi.aware.SubscribeConfig.SUBSCRIBE_TYPE_ACTIVE}" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.aware.SubscribeDiscoverySession void updateSubscribe(android.net.wifi.aware.SubscribeConfig) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.WIFI_AWARE_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager void attach(android.net.wifi.aware.AttachCallback, android.net.wifi.aware.IdentityChangedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager void attach(android.net.wifi.aware.AttachCallback, android.net.wifi.aware.IdentityChangedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager void attach(android.net.wifi.aware.AttachCallback, android.net.wifi.aware.IdentityChangedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager void attach(android.net.wifi.aware.AttachCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareManager void attach(android.net.wifi.aware.AttachCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierOpen(int, byte[]) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.wifi.aware.WifiAwareManager.WIFI_AWARE_DATA_PATH_ROLE_INITIATOR, android.net.wifi.aware.WifiAwareManager.WIFI_AWARE_DATA_PATH_ROLE_RESPONDER}" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierOpen(int, byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.wifi.aware.WifiAwareManager.WIFI_AWARE_DATA_PATH_ROLE_INITIATOR, android.net.wifi.aware.WifiAwareManager.WIFI_AWARE_DATA_PATH_ROLE_RESPONDER}" />
+    </annotation>
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void publish(android.net.wifi.aware.PublishConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void publish(android.net.wifi.aware.PublishConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void publish(android.net.wifi.aware.PublishConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void subscribe(android.net.wifi.aware.SubscribeConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void subscribe(android.net.wifi.aware.SubscribeConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.wifi.aware.WifiAwareSession void subscribe(android.net.wifi.aware.SubscribeConfig, android.net.wifi.aware.DiscoverySessionCallback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

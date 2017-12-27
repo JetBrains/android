@@ -15,88 +15,81 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.builder.model.*;
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.google.common.collect.Sets;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsInstantApps;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
+/**
+ * Creates {@link DependencySet} from variant or artifact.
+ */
 public class DependenciesExtractor {
   @NotNull
   public static DependenciesExtractor getInstance() {
     return ServiceManager.getService(DependenciesExtractor.class);
   }
 
+  /**
+   * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
+   *
+   * @param variant the variant to extract dependencies from.
+   * @return Instance of {@link DependencySet} retrieved from given variant.
+   */
   @NotNull
-  public DependencySet extractFrom(@NotNull AndroidModuleModel androidModel) {
+  public DependencySet extractFrom(@NotNull IdeVariant variant) {
     DependencySet dependencies = new DependencySet();
-    GradleVersion modelVersion = androidModel.getModelVersion();
 
-    for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
-      populate(dependencies, testArtifact, TEST, modelVersion);
+    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
+      populate(dependencies, testArtifact, TEST);
     }
 
-    AndroidArtifact mainArtifact = androidModel.getMainArtifact();
-    populate(dependencies, mainArtifact, COMPILE, modelVersion);
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
+    populate(dependencies, mainArtifact, COMPILE);
 
     return dependencies;
   }
 
+  /**
+   * @param artifact the artifact to extract dependencies from.
+   * @param scope    Scope of the dependencies, e.g. "compile" or "test".
+   * @return Instance of {@link DependencySet} retrieved from given artifact.
+   */
   @NotNull
-  public DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope, @Nullable GradleVersion modelVersion) {
+  public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact, @NotNull DependencyScope scope) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, scope, modelVersion);
+    populate(dependencies, artifact, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
-                               @NotNull BaseArtifact artifact,
-                               @NotNull DependencyScope scope,
-                               @Nullable GradleVersion modelVersion) {
-    Dependencies artifactDependencies = getDependencies(artifact, modelVersion);
-    boolean supportsInstantApps = modelVersion != null && androidModelSupportsInstantApps(modelVersion);
+                               @NotNull IdeBaseArtifact artifact,
+                               @NotNull DependencyScope scope) {
+    IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
-    addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope);
-
-    Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary library : artifactDependencies.getLibraries()) {
-      addAndroidLibrary(library, dependencies, scope, unique);
-    }
-    if (supportsInstantApps) {
-      Collection<AndroidAtom> atoms = null;
-      try {
-        atoms = artifactDependencies.getAtoms();
-      }
-      catch (Throwable e) {
-        getLogger().warn("Android plugin version " + modelVersion.toString() + " should support Atoms", e);
-      }
-      if (atoms != null) {
-        for (AndroidAtom androidAtom : atoms) {
-          addAndroidAtom(androidAtom, dependencies, scope, unique);
-        }
-      }
+    for (Library library : artifactDependencies.getJavaLibraries()) {
+      LibraryDependency libraryDependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
+      libraryDependency.addPath(LibraryDependency.PathType.BINARY, library.getArtifact());
+      dependencies.add(libraryDependency);
     }
 
-    //noinspection deprecation
-    for (String gradleProjectPath : artifactDependencies.getProjects()) {
+    for (Library library : artifactDependencies.getAndroidLibraries()) {
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
+    }
+
+    for (Library library : artifactDependencies.getModuleDependencies()) {
+      String gradleProjectPath = library.getProjectPath();
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(dependency);
@@ -105,128 +98,88 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static String getBundleName(@NotNull AndroidBundle bundle) {
-    MavenCoordinates coordinates = bundle.getResolvedCoordinates();
-    //noinspection ConstantConditions
-    if (coordinates != null) {
-      return coordinates.getArtifactId() + "-" + coordinates.getVersion();
-    }
-    File bundleFile = bundle.getBundle();
-    return getNameWithoutExtension(bundleFile);
-  }
-
-  private static boolean isAlreadySeen(@NotNull AndroidBundle bundle, @NotNull Set<File> unique) {
-    // We're using the library location as a unique handle rather than the AndroidLibrary instance itself, in case
-    // the model just blindly manufactures library instances as it's following dependencies
-    File folder = bundle.getFolder();
-    if (unique.contains(folder)) {
-      return true;
-    }
-    unique.add(folder);
-    return false;
-  }
-
-  /**
-   * Add an Android library, along with any recursive library dependencies
-   */
-  private static void addAndroidLibrary(@NotNull AndroidLibrary library,
-                                        @NotNull DependencySet dependencies,
-                                        @NotNull DependencyScope scope,
-                                        @NotNull Set<File> unique) {
-    if (isAlreadySeen(library, unique)) {
-      return;
-    }
-
-    String gradleProjectPath = library.getProject();
-    if (isNotEmpty(gradleProjectPath)) {
-      ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
-      // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
-      // project.) If we cannot set the module dependency, we set a library dependency instead.
-      dependency.setBackupDependency(createLibraryDependencyFromAndroidLibrary(library, scope));
-      dependencies.add(dependency);
-    }
-    else {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
-    }
-
-    addBundleTransitiveDependencies(library, dependencies, scope, unique);
-  }
-
-
-  /**
-   * Add an Android atom, along with any recursive atom dependencies
-   */
-  private static void addAndroidAtom(@NotNull AndroidAtom atom,
-                                     @NotNull DependencySet dependencies,
-                                     @NotNull DependencyScope scope,
-                                     @NotNull Set<File> unique) {
-    if (isAlreadySeen(atom, unique)) {
-      return;
-    }
-
-    String gradleProjectPath = atom.getProject();
-    if (isEmpty(gradleProjectPath)) {
-      getLogger().error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
-    }
-    else {
-      dependencies.add(new ModuleDependency(gradleProjectPath, scope));
-      addAtomTransitiveDependencies(atom, dependencies, scope, unique);
-    }
-  }
-
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(DependenciesExtractor.class);
-  }
-
-  private static void addBundleTransitiveDependencies(@NotNull AndroidBundle bundle,
-                                                      @NotNull DependencySet dependencies,
-                                                      @NotNull DependencyScope scope,
-                                                      @NotNull Set<File> unique) {
-    for (AndroidLibrary dependentLibrary : bundle.getLibraryDependencies()) {
-      addAndroidLibrary(dependentLibrary, dependencies, scope, unique);
-    }
-  }
-
-  private static void addAtomTransitiveDependencies(@NotNull AndroidAtom atom,
-                                                    @NotNull DependencySet dependencies,
-                                                    @NotNull DependencyScope scope,
-                                                    @NotNull Set<File> unique) {
-    for (AndroidAtom dependentAtom : atom.getAtomDependencies()) {
-      addAndroidAtom(dependentAtom, dependencies, scope, unique);
-    }
-    addBundleTransitiveDependencies(atom, dependencies, scope, unique);
-  }
-
-  @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull AndroidLibrary library,
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
-    LibraryDependency dependency = new LibraryDependency(library.getBundle(), getBundleName(library), scope);
+    LibraryDependency dependency =
+      new LibraryDependency(library.getArtifact(), getDependencyName(library, "-"), scope);
     dependency.addPath(BINARY, library.getJarFile());
     dependency.addPath(BINARY, library.getResFolder());
 
-    for (File localJar : library.getLocalJars()) {
+    for (String localJar : library.getLocalJars()) {
       dependency.addPath(BINARY, localJar);
     }
     return dependency;
   }
 
-  private static void addJavaLibraries(@NotNull DependencySet dependencies,
-                                       @NotNull Collection<? extends JavaLibrary> libraries,
-                                       @NotNull DependencyScope scope) {
-    for (JavaLibrary library : libraries) {
-      addJavaLibrary(library, dependencies, scope);
-    }
-  }
-
-  private static void addJavaLibrary(@NotNull JavaLibrary library, @NotNull DependencySet dependencies, @NotNull DependencyScope scope) {
-    dependencies.add(createLibraryDependencyFromJavaLibrary(library, scope));
-    addJavaLibraries(dependencies, library.getDependencies(), scope);
-  }
-
+  /**
+   * Get user friendly name of a level2 library dependency.
+   *
+   * @param library   Level 2 library instance.
+   * @param separator String to connect artifact id and version, for example, "-" or ":".
+   * @return User friendly name of the dependency.
+   * For example, artifactId[:/-]version for external library dependency, and moduleName::variant for module dependency.
+   */
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromJavaLibrary(@NotNull JavaLibrary library, @NotNull DependencyScope scope) {
-    File jarFilePath = library.getJarFile();
-    return new LibraryDependency(jarFilePath, scope);
+  public static String getDependencyName(@NotNull Library library, @NotNull String separator) {
+    String artifactAddress = library.getArtifactAddress();
+    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
+    // Artifact address for external libraries are in the format of groupId:artifactId:version@packing, thus can be converted to GradleCoordinate.
+    // But artifact address for module dependency is in the format of :moduleName::variant, trim the leading : for module dependency.
+    if (coordinates != null) {
+      String name = coordinates.getArtifactId();
+
+      GradleVersion version = coordinates.getVersion();
+      if (version != null && !"unspecified".equals(version.toString())) {
+        name += separator + version;
+      }
+      assert name != null;
+      if (StringUtil.isNotEmpty(coordinates.getGroupId())) {
+        return coordinates.getGroupId() + ":" + name;
+      }
+      return name;
+    }
+    return trimLeading(artifactAddress, ':');
+  }
+
+  /**
+   * Like {@link #getDependencyName(Library, String)} but intended for display purposes; names may not be unique
+   * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
+   * it will include the last component of the group id (unless identical to the artifact id).
+   *
+   * E.g.
+   * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
+   *         android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
+   *                         com.google.guava:guava:11.0.2@jar -> guava:11.0.2
+   */
+  @NotNull
+  public static String getDependencyDisplayName(@NotNull Library library) {
+    String artifactAddress = library.getArtifactAddress();
+    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
+    if (coordinates != null) {
+      String name = coordinates.getArtifactId();
+      if (name == null) {
+        name = "?";
+      }
+
+      // For something like android.arch.lifecycle:runtime, instead of just showing "runtime",
+      // we show "lifecycle:runtime"
+      if (!name.contains("-")) {
+        String groupId = coordinates.getGroupId();
+        if (groupId != null) {
+          int index = groupId.lastIndexOf('.'); // okay if it doesn't exist
+          String groupSuffix = groupId.substring(index + 1);
+          if (!groupSuffix.equals(name)) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
+            name = groupSuffix + ":" + name;
+          }
+        }
+      }
+
+      GradleVersion version = coordinates.getVersion();
+      if (version != null && !"unspecified".equals(version.toString())) {
+        name += ":" + version;
+      }
+      return name;
+    }
+    return trimLeading(artifactAddress, ':');
   }
 }

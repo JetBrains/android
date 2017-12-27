@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.observable.BindingsManager;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.io.FileUtil;

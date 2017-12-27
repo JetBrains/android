@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import org.fest.swing.core.Robot;
@@ -37,10 +39,15 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     super(WelcomeFrameFixture.class, robot, target);
   }
 
-  @NotNull
-  public WelcomeFrameFixture createNewProject() {
+  public SdkProblemDialogFixture createNewProjectWhenSdkIsInvalid() {
     findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
-    return this;
+    return SdkProblemDialogFixture.find(this);
+  }
+
+  @NotNull
+  public NewProjectWizardFixture createNewProject() {
+    findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
+    return NewProjectWizardFixture.find(robot());
   }
 
   @NotNull
@@ -50,18 +57,19 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
-  public WelcomeFrameFixture importCodeSample() {
-    findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
+  public WelcomeFrameFixture profileDebugApk() {
+    findActionLinkByActionId("WelcomeScreen.AndroidStudio.apkProfilingAndDebugging").click();
     return this;
+  }
+
+  @NotNull
+  public BrowseSamplesWizardFixture importCodeSample() {
+    findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
+    return BrowseSamplesWizardFixture.find(robot());
   }
 
   @NotNull
   private ActionLinkFixture findActionLinkByActionId(String actionId) {
     return ActionLinkFixture.findByActionId(actionId, robot(), target());
-  }
-
-  @NotNull
-  public MessagesFixture findMessageDialog(@NotNull String title) {
-    return MessagesFixture.findByTitle(robot(), title);
   }
 }

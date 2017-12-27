@@ -44,7 +44,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
-import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
@@ -84,7 +83,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky
@@ -239,7 +238,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private void importNativeDependencies(@NotNull AndroidFacet facet, @NotNull MavenProject mavenProject, @NotNull String moduleDirPath) {
-    final List<AndroidNativeLibData> additionalNativeLibs = new ArrayList<AndroidNativeLibData>();
+    final List<AndroidNativeLibData> additionalNativeLibs = new ArrayList<>();
     final String localRepository = MavenProjectsManager.getInstance(facet.getModule().getProject()).getLocalRepository().getPath();
 
     String defaultArchitecture = getPathFromConfig(facet.getModule(), mavenProject, moduleDirPath,
@@ -350,16 +349,10 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     Map<MavenId, String> importedAarArtifacts = project.getUserData(IMPORTED_AAR_ARTIFACTS);
 
     if (importedAarArtifacts == null) {
-      importedAarArtifacts = new HashMap<MavenId, String>();
+      importedAarArtifacts = new HashMap<>();
       project.putUserData(IMPORTED_AAR_ARTIFACTS, importedAarArtifacts);
 
-      postTasks.add(new MavenProjectsProcessorTask() {
-        @Override
-        public void perform(Project project, MavenEmbeddersManager embeddersManager, MavenConsole console, MavenProgressIndicator indicator)
-          throws MavenProcessCanceledException {
-          project.putUserData(IMPORTED_AAR_ARTIFACTS, null);
-        }
-      });
+      postTasks.add((project1, embeddersManager, console, indicator) -> project1.putUserData(IMPORTED_AAR_ARTIFACTS, null));
     }
     final List<MavenProject> allProjects = mavenTree.getProjects();
     String aarDirPath = importedAarArtifacts.get(mavenId);
@@ -384,7 +377,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final String classesJarUrl = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, classesJarPath) +
                                  JarFileSystem.JAR_SEPARATOR;
     final String resDirUrl = VfsUtilCore.pathToUrl(aarDirPath + "/" + SdkConstants.FD_RES);
-    final Set<String> urlsToAdd = new HashSet<String>(Arrays.asList(classesJarUrl, resDirUrl));
+    final Set<String> urlsToAdd = new HashSet<>(Arrays.asList(classesJarUrl, resDirUrl));
     collectJarsInAarLibsFolder(aarDirPath, urlsToAdd);
 
     for (String url : aarLibModel.getUrls(OrderRootType.CLASSES)) {
@@ -437,16 +430,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         apklibModule.putUserData(MODULE_IMPORTED, Boolean.TRUE);
         final Module finalGenModule = apklibModule;
 
-        tasks.add(new MavenProjectsProcessorTask() {
-          @Override
-          public void perform(Project project,
-                              MavenEmbeddersManager embeddersManager,
-                              MavenConsole console,
-                              MavenProgressIndicator indicator)
-            throws MavenProcessCanceledException {
-            finalGenModule.putUserData(MODULE_IMPORTED, null);
-          }
-        });
+        tasks.add((project1, embeddersManager, console, indicator) -> finalGenModule.putUserData(MODULE_IMPORTED, null));
         final MavenArtifactResolvedInfo resolvedDepArtifact =
           AndroidExternalApklibDependenciesManager.getInstance(project).getResolvedInfoForArtifact(depArtifactMavenId);
 
@@ -565,18 +549,15 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   private static ModuleOrderEntry findModuleDependency(ModifiableRootModel rootModel, final String moduleName) {
     final Ref<ModuleOrderEntry> result = Ref.create(null);
 
-    rootModel.orderEntries().forEach(new Processor<OrderEntry>() {
-      @Override
-      public boolean process(OrderEntry entry) {
-        if (entry instanceof ModuleOrderEntry) {
-          final ModuleOrderEntry moduleEntry = (ModuleOrderEntry)entry;
-          final String name = moduleEntry.getModuleName();
-          if (moduleName.equals(name)) {
-            result.set(moduleEntry);
-          }
+    rootModel.orderEntries().forEach(entry -> {
+      if (entry instanceof ModuleOrderEntry) {
+        final ModuleOrderEntry moduleEntry = (ModuleOrderEntry)entry;
+        final String name = moduleEntry.getModuleName();
+        if (moduleName.equals(name)) {
+          result.set(moduleEntry);
         }
-        return true;
       }
+      return true;
     });
 
     return result.get();
@@ -650,7 +631,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
     String s = AndroidRootUtil.getPathRelativeToModuleDir(apklibModule, vApklibDir.getPath());
     if (s != null) {
-      s = s.length() > 0 ? '/' + s + '/' : "/";
+      s = !s.isEmpty() ? '/' + s + '/' : "/";
       configuration.getState().RES_FOLDER_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_RES_DIR;
       configuration.getState().LIBS_FOLDER_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_NATIVE_LIBS_DIR;
       configuration.getState().MANIFEST_FILE_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_MANIFEST_FILE;
@@ -841,7 +822,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         Set<MavenId> resolvedArtifacts = context.getUserData(RESOLVED_APKLIB_ARTIFACTS_KEY);
 
         if (resolvedArtifacts == null) {
-          resolvedArtifacts = new HashSet<MavenId>();
+          resolvedArtifacts = new HashSet<>();
           context.putUserData(RESOLVED_APKLIB_ARTIFACTS_KEY, resolvedArtifacts);
         }
         if (resolvedArtifacts.add(depArtifact.getMavenId())) {
@@ -909,13 +890,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final MavenGeneralSettings generalSettings = mavenProjectsManager.getGeneralSettings();
     final MavenProjectReader mavenProjectReader = new MavenProjectReader(project);
 
-    final MavenProjectReaderProjectLocator locator = new MavenProjectReaderProjectLocator() {
-      @Nullable
-      @Override
-      public VirtualFile findProjectFile(MavenId coordinates) {
-        return null;
-      }
-    };
+    final MavenProjectReaderProjectLocator locator = coordinates -> null;
     final MavenArtifactResolvedInfo info = new MavenArtifactResolvedInfo();
     final MavenId mavenId = artifact.getMavenId();
     adm.setResolvedInfoForArtifact(mavenId, info);
@@ -925,8 +900,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     final String apiLevel = getPlatformFromConfig(projectForExternalApklib);
 
-    final List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencies =
-      new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
+    final List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencies = new ArrayList<>();
 
     List<MavenArtifact> deps = projectForExternalApklib.getDependencies();
 
@@ -1048,13 +1022,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (sdkPath != null) {
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
       if (sdkData != null) {
-        IAndroidTarget target = apiLevel != null && apiLevel.length() > 0
+        IAndroidTarget target = apiLevel != null && !apiLevel.isEmpty()
                                 ? sdkData.findTargetByApiLevel(apiLevel)
                                 : findNewestPlatformTarget(sdkData);
         if (target != null) {
           Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData, true);
           if (library == null) {
-            library = createNewAndroidSdkForMaven(new File(toSystemDependentName(sdkPath)), target);
+            library = createNewAndroidSdkForMaven(toSystemDependentPath(sdkPath), target);
           }
           return library;
         }
@@ -1170,28 +1144,28 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         configuration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
       }
     }
-    configuration.getState().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
+    configuration.getState().RES_OVERLAY_FOLDERS = Collections.singletonList("/res-overlay");
 
     Element resourceOverlayDirectories = getConfig(project, "resourceOverlayDirectories");
     if (resourceOverlayDirectories != null) {
-      List<String> dirs = new ArrayList<String>();
+      List<String> dirs = new ArrayList<>();
       for (Object child : resourceOverlayDirectories.getChildren()) {
         String dir = ((Element)child).getTextTrim();
-        if (dir != null && dir.length() > 0) {
+        if (dir != null && !dir.isEmpty()) {
           String relativePath = getRelativePath(moduleDirPath, makePath(project, dir));
-          if (relativePath != null && relativePath.length() > 0) {
+          if (relativePath != null && !relativePath.isEmpty()) {
             dirs.add('/' + relativePath);
           }
         }
       }
-      if (dirs.size() > 0) {
+      if (!dirs.isEmpty()) {
         configuration.getState().RES_OVERLAY_FOLDERS = dirs;
       }
     }
     else {
       String resOverlayFolderRelPath = getPathFromConfig(module, project, moduleDirPath, "resourceOverlayDirectory", true, true);
       if (resOverlayFolderRelPath != null && isFullyResolved(resOverlayFolderRelPath)) {
-        configuration.getState().RES_OVERLAY_FOLDERS = Arrays.asList('/' + resOverlayFolderRelPath);
+        configuration.getState().RES_OVERLAY_FOLDERS = Collections.singletonList('/' + resOverlayFolderRelPath);
       }
     }
 
@@ -1293,9 +1267,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       if (!myDirectory && resource.isDirectory()) {
         return false;
       }
-      if (outputPath.endsWith("/")) {
-        outputPath = outputPath.substring(0, outputPath.length() - 1);
-      }
+      outputPath = StringUtil.trimEnd(outputPath, "/");
       if (FileUtil.pathsEqual(outputPath, myResourceOutputPath)) {
         myResult = resource;
         return true;
@@ -1347,53 +1319,47 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                         MavenConsole console,
                         MavenProgressIndicator indicator)
       throws MavenProcessCanceledException {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          if (project.isDisposed() || project.getUserData(DELETE_OBSOLETE_MODULE_TASK_KEY) != Boolean.TRUE) {
-            return;
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (project.isDisposed() || project.getUserData(DELETE_OBSOLETE_MODULE_TASK_KEY) != Boolean.TRUE) {
+          return;
+        }
+        project.putUserData(DELETE_OBSOLETE_MODULE_TASK_KEY, null);
+        final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
+        final Set<Module> referredModules = new HashSet<>();
+
+        for (Module module : moduleModel.getModules()) {
+          if (!AndroidMavenUtil.isExtApklibModule(module)) {
+            collectDependenciesRecursively(module, referredModules);
           }
-          project.putUserData(DELETE_OBSOLETE_MODULE_TASK_KEY, null);
-          final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
-          final Set<Module> referredModules = new HashSet<Module>();
+        }
 
-          for (Module module : moduleModel.getModules()) {
-            if (!AndroidMavenUtil.isExtApklibModule(module)) {
-              collectDependenciesRecursively(module, referredModules);
-            }
-          }
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          boolean modelChanged = false;
 
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              boolean modelChanged = false;
+          for (final Module module : moduleModel.getModules()) {
+            if (AndroidMavenUtil.isExtApklibModule(module) && !referredModules.contains(module)) {
+              final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
 
-              for (final Module module : moduleModel.getModules()) {
-                if (AndroidMavenUtil.isExtApklibModule(module) && !referredModules.contains(module)) {
-                  final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-
-                  if (contentRoots.length > 0) {
-                    final VirtualFile contentRoot = contentRoots[0];
-                    try {
-                      contentRoot.delete(myProject);
-                    }
-                    catch (IOException e) {
-                      LOG.error(e);
-                    }
-                  }
-                  moduleModel.disposeModule(module);
-                  modelChanged = true;
+              if (contentRoots.length > 0) {
+                final VirtualFile contentRoot = contentRoots[0];
+                try {
+                  contentRoot.delete(myProject);
+                }
+                catch (IOException e) {
+                  LOG.error(e);
                 }
               }
-              if (modelChanged) {
-                moduleModel.commit();
-              }
-              else {
-                moduleModel.dispose();
-              }
+              moduleModel.disposeModule(module);
+              modelChanged = true;
             }
-          });
-        }
+          }
+          if (modelChanged) {
+            moduleModel.commit();
+          }
+          else {
+            moduleModel.dispose();
+          }
+        });
       });
     }
 

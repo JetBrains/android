@@ -144,14 +144,15 @@ public class AndroidManifestMergingBuilder
       testingManager.getCommandExecutor().log(messageBuilder.toString());
     }
 
+
     ImmutableList.Builder<Pair<String, File>> libraryFiles = ImmutableList.builder();
     for (File f : libManifests) {
       libraryFiles.add(Pair.of(f.getName(), f));
     }
 
     final ManifestMerger2.Invoker manifestMergerInvoker =
-      ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION)
-        .addBundleManifests(libraryFiles.build());
+      ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(
+        (File[])libManifests.stream().toArray());
 
     MergingReport mergingReport;
     try {

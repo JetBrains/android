@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.tools.idea.gradle.project.ModuleImporter;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;

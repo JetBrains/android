@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -28,19 +28,19 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public class NlPropertiesGrouper {
-  public List<PTableItem> group(@NotNull List<NlPropertyItem> properties, @NotNull List<NlComponent> components) {
-    String className = getCommonTagName(components);
-
+  public List<PTableItem> group(@NotNull List<NlPropertyItem> properties,
+                                @SuppressWarnings("UnusedParameters") @NotNull List<NlComponent> components) {
     List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
 
     // group theme attributes together
     NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator(
-      "Theme", p -> p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme")));
+      "Theme", "", p -> p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme")));
 
     // Disable this for now...
     //
     // group attributes that correspond to this component together
     //NlPropertyAccumulator customViewPropertiesAccumulator = null;
+    //String className = getCommonTagName(components);
     //if (className != null) {
     //  customViewPropertiesAccumulator = new NlPropertyAccumulator(className, p -> p != null && p.getParentStylables().contains(className));
     //}

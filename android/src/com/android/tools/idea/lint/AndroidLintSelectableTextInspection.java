@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.TextViewDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_TEXT_IS_SELECTABLE;
-import static com.android.SdkConstants.VALUE_TRUE;
 
 public class AndroidLintSelectableTextInspection extends AndroidLintInspectionBase {
   public AndroidLintSelectableTextInspection() {
     super(AndroidBundle.message("android.lint.inspections.selectable.text"), TextViewDetector.SELECTABLE);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix("Set android:textIsSelectable=true", ATTR_TEXT_IS_SELECTABLE, VALUE_TRUE)
-    };
   }
 }

@@ -16,89 +16,79 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Collections;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
-  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 2, 10, "%");
-
-  public CpuMonitorView(@NotNull CpuMonitor monitor) {
+  public CpuMonitorView(@NotNull StudioProfilersView profilersView, @NotNull CpuMonitor monitor) {
     super(monitor);
   }
 
   @Override
-  protected void populateUi(JPanel container, Choreographer choreographer) {
+  protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
-
-    Range viewRange = getMonitor().getTimeline().getViewRange();
-    Range dataRange = getMonitor().getTimeline().getDataRange();
+    container.setFocusable(true);
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
-    // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
-    Range leftYRange = new Range(0, 100);
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, CPU_USAGE_AXIS,
-                                                              AxisComponent.AxisOrientation.RIGHT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .clampToMajorTicks(true)
-      .setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = builder.build();
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT);
+    leftAxis.setShowAxisLine(false);
+    leftAxis.setShowMax(true);
+    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setHideTickAtMin(true);
+    leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart();
-    RangedContinuousSeries cpuSeries = new RangedContinuousSeries("CPU", viewRange, leftYRange, getMonitor().getThisProcessCpuUsage());
-    lineChart.addLine(cpuSeries, new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true));
+
+    CpuUsage cpuUsage = getMonitor().getThisProcessCpuUsage();
+    final LineChart lineChart = new LineChart(cpuUsage);
+    lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
+    lineChart.setMaxLineMargin(40);
+    lineChart.setFillEndGap(true);
+    getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
+
+    LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
+    lineChart.configure(cpuUsage.getCpuSeries(), config);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    legend.setLegendData(Collections.singletonList(lineChart.createLegendRenderData(cpuSeries, CPU_USAGE_AXIS, dataRange)));
+    CpuMonitor.Legends legends = getMonitor().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.MONITOR_LEGEND_RIGHT_PADDING).build();
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    legend.configure(legends.getCpuLegend(), new LegendConfig(config));
 
-    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    choreographer.register(lineChart);
-    choreographer.register(leftAxis);
-    choreographer.register(legend);
-
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));
     container.add(leftAxis, new TabularLayout.Constraint(0, 0));
     container.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
-    container.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        getMonitor().expand();
-      }
-    });
   }
 }

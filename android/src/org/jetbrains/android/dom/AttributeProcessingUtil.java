@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableSet;
@@ -33,6 +34,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
@@ -45,15 +47,17 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavDestinationElement;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +65,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
+import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 /**
  * Utility functions for enumerating available children attribute types in the context of a given XML tag.
@@ -123,7 +128,7 @@ public class AttributeProcessingUtil {
       Manifest manifest = facet.getManifest();
       if (manifest != null) {
         String aPackage = manifest.getPackage().getValue();
-        if (aPackage != null && aPackage.length() > 0) {
+        if (aPackage != null && !aPackage.isEmpty()) {
           return URI_PREFIX + aPackage;
         }
       }
@@ -205,19 +210,10 @@ public class AttributeProcessingUtil {
   private static void registerAttributes(AndroidFacet facet,
                                          DomElement element,
                                          @NotNull String styleableName,
-                                         AttributeProcessor callback,
-                                         Set<XmlName> skipNames) {
-    registerAttributes(facet, element, styleableName, null, callback, skipNames);
-    registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipNames);
-  }
-
-  private static void registerAttributes(AndroidFacet facet,
-                                         DomElement element,
-                                         @NotNull String styleableName,
                                          @Nullable String resPackage,
                                          AttributeProcessor callback,
                                          Set<XmlName> skipNames) {
-    ResourceManager manager = facet.getResourceManager(resPackage);
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
     if (manager == null) {
       return;
     }
@@ -246,10 +242,19 @@ public class AttributeProcessingUtil {
     while (c != null) {
       String styleableName = c.getName();
       if (styleableName != null) {
-        registerAttributes(facet, element, styleableName, callback, skipNames);
+        registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
       c = getSuperclass(c);
     }
+  }
+
+  @Nullable
+  private static String getResourcePackage(@NotNull PsiClass psiClass) {
+    // TODO: Replace this with the namespace of the styleableName when that is available.
+    String qualifiedName = psiClass.getQualifiedName();
+    return qualifiedName != null &&
+           qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
+           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
   }
 
   @Nullable
@@ -287,21 +292,28 @@ public class AttributeProcessingUtil {
     // register attributes by widget
     String widgetClassName = AndroidTextUtils.trimEndOrNullize(prefClassName, PREFERENCE_TAG_NAME);
     if (widgetClassName != null) {
-      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
+      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
       registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
     }
   }
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    return facet.getClassMap(CLASS_PREFERENCE);
-  }
-
-  public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME);
+    return ClassMaps.getInstance(facet).getClassMap(CLASS_PREFERENCE);
+  }
+
+  public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
+    return getClassMap(facet, VIEW_CLASS_NAME);
+  }
+
+  public static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
+    if (DumbService.isDumb(facet.getModule().getProject())) {
+      return Collections.emptyMap();
+    }
+    return ClassMaps.getInstance(facet).getClassMap(className);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -327,21 +339,21 @@ public class AttributeProcessingUtil {
       case "CollapsingToolbarLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
       case "CoordinatorLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
       case "AppBarLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "AppBarLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "AppBarLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
@@ -349,7 +361,23 @@ public class AttributeProcessingUtil {
         styleableName = viewName + "_Layout";
     }
 
-    registerAttributes(facet, element, styleableName, callback, skipAttrNames);
+    registerAttributes(facet, element, styleableName, getResourcePackage(psiClass), callback, skipAttrNames);
+  }
+
+  /**
+   * Entry point for XML elements in navigation XMLs
+   */
+  public static void processNavAttributes(@NotNull AndroidFacet facet,
+                                          @NotNull XmlTag tag,
+                                          @NotNull NavDestinationElement element,
+                                          @NotNull Set<XmlName> skipAttrNames,
+                                          @NotNull AttributeProcessor callback) {
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+    final PsiClass psiClass = schema.getDestinationClassByTag(tag.getName());
+
+    if (psiClass != null) {
+      registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
+    }
   }
 
   /**
@@ -388,12 +416,14 @@ public class AttributeProcessingUtil {
       }
 
       // Mockup attributes can be associated with any View, even include tag
-      registerToolsAttribute(ATTR_MOCKUP, callback);
-      registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
-      registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
+      if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
+        registerToolsAttribute(ATTR_MOCKUP, callback);
+        registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
+        registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
+      }
     }
 
-    if (element instanceof Tag || element instanceof Include || element instanceof Data) {
+    if (element instanceof Tag || element instanceof Data) {
       // don't want view attributes inside these tags
       return;
     }
@@ -417,7 +447,7 @@ public class AttributeProcessingUtil {
           if (name == null) {
             continue;
           }
-          registerAttributes(facet, element, name, callback, skipAttrNames);
+          registerAttributes(facet, element, name, getResourcePackage(aClass), callback, skipAttrNames);
         }
         break;
 
@@ -431,6 +461,10 @@ public class AttributeProcessingUtil {
         if (parentTagName != null) {
           registerAttributesForClassAndSuperclasses(facet, element, map.get(parentTagName), callback, skipAttrNames);
         }
+        break;
+
+      case NESTED_SCROLL_VIEW:
+        registerAttributesForClassAndSuperclasses(facet, element, map.get(SCROLL_VIEW), callback, skipAttrNames);
         break;
 
       default:
@@ -491,6 +525,9 @@ public class AttributeProcessingUtil {
                                        @NotNull AndroidFacet facet,
                                        boolean processAllExistingAttrsFirst,
                                        @NotNull AttributeProcessor callback) {
+    if (DumbService.getInstance(facet.getModule().getProject()).isDumb()) {
+      return;
+    }
     XmlTag tag = element.getXmlTag();
 
     final Set<XmlName> skippedAttributes =
@@ -508,6 +545,9 @@ public class AttributeProcessingUtil {
     else if (element instanceof XmlRawResourceElement) {
       processRawAttributes(tag, callback);
     }
+    else if (element instanceof NavDestinationElement) {
+      processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
+    }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
     // from Android framework with the name provided in annotation and register all attributes
@@ -517,7 +557,7 @@ public class AttributeProcessingUtil {
       return;
     }
 
-    final SystemResourceManager manager = facet.getSystemResourceManager();
+    final SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
     if (manager == null) {
       return;
     }
@@ -598,7 +638,7 @@ public class AttributeProcessingUtil {
                                                 @NotNull DomElement element,
                                                 @NotNull Collection<XmlName> skippedAttributes,
                                                 @NotNull AttributeProcessor callback) {
-    ResourceManager manager = facet.getSystemResourceManager();
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
 
     if (manager == null) {
       return;
@@ -673,7 +713,7 @@ public class AttributeProcessingUtil {
           if (attrDef != null) {
             String namespace = attr.getNamespace();
             result.add(new XmlName(attr.getLocalName(), attr.getNamespace()));
-            registerAttribute(attrDef, null, namespace.length() > 0 ? namespace : null, element, callback);
+            registerAttribute(attrDef, null, !namespace.isEmpty() ? namespace : null, element, callback);
           }
         }
       }

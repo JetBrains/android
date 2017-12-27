@@ -89,13 +89,13 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    if (myKeyStorePathField.getText().length() == 0) {
+    if (myKeyStorePathField.getText().isEmpty()) {
       return myKeyStorePathField;
     }
     else if (myKeyStorePasswordField.getPassword().length == 0) {
       return myKeyStorePasswordField;
     }
-    else if (myKeyAliasField.getText().length() == 0) {
+    else if (myKeyAliasField.getText().isEmpty()) {
       return myKeyAliasField;
     }
     else if (myKeyPasswordField.getPassword().length == 0) {
@@ -117,7 +117,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @Override
   protected void commitForNext() throws CommitStepException {
     final String keyStoreLocation = myKeyStorePathField.getText().trim();
-    if (keyStoreLocation.length() == 0) {
+    if (keyStoreLocation.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.keystore.location.error"));
     }
 
@@ -127,7 +127,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }
 
     final String keyAlias = myKeyAliasField.getText().trim();
-    if (keyAlias.length() == 0) {
+    if (keyAlias.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.key.alias.error"));
     }
 

@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
@@ -36,7 +36,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).contains(NDK_INTEGRATION_DEPRECATED)) {
       updateUsageTracker();
@@ -47,12 +47,10 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new OpenUrlHyperlink("https://developer.android.com/studio/build/experimental-plugin.html",
-                                          "Consider trying the new experimental plugin"));
+                                        "Consider trying the new experimental plugin"));
     hyperlinks.add(new SetUseDeprecatedNdkHyperlink());
     return hyperlinks;
   }
@@ -84,7 +82,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
         return;
       }
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 }

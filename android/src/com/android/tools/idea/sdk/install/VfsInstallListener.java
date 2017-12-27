@@ -27,7 +27,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.RefreshQueue;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,7 +51,8 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
 
   private static void doRefresh(@NonNull PackageOperation op,
                                 @NonNull ProgressIndicator progress) {
-    VirtualFile file = VfsUtil.findFileByIoFile(op.getLocation(progress), false);
+    // We must refreshIfNeeded otherwise directories that are added will never be refreshed
+    VirtualFile file = VfsUtil.findFileByIoFile(op.getLocation(progress), true);
     if (file != null) {
       file.refresh(false, true);
     }
@@ -64,6 +64,7 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       for (Sdk sdk : androidSdks.getAllAndroidSdks()) {
         androidSdks.refreshLibrariesIn(sdk);
+        androidSdks.refreshDocsIn(sdk);
       }
     });
   }

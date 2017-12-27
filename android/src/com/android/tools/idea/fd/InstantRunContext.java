@@ -16,7 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.components.ServiceManager;
@@ -44,9 +44,7 @@ public interface InstantRunContext {
    * @return the android gradle plugin version in use to build the instant run artifacts.
    */
   @NotNull
-  default GradleVersion getGradlePluginVersion() {
-    return new GradleVersion(0, 0, 0);
-  }
+  GradleVersion getGradlePluginVersion();
 
   /**
    * @return a hashcode which encapsulates the set of resources referenced from the manifest along with the values of those resources.

@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -36,12 +38,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class GradleOperations implements DeveloperServiceBuildSystemOperations {
   @Override
   public boolean canHandle(@NotNull Project project) {
-    return isBuildWithGradle(project);
+    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   @Override
@@ -91,6 +93,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           ArtifactDependencySpec spec = ArtifactDependencySpec.create(dependency);
           for (String dependencyValue : metadata.getDependencies()) {
             ArtifactDependencySpec value = ArtifactDependencySpec.create(dependencyValue);
+            assert value != null;
             // Ensure that the found version is at least the target version.
             if (value.equalsIgnoreVersion(spec) && VersionComparatorUtil.compare(spec.version, value.version) >= 0) {
               return true;
@@ -131,20 +134,20 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           }
         }.execute();
       }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 
   @Override
-  public void initializeServices(@NotNull Module module, @NotNull final Runnable initializationTask) {
+  public void initializeServices(@NotNull Module module, @NotNull Runnable initializationTask) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    facet.addListener(new GradleSyncListener.Adapter() {
+    GradleSyncState.subscribe(module.getProject(), new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         initializationTask.run();
       }
-    });
+    }, module);
   }
 
   @Override

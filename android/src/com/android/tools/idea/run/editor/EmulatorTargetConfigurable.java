@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AvdComboBox;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -40,8 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class EmulatorTargetConfigurable implements DeployTargetConfigurable<EmulatorTargetProvider.State> {
   private final Project myProject;
@@ -64,12 +63,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
     myMinSdkInfoMessageLabel.setBorder(JBUI.Borders.emptyTop(10));
     myMinSdkInfoMessageLabel.setIcon(AllIcons.General.BalloonWarning);
 
-    context.addModuleChangeListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myAvdCombo.startUpdatingAvds(ModalityState.current());
-      }
-    });
+    context.addModuleChangeListener(e -> myAvdCombo.startUpdatingAvds(ModalityState.current()));
   }
 
   private void createUIComponents() {
@@ -94,12 +88,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
       }
     });
 
-    avdComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        resetAvdCompatibilityWarningLabel();
-      }
-    });
+    avdComboBox.addActionListener(e -> resetAvdCompatibilityWarningLabel());
 
     myAvdComboWithButton = new ComboboxWithBrowseButton(avdComboBox);
 
@@ -172,7 +161,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
         return null;
       }
 
-      final AvdManager avdManager = facet.getAvdManagerSilently();
+      final AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
       if (avdManager == null) {
         return null;
       }
@@ -187,7 +176,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
         return null;
       }
 
-      AndroidVersion minSdk = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
+      AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
       LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getSystemImage());
       if (compatibility.isCompatible() == ThreeState.NO) {
         // todo: provide info about current module configuration

@@ -26,7 +26,9 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * In-memory tree representation of a file tree. Must be created with a file tree,
@@ -38,11 +40,13 @@ public class FileTreeModel implements TreeModel {
   /**
    * Root file that this model was created with.
    */
-  private File myRoot;
+  @NotNull
+  private final File myRoot;
 
   /**
    * Root of the data structure representation.
    */
+  @NotNull
   private Node myRootNode;
 
   private boolean myHideIrrelevantFiles;
@@ -164,17 +168,15 @@ public class FileTreeModel implements TreeModel {
   /**
    * Check to see if there are any conflicts (multiple files added to the same location) in the tree.
    */
+  @SuppressWarnings("unused")
   public boolean hasConflicts() {
-    if (myRootNode == null) {
-      return false;
-    }
     return treeHasConflicts(myRootNode);
   }
 
   /**
    * DFS through the tree looking for conflicted nodes.
    */
-  private static boolean treeHasConflicts(Node root) {
+  private static boolean treeHasConflicts(@NotNull Node root) {
     if (root.isConflicted) {
       return true;
     }
@@ -191,39 +193,55 @@ public class FileTreeModel implements TreeModel {
    * Add the given file to the representation.
    * This is a no-op if the given path already exists within the tree.
    */
-  public void addFile(@NotNull File f) {
-    addFile(f, null);
+  @Nullable
+  public Node addFile(@NotNull File f) {
+    return addFile(f, null);
   }
 
   /**
    * Add the given file to the representation and mark it with the given icon.
    * This is a no-op if the given path already exists within the tree.
    */
-  public void addFile(@NotNull File f, @Nullable Icon ic) {
-    if (FileUtil.filesEqual(f, myRoot)) return;
+  @Nullable
+  public Node addFile(@NotNull File f, @Nullable Icon ic) {
     String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
     if (s != null) {
       List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
-      makeNode(myRootNode, parts, ic, false);
+      return makeNode(myRootNode, parts, ic, false);
     }
+    return null;
   }
 
   /**
    * Add the given file to the representation and mark it with the given icon.
    * If the path already exists within the tree it will be marked as a conflicting path.
    */
-  public void forceAddFile(@NotNull File f, @Nullable Icon ic) {
+  @Nullable
+  public Node forceAddFile(@NotNull File f, @Nullable Icon ic) {
     String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
     if (s != null) {
       List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
-      makeNode(myRootNode, parts, ic, true);
+      return makeNode(myRootNode, parts, ic, true);
     }
+    return null;
+  }
+
+  public void sort(@NotNull Comparator<File> comparator) {
+    sort(myRoot, myRootNode, comparator);
+  }
+
+  private static void sort(@NotNull File rootFile, @NotNull Node rootNode, @NotNull Comparator<File> comparator) {
+    rootNode.children = rootNode.children
+      .stream()
+      .sorted((o1, o2) -> comparator.compare(new File(rootFile, o1.name), new File(rootFile, o2.name)))
+      .collect(Collectors.toList());
+    rootNode.children.forEach(childNode -> sort(new File(rootFile, childNode.name), childNode, comparator));
   }
 
   /**
    * Representation of a node within the tree
    */
-  protected static class Node {
+  public static class Node {
     public String name;
     public List<Node> children = Lists.newLinkedList();
     public boolean existsOnDisk;
@@ -267,10 +285,11 @@ public class FileTreeModel implements TreeModel {
    * Mark the last node in the path with the given icon. If markConflict is set, mark the final node
    * as conflicted if it already exists.
    */
-  private static void makeNode(@NotNull Node root, @NotNull List<String> path, @Nullable Icon ic, boolean markConflict) {
+  @NotNull
+  private static Node makeNode(@NotNull Node root, @NotNull List<String> path, @Nullable Icon ic, boolean markConflict) {
     root.isProposedFile = true;
     if (path.isEmpty()) {
-      return;
+      return root;
     }
 
     String name = path.get(0);
@@ -278,42 +297,45 @@ public class FileTreeModel implements TreeModel {
     if (markConflict) {
       if (path.size() == 1 && root.name.equals(name)) {
         root.isConflicted = true;
-        return;
+        return root;
       }
     }
     if (root.name.equals(name)) {
       // Continue down along already-created paths
-      makeNode(root, rest(path), ic, markConflict);
+      return makeNode(root, rest(path), ic, markConflict);
     } else if (root.hasChild(name)) {
       // Allow paths relative to root (rather than including root explicitly)
       if (markConflict && path.size() == 1) {
         Node targetNode = root.getChild(name);
+        assert targetNode != null;
         targetNode.isConflicted = true;
         targetNode.icon = ic;
         targetNode.isProposedFile = true;
-        return;
+        return targetNode;
       }
       //noinspection ConstantConditions
-      makeNode(root.getChild(name), rest(path), ic, markConflict);
+      return makeNode(root.getChild(name), rest(path), ic, markConflict);
     } else {
       // If this node in the path doesn't exist, then create it.
-      Node n = new Node();
-      n.name = name;
-      root.children.add(n);
+      Node newNode = new Node();
+      newNode.name = name;
+      root.children.add(newNode);
       if (path.size() == 1) {
         // If this is the end of the path, mark with the given icon
-        n.icon = ic;
-        n.isProposedFile = true;
+        newNode.icon = ic;
+        newNode.isProposedFile = true;
       } else {
         // Continue down to create the rest of the path
-        makeNode(n, rest(path), ic, markConflict);
+        return makeNode(newNode, rest(path), ic, markConflict);
       }
+      return newNode;
     }
   }
 
   /**
    * Populate a tree from the file hierarchy rooted at the given file.
    */
+  @NotNull
   private static Node makeTree(@NotNull File root) {
     Node n = new Node();
     n.name = root.getName();

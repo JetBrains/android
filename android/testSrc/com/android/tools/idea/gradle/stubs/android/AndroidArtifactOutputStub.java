@@ -15,54 +15,77 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
+import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
-
-  @NonNull
+  @NotNull
   private final Collection<OutputFile> myOutputs;
 
-  public AndroidArtifactOutputStub(@NonNull Collection<OutputFile> outputs) {
+  public AndroidArtifactOutputStub(@NotNull OutputFile output) {
+    this(Collections.singletonList(output));
+  }
+
+  public AndroidArtifactOutputStub(@NotNull Collection<OutputFile> outputs) {
     myOutputs = outputs;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public String getAssembleTaskName() {
-    throw new UnsupportedOperationException();
+    return "assemble";
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getGeneratedManifest() {
-    throw new UnsupportedOperationException();
+    return new File("test");
   }
 
-  @NonNull
   @Override
+  @NotNull
+  public String getOutputType() {
+    return getMainOutputFile().getOutputType();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getFilterTypes() {
+    return getMainOutputFile().getFilterTypes();
+  }
+
+  @Override
+  @NotNull
+  public Collection<FilterData> getFilters() {
+    return getMainOutputFile().getFilters();
+  }
+
+  @Override
+  @NotNull
   public OutputFile getMainOutputFile() {
     return myOutputs.iterator().next();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<? extends OutputFile> getOutputs() {
     return myOutputs;
   }
 
-  @NonNull
   @Override
-  public File getSplitFolder() {
-    throw new UnsupportedOperationException();
+  public int getVersionCode() {
+    return getMainOutputFile().getVersionCode();
   }
 
   @Override
-  public int getVersionCode() {
-    throw new UnsupportedOperationException();
+  @NotNull
+  public File getOutputFile() {
+    return getMainOutputFile().getOutputFile();
   }
 }

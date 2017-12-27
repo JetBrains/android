@@ -16,8 +16,9 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -26,38 +27,32 @@ import java.util.Map;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final Map<EventActionType, SimpleEventRenderer> RENDERERS;
+  private static final Map<SimpleEventType, SimpleEventRenderer<SimpleEventType>> RENDERERS;
+
   static {
-    RENDERERS = new HashMap();
-    RENDERERS.put(EventActionType.TOUCH, new TouchEventRenderer());
-    RENDERERS.put(EventActionType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    RENDERERS.put(EventActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+    RENDERERS = new HashMap<>();
+    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer<>());
+    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
-  public EventMonitorView(@NotNull EventMonitor monitor) {
+  public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
     super(monitor);
   }
 
   @Override
   public float getVerticalWeight() {
-    /**
-     * This forces the monitor to use its specified minimum size
-     * Also see {@link ProfilerMonitorView#initialize(Choreographer)}.
-     */
+    // This forces the monitor to use its specified minimum size
     return 0;
   }
 
   @Override
-  protected void populateUi(JPanel container, Choreographer choreographer) {
+  protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*,*"));
-    SimpleEventComponent<EventActionType> events =
-      new SimpleEventComponent<>(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getSimpleEvents()), RENDERERS);
+    SimpleEventComponent<SimpleEventType> events = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
     container.add(events, new TabularLayout.Constraint(0, 0));
-    choreographer.register(events);
 
-    StackedEventComponent activities =
-      new StackedEventComponent(new RangedSeries<>(getMonitor().getTimeline().getViewRange(), getMonitor().getActivityEvents()));
-    container.add(activities, new TabularLayout.Constraint(1, 0));
-    choreographer.register(activities);
+    StackedEventComponent component = new StackedEventComponent(getMonitor().getActivityEvents());
+    container.add(component, new TabularLayout.Constraint(1, 0));
   }
 }

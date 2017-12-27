@@ -18,16 +18,24 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
@@ -44,9 +52,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -59,12 +65,13 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -85,6 +92,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -109,30 +117,6 @@ public final class GradleUtil {
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
 
   private GradleUtil() {
-  }
-
-  @NotNull
-  public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
-    try {
-      Collection<File> folders = artifact.getGeneratedSourceFolders();
-      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
-      // See https://code.google.com/p/android/issues/detail?id=216236
-      //noinspection ConstantConditions
-      return folders != null ? folders : Collections.emptyList();
-    }
-    catch (UnsupportedMethodException e) {
-      // Model older than 1.2.
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
-    return artifact.getDependencies();
-  }
-
-  public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.3.0") >= 0;
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
@@ -165,13 +149,13 @@ public final class GradleUtil {
               err += String.format("<br>\nCause: %1$s", cause);
             }
 
-            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+            AndroidNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
           }
         }
         else {
           String text =
             String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          AndroidNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
         }
       });
     }
@@ -200,17 +184,31 @@ public final class GradleUtil {
   public static Icon getModuleIcon(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      int projectType = androidModel.getProjectType();
-      if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
-        return AndroidIcons.AppModule;
-      }
-      return AndroidIcons.LibraryModule;
+      return getAndroidModuleIcon(androidModel);
     }
-    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : ANDROID_MODULE;
+  }
+
+  @NotNull
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
+    switch(androidModuleModel.getAndroidProject().getProjectType()) {
+      case  PROJECT_TYPE_APP:
+        return ANDROID_MODULE;
+      case PROJECT_TYPE_FEATURE:
+        return FEATURE_MODULE;
+      case PROJECT_TYPE_INSTANTAPP:
+        return INSTANT_APPS;
+      case PROJECT_TYPE_LIBRARY:
+        return LIBRARY_MODULE;
+      case PROJECT_TYPE_TEST:
+        return ANDROID_TEST_ROOT;
+      default:
+        return ANDROID_MODULE;
+    }
   }
 
   @Nullable
-  public static AndroidProject getAndroidProject(@NotNull Module module) {
+  public static IdeAndroidProject getAndroidProject(@NotNull Module module) {
     AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
@@ -250,22 +248,20 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns the library dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
+   * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
+   * in the UI) artifacts.
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidModuleModel androidModel) {
-    List<AndroidLibrary> libraries = Lists.newArrayList();
+  public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
+    List<Library> libraries = Lists.newArrayList();
 
-    GradleVersion modelVersion = androidModel.getModelVersion();
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
+    IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
+    libraries.addAll(dependencies.getModuleDependencies());
 
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
-    Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
-    libraries.addAll(dependencies.getLibraries());
-
-    for (BaseArtifact testArtifact : getTestArtifacts(variant)) {
-      dependencies = getDependencies(testArtifact, modelVersion);
-      libraries.addAll(dependencies.getLibraries());
+    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
+      dependencies = testArtifact.getLevel2Dependencies();
+      libraries.addAll(dependencies.getModuleDependencies());
     }
     return libraries;
   }
@@ -355,9 +351,9 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
+  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-    if (IdeInfo.getInstance().isAndroidStudio() && useEmbeddedGradle) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       if (executionSettings == null) {
         File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
@@ -437,7 +433,7 @@ public final class GradleUtil {
    */
   @NotNull
   public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
-    assert gradlePath.length() > 0;
+    assert !gradlePath.isEmpty();
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
     return new File(virtualToIoFile(parentDir), relativePath);
   }
@@ -452,7 +448,7 @@ public final class GradleUtil {
   /**
    * Checks if the project already has a module with given Gradle path.
    */
-  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath, boolean checkProjectFolder) {
+  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath) {
     if (project == null) {
       return false;
     }
@@ -461,22 +457,15 @@ public final class GradleUtil {
         return true;
       }
     }
-    if (checkProjectFolder) {
-      File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-      if (location.isFile()) {
-        return true;
-      }
-      else if (location.isDirectory()) {
-        File[] children = location.listFiles();
-        return children == null || children.length > 0;
-      }
-      else {
-        return false;
-      }
+    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
+    if (location.isFile()) {
+      return true;
     }
-    else {
-      return false;
+    if (location.isDirectory()) {
+      File[] children = location.listFiles();
+      return children == null || children.length > 0;
     }
+    return false;
   }
 
   /**
@@ -493,7 +482,7 @@ public final class GradleUtil {
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
         else {
@@ -513,6 +502,17 @@ public final class GradleUtil {
     }
 
     return found != null ? GradleVersion.tryParse(found) : null;
+  }
+
+  @Nullable
+  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel != null) {
+      AndroidProject androidProject = androidModel.getAndroidProject();
+      return GradleVersion.tryParse(androidProject.getModelVersion());
+    }
+
+    return null;
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
@@ -583,15 +583,32 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
-    return dependsOn(dependencies, artifact);
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    return dependsOnAndroidLibrary(dependencies, artifact);
   }
 
+  /**
+   * Same as {@link #dependsOn(AndroidModuleModel, String)} but searches the list of Java Libraries
+   */
+  public static boolean dependsOnJavaLibrary(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    for (Library library : dependencies.getJavaLibraries()) {
+      if (dependsOn(library, artifact)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
+   * @return {@link GradleVersion} of the artifact if the project depends on the given artifact, or {@code null} if project doesn't depend on the artifact.
+   */
   @Nullable
   public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      String version = getDependencyVersion(library, artifact, true);
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    for (Library library : dependencies.getAndroidLibraries()) {
+      String version = getDependencyVersion(library, artifact);
       if (version != null) {
         return GradleVersion.tryParse(version);
       }
@@ -608,11 +625,11 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
+    IdeDependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
     if (dependencies == null) {
       return false;
     }
-    return dependsOn(dependencies, artifact);
+    return dependsOnAndroidLibrary(dependencies, artifact);
   }
 
   /**
@@ -623,9 +640,9 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
-  private static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      if (dependsOn(library, artifact, true)) {
+  private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
+    for (Library library : dependencies.getAndroidLibraries()) {
+      if (dependsOn(library, artifact)) {
         return true;
       }
     }
@@ -661,6 +678,28 @@ public final class GradleUtil {
         if (version != null) {
           return version;
         }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   *
+   * @param library  the Gradle library to check
+   * @param artifact the artifact
+   * @return {@code true} if the project depends on the given artifact
+   */
+  public static boolean dependsOn(@NonNull Library library, @NonNull String artifact) {
+    return getDependencyVersion(library, artifact) != null;
+  }
+
+  private static String getDependencyVersion(@NonNull Library library, @NonNull String artifact) {
+    GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
+    if (resolvedCoordinates != null) {
+      if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
+        return resolvedCoordinates.getRevision();
       }
     }
     return null;
@@ -712,33 +751,129 @@ public final class GradleUtil {
     }
   }
 
+  /**
+   * Find the Library whose exploded aar folder matches given directory.
+   *
+   * @param bundleDir The directory to search for.
+   * @param variant   The variant.
+   * @return the Library matches contains given bundleDir
+   */
   @Nullable
-  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant, @Nullable GradleVersion modelVersion) {
-    AndroidArtifact artifact = variant.getMainArtifact();
-    Dependencies dependencies = getDependencies(artifact, modelVersion);
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      AndroidLibrary result = findLibrary(library, bundleDir);
-      if (result != null) {
-        return result;
+  public static Library findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
+    IdeAndroidArtifact artifact = variant.getMainArtifact();
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    for (Library library : dependencies.getAndroidLibraries()) {
+      if (filesEqual(bundleDir, library.getFolder())) {
+        return library;
       }
     }
-
     return null;
   }
 
-  @Nullable
-  public static AndroidLibrary findLibrary(@NotNull AndroidLibrary library, @NotNull File bundleDir) {
-    if (filesEqual(bundleDir, library.getFolder())) {
-      return library;
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration The original configuration name, such as "androidTestCompile"
+   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            @Nullable GradleVersion pluginVersion,
+                                            boolean preferApi) {
+    return mapConfigurationName(configuration, pluginVersion != null ? pluginVersion.toString() : null, preferApi);
+  }
+
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration The original configuration name, such as "androidTestCompile"
+   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            @Nullable String pluginVersion,
+                                            boolean preferApi) {
+
+    boolean compatibilityNames = pluginVersion != null && pluginVersion.matches("[012]\\..*");
+    return mapConfigurationName(configuration, compatibilityNames, preferApi);
+  }
+
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration         The original configuration name, such as "androidTestCompile"
+   * @param useCompatibilityNames Whether we should use compatibility names
+   * @param preferApi             If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            boolean useCompatibilityNames,
+                                            boolean preferApi) {
+
+    if (useCompatibilityNames) {
+      return configuration;
     }
 
-    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-      AndroidLibrary result = findLibrary(dependency, bundleDir);
-      if (result != null) {
-        return result;
+    configuration = replaceSuffixWithCase(configuration, "compile", preferApi ? "api" : "implementation");
+    configuration = replaceSuffixWithCase(configuration, "provided", "compileOnly");
+    configuration = replaceSuffixWithCase(configuration, "apk", "runtimeOnly");
+
+    return configuration;
+  }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given project
+   *
+   * @param project the project to consult
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
+    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
+  }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
+   *
+   * @param gradleVersion the Gradle plugin version to check
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
+    return gradleVersion != null && gradleVersion.getMajor() < 3;
+  }
+
+
+  /**
+   * Replaces the given suffix in the string, preserving the case in the string, e.g.
+   * replacing "foo" with "bar" will result in "bar", and replacing "myFoo" with "bar"
+   * will result in "myBar". (This is not a general purpose method; it assumes that
+   * the only non-lowercase letter is the first letter of the suffix.)
+   */
+  private static String replaceSuffixWithCase(String s, String suffix, String newSuffix) {
+    if (SdkUtils.endsWithIgnoreCase(s, suffix)) {
+      int suffixBegin = s.length() - suffix.length();
+      if (Character.isUpperCase(s.charAt(suffixBegin))) {
+        return s.substring(0, suffixBegin) + Character.toUpperCase(newSuffix.charAt(0)) + newSuffix.substring(1);
+      }
+      else {
+        if (suffixBegin == 0) {
+          return newSuffix;
+        }
+        else {
+          return s.substring(0, suffixBegin) + suffix;
+        }
       }
     }
 
-    return null;
+    return s;
   }
 }

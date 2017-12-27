@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.openapi.wm.IdeFocusManager;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
-
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertEquals;
 
 public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialogBase> {
+  @NotNull
+  public static CreateResourceFileDialogFixture find(@NotNull Robot robot) {
+    return new CreateResourceFileDialogFixture(robot, find(robot, CreateResourceFileDialogBase.class));
+  }
+
   private CreateResourceFileDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<CreateResourceFileDialogBase> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
@@ -35,26 +34,5 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
   public CreateResourceFileDialogFixture requireName(@NotNull String name) {
     assertEquals(name, getDialogWrapper().getFileName());
     return this;
-  }
-
-  @NotNull
-  public CreateResourceFileDialogFixture setFileName(@NotNull final String newName) {
-    final Component field = robot().finder().findByLabel(getDialogWrapper().getContentPane(), "File name:");
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-          IdeFocusManager.getGlobalInstance().requestFocus(field, true);
-        });
-      }
-    });
-    robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot().enterText(newName);
-    return this;
-  }
-
-  @NotNull
-  public static CreateResourceFileDialogFixture find(@NotNull Robot robot) {
-    return new CreateResourceFileDialogFixture(robot, find(robot, CreateResourceFileDialogBase.class));
   }
 }

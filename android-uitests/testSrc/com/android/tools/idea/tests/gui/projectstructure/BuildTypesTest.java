@@ -19,9 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.BuildTypesTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +35,7 @@ public class BuildTypesTest {
   /**
    * Verifies addition of new build types
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581580
+   * <p>TT ID: 532c9d6c-18eb-49ea-99b0-be64dbecd5e1
    * <pre>
    *   Test Steps:
    *   1. Open the project structure dialog
@@ -56,20 +53,52 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    ProjectStructureDialogFixture projectStructureDialog =
-      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-
-    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
-    buildTypesTab.setName("newBuildType")
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+      .selectConfigurable("app")
+      .selectBuildTypesTab()
+      .setName("newBuildType")
       .setDebuggable("true")
-      .setVersionNameSuffix("suffix");
+      .setVersionNameSuffix("suffix")
+      .clickOk()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("/app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents)
+      .containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
+  }
 
-    projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
-    String gradleFileContents = editor.getCurrentFileContents();
-    assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
+  /**
+   * Verifies that an existing build type can be updated.
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TT ID: 50840081-9584-4e66-9333-6a50902b5853
+   * <pre>
+   *   Test Steps:
+   *   1. Open the project structure dialog
+   *   2. Select a module
+   *   3. Click the Build Types tab
+   *   4. Select Debug or Release and modify some settings.
+   *   Verification:
+   *   1. Build type selection in gradle build file is updated with the changes.
+   * </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void editBuildType() throws Exception {
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+      .selectConfigurable("app")
+      .selectBuildTypesTab()
+      .selectBuildType("release")
+      .setDebuggable("true")
+      .setVersionNameSuffix("suffix")
+      .clickOk()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("/app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents).containsMatch("release \\{\n[^\\}]* debuggable true\n");
+    assertThat(gradleFileContents).containsMatch("release \\{\n[^\\}]* versionNameSuffix 'suffix'\n");
   }
 }

@@ -18,47 +18,47 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.EnumSet;
+
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
-  protected final ResourceFolderType myResourceType;
+  protected final EnumSet<ResourceFolderType> myResourceType;
+
+  public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
+                                           @NonNls final String rootTagName,
+                                           @NotNull EnumSet<ResourceFolderType> resourceTypes) {
+    super(rootElementClass, rootTagName);
+    myResourceType = EnumSet.copyOf(resourceTypes);
+  }
 
   public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
                                            @NonNls final String rootTagName,
                                            @NotNull ResourceFolderType resourceType) {
-    super(rootElementClass, rootTagName);
-    myResourceType = resourceType;
+    this(rootElementClass, rootTagName, EnumSet.of(resourceType));
   }
 
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
-    return doIsMyFile(file, myResourceType);
+    for (ResourceFolderType folderType : myResourceType) {
+      if (doIsMyFile(file, folderType)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        if (file.getProject().isDisposed()) {
-          return false;
-        }
-        if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType.getName())) {
-          return AndroidFacet.getInstance(file) != null;
-        }
-        return false;
-      }
-    });
+  public static boolean doIsMyFile(@NotNull XmlFile file, @NotNull ResourceFolderType folderType) {
+    return FileDescriptionUtils.isResourceOfType(file, folderType, Collections.emptySet());
   }
 
   @Override
@@ -67,7 +67,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   @NotNull
-  public ResourceFolderType getResourceType() {
+  public EnumSet<ResourceFolderType> getResourceTypes() {
     return myResourceType;
   }
 }

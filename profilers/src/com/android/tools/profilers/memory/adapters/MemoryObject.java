@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-public interface MemoryObject {
+import org.jetbrains.annotations.NotNull;
 
+public interface MemoryObject {
+  int INVALID_VALUE = -1;
+
+  @NotNull
+  String getName();
 }

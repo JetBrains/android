@@ -27,7 +27,6 @@ public class AndroidRunConfigContext {
 
   // instant run specific context
   private boolean isSameExecutorAsPreviousSession;
-  private boolean myCleanRerun;
 
   private boolean myForceColdswap;
   private boolean myCouldHaveInvokedHotswap;
@@ -47,14 +46,6 @@ public class AndroidRunConfigContext {
 
   public void setSameExecutorAsPreviousSession(boolean sameExecutorAsPreviousSession) {
     isSameExecutorAsPreviousSession = sameExecutorAsPreviousSession;
-  }
-
-  public boolean isCleanRerun() {
-    return myCleanRerun;
-  }
-
-  public void setCleanRerun(boolean cleanRerun) {
-    myCleanRerun = cleanRerun;
   }
 
   public void setForceColdSwap(boolean forceColdswap, boolean couldHaveInvokedHotswap) {

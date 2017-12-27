@@ -16,21 +16,18 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
-import com.android.tools.lint.detector.api.TextFormat;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifierList;
-import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.lint.checks.ObjectAnimatorDetector.KEEP_ANNOTATION;
 
@@ -41,24 +38,25 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    PsiMethod method = LintFix.getData(fixData, PsiMethod.class);
+    if (method == null || !method.equals(PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, false))) {
+      return super.getQuickFixes(startElement, endElement, message, fixData);
+    }
     return new AndroidLintQuickFix[]{
       new AndroidLintQuickFix() {
         @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
-          if (!ObjectAnimatorDetector.isAddKeepErrorMessage(message, TextFormat.RAW)) {
-            return;
-          }
           PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class);
           if (container == null) {
             return;
           }
 
-          if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
-            return;
-          }
           final PsiModifierList modifierList = container.getModifierList();
           if (modifierList != null) {
             PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION);

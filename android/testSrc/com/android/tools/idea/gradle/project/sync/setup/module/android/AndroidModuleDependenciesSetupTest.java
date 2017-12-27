@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
@@ -41,7 +42,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -62,16 +62,19 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   }
 
   public void testSetUpLibraryWithExistingLibrary() throws IOException {
-    File binaryPath = createTempFile("fakeLibrary", "jar");
-    File sourcePath = createTempFile("fakeLibrary-src", "jar");
-    Library newLibrary = createLibrary(binaryPath, sourcePath);
+    File binaryPath = createTempFile("fakeLibrary.jar", "");
+    File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
+    File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
+    Library newLibrary = createLibrary(binaryPath, sourcePath, javadocPath);
 
     String libraryName = binaryPath.getName();
     Module module = getModule();
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY);
+    File[] documentationPaths = {javadocPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, documentationPaths,
+                                               false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -79,11 +82,13 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
     assertSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should not have been changed.
 
-    verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath); // Should not attemp to look up sources for existing libraries.
+    // Should not attempt to look up sources and documentation for existing libraries.
+    verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
+    verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
   }
 
   @NotNull
-  private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath) {
+  private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
@@ -94,6 +99,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     Library.ModifiableModel libraryModel = library.getModifiableModel();
     libraryModel.addRoot(pathToIdeaUrl(binaryPath), CLASSES);
     libraryModel.addRoot(pathToIdeaUrl(sourcePath), SOURCES);
+    libraryModel.addRoot(pathToIdeaUrl(javadocPath), JavadocOrderRootType.getInstance());
 
     application.runWriteAction(libraryModel::commit);
 
@@ -101,8 +107,9 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   }
 
   public void testSetUpLibraryWithNewLibrary() throws IOException {
-    File binaryPath = createTempFile("fakeLibrary", "jar");
-    File sourcePath = createTempFile("fakeLibrary-src", "jar");
+    File binaryPath = createTempFile("fakeLibrary.jar", "");
+    File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
+    File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
     when(myLibraryFilePaths.findSourceJarPath(binaryPath)).thenReturn(sourcePath);
 
     String libraryName = "Gradle: " + binaryPath.getName();
@@ -110,13 +117,19 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY);
+    File[] documentationPaths = {javadocPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, documentationPaths,
+                                               false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
     assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
 
-    Library library = libraryOrderEntries.get(0).getLibrary();
+    // Check that library entry is not exported. b/62265305.
+    LibraryOrderEntry orderEntry = libraryOrderEntries.get(0);
+    assertFalse(orderEntry.isExported());
+
+    Library library = orderEntry.getLibrary();
     assertNotNull(library);
     assertEquals(libraryName, library.getName());
 
@@ -128,7 +141,13 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     assertThat(sourceUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(sourcePath), sourceUrls[0]);
 
+    String[] javadocUrls = library.getUrls(JavadocOrderRootType.getInstance());
+    assertThat(javadocUrls).hasLength(1);
+    assertEquals(pathToIdeaUrl(javadocPath), javadocUrls[0]);
+
     verify(myLibraryFilePaths).findSourceJarPath(binaryPath);
+    // Documentation paths are populated at the LibraryDependency level - no look-up to be done during setup itself
+    verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
   }
 
   @NotNull

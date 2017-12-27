@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -29,8 +30,8 @@ import java.util.List;
  */
 public interface LineChartCustomRenderer {
 
-  void renderLines(@NotNull Component host,
+  void renderLines(@NotNull LineChart lineChart,
                    @NotNull Graphics2D g2d,
                    @NotNull List<Path2D> transformedPaths,
-                   @NotNull List<LineConfig> configs);
+                   @NotNull List<RangedContinuousSeries> transformedSeries);
 }

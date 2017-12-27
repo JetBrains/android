@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.Log;
+import com.android.ddmlib.*;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
@@ -33,14 +31,17 @@ import com.intellij.openapi.ui.Messages;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
@@ -119,7 +120,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       ExecutorService executor = myExecutors.get(device);
       executor.submit((() -> {
         try {
-          AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
+          executeCommandOnDevice(device, "logcat -v long", receiver, 0, true);
         }
         catch (Exception e) {
           getLog().info(String.format(
@@ -196,7 +197,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
         executor.submit(() -> {
           try {
-            AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), false);
+            long timeoutMs = 5000; // should require less than a second to complete, 5s is just being very conservative
+            executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), timeoutMs, false);
           }
           catch (final Exception e) {
             getLog().info(e);
@@ -297,6 +299,42 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       for (AndroidLogcatReceiver receiver : myLogReceivers.values()) {
         receiver.cancel();
       }
+    }
+  }
+
+  /**
+   * Same as {@link #dispose()} but waits for background threads to terminate
+   * before returning to the caller. This is useful to prevent thread leaks
+   * when running tests.
+   */
+  @TestOnly
+  public void shutdown() {
+    dispose();
+    synchronized (myLock) {
+      myExecutors.values().forEach(executor -> {
+        try {
+          executor.shutdownNow();
+          executor.awaitTermination(5_000, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e) {
+          getLog().info("Error shutting down executor", e);
+        }
+      });
+    }
+  }
+
+  private static void executeCommandOnDevice(@NotNull IDevice device,
+                                             @NotNull String command,
+                                             @NotNull AndroidOutputReceiver receiver,
+                                             long timeoutMs,
+                                             boolean retry)
+    throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
+    final int MAX_RETRIES = 5;
+
+    for (int attempt = 0; retry && attempt < MAX_RETRIES; attempt++) {
+      device.executeShellCommand(command, receiver, timeoutMs, TimeUnit.MILLISECONDS);
+      if (receiver.isCancelled()) break;
+      receiver.invalidate();
     }
   }
 }

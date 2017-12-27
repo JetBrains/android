@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ public class GradleSyncSummary {
     return mySyncTimestamp;
   }
 
-  public void setSyncTimestamp(long syncTimestamp) {
+  void setSyncTimestamp(long syncTimestamp) {
     mySyncTimestamp = syncTimestamp;
   }
 
@@ -66,7 +66,7 @@ public class GradleSyncSummary {
     if (mySyncErrorsFound || myWrongJdkFound) {
       return true;
     }
-    SyncMessages messages = SyncMessages.getInstance(myProject);
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
     return messages.getErrorCount() > 0;
   }
 

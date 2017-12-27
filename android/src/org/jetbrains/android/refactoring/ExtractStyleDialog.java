@@ -79,7 +79,7 @@ class ExtractStyleDialog extends DialogWrapper {
     myFileName = fileName;
     myDirNames = dirNames;
 
-    if (parentStyleName != null && parentStyleName.length() > 0) {
+    if (parentStyleName != null && !parentStyleName.isEmpty()) {
       myStyleNameField.setText(parentStyleName + ".");
       myStyleNameField.selectAll();
     } else {
@@ -96,7 +96,7 @@ class ExtractStyleDialog extends DialogWrapper {
       modulesSet.add(depFacet.getModule());
     }
 
-    assert modulesSet.size() > 0;
+    assert !modulesSet.isEmpty();
 
     if (modulesSet.size() == 1) {
       myModule = module;
@@ -210,7 +210,7 @@ class ExtractStyleDialog extends DialogWrapper {
   protected ValidationInfo doValidate() {
     final String styleName = getStyleName();
 
-    if (styleName.length() == 0) {
+    if (styleName.isEmpty()) {
       return new ValidationInfo("specify style name", myStyleNameField);
     }
     if (!AndroidResourceUtil.isCorrectAndroidResourceName(styleName)) {
@@ -225,7 +225,7 @@ class ExtractStyleDialog extends DialogWrapper {
       return new ValidationInfo("specify a module with resources", myModuleCombo);
     }
 
-    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module.getProject(), resourceDir, getStyleName(), ResourceType.STYLE,
+    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module.getProject(), resourceDir, getStyleName(), null, ResourceType.STYLE,
                                                                 myDirNames, myFileName);
   }
 

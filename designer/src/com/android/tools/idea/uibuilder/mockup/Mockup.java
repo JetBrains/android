@@ -16,12 +16,14 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.pixelprobe.Guide;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.Disposer;
@@ -96,8 +98,6 @@ import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener
  */
 public class Mockup implements ModelListener {
 
-  public static final boolean ENABLE_FEATURE = false;
-
   private final static Pattern REGEX_CROP = Pattern.compile("(([0-9]+|-1)\\s+([0-9]+|-1)\\s*){1,2}");
   private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
 
@@ -121,7 +121,7 @@ public class Mockup implements ModelListener {
 
   private static final Map<NlComponent, Mockup> MOCKUP_CACHE = ContainerUtil.createWeakMap();
 
-  private final List<MockupModelListener> myListeners = new ArrayList<>();
+  private final ListenerCollection<MockupModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final Rectangle myBounds;
   private final Rectangle myCropping;
   private final Rectangle mySwingBounds;
@@ -431,11 +431,11 @@ public class Mockup implements ModelListener {
 
     final int androidX = Coordinates.dpToPx(screenView, myBounds.x);
     final int androidY = Coordinates.dpToPx(screenView, myBounds.y);
-    final int androidWidth = myBounds.width <= 0 ? myComponent.w : Coordinates.dpToPx(screenView, myBounds.width);
-    final int androidHeight = myBounds.height <= 0 ? myComponent.h : Coordinates.dpToPx(screenView, myBounds.height);
+    final int androidWidth = myBounds.width <= 0 ? NlComponentHelperKt.getW(myComponent) : Coordinates.dpToPx(screenView, myBounds.width);
+    final int androidHeight = myBounds.height <= 0 ? NlComponentHelperKt.getH(myComponent) : Coordinates.dpToPx(screenView, myBounds.height);
 
-    mySwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x + androidX);
-    mySwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y + androidY);
+    mySwingBounds.x = Coordinates.getSwingX(screenView, NlComponentHelperKt.getX(myComponent) + androidX);
+    mySwingBounds.y = Coordinates.getSwingY(screenView, NlComponentHelperKt.getY(myComponent) + androidY);
     // if one of the dimension was not set in the xml.
     // it had been set to -1 in the model, meaning we should
     // use the ScreenView dimension and/or the Image dimension
@@ -531,7 +531,7 @@ public class Mockup implements ModelListener {
   }
 
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     parseComponent(myComponent);
   }
 
@@ -546,7 +546,6 @@ public class Mockup implements ModelListener {
 
   public void addMockupListener(MockupModelListener listener) {
     if (listener != null) {
-      myListeners.remove(listener);
       myListeners.add(listener);
     }
   }
@@ -557,9 +556,7 @@ public class Mockup implements ModelListener {
 
   private void notifyListeners(int changedFlags) {
     myChangingFlags = changedFlags;
-    for (int i = 0; i < myListeners.size(); i++) {
-      myListeners.get(i).mockupChanged(this, changedFlags);
-    }
+    myListeners.forEach(l -> l.mockupChanged(this, changedFlags));
   }
 
   public NlComponent getComponent() {

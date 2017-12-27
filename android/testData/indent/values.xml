@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- the indent detector may check for INSERT_LINE_BREAKS_AROUND_STYLE,
+         or line breaks around namespace and attributes -->
+    <style name="myStyle" parent="@style/Text">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#111</item>
+    </style>
+    <string name="app_name">untitled</string>
+    <string name="with_spaces">  s p a c e s  </string>
+    <style
+        name="myStyle2" parent="@style/Text"
+        >
+        <item name="android:textSize">
+            14sp
+        </item>
+        <item name="android:textColor">#008</item>
+    </style><!-- same line --><style name="myStyle3" parent="@style/Text"></style>
+    <!-- attr may cause the AttributeProcessor to run, so include some -->
+    <attr name="my_custom_attr1" format="enum">
+        <enum name="a" value="1"/>
+        <enum name="b" value="2"/>
+    </attr>
+    <declare-styleable name="MyCustomView">
+        <attr name="my_custom_attr1" />
+        <attr name="my_custom_attr2" format="string" />
+        <attr name="android:gravity" />
+    </declare-styleable>
+	<string name="tabbed_over">indented with a tab</string>
+	<string name="tabbed2">
+		other tab
+	</string>
+</resources>

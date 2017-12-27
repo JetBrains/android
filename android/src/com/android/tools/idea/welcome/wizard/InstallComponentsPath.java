@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
@@ -35,17 +36,16 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +76,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private final ProgressStep myProgressStep;
   @NotNull private ComponentInstaller myComponentInstaller;
   private final boolean myInstallUpdates;
+  private SdkComponentsStep myComponentsStep;
 
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
@@ -98,17 +99,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     List<ComponentTreeNode> components = Lists.newArrayList();
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
 
-    DynamicWizard wizard = getWizard();
-
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    new Task.Modal(null, "Installing Components...", false) {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        com.android.repository.api.ProgressIndicator ps = adoptIndicator(indicator);
-        sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ps,
-                                     new StudioDownloader(indicator), StudioSettingsController.getInstance());
-      }
-    }.queue();
+    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+                    new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                    new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {
@@ -257,7 +251,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myComponentTree = createComponentTree(myMode, myState, myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
-    addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode));
+    myComponentsStep = new SdkComponentsStep(
+      myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode, myWizard.getDisposable());
+    addStep(myComponentsStep);
 
     myComponentTree.init(myProgressStep);
     myComponentTree.updateState(myLocalHandler);
@@ -290,12 +286,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
           StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-          myLocalHandler.getSdkManager(progress).loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-                                                                   progress, new StudioDownloader(),
-                                                                   StudioSettingsController.getInstance());
-          myComponentInstaller = new ComponentInstaller(myLocalHandler);
-
-          myComponentTree.updateState(myLocalHandler);
+          myComponentsStep.startLoading();
+          myLocalHandler.getSdkManager(progress)
+            .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
+                    myComponentInstaller = new ComponentInstaller(myLocalHandler);
+                    myComponentTree.updateState(myLocalHandler);
+                    myComponentsStep.stopLoading();
+                  }), ImmutableList.of(() -> myComponentsStep.loadingError()),
+                  new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
+                  StudioSettingsController.getInstance(), false);
         }
       }
     }
@@ -322,12 +321,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       new InstallComponentsOperation(installContext, selectedComponents, myComponentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
+    if (selectedComponents.isEmpty()) {
+      myProgressStep.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
+    }
     try {
       initialize.then(install).then(setPreference)
         .then(new ConfigureComponents(installContext, selectedComponents, myLocalHandler)).then(checkSdk).execute(destination);
     }
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+      myProgressStep.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 

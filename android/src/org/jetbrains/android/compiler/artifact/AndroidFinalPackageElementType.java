@@ -38,7 +38,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
 
   @Override
   public boolean canCreate(@NotNull ArtifactEditorContext context, @NotNull Artifact artifact) {
-    return getAndroidApplicationFacets(context, context.getModulesProvider().getModules()).size() > 0 &&
+    return !getAndroidApplicationFacets(context, context.getModulesProvider().getModules()).isEmpty() &&
            !AndroidArtifactUtil.containsAndroidPackage(context, artifact);
   }
 

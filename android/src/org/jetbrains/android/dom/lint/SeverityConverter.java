@@ -44,7 +44,7 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
     }
 
     for (Severity severity : Severity.values()) {
-      if (severity.getName().equalsIgnoreCase(s)) {
+      if (severity.name().equalsIgnoreCase(s)) {
         return severity;
       }
     }
@@ -57,6 +57,6 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
     if (severity == null) {
       return null;
     }
-    return severity.getName().toLowerCase(Locale.US);
+    return severity.name().toLowerCase(Locale.US);
   }
 }

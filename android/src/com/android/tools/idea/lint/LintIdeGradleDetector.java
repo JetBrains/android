@@ -17,7 +17,14 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.repository.api.RemotePackage;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,6 +43,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
 import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
@@ -54,6 +62,26 @@ public class LintIdeGradleDetector extends GradleDetector {
         if (invokedExpression.getDotToken() == null) {
           return invokedExpression.getReferenceName();
         }
+      }
+    }
+
+    return null;
+  }
+
+  @Override
+  @Nullable
+  protected GradleVersion getHighestKnownVersion(@NonNull LintClient client, @NonNull GradleCoordinate coordinate,
+                                                 @Nullable Predicate<GradleVersion> filter) {
+    AndroidSdkHandler sdkHandler = client.getSdk();
+    if (sdkHandler == null) {
+      return null;
+    }
+    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, logger);
+    if (sdkPackage != null) {
+      GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
+      if (found != null) {
+        return found.getVersion();
       }
     }
 

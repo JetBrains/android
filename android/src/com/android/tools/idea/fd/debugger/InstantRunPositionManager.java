@@ -41,7 +41,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import com.sun.jdi.Location;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +48,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public class InstantRunPositionManager extends PositionManagerImpl {
-  private static final boolean DISABLED = true;
+  private static Logger LOG = Logger.getInstance(InstantRunPositionManager.class);
+
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
 
   public InstantRunPositionManager(DebugProcessImpl debugProcess) {
@@ -77,28 +77,40 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       return file;
     }
 
-    // we only care about providing an alternate source for files inside the platform.
-    if (!AndroidFacet.isInAndroidSdk(file)) {
+    AndroidVersion version = getAndroidVersionFromDebugSession(project);
+    if (version == null) {
+      LOG.debug("getPsiFileByLocation returned null because cannot determine version from device.");
       return file;
     }
 
-    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
-    if (session == null) {
-      return file;
+    PsiFile source = getApiSpecificPsi(project, file, version);
+    return source == null ? file : source;
+  }
+
+  @Nullable
+  protected PsiFile getApiSpecificPsi(@NotNull Project project, @NotNull PsiFile file, @NotNull AndroidVersion version) {
+    // we only care about providing an alternate source for files inside the platform.
+    if (!AndroidSdks.getInstance().isInAndroidSdk(file)) {
+      return null;
     }
 
     String relPath = getRelPathFromSourceRoot(project, file);
     if (relPath == null) {
-      return file;
+      LOG.debug("getApiSpecificPsi returned null because relPath is null for file: " + file.getName());
+      return null;
     }
 
-    AndroidVersion version = session.getDebugProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
-    if (version == null) {
-      return file;
+    return getSourceForApiLevel(project, version, relPath);
+  }
+
+  @Nullable
+  private static AndroidVersion getAndroidVersionFromDebugSession(@NotNull Project project) {
+    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
+    if (session == null) {
+      return null;
     }
 
-    PsiFile source = getSourceForApiLevel(project, version, relPath);
-    return source == null ? file : source;
+    return session.getDebugProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
   }
 
   @Nullable
@@ -110,13 +122,22 @@ public class InstantRunPositionManager extends PositionManagerImpl {
     }
 
     VirtualFile vfile = sourceFolder.findFileByRelativePath(relPath);
-    return vfile == null ? null : PsiManager.getInstance(project).findFile(vfile);
+    if (vfile == null) {
+      LOG.debug("getSourceForApiLevel returned null because " + relPath + " is not present in " + sourceFolder);
+      return null;
+    }
+    return PsiManager.getInstance(project).findFile(vfile);
   }
 
   @Nullable
   private VirtualFile getSourceFolder(@NotNull AndroidVersion version) {
     if (mySourceFoldersByApiLevel == null) {
       mySourceFoldersByApiLevel = createSourcesByApiLevel();
+
+      // log if requested version is missing, but only do it once per debug session to avoid spamming logs
+      if (mySourceFoldersByApiLevel.get(version) == null) {
+        LOG.debug("getSourceFolder returned null for version: " + version);
+      }
     }
 
     return mySourceFoldersByApiLevel.get(version);
@@ -128,14 +149,13 @@ public class InstantRunPositionManager extends PositionManagerImpl {
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
-        Logger.getInstance(InstantRunPositionManager.class)
-          .warn("Unable to get type details for source package @ " + sourcePackage.getLocation().getPath());
+        LOG.warn("Unable to get type details for source package @ " + sourcePackage.getLocation().getPath());
         continue;
       }
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
       AndroidVersion version = details.getAndroidVersion();
-      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), true);
+      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), false);
       if (sourceFolder != null && sourceFolder.isValid()) {
         sourcesByApi.put(version, sourceFolder);
       }
@@ -156,6 +176,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
     ProjectFileIndex fileIndex = ProjectFileIndex.SERVICE.getInstance(project);
     VirtualFile sourceRoot = fileIndex.getSourceRootForFile(file.getVirtualFile());
     if (sourceRoot == null) {
+      LOG.debug("Could not determine source root for file: " + file.getVirtualFile().getPath());
       return null;
     }
 

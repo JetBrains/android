@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_STYLE;
 
 public class EnumSupportFactory {
   static final String TEXT_APPEARANCE_SUFFIX = "TextAppearance";
@@ -39,6 +40,9 @@ public class EnumSupportFactory {
   static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
 
   public static boolean supportsProperty(@NotNull NlProperty property) {
+    if (getEnumValueOverride(property) != null) {
+      return true;
+    }
     switch (property.getName()) {
       case ATTR_FONT_FAMILY:
       case ATTR_TYPEFACE:
@@ -55,12 +59,13 @@ public class EnumSupportFactory {
         return false;
       case ATTR_STYLE:
         String tagName = property.getTagName();
-        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
+        ResourceResolver resolver = property.getResolver();
+        return tagName != null && resolver != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), resolver, tagName);
       default:
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return true;
         }
-        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+        if (AndroidDomUtil.getSpecialResourceTypes(property.getName()).contains(ResourceType.ID)) {
           return true;
         }
         AttributeDefinition definition = property.getDefinition();
@@ -70,9 +75,13 @@ public class EnumSupportFactory {
   }
 
   public static EnumSupport create(@NotNull NlProperty property) {
+    Map<String, String> values = getEnumValueOverride(property);
+    if (values != null) {
+      return new SimpleValuePairEnumSupport(property, values);
+    }
     switch (property.getName()) {
       case ATTR_FONT_FAMILY:
-        return new SimpleEnumSupport(property, AndroidDomUtil.AVAILABLE_FAMILIES);
+        return new FontEnumSupport(property);
       case ATTR_TYPEFACE:
         return new SimpleEnumSupport(property, AVAILABLE_TYPEFACES);
       case ATTR_TEXT_SIZE:
@@ -94,12 +103,46 @@ public class EnumSupportFactory {
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return new TextAppearanceEnumSupport(property);
         }
-        else if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+        else if (AndroidDomUtil.getSpecialResourceTypes(property.getName()).contains(ResourceType.ID)) {
           return new IdEnumSupport(property);
         }
         else {
           return new AttributeDefinitionEnumSupport(property);
         }
     }
+  }
+
+  @Nullable
+  private static Map<String, String> getEnumValueOverride(@NotNull NlProperty property) {
+    Collection<NlComponent> components = property.getComponents();
+    if (components.isEmpty()) {
+      return null;
+    }
+    if (property.getName().startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)) {
+      Map<NlComponent, NlComponent> parents = new IdentityHashMap<>();
+      components.stream()
+        .map(NlComponent::getParent)
+        .filter(Objects::nonNull)
+        .forEach(parent -> parents.put(parent, parent));
+      components = parents.keySet();
+    }
+    Map<String, String> values = null;
+    for (NlComponent component : components) {
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
+      if (handler == null) {
+        return null;
+      }
+      Map<String, String> overrides = handler.getEnumPropertyValues(component).get(property.getName());
+      if (overrides == null) {
+        return null;
+      }
+      if (values == null) {
+        values = overrides;
+      }
+      else if (!overrides.equals(values)) {
+        return null;
+      }
+    }
+    return values;
   }
 }

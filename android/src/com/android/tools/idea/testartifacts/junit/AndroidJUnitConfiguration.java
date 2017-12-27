@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.intellij.execution.Executor;
+import com.intellij.diagnostic.logging.LogConfigurationPanel;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.junit.*;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.testframework.TestSearchScope;
 import com.intellij.diagnostic.logging.LogConfigurationPanel;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -68,7 +74,7 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
   @NotNull
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     SettingsEditorGroup<AndroidJUnitConfiguration> group = new SettingsEditorGroup<>();
-    group.addEditor(ExecutionBundle.message("run.configuration.configuration.tab.title"), new JUnitConfigurable(getProject()));
+    group.addEditor(ExecutionBundle.message("run.configuration.configuration.tab.title"), new AndroidJUnitConfigurable(getProject()));
     JavaRunConfigurationExtensionManager.getInstance().appendEditors(this, group);
     group.addEditor(ExecutionBundle.message("logs.tab.title"), new LogConfigurationPanel<>());
     return group;

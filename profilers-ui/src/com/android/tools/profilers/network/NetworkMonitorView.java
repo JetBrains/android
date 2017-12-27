@@ -15,99 +15,81 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
-  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
-
-  public NetworkMonitorView(@NotNull NetworkMonitor monitor) {
+  public NetworkMonitorView(@NotNull StudioProfilersView profilersView, @NotNull NetworkMonitor monitor) {
     super(monitor);
   }
 
   @Override
-  protected void populateUi(JPanel container, Choreographer choreographer) {
+  protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
-
-    Range viewRange = getMonitor().getTimeline().getViewRange();
-    Range dataRange = getMonitor().getTimeline().getDataRange();
+    container.setFocusable(true);
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
-    Range leftYRange = new Range(0, 4);
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
-    AxisComponent.Builder builder = new AxisComponent.Builder(leftYRange, BANDWIDTH_AXIS_FORMATTER_L1,
-                                                              AxisComponent.AxisOrientation.RIGHT)
-      .showAxisLine(false)
-      .showMax(true)
-      .showUnitAtMax(true)
-      .setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
-      .clampToMajorTicks(true).setMargins(0, Y_AXIS_TOP_MARGIN);
-    final AxisComponent leftAxis = builder.build();
+    final AxisComponent leftAxis = new AxisComponent(getMonitor().getTrafficAxis(), AxisComponent.AxisOrientation.RIGHT);
+    leftAxis.setShowAxisLine(false);
+    leftAxis.setShowMax(true);
+    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setHideTickAtMin(true);
+    leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
+    leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final LineChart lineChart = new LineChart();
-    RangedContinuousSeries rxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
-                                                                 viewRange,
-                                                                 leftYRange,
-                                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
-    RangedContinuousSeries txSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
-                                                                 viewRange,
-                                                                 leftYRange,
-                                                                 getMonitor().getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT));
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
-    lineChart.addLine(rxSeries, receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
-    lineChart.addLine(txSeries, sentConfig);
-    lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    final LegendComponent legend = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, LEGEND_UPDATE_FREQUENCY_MS);
-    ArrayList<LegendRenderData> legendData = new ArrayList<>();
-    legendData.add(lineChart.createLegendRenderData(rxSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
-    legendData.add(lineChart.createLegendRenderData(txSeries, BANDWIDTH_AXIS_FORMATTER_L1, dataRange));
-    legend.setLegendData(legendData);
+    NetworkUsage usage = getMonitor().getNetworkUsage();
+    final LineChart lineChart = new LineChart(usage);
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
+    lineChart.configure(usage.getRxSeries(), receivedConfig);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
+    lineChart.configure(usage.getTxSeries(), sentConfig);
+    lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
+    lineChart.setMaxLineMargin(40);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
+    getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
+
+    NetworkMonitor.NetworkLegends legends = getMonitor().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.MONITOR_LEGEND_RIGHT_PADDING).build();
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
+    legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    choreographer.register(lineChart);
-    choreographer.register(leftAxis);
-    choreographer.register(legend);
-
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));
     container.add(leftAxis, new TabularLayout.Constraint(0, 0));
     container.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
-    container.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        getMonitor().expand();
-      }
-    });
   }
 }

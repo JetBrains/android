@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -52,7 +52,7 @@ public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
   @Mock private AndroidModuleModel myAndroidModel;
-  @Mock private AndroidProject myAndroidProject;
+  @Mock private IdeAndroidProject myAndroidProject;
 
   private IdeModifiableModelsProvider myModelsProvider;
   private VirtualFile myModuleFolder;

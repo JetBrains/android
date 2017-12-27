@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,7 +193,7 @@ public class ResizePolicy {
    */
   @Nullable
   public static ResizePolicy get(@Nullable String resize) {
-    if (resize != null && resize.length() > 0) {
+    if (resize != null && !resize.isEmpty()) {
       if ("full".equals(resize)) {
         return full();
       } else if ("none".equals(resize)) {

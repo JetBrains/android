@@ -550,7 +550,7 @@ public class ConfigurationErrorsComponent extends JPanel implements Disposable, 
       }
 
       final List<ConfigurationError> errors = myModel.getErrors();
-      if (errors.size() > 0) {
+      if (!errors.isEmpty()) {
         if (errors.size() == 1) {
           mySingleErrorLabel.setText(myModel.getErrors().get(0).getPlainTextTitle());
         } else {
@@ -559,12 +559,12 @@ public class ConfigurationErrorsComponent extends JPanel implements Disposable, 
       }
 
       final List<ConfigurationError> ignoredErrors = myModel.getIgnoredErrors();
-      if (ignoredErrors.size() > 0) {
+      if (!ignoredErrors.isEmpty()) {
         myIgnoredErrorsLabel.setText(String.format("%s ignored error%s", getErrorsCount(ignoredErrors.size()), ignoredErrors.size() == 1 ? "" : "s"));
       }
 
       removeAll();
-      if (errors.size() > 0) {
+      if (!errors.isEmpty()) {
         if (errors.size() == 1) {
           add(wrapLabel(mySingleErrorLabel, errors.get(0)), BorderLayout.CENTER);
           mySingleErrorLabel.setToolTipText(errors.get(0).getDescription());
@@ -573,8 +573,8 @@ public class ConfigurationErrorsComponent extends JPanel implements Disposable, 
         }
       }
 
-      if (ignoredErrors.size() > 0) {
-        add(myIgnoredErrorsLabel, errors.size() > 0 ? BorderLayout.EAST : BorderLayout.CENTER);
+      if (!ignoredErrors.isEmpty()) {
+        add(myIgnoredErrorsLabel, !errors.isEmpty() ? BorderLayout.EAST : BorderLayout.CENTER);
       }
 
       revalidate();

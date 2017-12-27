@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
@@ -23,6 +24,8 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,8 +61,8 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     myValue = new CustomTextField();
     myValue.setEditable(false);
     myValue.setFocusable(true);
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
-    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, 0));
     myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);
     myValue.addActionListener(event -> displayFlagEditor());
@@ -83,10 +86,10 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     return myPanel;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public NlProperty getProperty() {
-    return myProperty;
+    return myProperty != null ? myProperty : EmptyProperty.INSTANCE;
   }
 
   @Override
@@ -171,7 +174,13 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
         editor.setProperty(myProperty.getChildProperty(item));
         panel.add(editor.getComponent());
       }
-      return panel;
+      JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(panel,
+                                                                  ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                  ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      scrollPane.setBorder(null);
+      scrollPane.getVerticalScrollBar().setUnitIncrement(25);
+      scrollPane.getVerticalScrollBar().setBlockIncrement(25);
+      return scrollPane;
     }
   }
 

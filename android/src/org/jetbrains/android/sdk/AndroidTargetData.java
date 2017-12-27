@@ -19,7 +19,7 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -262,6 +262,7 @@ public class AndroidTargetData {
     private String myName;
     private String myType;
     private int myId;
+    private boolean inGroup;
 
     @Override
     public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
@@ -276,6 +277,11 @@ public class AndroidTargetData {
 
         if (myId != 0) {
           myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
+
+          // Within <public-group> we increase the id based on a given first id
+          if (inGroup) {
+            myId++;
+          }
         }
       }
     }
@@ -283,27 +289,45 @@ public class AndroidTargetData {
     @Override
     public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
       throws Exception {
-      if ("name".equals(key)) {
-        myName = value;
-      }
-      else if ("type".endsWith(key)) {
-        myType = value;
-      }
-      else if ("id".equals(key)) {
-        try {
-          myId = Integer.decode(value);
-        } catch (NumberFormatException e) {
-          myId = 0;
-        }
+      switch (key) {
+        case "name":
+          myName = value;
+          break;
+        case "type":
+          myType = value;
+          break;
+        case "first-id":
+        case "id":
+          try {
+            myId = Integer.decode(value);
+          } catch (NumberFormatException e) {
+            myId = 0;
+          }
+          break;
       }
     }
 
     @Override
     public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
       throws Exception {
+      if (!inGroup) {
+        // This is a top-level <attr> so clear myType and myId
+        myType = null;
+        myId = 0;
+      }
+
+      if ("public-group".equals(name)) {
+        inGroup = true;
+      }
+
       myName = null;
-      myType = null;
-      myId = 0;
+    }
+
+    @Override
+    public void endElement(String name, String nsPrefix, String nsURI) throws Exception {
+      if ("public-group".equals(name)) {
+        inGroup = false;
+      }
     }
 
     public Map<String, Set<String>> getPublicResourceCache() {
@@ -360,7 +384,7 @@ public class AndroidTargetData {
           while ((line = reader.readLine()) != null) {
             line = line.trim();
 
-            if (line.length() > 0 && !line.startsWith("#")) {
+            if (!line.isEmpty() && !line.startsWith("#")) {
               result.add(line);
             }
           }

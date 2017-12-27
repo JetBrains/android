@@ -16,18 +16,17 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.MavenCoordinates;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
@@ -92,6 +91,8 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -765,7 +766,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(),
+                                                                                    TRIGGER_PROJECT_MODIFIED, null);
             }
           }.execute();
         }
@@ -787,7 +789,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), TRIGGER_PROJECT_MODIFIED,
+                                                                                  null);
           }
         }.execute();
       }
@@ -871,7 +874,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       return;
     }
 
-    AndroidLibrary library;
     if (file != null) {
       String source = null;
 
@@ -879,33 +881,34 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
+        String path = file.getPath();
         Module module = ModuleUtilCore.findModuleForFile(vFile, facet.getModule().getProject());
         if (module != null) {
           if (modules.length >= 2) {
             source = module.getName();
           }
 
-          // AAR Library?
-          if (file.getPath().contains(EXPLODED_AAR)) {
-            AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-            if (androidModel != null) {
-              library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
-              if (library != null) {
-                if (library.getProject() != null) {
-                  libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
-                  if (libraryModule != null) {
-                    module = libraryModule;
-                    source = module.getName();
-                  } else {
-                    source = library.getProject();
-                    source = StringUtil.trimStart(source, ":");
-                  }
-                }
-                else {
-                  MavenCoordinates coordinates = library.getResolvedCoordinates();
-                  source = /*coordinates.getGroupId() + ":" +*/  coordinates.getArtifactId() + ":" + coordinates.getVersion();
-                }
-              }
+          // AAR library in the project build directory?
+          if (path.contains(EXPLODED_AAR)) {
+            source = findSourceForFileInExplodedAar(file, facet, module);
+          }
+        }
+        // AAR library in the build cache?
+        // (e.g., ".android/build-cache/0d86e51789317f7eb0747ecb9da6162c7082982e/output/AndroidManifest.xml")
+        // Since the user can change the location or name of the build cache directory, we need to detect it using the following pattern.
+        else if (path.contains("output") && path.matches(".*\\w{40}[\\\\/]output.*")) {
+          for (Module singleModule : modules) {
+            source = findSourceForFileInExplodedAar(file, facet, singleModule);
+            if (source != null) {
+              break;
+            }
+          }
+        } else if (path.contains("caches")) {
+          // Look for the Gradle cache, where AAR libraries can appear when distributed via the google() Maven repository
+          for (Module singleModule : modules) {
+            source = findSourceForFileInExplodedAar(file, facet, singleModule);
+            if (source != null) {
+              break;
             }
           }
         }
@@ -970,6 +973,20 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.add(Integer.toString(sourcePosition.getStartLine()));
       }
     }
+  }
+
+  @Nullable
+  private static String findSourceForFileInExplodedAar(@NotNull File file, @NotNull AndroidFacet facet, @NotNull Module module) {
+    String source = null;
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel != null) {
+      Library library =
+        GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
+      if (library != null) {
+        source = getDependencyDisplayName(library);
+      }
+    }
+    return source;
   }
 
   /**

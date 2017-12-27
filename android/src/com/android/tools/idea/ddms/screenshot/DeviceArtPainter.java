@@ -20,7 +20,7 @@ import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;

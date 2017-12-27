@@ -89,7 +89,7 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
     final List<BuildRootDescriptor> roots = context.getProjectDescriptor().
       getBuildRootIndex().getTargetRoots(target, context);
 
-    if (roots.size() == 0) {
+    if (roots.isEmpty()) {
       return true;
     }
     final List<String> inputDirs = new ArrayList<String>();

@@ -16,7 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.AndroidDevice;
@@ -74,6 +74,7 @@ public class FlightRecorder {
     Path flr = Paths.get(FD_FLR_LOGS, project.getLocationHash());
     myBasePath = logs.resolve(flr);
     myLogcatRecorder = new LogcatRecorder(AndroidLogcatService.getInstance());
+    myTimestamp = now();
   }
 
   public void saveBuildOutput(@NotNull String gradleOutput, @NotNull InstantRunBuildProgressListener instantRunProgressListener) {
@@ -83,12 +84,6 @@ public class FlightRecorder {
   }
 
   public void saveBuildInfo(@NotNull InstantRunBuildInfo instantRunBuildInfo) {
-    if (myTimestamp == null) {
-      // this would indicate an error since we didn't get the build output before,
-      // but the inconsistency doesn't matter for logging purposes
-      myTimestamp = now();
-    }
-
     ApplicationManager.getApplication().executeOnPooledThread(
       new BuildInfoRecorderTask(myBasePath, myTimestamp, instantRunBuildInfo));
   }

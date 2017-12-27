@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.roots;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -25,25 +25,28 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.io.IOException;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
 public class AndroidGeneratedSourcesFilterTest extends IdeaTestCase {
-  private GradleProjectInfo myProjectInfo;
+  @Mock private GradleProjectInfo myProjectInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
 
-    myProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo);
     myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 
@@ -130,7 +133,7 @@ public class AndroidGeneratedSourcesFilterTest extends IdeaTestCase {
 
   @NotNull
   private static AndroidModuleModel createAndroidModel(@NotNull VirtualFile buildFolder) {
-    AndroidProject androidProject = mock(AndroidProject.class);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);

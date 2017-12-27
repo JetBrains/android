@@ -18,7 +18,9 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -26,11 +28,11 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,29 +41,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.ide.common.resources.configuration.LocaleQualifier.BCP_47_PREFIX;
-
-public class LocaleMenuAction extends FlatComboAction {
+public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
-  private final boolean myClassicStyle;
 
-  public LocaleMenuAction(ConfigurationHolder renderContext) {
-    this(renderContext, !RenderService.NELE_ENABLED);
-  }
-
-  public LocaleMenuAction(ConfigurationHolder renderContext, boolean classicStyle) {
+  public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
+    super("", "Locale in Editor", null);
     myRenderContext = renderContext;
-    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Locale in Editor");
     updatePresentation(presentation);
   }
 
   @Override
-  @NotNull
-  protected DefaultActionGroup createPopupActionGroup() {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
-
+  protected boolean updateActions() {
+    removeAll();
     // TODO: Offer submenus, lazily populated, which offer languages either by code or by name.
     // However, this doesn't currently work for the JBPopup dialog we're using as part
     // of the combo action (and using the JBPopup dialog rather than a Swing menu has some
@@ -71,26 +63,31 @@ public class LocaleMenuAction extends FlatComboAction {
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null && locales.size() > 0) {
-      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false, myClassicStyle), Locale.ANY));
-      group.addSeparator();
+    if (configuration != null && !locales.isEmpty()) {
+      add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
+      addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
-        String title = getLocaleLabel(locale, false, myClassicStyle);
+        String title = getLocaleLabel(locale, false);
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
-          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true, myClassicStyle), better, configuration.getFile());
+          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
-        group.add(new SetLocaleAction(myRenderContext, title, locale));
+        add(new SetLocaleAction(myRenderContext, title, locale));
       }
 
-      group.addSeparator();
+      addSeparator();
     }
 
-    group.add(new EditTranslationAction());
+    add(new EditTranslationAction());
+
+    if (configuration != null && !hasAnyRtlLocales(configuration, locales)) {
+      // The switch RtlAction is only added is there are not any RTL locales that you can use to preview the layout
+      add(new RtlAction(myRenderContext));
+    }
 
     /* TODO: Restore multi-configuration editing
     group.addSeparator();
@@ -105,7 +102,19 @@ public class LocaleMenuAction extends FlatComboAction {
     }
     */
 
-    return group;
+    return true;
+  }
+
+  /**
+   * Returns whether any of the passed locales is RTL
+   */
+  private static boolean hasAnyRtlLocales(@NotNull Configuration configuration, @NotNull List<Locale> locales) {
+    LayoutLibrary layoutlib = RenderService.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
+    if (layoutlib == null) {
+      return false;
+    }
+
+    return locales.stream().anyMatch(locale -> layoutlib.isRtl(locale.toLocaleId()));
   }
 
   /**
@@ -116,7 +125,7 @@ public class LocaleMenuAction extends FlatComboAction {
    */
   @NotNull
   private List<Locale> getRelevantLocales() {
-    List<Locale> locales = new ArrayList<Locale>();
+    List<Locale> locales = new ArrayList<>();
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
@@ -140,8 +149,8 @@ public class LocaleMenuAction extends FlatComboAction {
       }
     }
 
-    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
-    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.<LocaleQualifier>emptySet();
+    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
+    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {
         continue;
@@ -149,19 +158,6 @@ public class LocaleMenuAction extends FlatComboAction {
       locales.add(Locale.create(l));
     }
 
-    return locales;
-  }
-
-  @NotNull
-  public static List<Locale> getAllLocales() {
-    List<String> sorted = LocaleManager.getLanguageCodes(true);
-    List<Locale> locales = new ArrayList<Locale>(sorted.size());
-    for (String language : sorted) {
-      LocaleQualifier qualifier = new LocaleQualifier(language.length() == 2 ? language : BCP_47_PREFIX + language,
-                                                      language, null, null);
-      Locale locale = Locale.create(qualifier);
-      locales.add(locale);
-    }
     return locales;
   }
 
@@ -182,14 +178,8 @@ public class LocaleMenuAction extends FlatComboAction {
       //Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      if (!myClassicStyle) {
-        presentation.setIcon(AndroidIcons.NeleIcons.Language);
-      } else if (locale == Locale.ANY) {
-        presentation.setIcon(AndroidIcons.Globe);
-      } else {
-        presentation.setIcon(locale.getFlagImage());
-      }
-      String brief = getLocaleLabel(locale, true, myClassicStyle);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
+      String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
     else {
@@ -200,52 +190,21 @@ public class LocaleMenuAction extends FlatComboAction {
     }
   }
 
-  @Override
-  protected int getMaxRows() {
-    return 10;
-  }
-
-  /**
-   * Returns a suitable label to use to display the given locale
-   *
-   * @param locale the locale to look up a label for
-   * @param brief  if true, generate a brief label (suitable for a toolbar
-   *               button), otherwise a fuller name (suitable for a menu item)
-   * @return the label
-   */
-  @NotNull
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    return getLocaleLabel(locale, brief, !RenderService.NELE_ENABLED);
-  }
-
   /**
    * Returns a suitable label to use to display the given locale
    *
    * @param locale       the locale to look up a label for
    * @param brief        if true, generate a brief label (suitable for a toolbar
    *                     button), otherwise a fuller name (suitable for a menu item)
-   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
    * @return the label
    */
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief, boolean classicStyle) {
+  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
     if (locale == null) {
-      if (!classicStyle) {
-        return "Language";
-      }
-      return "";
+      return "Language";
     }
 
     if (!locale.hasLanguage()) {
-      if (!classicStyle) {
-        return "Language";
-      }
-
-      if (brief) {
-        // Just use the icon
-        return "";
-      }
-
-      return "Default";
+      return "Language";
     }
 
     String languageCode = locale.qualifier.getLanguage();
@@ -294,7 +253,8 @@ public class LocaleMenuAction extends FlatComboAction {
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       if (commit) {
         setProjectWideLocale();
-      } else {
+      }
+      else {
         // The locale can affect the direction qualifier: don't constrain best match
         // search to the current direction
         configuration.getEditedConfig().setLayoutDirectionQualifier(null);

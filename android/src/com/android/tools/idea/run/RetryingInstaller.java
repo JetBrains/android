@@ -132,6 +132,11 @@ public class RetryingInstaller {
           myPrinter.stderr(message);
           retry = false;
           break;
+        case DEVICE_NOT_FOUND:
+          reason = AndroidBundle.message("deployment.failed.reason.devicedisconnected", myDevice.getName());
+          myPrompter.showErrorMessage(reason);
+          retry = false;
+          break;
         case UNTYPED_ERROR:
           reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
           retry = myPrompter.showQuestionPrompt(reason) && uninstallPackage(myDevice, myApplicationId);
