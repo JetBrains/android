@@ -100,7 +100,8 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("setContentView(R.layout.activity_my);", "")
+      .enterText("\nSystem.out.println(\"Hello, hot swap!\");");
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()
@@ -443,7 +444,8 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/basiccmake/MainActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("tv.setText(stringFromJNI());", "")
+      .enterText("\nSystem.out.println(\"Hello, CMake hot swap!\");");
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()
