@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+
+import java.util.Collections;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static org.mockito.Mockito.*;
@@ -65,6 +68,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
 
   public void testRunActivityWithExistingGradleProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    when(myGradleProjectInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(getTestRootDisposable())));
 
     Project project = getProject();
     myStartupActivity.runActivity(project);
