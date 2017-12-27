@@ -27,7 +27,9 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
-    if (gradleProjectInfo.isBuildWithGradle() && !gradleProjectInfo.isImportedProject()) {
+    if (!gradleProjectInfo.getAndroidModules().isEmpty() &&
+        gradleProjectInfo.isBuildWithGradle() &&
+        !gradleProjectInfo.isImportedProject()) {
       // http://b/62543184
       // If the project was created with the "New Project" wizard or imported, there is no need to sync again.
       // This code path should only be executed when:
