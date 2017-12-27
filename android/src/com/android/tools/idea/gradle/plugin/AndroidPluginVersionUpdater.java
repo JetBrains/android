@@ -39,8 +39,10 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -172,7 +174,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    });
+    }, true /* process composite builds */);
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
@@ -199,22 +201,30 @@ public class AndroidPluginVersionUpdater {
    */
   private void updateGradleWrapperVersion(@NotNull GradleVersion gradleVersion, @NotNull UpdateResult result) {
     String basePath = myProject.getBasePath();
-    if (basePath != null) {
-      try {
-        File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(new File(basePath));
-        GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
-        String current = gradleWrapper.getGradleVersion();
-        GradleVersion parsedCurrent = null;
-        if (current != null) {
-          parsedCurrent = GradleVersion.tryParse(current);
+    if (basePath == null) {
+      return;
+    }
+    List<File> projectRootFolders = new ArrayList<>();
+    projectRootFolders.add(new File(toSystemDependentPath(basePath)));
+    projectRootFolders.addAll(getCompositeBuildFolderPaths(myProject));
+    for (File rootFolder : projectRootFolders) {
+      if (rootFolder != null) {
+        try {
+          File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(rootFolder);
+          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
+          String current = gradleWrapper.getGradleVersion();
+          GradleVersion parsedCurrent = null;
+          if (current != null) {
+            parsedCurrent = GradleVersion.tryParse(current);
+          }
+          if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
+            gradleWrapper.updateDistributionUrl(gradleVersion.toString());
+            result.gradleVersionUpdated();
+          }
         }
-        if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
-          gradleWrapper.updateDistributionUrl(gradleVersion.toString());
-          result.gradleVersionUpdated();
+        catch (Throwable e) {
+          result.setGradleVersionUpdateError(e);
         }
-      }
-      catch (Throwable e) {
-        result.setGradleVersionUpdateError(e);
       }
     }
   }
