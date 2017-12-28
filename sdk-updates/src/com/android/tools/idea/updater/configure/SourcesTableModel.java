@@ -364,7 +364,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   @Nullable
   private RepositorySourceProvider getUserSourceProvider() {
-    return myConfigurable.getSdkHandler().getUserSourceProvider(myLogger);
+    return myConfigurable == null ? null : myConfigurable.getSdkHandler().getUserSourceProvider(myLogger);
   }
 
   /**
