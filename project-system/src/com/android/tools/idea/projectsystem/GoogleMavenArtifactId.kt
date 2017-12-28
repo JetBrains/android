@@ -41,6 +41,9 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   CONSTRAINT_LAYOUT("com.android.support.constraint", "constraint-layout", false),
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
+  // Navigation
+  NAVIGATION("android.arch.navigation", "runtime", false),
+
   // Testing
   TEST_RUNNER("com.android.support.test", "runner", false),
   ESPRESSO_CORE("com.android.support.test.espresso", "espresso-core", false),
