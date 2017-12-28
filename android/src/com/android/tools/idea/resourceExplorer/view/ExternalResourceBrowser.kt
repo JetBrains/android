@@ -35,7 +35,8 @@ import javax.swing.*
  */
 class ExternalResourceBrowser(
     facet: AndroidFacet,
-    private val resourceBrowserViewModel: ExternalDesignAssetExplorer
+    private val resourceBrowserViewModel: ExternalDesignAssetExplorer,
+    qualifierParserPanel: QualifierParserPanel
 ) : JPanel(BorderLayout()) {
 
 
@@ -45,7 +46,10 @@ class ExternalResourceBrowser(
 
   init {
     customizeUI()
+    val centerPanel = JPanel(BorderLayout())
     val preview = createPreviewPane()
+    centerPanel.add(preview, BorderLayout.NORTH)
+    centerPanel.add(qualifierParserPanel)
     designAssetsList = DesignAssetsList(resourceBrowserViewModel)
     designAssetsList.addListSelectionListener {
       updatePreview(preview)
@@ -54,7 +58,7 @@ class ExternalResourceBrowser(
     designAssetsList.fixedCellHeight = JBUI.scale(listItemSize)
     designAssetsList.background = UIUtil.getListBackground()
     add(createFileChooserPanel(facet), BorderLayout.NORTH)
-    add(preview)
+    add(centerPanel)
     add(createImportButton(), BorderLayout.SOUTH)
   }
 

@@ -16,6 +16,9 @@
 package com.android.tools.idea.resourceExplorer
 
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.LeakHunter
+import org.gradle.api.Project
 import org.junit.Assert
 
 class ResourceExplorerEditorProviderTest : ResourceExplorerTestCase() {
@@ -28,10 +31,12 @@ class ResourceExplorerEditorProviderTest : ResourceExplorerTestCase() {
   }
 
   fun testCreateEditor() {
-    val editor = ResourceExplorerEditorProvider().createEditor(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet))
+    val file = ResourceExplorerFile.getResourceEditorFile(project, myFacet)
+    val editor = ResourceExplorerEditorProvider().createEditor(project, file)
     Assert.assertTrue(editor is ResourceExplorerEditor)
-    val providers = FileEditorProviderManager.getInstance().getProviders(project, ResourceExplorerFile.getResourceEditorFile(project, myFacet))
+    val providers = FileEditorProviderManager.getInstance().getProviders(project, file)
     Assert.assertEquals(1, providers.size)
     Assert.assertTrue(providers[0] is ResourceExplorerEditorProvider)
+    Disposer.dispose(editor)
   }
 }

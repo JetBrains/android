@@ -17,9 +17,12 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.resourceExplorer.densityMapper
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.importer.getAssetSets
+import com.android.tools.idea.resourceExplorer.nightModeMapper
 import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationStatus
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -44,7 +47,7 @@ class ExternalDesignAssetExplorerTest {
   @Rule
   fun getChain() = chain
 
-  private val disposable = Disposer.newDisposable()
+  private val disposable = Disposer.newDisposable("ExternalDesignAssetExplorerTest")
 
   @Before
   fun setUp() {
@@ -60,6 +63,7 @@ class ExternalDesignAssetExplorerTest {
   fun setDirectory() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val resourceBrowserViewModel = createViewModel(facet)
+    resourceBrowserViewModel.consumeMatcher(QualifierMatcher(densityMapper, nightModeMapper))
     resourceBrowserViewModel.setDirectory(pathToVirtualFile(getAssetDir()))
     Assert.assertEquals(1, resourceBrowserViewModel.designAssetListModel.size)
   }
@@ -78,10 +82,9 @@ class ExternalDesignAssetExplorerTest {
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
-    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"))
+    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))
     resourceBrowserViewModel.importDesignAssetSet(designAssetSet[0])
     val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.DRAWABLE, repository.resourceDirs)
-    assertEquals(3, resourceSubdirs.size)
     Helpers.assertContentsAnyOrder(resourceSubdirs.map { it.name }, "drawable-night-mdpi", "drawable-xhdpi", "drawable-night-xhdpi")
     assertEquals("add.png", resourceSubdirs[0].children[0].name)
     assertEquals("add.png", resourceSubdirs[1].children[0].name)
@@ -104,16 +107,19 @@ class ExternalDesignAssetExplorerTest {
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
-    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"))[0]
+    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))[0]
     assertEquals(SynchronizationStatus.SYNCED, resourceBrowserViewModel.getSynchronizationStatus(designAssetSet))
 
     val otherFile = pathToVirtualFile(getAlternateAssetDir())
-    val otherAssertSet = getAssetSets(otherFile, setOf("png", "jpg"))[0]
-    assertEquals(SynchronizationStatus.INEXISTENT, resourceBrowserViewModel.getSynchronizationStatus(otherAssertSet))
+    val otherAssertSet = getAssetSets(otherFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))[0]
+    assertEquals(SynchronizationStatus.NOT_SYNCED, resourceBrowserViewModel.getSynchronizationStatus(otherAssertSet))
   }
 
-  private fun createViewModel(facet: AndroidFacet) =
-      ExternalDesignAssetExplorer(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), SynchronizationManager(facet, disposable))
+  private fun createViewModel(facet: AndroidFacet): ExternalDesignAssetExplorer {
+    val synchronizationManager = SynchronizationManager(facet)
+    Disposer.register(disposable, synchronizationManager)
+    return ExternalDesignAssetExplorer(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), synchronizationManager)
+  }
 
   private fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!
 

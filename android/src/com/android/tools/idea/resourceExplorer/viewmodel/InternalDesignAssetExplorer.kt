@@ -19,16 +19,15 @@ import com.android.ide.common.res2.ResourceItem
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.idea.resourceExplorer.importer.getBaseName
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationListener
 import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.intellij.images.fileTypes.ImageFileTypeManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import javax.imageio.ImageIO
@@ -39,7 +38,6 @@ import javax.imageio.ImageIO
  */
 class InternalDesignAssetExplorer(
     val facet: AndroidFacet,
-    val parentDisposable: Disposable,
     synchronizationManager: SynchronizationManager
 ) : DesignAssetExplorer {
 
@@ -69,7 +67,7 @@ class InternalDesignAssetExplorer(
     return repository.getItemsOfType(type)
         .flatMap { repository.getResourceItem(type, it) ?: emptyList() }
         .mapNotNull(this::resourceItemToDesignAsset)
-        .groupBy { getBaseName(it.file) }
+        .groupBy { it.name }
         .map { (name, assets) -> DesignAssetSet(name, assets) }
   }
 
@@ -80,7 +78,6 @@ class InternalDesignAssetExplorer(
     val virtualFile = VfsUtil.findFileByIoFile(resourceItem.file, false) ?: return null
     val qualifiers = resourceItem.configuration.qualifiers.asList()
     return DesignAsset(virtualFile, qualifiers, ResourceFolderType.DRAWABLE)
-
   }
 
   /**
@@ -88,7 +85,10 @@ class InternalDesignAssetExplorer(
    */
   override fun getPreview(asset: DesignAsset): Image {
     // TODO use a plugin to display the preview
-    return ImageIO.read(asset.file.inputStream)
+    if(ImageFileTypeManager.getInstance().isImage(asset.file)) {
+      return ImageIO.read(asset.file.inputStream)
+    }
+    return EMPTY_IMAGE
   }
 
   override fun getStatusLabel(assetSet: DesignAssetSet) = ""

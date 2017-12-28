@@ -28,7 +28,8 @@ import com.intellij.openapi.vfs.VirtualFile
 data class DesignAsset(
     val file: VirtualFile,
     val qualifiers: List<ResourceQualifier>,
-    val type : ResourceFolderType
+    val type : ResourceFolderType,
+    val name: String = file.nameWithoutExtension
 )
 
 /**

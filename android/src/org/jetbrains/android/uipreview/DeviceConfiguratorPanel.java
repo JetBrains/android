@@ -276,7 +276,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   @Nullable
-  private static Icon getResourceIcon(ResourceQualifier qualifier) {
+  public static Icon getResourceIcon(ResourceQualifier qualifier) {
     return ourIcons.get(qualifier.getName());
   }
 
