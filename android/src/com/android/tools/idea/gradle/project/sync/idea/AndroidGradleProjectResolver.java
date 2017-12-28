@@ -45,6 +45,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -287,6 +288,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     isAndroidGradleProject = resolverCtx.hasModulesWithModel(AndroidProject.class) ||
                              resolverCtx.hasModulesWithModel(NativeAndroidProject.class);
     return resolverCtx.putUserDataIfAbsent(IS_ANDROID_PROJECT_KEY, isAndroidGradleProject);
+  }
+
+  @Override
+  @NotNull
+  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule,
+                                                  @NotNull DataNode<ProjectData> ideProject)
+    throws IllegalArgumentException, IllegalStateException {
+    // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
+    if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
+      return Collections.emptyList();
+    }
+    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
   }
 
   @Override
