@@ -186,6 +186,7 @@ public class InstantAppRunTest {
     avdManager.startAvdWithName(O_AVD_NAME);
     avdManager.close();
 
+    // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     File adbBinary = new File(sdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
     File prebuiltApks = new File(ideFrame.getProjectPath(), "prebuilt");
