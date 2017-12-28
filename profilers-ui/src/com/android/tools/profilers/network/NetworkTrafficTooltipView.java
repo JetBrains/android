@@ -23,18 +23,18 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-class NetworkStageTooltipView extends ProfilerTooltipView {
-  private final NetworkProfilerStage myStage;
+public final class NetworkTrafficTooltipView extends ProfilerTooltipView {
+  @NotNull private final NetworkTrafficTooltip myTooltip;
 
-  NetworkStageTooltipView(NetworkProfilerStage stage) {
-    super(stage.getStudioProfilers().getTimeline(), "Network Traffic");
-    myStage = stage;
+  NetworkTrafficTooltipView(@NotNull NetworkProfilerStageView view, @NotNull NetworkTrafficTooltip tooltip) {
+    super(view.getTimeline(), "Network Traffic");
+    myTooltip = tooltip;
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    NetworkProfilerStage.NetworkStageLegends legends = myStage.getTooltipLegends();
+    NetworkProfilerStage.NetworkStageLegends legends = myTooltip.getLegends();
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_RECEIVING_COLOR));

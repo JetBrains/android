@@ -156,12 +156,16 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
-  public void getTooltipLegends() {
-    NetworkProfilerStage.NetworkStageLegends networkLegends = myStage.getTooltipLegends();
+  public void setTrafficTooltip() {
+    myStage.enter();
+    myStage.setTooltip(new NetworkTrafficTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(NetworkTrafficTooltip.class);
+    NetworkTrafficTooltip tooltip = (NetworkTrafficTooltip)myStage.getTooltip();
 
     double tooltipTime = TimeUnit.SECONDS.toMicros(10);
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
 
+    NetworkProfilerStage.NetworkStageLegends networkLegends = tooltip.getLegends();
     assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Received");
     assertThat(networkLegends.getTxLegend().getName()).isEqualTo("Sent");
     assertThat(networkLegends.getConnectionLegend().getName()).isEqualTo("Connections");
@@ -170,6 +174,40 @@ public class NetworkProfilerStageTest {
     assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("6");
 
     assertThat(networkLegends.getLegends()).hasSize(3);
+  }
+
+  @Test
+  public void testRadioTooltip() {
+    myStage.enter();
+    myStage.setTooltip(new NetworkRadioTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(NetworkRadioTooltip.class);
+    NetworkRadioTooltip tooltip = (NetworkRadioTooltip)myStage.getTooltip();
+
+    double tooltipTime = TimeUnit.SECONDS.toMicros(5);
+    double radioStart = TimeUnit.SECONDS.toMicros(5);
+    double radioEnd = TimeUnit.SECONDS.toMicros(10);
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    timeline.getDataRange().setMax(radioEnd);
+
+    // Tooltip position change should update radio state.
+    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
+    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
+
+    // As data range expands, radio state range should update accordingly.
+    radioEnd = TimeUnit.SECONDS.toMicros(15);
+    timeline.getDataRange().setMax(radioEnd);
+    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
+
+    // View range shifts shouldn't affect radio state range.
+    timeline.getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(6));
+    tooltipTime = TimeUnit.SECONDS.toMicros(6);
+    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
+    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
   }
 
   @Test

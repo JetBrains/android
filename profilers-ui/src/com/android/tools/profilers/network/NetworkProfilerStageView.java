@@ -52,7 +52,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private final ThreadsView myThreadsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JPanel myConnectionsPanel;
-  private final NetworkStageTooltipView myTooltipView;
 
   public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
     super(profilersView, stage);
@@ -60,10 +59,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getStage().getAspect().addDependency(this)
       .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateConnectionDetailsView);
 
+    getTooltipBinder().bind(NetworkRadioTooltip.class, NetworkRadioTooltipView::new);
+    getTooltipBinder().bind(NetworkTrafficTooltip.class, NetworkTrafficTooltipView::new);
+
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
-    myTooltipView = new NetworkStageTooltipView(stage);
     myThreadsView = new ThreadsView(this);
 
     JBSplitter leftSplitter = new JBSplitter(true);
@@ -141,7 +142,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     JComponent eventsComponent = eventsView.getComponent();
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
-    panel.add(new NetworkRadioView(this).getComponent(), new TabularLayout.Constraint(1, 0));
+    NetworkRadioView radioView = new NetworkRadioView(this);
+    JComponent radioComponent = radioView.getComponent();
+    panel.add(radioComponent, new TabularLayout.Constraint(1, 0));
 
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
@@ -212,11 +215,18 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       }
     });
 
+    radioComponent.addMouseListener(
+      new ProfilerTooltipMouseAdapter(getStage(), () -> new NetworkRadioTooltip(getStage())
+      ));
+
+    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new NetworkTrafficTooltip(getStage())));
+
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
                                                               timeline.getDataRange(),
-                                                              myTooltipView.createComponent(),
+                                                              getTooltipPanel(),
                                                               ProfilerLayeredPane.class);
     tooltip.registerListenersOn(selection);
+    tooltip.registerListenersOn(radioComponent);
 
     if (!getStage().hasUserUsedNetworkSelection()) {
       installProfilingInstructions(monitorPanel);
