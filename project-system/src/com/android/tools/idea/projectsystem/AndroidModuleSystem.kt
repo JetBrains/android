@@ -57,11 +57,13 @@ interface AndroidModuleSystem {
    * The caller may specify a specific [version] of the artifact to add.  If no [version] is passed or the passed [version] is null,
    * the artifact added will be of the latest version supported by the underlying build system of this project.
    * @param artifactId  Id of artifact needed by the dependent.
-   * @param version   Version of the artifact to add.  If left blank this parameter defaults to {@link GoogleMavenArtifact.VERSION_LATEST}
+   * @param version Version of the artifact to add.  If left blank this parameter defaults to {@link GoogleMavenArtifact.VERSION_LATEST}
+   * @param includePreview Whether preview versions should be included when looking up the latest version.
    * @throws DependencyManagementException if an error occurs when trying to add the dependency.
    */
   @Throws(DependencyManagementException::class)
-  fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null)
+  fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null,
+                               includePreview: Boolean = false)
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG
