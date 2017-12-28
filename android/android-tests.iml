@@ -20,33 +20,6 @@
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="external-system-impl" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-base-services-groovy-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-core-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-messaging-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-core-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-model-groovy-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-resources-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-native-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-tooling-api-3.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-wrapper-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services-groovy/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/base-services/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/core/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/messaging/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/native/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/resources/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/tooling-api/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../../idea/plugins/gradle/lib/gradle-3.2-src.zip!/gradle-3.2/subprojects/wrapper/src/main/java" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="observable" scope="TEST" />
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
     <orderEntry type="module" module-name="common" scope="TEST" />
