@@ -23,21 +23,21 @@ package com.android.tools.idea.gradle.structure.model.meta
  *   - there is a valid input which can be parsed as [T]. See: [Set.Parsed]
  *   - there is an input that can't be parsed a valid expression of type [T]. See: [Set.Invalid]
  */
-sealed class ParsedValue<T> {
+sealed class ParsedValue<out T> {
   /**
    * The outcome of parsing of a text input representing the case "Nothing to parse".
    */
-  class NotSet<T> : ParsedValue<T>()
+  class NotSet<out T> : ParsedValue<T>()
 
   /**
    * An outcome of parsing of a text input representing the cases where there is some text input to parse.
    */
-  sealed class Set<T> : ParsedValue<T>() {
+  sealed class Set<out T> : ParsedValue<T>() {
 
     /**
      * An outcome of parsing of a valid text input representing a value of type [T].
      */
-    class Parsed<T>(
+    class Parsed<out T>(
         /**
          * The parsed value.
          *
@@ -54,7 +54,7 @@ sealed class ParsedValue<T> {
     /**
      * An outcome of parsing of a text input which is not a valid representation of type [T].
      */
-    class Invalid<T>(
+    class Invalid<out T>(
         /**
          * The original text input which might be a DSL expression.
          */

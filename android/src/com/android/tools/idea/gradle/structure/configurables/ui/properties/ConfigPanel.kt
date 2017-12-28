@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.ui
+package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanelUi
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
@@ -45,7 +42,7 @@ open class ConfigPanel<in ModelT>(
     }
   }
 
-  private fun <PropertyT> createEditor(model: ModelT, property: ModelProperty<ModelT, PropertyT>): ModelPropertyEditor<ModelT, PropertyT> =
+  private fun <PropertyT: Any> createEditor(model: ModelT, property: ModelProperty<ModelT, PropertyT>): ModelPropertyEditor<ModelT, PropertyT> =
       when (property) {
         is ModelSimpleProperty -> SimplePropertyEditor(model, property)
         else -> throw UnsupportedOperationException()

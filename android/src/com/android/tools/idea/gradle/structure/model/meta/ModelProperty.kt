@@ -20,7 +20,7 @@ import kotlin.properties.ReadWriteProperty
 /**
  * A UI descriptor a property of a model of type [ModelT].
  */
-interface ModelProperty<in ModelT, PropertyT> : ReadWriteProperty<ModelT, ParsedValue<PropertyT>> {
+interface ModelProperty<in ModelT, PropertyT: Any> : ReadWriteProperty<ModelT, ParsedValue<PropertyT>> {
   /**
    * A property description as it should appear in the UI.
    */
@@ -36,7 +36,7 @@ interface ModelProperty<in ModelT, PropertyT> : ReadWriteProperty<ModelT, Parsed
  *
  * The simple-types property is a property whose value can be easily represented in the UI as text.
  */
-interface ModelSimpleProperty<in ModelT, PropertyT> : ModelProperty<ModelT, PropertyT> {
+interface ModelSimpleProperty<in ModelT, PropertyT: Any> : ModelProperty<ModelT, PropertyT> {
   /**
    * Parses the text representation of type [PropertyT].
    *
