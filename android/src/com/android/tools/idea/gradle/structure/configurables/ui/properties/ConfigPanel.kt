@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
 
 /**
@@ -37,15 +35,9 @@ open class ConfigPanel<in ModelT>(
     this.model = model
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val edit = createEditor(model, property)
-      addPropertyComponents(property.description, edit.component)
+      val editor = property.createEditor(model)
+      addPropertyComponents(property.propertyDescription, editor.component)
     }
   }
-
-  private fun <PropertyT: Any> createEditor(model: ModelT, property: ModelProperty<ModelT, PropertyT>): ModelPropertyEditor<ModelT, PropertyT> =
-      when (property) {
-        is ModelSimpleProperty -> SimplePropertyEditor(model, property)
-        else -> throw UnsupportedOperationException()
-      }
 }
 
