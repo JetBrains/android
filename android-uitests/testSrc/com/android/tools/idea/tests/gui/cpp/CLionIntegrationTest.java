@@ -70,6 +70,8 @@ public class CLionIntegrationTest {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/CLionNdkHelloJni");
 
+    guiTest.waitForBackgroundTasks();
+
     EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
 
     // Check unused header import and no errors.
