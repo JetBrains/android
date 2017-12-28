@@ -166,7 +166,7 @@ public class InstantRunTest {
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(30).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
