@@ -29,7 +29,7 @@ import java.security.MessageDigest
  * Manager to keep track of the differences between the facet's modules' resources and
  * provided [VirtualFile]
  */
-class SynchronizationManager(facet: AndroidFacet, parentDisposable: Disposable)
+class SynchronizationManager(facet: AndroidFacet)
   : VirtualFileListener,
     Disposable {
 
@@ -39,7 +39,7 @@ class SynchronizationManager(facet: AndroidFacet, parentDisposable: Disposable)
 
   init {
     VirtualFileManager.getInstance().addVirtualFileListener(this)
-    Disposer.register(parentDisposable, this)
+    Disposer.register(this, resourcesRepository)
   }
 
   /**
@@ -60,7 +60,7 @@ class SynchronizationManager(facet: AndroidFacet, parentDisposable: Disposable)
     val syncedFilesCount = assetSet.designAssets.count { hashToFile.containsKey(it.file.sha1()) }
     return when (syncedFilesCount) {
       assetSet.designAssets.size -> SynchronizationStatus.SYNCED
-      0 -> SynchronizationStatus.INEXISTENT
+      0 -> SynchronizationStatus.NOT_SYNCED
       else -> SynchronizationStatus.PARTIALLY_SYNCED
     }
   }
@@ -105,7 +105,7 @@ class SynchronizationManager(facet: AndroidFacet, parentDisposable: Disposable)
   }
 
   override fun dispose() {
-    VirtualFileManager.getInstance().addVirtualFileListener(this)
+    VirtualFileManager.getInstance().removeVirtualFileListener(this)
   }
 }
 
@@ -117,7 +117,7 @@ enum class SynchronizationStatus {
   /**
    * None of the files of the [DesignAssetSet] is present in the facet's module
    */
-  INEXISTENT,
+  NOT_SYNCED,
 
   /**
    * All the files of the [DesignAssetSet] are present in the facet's module

@@ -29,7 +29,7 @@ class DesignAssetsList(private val browserViewModel: DesignAssetExplorer)
   : JList<DesignAssetSet>(browserViewModel.designAssetListModel) {
 
   var itemMargin = 16
-  private var itemBorderWidth = 1
+  private val itemBorderWidth = 1
 
   init {
     layoutOrientation = JList.HORIZONTAL_WRAP

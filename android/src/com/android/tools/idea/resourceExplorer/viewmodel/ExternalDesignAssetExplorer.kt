@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.importer.getAssetSets
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
@@ -30,7 +31,7 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 
 private val LOGGER = Logger.getInstance(ExternalDesignAssetExplorer::class.java)
-private val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
+internal val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser]
@@ -44,6 +45,9 @@ class ExternalDesignAssetExplorer(
 ) : DesignAssetExplorer {
 
   override val designAssetListModel = DesignAssetListModel()
+  private var directory: VirtualFile? = null
+
+  private var _matcher = QualifierMatcher()
 
   init {
     synchronizationManager.addListener(object : SynchronizationListener {
@@ -57,13 +61,19 @@ class ExternalDesignAssetExplorer(
     })
   }
 
+  fun consumeMatcher(matcher: QualifierMatcher) {
+    _matcher = matcher
+    directory?.let { setDirectory(it) }
+  }
+
   /**
    * Set the directory to browse
    */
   fun setDirectory(directory: VirtualFile) {
     if (directory.isValid && directory.isDirectory) {
+      this.directory = directory
       designAssetListModel.setAssets(
-          getAssetSets(directory, importersProvider.supportedFileTypes)
+          getAssetSets(directory, importersProvider.supportedFileTypes, _matcher)
               .sortedBy { (name, _) -> name })
     }
     else {

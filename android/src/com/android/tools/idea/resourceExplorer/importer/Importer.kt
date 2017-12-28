@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.importer
 
-import com.android.ide.common.resources.configuration.DensityQualifier
-import com.android.ide.common.resources.configuration.NightModeQualifier
-import com.android.ide.common.resources.configuration.ResourceQualifier
-
-import com.android.resources.Density
-import com.android.resources.NightMode
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -31,8 +26,11 @@ import com.intellij.openapi.vfs.VirtualFile
  *
  * @param supportedTypes The file types supported for importation
  */
-fun getAssetSets(directory: VirtualFile, supportedTypes: Set<String>): List<DesignAssetSet> {
-  return getDesignAssets(directory, supportedTypes)
+fun getAssetSets(directory: VirtualFile,
+                 supportedTypes: Set<String>,
+                 qualifierMatcher: QualifierMatcher
+): List<DesignAssetSet> {
+  return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
       .groupBy(
           { (drawableName, _) -> drawableName },
           { (_, designAsset) -> designAsset }
@@ -42,48 +40,21 @@ fun getAssetSets(directory: VirtualFile, supportedTypes: Set<String>): List<Desi
 }
 
 private fun getDesignAssets(
-    child: VirtualFile, supportedTypes: Set<String>): List<Pair<String, DesignAsset>> {
-  return child.children
+    directory: VirtualFile,
+    supportedTypes: Set<String>,
+    root: VirtualFile,
+    qualifierMatcher: QualifierMatcher
+): List<Pair<String, DesignAsset>> {
+  return directory.children
       .filter { it.isDirectory || supportedTypes.contains(it.extension) }
       .flatMap {
-        if (it.isDirectory) getDesignAssets(it, supportedTypes) else listOf(createAsset(it))
+        if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher)
+        else listOf(createAsset(it, root, qualifierMatcher))
       }
 }
 
-private fun createAsset(child: VirtualFile): Pair<String, DesignAsset> {
-  val drawableName = getBaseName(child)
-  val qualifiers = getQualifiers(child)
-  return drawableName.to(DesignAsset(child, qualifiers, ResourceFolderType.DRAWABLE))
+private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: QualifierMatcher): Pair<String, DesignAsset> {
+  val relativePath = VfsUtil.getRelativePath(child, root) ?: child.path
+  val (resourceName, qualifiers1) = matcher.parsePath(relativePath)
+  return resourceName.to(DesignAsset(child, qualifiers1.toList(), ResourceFolderType.DRAWABLE))
 }
-
-/**
- * For now, we simply parse the name looking for the icon@2x.png format
- * and return "icon". Later we'll implement a lexer to parse the full path
- * and looking for more format like icon_16x16@2x.png
- *
- * from [the developer documentation](https://developer.android.com/guide/practices/screens_support.html#alternative_drawables)
- */
-private fun getQualifiers(file: VirtualFile): List<ResourceQualifier> {
-  // This implementation is for test only for now. It will be changed to a
-  // more complex parsing using user configuration
-  val textQualifiers = file.nameWithoutExtension.split("_", "@")
-  val dimension = textQualifiers.getOrNull(1)
-  val nightMode = textQualifiers.contains("dark")
-  val density = when (dimension) {
-    "2x" -> Density.XHIGH
-    "3x" -> Density.XXHIGH
-    "4x" -> Density.XXXHIGH
-    else -> Density.MEDIUM
-  }
-  val qualifiersList = mutableListOf<ResourceQualifier>(DensityQualifier(density))
-
-  if (nightMode) {
-    qualifiersList += NightModeQualifier(NightMode.NIGHT)
-  }
-  return qualifiersList.toList()
-}
-
-/**
- * Parse the file name and return just the base name
- */
-fun getBaseName(file: VirtualFile) = file.nameWithoutExtension.split("@","_")[0]
