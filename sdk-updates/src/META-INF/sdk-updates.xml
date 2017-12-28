@@ -37,6 +37,6 @@
     <applicationConfigurable parentId="preferences.general"
                              displayName="Android SDK"
                              provider="com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider"
-                             id="android.sdk-updates"/>
+                             id="AndroidSdkUpdater"/>
   </extensions>
 </idea-plugin>
