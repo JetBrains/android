@@ -29,7 +29,7 @@ import javax.swing.JTextField
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<ModelT, PropertyT>(
+class SimplePropertyEditor<ModelT, PropertyT: Any>(
     val model: ModelT,
     val property: ModelSimpleProperty<ModelT, PropertyT>
 ) : ComboBox<String>(), ModelPropertyEditor<ModelT, PropertyT> {
