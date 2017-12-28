@@ -20,6 +20,7 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
@@ -242,8 +243,12 @@ public class TutorialCard extends CardViewPanel {
     private void handleStepButtonClick(@NotNull ActionEvent event) {
       Object source = event.getSource();
       StepButton stepButton = (StepButton)source;
-      if (stepButton.myDirection == StepButton.Direction.NEXT && myStepIndex < myTutorial.getSteps().size() - 1) {
-        myStepIndex++;
+      if (stepButton.myDirection == StepButton.Direction.NEXT) {
+        if (myStepIndex < myTutorial.getSteps().size() - 1) {
+          myStepIndex++;
+        } else {
+          closeAssistant();
+        }
       }
       else if (myStepIndex > 0) {
         myStepIndex--;
@@ -255,9 +260,13 @@ public class TutorialCard extends CardViewPanel {
       repaint();
     }
 
+    private void closeAssistant() {
+      ToolWindowManager.getInstance(myProject).getToolWindow("Assistant").hide(() -> {});
+    }
+
     private void updateVisibility() {
       myPrevButton.setVisible(myStepIndex > 0);
-      myNextButton.setVisible(myStepIndex < myTutorial.getSteps().size() - 1);
+      myNextButton.setText(myStepIndex < myTutorial.getSteps().size() - 1 ? "Next" : "Finish");
     }
   }
 
