@@ -289,6 +289,7 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
+  @RunIn(TestGroup.UNRELIABLE)  // b/37109081
   @Test
   public void withUserDefinedLibraryAttachments() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
