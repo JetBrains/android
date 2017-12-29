@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -25,7 +24,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,7 +31,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -110,13 +107,11 @@ public class GradleProjectInfo {
    * Gradle-specific.
    */
   public boolean isBuildWithGradle() {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-      for (Module module : moduleManager.getModules()) {
-        if (GradleFacet.isAppliedTo(module)) {
-          return true;
-        }
+    return ReadAction.compute(() -> {
+      if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
+        return true;
       }
+
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.
       if (GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L) {
