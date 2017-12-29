@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.fixture.wizard.WizardDialogFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
@@ -33,7 +34,7 @@ import java.util.Collection;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
-public class FirstRunWizardFixture extends WizardDialogFixture<FirstRunWizardFixture> {
+public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardFixture> {
 
   public static void show() {
     GuiTask.execute(() -> {
@@ -75,12 +76,20 @@ public class FirstRunWizardFixture extends WizardDialogFixture<FirstRunWizardFix
     return new FirstRunWizardFixture(welcomeFrame, robot);
   }
 
-  private FirstRunWizardFixture(@NotNull JFrame dialog, @NotNull Robot robot) {
-    super(dialog, robot);
+  private FirstRunWizardFixture(@NotNull JFrame frame, @NotNull Robot robot) {
+    super(FirstRunWizardFixture.class, robot, frame);
   }
 
   public CancelFirstRunDialogFixture findCancelPopup() {
     JDialog dialog = waitUntilShowing(robot(), Matchers.byTitle(JDialog.class, ""));
     return new CancelFirstRunDialogFixture(robot(), dialog);
+  }
+
+  @NotNull
+  @Override
+  public FirstRunWizardFixture clickCancel() {
+    // Super method waits for the dialog to be dismissed after cancel, but that is not true for First Run Wizard (shows cancel pop-up)
+    GuiTests.findAndClickCancelButton(this);
+    return myself();
   }
 }

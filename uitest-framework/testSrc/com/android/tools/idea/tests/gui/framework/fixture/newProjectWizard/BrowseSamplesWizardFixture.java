@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 
-public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamplesWizardFixture> implements ContainerFixture<JDialog> {
+public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamplesWizardFixture> {
 
   BrowseSamplesWizardFixture(@NotNull JDialog dialog, @NotNull Robot robot) {
     super(BrowseSamplesWizardFixture.class, robot, dialog);
