@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.WizardDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -30,7 +29,6 @@ import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
 import java.util.Collection;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
@@ -67,7 +65,7 @@ public class FirstRunWizardFixture extends WizardDialogFixture<FirstRunWizardFix
   }
 
   public static FirstRunWizardFixture find(@NotNull Robot robot) {
-    JFrame welcomeFrame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
+    JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame frame) {
         return "Android Studio Setup Wizard".equals(frame.getTitle());
@@ -81,8 +79,8 @@ public class FirstRunWizardFixture extends WizardDialogFixture<FirstRunWizardFix
     super(dialog, robot);
   }
 
-  public CancelFirstRunDialogFixture<FirstRunWizardFixture> findCancelPopup() {
+  public CancelFirstRunDialogFixture findCancelPopup() {
     JDialog dialog = waitUntilShowing(robot(), Matchers.byTitle(JDialog.class, ""));
-    return new CancelFirstRunDialogFixture<>(this, dialog);
+    return new CancelFirstRunDialogFixture(robot(), dialog);
   }
 }
