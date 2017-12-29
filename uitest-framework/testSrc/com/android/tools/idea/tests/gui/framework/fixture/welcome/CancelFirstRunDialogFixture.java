@@ -16,17 +16,16 @@
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.wizard.WizardDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.wizard.WizardStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
-public class CancelFirstRunDialogFixture<T extends WizardDialogFixture<T>> extends WizardStepFixture<T> {
-  CancelFirstRunDialogFixture(@NotNull T wizardDialog, @NotNull Container cancelContainer) {
-    super(wizardDialog, cancelContainer);
+public class CancelFirstRunDialogFixture extends AbstractWizardFixture<CancelFirstRunDialogFixture> {
+  CancelFirstRunDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
+    super(CancelFirstRunDialogFixture.class, robot, target);
   }
 
   @NotNull
@@ -44,12 +43,6 @@ public class CancelFirstRunDialogFixture<T extends WizardDialogFixture<T>> exten
   @NotNull
   public CancelFirstRunDialogFixture clickOK() {
     GuiTests.findAndClickOkButton(this);
-    return this;
-  }
-
-  @NotNull
-  public CancelFirstRunDialogFixture clickCancel() {
-    GuiTests.findAndClickCancelButton(this);
     return this;
   }
 
