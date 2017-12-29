@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
@@ -29,27 +28,28 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Base class for fixtures which control wizards that extend {@link DynamicWizard}
+ * Base class for fixtures which control wizards that extend {@link com.android.tools.idea.wizard.model.WizardModel}
  */
-public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDialog> implements ContainerFixture<JDialog> {
+public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRootPane> implements ContainerFixture<JRootPane> {
 
-  public AbstractWizardFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JDialog target) {
-    super(selfType, robot, target);
+  public AbstractWizardFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JDialog dialog) {
+    super(selfType, robot, dialog.getRootPane());
+  }
+
+  public AbstractWizardFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JFrame frame) {
+    super(selfType, robot, frame.getRootPane());
   }
 
   @NotNull
   protected JRootPane findStepWithTitle(@NotNull final String title) {
-    JRootPane rootPane = target().getRootPane();
-    waitUntilShowing(robot(), rootPane, JLabelMatcher.withText(title));
-    return rootPane;
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText(title));
+    return target();
   }
 
   @NotNull
-  protected JRootPane findStepWithTitle(@NotNull final String title,
-                                        long secondsToWait) {
-    JRootPane rootPane = target().getRootPane();
-    waitUntilShowing(robot(), rootPane, JLabelMatcher.withText(title), secondsToWait);
-    return rootPane;
+  protected JRootPane findStepWithTitle(@NotNull final String title, long secondsToWait) {
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText(title), secondsToWait);
+    return target();
   }
 
   @NotNull
