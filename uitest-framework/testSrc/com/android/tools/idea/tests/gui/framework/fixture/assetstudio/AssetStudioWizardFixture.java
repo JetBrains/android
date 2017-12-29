@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.ui.FixedSizeButton;

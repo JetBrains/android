@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.exception.ActionFailedException;

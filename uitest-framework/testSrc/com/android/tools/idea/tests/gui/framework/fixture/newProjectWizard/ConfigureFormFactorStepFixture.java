@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Wait;

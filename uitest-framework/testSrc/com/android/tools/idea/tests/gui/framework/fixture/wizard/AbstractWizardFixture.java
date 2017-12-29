@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import org.fest.swing.core.Robot;
