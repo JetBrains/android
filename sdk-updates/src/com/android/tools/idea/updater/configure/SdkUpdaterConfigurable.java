@@ -257,6 +257,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
-    Disposer.dispose(myPanel);
+    if (myPanel != null)
+      Disposer.dispose(myPanel);
   }
 }
