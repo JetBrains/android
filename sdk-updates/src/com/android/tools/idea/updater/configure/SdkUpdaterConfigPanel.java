@@ -216,7 +216,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
     mySettings = settings;
 
     Collection<File> sdkLocations = getSdkLocations();
-    mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    if (!sdkLocations.isEmpty()) {
+      mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    }
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
     if (IdeInfo.getInstance().isAndroidStudio()) {
       ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
@@ -296,7 +298,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
       }
 
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-      assert !facets.isEmpty();
 
       for (AndroidFacet facet : facets) {
         AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
