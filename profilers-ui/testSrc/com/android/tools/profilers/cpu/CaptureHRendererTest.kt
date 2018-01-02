@@ -33,7 +33,7 @@ class CaptureNodeModelHRendererTest {
 
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
     try {
-      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float())
+      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float(), false)
       fail()
     } catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Node type not supported.")
@@ -59,19 +59,19 @@ class CaptureNodeModelHRendererTest {
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     // TODO: refactor CaptureNodeModelHRenderer#render to check font is Bold for EXACT_MATCHES
 

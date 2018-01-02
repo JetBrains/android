@@ -20,6 +20,8 @@ package com.android.tools.adtui.chart.hchart;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.HNode;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -44,7 +46,7 @@ public abstract class DefaultHRenderer<T> implements HRenderer<T> {
 
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
   @Override
-  public void render(Graphics2D g, HNode<T> node, Rectangle2D drawingArea) {
+  public void render(@NotNull Graphics2D g, @NotNull HNode<T> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();

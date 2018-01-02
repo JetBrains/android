@@ -24,6 +24,7 @@ import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -87,10 +88,15 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel> node, @NotNull Rectangle2D drawingArea) {
+  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     // Draw rectangle background
     CaptureNode captureNode = (CaptureNode)node;
-    g.setPaint(getFillColor(captureNode));
+    Color nodeColor = getFillColor(captureNode);
+    if (isFocused) {
+      // All colors we use in call and flame charts are pretty bright, so darkening them works as an effective highlight
+      nodeColor = ColorUtil.darker(nodeColor, 2);
+    }
+    g.setPaint(nodeColor);
     g.fill(drawingArea);
 
     // Draw rectangle outline.
