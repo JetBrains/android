@@ -31,7 +31,6 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -157,11 +156,12 @@ public class StudioProfilersView extends AspectObserver {
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
-    close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
-    close.addActionListener(event -> myProfiler.stop());
-    close.setToolTipText("Close");
-    rightToolbar.add(close);
+    FlatButton endSession = new FlatButton("End Session");
+    endSession.setFont(endSession.getFont().deriveFont(12.f));
+    endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+    endSession.addActionListener(event -> myProfiler.stop());
+    endSession.setToolTipText("Stop profiling and close tab");
+    rightToolbar.add(endSession);
 
     rightToolbar.add(new FlatSeparator());
 
