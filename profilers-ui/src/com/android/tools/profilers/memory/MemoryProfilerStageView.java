@@ -35,7 +35,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -48,17 +47,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEFAULT_PADDING_Y_PX;
 import static com.android.tools.profilers.ProfilerLayout.*;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
-import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
@@ -485,7 +479,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     headingPanel.add(toolbar, BorderLayout.WEST);
 
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      FlatToggleButton button = new FlatToggleButton("", StudioIcons.Common.FILTER);
+      FlatToggleButton button = SearchComponent.createFilterToggleButton();
 
       JPanel buttonToolbar = new JPanel(TOOLBAR_LAYOUT);
       buttonToolbar.add(button);
@@ -496,7 +490,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
       searchTextArea.getComponent().setVisible(false);
       searchTextArea.getComponent().setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
-      SearchComponent.configureKeybindingAndFocusBehaviors(capturePanel, searchTextArea, button);
+      SearchComponent.configureKeyBindingAndFocusBehaviors(capturePanel, searchTextArea, button);
     }
 
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);

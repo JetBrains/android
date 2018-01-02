@@ -134,13 +134,13 @@ class CpuCaptureView {
       .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
 
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-      FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
+      FlatToggleButton filterButton = SearchComponent.createFilterToggleButton();
       myPanel.add(filterButton, new TabularLayout.Constraint(0, 2));
 
       mySearchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
       mySearchComponent.getComponent().setVisible(false);
       mySearchComponent.getComponent().setBorder(DEFAULT_BOTTOM_BORDER);
-      SearchComponent.configureKeybindingAndFocusBehaviors(myPanel, mySearchComponent, filterButton);
+      SearchComponent.configureKeyBindingAndFocusBehaviors(myPanel, mySearchComponent, filterButton);
     }
 
     myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
