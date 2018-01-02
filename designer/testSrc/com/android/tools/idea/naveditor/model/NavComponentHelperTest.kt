@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavTestCase
+import com.intellij.openapi.command.WriteCommandAction
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -146,5 +147,29 @@ class NavComponentHelperTest2 : NavTestCase() {
 
     assertEquals("val1", model.find("a1")?.actionDestination?.getAttribute(null, "test1"))
     assertEquals("val2", model.find("a2")?.actionDestination?.getAttribute(null, "test2"))
+  }
+
+  fun testActionDestinationId() {
+    val model = model("nav.xml",
+        rootComponent("root")
+            .unboundedChildren(
+                fragmentComponent("f1")
+                    .unboundedChildren(
+                        actionComponent("a1")
+                    )))
+        .build()
+
+    val action = model.find("a1")!!
+    val fragment = model.find("f1")!!
+
+    assertNull(action.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) { action.actionDestinationId = "f1" }
+    assertEquals(fragment, action.actionDestination)
+    assertEquals("f1", action.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) { action.actionDestinationId = null }
+    assertNull(action.actionDestination)
+    assertNull(action.actionDestinationId)
   }
 }

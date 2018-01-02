@@ -21,6 +21,9 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.uibuilder.model.BooleanAutoAttributeDelegate
+import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
+import com.android.tools.idea.uibuilder.model.StringAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.vfs.VfsUtil
@@ -140,8 +143,14 @@ val NlComponent.actionType: ActionType
     else ActionType.EXIT
   }
 
-val NlComponent.actionDestinationId: String?
-  get() = NlComponent.stripId(getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION))
+var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
+var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
+var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
+var NlComponent.popUpTo: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
+var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
+var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
+var NlComponent.document: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_DOCUMENT)
+var NlComponent.clearTask: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_CLEAR_TASK)
 
 val NlComponent.actionDestination: NlComponent?
   get() {
@@ -155,6 +164,14 @@ val NlComponent.actionDestination: NlComponent?
     // The above won't check the root itself
     return model.components.firstOrNull { it.id == targetId }
   }
+
+fun NlComponent.createAction(destinationId: String? = null): NlComponent {
+  val newTag = tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
+  val newAction = model.createComponent(newTag, this, null)
+  newAction.ensureId()
+  newAction.actionDestinationId = destinationId
+  return newAction
+}
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

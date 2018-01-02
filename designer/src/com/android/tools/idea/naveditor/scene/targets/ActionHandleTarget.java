@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -27,13 +26,13 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCircle;
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,11 +124,7 @@ public class ActionHandleTarget extends NavBaseTarget {
     new WriteCommandAction(myModel.getProject(), "Create Action", myModel.getFile()) {
       @Override
       protected void run(@NotNull Result result) {
-        XmlTag tag = myNlComponent.getTag().createChildTag(NavigationSchema.TAG_ACTION, null, null, false);
-        NlComponent newComponent = myModel.createComponent(tag, myNlComponent, null);
-        newComponent.ensureId();
-        newComponent.setAttribute(
-          SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + destinationNlComponent.getId());
+        NlComponent action = NavComponentHelperKt.createAction(myNlComponent, destinationNlComponent.getId());
       }
     }.execute();
   }

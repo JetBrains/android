@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.findVisibleDestination
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
 /**
  * Property representing all the arguments (possibly zero) for an action.
@@ -50,7 +52,7 @@ class NavActionArgumentsProperty(components: List<NlComponent>, propertiesManage
 
     val destinationToLocal: Map<NlComponent, NlComponent?> =
         components.mapNotNull { component ->
-          stripId(component.getAttribute(AUTO_URI, ATTR_DESTINATION))?.let {
+          component.actionDestinationId?.let {
             component.findVisibleDestination(it)
           }
         }

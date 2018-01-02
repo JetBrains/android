@@ -36,8 +36,8 @@ class NavActionsPropertyTest : NavTestCase() {
 
   fun testMultipleActions() {
     val property = NavActionsProperty(listOf(model.find("f1")!!))
-    assertEquals(model.find("a1"), property.getChildProperty("@id/f2").components[0])
-    assertEquals(model.find("a2"), property.getChildProperty("@id/f3").components[0])
+    assertEquals(model.find("a1"), property.getChildProperty("f2").components[0])
+    assertEquals(model.find("a2"), property.getChildProperty("f3").components[0])
   }
 
   fun testNoActions() {
@@ -51,7 +51,7 @@ class NavActionsPropertyTest : NavTestCase() {
     val action = model.find("a1")!!
     fragment.addChild(action)
     property.refreshList()
-    assertEquals(action, property.getChildProperty("@id/f2").components[0])
+    assertEquals(action, property.getChildProperty("f2").components[0])
     fragment.removeChild(action)
     property.refreshList()
     assertTrue(property.properties.isEmpty())

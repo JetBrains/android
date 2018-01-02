@@ -33,9 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.FRAGMENT;
@@ -62,7 +60,7 @@ public class AddActionDialog extends DialogWrapper {
   @VisibleForTesting
   JPanel myContentPanel;
 
-  public enum Defaults { NORMAL, RETURN_TO_SOURCE, GLOBAL }
+  public enum Defaults {NORMAL, RETURN_TO_SOURCE, GLOBAL}
 
   /**
    * Create a new action for the given component
@@ -117,7 +115,7 @@ public class AddActionDialog extends DialogWrapper {
       myFromComboBox.addItem(action.getParent());
     }
 
-    String destination = NlComponent.stripId(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+    String destination = NavComponentHelperKt.getActionDestinationId(action);
     if (destination != null) {
       //noinspection ConstantConditions
       myDestinationComboBox.addItem(NavComponentHelperKt.findVisibleDestination(action.getParent(), destination));
@@ -126,12 +124,12 @@ public class AddActionDialog extends DialogWrapper {
     myDestinationComboBox.setEnabled(false);
 
     selectItem(myPopToComboBox, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, action);
-    myInclusiveCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)));
+    myInclusiveCheckBox.setSelected(NavComponentHelperKt.getInclusive((action)));
     selectItem(myEnterComboBox, ATTR_ENTER_ANIM, AUTO_URI, action);
     selectItem(myExitComboBox, ATTR_EXIT_ANIM, AUTO_URI, action);
-    mySingleTopCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP)));
-    myDocumentCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_DOCUMENT)));
-    myClearTaskCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK)));
+    mySingleTopCheckBox.setSelected(NavComponentHelperKt.getSingleTop(action));
+    myDocumentCheckBox.setSelected(NavComponentHelperKt.getDocument(action));
+    myClearTaskCheckBox.setSelected(NavComponentHelperKt.getClearTask(action));
   }
 
   private static void selectItem(@NotNull JComboBox<ValueWithDisplayString> comboBox,
