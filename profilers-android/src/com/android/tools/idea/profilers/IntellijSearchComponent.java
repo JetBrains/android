@@ -24,16 +24,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class IntellijSearchComponent implements SearchComponent {
   private static final String REGEX = "Regex";
-  private static final String MATCH_CASE = "Match case";
+  private static final String MATCH_CASE = "Match Case";
   private final FilterComponent myFilterComponent;
   private final JComponent myComponent;
   private final SearchModel myModel;
@@ -113,6 +110,7 @@ public class IntellijSearchComponent implements SearchComponent {
     myComponent.add(myFilterComponent, new TabularLayout.Constraint(1, 0));
 
     myRegexCheckBox = new JCheckBox(REGEX);
+    myRegexCheckBox.setMnemonic(KeyEvent.VK_G);
     myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
@@ -123,6 +121,8 @@ public class IntellijSearchComponent implements SearchComponent {
     myRegexCheckBox.setSelected(myModel.getIsRegex());
 
     myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
+    myMatchCaseCheckBox.setMnemonic(KeyEvent.VK_C);
+    myMatchCaseCheckBox.setDisplayedMnemonicIndex(MATCH_CASE.indexOf('C'));
     myMatchCaseCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
