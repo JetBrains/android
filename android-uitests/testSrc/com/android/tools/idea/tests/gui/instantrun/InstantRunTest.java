@@ -157,6 +157,7 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
+      .waitForRenderToFinish()
       .dragComponentToSurface("Text", "TextView")
       .waitForRenderToFinish();
 
