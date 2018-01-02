@@ -62,6 +62,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   public static final String NONEMPTY = "nonempty";
   public static final String EMPTY = "empty";
 
+  private static final String MOBILE_TAG_STRING = "mobile-device";
+
   private final Project myProject;
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
@@ -71,6 +73,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
   private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
+  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -335,20 +338,33 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * Get the device icon representing the device class of the given AVD (e.g. phone/tablet or TV)
+   * Get the icons representing the device class of the given AVD (e.g. phone/tablet, Wear, TV)
    */
-  private static Icon getIcon(@NotNull AvdInfo info) {
+  @VisibleForTesting
+  static HighlightableIconPair getDeviceClassIconPair(@NotNull AvdInfo info) {
     String id = info.getTag().getId();
     String path;
+    HighlightableIconPair thisClassPair;
     if (id.contains("android-")) {
       path = String.format("/studio/icons/avd/device-%s_large.png", id.substring("android-".length()));
-      return IconLoader.getIcon(path, AvdDisplayList.class);
+      thisClassPair = myDeviceClassIcons.get(path);
+      if (thisClassPair == null) {
+        thisClassPair = new HighlightableIconPair(IconLoader.getIcon(path, AvdDisplayList.class));
+        myDeviceClassIcons.put(path, thisClassPair);
+      }
     } else {
-      return StudioIcons.Avd.DEVICE_MOBILE_LARGE;
+      // Phone/tablet
+      thisClassPair = myDeviceClassIcons.get(MOBILE_TAG_STRING);
+      if (thisClassPair == null) {
+        thisClassPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_MOBILE_LARGE);
+        myDeviceClassIcons.put(MOBILE_TAG_STRING, thisClassPair);
+      }
     }
+    return thisClassPair;
   }
 
-  private static class HighlightableIconPair {
+  @VisibleForTesting
+  static class HighlightableIconPair {
     private Icon baseIcon;
     private Icon highlightedIcon;
 
@@ -376,15 +392,11 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    */
   private final ColumnInfo[] myColumnInfos = new ColumnInfo[] {
     new AvdIconColumnInfo("Type") {
-      HighlightableIconPair myIconPair;
 
       @NotNull
       @Override
       public HighlightableIconPair valueOf(AvdInfo avdInfo) {
-        if (myIconPair == null) {
-          myIconPair = new HighlightableIconPair(AvdDisplayList.getIcon(avdInfo));
-        }
-        return myIconPair;
+        return getDeviceClassIconPair(avdInfo);
       }
     },
     new AvdColumnInfo("Name") {
