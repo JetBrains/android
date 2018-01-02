@@ -22,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.StringWriter;
-
 import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidLogcatReceiverTest {
@@ -45,16 +43,18 @@ public class AndroidLogcatReceiverTest {
   @Before
   public void setUp() {
     myLogcatListener = new FormattedLogcatReceiver() {
-      private final StringWriter myInnerWriter = new StringWriter();
+      private final StringBuilder myBuilder = new StringBuilder();
 
       @Override
       protected void receiveFormattedLogLine(@NotNull String line) {
-        myInnerWriter.append(line).append('\n');
+        myBuilder
+          .append(line)
+          .append('\n');
       }
 
       @Override
       public String toString() {
-        return myInnerWriter.getBuffer().toString();
+        return myBuilder.toString();
       }
     };
     myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogcatListener);
@@ -184,7 +184,7 @@ public class AndroidLogcatReceiverTest {
 
   @Test
   public void testParseAllLogLevelsAndHexThreadIds() {
-    String[] messages = new String[] {
+    String[] messages = new String[]{
       "[ 08-11 19:11:07.132   495:0x1ef D/dtag     ]",
       "debug message",
       "[ 08-11 19:11:07.132   495:  234 E/etag     ]",
