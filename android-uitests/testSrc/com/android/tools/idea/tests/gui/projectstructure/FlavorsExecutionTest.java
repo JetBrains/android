@@ -35,6 +35,8 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
+
 @RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest {
 
@@ -64,7 +66,7 @@ public class FlavorsExecutionTest {
    *   1. Import a project
    *   2. Open Project Structure Dialog
    *   3. Select app module, add two new flavors (Flavor1 and Flavor2),
-   *      and add falvorDimentsions to build.gradle (Module: app)
+   *      and add flavorDimensions to build.gradle (Module: app)
    *   4. Switch to Project View
    *   5. Select app
    *   6. Add launcher activities under Flavor1 and Flavor2 and name them F1_Main_Activity and F2_Main_Activity
@@ -77,7 +79,7 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37150124
+  @RunIn(TestGroup.SANITY)
   @Test
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
@@ -124,7 +126,11 @@ public class FlavorsExecutionTest {
       .setTargetSourceSet(FLAVOR1)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .waitForGradleProjectSyncToFinish()
+      // Close layout editor to speed up the rest of the test. Too many editor components slow down lookups
+      .getEditor()
+      .close();
+
     ideFrameFixture
       .getProjectView()
       .selectProjectPane()
@@ -137,7 +143,17 @@ public class FlavorsExecutionTest {
       .setTargetSourceSet(FLAVOR2)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .waitForGradleProjectSyncToFinish()
+      // Close layout editor to speed up the rest of the test. Too many editor components slow down lookups
+      .getEditor()
+      .close();
+
+    // Ensure that the new activity wizard actually gave us a launcher activity
+    String flavor1Manifest = ideFrameFixture
+      .getEditor()
+      .open("app/src/flavor1/AndroidManifest.xml")
+      .getCurrentFileContents();
+    assertThat(flavor1Manifest).contains("android.intent.category.LAUNCHER");
 
     ideFrameFixture
       .getBuildVariantsWindow()
@@ -153,6 +169,13 @@ public class FlavorsExecutionTest {
       .getAndroidToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
+
+    // Ensure that the new activity wizard actually gave us a launcher activity
+    String flavor2Manifest = ideFrameFixture
+      .getEditor()
+      .open("app/src/flavor2/AndroidManifest.xml")
+      .getCurrentFileContents();
+    assertThat(flavor2Manifest).contains("android.intent.category.LAUNCHER");
 
     ideFrameFixture
       .getBuildVariantsWindow()
