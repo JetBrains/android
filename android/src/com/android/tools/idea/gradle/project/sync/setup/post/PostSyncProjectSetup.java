@@ -252,7 +252,12 @@ public class PostSyncProjectSetup {
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
-      mySyncState.syncEnded();
+      if (mySyncState.lastSyncFailedOrHasIssues()) {
+        mySyncState.syncFailed("");
+      }
+      else {
+        mySyncState.syncEnded();
+      }
       ProjectBuildFileChecksums.saveToDisk(myProject);
     }
   }
