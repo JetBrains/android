@@ -116,7 +116,7 @@ final class HoverRowTable extends JBTable {
     final int lastRowBottom = getRowCount() * getRowHeight();
     columnX.forEach((Integer x) -> g.drawLine(x, lastRowBottom, x, getHeight()));
     // Use a blending color of selection color and grid color to replace transparent grid lines look.
-    if (getSelectedRow() != -1) {
+    if (getSelectedRow() != -1 && getCellSelectionEnabled()) {
       g.setColor(AdtUiUtils.overlayColor(getSelectionBackground().getRGB(), getGridColor().getRGB(), 0.25f));
       Rectangle selectedRowRect = getCellRect(getSelectedRow(), 0, true);
       columnX.forEach((Integer x) -> g.drawLine(x, selectedRowRect.y, x, selectedRowRect.y + selectedRowRect.height - 1));
