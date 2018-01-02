@@ -32,8 +32,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class HTreeChart<T> extends AnimatedComponent {
 
@@ -76,6 +78,9 @@ public class HTreeChart<T> extends AnimatedComponent {
 
   private boolean myRootVisible;
 
+  @Nullable
+  private HNode<T> myFocusedNode;
+
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
@@ -85,10 +90,14 @@ public class HTreeChart<T> extends AnimatedComponent {
   @NotNull
   private final HTreeChartReducer<T> myReducer;
 
-  private boolean myRender;
-
   @Nullable
   private Image myCanvas;
+
+  /**
+   * If true, the next render pass will forcefully rebuild this chart's canvas (an expensive
+   * operation which doesn't have to be done too often as usually the contents are static)
+   */
+  private boolean myDataUpdated;
 
   private int myCachedMaxHeight;
 
@@ -130,7 +139,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   }
 
   private void changed() {
-    myRender = true;
+    myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();
     opaqueRepaint();
   }
@@ -138,9 +147,10 @@ public class HTreeChart<T> extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     long startTime = System.nanoTime();
-    if (myRender) {
-      render();
-      myRender = false;
+    if (myDataUpdated) {
+      // Nulling out the canvas will trigger a render pass, below
+      updateNodesAndClearCanvas();
+      myDataUpdated = false;
     }
     g.setFont(getFont());
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -157,8 +167,7 @@ public class HTreeChart<T> extends AnimatedComponent {
       return;
     }
 
-    if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height
-        || ImageUtil.getUserWidth(myCanvas) != dim.width) {
+    if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height || ImageUtil.getUserWidth(myCanvas) != dim.width) {
       redrawToCanvas(dim);
     }
     UIUtil.drawImage(g, myCanvas, 0, 0, null);
@@ -202,13 +211,14 @@ public class HTreeChart<T> extends AnimatedComponent {
     assert myDrawnRectangles.size() == myDrawnNodes.size();
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
-      myRenderer.render(g, myDrawnNodes.get(i), myDrawnRectangles.get(i));
+      HNode<T> node = myDrawnNodes.get(i);
+      myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
     }
 
     g.dispose();
   }
 
-  protected void render() {
+  private void updateNodesAndClearCanvas() {
     myNodes.clear();
     myRectangles.clear();
     myCanvas = null;
@@ -335,6 +345,16 @@ public class HTreeChart<T> extends AnimatedComponent {
   private void initializeMouseEvents() {
     MouseAdapter adapter = new MouseAdapter() {
       private Point myLastPoint;
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        HNode<T> node = getNodeAt(e.getPoint());
+        if (node != myFocusedNode) {
+          myDataUpdated = true;
+          myFocusedNode = node;
+          opaqueRepaint();
+        }
+      }
 
       @Override
       public void mouseClicked(MouseEvent e) {
