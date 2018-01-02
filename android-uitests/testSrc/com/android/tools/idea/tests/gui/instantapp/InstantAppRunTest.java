@@ -171,7 +171,7 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void runFromCmdLine() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
