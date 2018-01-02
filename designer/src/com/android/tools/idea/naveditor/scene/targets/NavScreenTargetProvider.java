@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import org.jetbrains.android.dom.navigation.NavActionElement;
@@ -63,9 +64,9 @@ public class NavScreenTargetProvider implements TargetProvider {
           .put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
     }
     nlComponent.flatten()
-      .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))
+      .filter(NavComponentHelperKt::isAction)
       .forEach(nlChild -> {
-        String destinationId = NlComponent.stripId(nlChild.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+        String destinationId = NavComponentHelperKt.getActionDestinationId(nlChild);
         SceneComponent destination = groupMap.get(destinationId);
         if (destination != null) {
           result.add(new ActionTarget(sceneComponent, destination, nlChild));
