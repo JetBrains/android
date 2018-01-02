@@ -15,8 +15,11 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.flat.FlatToggleButton;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.Consumer;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,6 +34,7 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 public interface SearchComponent {
   @NotNull String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   @NotNull String CLOSE_ACTION = "CloseSearchAction";
+  @NotNull KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK);
 
   @NotNull
   JComponent getComponent();
@@ -45,7 +49,7 @@ public interface SearchComponent {
   /**
    * A helper method for configuring the default key bindings and focus behavior for a {@link SearchComponent}.
    * Intended behavior:
-   * Cltr+F should make the SearchComponent visible and put focus on the filter textbox.
+   * Ctrl+F should make the SearchComponent visible and put focus on the filter textbox.
    * Esc should hide the searchComponent and clear the filter.
    * Clicking on the button should toggle the visibility of the SearchComponent, and in both caes, the filter textbox should be rest.
    *
@@ -56,7 +60,7 @@ public interface SearchComponent {
    * @param searchComponent    The SearchComponent instance that the containerComponent and showHideButton are associated with.
    * @param showHideButton     The toggle button used for showing/hiding the SearchComponent.
    */
-  static void configureKeybindingAndFocusBehaviors(@NotNull JComponent containerComponent,
+  static void configureKeyBindingAndFocusBehaviors(@NotNull JComponent containerComponent,
                                                    @NotNull SearchComponent searchComponent,
                                                    @NotNull JToggleButton showHideButton) {
     showHideButton.addActionListener(event -> {
@@ -71,7 +75,8 @@ public interface SearchComponent {
 
     InputMap inputMap = containerComponent.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     ActionMap actionMap = containerComponent.getActionMap();
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK), OPEN_AND_FOCUS_ACTION);
+
+    inputMap.put(FILTER_KEY_STROKE, OPEN_AND_FOCUS_ACTION);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CLOSE_ACTION);
     actionMap.put(OPEN_AND_FOCUS_ACTION, new AbstractAction() {
       @Override
@@ -86,6 +91,7 @@ public interface SearchComponent {
         }
       }
     });
+
     actionMap.put(CLOSE_ACTION, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -100,5 +106,12 @@ public interface SearchComponent {
         containerComponent.requestFocusInWindow();
       }
     });
+  }
+
+  @NotNull
+  static FlatToggleButton createFilterToggleButton() {
+    FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
+    filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
+    return filterButton;
   }
 }
