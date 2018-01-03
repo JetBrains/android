@@ -275,37 +275,27 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * or discarded when the {@lik #resetState()} method is invoked.
    */
   @NotNull
-  public GradlePropertiesDslElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
+  public GradleDslElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
     newElement.myParent = this;
     myToBeAddedProperties.put(property, newElement);
     setModified(true);
-    return this;
+    return newElement;
   }
 
   @NotNull
-  public GradlePropertiesDslElement setNewLiteral(@NotNull String property, @NotNull String value) {
+  public GradleDslElement setNewLiteral(@NotNull String property, @NotNull Object value) {
     return setNewLiteralImpl(property, value);
   }
 
   @NotNull
-  public GradlePropertiesDslElement setNewLiteral(@NotNull String property, @NotNull Integer value) {
-    return setNewLiteralImpl(property, value);
-  }
-
-  @NotNull
-  public GradlePropertiesDslElement setNewLiteral(@NotNull String property, @NotNull Boolean value) {
-    return setNewLiteralImpl(property, value);
-  }
-
-  @NotNull
-  private GradlePropertiesDslElement setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
+  private GradleDslElement setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
     GradleDslLiteral literalElement = getPropertyElement(property, GradleDslLiteral.class);
     if (literalElement == null) {
       literalElement = new GradleDslLiteral(this, property);
       myToBeAddedProperties.put(property, literalElement);
     }
     literalElement.setValue(value);
-    return this;
+    return literalElement;
   }
 
   @NotNull

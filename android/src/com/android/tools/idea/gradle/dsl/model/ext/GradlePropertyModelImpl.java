@@ -32,7 +32,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @NotNull private ValueType myValueType;
-  @NotNull private GradleDslElement myElement;
+  @NotNull private final GradleDslElement myElement;
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
@@ -121,25 +121,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Update the current value type
     myValueType = extractAndGetValueType(myElement);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == this) {
-      return true;
-    }
-
-    if (!(o instanceof GradlePropertyModelImpl)) {
-      return false;
-    }
-    GradlePropertyModelImpl other = (GradlePropertyModelImpl)o;
-    return Objects.equals(myElement, other.myElement) &&
-           Objects.equals(myValueType, other.myValueType);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myElement, myValueType);
   }
 
   @Override

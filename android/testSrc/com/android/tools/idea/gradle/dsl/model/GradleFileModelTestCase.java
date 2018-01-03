@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
@@ -38,8 +39,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
@@ -243,5 +246,27 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(object).isInstanceOf(GradleDslBlockModel.class);
     GradleDslBlockModel model = GradleDslBlockModel.class.cast(object);
     return model.hasValidPsiElement();
+  }
+
+  public static void assertEquals(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    assertTrue(model + " and " + other + " are not equal", areModelsEqual(model, other));
+  }
+
+  public static void assertNotEquals(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    assertFalse(model + " and " + other + " are equal", areModelsEqual(model, other));
+  }
+
+  public static boolean areModelsEqual(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    Object value = model.getValue(OBJECT_TYPE);
+    Object otherValue = other.getValue(OBJECT_TYPE);
+
+    if (!Objects.equals(value, otherValue)) {
+      return false;
+    }
+
+    return model.getValueType().equals(other.getValueType()) &&
+           model.getPropertyType().equals(other.getPropertyType()) &&
+           model.getGradleFile().equals(other.getGradleFile()) &&
+           model.getFullyQualifiedName().equals(other.getFullyQualifiedName());
   }
 }

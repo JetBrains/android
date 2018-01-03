@@ -65,11 +65,25 @@ public class GroovyDslWriter implements GradleDslWriter {
       return null; // Avoid creation of an empty block statement.
     }
 
-    String statementText = element.getName() + (element.isBlockElement() ? " {\n}\n" : " \"abc\", \"xyz\"");
+    String statementText = element.getName();
+    if (element.isBlockElement()) {
+      statementText += " {\n}\n";
+    } else if (element.shouldUseAssignment()) {
+      statementText += " = 'abc'";
+    } else {
+      statementText += "\"abc\", \"xyz\"";
+    }
     GrStatement statement = factory.createStatementFromText(statementText);
+    // TODO: Move these workarounds to a more sensible way of doing things.
     if (statement instanceof GrApplicationStatement) {
       // Workaround to create an application statement.
       ((GrApplicationStatement)statement).getArgumentList().delete();
+    } else if (statement instanceof GrAssignmentExpression) {
+      // Workaround to create an assignment statetment
+      GrAssignmentExpression assignment = (GrAssignmentExpression)statement;
+      if (assignment.getRValue() != null) {
+        assignment.getRValue().delete();
+      }
     }
     PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement addedElement;
@@ -88,7 +102,9 @@ public class GroovyDslWriter implements GradleDslWriter {
       }
     }
     else {
-      if (addedElement instanceof GrApplicationStatement) {
+      if (addedElement instanceof GrApplicationStatement || addedElement instanceof GrAssignmentExpression) {
+        // This is for the workarounds above, this ensures that applyDslLiteral is called to actually add the value to
+        // either the application or assignment statement.
         element.setPsiElement(addedElement);
       }
     }
