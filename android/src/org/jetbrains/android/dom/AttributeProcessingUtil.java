@@ -321,17 +321,14 @@ public class AttributeProcessingUtil {
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    if (DumbService.isDumb(facet.getModule().getProject())) {
-      return Collections.emptyMap();
-    }
-    return ClassMaps.getInstance(facet).getClassMap(CLASS_PREFERENCE);
+    return getClassMap(facet, CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
-  public static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
+  private static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }

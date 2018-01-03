@@ -44,6 +44,9 @@ import java.util.Map;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
+/**
+ * Computes or retrieves a mapping from tag names used in XML files to their corresponding {@link PsiClass} instances.
+ */
 public class ClassMaps extends AndroidFacetScopedService {
   private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
 
@@ -66,7 +69,9 @@ public class ClassMaps extends AndroidFacetScopedService {
   }
 
   /**
-   * Returns all the classes inheriting from {@code className} that can be accessed from the current module.
+   * Returns a map from tag names to {@link PsiClass} instances for all subclasses of the given {@code className} that can be accessed
+   * from the current module. In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
+   * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
    */
   // TODO: correctly support classes from external non-platform jars
   @NotNull

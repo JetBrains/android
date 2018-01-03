@@ -85,7 +85,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String,PsiClass> classMap = ClassMaps.getInstance(facet).getClassMap(AndroidUtils.VIEW_CLASS_NAME);
+      final Map<String,PsiClass> classMap = AttributeProcessingUtil.getViewClassMap(facet);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
