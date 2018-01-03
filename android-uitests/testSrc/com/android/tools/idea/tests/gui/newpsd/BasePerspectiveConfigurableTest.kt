@@ -44,7 +44,6 @@ class BasePerspectiveConfigurableTest {
 
   @Test
   fun modulesListIsHiddenAndRestored() {
-    guiTest.robot().settings().idleTimeout(60000)
     val psd = guiTest
         .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
         .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
