@@ -115,10 +115,12 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
       activeTooltipView = null;
     }
     myTooltipPanel.removeAll();
+    myTooltipPanel.setVisible(false);
 
     if (myStage.getTooltip() != null) {
       activeTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
       myTooltipPanel.add(activeTooltipView.createComponent(), BorderLayout.CENTER);
+      myTooltipPanel.setVisible(true);
     }
   }
 }
