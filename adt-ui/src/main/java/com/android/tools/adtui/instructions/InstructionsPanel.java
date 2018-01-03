@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,11 +36,6 @@ import java.util.function.Consumer;
  * A custom panel that renders a list of {@link RenderInstruction} and optionally fades out after a certain time period.
  */
 public class InstructionsPanel extends JPanel {
-  /**
-   * The overlay instruction background is slightly transparent to not block the data being rendered below.
-   */
-  private static final Color INSTRUCTIONS_BACKGROUND = new JBColor(new Color(0xD8464646, true), new Color(0xD8E6E6E6, true));
-  private static final Color INSTRUCTIONS_FOREGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x000000));
 
   @Nullable private final EaseOutModel myEaseOutModel;
   @Nullable private AspectObserver myObserver;
@@ -48,8 +45,8 @@ public class InstructionsPanel extends JPanel {
     super(new TabularLayout("*,Fit,*", "*,Fit,*"));
 
     setOpaque(false);
-    setBackground(INSTRUCTIONS_BACKGROUND);
-    setForeground(INSTRUCTIONS_FOREGROUND);
+    setBackground(builder.myBackgroundColor);
+    setForeground(builder.myForegroundColor);
     InstructionsComponent component = new InstructionsComponent(builder);
     add(component, new TabularLayout.Constraint(1, 1));
 
@@ -93,6 +90,48 @@ public class InstructionsPanel extends JPanel {
 
       if (myEaseOutModel != null) {
         myEaseOutModel.addDependency(myAspectObserver).onChange(EaseOutModel.Aspect.EASING, this::modelChanged);
+      }
+
+      // TODO handler cursor updates
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          delegateMouseEvent(e);
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+          delegateMouseEvent(e);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          delegateMouseEvent(e);
+        }
+      });
+    }
+
+    /**
+     * When a mouse event occurs on this {@link InstructionsComponent} instance, redirects to the correct {@link RenderInstruction}
+     * to handle the event.
+     */
+    private void delegateMouseEvent(@NotNull MouseEvent event) {
+      // Adjusts the event's point based on this renderer's padding
+      event.translatePoint(-myHorizontalPadding, -myVerticalPadding);
+
+      // Find the RenderInstruction whose boundaries contain the event's Point based on their rendering positions, then delegate it to the
+      // instruction for handling.
+      Point position = event.getPoint();
+      Point cursor = new Point(myRenderer.getStartX(0), 0);
+      for (RenderInstruction instruction : myRenderer.getInstructions()) {
+        Rectangle bounds = instruction.getBounds(myRenderer, cursor);
+        if (bounds.contains(position)) {
+          // Transforms the point into the instruction's frame.
+          event.translatePoint(-bounds.x, -bounds.y);
+          instruction.handleMouseEvent(event);
+          break;
+        }
+        instruction.moveCursor(myRenderer, cursor);
       }
     }
 
@@ -140,12 +179,19 @@ public class InstructionsPanel extends JPanel {
   }
 
   public static final class Builder {
+    /**
+     * The overlay instruction background is slightly transparent to not block the data being rendered below.
+     */
+    private static final Color INSTRUCTIONS_BACKGROUND = new JBColor(new Color(0xD8464646, true), new Color(0xD8E6E6E6, true));
+    private static final Color INSTRUCTIONS_FOREGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x000000));
     public static final int DEFAULT_PADDING_PX = JBUI.scale(12);
 
     private int myArcWidth;
     private int myArcHeight;
     private int myHorizontalPadding = DEFAULT_PADDING_PX;
     private int myVerticalPadding = DEFAULT_PADDING_PX;
+    @Nullable private Color myBackgroundColor = INSTRUCTIONS_BACKGROUND;
+    @NotNull private Color myForegroundColor = INSTRUCTIONS_FOREGROUND;
     private InstructionsRenderer.HorizontalAlignment myAlignment = InstructionsRenderer.HorizontalAlignment.CENTER;
     @Nullable private EaseOutModel myEaseOutModel;
     @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
@@ -154,6 +200,19 @@ public class InstructionsPanel extends JPanel {
 
     public Builder(@NotNull RenderInstruction... instructions) {
       myInstructions = Arrays.asList(instructions);
+    }
+
+    /**
+     * @param foregroundColor color to be used for instructions rendering texts.
+     * @param backgroundColor color to be used for the rectangle wrapping the instructions. By default, the instructions are wrapped with a
+     *                        rounded rectangle with a bg {@link #INSTRUCTIONS_BACKGROUND}. Set this to null if the wrapping rectangle is
+     *                        unnecessary/undesirable.
+     */
+    @NotNull
+    public Builder setColors(@NotNull Color foregroundColor, @Nullable Color backgroundColor) {
+      myForegroundColor = foregroundColor;
+      myBackgroundColor = backgroundColor;
+      return this;
     }
 
     @NotNull
@@ -187,7 +246,6 @@ public class InstructionsPanel extends JPanel {
      * @param easeOutCompletionCallback If not null, the consumer instance will be called when the fade out is completed.
      *                                  For example, this allows the owner of the {@link InstructionsPanel} to remove it from the UI
      *                                  hierarchy after fade out.
-     * @return
      */
     @NotNull
     public Builder setEaseOut(@NotNull EaseOutModel easeOutModel, @Nullable Consumer<InstructionsPanel> easeOutCompletionCallback) {

@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.util.function.Consumer;
 
 /**
  * Base class for instructions used in updating state and rendering elements.
@@ -29,12 +31,19 @@ import java.awt.*;
  * Also See {@link InstructionsRenderer#draw(JComponent, Graphics2D)} for a code sample.
  */
 public abstract class RenderInstruction {
-
   @NotNull private static final Dimension EMPTY_SIZE = new Dimension();
+  @NotNull protected static final Consumer<MouseEvent> EMPTY_CONSUMER = evt -> {
+  };
+
+  @NotNull private Consumer<MouseEvent> myMouseHandler = EMPTY_CONSUMER;
 
   @NotNull
   public Dimension getSize() {
     return EMPTY_SIZE;
+  }
+
+  public void setMouseHandler(@NotNull Consumer<MouseEvent> mouseHandler) {
+    myMouseHandler = mouseHandler;
   }
 
   /**
@@ -46,5 +55,20 @@ public abstract class RenderInstruction {
   }
 
   public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull Rectangle bounds) {
+  }
+
+  /**
+   * A helper method to retrieve the bounds that contain this instruction.
+   */
+  @NotNull
+  public Rectangle getBounds(@NotNull InstructionsRenderer renderer, @NotNull Point cursor) {
+    return new Rectangle(cursor.x, cursor.y, getSize().width, renderer.getRowHeight());
+  }
+
+  /**
+   * @param evt the mouse event whose position is already converted into the instruction's coordinate space.
+   */
+  final void handleMouseEvent(@NotNull MouseEvent evt) {
+    myMouseHandler.accept(evt);
   }
 }

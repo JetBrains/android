@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
@@ -39,6 +40,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBList;
@@ -62,6 +64,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
@@ -88,7 +91,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   /**
    * Panel to let user know to take a capture.
    */
-  @NotNull private final InfoMessagePanel myHelpTipInfoMessagePanel;
+  @NotNull private final JPanel myHelpTipPanel;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -183,7 +186,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<CpuTraceInfo> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setDurationBg(ProfilerColors.CPU_CAPTURE_BACKGROUND)
+        .setDurationBg(CPU_CAPTURE_BACKGROUND)
         .setLabelProvider(this::formatCaptureLabel)
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(traceInfo -> getStage().setAndSelectCapture(traceInfo.getTraceId()))
@@ -201,7 +204,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setDurationBg(ProfilerColors.CPU_CAPTURE_BACKGROUND)
+        .setDurationBg(CPU_CAPTURE_BACKGROUND)
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .build();
 
@@ -294,9 +297,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
-    myHelpTipInfoMessagePanel =
-      new InfoMessagePanel("Details unavailable", "Click the record button to start CPU profiling or select a capture in the timeline.",
-                           null);
+    myHelpTipPanel = new JPanel(new BorderLayout());
+    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Thread details unavailable"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Click the record button "),
+      new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, " to start CPU profiling"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "or select a capture in the timeline."))
+      .setColors(JBColor.foreground(), null)
+      .build();
+    myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
 
     mySplitter = new JBSplitter(true);
     mySplitter.setFirstComponent(details);
@@ -517,7 +529,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // If the capture is still being parsed, the splitter second component should be myCaptureViewLoading
       if (myStage.getCaptureState() != CpuProfilerStage.CaptureState.PARSING) {
         if (myStage.isSelectionFailure()) {
-          mySplitter.setSecondComponent(myHelpTipInfoMessagePanel);
+          mySplitter.setSecondComponent(myHelpTipPanel);
         }
         else {
           mySplitter.setSecondComponent(null);
@@ -567,7 +579,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     if (myStage.getSelectedThread() != CaptureModel.NO_THREAD && myStage.isSelectionFailure()) {
       // If the help tip info panel is already showing and the user clears thread selection, we'll leave the panel showing.
-      mySplitter.setSecondComponent(myHelpTipInfoMessagePanel);
+      mySplitter.setSecondComponent(myHelpTipPanel);
     }
   }
 
