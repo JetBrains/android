@@ -81,13 +81,28 @@ public class NavDesignSurface extends DesignSurface {
     return 1f;
   }
 
+  // TODO: remove this
+  @Override
+  public void setModel(@Nullable NlModel model) {
+    // For now we have to assume that the library is set up already. In a future change it will be added automatically.
+    try {
+      if (model != null) {
+        NavigationSchema.createIfNecessary(model.getFacet());
+      }
+    }
+    catch (ClassNotFoundException e) {
+      assert false: "Nav library must be included!";
+    }
+    super.setModel(model);
+  }
+
   @NotNull
   public NavigationSchema getSchema() {
     // TODO: simplify this logic if possible:
     if (mySchema == null) {
       NlModel model = getModel();
       assert model != null;  // TODO: make sure this cannot happen
-      mySchema = NavigationSchema.getOrCreateSchema(model.getFacet());
+      mySchema = NavigationSchema.get(model.getFacet());
     }
     return mySchema;
   }

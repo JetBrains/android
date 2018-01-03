@@ -391,7 +391,7 @@ public class AttributeProcessingUtil {
                                           @NotNull NavDestinationElement element,
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+    NavigationSchema schema = NavigationSchema.get(facet);
     for (PsiClass psiClass : schema.getDestinationClassesByTagSlowly(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
@@ -566,7 +566,7 @@ public class AttributeProcessingUtil {
       processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
     }
     else if (element instanceof NavActionElement) {
-      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.getOrCreateSchema(facet).getActionClass(), callback,
+      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.get(facet).getActionClass(), callback,
                                                 skippedAttributes);
     }
 

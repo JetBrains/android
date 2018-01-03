@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.model
+package org.jetbrains.android.dom.navigation
 
-import com.android.tools.idea.common.model.NlModel
-import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.AndroidTestCase
 
-val NlModel.schema
-    get() = NavigationSchema.get(this.facet)
+class NavigationSchemaTest2 : AndroidTestCase() {
+  fun testNoLibrary() {
+    try {
+      NavigationSchema.createIfNecessary(myFacet)
+      fail("Expected ClassNotFoundException")
+    }
+    catch (expected: ClassNotFoundException) {
+      // success
+    }
+  }
+}

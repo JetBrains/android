@@ -67,10 +67,11 @@ public class NavigationSchemaTest extends AndroidTestCase {
     ZipUtil.extract(aar, tempDir, null);
 
     PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
+    NavigationSchema.createIfNecessary(myFacet);
   }
 
   public void testSubtags() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
 
     // Destination types
     Multimap<Class<? extends AndroidDomElement>, String> subtags;
@@ -103,7 +104,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationClassByTag() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
     PsiClass activityNavigator = findClass("android.arch.navigation.ActivityNavigator");
     PsiClass fragmentNavigator = findClass("android.arch.navigation.FragmentNavigator");
     PsiClass navGraphNavigator = findClass("android.arch.navigation.NavGraphNavigator");
@@ -135,7 +136,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationType() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
     assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity"));
     assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity_sub"));
     assertEquals(NavigationSchema.DestinationType.FRAGMENT, schema.getDestinationType("fragment"));
@@ -148,14 +149,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testTagByType() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
     assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
     assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
     assertEquals("fragment", schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT));
   }
 
   public void testTagLabel() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
     assertEquals("Activity", schema.getTagLabel("activity"));
     assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));
     assertEquals("Fragment", schema.getTagLabel("fragment"));
