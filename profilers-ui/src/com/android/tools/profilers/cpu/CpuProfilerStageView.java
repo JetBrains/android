@@ -39,12 +39,12 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -360,12 +360,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
-    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click  "),
-                                                            new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD,
-                                                                                PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
-                                                            new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  to start method profiling"))
+    Icon recordIcon = UIUtil.isUnderDarcula()
+                      ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
+                      : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
+    InstructionsPanel panel = new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click "),
+                                                            new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+                                                            new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to start method profiling"))
       .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
-      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
       .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }

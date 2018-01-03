@@ -27,7 +27,6 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +36,7 @@ import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
-  @VisibleForTesting static final String HAS_USED_NETWORK_SELECTION = "profiler.used.network.selection";
+  private static final String HAS_USED_NETWORK_SELECTION = "network.used.selection";
 
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
@@ -101,7 +100,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        profilers.getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_NETWORK_SELECTION, true);
+        profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_NETWORK_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
@@ -116,7 +115,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   }
 
   public boolean hasUserUsedNetworkSelection() {
-    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_NETWORK_SELECTION, false);
+    return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_NETWORK_SELECTION, false);
   }
 
   @NotNull

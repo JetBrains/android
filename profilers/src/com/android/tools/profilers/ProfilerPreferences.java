@@ -16,10 +16,9 @@
 package com.android.tools.profilers;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 /**
- * A collection of APIs used for persisting arbitrary key-value pairs (e.g. settings) across multiple studio sessions.
+ * A collection of APIs used for caching and retrieving arbitrary key-value pairs (e.g. settings).
  */
 public interface ProfilerPreferences {
   @NotNull

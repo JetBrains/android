@@ -236,9 +236,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect network details"))
+      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect network traffic"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
-        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }

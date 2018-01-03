@@ -99,10 +99,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
 
-  @NotNull private final ProfilerPreferences myPreferences;
+  @NotNull private final ProfilerPreferences myPersistentPreferences;
+  @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   public FakeIdeProfilerServices() {
-    myPreferences = new FakeProfilerPreferences();
+    myPersistentPreferences = new FakeProfilerPreferences();
+    myTemporaryPreferences = new FakeProfilerPreferences();
   }
 
   @NotNull
@@ -209,8 +211,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
-  public ProfilerPreferences getProfilerPreferences() {
-    return myPreferences;
+  public ProfilerPreferences getTemporaryProfilerPreferences() {
+    return myTemporaryPreferences;
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getPersistentProfilerPreferences() {
+    return myPersistentPreferences;
   }
 
   @Override

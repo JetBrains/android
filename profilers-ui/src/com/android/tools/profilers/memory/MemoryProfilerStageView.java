@@ -36,10 +36,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEFAULT_PADDING_Y_PX;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
@@ -431,37 +431,39 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
+    Icon recordIcon = UIUtil.isUnderDarcula()
+                      ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
+                      : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
+    // The heap dump icon's contrast does not stand out as well as the record icon so we use a higher tones value.
+    Icon heapDumpIcon = UIUtil.isUnderDarcula()
+                        ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
+                        : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
     if (getStage().useLiveAllocationTracking()) {
-      TextInstruction allocInstruction = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled() ?
-                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT,
-                                                             "Select a point/range to inspect snapshot/allocations") :
-                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations");
       RenderInstruction[] liveAllocInstructions = {
-        allocInstruction,
-        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations"),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click "),
+        new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
       };
       instructions = liveAllocInstructions;
     }
     else {
       RenderInstruction[] legacyInstructions = {
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click "),
+        new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to record allocations"),
-        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or "),
+        new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
       };
       instructions = legacyInstructions;
     }
-
     InstructionsPanel panel = new InstructionsPanel.Builder(instructions)
       .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
-      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
       .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }

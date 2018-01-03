@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
-  @VisibleForTesting static final String HAS_USED_CPU_CAPTURE = "profiler.used.cpu.capture";
+  private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
@@ -231,7 +231,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public boolean hasUserUsedCpuCapture() {
-    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_CPU_CAPTURE, false);
+    return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_CPU_CAPTURE, false);
   }
 
   @NotNull
@@ -353,7 +353,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .thenAcceptAsync(response -> this.startCapturingCallback(response, config),
                        getStudioProfilers().getIdeServices().getMainExecutor());
 
-    getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
+    getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
