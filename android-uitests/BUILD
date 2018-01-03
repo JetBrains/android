@@ -79,7 +79,7 @@ java_test(
     name = "GuiTestRuleTest",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/70675392
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
