@@ -67,6 +67,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
 
@@ -836,6 +837,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     boolean skip = isSkipContentResize();
     mySkipResizeContentOnce = false;
     return skip;
+  }
+
+  /**
+   * This is called before {@link #setModel(NlModel)}. After the returned future completes, we'll wait for smart mode and then invoke
+   * {@link #setModel(NlModel)}. If a {@code DesignSurface} needs to do any extra work before the model is set it should be done here.
+   */
+  public CompletableFuture<?> goingToSetModel(NlModel model) {
+    return CompletableFuture.completedFuture(null);
   }
 
   private static class MyScrollPane extends JBScrollPane {

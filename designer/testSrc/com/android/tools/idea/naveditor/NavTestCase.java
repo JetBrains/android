@@ -81,7 +81,6 @@ public abstract class NavTestCase extends AndroidTestCase {
       i++;
     }
 
-
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);

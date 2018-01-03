@@ -50,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.resources.Density.DEFAULT_DENSITY;

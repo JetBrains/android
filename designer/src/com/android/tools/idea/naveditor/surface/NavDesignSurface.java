@@ -32,9 +32,22 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -45,6 +58,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,8 +66,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -79,21 +95,6 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public float getSceneScalingFactor() {
     return 1f;
-  }
-
-  // TODO: remove this
-  @Override
-  public void setModel(@Nullable NlModel model) {
-    // For now we have to assume that the library is set up already. In a future change it will be added automatically.
-    try {
-      if (model != null) {
-        NavigationSchema.createIfNecessary(model.getFacet());
-      }
-    }
-    catch (ClassNotFoundException e) {
-      assert false: "Nav library must be included!";
-    }
-    super.setModel(model);
   }
 
   @NotNull
@@ -127,6 +128,77 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public NavSceneManager getSceneManager() {
     return (NavSceneManager)super.getSceneManager();
+  }
+
+  /**
+   * Before we can set the model we need to ensure that the {@link NavigationSchema} has been created.
+   * Try to create it, adding the nav library dependency if necessary.
+   */
+  @Override
+  public CompletableFuture<?> goingToSetModel(NlModel model) {
+    AndroidFacet facet = model.getFacet();
+    CompletableFuture<?> result = new CompletableFuture<>();
+    Application application = ApplicationManager.getApplication();
+    Project project = model.getProject();
+    application.executeOnPooledThread(() -> {
+      // First, try to create the schema. It should work if our project depends on the nav library.
+      if (tryToCreateSchema(facet)) {
+        result.complete(null);
+      }
+      // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
+      else if (requestAddDependency(facet)) {
+        ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(project)
+          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+        // When sync is done, try to create the schema again.
+        Futures.addCallback(syncResult, new FutureCallback<Object>() {
+          @Override
+          public void onSuccess(@Nullable Object unused) {
+            application.executeOnPooledThread(() -> {
+              if (!tryToCreateSchema(facet)) {
+                showFailToAddMessage(project);
+              }
+              result.complete(null);
+            });
+          }
+
+          @Override
+          public void onFailure(@Nullable Throwable t) {
+            showFailToAddMessage(project);
+            result.complete(null);
+          }
+        });
+      }
+      else {
+        showFailToAddMessage(project);
+        result.complete(null);
+      }
+    });
+    return result;
+  }
+
+  private static void showFailToAddMessage(@NotNull Project project) {
+    ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
+      project, "Failed to add navigation library dependency", "Failed to Add Dependency"));
+  }
+
+  private static boolean requestAddDependency(@NotNull AndroidFacet facet) {
+    AtomicBoolean didAdd = new AtomicBoolean(false);
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> didAdd.set(DependencyManagementUtil.addDependencies(
+        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION), true, false, true).isEmpty()));
+    return didAdd.get();
+  }
+
+  private static boolean tryToCreateSchema(@NotNull AndroidFacet facet) {
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+      try {
+        NavigationSchema.createIfNecessary(facet);
+        return true;
+      }
+      catch (ClassNotFoundException e) {
+        return false;
+      }
+    });
   }
 
   @Override
