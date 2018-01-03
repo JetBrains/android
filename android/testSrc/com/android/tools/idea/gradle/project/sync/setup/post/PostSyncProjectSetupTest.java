@@ -151,6 +151,20 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
+  public void testWithSyncIssueDuringProjectSetup() {
+    // Simulate the case when sync issue happens during ProjectSetup.
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false).thenReturn(true);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = false;
+    request.lastSyncTimestamp = 1L;
+
+    mySetup.setUpProject(request, myProgressIndicator);
+
+    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, never()).syncEnded();
+  }
+
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncFinishedWithSyncIssues() {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
