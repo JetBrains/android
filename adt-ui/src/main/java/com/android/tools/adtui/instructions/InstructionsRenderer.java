@@ -84,6 +84,11 @@ public final class InstructionsRenderer {
     return mySize;
   }
 
+  @NotNull
+  List<RenderInstruction> getInstructions() {
+    return myInstructions;
+  }
+
   /**
    * Retrieve the starting x position for a particular row as specified by its y value.
    */
@@ -107,18 +112,10 @@ public final class InstructionsRenderer {
 
   public void draw(@NotNull JComponent component, @NotNull Graphics2D g2d) {
     Point cursor = new Point(getStartX(0), 0);
-    Rectangle bounds = new Rectangle();
     for (RenderInstruction instruction : myInstructions) {
-      update(bounds, cursor, instruction.getSize());
+      Rectangle bounds = instruction.getBounds(this, cursor);
       instruction.render(component, g2d, bounds);
       instruction.moveCursor(this, cursor);
     }
-  }
-
-  private void update(@NotNull Rectangle bounds, @NotNull Point cursor, @NotNull Dimension size) {
-    bounds.x = cursor.x;
-    bounds.y = cursor.y;
-    bounds.width = size.width;
-    bounds.height = myRowHeight;
   }
 }

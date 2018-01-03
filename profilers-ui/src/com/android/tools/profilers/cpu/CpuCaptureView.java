@@ -22,6 +22,8 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
@@ -37,10 +39,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -295,13 +294,21 @@ class CpuCaptureView {
     protected static JPanel getNoDataForThread() {
       String message = "No data available for the selected thread.";
       JPanel panel = new JPanel(new BorderLayout());
-      panel.add(new InfoMessagePanel(message, "", null), BorderLayout.CENTER);
+      InstructionsPanel info = new InstructionsPanel.Builder(new TextInstruction(INFO_MESSAGE_HEADER_FONT, message))
+        .setColors(JBColor.foreground(), null)
+        .build();
+      panel.add(info, BorderLayout.CENTER);
       return panel;
     }
 
     protected static JComponent getNoDataForRange() {
       String message = "No data available for the selected time frame.";
-      return new InfoMessagePanel(message, "", null);
+      JPanel panel = new JPanel(new BorderLayout());
+      InstructionsPanel info = new InstructionsPanel.Builder(new TextInstruction(INFO_MESSAGE_HEADER_FONT, message))
+        .setColors(JBColor.foreground(), null)
+        .build();
+      panel.add(info, BorderLayout.CENTER);
+      return panel;
     }
   }
 

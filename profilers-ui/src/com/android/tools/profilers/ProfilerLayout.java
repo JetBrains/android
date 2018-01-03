@@ -75,6 +75,8 @@ public class ProfilerLayout {
   public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
   public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
   public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(15f);
+  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
+  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(12f);
 
   public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(300);
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;

@@ -19,7 +19,9 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.instructions.UrlInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
@@ -27,6 +29,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -87,13 +90,17 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       myConnectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
     }
 
-    // TODO: Add this help link in as soon as we are notified that it is hooked up
-    InfoMessagePanel.UrlData learnMoreData =
-      new InfoMessagePanel.UrlData("Learn More",
-                                   "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html");
-    JPanel infoPanel =
-      new InfoMessagePanel("Network Profiling Data Unavailable", "There is no information for the network traffic you've selected.",
-                           learnMoreData);
+    JPanel infoPanel = new JPanel(new BorderLayout());
+    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Network profiling data unavailable"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "There is no information for the network traffic you've selected."),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new UrlInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Learn More",
+                         "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
+      .setColors(JBColor.foreground(), null)
+      .build();
+    infoPanel.add(infoMessage, BorderLayout.CENTER);
     infoPanel.setName(CARD_INFO);
     myConnectionsPanel.add(infoPanel, CARD_INFO);
 
