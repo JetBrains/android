@@ -200,13 +200,18 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
+    if (!myContent.isVisible()) {
+      return; // We shouldn't draw the tooltip if its content is not supposed to be visible
+    }
     assert myLastPoint != null; // If we're visible, myLastPoint is not null
 
     // Translate the bounds to clamp it wholly within the parent's drawable region.
     Dimension preferredSize = getPreferredSize();
     // TODO Investigate if this works for multiple monitors, especially on Macs?
-    int x = Math.max(Math.min(myLastPoint.x + TOOLTIP_BORDER_SIZE, dim.width - preferredSize.width - TOOLTIP_BORDER_SIZE), TOOLTIP_BORDER_SIZE);
-    int y = Math.max(Math.min(myLastPoint.y + TOOLTIP_BORDER_SIZE, dim.height - preferredSize.height - TOOLTIP_BORDER_SIZE), TOOLTIP_BORDER_SIZE);
+    int x = Math.max(Math.min(myLastPoint.x + TOOLTIP_BORDER_SIZE, dim.width - preferredSize.width - TOOLTIP_BORDER_SIZE),
+                     TOOLTIP_BORDER_SIZE);
+    int y = Math.max(Math.min(myLastPoint.y + TOOLTIP_BORDER_SIZE, dim.height - preferredSize.height - TOOLTIP_BORDER_SIZE),
+                     TOOLTIP_BORDER_SIZE);
     myContent.setBounds(x, y, preferredSize.width, preferredSize.height);
 
     g.setColor(Color.WHITE);
