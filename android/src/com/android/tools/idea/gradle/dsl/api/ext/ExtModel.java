@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.api.ext;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ExtModel {
   /**
    * Returns a {@link GradlePropertyModel} representing the property with a given {@code name} on the
-   * Gradle ExtraPropertiesExtension, or {@code null} if none exists.
+   * Gradle ExtraPropertiesExtension. The returned {@link GradlePropertyModel} will have a {@link ValueType} of NONE if the
+   * field was not present.
    */
-  @Nullable
+  @NotNull
   GradlePropertyModel findProperty(@NotNull String name);
 }
