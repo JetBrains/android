@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
@@ -27,18 +28,29 @@ import java.util.*;
  * The model for a JTree that updates for a given range. It uses a CpuTreeNode as it's backing tree.
  */
 abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTreeModel {
+  public enum Aspect {
+    // Tree Model changed
+    TREE_MODEL
+  }
 
   private final Range myRange;
   private final Range myCurrentRange;
   private final AspectObserver myAspectObserver;
+  private final AspectModel<Aspect> myAspectModel;
 
   public CpuTreeModel(@NotNull Range range, @NotNull T node) {
     super(new DefaultMutableTreeNode(node));
     myRange = range;
     myCurrentRange = new Range();
+    myAspectModel = new AspectModel<>();
     myAspectObserver = new AspectObserver();
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
     rangeChanged();
+  }
+
+  @NotNull
+  public AspectModel<Aspect> getAspect() {
+    return myAspectModel;
   }
 
   public void rangeChanged() {
@@ -53,6 +65,7 @@ abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTreeModel {
     update(root, myRange, diffs);
 
     myCurrentRange.set(myRange);
+    myAspectModel.changed(Aspect.TREE_MODEL);
   }
 
   public boolean changes(T data, List<Range> ranges) {
