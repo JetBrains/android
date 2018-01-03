@@ -33,28 +33,20 @@ class AndroidModuleSuggestionsConfigurable(
     module: PsModule,
     private val extraTopModules: List<PsModule>
 ) : BaseNamedConfigurable<PsModule>(module) {
-  private var panel: SuggestionsForm? = null
+  private var panel: AbstractMainPanel? = null
   private var uiDisposed = false
 
   override fun getId() = "android.psd.suggestions." + displayName
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback =
-      panel?.navigateTo(place, requestFocus) ?: ActionCallback.REJECTED
+      ensurePanelCreated().navigateTo(place, requestFocus)
 
   override fun queryPlace(place: Place) {
-    panel?.queryPlace(place)
+    ensurePanelCreated().queryPlace(place)
   }
 
-  override fun createOptionsPanel(): JComponent = object : AbstractMainPanel(context, extraTopModules) {
-    private val panel = ensurePanelCreated().also {
-      add(it.panel, BorderLayout.CENTER)
-    }
+  override fun createOptionsPanel(): JComponent = ensurePanelCreated()
 
-    override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
-    override fun queryPlace(place: Place) = panel.queryPlace(place)
-    override fun dispose() = panel.dispose()
-  }
-
-  private fun ensurePanelCreated(): SuggestionsForm {
+  private fun ensurePanelCreated(): AbstractMainPanel {
     val current = panel
     if (current != null) {
       return current
@@ -64,7 +56,19 @@ class AndroidModuleSuggestionsConfigurable(
     return created
   }
 
-  private fun createPanel(): SuggestionsForm {
+  private fun createPanel() = object : AbstractMainPanel(context, extraTopModules) {
+    private val panel = createInnerPanel().also {
+      add(it.panel, BorderLayout.CENTER)
+    }
+
+    override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
+    override fun queryPlace(place: Place) = panel.queryPlace(place)
+    override fun dispose() {
+      Disposer.dispose(panel)
+    }
+  }
+
+  private fun createInnerPanel(): SuggestionsForm {
     val psModulePath = when (module) {
       is PsAllModulesFakeModule -> null
       else -> PsModulePath(module)
@@ -86,6 +90,7 @@ class AndroidModuleSuggestionsConfigurable(
   override fun disposeUIResources() {
     super.disposeUIResources()
     panel?.run { Disposer.dispose(this) }
+    panel = null
     uiDisposed = true
   }
 
