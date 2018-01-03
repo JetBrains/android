@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.instructions;
 
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -23,6 +24,8 @@ import java.awt.*;
  * Instruction to create a new row; this has the effect of moving the cursor back to the left.
  */
 public final class NewRowInstruction extends RenderInstruction {
+  public static final int DEFAULT_ROW_MARGIN = JBUI.scale(5);
+
   private final int myVerticalMargin;
 
   public NewRowInstruction(int verticalMargin) {
