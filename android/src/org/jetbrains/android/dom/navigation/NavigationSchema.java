@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -36,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.TAG_DEEPLINK;
@@ -273,14 +276,20 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull AndroidFacet facet) {
-    try {
-      createIfNecessary(facet);
-      return get(facet).getPossibleRoots();
-    }
-    catch (ClassNotFoundException e) {
-      // Navigation wasn't initialized yet, fall back to default
-      return ImmutableList.of(NavigationDomFileDescription.DEFAULT_ROOT_TAG);
-    }
+    Application application = ApplicationManager.getApplication();
+    AtomicReference<List<String>> result = new AtomicReference<>();
+
+    application.invokeAndWait(() -> application.runReadAction(() -> {
+      try {
+        createIfNecessary(facet);
+        result.set(get(facet).getPossibleRoots());
+      }
+      catch (ClassNotFoundException e) {
+        // Navigation wasn't initialized yet, fall back to default
+        result.set(ImmutableList.of(NavigationDomFileDescription.DEFAULT_ROOT_TAG));
+      }
+    }));
+    return result.get();
   }
 
   @NotNull

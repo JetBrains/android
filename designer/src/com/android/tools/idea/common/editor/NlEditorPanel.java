@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -51,6 +52,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Assembles a designer editor from various components
@@ -101,7 +103,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
     if (!syncManager.isSyncInProgress()) {
       if (syncManager.getLastSyncResult().isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread());
+        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
         return;
       }
       else {
@@ -113,7 +115,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     // just added and the Android facet isn't available yet.
     SyncUtil.listenUntilNextSuccessfulSync(myProject, myEditor, result -> {
       if (result.isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread());
+        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
       }
       else {
         buildError();
@@ -121,15 +123,23 @@ public class NlEditorPanel extends JPanel implements Disposable {
     });
   }
 
-  private void initNeleModelOnEventDispatchThread() {
+  private void initNeleModelWhenSmart() {
     if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
       return;
     }
-    XmlFile file = getFile();
 
-    AndroidFacet facet = AndroidFacet.getInstance(file);
-    assert facet != null;
-    NlModel model = NlModel.create(myEditor, facet, myFile);
+    NlModel model = ReadAction.compute(() -> {
+      XmlFile file = getFile();
+
+      AndroidFacet facet = AndroidFacet.getInstance(file);
+      assert facet != null;
+      return NlModel.create(myEditor, facet, myFile);
+    });
+    CompletableFuture<?> complete = mySurface.goingToSetModel(model);
+    complete.whenComplete((a, b) -> DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model)));
+  }
+
+  private void initNeleModelOnEventDispatchThread(NlModel model) {
     mySurface.setModel(model);
     Disposer.register(myEditor, mySurface);
 
@@ -139,13 +149,13 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     // TODO: factor out tool creation
-    if (NlLayoutType.typeOf(file) == NlLayoutType.NAV) {
-      tools.add(new NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+    if (NlLayoutType.typeOf(model.getFile()) == NlLayoutType.NAV) {
+      tools.add(new NavPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
