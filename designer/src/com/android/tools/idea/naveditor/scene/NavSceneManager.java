@@ -276,7 +276,10 @@ public class NavSceneManager extends SceneManager {
     for (SceneComponent globalAction : globalActions) {
       String destination = NavComponentHelperKt.getActionDestinationId(globalAction.getNlComponent());
       SceneComponent parent = destinationMap.get(destination);
-      if (parent != null) {
+      if (parent == null) {
+        getScene().removeComponent(globalAction);
+      }
+      else {
         parent.addChild(globalAction);
       }
     }

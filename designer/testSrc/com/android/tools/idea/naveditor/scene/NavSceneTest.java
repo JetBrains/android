@@ -766,10 +766,11 @@ public class NavSceneTest extends NavTestCase {
         actionComponent("action4").withDestinationAttribute("fragment3"),
         actionComponent("action5").withDestinationAttribute("fragment3"),
         actionComponent("action6").withDestinationAttribute("fragment3"),
+        actionComponent("action7").withDestinationAttribute("invalid"),
         fragmentComponent("fragment1"),
         fragmentComponent("fragment2")
           .unboundedChildren(
-            actionComponent("action7")
+            actionComponent("action8")
               .withDestinationAttribute("fragment3")
           ),
         fragmentComponent("fragment3")
