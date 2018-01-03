@@ -42,6 +42,7 @@ public class BottomUpTreeModel extends CpuTreeModel<BottomUpNode> {
     for (BottomUpNode child: bottomUpNode.getChildren()) {
       child.buildChildren();
     }
+    getAspect().changed(Aspect.TREE_MODEL);
   }
 
   private void loadChildren(@NotNull DefaultMutableTreeNode node) {

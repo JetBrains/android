@@ -225,84 +225,6 @@ class CpuCaptureView {
     return Logger.getInstance(CpuCaptureView.class);
   }
 
-  @NotNull
-  private static JComponent setUpCpuTree(@NotNull JTree tree, @NotNull CpuTreeModel model, @NotNull CpuProfilerStageView stageView) {
-    tree.setModel(model);
-    CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
-    sorter.setModel(model, DEFAULT_SORT_ORDER);
-
-    CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(tree, navigator, () -> getCodeLocation(tree));
-
-    return new ColumnTreeBuilder(tree)
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Name")
-                   .setPreferredWidth(900)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new MethodNameRenderer())
-                   .setComparator(new NameValueNodeComparator()))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Total (μs)")
-                   .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setMinWidth(80)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("%")
-                   .setPreferredWidth(60)
-                   .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Self (μs)")
-                   .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setMinWidth(80)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("%")
-                   .setPreferredWidth(60)
-                   .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Children (μs)")
-                   .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setMinWidth(80)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("%")
-                   .setPreferredWidth(60)
-                   .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
-                   .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
-      .setTreeSorter(sorter)
-      .setBorder(DEFAULT_TOP_BORDER)
-      .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
-      .setShowVerticalLines(true)
-      .setTableIntercellSpacing(new Dimension())
-      .build();
-  }
 
   @Nullable
   private static CodeLocation getCodeLocation(@NotNull JTree tree) {
@@ -404,34 +326,46 @@ class CpuCaptureView {
     }
   }
 
-  static class TopDownView extends CaptureDetailsView {
-    @NotNull private final JPanel myPanel;
+  /**
+   * An abstract view for {@link TopDownView} and {@link BottomUpView}.
+   * They are almost similar except a few key differences, e.g bottom-up hides its root or lazy loads its children on expand.
+   */
+  private static abstract class TreeView extends CaptureDetailsView {
+    @NotNull protected final JPanel myPanel;
+    @NotNull private final AspectObserver myObserver;
+    @Nullable protected final JTree myTree;
+    @Nullable private final CpuTraceTreeSorter mySorter;
 
-    private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
-      TopDownTreeModel model = topDown.getModel();
+    protected TreeView(@NotNull CpuProfilerStageView stageView, @Nullable CpuTreeModel model) {
+      myObserver = new AspectObserver();
       if (model == null) {
         myPanel = getNoDataForThread();
+        myTree = null;
+        mySorter = null;
         return;
       }
 
       myPanel = new JPanel(new CardLayout());
       // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
-      final JTree tree = new JTree();
-      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
-      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
-      myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
+      myTree = new JTree();
+      int defaultFontHeight = myTree.getFontMetrics(myTree.getFont()).getHeight();
+      myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      myTree.setBorder(TABLE_ROW_BORDER);
+      myTree.setModel(model);
+      mySorter = new CpuTraceTreeSorter(myTree);
+      mySorter.setModel(model, DEFAULT_SORT_ORDER);
+
+      myPanel.add(createTableTree(), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-      expandTreeNodes(tree);
+      CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+      stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(myTree, navigator,
+                                                                                             () -> getCodeLocation(myTree));
 
-      model.addTreeModelListener(new TreeModelAdapter() {
-        @Override
-        protected void process(TreeModelEvent event, EventType type) {
-          switchCardLayout(myPanel, model.isEmpty());
-        }
-      });
       switchCardLayout(myPanel, model.isEmpty());
+
+      // The structure of the tree changed, so sort with the previous sorting order.
+      model.getAspect().addDependency(myObserver).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> mySorter.sort());
     }
 
     @NotNull
@@ -439,34 +373,118 @@ class CpuCaptureView {
     public JComponent getComponent() {
       return myPanel;
     }
+
+    @NotNull
+    private JComponent createTableTree() {
+      assert myTree != null && mySorter != null;
+
+      return new ColumnTreeBuilder(myTree)
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("Name")
+                     .setPreferredWidth(900)
+                     .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                     .setHeaderAlignment(SwingConstants.LEFT)
+                     .setRenderer(new MethodNameRenderer())
+                     .setComparator(new NameValueNodeComparator()))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("Total (μs)")
+                     .setPreferredWidth(100)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setMinWidth(80)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("%")
+                     .setPreferredWidth(60)
+                     .setMinWidth(60)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("Self (μs)")
+                     .setPreferredWidth(100)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setMinWidth(80)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("%")
+                     .setPreferredWidth(60)
+                     .setMinWidth(60)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("Children (μs)")
+                     .setPreferredWidth(100)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setMinWidth(80)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                     .setName("%")
+                     .setPreferredWidth(60)
+                     .setMinWidth(60)
+                     .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                     .setHeaderAlignment(SwingConstants.RIGHT)
+                     .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
+                     .setSortOrderPreference(SortOrder.DESCENDING)
+                     .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+        .setTreeSorter(mySorter)
+        .setBorder(DEFAULT_TOP_BORDER)
+        .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
+        .setShowVerticalLines(true)
+        .setTableIntercellSpacing(new Dimension())
+        .build();
+    }
   }
 
-  static class BottomUpView extends CaptureDetailsView {
-    @NotNull private final JPanel myPanel;
-
-    private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
-      BottomUpTreeModel model = bottomUp.getModel();
-
+  private static class TopDownView extends TreeView {
+    TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
+      super(view, topDown.getModel());
+      TopDownTreeModel model = topDown.getModel();
       if (model == null) {
-        myPanel = getNoDataForThread();
         return;
       }
+      assert myTree != null;
 
-      myPanel = new JPanel(new CardLayout());
-      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
-      final JTree tree = new JTree();
-      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
-      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
-      myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
-      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
+      expandTreeNodes(myTree);
 
-      tree.setRootVisible(false);
-      tree.addTreeWillExpandListener(new TreeWillExpandListener() {
+      model.addTreeModelListener(new TreeModelAdapter() {
+        @Override
+        protected void process(TreeModelEvent event, EventType type) {
+          switchCardLayout(myPanel, model.isEmpty());
+        }
+      });
+    }
+  }
+
+  private static class BottomUpView extends TreeView {
+
+    BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
+      super(view, bottomUp.getModel());
+      BottomUpTreeModel model = bottomUp.getModel();
+      if (model == null) {
+        return;
+      }
+      assert myTree != null;
+
+      myTree.setRootVisible(false);
+      myTree.addTreeWillExpandListener(new TreeWillExpandListener() {
         @Override
         public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
           DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
-          ((BottomUpTreeModel)tree.getModel()).expand(node);
+          ((BottomUpTreeModel)myTree.getModel()).expand(node);
         }
 
         @Override
@@ -483,19 +501,12 @@ class CpuCaptureView {
             DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
             Object[] inserted = event.getChildren();
             if (inserted != null && inserted.length == root.getChildCount()) {
-              tree.expandPath(new TreePath(root));
+              myTree.expandPath(new TreePath(root));
             }
           }
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
-      switchCardLayout(myPanel, model.isEmpty());
-    }
-
-    @NotNull
-    @Override
-    public JComponent getComponent() {
-      return myPanel;
     }
   }
 
