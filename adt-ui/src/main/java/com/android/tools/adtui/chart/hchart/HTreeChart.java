@@ -54,6 +54,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private static final int ACTION_MOVEMENT_FACTOR = 5;
   private static final int BORDER_PLUS_PADDING = 2;
   private static final int INITIAL_Y_POSITION = 0;
+  private static final int HEIGHT_PADDING = 15;
 
   private final Orientation myOrientation;
 
@@ -463,7 +464,10 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       }
     }
     maxDepth += 1;
-    return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
+    // The HEIGHT_PADDING is for the chart's toe (the innermost frame on call stacks).
+    // We have this because the padding near the chart's head (the outermost frame on call stacks)
+    // is there because the root node of the tree is invisible.
+    return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth + HEIGHT_PADDING;
   }
 
   public enum Orientation {TOP_DOWN, BOTTOM_UP}

@@ -32,6 +32,8 @@ class HTreeChartTest {
   // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
   // towards north and south.
   private val myContentHeight = 75
+  // The total heigh is the height of the content plus the height of the padding.
+  private val myTotalHeight = myContentHeight + 15
   private val myViewHeight = 50
   // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
   private val myInitialYPosition = 0
@@ -49,7 +51,7 @@ class HTreeChartTest {
     myChart.yRange.set(10.0, 10.0)
     // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
     myChart.setHTree(HNodeTree(0,5,2))
-    assertThat(myChart.maximumHeight).isEqualTo(myContentHeight)
+    assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
   }
 
   /**
@@ -135,8 +137,8 @@ class HTreeChartTest {
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(5, 45)
 
-    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
-    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myTotalHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myTotalHeight - myViewHeight)
   }
 
   @Test
@@ -170,7 +172,7 @@ class HTreeChartTest {
 
     // Resize the chart so the view's height is larger than the content's.
     // The drag should be no-op.
-    myChart.size = Dimension(100, myContentHeight + 20)
+    myChart.size = Dimension(100, myTotalHeight + 20)
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(5, 7)
 
@@ -240,8 +242,8 @@ class HTreeChartTest {
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
     myUi.mouse.press(5, 45)
     myUi.mouse.dragTo(5, 0)
-    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
-    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myTotalHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myTotalHeight - myViewHeight)
   }
 
   @Test
