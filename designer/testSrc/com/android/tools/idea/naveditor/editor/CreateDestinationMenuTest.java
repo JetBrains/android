@@ -58,7 +58,7 @@ public class CreateDestinationMenuTest extends NavTestCase {
     myMenu = new CreateDestinationMenu(mySurface);
     myMenu.createCustomComponentPopup();
 
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    NavigationSchema schema = NavigationSchema.get(myFacet);
     ComboBoxModel<Pair<String, PsiClass>> model = myMenu.myKindPopup.getModel();
     for (int i = 0; i < model.getSize(); i++) {
       Pair<String, PsiClass> entry = model.getElementAt(i);

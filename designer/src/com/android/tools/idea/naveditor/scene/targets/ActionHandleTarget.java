@@ -112,7 +112,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   public void createAction(@NotNull SceneComponent destination) {
     NlComponent destinationNlComponent = destination.getNlComponent();
 
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(destinationNlComponent.getModel().getFacet());
+    NavigationSchema schema = NavigationSchema.get(destinationNlComponent.getModel().getFacet());
 
     if (schema.getDestinationType(destinationNlComponent.getTagName()) == null) {
       return;

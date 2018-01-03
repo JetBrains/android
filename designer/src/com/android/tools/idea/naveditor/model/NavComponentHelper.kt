@@ -63,7 +63,7 @@ fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
 
 val NlComponent.visibleDestinations: List<NlComponent>
   get() {
-    val schema = NavigationSchema.getOrCreateSchema(model.facet)
+    val schema = NavigationSchema.get(model.facet)
     val result = arrayListOf<NlComponent>()
     var p: NlComponent? = this
     while (p != null) {
@@ -76,7 +76,7 @@ val NlComponent.visibleDestinations: List<NlComponent>
   }
 
 fun NlComponent.findVisibleDestination(id: String): NlComponent? {
-  val schema = NavigationSchema.getOrCreateSchema(model.facet)
+  val schema = NavigationSchema.get(model.facet)
   var p = parent
   while (p != null) {
     p.children.firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }

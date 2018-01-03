@@ -45,7 +45,7 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
       propertiesByName.put(SET_START_DESTINATION_PROPERTY_NAME, SetStartDestinationProperty(components))
     }
 
-    val schema = NavigationSchema.getOrCreateSchema(components[0].model.facet)
+    val schema = NavigationSchema.get(components[0].model.facet)
 
     addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
     addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)

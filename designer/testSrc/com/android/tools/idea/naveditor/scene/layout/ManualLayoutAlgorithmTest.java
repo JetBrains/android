@@ -56,7 +56,7 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
 
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verifyZeroInteractions(fallback);
 
@@ -95,7 +95,7 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
     ManualLayoutAlgorithm algorithm =
-      new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
+      new ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions);
     scene.getRoot().flatten().forEach(algorithm::layout);
 
     Scene scene2 = model2.getSurface().getScene();
@@ -135,7 +135,7 @@ public class ManualLayoutAlgorithmTest extends NavTestCase {
       ((SceneComponent)invocation.getArgument(0)).setPosition(123, 456);
       return null;
     }).when(fallback).layout(fragment2);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.get(myFacet), rootPositions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verify(fallback).layout(fragment2);
     verifyNoMoreInteractions(fallback);

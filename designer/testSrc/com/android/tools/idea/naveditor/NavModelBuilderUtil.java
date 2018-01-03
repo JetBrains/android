@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -55,7 +54,13 @@ public class NavModelBuilderUtil {
     Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
       NavDesignSurface surface = (NavDesignSurface)model.getSurface();
 
-      when(surface.getSchema()).thenReturn(NavigationSchema.getOrCreateSchema(facet));
+      try {
+        createIfNecessary(facet);
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      when(surface.getSchema()).thenReturn(get(facet));
       when(surface.getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
       when(surface.getExtentSize()).thenReturn(new Dimension(500, 500));
       when(surface.getScrollPosition()).thenReturn(new Point(0, 0));

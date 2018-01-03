@@ -47,7 +47,7 @@ public class DummyAlgorithmTest extends NavTestCase {
     model.getSurface().getSceneManager().update();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
-    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myFacet));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.get(myFacet));
     root.flatten().forEach(c -> c.setPosition(-500, -500));
     root.flatten().forEach(algorithm::layout);
 
@@ -91,7 +91,7 @@ public class DummyAlgorithmTest extends NavTestCase {
     model.getSurface().getSceneManager().update();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
-    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myFacet));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.get(myFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
     root.flatten().forEach(c -> c.setPosition(-500, -500));
     manual.setPosition(190, 100);

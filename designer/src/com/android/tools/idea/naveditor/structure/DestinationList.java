@@ -250,7 +250,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   private NavigationSchema getSchema() {
     if (mySchema == null) {
       assert myModel != null;
-      mySchema = NavigationSchema.getOrCreateSchema(myModel.getFacet());
+      mySchema = NavigationSchema.get(myModel.getFacet());
     }
     return mySchema;
   }
