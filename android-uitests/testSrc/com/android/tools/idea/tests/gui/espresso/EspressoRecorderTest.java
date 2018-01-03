@@ -18,7 +18,9 @@ package com.android.tools.idea.tests.gui.espresso;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.intellij.openapi.util.Ref;
 import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -27,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
@@ -74,30 +77,43 @@ public class EspressoRecorderTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture.getDebugToolWindow().findContent(TEST_RECORDER_APP).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
+    ideFrameFixture.getDebugToolWindow().findContent(TEST_RECORDER_APP).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     RecordingDialogFixture.find(guiTest.robot()).clickOk();
     TestClassNameInputDialogFixture.find(guiTest.robot()).clickOk();
     MessagesFixture.findByTitle(guiTest.robot(), "Missing Espresso dependencies").clickYes();
 
     // Run Android test.
-    Wait.seconds(5).expecting("The instrumentation test is ready").until(() -> {
-      try {
-        ideFrameFixture.waitForGradleProjectSyncToFinish()
-          .invokeMenuPath("Run", "Run...");
-        new JListFixture(guiTest.robot(), GuiTests.waitForPopup(guiTest.robot())).clickItem("Wrapper[MyActivityTest]");
+    ideFrameFixture.waitForGradleProjectSyncToFinish();
+    // The test menu item does not appear in the menu until we interact with the editor
+    // This is a minor bug: https://issuetracker.google.com/71516507
+    // Generate a click in the editor:
+    ideFrameFixture.getEditor()
+      .waitUntilErrorAnalysisFinishes()
+      .moveBetween("public class ", "MyActivityTest");
+
+    Ref<JListFixture> popupList = new Ref<>();
+    Wait.seconds(20).expecting("The instrumentation test is ready").until(() -> {
+      ideFrameFixture.invokeMenuPath("Run", "Run...");
+      JListFixture listFixture = new JListFixture(guiTest.robot(), GuiTests.waitForPopup(guiTest.robot()));
+      if (Arrays.asList(listFixture.contents()).contains("Wrapper[MyActivityTest]")) {
+        popupList.set(listFixture);
         return true;
-      } catch (LocationUnavailableException e) {
+      } else {
         guiTest.robot().pressAndReleaseKeys(KeyEvent.VK_ESCAPE);
         return false;
       }
     });
 
+    popupList.get().clickItem("Wrapper[MyActivityTest]");
+
+    // Stop the emulator so the AVD name appears consistently in the deployment dialog:
+    emulator.getEmulatorConnection().killEmulator();
     DeployTargetPickerDialogFixture.find(guiTest.robot())
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
     // Wait until tests run completion.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }
