@@ -54,19 +54,19 @@ public class ClassMapsTest extends AndroidTestCase {
     myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/src/com/test/other/ClassB.java", classB);
 
     // The main module should only see the classes from MODULE_WITH_DEPENDENCY
-    Set<String> classes = ClassMaps.getInstance(myFacet).getClassMap(OBJECT_CLASS).keySet();
+    Set<String> classes = new ClassMaps(myFacet.getModule()).getClassMap(OBJECT_CLASS).keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITH_DEPENDENCY should only see the classes from MODULE_WITH_DEPENDENCY
-    classes = ClassMaps.getInstance(AndroidFacet.getInstance(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY)))
+    classes = new ClassMaps(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY))
       .getClassMap(OBJECT_CLASS)
       .keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITHOUT_DEPENDENCY should see its own class
-    classes = ClassMaps.getInstance(AndroidFacet.getInstance(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY)))
+    classes = new ClassMaps(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY))
       .getClassMap(OBJECT_CLASS)
       .keySet();
     assertDoesntContain(classes, "com.test.ClassA");

@@ -16,13 +16,16 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Maps;
+import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.SmartPointerManager;
@@ -33,8 +36,7 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -44,42 +46,39 @@ import java.util.Map;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-/**
- * Computes or retrieves a mapping from tag names used in XML files to their corresponding {@link PsiClass} instances.
- */
-public class ClassMaps extends AndroidFacetScopedService {
-  private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
-
+class ClassMaps implements TagToClassMapper {
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
-
   private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newConcurrentMap();
 
-  @NotNull
-  public static ClassMaps getInstance(@NotNull AndroidFacet facet) {
-    ClassMaps classMaps = facet.getUserData(KEY);
-    if (classMaps == null) {
-      classMaps = new ClassMaps(facet);
-      facet.putUserData(KEY, classMaps);
-    }
-    return classMaps;
-  }
+  private final Module myModule;
 
-  private ClassMaps(@NotNull AndroidFacet facet) {
-    super(facet);
+  ClassMaps(@NotNull Module module) {
+    myModule = module;
+    MessageBusConnection connection = module.getMessageBus().connect(module);
+
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        // Clear the class inheritance map to make sure new dependencies from libraries are picked up
+        clear();
+      }
+    });
   }
 
   /**
-   * Returns a map from tag names to {@link PsiClass} instances for all subclasses of the given {@code className} that can be accessed
-   * from the current module. In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
+   * {@inheritDoc}
+   *
+   * In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
    * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
    */
   // TODO: correctly support classes from external non-platform jars
+  @Override
   @NotNull
   public Map<String, PsiClass> getClassMap(@NotNull String className) {
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
-      value = CachedValuesManager.getManager(getProject()).createCachedValue(() -> {
+      value = CachedValuesManager.getManager(myModule.getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
         return CachedValueProvider.Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
       }, false);
@@ -122,7 +121,7 @@ public class ClassMaps extends AndroidFacetScopedService {
         }
       }
     }
-    fillMap(className, getModule().getModuleWithDependenciesAndLibrariesScope(true), result, false);
+    fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), result, false);
     return result;
   }
 
@@ -144,9 +143,9 @@ public class ClassMaps extends AndroidFacetScopedService {
     }
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, getModule().getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
       viewClassMap = new HashMap<>(map.size());
-      SmartPointerManager manager = SmartPointerManager.getInstance(getProject());
+      SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
       for (Map.Entry<String, PsiClass> entry : map.entrySet()) {
         viewClassMap.put(entry.getKey(), manager.createSmartPsiElementPointer(entry.getValue()));
@@ -160,55 +159,49 @@ public class ClassMaps extends AndroidFacetScopedService {
                           @NotNull GlobalSearchScope scope,
                           @NotNull Map<String, PsiClass> map,
                           boolean libClassesOnly) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
     PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, getModule().getModuleWithDependenciesAndLibrariesScope(true));
+        aClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(true));
       }
       catch (IndexNotReadyException e) {
         aClass = null;
       }
       return aClass;
     });
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(getFacet());
-    if (baseClass != null) {
-      String[] baseClassTagNames = getTagNamesByClass(baseClass, androidModuleInfo.getModuleMinApi());
-      for (String tagName : baseClassTagNames) {
-        map.put(tagName, baseClass);
-      }
-      try {
-        ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-          if (libClassesOnly && c.getManager().isInProject(c)) {
-            return true;
-          }
-          String[] tagNames = getTagNamesByClass(c, androidModuleInfo.getModuleMinApi());
-          for (String tagName : tagNames) {
-            map.put(tagName, c);
-          }
+    if (baseClass == null) {
+      return false;
+    }
+
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
+    int api = androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
+
+    String[] baseClassTagNames = getTagNamesByClass(baseClass, api);
+    for (String tagName : baseClassTagNames) {
+      map.put(tagName, baseClass);
+    }
+    try {
+      ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
+        if (libClassesOnly && c.getManager().isInProject(c)) {
           return true;
-        });
-      }
-      catch (IndexNotReadyException e) {
-        Logger.getInstance(getClass()).info(e);
-        return false;
-      }
+        }
+        String[] tagNames = getTagNamesByClass(c, api);
+        for (String tagName : tagNames) {
+          map.put(tagName, c);
+        }
+        return true;
+      });
+    }
+    catch (IndexNotReadyException e) {
+      Logger.getInstance(getClass()).info(e);
+      return false;
     }
     return !map.isEmpty();
   }
 
-  @NotNull
-  private Project getProject() {
-    return getModule().getProject();
-  }
-
   public void clear() {
     myInitialClassMaps.clear();
-  }
-
-  @Override
-  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    facet.putUserData(KEY, null);
   }
 }
