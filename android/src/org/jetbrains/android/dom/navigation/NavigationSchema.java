@@ -98,7 +98,7 @@ public class NavigationSchema implements Disposable {
   private Map<String, DestinationType> myTagToDestinationType;
   private Map<PsiClass, String> myNavigatorClassToTag;
 
-  private final ClassMaps myClassMaps;
+  private final AndroidFacet myFacet;
   private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
 
@@ -129,12 +129,12 @@ public class NavigationSchema implements Disposable {
   }
 
   private NavigationSchema(@NotNull AndroidFacet facet) {
-    myClassMaps = ClassMaps.getInstance(facet);
+    myFacet = facet;
   }
 
   @Override
   public void dispose() {
-    ourSchemas.remove(myClassMaps.getFacet());
+    ourSchemas.remove(myFacet);
   }
 
   @NotNull
@@ -156,7 +156,7 @@ public class NavigationSchema implements Disposable {
   }
 
   private void init() {
-    Project project = myClassMaps.getFacet().getModule().getProject();
+    Project project = myFacet.getModule().getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, GlobalSearchScope.allScope(project));
     if (navigatorRoot == null) {
@@ -294,7 +294,7 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   private Map<String, PsiClass> getClassMap(@NotNull String className) {
-    Map<String, PsiClass> result = myClassMaps.getClassMap(className);
+    Map<String, PsiClass> result = ClassMaps.getInstance(myFacet).getClassMap(className);
     if (result.isEmpty()) {
       // TODO: handle the not-synced-yet case
       throw new RuntimeException(className + " not found");
