@@ -22,6 +22,7 @@ import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -34,15 +35,10 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -169,8 +165,8 @@ public class GradleTaskFinder {
       return;
     }
 
-    if (isCompositeBuild(module)) {
-      // Sikp gradle tasks for composite build.
+    if (ProjectStructure.getInstance(module.getProject()).getModuleFinder().isCompositeBuild(module)) {
+      // Skip gradle tasks for composite build.
       String msg = String.format("Module '%1$s' comes from composite build, skip gradle tasks.", module.getName());
       getLogger().info(msg);
       return;
@@ -238,34 +234,6 @@ public class GradleTaskFinder {
         }
       }
     }
-  }
-
-  /**
-   * @return {@code true} if current module comes from composite build.
-   */
-  @VisibleForTesting
-  static boolean isCompositeBuild(@NotNull Module module) {
-    String projectPath = module.getProject().getBaseDir().getPath();
-    GradleProjectSettings projectSettings =
-      GradleSettings.getInstance(module.getProject()).getLinkedProjectSettings(projectPath);
-    if (projectSettings == null) {
-      return false;
-    }
-    CompositeBuild compositeBuild = projectSettings.getCompositeBuild();
-    if (compositeBuild == null) {
-      return false;
-    }
-    VirtualFile moduleFile = module.getModuleFile();
-    if (moduleFile == null) {
-      return false;
-    }
-    String modulePath = moduleFile.getParent().getPath();
-    for (BuildParticipant participant : compositeBuild.getCompositeParticipants()) {
-      if (participant.getProjects().contains(modulePath)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private void addAssembleTasksForTargetVariants(@NotNull Set<String> tasks, @NotNull Module testOnlyModule) {

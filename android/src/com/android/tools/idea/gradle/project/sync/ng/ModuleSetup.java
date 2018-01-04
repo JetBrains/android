@@ -175,7 +175,8 @@ abstract class ModuleSetup {
       List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
       List<GradleFacet> gradleFacets = new ArrayList<>();
 
-      ModuleFinder moduleFinder = myModuleFinderFactory.create();
+      ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
+
       JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true /* fail fast */, module -> {
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
         if (gradleFacet != null) {
@@ -266,7 +267,7 @@ abstract class ModuleSetup {
 
       String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
 
-      ModuleFinder moduleFinder = myModuleFinderFactory.create();
+      ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
       for (String gradlePath : projectModels.getProjectPaths()) {
         GradleModuleModels moduleModels = projectModels.getModels(gradlePath);
         if (moduleModels != null) {
