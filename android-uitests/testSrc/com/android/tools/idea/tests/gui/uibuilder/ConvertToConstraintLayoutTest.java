@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -37,6 +39,7 @@ import java.util.regex.Pattern;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertEquals;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/70566335
 @RunWith(GuiTestRunner.class)
 public class ConvertToConstraintLayoutTest {
   private static final Pattern TOOLS_DIMENSION = Pattern.compile("tools:(.*)=\"(.*)dp\"");

@@ -132,6 +132,32 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
     return String.format("%02d:%02d:%02d.%03d", hour, min, sec, milli);
   }
 
+  @NotNull
+  public String getFormattedDuration(long micros) {
+    String[] units = new String[]{"μs", "ms", "s", "m", "h"};
+
+    float[] multipliers = new float[]{
+      1,
+      TimeUnit.MILLISECONDS.toMicros(1),
+      TimeUnit.SECONDS.toMicros(1),
+      TimeUnit.MINUTES.toMicros(1),
+      TimeUnit.HOURS.toMicros(1)
+    };
+
+    assert multipliers.length == units.length;
+
+    long value = micros;
+    String unit = units[0];
+    for (int i = units.length - 1; i >= 0; --i) {
+      if (micros / multipliers[i] >= 1) {
+        value = Math.round(micros / multipliers[i]);
+        unit = units[i];
+        break;
+      }
+    }
+    return String.format("%d %s", value, unit);
+  }
+
   @Override
   protected int getNumUnits() {
     return UNITS.length;

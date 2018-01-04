@@ -17,8 +17,11 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -63,27 +66,35 @@ public class ThreadSet extends ClassifierSet {
       myMethodSetClassifier = MethodSet.createDefaultClassifier(myCaptureObject);
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
       if (instance.getAllocationThreadId() != ThreadId.INVALID_THREAD_ID) {
-        return myThreadSets.computeIfAbsent(instance.getAllocationThreadId(), threadId -> new ThreadSet(myCaptureObject, threadId));
+        ThreadId threadId = instance.getAllocationThreadId();
+        ThreadSet threadSet = myThreadSets.get(threadId);
+        if (threadSet == null && createIfAbsent) {
+          threadSet = new ThreadSet(myCaptureObject, threadId);
+          myThreadSets.put(threadId, threadSet);
+        }
+        return threadSet;
       }
       else {
-        return myMethodSetClassifier.getOrCreateClassifierSet(instance);
+        return myMethodSetClassifier.getClassifierSet(instance, createIfAbsent);
       }
     }
 
     @NotNull
     @Override
     public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getFilteredClassifierSets().stream()).filter(child -> !child.getIsFiltered()).collect(Collectors.toList());
+      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getFilteredClassifierSets().stream())
+        .filter(child -> !child.getIsFiltered()).collect(Collectors.toList());
     }
 
     @NotNull
     @Override
     protected List<ClassifierSet> getAllClassifierSets() {
-      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getAllClassifierSets().stream()).collect(Collectors.toList());
+      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getAllClassifierSets().stream())
+        .collect(Collectors.toList());
     }
   }
 }

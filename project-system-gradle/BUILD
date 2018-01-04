@@ -15,7 +15,6 @@ iml_module(
         "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
-        "//tools/adt/idea/adt-branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -35,6 +34,23 @@ iml_module(
     iml_files = ["project-system-gradle-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
+    test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:support_latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/designer/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/templates",
+        "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/json",

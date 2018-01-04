@@ -248,9 +248,10 @@ public class SceneComponent {
    * @return
    */
   public int findTarget(Class aClass) {
-    int count = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int count = targets.size();
     for (int i = 0; i < count; i++) {
-      if (aClass.isInstance(myTargets.get(i))) {
+      if (aClass.isInstance(targets.get(i))) {
         return i;
       }
     }
@@ -528,7 +529,7 @@ public class SceneComponent {
     else {
       setDrawState(DrawState.NORMAL);
     }
-    for (Target target : myTargets) {
+    for (Target target : getTargets()) {
       target.onComponentSelectionChanged(myIsSelected);
     }
   }
@@ -573,7 +574,7 @@ public class SceneComponent {
   }
 
   public void setExpandTargetArea(boolean expandArea) {
-    for (Target target : myTargets) {
+    for (Target target : getTargets()) {
       target.setExpandSize(expandArea);
     }
     myScene.needsRebuildList();
@@ -581,10 +582,11 @@ public class SceneComponent {
 
   @VisibleForTesting
   ResizeBaseTarget getResizeTarget(ResizeBaseTarget.Type type) {
-    int count = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int count = targets.size();
     for (int i = 0; i < count; i++) {
-      if (myTargets.get(i) instanceof ResizeBaseTarget) {
-        ResizeBaseTarget target = (ResizeBaseTarget)myTargets.get(i);
+      if (targets.get(i) instanceof ResizeBaseTarget) {
+        ResizeBaseTarget target = (ResizeBaseTarget)targets.get(i);
         if (target.getType() == type) {
           return target;
         }
@@ -716,9 +718,10 @@ public class SceneComponent {
 
     needsRebuildDisplayList |= animating;
 
-    int num = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int num = targets.size();
     for (int i = 0; i < num; i++) {
-      Target target = myTargets.get(i);
+      Target target = targets.get(i);
       needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
     int childCount = myChildren.size();
@@ -749,9 +752,10 @@ public class SceneComponent {
                    sceneTransform.getSwingYDip(myCurrentTop),
                    sceneTransform.getSwingXDip(myCurrentRight),
                    sceneTransform.getSwingYDip(myCurrentBottom));
-    int num = myTargets.size();
+    ImmutableList<Target> targets = getTargets();
+    int num = targets.size();
     for (int i = 0; i < num; i++) {
-      Target target = myTargets.get(i);
+      Target target = targets.get(i);
       target.addHit(sceneTransform, picker);
     }
     int childCount = myChildren.size();

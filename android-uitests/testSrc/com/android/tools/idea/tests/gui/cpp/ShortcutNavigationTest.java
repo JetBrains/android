@@ -56,6 +56,8 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
 
+    guiTest.waitForBackgroundTasks();
+
     ideFrame.getEditor()
       .open("app/src/main/java/com/example/hellojni/HelloJni.java")
       .select(String.format("(.*public native String  stringFromJNI)"))

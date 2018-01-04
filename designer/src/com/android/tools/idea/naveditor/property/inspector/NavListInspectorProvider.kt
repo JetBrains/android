@@ -24,6 +24,7 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -43,7 +44,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
-import javax.swing.event.ListSelectionListener
 
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
@@ -85,6 +85,12 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   override fun resetCache() {
     myInspectors.clear()
   }
+
+  open protected fun plusClicked(event: MouseEvent,
+                                 parents: List<NlComponent>,
+                                 resourceResolver: ResourceResolver?,
+                                 surface: NavDesignSurface) =
+      addItem(null, parents, resourceResolver)
 
   abstract protected fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?)
 
@@ -170,8 +176,8 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       plus.font = Font(null, Font.BOLD, 14)
       plus.foreground = JBColor.GRAY
       plus.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
-          provider.addItem(null, myComponents, myMarkerProperties[0].resolver)
+        override fun mouseClicked(e: MouseEvent) {
+          mySurface?.let { provider.plusClicked(e, myComponents, myMarkerProperties[0].resolver, it) }
           refresh()
         }
       })

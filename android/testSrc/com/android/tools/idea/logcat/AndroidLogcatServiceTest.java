@@ -77,7 +77,7 @@ public class AndroidLogcatServiceTest {
     }).when(mockDevice).executeShellCommand(any(), any(), anyLong(), any());
 
     myLogcatService = new AndroidLogcatService();
-    myLogcatListener =  new TestLogcatListener();
+    myLogcatListener = new TestLogcatListener();
     myExecuteShellCommandLatch = new CountDownLatch(1);
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
@@ -87,7 +87,8 @@ public class AndroidLogcatServiceTest {
   public void tearDown() {
     if (myBufferSize != null) {
       System.setProperty("idea.cycle.buffer.size", myBufferSize);
-    } else {
+    }
+    else {
       System.clearProperty("idea.cycle.buffer.size");
     }
   }

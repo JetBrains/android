@@ -23,8 +23,8 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,22 +33,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class EventMonitorTooltipView extends ProfilerTooltipView {
-
-  private final EventMonitor myMonitor;
-
+public class EventMonitorTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
   private JLabel myTimeRangeLabel;
 
-  public EventMonitorTooltipView(StudioMonitorStageView parent, EventMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+  public EventMonitorTooltipView(StudioMonitorStageView parent, @NotNull EventMonitorTooltip tooltip) {
+    super(tooltip.getMonitor());
     // Callback on the data range so the active event time gets updated properly.
-    monitor.getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
   }
 
   @Override
   protected void timeChanged() {
-    ProfilerTimeline timeline = myMonitor.getProfilers().getTimeline();
+    ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
 
     // Get the data range to determine how long an activity is alive.
     Range dataRange = timeline.getDataRange();
@@ -90,7 +92,8 @@ public class EventMonitorTooltipView extends ProfilerTooltipView {
   // one we encounter will be the one that is presented in the UI.
   @Nullable
   private ActivityAction getActivityAt(double time) {
-    List<SeriesData<EventAction<StackedEventType>>> activitySeries = myMonitor.getActivityEvents().getRangedSeries().getSeries();
+    List<SeriesData<EventAction<StackedEventType>>> activitySeries =
+      getMonitor().getActivityEvents().getRangedSeries().getSeries();
     for (SeriesData<EventAction<StackedEventType>> series : activitySeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
         return (ActivityAction)series.value;

@@ -55,9 +55,17 @@ public class EmulatorTestRule extends ExternalResource {
                         String tab,
                         ChooseSystemImageStepFixture.SystemImage image,
                         String avdName) {
+    createAVD(avdManagerDialog, "Nexus 5", tab, image, avdName);
+  }
+
+  public void createAVD(AvdManagerDialogFixture avdManagerDialog,
+                        String hardwareProfile,
+                        String tab,
+                        ChooseSystemImageStepFixture.SystemImage image,
+                        String avdName) {
     avdManagerDialog.createNew()
       .selectHardware()
-      .selectHardwareProfile("Nexus 5")
+      .selectHardwareProfile(hardwareProfile)
       .wizard()
       .clickNext()
       .getChooseSystemImageStep()

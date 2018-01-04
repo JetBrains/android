@@ -16,8 +16,11 @@
 package com.android.tools.adtui.common;
 
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.RangeScrollBarUI;
+import com.android.tools.adtui.TabularLayout;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
@@ -26,10 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.*;
 import javax.swing.table.*;
 import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.TreeCellRenderer;
@@ -91,6 +91,15 @@ public class ColumnTreeBuilder {
   @Nullable
   private Color myHoverColor;
 
+  @NotNull
+  private final ColumnTreeScrollPanel myHScrollBarPanel;
+
+  private static final String LAST_TREE_PREFERRED_WIDTH = "last.tree.width";
+
+  private static final String PREFERRED_TREE_WIDTH = "tree.width";
+
+  private static final String TREE_OFFSET = "tree.offset";
+
   public ColumnTreeBuilder(@NotNull JTree tree) {
     this(tree, null);
   }
@@ -99,6 +108,7 @@ public class ColumnTreeBuilder {
     myTree = tree;
     myTableModel = new DefaultTableModel();
     myTable = new JBTable(myTableModel, tableColumnModel);
+    myHScrollBarPanel = new ColumnTreeScrollPanel(myTree, myTable);
     myTable.setAutoCreateColumnsFromModel(true);
     myTable.setShowVerticalLines(false);
     myTable.setFocusable(false);
@@ -148,14 +158,14 @@ public class ColumnTreeBuilder {
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
-    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable));
+    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
 
     myTree.addPropertyChangeListener(evt -> {
       if (evt.getPropertyName().equals("UI")) {
         // We need to preserve ColumnTreeUI always,
         // Otherwise width of rows will be wrong and the table will lose its formatting.
         if (!(evt.getNewValue() instanceof ColumnTreeUI)) {
-          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable));
+          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
         }
       }
     });
@@ -180,6 +190,7 @@ public class ColumnTreeBuilder {
       public void columnMarginChanged(ChangeEvent changeEvent) {
         myTree.revalidate();
         myTree.repaint();
+        myHScrollBarPanel.updateScrollBar();
       }
 
       @Override
@@ -229,10 +240,50 @@ public class ColumnTreeBuilder {
     JBScrollPane scrollPane = new JBScrollPane(panel);
     scrollPane.setColumnHeader(viewport);
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+    JPanel outerPanel = new JPanel(new BorderLayout());
+    outerPanel.add(scrollPane, BorderLayout.CENTER);
+    outerPanel.add(myHScrollBarPanel, BorderLayout.SOUTH);
+
     if (myBorder != null) {
       scrollPane.setBorder(myBorder);
     }
-    return scrollPane;
+    myHScrollBarPanel.setBorder(scrollPane.getBorder());
+    return outerPanel;
+  }
+
+  private static int getTreeColumnWidth(JTable table) {
+    if (table == null || table.getColumnModel().getColumnCount() == 0) {
+      return 0;
+    }
+    return table.getColumnModel().getColumn(0).getWidth();
+  }
+
+
+  /**
+   * Returns the preferred width of the tree column. This is the maximum of the preferred width only
+   * taking into account the first column.
+   * Used to determine the ideal size of the first column and show it in the scrollbar.
+   */
+  private static int getPreferredTreeWidth(JTree tree) {
+    Object value = tree.getClientProperty(PREFERRED_TREE_WIDTH);
+    return value == null ? 0 : (Integer)value;
+  }
+
+  private static void setPreferredTreeWidth(JTree tree, int width) {
+    tree.putClientProperty(PREFERRED_TREE_WIDTH, width);
+  }
+
+  /**
+   * How much of the tree column is off screen (how much it is offset from the beginning of the column).
+   */
+  private static int getTreeOffset(JTree tree) {
+    Object value = tree.getClientProperty(TREE_OFFSET);
+    return value == null ? 0 : (Integer)value;
+  }
+
+  private static void setTreeOffset(JTree tree, int offset) {
+    tree.putClientProperty(TREE_OFFSET, offset);
   }
 
   @NotNull
@@ -243,6 +294,70 @@ public class ColumnTreeBuilder {
 
   public interface TreeSorter<T> {
     void sort(Comparator<T> comparator, SortOrder order);
+  }
+
+  private static class ColumnTreeScrollPanel extends JPanel {
+
+    @NotNull
+    private final ColumnTreeScrollBar myScrollbar;
+
+    @NotNull
+    private final JTree myTree;
+
+    @NotNull
+    private final JTable myTable;
+
+    public ColumnTreeScrollPanel(@NotNull JTree tree, @NotNull JTable table) {
+      super((new TabularLayout("Fit,*")));
+      myTree = tree;
+      myTable = table;
+      myScrollbar = new ColumnTreeScrollBar(table);
+      add(myScrollbar, new TabularLayout.Constraint(0, 0));
+      add(new JPanel(), new TabularLayout.Constraint(0, 1));
+    }
+
+    public BoundedRangeModel getModel() {
+      return myScrollbar.getModel();
+    }
+
+    public void updateScrollBar() {
+      // Min is always 0
+      int max = getPreferredTreeWidth(myTree);
+      int value = getTreeOffset(myTree);
+      int extent = getTreeColumnWidth(myTable);
+      // Adjust the values so always value+extent <= max which avoids having space to show
+      // the tree but still having part of the tree outside the view.
+      if (value + extent > max) {
+        value = max - extent;
+      }
+      myScrollbar.getModel().setMaximum(max);
+      myScrollbar.getModel().setValue(value);
+      myScrollbar.getModel().setExtent(extent);
+      myScrollbar.revalidate();
+      setVisible(extent < max);
+    }
+  }
+
+  private static class ColumnTreeScrollBar extends JBScrollBar {
+
+    @NotNull
+    private final JTable myTable;
+
+    @Override
+    public void updateUI() {
+      setUI(new RangeScrollBarUI());
+    }
+
+    public ColumnTreeScrollBar(@NotNull JTable table) {
+      super(Adjustable.HORIZONTAL);
+      myTable = table;
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+      Dimension dim = super.getMinimumSize();
+      return new Dimension(getTreeColumnWidth(myTable), dim.height);
+    }
   }
 
   /**
@@ -299,11 +414,7 @@ public class ColumnTreeBuilder {
           // Adjust the right most column's width to account for inset
           columnWidth -= insets.right;
         }
-        if (i == 0) {
-          // Adjust the left most column's width to account for inset
-          columnWidth -= insets.left;
-        }
-        int width = Math.min(columnWidth + padding, offset);
+        int width = i == 0 ? offset : Math.min(columnWidth + padding, offset);
         component.setBounds(offset - width, 0, width, parent.getHeight());
         offset -= width;
         padding = 0;
@@ -342,6 +453,9 @@ public class ColumnTreeBuilder {
             }
           }
         }
+        if (i == 0) {
+          tree.putClientProperty(LAST_TREE_PREFERRED_WIDTH, component.getPreferredSize().width);
+        }
       }
       setToolTipText(toolTip);
       return this;
@@ -366,33 +480,45 @@ public class ColumnTreeBuilder {
    * this is known by the UI (see getRowX).
    */
   private static class ColumnTreeUI extends WideSelectionTreeUI {
+    private final ColumnTreeScrollPanel myHScrollBarPanel;
     private int myWidth = -1;
     private int myTreeColumnWidth = -1;
+    private ArrayList<Integer> myTreeWidths = new ArrayList<>();
 
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
     @Nullable private final JTable myTable;
 
     ColumnTreeUI() {
-      this(null, null, null);
+      this(null, null, null, null);
     }
 
     /**
      * @param table Used for rendering column grid lines, if {@link JTable#getShowVerticalLines()}
      *              is {@code true}.
      */
-    ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig, @Nullable JTable table) {
+    ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig,
+                 @Nullable JTable table, @Nullable ColumnTreeScrollPanel hsb) {
       myHoverColor = hoverColor != null ? hoverColor : new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
       myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
       myTable = table;
+      myHScrollBarPanel = hsb;
+      hsb.getModel().addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          setTreeOffset(tree, hsb.getModel().getValue());
+          treeState.invalidateSizes();
+          tree.repaint();
+        }
+      });
     }
 
     @Override
     public void paint(Graphics g, JComponent c) {
-      if (myWidth != c.getWidth() || myTreeColumnWidth != getTreeColumnWidth()) {
+      if (myWidth != c.getWidth() || myTreeColumnWidth != getTreeColumnWidth(myTable)) {
         treeState.invalidateSizes();
         myWidth = c.getWidth();
-        myTreeColumnWidth = getTreeColumnWidth();
+        myTreeColumnWidth = getTreeColumnWidth(myTable);
       }
       if (myTable != null && myTable.getShowVerticalLines()) {
         g.setColor(myTable.getGridColor());
@@ -402,22 +528,51 @@ public class ColumnTreeBuilder {
     }
 
     @Override
+    protected boolean isLocationInExpandControl(TreePath path, int mouseX, int mouseY) {
+      return super.isLocationInExpandControl(path, mouseX + getTreeOffset(tree), mouseY);
+    }
+
+    @Override
     protected AbstractLayoutCache.NodeDimensions createNodeDimensions() {
       return new NodeDimensionsHandler() {
         @Override
         public Rectangle getNodeDimensions(Object value, int row, int depth, boolean expanded, Rectangle size) {
+          // Getting the node dimensions with a custom renderer will trigger the custom renderer, which has access to the
+          // tree column preferred size.
+          tree.putClientProperty(LAST_TREE_PREFERRED_WIDTH, null);
           Rectangle dimensions = super.getNodeDimensions(value, row, depth, expanded, size);
           dimensions.width = tree.getWidth() - getRowX(row, depth);
-          int secondColumnStart = getTreeColumnWidth() - tree.getInsets().left;
+          if (row >= 0 && tree.getClientProperty(LAST_TREE_PREFERRED_WIDTH) != null) {
+            int realWidth = getRowX(row, depth) + (Integer)tree.getClientProperty(LAST_TREE_PREFERRED_WIDTH);
+            while (myTreeWidths.size() <= row) {
+              myTreeWidths.add(0);
+            }
+            myTreeWidths.set(row, realWidth);
+          }
+          int secondColumnStart = getTreeColumnWidth(myTable) - tree.getInsets().left;
           // If the second column start point is less that the current x, we should use that.
           // This means the second column was resized to the left of the start of the node
           if (secondColumnStart < dimensions.x) {
             dimensions.width += dimensions.x - secondColumnStart;
             dimensions.x = secondColumnStart;
           }
+          int offset = getTreeOffset(tree);
+          dimensions.x -= offset;
+          dimensions.width += offset;
           return dimensions;
         }
       };
+    }
+
+    @Override
+    protected void updateCachedPreferredSize() {
+      super.updateCachedPreferredSize();
+      int treePreferredWidth = 0;
+      for (int r = 0; r < tree.getRowCount() && r < myTreeWidths.size(); r++) {
+        treePreferredWidth = Math.max(treePreferredWidth, myTreeWidths.get(r));
+      }
+      setPreferredTreeWidth(tree, treePreferredWidth);
+      myHScrollBarPanel.updateScrollBar();
     }
 
     @Override
@@ -455,16 +610,9 @@ public class ColumnTreeBuilder {
                                       int row, boolean isExpanded, boolean hasBeenExpanded, boolean isLeaf) {
       // Because the bounds move with the column, we need to stop rendering the handle
       // one unit before the row starts moving left, or the handle will move with it.
-      if (bounds.x < getTreeColumnWidth() - 1) {
+      if (bounds.x < getTreeColumnWidth(myTable) - 1) {
         super.paintExpandControl(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
       }
-    }
-
-    private int getTreeColumnWidth() {
-      if (myTable == null || myTable.getColumnModel().getColumnCount() == 0) {
-        return tree.getWidth();
-      }
-      return myTable.getColumnModel().getColumn(0).getWidth();
     }
 
     private List<Integer> getColumnX() {
@@ -472,7 +620,8 @@ public class ColumnTreeBuilder {
         return new ArrayList<>();
       }
       List<Integer> columnX = new ArrayList<>();
-      for (int i = 0, x = 0; i < myTable.getColumnModel().getColumnCount() - 1; i++) {
+      int x = 0;
+      for (int i = 0; i < myTable.getColumnModel().getColumnCount() - 1; i++) {
         x += myTable.getColumnModel().getColumn(i).getWidth();
         // -1 so that the vertical line lines up with the header column lines
         columnX.add(x - 1);

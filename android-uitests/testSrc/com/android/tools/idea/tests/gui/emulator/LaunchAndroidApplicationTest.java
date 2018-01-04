@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
@@ -80,7 +81,7 @@ public class LaunchAndroidApplicationTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70628325
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
@@ -119,7 +120,7 @@ public class LaunchAndroidApplicationTest {
    *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70628325
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
@@ -190,7 +191,7 @@ public class LaunchAndroidApplicationTest {
    *   1. Open Android Studio
    *   2. Import VulkanCrashes project.
    *   3. Navigate to the downloaded vulkan directory.
-   *   3. Compile and run build.gradle file on the emulator.
+   *   3. Compile and run app on the emulator (Nexus 6P).
    *   Verify:
    *   1. Application crashes in the emulator.
    *   </pre>
@@ -201,7 +202,11 @@ public class LaunchAndroidApplicationTest {
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
 
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
+                       "Nexus 6P",
+                       "x86 Images",
+                       new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"),
+                       emulator.getDefaultAvdName());
 
     // The app must run under the debugger, otherwise there is a race condition where
     // the app may crash before Android Studio can connect to the console.
@@ -332,7 +337,7 @@ public class LaunchAndroidApplicationTest {
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
 
-    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 

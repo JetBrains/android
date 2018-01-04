@@ -83,6 +83,7 @@ public class NewInstantAppModuleTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71515856
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
     guiTest.importSimpleApplication();

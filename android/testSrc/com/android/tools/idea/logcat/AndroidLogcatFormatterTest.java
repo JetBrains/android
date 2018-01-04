@@ -73,7 +73,7 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
-  public void unknownFormatMessageRemainsSame(){
+  public void unknownFormatMessageRemainsSame() {
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
 
@@ -84,18 +84,18 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
-  public void emptyFormatMessageLeavesTheSame(){
+  public void emptyFormatMessageLeavesTheSame() {
     String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
-    assertEquals(preferences.LOGCAT_FORMAT_STRING, "");
+    assertEquals("", preferences.LOGCAT_FORMAT_STRING);
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(message, formattedMessage);
   }
 
   @Test
-  public void variousFormatsWorkAsExpected(){
+  public void variousFormatsWorkAsExpected() {
     String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
     assertExpected(true, true, false, false, message, "01-23 12:34:56.789 1234-56 D: Test message");
@@ -113,5 +113,4 @@ public class AndroidLogcatFormatterTest {
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(expected, formattedMessage);
   }
-
 }

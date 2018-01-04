@@ -47,8 +47,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     super.addParameters(info, commandLine);
     commandLine.addParameters("-no-window");
-    commandLine.addParameters("-gpu");
-    commandLine.addParameters("swiftshader");
   }
 
   @NotNull

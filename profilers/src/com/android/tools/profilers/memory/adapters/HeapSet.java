@@ -47,10 +47,13 @@ public class HeapSet extends ClassifierSet {
 
     // Gather all the instances from the descendants and add them to the heap node.
     // Subsequent calls to getChildrenClassifierSets will re-partition them to the correct child ClassifierSet.
-    List<InstanceObject> descendantsStream = getInstancesStream().collect(Collectors.toList());
-    myInstances.clear();
+    List<InstanceObject> snapshotStream = getSnapshotInstanceStream().collect(Collectors.toList());
+    List<InstanceObject> deltaStream = getDeltaInstanceStream().collect(Collectors.toList());
+    myDeltaInstances.clear();
+    mySnapshotInstances.clear();
     myClassifier = null;
-    myInstances.addAll(descendantsStream);
+    myDeltaInstances.addAll(deltaStream);
+    mySnapshotInstances.addAll(snapshotStream);
     myNeedsRefiltering = true;
   }
 

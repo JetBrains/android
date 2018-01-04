@@ -53,7 +53,7 @@ public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamp
 
   @NotNull
   public BrowseSamplesWizardFixture clickFinish() {
-    super.clickFinish(Wait.seconds(30));
+    super.clickFinish(Wait.seconds(120));
     return this;
   }
 }

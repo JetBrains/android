@@ -107,7 +107,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
       ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
     }
 
-    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !monitorsVisible);
+    AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 

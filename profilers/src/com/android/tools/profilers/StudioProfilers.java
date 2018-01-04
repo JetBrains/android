@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfiler;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -573,7 +574,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return ImmutableList.of(
       CpuProfilerStage.class,
       MemoryProfilerStage.class,
-      NetworkProfilerStage.class
+      NetworkProfilerStage.class,
+      EnergyProfilerStage.class
     );
   }
 

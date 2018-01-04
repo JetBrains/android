@@ -35,7 +35,6 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -198,18 +197,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected double getMaxScale() {
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
-      return 0.5;
-    }
-    return 1;
-  }
-
-  @Override
   protected double getMinScale() {
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
-      return 0.05;
-    }
     return 0.1;
   }
 
@@ -314,8 +302,10 @@ public class NavDesignSurface extends DesignSurface {
       NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent)).collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
 
-    @SwingCoordinate int swingStartCenterXInViewport = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getScrollPosition().x;
-    @SwingCoordinate int swingStartCenterYInViewport = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
+    @SwingCoordinate int swingStartCenterXInViewport =
+      Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getScrollPosition().x;
+    @SwingCoordinate int swingStartCenterYInViewport =
+      Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
 
     @SwingCoordinate LerpValue xLerp = new LerpValue(swingStartCenterXInViewport, swingViewportSize.width / 2, getScrollDurationMs());
     @SwingCoordinate LerpValue yLerp = new LerpValue(swingStartCenterYInViewport, swingViewportSize.height / 2, getScrollDurationMs());

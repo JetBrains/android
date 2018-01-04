@@ -35,6 +35,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.ProjectConnection;
@@ -48,6 +49,7 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -208,5 +210,24 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     verify(myProjectFinder).findProject(myResolverCtx);
     verify(myCommandLineArgs).get(project);
+  }
+
+  public void testPopulateModuleTasks() {
+    ProjectData project = myProjectResolver.createProject();
+    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
+
+    IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
+    IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
+    myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
+
+    // Verify that task data for included module is empty.
+    Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
+    assertThat(taskData).isEmpty();
+
+    // Verify that task data for non-included module contains all available tasks.
+    taskData = myProjectResolver.populateModuleTasks(myJavaModuleModel, moduleDataNode, projectNode);
+    Collection<String> taskDataNames = taskData.stream().map(TaskData::getName).collect(Collectors.toList());
+    assertThat(taskDataNames).containsExactly("compileJava", "jar", "classes");
   }
 }

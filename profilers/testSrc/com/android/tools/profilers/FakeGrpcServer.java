@@ -37,10 +37,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   private static Map<Long, Integer> ourProfiledProcesses = new HashMap<>(7);
 
   public FakeGrpcServer(String name, BindableService service) {
-    super(name, service, new EventService(),
+    super(name, service,
+          new EventService(),
           new MemoryService(),
           new NetworkService(),
-          new CpuService());
+          new CpuService(),
+          new EnergyService());
     // TODO the current static map keeps around values from previous tests. We should refactor this properly so this doesn't have to be
     // a static.
     ourProfiledProcesses.clear();
@@ -181,6 +183,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
       response.onNext(ProfilingStateResponse.getDefaultInstance());
+      response.onCompleted();
+    }
+  }
+
+  private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
+    @Override
+    public void getData(EnergyProfiler.EnergyDataRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
+      response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());
       response.onCompleted();
     }
   }

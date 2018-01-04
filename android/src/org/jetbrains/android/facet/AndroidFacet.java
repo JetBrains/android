@@ -173,10 +173,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     getProperties().PROJECT_TYPE = type;
   }
 
-  public static boolean hasAndroid(@NotNull Project project) {
-    return ReadAction.compute(() -> !project.isDisposed() && ProjectFacetManager.getInstance(project).hasFacets(ID));
-  }
-
   /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.

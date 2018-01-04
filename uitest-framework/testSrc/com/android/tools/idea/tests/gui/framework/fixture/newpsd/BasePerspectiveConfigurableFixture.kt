@@ -41,14 +41,16 @@ open class BasePerspectiveConfigurableFixture protected constructor(
   fun minimizeModulesList() {
     val hideButton = finder().find(container, matcher<InplaceButton> { it.toolTipText == "Hide" })
     robot().pressMouse(hideButton, Point(3, 3), MouseButton.LEFT_BUTTON)
-    Pause.pause(TimedDeadzone.DEFAULT.length.toLong())
+    robot().waitForIdle()  // This is to make sure that pause() waits long enough.
+    Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
   }
 
   fun restoreModulesList() {
     val restoreButton = finder().find(container, matcher<ActionButton> { it.toolTipText == "Restore 'Modules' List" })
     robot().pressMouse(restoreButton, Point(3, 3), MouseButton.LEFT_BUTTON)
-    Pause.pause(TimedDeadzone.DEFAULT.length.toLong())
+    robot().waitForIdle()  // This is to make sure that pause() waits long enough.
+    Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
   }
 

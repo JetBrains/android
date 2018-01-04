@@ -40,7 +40,9 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -266,6 +268,11 @@ public class NlDesignSurface extends DesignSurface {
       return configuration.getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
     }
     return 1f;
+  }
+
+  @Override
+  public float getScreenScalingFactor() {
+    return (SystemInfo.isMac && UIUtil.isRetina()) ? 2f : 1f;
   }
 
   @NotNull

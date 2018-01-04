@@ -206,6 +206,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public abstract float getSceneScalingFactor();
 
+  public float getScreenScalingFactor() {
+    return 1f;
+  }
+
   // TODO: add self-type parameter DesignSurface?
   @NotNull
   protected abstract ActionManager<? extends DesignSurface> createActionManager();
@@ -451,40 +455,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myCurrentZoomType = type;
     switch (type) {
       case IN: {
-        double currentScale = myScale;
-        if (SystemInfo.isMac && UIUtil.isRetina()) {
-          currentScale *= 2;
-        }
+        double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(currentScale * 100);
-        double scale = ZoomType.zoomIn(current) / 100.0;
-        if (SystemInfo.isMac && UIUtil.isRetina()) {
-          scale /= 2;
-        }
+        double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
         setScale(scale, x, y);
         repaint();
         break;
       }
       case OUT: {
-        double currentScale = myScale;
-        if (SystemInfo.isMac && UIUtil.isRetina()) {
-          currentScale *= 2;
-        }
+        double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(currentScale * 100);
-        double scale = ZoomType.zoomOut(current) / 100.0;
-        if (SystemInfo.isMac && UIUtil.isRetina()) {
-          scale /= 2;
-        }
+        double scale = (ZoomType.zoomOut(current) / 100.0) / getScreenScalingFactor();
         setScale(scale, x, y);
         repaint();
         break;
       }
       case ACTUAL:
-        if (SystemInfo.isMac && UIUtil.isRetina()) {
-          setScale(0.5);
-        }
-        else {
-          setScale(1);
-        }
+        setScale(1d / getScreenScalingFactor());
         repaint();
         break;
       case FIT:
@@ -527,7 +514,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
     double scale = Math.min(scaleX, scaleY);
     if (fitInto) {
-      double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
+      double min = 1d / getScreenScalingFactor();
       scale = Math.min(min, scale);
     }
     return scale;

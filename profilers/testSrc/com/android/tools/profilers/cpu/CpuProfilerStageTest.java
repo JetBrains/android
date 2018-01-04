@@ -494,9 +494,9 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testUsageTooltip() {
     myStage.enter();
-    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.USAGE);
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.UsageTooltip.class);
-    CpuProfilerStage.UsageTooltip tooltip = (CpuProfilerStage.UsageTooltip)myStage.getTooltip();
+    myStage.setTooltip(new CpuUsageTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuUsageTooltip.class);
+    CpuUsageTooltip tooltip = (CpuUsageTooltip)myStage.getTooltip();
 
     CpuProfilerStage.CpuStageLegends legends = tooltip.getLegends();
     double tooltipTime = TimeUnit.SECONDS.toMicros(0);
@@ -519,9 +519,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
 
     myStage.enter();
-    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.THREADS);
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.ThreadsTooltip.class);
-    CpuProfilerStage.ThreadsTooltip tooltip = (CpuProfilerStage.ThreadsTooltip)myStage.getTooltip();
+    myStage.setTooltip(new CpuThreadsTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuThreadsTooltip.class);
+    CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
 
     ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, 1, ProfilersTestData.SESSION_DATA, 1);
     // 1 - running - 8 - dead - 11

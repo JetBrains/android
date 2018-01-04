@@ -19,17 +19,12 @@ import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.SearchComponent;
-import com.intellij.find.editorHeaderActions.ToggleMatchCase;
-import com.intellij.find.editorHeaderActions.ToggleRegex;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -114,43 +109,28 @@ public class IntellijSearchComponent implements SearchComponent {
 
     myComponent.add(myFilterComponent, new TabularLayout.Constraint(1, 0));
 
-    // Configure Regex checkbox
-    final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
+    myRegexCheckBox = new JCheckBox(REGEX);
+    myRegexCheckBox.setMnemonic(KeyEvent.VK_G);
+    myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
-      public boolean isSelected(AnActionEvent e) {
-        return myModel.getIsRegex();
+      public void itemStateChanged(ItemEvent e) {
+        myModel.setIsRegex(e.getStateChange() == ItemEvent.SELECTED);
       }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        myModel.setIsRegex(state);
-      }
-    };
-
-    Component component = regexToggle.createCustomComponent((new ToggleRegex()).getTemplatePresentation());
-    assert (component instanceof JCheckBox);
-    myRegexCheckBox = (JCheckBox)component;
+    });
     myComponent.add(myRegexCheckBox, new TabularLayout.Constraint(1, 1));
-    myRegexCheckBox.setSelected(false);
+    myRegexCheckBox.setSelected(myModel.getIsRegex());
 
-    // Configure MatchCase checkbox
-    final CheckboxAction matchCaseToggle = new CheckboxAction(MATCH_CASE) {
+    myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
+    myMatchCaseCheckBox.setMnemonic(KeyEvent.VK_C);
+    myMatchCaseCheckBox.setDisplayedMnemonicIndex(MATCH_CASE.indexOf('C'));
+    myMatchCaseCheckBox.addItemListener(new ItemListener() {
       @Override
-      public boolean isSelected(AnActionEvent e) {
-        return myModel.getIsMatchCase();
+      public void itemStateChanged(ItemEvent e) {
+        myModel.setIsMatchCase(e.getStateChange() == ItemEvent.SELECTED);
       }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        myModel.setIsMatchCase(state);
-      }
-    };
-
-    component = matchCaseToggle.createCustomComponent((new ToggleMatchCase()).getTemplatePresentation());
-    assert (component instanceof JCheckBox);
-    myMatchCaseCheckBox = (JCheckBox)component;
+    });
     myComponent.add(myMatchCaseCheckBox, new TabularLayout.Constraint(1, 2));
-    myMatchCaseCheckBox.setSelected(false);
+    myMatchCaseCheckBox.setSelected(myModel.getIsMatchCase());
   }
 
   @Override

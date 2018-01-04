@@ -8,6 +8,7 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+    "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
     "//tools/adt/idea/adt-ui/lib/libwebp",
@@ -78,7 +79,7 @@ java_test(
     name = "GuiTestRuleTest",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/70675392
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
@@ -99,6 +100,130 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + ["manual"],  # testFileHandleRelease fails after 2017.3.1 merge
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "NewProjectTest",
+    data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
+    tags = COMMON_TAGS + ["manual"],  #sanity test passing, but latestSupportLibraryWhileDndLayouts failed for UI reason
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "NewActivityTest",
+    data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
+    tags = COMMON_TAGS + ["manual"],  #sanity test passing, some other test method failed for UI
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "AddModuleTest",
+    data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddModuleTest"],
+    tags = COMMON_TAGS + ["manual"],  #sanity test passing, some other test method failed for UI
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "NlEditorTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]) + glob(["testData/LayoutLocalTest/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NlEditorTest"],
+    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "ConstraintLayoutTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+        "testData/LayoutLocalTest/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutTest"],
+    tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "GradleSyncTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleSyncTest"],
+    tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "NewModuleTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
+    tags = COMMON_TAGS + ["manual"],  #sanity test passing, some other test method failed for UI
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "BuildTypesTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.BuildTypesTest"],
+    tags = COMMON_TAGS + ["manual"],  #UI flaky issue, fail sometimes
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "LayoutInspectorTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
+    tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
+    name = "ConvertToWebpActionTest",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+    ] + glob([
+        "testData/ImportLocalWebpProject/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertToWebpActionTest"],
+    tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )

@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +31,12 @@ public abstract class Stage extends AspectObserver {
   private final StudioProfilers myProfilers;
 
   private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
+
+  /**
+   * The active tooltip for stages that contain more than one tooltips.
+   */
+  @Nullable
+  private ProfilerTooltip myTooltip;
 
   public Stage(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
@@ -46,6 +53,11 @@ public abstract class Stage extends AspectObserver {
   @NotNull
   public final ProfilerMode getProfilerMode() { return myProfilerMode; }
 
+  @Nullable
+  public ProfilerTooltip getTooltip() {
+    return myTooltip;
+  }
+
   /**
    * Allow inheriting classes to modify the {@link ProfilerMode}.
    *
@@ -60,5 +72,20 @@ public abstract class Stage extends AspectObserver {
       myProfilerMode = profilerMode;
       getStudioProfilers().modeChanged();
     }
+  }
+
+  /**
+   * Changes the active tooltip to the given type.
+   * @param tooltip
+   */
+  public void setTooltip(ProfilerTooltip tooltip) {
+    if (tooltip != null && myTooltip != null && tooltip.getClass().equals(myTooltip.getClass())) {
+      return;
+    }
+    if (myTooltip != null) {
+      myTooltip.dispose();
+    }
+    myTooltip = tooltip;
+    getStudioProfilers().changed(ProfilerAspect.TOOLTIP);
   }
 }

@@ -382,7 +382,9 @@ public final class PathValidator implements Validator<File> {
     @NotNull
     public Builder withCommonRules() {
       withCommonTestRules();
-      withRule(PATH_TOO_LONG, Severity.ERROR);
+      if(SystemInfo.isWindows) {
+        withRule(PATH_TOO_LONG, Severity.ERROR);
+      }
       return this;
     }
 

@@ -23,13 +23,14 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -74,6 +75,7 @@ public class StudioProfilersView extends AspectObserver {
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
+    myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
     updateStageView();
@@ -154,11 +156,12 @@ public class StudioProfilersView extends AspectObserver {
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
-    close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
-    close.addActionListener(event -> myProfiler.stop());
-    close.setToolTipText("Close");
-    rightToolbar.add(close);
+    FlatButton endSession = new FlatButton("End Session");
+    endSession.setFont(endSession.getFont().deriveFont(12.f));
+    endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+    endSession.addActionListener(event -> myProfiler.stop());
+    endSession.setToolTipText("Stop profiling and close tab");
+    rightToolbar.add(endSession);
 
     rightToolbar.add(new FlatSeparator());
 
@@ -344,7 +347,8 @@ public class StudioProfilersView extends AspectObserver {
     private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
-      NetworkProfilerStage.class, "NETWORK");
+      NetworkProfilerStage.class, "NETWORK",
+      EnergyProfilerStage.class, "ENERGY");
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {

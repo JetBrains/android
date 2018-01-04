@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class AddActionDialogTest : NavTestCase() {
@@ -33,7 +34,7 @@ class AddActionDialogTest : NavTestCase() {
                 fragmentComponent("f2")))
         .build()
 
-    val dialog = AddActionDialog(model.find("a1"), model.find("f1")!!, null)
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, null)
     dialog.close(0)
     assertEquals(model.find("f2"), dialog.destination)
     assertEquals("@anim/fade_in", dialog.enterTransition)
@@ -50,16 +51,18 @@ class AddActionDialogTest : NavTestCase() {
                 fragmentComponent("f2")))
         .build()
 
-    val dialog = AddActionDialog(null, model.find("f1")!!, null)
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, null)
+    dialog.myDestinationComboBox.selectedIndex = 1
 
     assertEquals(model.find("f1"), dialog.myFromComboBox.getItemAt(0))
     assertEquals(1, dialog.myFromComboBox.itemCount)
     assertFalse(dialog.myFromComboBox.isEnabled)
 
-    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(0))
-    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(1))
-    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(2))
-    assertEquals(3, dialog.myDestinationComboBox.itemCount)
+    assertEquals(null, dialog.myDestinationComboBox.getItemAt(0))
+    assertEquals(model.find("f1"), dialog.myDestinationComboBox.getItemAt(1))
+    assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(2))
+    assertEquals(model.find("root"), dialog.myDestinationComboBox.getItemAt(3))
+    assertEquals(4, dialog.myDestinationComboBox.itemCount)
     assertTrue(dialog.myDestinationComboBox.isEnabled)
 
     assertEquals(null, dialog.myEnterComboBox.getItemAt(0).value)
@@ -80,6 +83,38 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("@id/f2", dialog.myPopToComboBox.getItemAt(3).value)
     assertEquals(4, dialog.myPopToComboBox.itemCount)
 
+    dialog.close(0)
+  }
+
+  fun testDefaults() {
+    val model = model("nav.xml",
+        rootComponent("root")
+            .unboundedChildren(
+                fragmentComponent("f1"),
+                fragmentComponent("f2")))
+        .build()
+
+    val f1 = model.find("f1")!!
+
+    var dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, null)
+    assertEquals(null, dialog.destination)
+    assertEquals(f1, dialog.source)
+    assertFalse(dialog.isInclusive)
+    assertEquals(null, dialog.popTo)
+    dialog.close(0)
+
+    dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1, null)
+    assertEquals(f1, dialog.destination)
+    assertEquals(model.find("root"), dialog.source)
+    assertFalse(dialog.isInclusive)
+    assertEquals(null, dialog.popTo)
+    dialog.close(0)
+
+    dialog = AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, f1, null)
+    assertEquals(null, dialog.destination)
+    assertEquals(f1, dialog.source)
+    assertTrue(dialog.isInclusive)
+    assertEquals("@id/f1", dialog.popTo)
     dialog.close(0)
   }
 }

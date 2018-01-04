@@ -1,0 +1,17 @@
+apply plugin: 'com.android.library'
+
+android {
+    resourcePrefix 'lib1_'
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+}

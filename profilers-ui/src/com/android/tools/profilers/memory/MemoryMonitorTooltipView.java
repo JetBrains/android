@@ -17,25 +17,22 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class MemoryMonitorTooltipView extends ProfilerTooltipView {
-  private final MemoryMonitor myMonitor;
-
-  public MemoryMonitorTooltipView(StudioMonitorStageView parent, MemoryMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+public class MemoryMonitorTooltipView extends ProfilerMonitorTooltipView<MemoryMonitor> {
+  public MemoryMonitorTooltipView(StudioMonitorStageView parent, @NotNull MemoryMonitorTooltip tooltip) {
+    super(tooltip.getMonitor());
   }
 
   @NotNull
   @Override
   public JComponent createTooltip() {
-    MemoryMonitor.MemoryLegend legends = myMonitor.getTooltipLegend();
+    MemoryMonitor.MemoryLegend legends = getMonitor().getTooltipLegend();
 
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();

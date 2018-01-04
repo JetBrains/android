@@ -97,6 +97,12 @@
             <![CDATA[Sorry we could not resolve your issue. Please submit a bug report to help us debug your issues. Please consider running your application on an emulator.]]>
           </section>
         </stepElement>
+        <stepElement>
+          <action
+            key="connection.submit.report"
+            label="Submit bug report">
+          </action>
+        </stepElement>
       </step>
     </tutorial>
   </feature>
