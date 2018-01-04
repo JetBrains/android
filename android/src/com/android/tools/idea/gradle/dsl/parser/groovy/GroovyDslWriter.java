@@ -175,7 +175,7 @@ public class GroovyDslWriter implements GradleDslWriter {
     if (newLiteral == null) {
       return;
     }
-    PsiElement expression = ensureGroovyPsi(literal.getExpression());
+    PsiElement expression = ensureGroovyPsi(literal.getLastCommittedValue());
     if (expression != null) {
       PsiElement replace = expression.replace(newLiteral);
       if (replace instanceof GrLiteral) {
@@ -206,7 +206,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void deleteDslLiteral(@NotNull GradleDslLiteral literal) {
-    PsiElement expression = literal.getExpression();
+    PsiElement expression = literal.getLastCommittedValue();
     if (expression == null) {
       return;
     }

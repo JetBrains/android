@@ -101,6 +101,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
     @Override
     public void setValue(@NotNull Object value) {
       myValue = value;
+      valueChanged();
     }
 
     @Override

@@ -25,14 +25,12 @@ import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,6 +48,8 @@ public abstract class GradleDslExpression extends GradleDslElement {
   @NotNull private static final String DOUBLE_QUOTES = "\"";
 
   @Nullable protected PsiElement myExpression;
+  // Whether or not this value is part of a cycle. If UNSURE, needs to be computed.
+  @Nullable protected ThreeState myHasCycle;
 
   protected GradleDslExpression(@Nullable GradleDslElement parent,
                                 @Nullable PsiElement psiElement,
@@ -57,6 +57,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
                                 @Nullable PsiElement expression) {
     super(parent, psiElement, name);
     myExpression = expression;
+    myHasCycle = ThreeState.UNSURE;
   }
 
   @Nullable
@@ -75,7 +76,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
   public abstract Object getUnresolvedValue();
 
   @Nullable
-  public abstract <T> T getValue(@NotNull Class<T> clazz);
+  public abstract  <T> T getValue(@NotNull Class<T> clazz);
 
   @Nullable
   public abstract <T> T getUnresolvedValue(@NotNull Class<T> clazz);
@@ -463,5 +464,60 @@ public abstract class GradleDslExpression extends GradleDslElement {
       }
     }
     return null;
+  }
+
+  /**
+   * Tells the expression that the value has changed, this sets this element to modified and resets the cycle detection state.
+   */
+  protected void valueChanged() {
+    myHasCycle = ThreeState.UNSURE;
+    setModified(true);
+  }
+
+  /**
+   * Works out whether or not this GradleDslExpression has a cycle.
+   */
+  public boolean hasCycle() {
+    return hasCycle(this, new HashSet<>(), new HashSet<>());
+  }
+
+  private static boolean hasCycle(@NotNull GradleDslExpression element, @NotNull Set<GradleDslExpression> seen, @NotNull Set<GradleDslExpression> cycleFree) {
+    if (element.myHasCycle != ThreeState.UNSURE) {
+      return element.myHasCycle == ThreeState.YES;
+    }
+
+    boolean hasCycle = checkCycle(element, seen, cycleFree);
+    element.myHasCycle = hasCycle ? ThreeState.YES : ThreeState.NO;
+    return hasCycle;
+  }
+
+  private static boolean checkCycle(@NotNull GradleDslExpression element, @NotNull Set<GradleDslExpression> seen, @NotNull Set<GradleDslExpression> cycleFree) {
+    if (cycleFree.contains(element) || element.getExpression() == null) {
+      return false;
+    }
+
+    if (seen.contains(element)) {
+      return true;
+    }
+
+    seen.add(element);
+
+    Collection<GradleReferenceInjection> injections = element.getDslFile().getParser().getInjections(element, element.getExpression());
+
+    for (GradleReferenceInjection injection : injections) {
+      if (injection.getToBeInjectedExpression() == null) {
+        continue;
+      }
+
+      boolean hasCycle = hasCycle(injection.getToBeInjectedExpression(), seen, cycleFree);
+      if (hasCycle) {
+        seen.remove(element);
+        return true;
+      }
+    }
+
+    seen.remove(element);
+    cycleFree.add(element);
+    return false;
   }
 }

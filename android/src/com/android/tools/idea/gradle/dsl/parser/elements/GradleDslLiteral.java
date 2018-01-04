@@ -82,6 +82,11 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
   }
 
+  @Nullable
+  public PsiElement getLastCommittedValue() {
+    return myExpression;
+  }
+
   /**
    * Overwritten to ensure dependencies of set value are correctly computed.
    */
@@ -123,6 +128,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   public void setValue(@NotNull Object value) {
     setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
+    valueChanged();
   }
 
   public void setConfigBlock(@NotNull PsiElement block) {

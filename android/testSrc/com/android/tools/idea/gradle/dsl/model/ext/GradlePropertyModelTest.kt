@@ -1101,6 +1101,83 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testDependencyBasicCycle() {
+    val text = """
+               ext {
+                 prop1 = "${'$'}{prop1}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val propertyModel = buildModel.ext().findProperty("prop1")
+    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 1)
+  }
+
+  fun testDependencyBasicCycleReference() {
+    val text = """
+               ext {
+                 prop1 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+    val propertyModel = buildModel.ext().findProperty("prop1")
+    verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+  }
+
+  fun testDependencyNoCycle4Depth() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "${'$'}{prop1}"
+                 prop3 = "${'$'}{prop2}"
+                 prop4 = "${'$'}{prop3}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop4")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+    }
+  }
+
+  fun testDependencyTwice() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "${'$'}{prop1} + ${'$'}{prop1}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value + Value", STRING, REGULAR, 2)
+    }
+  }
+
+  // This test currently fails due to bug: 71579307
+  fun /*test*/DependencyNoCycle() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "${'$'}{prop1}"
+                 prop1 = "${'$'}{prop2}"
+                 prop2 = "${'$'}{prop1}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+    }
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+    }
+  }
+
   fun testDeleteProperty() {
     val text = """
                ext {
@@ -1155,6 +1232,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
                }""".trimIndent()
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
+
 
     // Delete and reset the property
     run {
