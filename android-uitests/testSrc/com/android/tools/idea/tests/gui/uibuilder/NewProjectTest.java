@@ -134,12 +134,17 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void changeLibraryModuleSettings() throws Exception {
-    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create(guiTest)
+    newProject("MyTestApp").withMinSdk("24").create(guiTest)
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("library-module")
       .clickFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+
+    guiTest.waitForBackgroundTasks();
+
+    String gradleFileContents = guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module")
