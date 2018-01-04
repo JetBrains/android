@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.LinkCppProjectFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -116,7 +117,7 @@ public class NewCppProjectTest {
    *   3) Verify that the project builds and runs on an emulator
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37918835
+  @RunIn(TestGroup.SANITY)
   @Test
   public void addRemoveCppDependency() throws Exception {
     createCppProject(false, false);
@@ -203,7 +204,8 @@ public class NewCppProjectTest {
 
     newProjectWizard.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    guiTest.waitForBackgroundTasks();
   }
 
   private void runAppOnEmulator() throws ClassNotFoundException {
