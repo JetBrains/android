@@ -25,13 +25,21 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.TimedDeadzone
 import org.fest.swing.core.MouseButton
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JTreeFixture
 import org.fest.swing.timing.Pause
+import org.fest.swing.timing.Timeout
+import org.fest.swing.timing.Timeout_timeout_duration_Test
+import org.fest.swing.util.ToolkitProvider
+import sun.awt.SunToolkit
 import java.awt.Container
 import java.awt.Point
 import java.awt.event.KeyEvent
+import java.lang.System.currentTimeMillis
 import javax.swing.JButton
 import javax.swing.JLabel
+
+private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 10_000
 
 open class BasePerspectiveConfigurableFixture protected constructor(
     override val ideFrameFixture: IdeFrameFixture,
@@ -41,17 +49,19 @@ open class BasePerspectiveConfigurableFixture protected constructor(
   fun minimizeModulesList() {
     val hideButton = finder().find(container, matcher<InplaceButton> { it.toolTipText == "Hide" })
     robot().pressMouse(hideButton, Point(3, 3), MouseButton.LEFT_BUTTON)
-    robot().waitForIdle()  // This is to make sure that pause() waits long enough.
+    waitForIdle()  // This is to make sure that pause() waits long enough.
     Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
+    waitForIdle()
   }
 
   fun restoreModulesList() {
     val restoreButton = finder().find(container, matcher<ActionButton> { it.toolTipText == "Restore 'Modules' List" })
     robot().pressMouse(restoreButton, Point(3, 3), MouseButton.LEFT_BUTTON)
-    robot().waitForIdle()  // This is to make sure that pause() waits long enough.
+    waitForIdle()  // This is to make sure that pause() waits long enough.
     Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     robot().releaseMouse(MouseButton.LEFT_BUTTON)
+    waitForIdle()
   }
 
   fun isModuleSelectorMinimized() = tryFind { doFindModuleSelector() } == null
@@ -120,6 +130,21 @@ open class BasePerspectiveConfigurableFixture protected constructor(
   }
 
   private fun doFindModuleSelector() = finder().find(container, matcher<JLabel> { it.text == "Modules" })
+
+  private fun waitForIdle() {
+    val start = currentTimeMillis()
+    while (currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
+      try {
+        (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
+        return
+      }
+      catch (_: SunToolkit.InfiniteLoop) {
+        // The implementation of SunToolkit.realSync() allows up to 20 events to be processed in a batch.
+        // We often have more than 20 events primarily caused by invokeLater() invocations.
+      }
+    }
+    throw WaitTimedOutError("Timed out waiting for idle.")
+  }
 }
 
 
