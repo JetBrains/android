@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -194,9 +193,14 @@ public class GroovyDslParser implements GradleDslParser {
       return ensureUnquotedText(literal.getText());
     }
 
+    // Check that we are not resolving into a cycle, if we are just return the unresolved text.
+    if (context.hasCycle()) {
+      return ensureUnquotedText(literal.getText());
+    }
+
     // Otherwise resolve the value and then return the resolved text.
     Collection<GradleReferenceInjection> injections = getInjections(context, literal);
-    return ensureUnquotedText(injectAll(literal, injections));
+    return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
   }
 
   @Override
@@ -222,36 +226,6 @@ public class GroovyDslParser implements GradleDslParser {
       }
     }
     return injections;
-  }
-
-  /**
-   * Injects all given {@code injections} into a given {@link PsiElement}. These {@link GradleReferenceInjection}s should have been
-   * obtained using {@link GradleDslParser#getInjections(PsiElement)}.
-   */
-  @NotNull
-  private static String injectAll(@NotNull PsiElement psiElement, @NotNull Collection<GradleReferenceInjection> injections) {
-    StringBuilder builder = new StringBuilder();
-    for (PsiElement element : psiElement.getChildren()) {
-      // Reference equality intended
-      Optional<GradleReferenceInjection> filteredInjection =
-        injections.stream().filter(injection -> element == injection.getPsiInjection()).findFirst();
-      if (filteredInjection.isPresent()) {
-        GradleDslExpression expression = filteredInjection.get().getToBeInjectedExpression();
-        if (expression == null) {
-          // If this injection has no expression then we are trying to inject a string or map,
-          // in this case just use the raw text from the PsiElement instead.
-          builder.append(element.getText());
-          continue;
-        }
-
-        Object value = expression.getValue();
-        builder.append(value == null ? "" : value);
-      }
-      else {
-        builder.append(element.getText());
-      }
-    }
-    return builder.toString();
   }
 
   private static boolean parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {

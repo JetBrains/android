@@ -60,6 +60,7 @@ public class GradleDslGlobalValue extends GradleDslExpression {
   @Override
   public void setValue(@NotNull Object value) {
     myFakeValue = value;
+    valueChanged();
   }
 
   @Override

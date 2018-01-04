@@ -212,6 +212,8 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       setFileValue((File)value);
     }
     // TODO: Add support to set the full method definition as a String.
+
+    valueChanged();
   }
 
   private void setFileValue(@NotNull File file) {
