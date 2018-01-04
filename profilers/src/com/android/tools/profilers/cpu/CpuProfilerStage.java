@@ -560,8 +560,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private long currentTimeNs() {
-    return TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
-           TimeUnit.SECONDS.toNanos(StudioProfilers.TIMELINE_BUFFER);
+    return TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax());
   }
 
   void setCapture(@Nullable CpuCapture capture) {

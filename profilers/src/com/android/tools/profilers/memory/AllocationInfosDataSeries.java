@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
@@ -37,10 +37,10 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
 
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                    @NotNull Common.Session session,
-                                   @NotNull RelativeTimeConverter converter,
+                                   @NotNull ProfilerTimeline timeline,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {
-    super(client, session, converter, featureTracker);
+    super(client, session, timeline, featureTracker);
     myStage = stage;
   }
 
@@ -74,7 +74,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
             info,
             () -> {
               if (info.getLegacy()) {
-                return new LegacyAllocationCaptureObject(myClient, mySession, info, myConverter, myFeatureTracker);
+                return new LegacyAllocationCaptureObject(myClient, mySession, info, myTimeline, myFeatureTracker);
               }
               else {
                 return new LiveAllocationCaptureObject(myClient, mySession, startTimeNs, null, myStage);

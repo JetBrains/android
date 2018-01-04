@@ -22,8 +22,8 @@ import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +44,6 @@ public class LegacyAllocationCaptureObjectTest {
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @NotNull private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
-
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myService);
 
@@ -62,7 +60,7 @@ public class LegacyAllocationCaptureObjectTest {
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
       new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
+                                        new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -131,7 +129,7 @@ public class LegacyAllocationCaptureObjectTest {
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
       new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
+                                        new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());

@@ -63,7 +63,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final RelativeTimeConverter myTimeConverter;
+  @NotNull private final ProfilerTimeline myTimeline;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -81,7 +81,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
+    myTimeline = myStage.getStudioProfilers().getTimeline();
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
@@ -139,7 +139,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getAllocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
@@ -159,7 +159,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getDeallocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";

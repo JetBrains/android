@@ -26,11 +26,9 @@ public class ProfilerTimelineTest {
 
   public static final double DELTA = 0.001;
 
-  private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
-
   @Test
   public void streaming() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, TimeUnit.SECONDS.toMicros(60));
@@ -65,7 +63,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomIn() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -90,7 +88,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOut() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -127,7 +125,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOutWhenDataNotFullyCoverView() {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(50, 100);
@@ -144,7 +142,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testPan() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -180,7 +178,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testPause() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -209,15 +207,12 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testReset() throws Exception {
-    // Using custom time converter so we do not need ot lerp the default view offset.
-    RelativeTimeConverter relativeTimeConverter = new RelativeTimeConverter(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
-    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    ProfilerTimeline timeline = new ProfilerTimeline();
     assertFalse(timeline.isStreaming());
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     long deviceStartTimeNs = 20;
-    RelativeTimeConverter converter = new RelativeTimeConverter(deviceStartTimeNs);
-    timeline.reset(converter, 0);
+    timeline.reset(deviceStartTimeNs, 0);
 
     // Timeline should be streaming after reset
     assertTrue(timeline.isStreaming());
@@ -239,7 +234,7 @@ public class ProfilerTimelineTest {
                  dataRange.getMax(),
                  0);
 
-    timeline.reset(myRelativeTimeConverter, TimeUnit.SECONDS.toNanos(1));
+    timeline.reset(0, TimeUnit.SECONDS.toNanos(1));
     assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
     assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
 
@@ -247,8 +242,23 @@ public class ProfilerTimelineTest {
     assertEquals(dataRange.getMax(), viewRange.getMax(), dataRange.getMax() * .05f);
     assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
     //Validate that our max is equal to our initial of DEFAULT_VIEW_LENGTH + 1 second initial + 1 second update.
-    assertEquals(TimeUnit.SECONDS.toMicros(2),
-                 dataRange.getMax(),
-                 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(2), dataRange.getMax(), 0);
+  }
+
+  @Test
+  public void testIdentityTimeConversionConversion() {
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    assertEquals(1, timeline.convertToRelativeTimeUs(1000));
+  }
+
+  @Test
+  public void testTimeConversionWithOffset() {
+    final long OFFSET = 5000;
+    ProfilerTimeline timeline = new ProfilerTimeline();
+    timeline.reset(OFFSET, 0);
+    assertEquals(OFFSET, timeline.getDataStartTimeNs());
+    assertEquals(0, timeline.convertToRelativeTimeUs(5000));
+    assertEquals(6, timeline.convertToRelativeTimeUs(11000));
+    assertEquals(-6, timeline.convertToRelativeTimeUs(-1000));
   }
 }
