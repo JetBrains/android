@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
@@ -30,9 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,16 +114,13 @@ public class NlBooleanRendererTest extends PropertyTestCase {
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
   }
 
-  private static NlPropertyItem createMockProperty(@NotNull String propertyName, @Nullable String value, @Nullable String resolvedValue) {
-    ResourceValue resource = mock(ResourceValue.class);
-    when(resource.getValue()).thenReturn(resolvedValue);
-
-    ResourceResolver resolver = mock(ResourceResolver.class);
-    when(resolver.findResValue(eq(value), anyBoolean())).thenReturn(resource);
+  private static NlPropertyItem createMockProperty(@NotNull String propertyName, @Nullable String url, @Nullable String resolvedValue) {
+    ResourceResolver resolver = ResourceResolver.withValues(
+      new ResourceValue(ResourceUrl.parse(url).resolve(RES_AUTO, ResourceNamespace.EMPTY_NAMESPACE_CONTEXT), resolvedValue));
 
     NlPropertyItem property = mock(NlPropertyItem.class);
     when(property.getName()).thenReturn(propertyName);
-    when(property.getValue()).thenReturn(value);
+    when(property.getValue()).thenReturn(url);
     when(property.getResolver()).thenReturn(resolver);
 
     return property;

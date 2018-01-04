@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -24,6 +25,7 @@ import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.util.LazyUnionMap;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -31,12 +33,11 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.FileResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -71,14 +72,16 @@ public class ResourceResolverCache {
    * resolvers also includes the theme.
    */
   @VisibleForTesting
-  final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
+  final Map<String, Table<ResourceNamespace, ResourceType, ResourceValueMap>> myAppResourceMap;
 
   /**
-   * Map of configured framework resources. These are cached separately from the final resource
-   * resolver since they can be shared between different layouts that only vary by theme
+   * Map of configured resources from external dependencies, including the framework. These are cached separately from the final resource
+   * resolver since they can be shared between different layouts that only vary by theme.
+   *
+   * TODO(namespaces): Cache AAR contents here if we're using namespaces.
    */
   @VisibleForTesting
-  final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
+  final Map<String, Map<ResourceType, ResourceValueMap>> myExternalResourceMap;
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
@@ -97,7 +100,7 @@ public class ResourceResolverCache {
     myManager = manager;
     myResolverMap = Maps.newHashMap();
     myAppResourceMap = Maps.newHashMap();
-    myFrameworkResourceMap = Maps.newHashMap();
+    myExternalResourceMap = Maps.newHashMap();
   }
 
   @NotNull
@@ -107,7 +110,7 @@ public class ResourceResolverCache {
     // Are caches up to date?
     final AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
     if (resources == null) {
-      return ResourceResolver.create(Collections.emptyMap(), Collections.emptyMap(), null, false);
+      return ResourceResolver.create(Collections.emptyMap(), null, false);
     }
     if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
@@ -130,7 +133,7 @@ public class ResourceResolverCache {
     String resolverKey = themeStyle + configurationKey;
     ResourceResolver resolver = myResolverMap.get(resolverKey);
     if (resolver == null) {
-      Map<ResourceType, ResourceValueMap> configuredAppRes;
+      Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes;
       Map<ResourceType, ResourceValueMap> frameworkResources;
 
       // Framework resources
@@ -146,7 +149,7 @@ public class ResourceResolverCache {
         }
         else {
           // get the framework resource values based on the current config
-          frameworkResources = myFrameworkResourceMap.get(configurationKey);
+          frameworkResources = myExternalResourceMap.get(configurationKey);
           if (frameworkResources == null) {
             frameworkResources = frameworkRes.getConfiguredResources(fullConfiguration);
 
@@ -159,7 +162,7 @@ public class ResourceResolverCache {
               }
             }
 
-            myFrameworkResourceMap.put(configurationKey, frameworkResources);
+            myExternalResourceMap.put(configurationKey, frameworkResources);
           }
         }
       }
@@ -173,10 +176,13 @@ public class ResourceResolverCache {
       }
 
       // Resource Resolver
+      Map<ResourceNamespace, Map<ResourceType, ResourceValueMap>> allResources =
+        new LazyUnionMap<>(Collections.singletonMap(ResourceNamespace.ANDROID, frameworkResources), configuredAppRes.rowMap());
+
       assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
       boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
       String themeName = ResourceHelper.styleToTheme(themeStyle);
-      resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
+      resolver = ResourceResolver.create(allResources, themeName, isProjectTheme);
 
       resolver.setLibrariesIdProvider(new RenderResources.ResourceIdProvider() {
         @Override
@@ -348,7 +354,7 @@ public class ResourceResolverCache {
     }
 
     if (myCustomConfigurationKey != null) {
-      myFrameworkResourceMap.remove(myCustomConfigurationKey);
+      myExternalResourceMap.remove(myCustomConfigurationKey);
       myAppResourceMap.remove(myCustomConfigurationKey);
     }
     if (myCustomResolverKey != null) {

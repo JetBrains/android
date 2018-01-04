@@ -16,8 +16,10 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -47,14 +49,11 @@ class NavComponentHelperTest {
 
   @Test
   fun testUiNameWithResources() {
-    val resolver = mock(ResourceResolver::class.java)
-    val value = mock(ResourceValue::class.java)
-    `when`(value.value).thenReturn("resolvedValue")
-    `when`(resolver.findResValue("myLabel", false)).thenReturn(value)
-    `when`(resolver.resolveResValue(value)).thenReturn(value)
-
+    val resolver = ResourceResolver.withValues(
+      ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.STRING, "myLabel", "resolvedValue")
+    )
     val component = mock(NlComponent::class.java)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("myLabel")
+    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("@string/myLabel")
     assertEquals("resolvedValue", component.getUiName(resolver))
   }
 }

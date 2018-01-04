@@ -23,7 +23,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Maps;
 import org.jetbrains.android.AndroidTestCase;
 import org.w3c.dom.Node;
 
@@ -34,7 +33,7 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.Collections;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
@@ -164,12 +163,11 @@ public class GutterIconFactoryTest extends AndroidTestCase {
   }
 
   private static ResourceResolver createResourceResolver() {
-    final Map<ResourceType, ResourceValueMap> projectResources = Maps.newHashMap();
-    final ResourceValueMap resourceValueMap = ResourceValueMap.create();
-
-    projectResources.put(ResourceType.COLOR, resourceValueMap);
-
-    return ResourceResolver.create(projectResources, Maps.newHashMap(), "", false);
+    return ResourceResolver.create(Collections.singletonMap(ResourceNamespace.RES_AUTO,
+                                                            Collections.singletonMap(ResourceType.COLOR,
+                                                                                     ResourceValueMap.create())),
+                                   "",
+                                   false);
   }
 
   private static void addColor(ResourceResolver resolver, String colorName, String colorValue) {
