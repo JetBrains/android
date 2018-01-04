@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -28,7 +29,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
-import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -320,7 +320,7 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   private Map<String, PsiClass> getClassMap(@NotNull String className) {
-    Map<String, PsiClass> result = ClassMaps.getInstance(myFacet).getClassMap(className);
+    Map<String, PsiClass> result = TagToClassMapper.getInstance(myFacet.getModule()).getClassMap(className);
     if (result.isEmpty()) {
       // TODO: handle the not-synced-yet case
       throw new RuntimeException(className + " not found");

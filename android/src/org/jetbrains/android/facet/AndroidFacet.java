@@ -51,7 +51,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -241,7 +240,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   void androidPlatformChanged() {
     ModuleResourceManagers.getInstance(this).clear();
-    ClassMaps.getInstance(this).clear();
   }
 
   private static void createDynamicTemplateMenu() {
@@ -285,11 +283,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           Sdk newSdk = rootManager.getSdk();
           if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
             androidPlatformChanged();
-          }
-          else {
-            // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
-            // from libraries are added
-            ClassMaps.getInstance(AndroidFacet.this).clear();
           }
           myPrevSdk = newSdk;
 
