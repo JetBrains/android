@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,22 +59,34 @@ public class PackageSet extends ClassifierSet {
       myPackageNameIndex = packageNameIndex;
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
       if (myPackageNameIndex >= instance.getClassEntry().getSplitPackageName().length) {
-        return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
+        ClassDb.ClassEntry classEntry = instance.getClassEntry();
+        ClassSet classSet = myClassMap.get(classEntry);
+        if (classSet == null && createIfAbsent) {
+          classSet = new ClassSet(classEntry);
+          myClassMap.put(classEntry, classSet);
+        }
+        return classSet;
       }
       else {
-        return myPackageElements.computeIfAbsent(instance.getClassEntry().getSplitPackageName()[myPackageNameIndex],
-                                                 name -> new PackageSet(myCaptureObject, name, myPackageNameIndex));
+        String subPackageName = instance.getClassEntry().getSplitPackageName()[myPackageNameIndex];
+        PackageSet packageSet = myPackageElements.get(subPackageName);
+        if (packageSet == null && createIfAbsent) {
+          packageSet = new PackageSet(myCaptureObject, subPackageName, myPackageNameIndex);
+          myPackageElements.put(subPackageName, packageSet);
+        }
+        return packageSet;
       }
     }
 
     @NotNull
     @Override
     public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered()).collect(Collectors.toList());
+      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered())
+        .collect(Collectors.toList());
     }
 
     @NotNull

@@ -19,7 +19,6 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -38,6 +37,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,12 +45,15 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
  */
 public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
-  private final StudioWizardStepPanel myRootPanel;
+  private final JBScrollPane myRootPanel;
   private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -111,7 +114,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    myRootPanel = new JBScrollPane(new StudioWizardStepPanel(myValidatorPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myRootPanel.setBorder(BorderFactory.createEmptyBorder());
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

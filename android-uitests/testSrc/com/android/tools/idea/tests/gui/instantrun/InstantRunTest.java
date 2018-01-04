@@ -50,6 +50,7 @@ public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   private static final String APP_NAME = "app";
   private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
@@ -100,7 +101,8 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("setContentView(R.layout.activity_my);", "")
+      .enterText("\nSystem.out.println(\"Hello, hot swap!\");");
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()
@@ -155,6 +157,7 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
+      .waitForRenderToFinish()
       .dragComponentToSurface("Text", "TextView")
       .waitForRenderToFinish();
 
@@ -164,7 +167,7 @@ public class InstantRunTest {
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(30).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
@@ -443,7 +446,8 @@ public class InstantRunTest {
     ideFrameFixture
       .getEditor()
       .open("app/src/main/java/google/basiccmake/MainActivity.java")
-      .enterText(Strings.repeat("\n", 10));
+      .moveBetween("tv.setText(stringFromJNI());", "")
+      .enterText("\nSystem.out.println(\"Hello, CMake hot swap!\");");
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()

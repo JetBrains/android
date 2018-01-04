@@ -41,7 +41,7 @@ public class NewModuleTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/64151364
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       // the oldest combination we support:
       .updateAndroidGradlePluginVersion("1.0.0")
       .updateGradleWrapperVersion("2.2.1")
@@ -73,7 +73,7 @@ public class NewModuleTest {
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
 
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
       .clickNextToStep("Import Module from Library")
@@ -112,7 +112,7 @@ public class NewModuleTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Phone & Tablet Module")
       .clickNextToStep("Phone & Tablet Module")
@@ -141,7 +141,7 @@ public class NewModuleTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
@@ -153,7 +153,7 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")
@@ -170,7 +170,7 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")

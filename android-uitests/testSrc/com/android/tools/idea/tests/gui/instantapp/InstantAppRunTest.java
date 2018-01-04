@@ -171,14 +171,14 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void runFromCmdLine() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleInstantApp");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
       "x86 Images",
-      new ChooseSystemImageStepFixture.SystemImage("O", "26", "x86", "Android 8.0 (Google APIs)"),
+      new ChooseSystemImageStepFixture.SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)"),
       O_AVD_NAME
     );
 
@@ -186,6 +186,7 @@ public class InstantAppRunTest {
     avdManager.startAvdWithName(O_AVD_NAME);
     avdManager.close();
 
+    // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     File adbBinary = new File(sdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
     File prebuiltApks = new File(ideFrame.getProjectPath(), "prebuilt");
@@ -205,7 +206,7 @@ public class InstantAppRunTest {
     installCommand.inheritIO();
     installCommand.start().waitFor(10, TimeUnit.SECONDS);
 
-    String expectedAppId = "com.google.example.instantappsimpleapplication";
+    String expectedAppId = "com.google.samples.apps.topeka";
     waitForAppInstalled(devices[0], expectedAppId);
 
     ProcessBuilder launchCommand = prepareAdbInstantAppLaunchIntent(adbBinary);
@@ -217,7 +218,7 @@ public class InstantAppRunTest {
       .until(() ->
         isActivityWindowOnTop(
           devices[0],
-          expectedAppId + "/.feature.MainActivity")
+          expectedAppId + "/.activity.SignInActivity")
       );
   }
 
@@ -287,7 +288,7 @@ public class InstantAppRunTest {
     cmdLine.add("-c");
     cmdLine.add("android.intent.category.BROWSABLE");
     cmdLine.add("-d");
-    cmdLine.add("https://google.com/test");
+    cmdLine.add("http://topeka.samples.androidinstantapps.com/");
     return new ProcessBuilder(cmdLine);
   }
 

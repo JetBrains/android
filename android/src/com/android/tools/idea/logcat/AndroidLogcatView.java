@@ -19,29 +19,26 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log.LogLevel;
-import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
-import com.android.tools.idea.ddms.actions.ScreenshotAction;
-import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.intellij.diagnostic.logging.LogConsoleBase;
-import com.intellij.diagnostic.logging.LogFormatter;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -87,7 +84,6 @@ public class AndroidLogcatView implements Disposable {
   private final Project myProject;
   private final DeviceContext myDeviceContext;
   private final String myToolWindowId;
-  private final boolean myHideMonitors;
 
   private JPanel myPanel;
   private DefaultComboBoxModel<AndroidLogcatFilter> myFilterComboBoxModel;
@@ -129,6 +125,11 @@ public class AndroidLogcatView implements Disposable {
   }
 
   @NotNull
+  DeviceContext getDeviceContext() {
+    return myDeviceContext;
+  }
+
+  @NotNull
   public final LogConsoleBase getLogConsole() {
     return myLogConsole;
   }
@@ -136,14 +137,10 @@ public class AndroidLogcatView implements Disposable {
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  public AndroidLogcatView(@NotNull final Project project,
-                           @NotNull DeviceContext deviceContext,
-                           @NotNull String toolWindowId,
-                           boolean hideMonitors) {
+  public AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull String toolWindowId) {
     myDeviceContext = deviceContext;
     myProject = project;
     myToolWindowId = toolWindowId;
-    myHideMonitors = hideMonitors;
 
     Disposer.register(myProject, this);
 
@@ -171,8 +168,7 @@ public class AndroidLogcatView implements Disposable {
         }
       };
 
-    AndroidLogcatFormatter logFormatter = new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
-    myLogConsole = new AndroidLogConsole(project, myLogFilterModel, logFormatter);
+    myLogConsole = new AndroidLogConsole(this, project, myLogFilterModel);
     myLogcatReceiver = new FormattedLogcatReceiver() {
       @Override
       protected void receiveFormattedLogLine(@NotNull String line) {
@@ -324,7 +320,7 @@ public class AndroidLogcatView implements Disposable {
     return editFiltersCombo;
   }
 
-  private boolean isActive() {
+  boolean isActive() {
     ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(myToolWindowId);
     return window.isVisible();
   }
@@ -356,7 +352,7 @@ public class AndroidLogcatView implements Disposable {
   }
 
   @Nullable
-  private IDevice getSelectedDevice() {
+  IDevice getSelectedDevice() {
     if (myDeviceContext != null) {
       return myDeviceContext.getSelectedDevice();
     }
@@ -364,7 +360,6 @@ public class AndroidLogcatView implements Disposable {
       return null;
     }
   }
-
 
   private void applySelectedFilter() {
     final Object filter = myFilterComboBoxModel.getSelectedItem();
@@ -450,103 +445,39 @@ public class AndroidLogcatView implements Disposable {
     }
   }
 
-  private final class MyRestartAction extends AnAction {
-    public MyRestartAction() {
+  static final class MyRestartAction extends AnAction {
+    private final AndroidLogcatView myView;
+
+    MyRestartAction(@NotNull AndroidLogcatView view) {
       super(AndroidBundle.message("android.restart.logcat.action.text"), AndroidBundle.message("android.restart.logcat.action.description"),
             AllIcons.Actions.Restart);
+
+      myView = view;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      notifyDeviceUpdated(true);
+      myView.notifyDeviceUpdated(true);
     }
   }
 
-  private final class MyConfigureLogcatHeaderAction extends AnAction {
-    public MyConfigureLogcatHeaderAction() {
+  static final class MyConfigureLogcatHeaderAction extends AnAction {
+    private final AndroidLogcatView myView;
+
+    MyConfigureLogcatHeaderAction(@NotNull AndroidLogcatView view) {
       super(AndroidBundle.message("android.configure.logcat.header.text"),
             AndroidBundle.message("android.configure.logcat.header.description"), AllIcons.General.GearPlain);
+
+      myView = view;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      ConfigureLogcatFormatDialog dialog = new ConfigureLogcatFormatDialog(myProject);
+      DialogWrapper dialog = new ConfigureLogcatFormatDialog(myView.myProject);
+
       if (dialog.showAndGet()) {
-        myLogConsole.refresh();
+        myView.myLogConsole.refresh();
       }
-    }
-  }
-
-  public final class AndroidLogConsole extends LogConsoleBase {
-    private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
-    private final AndroidLogcatPreferences myPreferences;
-
-    public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
-      super(project, null, "", false, logFilterModel, GlobalSearchScope.allScope(project), logFormatter);
-      ConsoleView console = getConsole();
-      if (console instanceof ConsoleViewImpl) {
-        ConsoleViewImpl c = ((ConsoleViewImpl)console);
-        c.addCustomConsoleAction(new Separator());
-        c.addCustomConsoleAction(new MyRestartAction());
-        c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
-        if (myHideMonitors) {
-          // TODO: Decide if these should be part of the profiler window
-          c.addCustomConsoleAction(new Separator());
-          c.addCustomConsoleAction(new ScreenshotAction(project, myDeviceContext));
-          c.addCustomConsoleAction(new ScreenRecorderAction(project, myDeviceContext));
-          c.addCustomConsoleAction(new Separator());
-          c.addCustomConsoleAction(new TerminateVMAction(myDeviceContext));
-        }
-        c.addCustomConsoleAction(new Separator());
-        c.addCustomConsoleAction(new BrowserHelpAction("logcat", "http://developer.android.com/r/studio-ui/am-logcat.html"));
-      }
-      myPreferences = AndroidLogcatPreferences.getInstance(project);
-      myRegexFilterComponent.setFilter(myPreferences.TOOL_WINDOW_CUSTOM_FILTER);
-      myRegexFilterComponent.setIsRegex(myPreferences.TOOL_WINDOW_REGEXP_FILTER);
-      myRegexFilterComponent.addRegexListener(filter -> {
-        myPreferences.TOOL_WINDOW_CUSTOM_FILTER = filter.getFilter();
-        myPreferences.TOOL_WINDOW_REGEXP_FILTER = filter.isRegex();
-        myLogFilterModel.updateCustomPattern(filter.getPattern());
-      });
-    }
-
-    @Override
-    public boolean isActive() {
-      return AndroidLogcatView.this.isActive();
-    }
-
-    public void clearLogcat() {
-      if (getSelectedDevice() != null) {
-        AndroidLogcatService.getInstance().clearLogcat(getSelectedDevice(), myProject);
-      }
-    }
-
-    @NotNull
-    public Component getLogFilterComboBox() {
-      Container component = getSearchComponent();
-      assert component != null;
-
-      return component.getComponent(0);
-    }
-
-    @NotNull
-    @Override
-    public Component getTextFilterComponent() {
-      return myRegexFilterComponent;
-    }
-
-    public void addLogLine(@NotNull String line) {
-      super.addMessage(line);
-    }
-
-    /**
-     * Clear the current logs and replay all old messages. This is useful to do if the display
-     * format of the logs have changed, for example.
-     */
-    public void refresh() {
-      // Even if we haven't changed any filter, calling this method quickly refreshes the log as a
-      // side effect.
-      onTextFilterChange();
     }
   }
 }

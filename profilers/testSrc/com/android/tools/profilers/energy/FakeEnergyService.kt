@@ -15,15 +15,14 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample
 import com.android.tools.profiler.proto.EnergyServiceGrpc
 import io.grpc.stub.StreamObserver
 
 import java.util.ArrayList
 import java.util.stream.Collectors
 
-internal class FakeEnergyService : EnergyServiceGrpc.EnergyServiceImplBase() {
-
-  var dataList: List<EnergyDataResponse.EnergySample> = ArrayList()
+class FakeEnergyService(val dataList: List<EnergySample> = ArrayList()) : EnergyServiceGrpc.EnergyServiceImplBase() {
 
   override fun getData(request: EnergyDataRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
     val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })

@@ -150,21 +150,21 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
 
   public void insertMemory(Common.Session session, List<MemoryData.MemorySample> samples) {
     for (MemoryData.MemorySample sample : samples) {
-      execute(INSERT_SAMPLE, session, sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(),
+      execute(INSERT_SAMPLE, session.getSessionId(), sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(),
               sample.toByteArray());
     }
   }
 
   public void insertAllocStats(Common.Session session, List<MemoryData.AllocStatsSample> samples) {
     for (MemoryData.AllocStatsSample sample : samples) {
-      execute(INSERT_SAMPLE, session, sample.getTimestamp(), MemorySamplesType.ALLOC_STATS.ordinal(),
+      execute(INSERT_SAMPLE, session.getSessionId(), sample.getTimestamp(), MemorySamplesType.ALLOC_STATS.ordinal(),
               sample.toByteArray());
     }
   }
 
   public void insertGcStats(Common.Session session, List<MemoryData.GcStatsSample> samples) {
     for (MemoryData.GcStatsSample sample : samples) {
-      execute(INSERT_SAMPLE, session, sample.getStartTime(), MemorySamplesType.GC_STATS.ordinal(),
+      execute(INSERT_SAMPLE, session.getSessionId(), sample.getStartTime(), MemorySamplesType.GC_STATS.ordinal(),
               sample.toByteArray());
     }
   }
@@ -173,7 +173,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * Note: this will reset the row's Status and DumpData to NOT_READY and null respectively, if an info with the same DumpId already exist.
    */
   public void insertOrReplaceHeapInfo(Common.Session session, HeapDumpInfo info) {
-    execute(INSERT_OR_REPLACE_HEAP_INFO, session, info.getStartTime(), info.getEndTime(),
+    execute(INSERT_OR_REPLACE_HEAP_INFO, session.getSessionId(), info.getStartTime(), info.getEndTime(),
             DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
   }
 
@@ -182,7 +182,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    */
   public DumpDataResponse.Status getHeapDumpStatus(Common.Session session, long dumpTime) {
     try {
-      ResultSet result = executeQuery(QUERY_HEAP_STATUS_BY_ID, session, dumpTime);
+      ResultSet result = executeQuery(QUERY_HEAP_STATUS_BY_ID, session.getSessionId(), dumpTime);
       if (result.next()) {
         return DumpDataResponse.Status.forNumber(result.getInt(1));
       }
@@ -203,7 +203,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * Adds/updates the status and raw dump data associated with a dump sample's id.
    */
   public void insertHeapDumpData(Common.Session session, long dumpTime, DumpDataResponse.Status status, ByteString data) {
-    execute(UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), session, dumpTime);
+    execute(UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), session.getSessionId(), dumpTime);
   }
 
   /**
@@ -212,7 +212,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   @Nullable
   public byte[] getHeapDumpData(Common.Session session, long dumpTime) {
     try {
-      ResultSet resultSet = executeQuery(QUERY_HEAP_DUMP_BY_ID, session, dumpTime);
+      ResultSet resultSet = executeQuery(QUERY_HEAP_DUMP_BY_ID, session.getSessionId(), dumpTime);
       if (resultSet.next()) {
         return resultSet.getBytes(1);
       }
@@ -228,19 +228,19 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
    */
   public void insertOrReplaceAllocationsInfo(Common.Session session, AllocationsInfo info) {
-    execute(INSERT_OR_REPLACE_ALLOCATIONS_INFO, session, info.getStartTime(), info.getEndTime(), info.toByteArray());
+    execute(INSERT_OR_REPLACE_ALLOCATIONS_INFO, session.getSessionId(), info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
   public void updateLegacyAllocationEvents(Common.Session session,
                                            long trackingStartTime,
                                            @NotNull LegacyAllocationEventsResponse allocationData) {
-    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), session, trackingStartTime);
+    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), session.getSessionId(), trackingStartTime);
   }
 
 
   public void updateLegacyAllocationDump(Common.Session session, long trackingStartTime, byte[] data) {
 
-    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, session, trackingStartTime);
+    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, session.getSessionId(), trackingStartTime);
   }
 
   /**
@@ -249,7 +249,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   @Nullable
   public AllocationsInfo getAllocationsInfo(Common.Session session, long trackingStartTime) {
     try {
-      ResultSet results = executeQuery(QUERY_ALLOCATION_INFO_BY_ID, session, trackingStartTime);
+      ResultSet results = executeQuery(QUERY_ALLOCATION_INFO_BY_ID, session.getSessionId(), trackingStartTime);
       if (results.next()) {
         byte[] bytes = results.getBytes(1);
         if (bytes != null) {
@@ -272,7 +272,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   public LegacyAllocationEventsResponse getLegacyAllocationData(Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, session.getSessionId(), trackingStartTime);
       if (resultSet.next()) {
         byte[] bytes = resultSet.getBytes(1);
         if (bytes != null) {
@@ -293,7 +293,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   public byte[] getLegacyAllocationDumpData(Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, session.getSessionId(), trackingStartTime);
       if (resultSet.next()) {
         return resultSet.getBytes(1);
       }
@@ -308,9 +308,9 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
                                             @NotNull List<AllocatedClass> classes,
                                             @NotNull List<AllocationStack> stacks) {
     // TODO: batch insert
-    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, session, klass.getClassId(), klass.toByteArray()));
+    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, session.getSessionId(), klass.getClassId(), klass.toByteArray()));
     stacks
-      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, session, stack.getStackId(), stack.toByteArray()));
+      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, session.getSessionId(), stack.getStackId(), stack.toByteArray()));
   }
 
   @NotNull
@@ -321,7 +321,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     try {
       for (int i = 0; i < request.getClassIdsCount(); i++) {
         ResultSet classResultSet =
-          executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getSession(), request.getClassIds(i));
+          executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getSession().getSessionId(), request.getClassIds(i));
         if (classResultSet.next()) {
           AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
           builder.addAllocatedClasses(data);
@@ -330,7 +330,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
 
       for (int i = 0; i < request.getStackIdsCount(); i++) {
         ResultSet stackResultSet =
-          executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getSession(), request.getStackIds(i));
+          executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getSession().getSessionId(), request.getStackIds(i));
         if (stackResultSet.next()) {
           AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
           builder.addAllocationStacks(data);

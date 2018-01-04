@@ -21,8 +21,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.FlavorsTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
@@ -31,6 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest {
@@ -43,6 +48,8 @@ public class FlavorsExecutionTest {
     ".*adb shell am start .*google\\.simpleapplication\\.Main_Activity.*Connected to process.*";
   private static final String FIRST_ACTIVITY_NAME = "F1_Main_Activity";
   private static final String SECOND_ACTIVITY_NAME = "F2_Main_Activity";
+  private static final String FLAVOR1 = "flavor1";
+  private static final String FLAVOR2 = "flavor2";
 
   @Before
   public void setUp() throws Exception {
@@ -56,9 +63,10 @@ public class FlavorsExecutionTest {
    * <p>TT ID: 5bf8bdbc-2ef1-4cd7-aa13-cbc91323cac9
    * <pre>
    *   Test Steps:
-   *   1. Create a new project
+   *   1. Import a project
    *   2. Open Project Structure Dialog
-   *   3. Select app module, add two new flavors (Flavor1 and Flavor2)
+   *   3. Select app module, add two new flavors (Flavor1 and Flavor2),
+   *      and add flavorDimensions to build.gradle (Module: app)
    *   4. Switch to Project View
    *   5. Select app
    *   6. Add launcher activities under Flavor1 and Flavor2 and name them F1_Main_Activity and F2_Main_Activity
@@ -71,20 +79,42 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37150124
+  @RunIn(TestGroup.SANITY)
   @Test
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
-    guiTest.ideFrame()
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    FlavorsTabFixture flavorsTabFixture = ideFrameFixture
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectFlavorsTab()
       .clickAddButton()
-      .setFlavorName("flavor1")
+      .setFlavorName(FLAVOR1)
       .clickAddButton()
-      .setFlavorName("flavor2")
-      .clickOk();
-    guiTest.ideFrame()
+      .setFlavorName(FLAVOR2);
+
+    try {
+      flavorsTabFixture.clickOk();
+    } catch (RuntimeException e) {
+      System.out.println("Expected to fail here. Need to add dimension feature.");
+    }
+
+    String dimenName = "demo";
+    String dimen = "\n dimension \"" + dimenName + "\"";
+    ideFrameFixture.getEditor()
+      .open("/app/build.gradle")
+      .moveBetween("", "productFlavors {")
+      .enterText("flavorDimensions(\"" + dimenName + "\")\n")
+      .moveBetween(FLAVOR2 + " {", "")
+      .enterText(dimen)
+      .moveBetween(FLAVOR1 + " {", "")
+      .enterText(dimen)
+      .invokeAction(EditorFixture.EditorAction.SAVE)
+      .close();
+
+    ideFrameFixture
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication", "app")
@@ -93,11 +123,15 @@ public class FlavorsExecutionTest {
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, FIRST_ACTIVITY_NAME)
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.LAYOUT, "activity_f1_main")
       .selectLauncherActivity()
-      .setTargetSourceSet("flavor1")
+      .setTargetSourceSet(FLAVOR1)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      // Close layout editor to speed up the rest of the test. Too many editor components slow down lookups
+      .getEditor()
+      .close();
+
+    ideFrameFixture
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication", "app")
@@ -106,37 +140,54 @@ public class FlavorsExecutionTest {
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, SECOND_ACTIVITY_NAME)
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.LAYOUT, "activity_f2_main")
       .selectLauncherActivity()
-      .setTargetSourceSet("flavor2")
+      .setTargetSourceSet(FLAVOR2)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .waitForGradleProjectSyncToFinish()
+      // Close layout editor to speed up the rest of the test. Too many editor components slow down lookups
+      .getEditor()
+      .close();
 
-    guiTest.ideFrame()
+    // Ensure that the new activity wizard actually gave us a launcher activity
+    String flavor1Manifest = ideFrameFixture
+      .getEditor()
+      .open("app/src/flavor1/AndroidManifest.xml")
+      .getCurrentFileContents();
+    assertThat(flavor1Manifest).contains("android.intent.category.LAUNCHER");
+
+    ideFrameFixture
       .getBuildVariantsWindow()
       .selectVariantForModule("app", "flavor1Debug");
-    guiTest.ideFrame()
+    ideFrameFixture
       .runApp("app")
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
-    guiTest.ideFrame().getRunToolWindow().findContent("app")
+    ideFrameFixture.getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
         ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", FIRST_ACTIVITY_NAME), Pattern.DOTALL)), 120);
-    guiTest.ideFrame()
+    ideFrameFixture
       .getAndroidToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
 
-    guiTest.ideFrame()
+    // Ensure that the new activity wizard actually gave us a launcher activity
+    String flavor2Manifest = ideFrameFixture
+      .getEditor()
+      .open("app/src/flavor2/AndroidManifest.xml")
+      .getCurrentFileContents();
+    assertThat(flavor2Manifest).contains("android.intent.category.LAUNCHER");
+
+    ideFrameFixture
       .getBuildVariantsWindow()
       .selectVariantForModule("app", "flavor2Debug");
-    guiTest.ideFrame()
+    ideFrameFixture
       .runApp("app")
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
-    guiTest.ideFrame().getRunToolWindow().findContent("app")
+    ideFrameFixture.getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
         ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME), Pattern.DOTALL)), 120);
-    guiTest.ideFrame()
+    ideFrameFixture
       .getAndroidToolWindow()
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);

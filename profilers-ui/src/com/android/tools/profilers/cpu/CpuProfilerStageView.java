@@ -85,18 +85,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
 
-  @Nullable
-  private ProfilerTooltipView myTooltipView;
-
-  private JPanel myTooltip;
-
   /**
    * Panel to let user know to take a capture.
    */
   @NotNull private final InfoMessagePanel myHelpTipInfoMessagePanel;
-
-  @NotNull
-  private final ViewBinder<CpuProfilerStageView, CpuProfilerStage.Tooltip, ProfilerTooltipView> myTooltipBinder;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -110,10 +102,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
       .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
-    myTooltipBinder = new ViewBinder<>();
-    myTooltipBinder.bind(CpuProfilerStage.UsageTooltip.class, CpuUsageTooltipView::new);
-    myTooltipBinder.bind(CpuProfilerStage.ThreadsTooltip.class, CpuThreadsTooltipView::new);
-    myStage.getAspect().addDependency(this).onChange(CpuProfilerAspect.TOOLTIP, this::tooltipChanged);
+    getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
+    getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -422,69 +412,33 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                    @NotNull JBList<CpuThreadsModel.RangedCpuThread> threads) {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
 
-    MouseListener usageListener = new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        myStage.setTooltip(CpuProfilerStage.Tooltip.Type.USAGE);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        myStage.setTooltip(null);
-      }
-    };
+    MouseListener usageListener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
     overlay.addMouseListener(usageListener);
     overlayPanel.addMouseListener(usageListener);
 
-    MouseAdapter threadsListener = new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        myStage.setTooltip(CpuProfilerStage.Tooltip.Type.THREADS);
-        mouseMoved(e);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        myStage.setTooltip(null);
-      }
-
+    threads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
+    threads.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
         int row = threads.locationToIndex(e.getPoint());
         if (row != -1) {
           CpuThreadsModel.RangedCpuThread model = threads.getModel().getElementAt(row);
-          if (myStage.getTooltip() instanceof CpuProfilerStage.ThreadsTooltip) {
-            CpuProfilerStage.ThreadsTooltip tooltip = (CpuProfilerStage.ThreadsTooltip)myStage.getTooltip();
+          if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
+            CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
             tooltip.setThread(model.getName(), model.getStateSeries());
           }
         }
       }
-    };
-    threads.addMouseListener(threadsListener);
-    threads.addMouseMotionListener(threadsListener);
+    });
 
-    myTooltip = new JPanel(new BorderLayout());
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
-                                                              timeline.getDataRange(), myTooltip, ProfilerLayeredPane.class);
+                                                              timeline.getDataRange(), getTooltipPanel(), ProfilerLayeredPane.class);
     // TODO: This needs to be refactored, because probably we don't handle mouse events
     //       properly when components are layered, currently mouse events should happen on the OverlayComponent.
     tooltip.registerListenersOn(overlay);
     tooltip.registerListenersOn(overlayPanel);
     tooltip.registerListenersOn(threads);
     return tooltip;
-  }
-
-  private void tooltipChanged() {
-    if (myTooltipView != null) {
-      myTooltipView.dispose();
-      myTooltipView = null;
-    }
-    myTooltip.removeAll();
-
-    if (myStage.getTooltip() != null) {
-      myTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
-      myTooltip.add(myTooltipView.createComponent(), BorderLayout.CENTER);
-    }
   }
 
   @Override

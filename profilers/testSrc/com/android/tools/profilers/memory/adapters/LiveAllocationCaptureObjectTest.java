@@ -42,12 +42,6 @@ import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureO
 import static com.google.common.truth.Truth.assertThat;
 
 public class LiveAllocationCaptureObjectTest {
-  /**
-   * String containing data used for validating against each ClassifierSet
-   * Format: Name, Alloc Count, Dealloc Count, Instance Count, Children Size, Has Stack.
-   */
-  private static final String NODE_FORMAT = "%s,%d,%d,%d,%d,%b";
-
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", myService);
 
@@ -67,9 +61,9 @@ public class LiveAllocationCaptureObjectTest {
     myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices));
   }
 
-  // Simple test to check that we get the correct data on load.
+  // Simple test to check that we get the correct delta + total data.
   @Test
-  public void testBasicLiveAllocationLoad() throws Exception {
+  public void testBasicDataLoad() throws Exception {
     // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
     boolean[] loadSuccess = new boolean[1];
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
@@ -84,63 +78,26 @@ public class LiveAllocationCaptureObjectTest {
     heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
 
     // Listens to the aspect change when load is called, then check the content of the changedNode parameter
-
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     loadSuccess[0] = false;
     capture.load(loadRange, LOAD_JOINER);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
-  }
-
-  // Simple test to check that we get the correct snapshot data on load.
-  @Test
-  public void testBasicSnapshotLoad() throws Exception {
-    myIdeProfilerServices.enableMemorySnapshot(true);
-    // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
-    boolean[] loadSuccess = new boolean[1];
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
-                                                                          ProfilersTestData.SESSION_DATA,
-                                                                          CAPTURE_START_TIME,
-                                                                          LOAD_SERVICE,
-                                                                          myStage);
-
-    // Heap set should start out empty.
-    HeapSet heapSet = capture.getHeapSet(LiveAllocationCaptureObject.DEFAULT_HEAP_ID);
-    assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
-    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
-
-    // Listens to the aspect change when load is called, then check the content of the changedNode parameter
-    myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
-
-    Queue<String> expected_snapshot_4 = new LinkedList<>();
-    expected_snapshot_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 0, 2, 2, true));
-    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "This", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "That", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
-
-    Range loadRange = new Range(CAPTURE_START_TIME + 4, CAPTURE_START_TIME + 4);
-    loadSuccess[0] = false;
-    capture.load(loadRange, LOAD_JOINER);
-    assertThat(loadSuccess[0]).isTrue();
-    verifyClassifierResult(heapSet, expected_snapshot_4, 0);
   }
 
   // This test checks that optimization by canceling outstanding queries works properly.
@@ -159,36 +116,36 @@ public class LiveAllocationCaptureObjectTest {
     assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
     heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     capture.load(loadRange, LOAD_JOINER);
     waitForLoadComplete(capture);
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
 
-    Queue<String> expected_0_to_8 = new LinkedList<>();
-    expected_0_to_8.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 8, 6, 8, 2, true));
-    expected_0_to_8.add(" " + String.format(NODE_FORMAT, "This", 4, 3, 4, 2, true));
-    expected_0_to_8.add("  " + String.format(NODE_FORMAT, "Is", 2, 2, 2, 1, true));
-    expected_0_to_8.add("   " + String.format(NODE_FORMAT, "Foo", 2, 2, 2, 0, true));
-    expected_0_to_8.add("  " + String.format(NODE_FORMAT, "Also", 2, 1, 2, 1, true));
-    expected_0_to_8.add("   " + String.format(NODE_FORMAT, "Foo", 2, 1, 2, 0, true));
-    expected_0_to_8.add(" " + String.format(NODE_FORMAT, "That", 4, 3, 4, 2, true));
-    expected_0_to_8.add("  " + String.format(NODE_FORMAT, "Is", 2, 2, 2, 1, true));
-    expected_0_to_8.add("   " + String.format(NODE_FORMAT, "Bar", 2, 2, 2, 0, true));
-    expected_0_to_8.add("  " + String.format(NODE_FORMAT, "Also", 2, 1, 2, 1, true));
-    expected_0_to_8.add("   " + String.format(NODE_FORMAT, "Bar", 2, 1, 2, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_8 = new LinkedList<>();
+    expected_0_to_8.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 8, 6, 2, 8, 2, true));
+    expected_0_to_8.add(new ClassifierSetTestData(1, "This", 4, 3, 1, 4, 2, true));
+    expected_0_to_8.add(new ClassifierSetTestData(2, "Is", 2, 2, 0, 2, 1, true));
+    expected_0_to_8.add(new ClassifierSetTestData(3, "Foo", 2, 2, 0, 2, 0, true));
+    expected_0_to_8.add(new ClassifierSetTestData(2, "Also", 2, 1, 1, 2, 1, true));
+    expected_0_to_8.add(new ClassifierSetTestData(3, "Foo", 2, 1, 1, 2, 0, true));
+    expected_0_to_8.add(new ClassifierSetTestData(1, "That", 4, 3, 1, 4, 2, true));
+    expected_0_to_8.add(new ClassifierSetTestData(2, "Is", 2, 2, 0, 2, 1, true));
+    expected_0_to_8.add(new ClassifierSetTestData(3, "Bar", 2, 2, 0, 2, 0, true));
+    expected_0_to_8.add(new ClassifierSetTestData(2, "Also", 2, 1, 1, 2, 1, true));
+    expected_0_to_8.add(new ClassifierSetTestData(3, "Bar", 2, 1, 1, 2, 0, true));
 
     // Listens to the aspect change when load is called, then check the content of the changedNode parameter
     int[] myHeapChangedCount = new int[1];
@@ -243,13 +200,13 @@ public class LiveAllocationCaptureObjectTest {
     loadSuccess[0] = false;
     capture.load(loadRange, LOAD_JOINER);
     // Filter with "Foo"
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 2, 1, 1, 4, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
     heapSet.selectFilter(getFilterPattern("Foo", true, false));
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
@@ -257,55 +214,55 @@ public class LiveAllocationCaptureObjectTest {
     //Filter with "Bar"
     heapSet.selectFilter(getFilterPattern("bar", false, false));
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 2, 1, 1, 4, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
     // filter with package name and regex
     heapSet.selectFilter(getFilterPattern("T[a-z]is", false, true));
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 2, 1, 1, 4, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
     // Reset filter
     heapSet.selectFilter(null);
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
     // Filter with method name
     heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
     heapSet.selectFilter(getFilterPattern("MethodA", false, false));
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 3, 2, 4, 3, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 3, 2, 1, 4, 3, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
   }
 
@@ -326,36 +283,36 @@ public class LiveAllocationCaptureObjectTest {
 
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     loadSuccess[0] = false;
     capture.load(loadRange, LOAD_JOINER);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
 
-    Queue<String> expected_2_to_4 = new LinkedList<>();
-    expected_2_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 2, 4, 2, true));
-    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "This", 1, 1, 2, 2, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 0, 1, 1, 0, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "That", 1, 1, 2, 2, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 0, 1, 1, 0, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_2_to_4 = new LinkedList<>();
+    expected_2_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 2, 2, 2, 4, 2, true));
+    expected_2_to_4.add(new ClassifierSetTestData(1, "This", 1, 1, 1, 2, 2, true));
+    expected_2_to_4.add(new ClassifierSetTestData(2, "Is", 0, 1, 0, 1, 1, true));
+    expected_2_to_4.add(new ClassifierSetTestData(3, "Foo", 0, 1, 0, 1, 0, true));
+    expected_2_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_2_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_2_to_4.add(new ClassifierSetTestData(1, "That", 1, 1, 1, 2, 2, true));
+    expected_2_to_4.add(new ClassifierSetTestData(2, "Is", 0, 1, 0, 1, 1, true));
+    expected_2_to_4.add(new ClassifierSetTestData(3, "Bar", 0, 1, 0, 1, 0, true));
+    expected_2_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_2_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
     // Shrink selection to {2,4}
     loadSuccess[0] = false;
@@ -364,46 +321,24 @@ public class LiveAllocationCaptureObjectTest {
     verifyClassifierResult(heapSet, new LinkedList<>(expected_2_to_4), 0);
 
     // Shrink selection to {4,4}
-    Queue<String> expected_4_to_4 = new LinkedList<>();
-    expected_4_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 0, 0, 0, 0, false));
+    Queue<ClassifierSetTestData> expected_4_to_4 = new LinkedList<>();
+    expected_4_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 0, 0, 2, 2, 2, true));
+    expected_4_to_4.add(new ClassifierSetTestData(1, "This", 0, 0, 1, 1, 1, true));
+    expected_4_to_4.add(new ClassifierSetTestData(2, "Also", 0, 0, 1, 1, 1, true));
+    expected_4_to_4.add(new ClassifierSetTestData(3, "Foo", 0, 0, 1, 1, 0, true));
+    expected_4_to_4.add(new ClassifierSetTestData(1, "That", 0, 0, 1, 1, 1, true));
+    expected_4_to_4.add(new ClassifierSetTestData(2, "Also", 0, 0, 1, 1, 1, true));
+    expected_4_to_4.add(new ClassifierSetTestData(3, "Bar", 0, 0, 1, 1, 0, true));
     loadSuccess[0] = false;
     loadRange.setMin(CAPTURE_START_TIME + 4);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_4_to_4, 0);
-
-    expected_2_to_4 = new LinkedList<>();
-    expected_2_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 2, 4, 2, true));
-    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "This", 1, 1, 2, 2, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 0, 1, 1, 0, true));
-    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "That", 1, 1, 2, 2, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
-    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
-    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 0, 1, 1, 0, true));
 
     // Restore selection back to {2,4}
     loadSuccess[0] = false;
     loadRange.setMin(CAPTURE_START_TIME + 2);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_2_to_4), 0);
-
-    // Snapshot mode at {4,4}
-    myIdeProfilerServices.enableMemorySnapshot(true);
-    Queue<String> expected_snapshot_4 = new LinkedList<>();
-    expected_snapshot_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 0, 2, 2, true));
-    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "This", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "That", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
-    loadSuccess[0] = false;
-    loadRange.setMin(CAPTURE_START_TIME + 4);
-    assertThat(loadSuccess[0]).isTrue();
-    verifyClassifierResult(heapSet, expected_snapshot_4, 0);
   }
 
   @Test
@@ -423,32 +358,32 @@ public class LiveAllocationCaptureObjectTest {
 
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     loadSuccess[0] = false;
     capture.load(loadRange, LOAD_JOINER);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
 
-    Queue<String> expected_0_to_2 = new LinkedList<>();
-    expected_0_to_2.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 0, 2, 2, true));
-    expected_0_to_2.add(" " + String.format(NODE_FORMAT, "This", 1, 0, 1, 1, true));
-    expected_0_to_2.add("  " + String.format(NODE_FORMAT, "Is", 1, 0, 1, 1, true));
-    expected_0_to_2.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_2.add(" " + String.format(NODE_FORMAT, "That", 1, 0, 1, 1, true));
-    expected_0_to_2.add("  " + String.format(NODE_FORMAT, "Is", 1, 0, 1, 1, true));
-    expected_0_to_2.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_2 = new LinkedList<>();
+    expected_0_to_2.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 2, 0, 2, 2, 2, true));
+    expected_0_to_2.add(new ClassifierSetTestData(1, "This", 1, 0, 1, 1, 1, true));
+    expected_0_to_2.add(new ClassifierSetTestData(2, "Is", 1, 0, 1, 1, 1, true));
+    expected_0_to_2.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_2.add(new ClassifierSetTestData(1, "That", 1, 0, 1, 1, 1, true));
+    expected_0_to_2.add(new ClassifierSetTestData(2, "Is", 1, 0, 1, 1, 1, true));
+    expected_0_to_2.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
     // Shrink selection to {0, 2}
     loadSuccess[0] = false;
@@ -457,8 +392,8 @@ public class LiveAllocationCaptureObjectTest {
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_2), 0);
 
     // Shrink selection to {0,0}
-    Queue<String> expected_0_to_0 = new LinkedList<>();
-    expected_0_to_0.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 0, 0, 0, 0, false));
+    Queue<ClassifierSetTestData> expected_0_to_0 = new LinkedList<>();
+    expected_0_to_0.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 0, 0, 0, 0, 0, false));
     loadSuccess[0] = false;
     loadRange.setMax(CAPTURE_START_TIME);
     assertThat(loadSuccess[0]).isTrue();
@@ -488,37 +423,36 @@ public class LiveAllocationCaptureObjectTest {
 
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
-    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "This", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "That", 2, 1, 1, 2, 2, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "Also", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     loadSuccess[0] = false;
     capture.load(loadRange, LOAD_JOINER);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
 
-
-    Queue<String> expected_4_to_8 = new LinkedList<>();
-    expected_4_to_8.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 4, 6, 2, true));
-    expected_4_to_8.add(" " + String.format(NODE_FORMAT, "This", 2, 2, 3, 2, true));
-    expected_4_to_8.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_4_to_8.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_4_to_8.add("  " + String.format(NODE_FORMAT, "Also", 1, 1, 2, 1, true));
-    expected_4_to_8.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 2, 0, true));
-    expected_4_to_8.add(" " + String.format(NODE_FORMAT, "That", 2, 2, 3, 2, true));
-    expected_4_to_8.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
-    expected_4_to_8.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_4_to_8.add("  " + String.format(NODE_FORMAT, "Also", 1, 1, 2, 1, true));
-    expected_4_to_8.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 2, 0, true));
+    Queue<ClassifierSetTestData> expected_4_to_8 = new LinkedList<>();
+    expected_4_to_8.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 4, 2, 6, 2, true));
+    expected_4_to_8.add(new ClassifierSetTestData(1, "This", 2, 2, 1, 3, 2, true));
+    expected_4_to_8.add(new ClassifierSetTestData(2, "Also", 1, 1, 1, 2, 1, true));
+    expected_4_to_8.add(new ClassifierSetTestData(3, "Foo", 1, 1, 1, 2, 0, true));
+    expected_4_to_8.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_4_to_8.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_4_to_8.add(new ClassifierSetTestData(1, "That", 2, 2, 1, 3, 2, true));
+    expected_4_to_8.add(new ClassifierSetTestData(2, "Also", 1, 1, 1, 2, 1, true));
+    expected_4_to_8.add(new ClassifierSetTestData(3, "Bar", 1, 1, 1, 2, 0, true));
+    expected_4_to_8.add(new ClassifierSetTestData(2, "Is", 1, 1, 0, 1, 1, true));
+    expected_4_to_8.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
 
     // Shift selection to {4,8}
     loadSuccess[0] = false;
@@ -547,40 +481,36 @@ public class LiveAllocationCaptureObjectTest {
     assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
     heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
 
-    Queue<String> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 4, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
-    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
-    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 4, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (This.Also.Foo)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+    expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+    expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
     Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     capture.load(loadRange, LOAD_JOINER);
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
   }
 
-  /**
-   * Helper method to walk through the ClassifierSet tree and validate each node against the data stored in the expected queue.
-   */
   private static boolean verifyClassifierResult(@NotNull ClassifierSet node,
-                                                @NotNull Queue<String> expected,
+                                                @NotNull Queue<ClassifierSetTestData> expected,
                                                 int currentDepth) {
     boolean done = false;
     boolean currentNodeVisited = false;
     boolean childrenVisited = false;
-    String line;
+    ClassifierSetTestData testData;
 
-    while ((line = expected.peek()) != null && !done) {
-      String trimmedLine = line.trim();
-      int depth = line.indexOf(trimmedLine);
+    while ((testData = expected.peek()) != null && !done) {
+      int depth = testData.depth;
 
       if (depth < currentDepth) {
         // We are done with the current sub-tree.
@@ -605,14 +535,13 @@ public class LiveAllocationCaptureObjectTest {
 
         // We are at current node, consumes the current line.
         expected.poll();
-        String[] split = trimmedLine.split(",");
-
-        assertThat(node.getName()).isEqualTo(split[0]);
-        assertThat(node.getAllocatedCount()).isEqualTo(Integer.parseInt(split[1]));
-        assertThat(node.getDeallocatedCount()).isEqualTo(Integer.parseInt(split[2]));
-        assertThat(node.getInstancesCount()).isEqualTo(Integer.parseInt(split[3]));
-        assertThat(node.getChildrenClassifierSets().size()).isEqualTo(Integer.parseInt(split[4]));
-        assertThat(node.hasStackInfo()).isEqualTo(Boolean.parseBoolean(split[5]));
+        assertThat(node.getName()).isEqualTo(testData.name);
+        assertThat(node.getDeltaAllocationCount()).isEqualTo(testData.allocations);
+        assertThat(node.getDeltaDeallocationCount()).isEqualTo(testData.deallocations);
+        assertThat(node.getTotalObjectCount()).isEqualTo(testData.total);
+        assertThat(node.getInstancesCount()).isEqualTo(testData.instanceCount);
+        assertThat(node.getChildrenClassifierSets().size()).isEqualTo(testData.childrenSize);
+        assertThat(node.hasStackInfo()).isEqualTo(testData.hasStack);
         currentNodeVisited = true;
       }
     }
@@ -643,7 +572,7 @@ public class LiveAllocationCaptureObjectTest {
       int flags = isMatchCase ? 0 : Pattern.CASE_INSENSITIVE;
       if (isRegex) {
         try {
-          pattern = Pattern.compile("^.*" + filter +  ".*$", flags);
+          pattern = Pattern.compile("^.*" + filter + ".*$", flags);
         }
         catch (PatternSyntaxException e) {
           String error = e.getMessage();
@@ -655,5 +584,35 @@ public class LiveAllocationCaptureObjectTest {
       }
     }
     return pattern;
+  }
+
+  // Auxiliary class to verify ClassifierSet's internal data.
+  private static class ClassifierSetTestData {
+    int depth;
+    String name;
+    int allocations;
+    int deallocations;
+    int total;
+    int instanceCount;
+    int childrenSize;
+    boolean hasStack;
+
+    ClassifierSetTestData(int depth,
+                          String name,
+                          int allocations,
+                          int deallocations,
+                          int total,
+                          int instanceCount,
+                          int childrenSize,
+                          boolean hasStack) {
+      this.depth = depth;
+      this.name = name;
+      this.allocations = allocations;
+      this.deallocations = deallocations;
+      this.total = total;
+      this.instanceCount = instanceCount;
+      this.childrenSize = childrenSize;
+      this.hasStack = hasStack;
+    }
   }
 }

@@ -15,25 +15,29 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.cpu.CpuMonitor;
+import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
 import com.android.tools.profilers.energy.EnergyMonitor;
+import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
 import com.android.tools.profilers.energy.EnergyMonitorView;
 import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.event.EventMonitorTooltip;
 import com.android.tools.profilers.event.EventMonitorTooltipView;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.MemoryMonitor;
+import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
+import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,14 +52,6 @@ import java.util.List;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
-
-  @Nullable
-  private ProfilerTooltipView myMonitorTooltipView;
-  @NotNull
-  private final ViewBinder<StudioMonitorStageView, ProfilerMonitor, ProfilerTooltipView> myTooltipBinder;
-  @NotNull
-  private final JPanel myTooltip;
-
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
@@ -90,22 +86,19 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
-    myTooltip = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     RangeTooltipComponent
-      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip,
+      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
                                           ProfilerLayeredPane.class);
 
-    myTooltipBinder = new ViewBinder<>();
-    myTooltipBinder.bind(NetworkMonitor.class, NetworkMonitorTooltipView::new);
-    myTooltipBinder.bind(CpuMonitor.class, CpuMonitorTooltipView::new);
-    myTooltipBinder.bind(MemoryMonitor.class, MemoryMonitorTooltipView::new);
-    myTooltipBinder.bind(EventMonitor.class, EventMonitorTooltipView::new);
+    getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
+    getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
+    getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
+    getTooltipBinder().bind(EventMonitorTooltip.class, EventMonitorTooltipView::new);
     if (isEnergyProfilerEnabled) {
-      myTooltipBinder.bind(EnergyMonitor.class, EnergyMonitorTooltipView::new);
+      getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }
-
-    stage.getAspect().addDependency(this).onChange(StudioMonitorStage.Aspect.TOOLTIP, this::tooltipChanged);
 
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
@@ -117,8 +110,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
         @Override
         public void mouseEntered(MouseEvent e) {
           if (monitor.isEnabled()) {
-            stage.setTooltip(monitor);
-          } else {
+            stage.setTooltip(monitor.buildTooltip());
+          }
+          else {
             stage.setTooltip(null);
           }
         }
@@ -161,22 +155,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
     getComponent().add(topPanel, BorderLayout.CENTER);
-  }
-
-  private void tooltipChanged() {
-    if (myMonitorTooltipView != null) {
-      myMonitorTooltipView.dispose();
-      myMonitorTooltipView = null;
-    }
-    myTooltip.removeAll();
-    ProfilerMonitor tooltip = getStage().getTooltip();
-    if (tooltip != null) {
-      myMonitorTooltipView = myTooltipBinder.build(this, tooltip);
-      Component component = myMonitorTooltipView.createComponent();
-      myTooltip.add(component);
-    }
-    myTooltip.invalidate();
-    myTooltip.repaint();
   }
 
   private void expandMonitor(ProfilerMonitor monitor) {

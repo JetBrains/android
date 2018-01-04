@@ -93,7 +93,7 @@ public class AddModuleTest {
   @Test
   @RunIn(TestGroup.SANITY)
   public void generateApkWithReleaseVariant() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
@@ -142,7 +142,7 @@ public class AddModuleTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void addInstantModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 

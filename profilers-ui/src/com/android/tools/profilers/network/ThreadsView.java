@@ -28,12 +28,13 @@ import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.network.httpdata.HttpData;
-import com.intellij.ui.ColorUtil;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -44,6 +45,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
@@ -92,7 +94,7 @@ final class ThreadsView {
 
     TableRowSorter<ThreadsTableModel> sorter = new TableRowSorter<>(model);
     sorter.setComparator(0, Comparator.comparing(String::toString));
-    sorter.setComparator(1, Comparator.comparing((List <HttpData> data) -> data.get(0).getStartTimeUs()));
+    sorter.setComparator(1, Comparator.comparing((List<HttpData> data) -> data.get(0).getStartTimeUs()));
     myThreadsTable.setRowSorter(sorter);
 
     myThreadsTable.addMouseListener(new MouseAdapter() {
@@ -372,20 +374,18 @@ final class ThreadsView {
     @NotNull private final JTable myTable;
 
     @NotNull private final TooltipComponent myTooltipComponent;
-    @NotNull private final JLabel myLabel;
+    @NotNull private final JPanel myContent;
 
     private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
       myStage = stage;
 
-      myLabel = new JLabel();
-      myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-      myLabel.setBorder(ProfilerLayout.TOOLTIP_BORDER);
-      myLabel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-      myLabel.setOpaque(true);
+      myContent = new JPanel(new TabularLayout("*", "*"));
+      myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+      myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+      myContent.setFont(myContent.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
 
-      myTooltipComponent = new TooltipComponent(myLabel, table, ProfilerLayeredPane.class);
+      myTooltipComponent = new TooltipComponent(myContent, table, ProfilerLayeredPane.class);
       myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
     }
@@ -403,33 +403,48 @@ final class ThreadsView {
     private void showTooltip(@NotNull HttpData data) {
       myTooltipComponent.setVisible(true);
 
-      double ms_to_us = TimeUnit.MILLISECONDS.toMicros(1);
       String urlName = HttpData.getUrlName(data.getUrl());
-      double duration = (data.getEndTimeUs() - data.getStartTimeUs()) / ms_to_us;
+      long duration = data.getEndTimeUs() - data.getStartTimeUs();
 
-      StringBuilder htmlBuilder = new StringBuilder(
-        String.format(
-          "<html>" +
-          "  <p> %s </p>" +
-          "  <p style='color:%s; margin-top: 5px;'> %.2f ms </p>",
-          urlName,
-          ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-          duration
-        )
-      );
+      myContent.removeAll();
+      addToContent(newTooltipLabel(urlName));
+      JLabel durationLabel = newTooltipLabel(TimeAxisFormatter.DEFAULT.getFormattedDuration(duration));
+      durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+      addToContent(durationLabel);
 
       if (data.getJavaThreads().size() > 1) {
-        htmlBuilder.append(String.format("<div style='border-bottom: 1px solid #%s;'></div>",
-                                         ColorUtil.toHex(ProfilerColors.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)));
-        htmlBuilder.append("<p style='margin-top: 5px;'> <b> Also accessed by </b> </p>");
+        JPanel divider = new JPanel();
+        divider.setPreferredSize(new Dimension(0, 5));
+        divider.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER));
+        divider.setBackground(myContent.getBackground());
+        myContent.add(divider, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
+
+        JLabel alsoAccessedByLabel = newTooltipLabel("Also accessed by:");
+        alsoAccessedByLabel.setFont(alsoAccessedByLabel.getFont().deriveFont(ImmutableMap.of(
+          TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD
+        )));
+
+        addToContent(alsoAccessedByLabel);
         for (int i = 1; i < data.getJavaThreads().size(); ++i) {
-          htmlBuilder.append(String.format("<p style='margin-top: 2px;'> %s </p>",
-                                           data.getJavaThreads().get(i).getName()));
+          JLabel label = newTooltipLabel(data.getJavaThreads().get(i).getName());
+          addToContent(label);
+          if (i == data.getJavaThreads().size() - 1) {
+            label.setBorder(new EmptyBorder(5, 0, 5, 0));
+          }
         }
       }
+    }
 
-      htmlBuilder.append("</html>");
-      myLabel.setText(htmlBuilder.toString());
+    private void addToContent(@NotNull JComponent component) {
+      component.setBorder(new EmptyBorder(5, 0, 0, 0));
+      myContent.add(component, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
+    }
+
+    private static JLabel newTooltipLabel(String text) {
+      JLabel label = new JLabel(text);
+      label.setForeground(ProfilerColors.TOOLTIP_TEXT);
+      label.setFont(label.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+      return label;
     }
 
     /**

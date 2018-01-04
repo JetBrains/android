@@ -33,17 +33,24 @@ public abstract class ClassifierSet implements MemoryObject {
   @Nullable private String myName;
   @Nullable private Supplier<String> myNameSupplier = null;
 
-  @NotNull protected final Set<InstanceObject> myInstances = new LinkedHashSet<>(0);
+  // The set of instances that make up our baseline snapshot (e.g. live objects at the left of a selection range).
+  @NotNull protected final Set<InstanceObject> mySnapshotInstances = new LinkedHashSet<>(0);
+  // The set of instances that have delta events (e.g. delta allocations/deallocations within a selection range).
+  // Note that instances here can also appear in the set of snapshot instances (e.g. when a instance is allocated before the selection
+  // and deallocation within the selection).
+  @NotNull protected final Set<InstanceObject> myDeltaInstances = new LinkedHashSet<>(0);
 
   // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
 
-  protected int myAllocatedCount = 0;
-  protected int myDeallocatedCount = 0;
-  protected long myTotalNativeSize = 0L;
-  protected long myTotalShallowSize = 0L;
-  protected long myTotalRetainedSize = 0L;
-  protected int myInstancesWithStackInfoCount = 0;
+  private int mySnapshotObjectCount = 0;
+  private int myDeltaAllocations = 0;
+  private int myDeltaDeallocations = 0;
+  // TODO switch to tracking both delta and total for all native/shallow and retained sizes.
+  private long myTotalNativeSize = 0L;
+  private long myTotalShallowSize = 0L;
+  private long myTotalRetainedSize = 0L;
+  private int myInstancesWithStackInfoCount = 0;
 
   protected boolean myIsFiltered;
   protected boolean myIsMatched;
@@ -71,15 +78,19 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   public boolean isEmpty() {
-    return myAllocatedCount == 0 && myDeallocatedCount == 0;
+    return mySnapshotObjectCount == 0 && myDeltaAllocations == 0 && myDeltaDeallocations == 0;
   }
 
-  public int getAllocatedCount() {
-    return myAllocatedCount;
+  public int getTotalObjectCount() {
+    return mySnapshotObjectCount + myDeltaAllocations - myDeltaDeallocations;
   }
 
-  public int getDeallocatedCount() {
-    return myDeallocatedCount;
+  public int getDeltaAllocationCount() {
+    return myDeltaAllocations;
+  }
+
+  public int getDeltaDeallocationCount() {
+    return myDeltaDeallocations;
   }
 
   public long getTotalRetainedSize() {
@@ -94,54 +105,102 @@ public abstract class ClassifierSet implements MemoryObject {
     return myTotalNativeSize;
   }
 
-  // Add alloc information into the ClassifierSet
-  // Return true if the set did not contains the instance before
-  public boolean addInstanceObject(@NotNull InstanceObject instanceObject) {
-    return addInstanceObjectInformation(instanceObject, true);
+  /**
+   * Add an instance to the baseline snapshot and update the accounting of the "total" values.
+   * Note that instances at the baseline must be an allocation event.
+   */
+  public void addSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      myClassifier.getClassifierSet(instanceObject, true).addSnapshotInstanceObject(instanceObject);
+    }
+    else {
+      assert !mySnapshotInstances.contains(instanceObject);
+      mySnapshotInstances.add(instanceObject);
+    }
+
+    mySnapshotObjectCount++;
+    myTotalNativeSize += instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize();
+    myTotalShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    if (instanceObject.getCallStackDepth() > 0) {
+      myInstancesWithStackInfoCount++;
+    }
+    myNeedsRefiltering = true;
   }
 
-  // Add dealloc information into the ClassifierSet
-  // Return true if the set did not contains the instance before
-  public boolean freeInstanceObject(@NotNull InstanceObject instanceObject) {
-    return addInstanceObjectInformation(instanceObject, false);
+  /**
+   * Remove an instance from the baseline snapshot and update the accounting of the "total" values.
+   */
+  public void removeSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, false);
+      assert classifierSet != null;
+      classifierSet.removeSnapshotInstanceObject(instanceObject);
+    }
+    else {
+      assert mySnapshotInstances.contains(instanceObject);
+      mySnapshotInstances.remove(instanceObject);
+    }
+
+    mySnapshotObjectCount--;
+    myTotalNativeSize -= instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize();
+    myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    if (instanceObject.getCallStackDepth() > 0) {
+      myInstancesWithStackInfoCount--;
+    }
+    myNeedsRefiltering = true;
   }
 
-  // Remove instance alloc information
+  // Add delta alloc information into the ClassifierSet
+  // Return true if the set did not contain the instance prior to invocation
+  public boolean addDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
+    return addDeltaInstanceInformation(instanceObject, true);
+  }
+
+  // Add delta dealloc information into the ClassifierSet
+  // Return true if the set did not contain the instance prior to invocation
+  public boolean freeDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
+    return addDeltaInstanceInformation(instanceObject, false);
+  }
+
+  // Remove delta instance alloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
-  public boolean removeAddingInstanceObject(@NotNull InstanceObject instanceObject) {
-    return removeInstanceObjectInformation(instanceObject, true);
+  public boolean removeAddedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
+    return removeDeltaInstanceInformation(instanceObject, true);
   }
 
-  // Remove instance dealloc information
+  // Remove delta instance dealloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
-  public boolean removeFreeingInstanceObject(@NotNull InstanceObject instanceObject) {
-    return removeInstanceObjectInformation(instanceObject, false);
+  public boolean removeFreedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
+    return removeDeltaInstanceInformation(instanceObject, false);
   }
 
-  // Add information into the ClassifierSet when correspondent alloc event is inside selection range
-  // Return true if the set did not contains the instance before
-  private boolean addInstanceObjectInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
+  // Add delta information into the ClassifierSet when correspondent alloc event is inside selection range
+  // Return true if the set did not contain the instance prior to invocation
+  private boolean addDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
     boolean instanceAdded = false;
 
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      instanceAdded = myClassifier.getOrCreateClassifierSet(instanceObject).addInstanceObjectInformation(instanceObject, isAllocation);
+      instanceAdded = myClassifier.getClassifierSet(instanceObject, true).addDeltaInstanceInformation(instanceObject, isAllocation);
     }
     else {
-      if (!myInstances.contains(instanceObject)) {
+      if (!myDeltaInstances.contains(instanceObject)) {
         instanceAdded = true;
-        myInstances.add(instanceObject);
+        myDeltaInstances.add(instanceObject);
       }
     }
 
     if (isAllocation) {
-      myAllocatedCount++;
+      myDeltaAllocations++;
     }
     else {
-      myDeallocatedCount++;
+      myDeltaDeallocations++;
     }
 
+    // TODO update deltas instead.
     myTotalNativeSize +=
       (isAllocation ? 1 : -1) * (instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize());
     myTotalShallowSize +=
@@ -151,33 +210,36 @@ public abstract class ClassifierSet implements MemoryObject {
 
     if (instanceAdded && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount++;
+      myNeedsRefiltering = true;
     }
 
-    myNeedsRefiltering = true;
     return instanceAdded;
   }
 
-  // Remove information from the ClassifierSet
+  // Remove delta information from the ClassifierSet
   // Return true if the instance is removed
-  private boolean removeInstanceObjectInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
+  private boolean removeDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
     boolean instanceRemoved = false;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      instanceRemoved = myClassifier.getOrCreateClassifierSet(instanceObject).removeInstanceObjectInformation(instanceObject, isAllocation);
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, false);
+      assert classifierSet != null;
+      instanceRemoved = classifierSet.removeDeltaInstanceInformation(instanceObject, isAllocation);
     }
     else {
-      if (!instanceObject.hasTimeData() && myInstances.contains(instanceObject)) {
-        myInstances.remove(instanceObject);
+      if (!instanceObject.hasTimeData() && myDeltaInstances.contains(instanceObject)) {
+        myDeltaInstances.remove(instanceObject);
         instanceRemoved = true;
       }
     }
 
     if (isAllocation) {
-      myAllocatedCount--;
+      myDeltaAllocations--;
     }
     else {
-      myDeallocatedCount--;
+      myDeltaDeallocations--;
     }
 
+    // TODO update deltas instead.
     myTotalNativeSize -=
       (isAllocation ? 1 : -1) * (instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize());
     myTotalShallowSize -=
@@ -186,17 +248,19 @@ public abstract class ClassifierSet implements MemoryObject {
       (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
     if (instanceRemoved && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount--;
+      myNeedsRefiltering = true;
     }
 
-    myNeedsRefiltering = true;
     return instanceRemoved;
   }
 
   public void clearClassifierSets() {
-    myInstances.clear();
+    mySnapshotInstances.clear();
+    myDeltaInstances.clear();
     myClassifier = createSubClassifier();
-    myAllocatedCount = 0;
-    myDeallocatedCount = 0;
+    mySnapshotObjectCount = 0;
+    myDeltaAllocations = 0;
+    myDeltaDeallocations = 0;
     myTotalShallowSize = 0;
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
@@ -204,7 +268,9 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public int getInstancesCount() {
     if (myClassifier == null) {
-      return myInstances.size();
+      Set total = new HashSet(mySnapshotInstances);
+      total.addAll(myDeltaInstances);
+      return total.size();
     }
     else {
       return (int)getInstancesStream().count();
@@ -216,11 +282,43 @@ public abstract class ClassifierSet implements MemoryObject {
    */
   @NotNull
   public Stream<InstanceObject> getInstancesStream() {
+    Stream<InstanceObject> total = Stream.concat(mySnapshotInstances.stream(), myDeltaInstances.stream()).distinct();
     if (myClassifier == null) {
-      return myInstances.stream();
+      return total;
     }
     else {
-      return Stream.concat(myClassifier.getAllClassifierSets().stream().flatMap(ClassifierSet::getInstancesStream), myInstances.stream());
+      return Stream.concat(myClassifier.getAllClassifierSets().stream().flatMap(ClassifierSet::getInstancesStream), total);
+    }
+  }
+
+  /**
+   * Return the stream of instance objects that contribute to the delta.
+   * Note that there can be duplicated entries as {@link #getSnapshotInstanceStream()}.
+   */
+  @NotNull
+  protected Stream<InstanceObject> getDeltaInstanceStream() {
+    if (myClassifier == null) {
+      return myDeltaInstances.stream();
+    }
+    else {
+      return Stream
+        .concat(myClassifier.getAllClassifierSets().stream().flatMap(ClassifierSet::getDeltaInstanceStream), myDeltaInstances.stream());
+    }
+  }
+
+  /**
+   * Return the stream of instance objects that contribute to the baseline snapshot.
+   * Note that there can duplicated entries as {@link #getDeltaInstanceStream()}.
+   */
+  @NotNull
+  protected Stream<InstanceObject> getSnapshotInstanceStream() {
+    if (myClassifier == null) {
+      return mySnapshotInstances.stream();
+    }
+    else {
+      return Stream
+        .concat(myClassifier.getAllClassifierSets().stream().flatMap(ClassifierSet::getSnapshotInstanceStream),
+                mySnapshotInstances.stream());
     }
   }
 
@@ -237,18 +335,26 @@ public abstract class ClassifierSet implements MemoryObject {
 
   /**
    * O(N) search through all descendant ClassifierSet.
+   * Note - calling this method would cause the full ClassifierSet tree to be built if it has not been done already, and all InstanceObjects
+   * would be partitioned into their corresponding leaf ClassifierSet.
    *
    * @return the set that contains the {@code target}, or null otherwise.
    */
   @Nullable
   public ClassifierSet findContainingClassifierSet(@NotNull InstanceObject target) {
-    boolean instancesContainsTarget = myInstances.contains(target);
+    boolean instancesContainsTarget =
+      Stream.concat(mySnapshotInstances.stream(), myDeltaInstances.stream()).filter(instance -> target.equals(instance)).findAny()
+        .isPresent();
     if (instancesContainsTarget && myClassifier != null) {
       return this;
     }
     else if (instancesContainsTarget || myClassifier != null) {
       List<ClassifierSet> childrenClassifierSets = getChildrenClassifierSets();
-      if (instancesContainsTarget && myInstances.contains(target)) {
+      // mySnapshotInstances/myDeltaInstances can be updated after getChildrenClassiferSets so rebuild the stream.
+      boolean stillContainsTarget =
+        Stream.concat(mySnapshotInstances.stream(), myDeltaInstances.stream()).filter(instance -> target.equals(instance)).findAny()
+          .isPresent();
+      if (instancesContainsTarget && stillContainsTarget) {
         return this; // If after the partition the target still falls within the instances within this set, then return this set.
       }
       for (ClassifierSet set : childrenClassifierSets) {
@@ -282,7 +388,7 @@ public abstract class ClassifierSet implements MemoryObject {
   protected void ensurePartition() {
     if (myClassifier == null) {
       myClassifier = createSubClassifier();
-      myClassifier.partition(myInstances);
+      myClassifier.partition(mySnapshotInstances, myDeltaInstances);
     }
   }
 
@@ -310,8 +416,9 @@ public abstract class ClassifierSet implements MemoryObject {
 
     myIsFiltered = true;
     ensurePartition();
-    myAllocatedCount = 0;
-    myDeallocatedCount = 0;
+    mySnapshotObjectCount = 0;
+    myDeltaAllocations = 0;
+    myDeltaDeallocations = 0;
     myTotalShallowSize = 0;
     myTotalNativeSize = 0;
     myTotalRetainedSize = 0;
@@ -325,8 +432,9 @@ public abstract class ClassifierSet implements MemoryObject {
 
       if (!classifierSet.getIsFiltered()) {
         myIsFiltered = false;
-        myAllocatedCount += classifierSet.myAllocatedCount;
-        myDeallocatedCount += classifierSet.myDeallocatedCount;
+        mySnapshotObjectCount += classifierSet.mySnapshotObjectCount;
+        myDeltaAllocations += classifierSet.myDeltaAllocations;
+        myDeltaDeallocations += classifierSet.myDeltaDeallocations;
         myTotalShallowSize += classifierSet.myTotalShallowSize;
         myTotalNativeSize += classifierSet.myTotalNativeSize;
         myTotalRetainedSize += classifierSet.myTotalRetainedSize;
@@ -354,7 +462,7 @@ public abstract class ClassifierSet implements MemoryObject {
 
       @NotNull
       @Override
-      public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+      public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
         throw new NotImplementedException(); // not used
       }
 
@@ -381,10 +489,11 @@ public abstract class ClassifierSet implements MemoryObject {
     }
 
     /**
-     * Creates a partition for the given {@code instance}, if none exists, or returns an appropriate existing one.
+     * Retrieve the next-level ClassifierSet that the given {@code instance} belongs to. If none exists and {@code createIfAbsent} is true,
+     * then create and return the new ClassiferSet.
      */
-    @NotNull
-    public abstract ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance);
+    @Nullable
+    public abstract ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent);
 
     /**
      * Gets a {@link List} of the child ClassifierSets.
@@ -396,35 +505,32 @@ public abstract class ClassifierSet implements MemoryObject {
     protected abstract List<ClassifierSet> getAllClassifierSets();
 
     /**
-     * Partitions {@link InstanceObject}s in {@code myInstances} according to the current {@link ClassifierSet}'s strategy.
-     * This will consume the instance from the input.
+     * Partitions {@link InstanceObject}s in {@code snapshotInstances} and {@code myDeltaInstances} according to the current
+     * {@link ClassifierSet}'s strategy. This will consume the instances from the input.
      */
-    public final void partition(@NotNull Set<InstanceObject> instances) {
-      List<InstanceObject> partitionedInstances = new ArrayList<>(instances.size());
+    public final void partition(@NotNull Collection<InstanceObject> snapshotInstances, @NotNull Collection<InstanceObject> deltaInstances) {
+      if (isTerminalClassifier()) {
+        return;
+      }
 
-      if (!isTerminalClassifier()) {
-        instances.forEach(instance -> {
-          if (instance.hasTimeData()) {
-            if (instance.hasAllocTime()) {
-              getOrCreateClassifierSet(instance).addInstanceObject(instance);
-            }
-            if (instance.hasDeallocTime()) {
-              getOrCreateClassifierSet(instance).freeInstanceObject(instance);
-            }
-            partitionedInstances.add(instance);
+      snapshotInstances.forEach(instance -> getClassifierSet(instance, true).addSnapshotInstanceObject(instance));
+      deltaInstances.forEach(instance -> {
+        if (instance.hasTimeData()) {
+          // Note - we only add the instance allocation to our delta set if it is not already accounted for in the baseline snapshot.
+          // Otherwise we would be double counting allocations.
+          if (instance.hasAllocTime() && !snapshotInstances.contains(instance)) {
+            getClassifierSet(instance, true).addDeltaInstanceObject(instance);
           }
-          else {
-            getOrCreateClassifierSet(instance).addInstanceObject(instance);
-            partitionedInstances.add(instance);
+          if (instance.hasDeallocTime()) {
+            getClassifierSet(instance, true).freeDeltaInstanceObject(instance);
           }
-        });
-      }
-      if (partitionedInstances.size() == instances.size()) {
-        instances.clear();
-      }
-      else {
-        instances.removeAll(partitionedInstances);
-      }
+        }
+        else {
+          getClassifierSet(instance, true).addDeltaInstanceObject(instance);
+        }
+      });
+      snapshotInstances.clear();
+      deltaInstances.clear();
     }
   }
 }

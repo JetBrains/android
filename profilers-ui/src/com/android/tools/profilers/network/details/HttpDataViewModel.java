@@ -72,7 +72,7 @@ final class HttpDataViewModel {
       // If here, we have one or more rows. Add padding to have some space between the last row
       // and the horizontal scroll bar.
       JTextPane headers = (JTextPane)mapComponent;
-      headers.setBorder(new JBEmptyBorder(0, 0, 4, 0));
+      headers.setBorder(new JBEmptyBorder(0, 0, 8, 0));
 
       // Disable line wrapping, since we know we're in a scroller
       JPanel noWrapPanel = new JPanel(new BorderLayout());

@@ -20,7 +20,10 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.IconLoader;
+import icons.StudioIcons;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Map;
@@ -86,6 +89,18 @@ public class AvdDisplayListTest extends AndroidGradleTestCase {
     assertEquals("124 MB", AvdDisplayList.storageSizeDisplayString(new Storage((long)(123.6 * 1024), Storage.Unit.KiB)));
     assertEquals("1023 MB", AvdDisplayList.storageSizeDisplayString(new Storage((long)(1023.0 * 1024), Storage.Unit.KiB)));
     assertEquals("18 GB", AvdDisplayList.storageSizeDisplayString(new Storage((long)(18.0 * 1024), Storage.Unit.MiB)));
+  }
+
+  public void testGetDeviceClassIconPair() {
+    assertEquals(StudioIcons.Avd.DEVICE_MOBILE_LARGE, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
+
+    myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
+    Icon tvDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-tv_large.png", AvdDisplayList.class);
+    assertEquals(tvDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
+
+    myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
+    Icon wearDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-wear_large.png", AvdDisplayList.class);
+    assertEquals(wearDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
   }
 
   private static void assertDimension(double width, double height, Dimension dimension) {

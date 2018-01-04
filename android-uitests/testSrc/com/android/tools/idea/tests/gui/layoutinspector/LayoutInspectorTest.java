@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -22,8 +23,9 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
+import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +42,7 @@ public class LayoutInspectorTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
@@ -66,6 +68,12 @@ public class LayoutInspectorTest {
     guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
+
+    //Wait for emulator to launch the app
+    IDevice emu = AndroidDebugBridgeUtils.getEmulator(emulator.getDefaultAvdName(), emulator.getEmulatorConnection(), 5);
+    assertThat(emu).isNotNull();
+    new DeviceQueries(emu).waitUntilAppViewsAreVisible("google.simpleapplication", 5);
+
     guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
     AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();

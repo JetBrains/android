@@ -22,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.StringWriter;
-
 import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidLogcatReceiverTest {
@@ -45,16 +43,18 @@ public class AndroidLogcatReceiverTest {
   @Before
   public void setUp() {
     myLogcatListener = new FormattedLogcatReceiver() {
-      private final StringWriter myInnerWriter = new StringWriter();
+      private final StringBuilder myBuilder = new StringBuilder();
 
       @Override
       protected void receiveFormattedLogLine(@NotNull String line) {
-        myInnerWriter.append(line).append('\n');
+        myBuilder
+          .append(line)
+          .append('\n');
       }
 
       @Override
       public String toString() {
-        return myInnerWriter.getBuffer().toString();
+        return myBuilder.toString();
       }
     };
     myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogcatListener);
@@ -107,32 +107,32 @@ public class AndroidLogcatReceiverTest {
     myReceiver.processNewLine("}");
     myReceiver.processNewLine("");
     // Logcat output for "2: {\n\n}"
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.790 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("2: {");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("}");
     myReceiver.processNewLine("");
     // Logcat output for "3: {\n\n\n}"
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.791 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("3: {");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("}");
     myReceiver.processNewLine("");
     // Logcat output for "\n\nleading-trimmed"
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.792 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("leading-trimmed");
     myReceiver.processNewLine("");
     // Logcat output for "trailing-trimmed: {\n\n"
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.793 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("trailing-trimmed: {");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("");
     myReceiver.processNewLine("");
     // Logcat output for "spaces: { \n \n \n }"
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.794 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("spaces: { ");
     myReceiver.processNewLine(" ");
     myReceiver.processNewLine(" ");
@@ -140,25 +140,25 @@ public class AndroidLogcatReceiverTest {
     myReceiver.processNewLine("");
 
     // One final entry so any remaining newlines are processed
-    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.795 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("normal log entry");
 
     String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: 1: {\n" +
                       "+ }\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: 2: {\n" +
+                      "01-23 12:34:56.790 99-99/? V/UnknownClient: 2: {\n" +
                       "+ \n" +
                       "+ }\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: 3: {\n" +
+                      "01-23 12:34:56.791 99-99/? V/UnknownClient: 3: {\n" +
                       "+ \n" +
                       "+ \n" +
                       "+ }\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: leading-trimmed\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: trailing-trimmed: {\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: spaces: { \n" +
+                      "01-23 12:34:56.792 99-99/? V/UnknownClient: leading-trimmed\n" +
+                      "01-23 12:34:56.793 99-99/? V/UnknownClient: trailing-trimmed: {\n" +
+                      "01-23 12:34:56.794 99-99/? V/UnknownClient: spaces: { \n" +
                       "+  \n" +
                       "+  \n" +
                       "+  }\n" +
-                      "01-23 12:34:56.789 99-99/? V/UnknownClient: normal log entry\n";
+                      "01-23 12:34:56.795 99-99/? V/UnknownClient: normal log entry\n";
     assertThat(myLogcatListener.toString()).isEqualTo(expected);
   }
 
@@ -184,7 +184,7 @@ public class AndroidLogcatReceiverTest {
 
   @Test
   public void testParseAllLogLevelsAndHexThreadIds() {
-    String[] messages = new String[] {
+    String[] messages = new String[]{
       "[ 08-11 19:11:07.132   495:0x1ef D/dtag     ]",
       "debug message",
       "[ 08-11 19:11:07.132   495:  234 E/etag     ]",

@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM;
@@ -61,22 +62,27 @@ public class AddActionDialog extends DialogWrapper {
   @VisibleForTesting
   JPanel myContentPanel;
 
+  public enum Defaults { NORMAL, RETURN_TO_SOURCE, GLOBAL }
+
   /**
    * Create a new action for the given component
    */
-  protected AddActionDialog(@Nullable NlComponent existingAction,
+  protected AddActionDialog(@NotNull Defaults defaultsType,
+                            @Nullable NlComponent existingAction,
                             @NotNull NlComponent parent,
                             @Nullable ResourceResolver resourceResolver) {
     super(false);
     NlModel model = parent.getModel();
     setUpComponents(model, resourceResolver);
 
+    myFromComboBox.addItem(parent);
+
     if (existingAction != null) {
       setupFromExisting(existingAction);
     }
-
-    myFromComboBox.addItem(parent);
-    NavComponentHelperKt.getVisibleDestinations(parent).forEach(c -> myDestinationComboBox.addItem(c));
+    else {
+      setDefaults(defaultsType, parent);
+    }
 
     init();
 
@@ -90,8 +96,27 @@ public class AddActionDialog extends DialogWrapper {
     }
   }
 
+  private void setDefaults(@NotNull Defaults type, @NotNull NlComponent parent) {
+    myDestinationComboBox.addItem(null);
+    NavComponentHelperKt.getVisibleDestinations(parent).forEach(c -> myDestinationComboBox.addItem(c));
+    if (type == Defaults.GLOBAL) {
+      myFromComboBox.addItem(parent.getParent());
+      myFromComboBox.setSelectedIndex(myFromComboBox.getItemCount() - 1);
+      myDestinationComboBox.setSelectedItem(parent);
+    }
+    else if (type == Defaults.RETURN_TO_SOURCE) {
+      selectItem(myPopToComboBox, ATTR_ID, ANDROID_URI, parent);
+      myInclusiveCheckBox.setSelected(true);
+      myDestinationComboBox.setSelectedItem(null);
+    }
+  }
+
   private void setupFromExisting(@NotNull NlComponent action) {
     myFromComboBox.addItem(action.getParent());
+    if (!action.getParent().isRoot()) {
+      myFromComboBox.addItem(action.getParent());
+    }
+
     String destination = NlComponent.stripId(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_DESTINATION));
     if (destination != null) {
       //noinspection ConstantConditions
@@ -100,19 +125,24 @@ public class AddActionDialog extends DialogWrapper {
     }
     myDestinationComboBox.setEnabled(false);
 
-    selectItem(myPopToComboBox, NavigationSchema.ATTR_POP_UP_TO, action);
+    selectItem(myPopToComboBox, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, action);
     myInclusiveCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)));
-    selectItem(myEnterComboBox, ATTR_ENTER_ANIM, action);
-    selectItem(myExitComboBox, ATTR_EXIT_ANIM, action);
+    selectItem(myEnterComboBox, ATTR_ENTER_ANIM, AUTO_URI, action);
+    selectItem(myExitComboBox, ATTR_EXIT_ANIM, AUTO_URI, action);
     mySingleTopCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP)));
     myDocumentCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_DOCUMENT)));
     myClearTaskCheckBox.setSelected(Boolean.valueOf(action.getAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK)));
   }
 
-  private static void selectItem(@NotNull JComboBox<ValueWithDisplayString> comboBox, @Nullable String attrName,
+  private static void selectItem(@NotNull JComboBox<ValueWithDisplayString> comboBox,
+                                 @NotNull String attrName,
+                                 @Nullable String namespace,
                                  @NotNull NlComponent component) {
-    String value = component.getAttribute(AUTO_URI, attrName);
+    String value = component.getAttribute(namespace, attrName);
     if (value != null) {
+      if (value.startsWith("@+")) {
+        value = "@" + value.substring(2);
+      }
       for (int i = 0; i < comboBox.getItemCount(); i++) {
         if (value.equals(comboBox.getItemAt(i).getValue())) {
           comboBox.setSelectedIndex(i);
@@ -122,7 +152,8 @@ public class AddActionDialog extends DialogWrapper {
     }
   }
 
-  private void setUpComponents(@NotNull NlModel model, @Nullable ResourceResolver resourceResolver) {
+  private void setUpComponents(@NotNull NlModel model,
+                               @Nullable ResourceResolver resourceResolver) {
     ListCellRendererWrapper<NlComponent> componentRenderer = new ListCellRendererWrapper<NlComponent>() {
       @Override
       public void customize(JList list, NlComponent value, int index, boolean selected, boolean hasFocus) {
@@ -139,14 +170,13 @@ public class AddActionDialog extends DialogWrapper {
     myFromComboBox.setEnabled(false);
 
     myDestinationComboBox.setRenderer(componentRenderer);
-    myDestinationComboBox.setSelectedItem(null);
 
     ResourceManager resourceManager = LocalResourceManager.getInstance(model.getModule());
     myDestinationComboBox.addItemListener(event -> {
       myEnterComboBox.removeAllItems();
       myExitComboBox.removeAllItems();
-      myEnterComboBox.addItem(new ValueWithDisplayString("none", null));
-      myExitComboBox.addItem(new ValueWithDisplayString("none", null));
+      myEnterComboBox.addItem(new ValueWithDisplayString("None", null));
+      myExitComboBox.addItem(new ValueWithDisplayString("None", null));
       AnimationEditorKt.getAnimatorsPopupContent(resourceManager,
                                                  NavComponentHelperKt.getDestinationType((NlComponent)event.getItem()) == FRAGMENT)
         .forEach(item -> {
@@ -154,6 +184,9 @@ public class AddActionDialog extends DialogWrapper {
           myExitComboBox.addItem(item);
         });
     });
+    myEnterComboBox.addItem(new ValueWithDisplayString("None", null));
+    myExitComboBox.addItem(new ValueWithDisplayString("None", null));
+
     myPopToComboBox.addItem(new ValueWithDisplayString("None", null));
     model.flattenComponents().filter(c -> NavComponentHelperKt.isDestination(c))
       .forEach(c -> myPopToComboBox.addItem(new ValueWithDisplayString(NavComponentHelperKt.getUiName(c, resourceResolver),
@@ -166,7 +199,7 @@ public class AddActionDialog extends DialogWrapper {
     return (NlComponent)myFromComboBox.getSelectedItem();
   }
 
-  @NotNull
+  @Nullable
   public NlComponent getDestination() {
     //noinspection ConstantConditions
     return (NlComponent)myDestinationComboBox.getSelectedItem();
@@ -208,7 +241,8 @@ public class AddActionDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    if (myDestinationComboBox.getSelectedItem() == null) {
+    if (myDestinationComboBox.getSelectedItem() == null &&
+        ((ValueWithDisplayString)myPopToComboBox.getSelectedItem()).getValue() == null) {
       return new ValidationInfo("Destination must be set!", myDestinationComboBox);
     }
     return super.doValidate();

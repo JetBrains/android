@@ -17,26 +17,22 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NetworkMonitorTooltipView extends ProfilerTooltipView {
-  @NotNull
-  private final NetworkMonitor myMonitor;
-
-  public NetworkMonitorTooltipView(StudioMonitorStageView parent, NetworkMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+public class NetworkMonitorTooltipView extends ProfilerMonitorTooltipView<NetworkMonitor> {
+  public NetworkMonitorTooltipView(StudioMonitorStageView parent, @NotNull NetworkMonitorTooltip tooltip) {
+    super(tooltip.getMonitor());
   }
 
   @NotNull
   @Override
   public JComponent createTooltip() {
-    NetworkMonitor.NetworkLegends legends = myMonitor.getTooltipLegends();
+    NetworkMonitor.NetworkLegends legends = getMonitor().getTooltipLegends();
 
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();

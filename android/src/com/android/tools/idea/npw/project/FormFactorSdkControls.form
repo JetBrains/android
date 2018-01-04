@@ -89,10 +89,10 @@
             <children>
               <component id="ade13" class="com.intellij.ui.components.JBLabel" binding="myHelpMeChooseLabel">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="help me choose"/>
+                  <text value="(help me choose label)"/>
                 </properties>
               </component>
               <component id="4bbd5" class="com.intellij.ui.HyperlinkLabel" binding="myHelpMeChooseLink">
@@ -110,7 +110,7 @@
               </hspacer>
               <component id="a7d6c" class="com.intellij.ui.components.JBLabel" binding="myStatsLoadFailedLabel">
                 <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Stats load failed. Value may be out of date."/>

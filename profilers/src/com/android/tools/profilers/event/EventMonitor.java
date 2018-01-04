@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,6 +93,11 @@ public class EventMonitor extends ProfilerMonitor {
   @Override
   public String getName() {
     return "EVENTS";
+  }
+
+  @Override
+  public ProfilerTooltip buildTooltip() {
+    return new EventMonitorTooltip(this);
   }
 
   @Override

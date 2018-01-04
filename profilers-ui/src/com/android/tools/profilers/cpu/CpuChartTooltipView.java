@@ -80,8 +80,9 @@ class CpuChartTooltipView extends MouseAdapter {
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myContent.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
-    JLabel durationLabel = new JLabel(String.format("%s - %s", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
-                                                               TimeAxisFormatter.DEFAULT.getClockFormattedString(end)));
+    JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
+                                                    TimeAxisFormatter.DEFAULT.getClockFormattedString(end),
+                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.duration())));
     durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));

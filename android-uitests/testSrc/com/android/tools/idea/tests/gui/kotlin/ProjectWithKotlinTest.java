@@ -85,7 +85,7 @@ public class ProjectWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70731794
+  @RunIn(TestGroup.SANITY)
   public void linkNoKotlinSupportProjectWithKotlin() throws Exception {
     createKotlinFileAndClassAndVerify(PROJECT_DIR_NAME, PACKAGE_NAME, false);
   }
@@ -143,7 +143,7 @@ public class ProjectWithKotlinTest {
       ideFrameFixture.requestProjectSync();
     }
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish();
+    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish(Wait.seconds(30));
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
