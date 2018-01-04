@@ -54,9 +54,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private final Common.Session mySession;
 
   @NotNull
-  private final String myLabel;
-
-  @NotNull
   private final FeatureTracker myFeatureTracker;
 
   @NotNull
@@ -88,24 +85,18 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull ProfilerTimeline timeline,
                                @NotNull FeatureTracker featureTracker) {
     myClient = client;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
-    myLabel =
-      "Heap Dump @ " +
-      TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-        TimeUnit.MILLISECONDS.toMicros(1),
-        timeline.convertToRelativeTimeUs(myHeapDumpInfo.getStartTime()));
     myFeatureTracker = featureTracker;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myLabel;
+    return "Heap Dump";
   }
 
   @Override

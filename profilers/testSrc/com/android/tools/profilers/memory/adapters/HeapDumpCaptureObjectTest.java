@@ -58,7 +58,7 @@ public class HeapDumpCaptureObjectTest {
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -129,7 +129,7 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
-                                new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
+                                myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -150,7 +150,7 @@ public class HeapDumpCaptureObjectTest {
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker());
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);

@@ -73,7 +73,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     JBSplitter leftSplitter = new JBSplitter(true);
     leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     leftSplitter.setFirstComponent(buildMonitorUi());
-    myConnectionsPanel = new JPanel(new CardLayout());
+
+    myConnectionsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    JPanel connectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
       JTabbedPane connectionsTab = new FlatTabbedPane();
       JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
@@ -82,12 +84,14 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
       connectionsTab.addTab("Connection View", connectionScrollPane);
       connectionsTab.addTab("Thread View", threadsViewScrollPane);
-      myConnectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
+      // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
+      connectionsTab.addChangeListener(evt -> myConnectionsPanel.repaint());
+      connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
     }
     else {
       JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
       connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
-      myConnectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
+      connectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
     }
 
     JPanel infoPanel = new JPanel(new BorderLayout());
@@ -102,14 +106,20 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .build();
     infoPanel.add(infoMessage, BorderLayout.CENTER);
     infoPanel.setName(CARD_INFO);
-    myConnectionsPanel.add(infoPanel, CARD_INFO);
+    connectionsPanel.add(infoPanel, CARD_INFO);
 
+    JPanel toolbar = new JPanel(createToolbarLayout());
+    toolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+    toolbar.add(getSelectionTimeLabel());
+
+    myConnectionsPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
+    myConnectionsPanel.add(connectionsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
     myConnectionsPanel.setVisible(false);
     leftSplitter.setSecondComponent(myConnectionsPanel);
 
     getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-      CardLayout cardLayout = (CardLayout)myConnectionsPanel.getLayout();
-      cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
+      CardLayout cardLayout = (CardLayout)connectionsPanel.getLayout();
+      cardLayout.show(connectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
 
     JBSplitter splitter = new JBSplitter(false, 0.6f);

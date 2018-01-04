@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -46,8 +47,6 @@ public class ProfilerLayout {
   public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
 
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
-
-  public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
 
   public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
 
@@ -83,5 +82,10 @@ public class ProfilerLayout {
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
+  }
+
+  @NotNull
+  public static FlowLayout createToolbarLayout() {
+    return new FlowLayout(FlowLayout.CENTER, 0, 1);
   }
 }

@@ -106,10 +106,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
       new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                   profilers.getTimeline(), getStudioProfilers().getIdeServices().getFeatureTracker());
+                                   getStudioProfilers().getIdeServices().getFeatureTracker());
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                    profilers.getTimeline(), getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+                                    getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
