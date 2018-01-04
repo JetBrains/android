@@ -261,7 +261,7 @@ public class HeapDumpInstanceObjectTest {
 
     public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
-            new RelativeTimeConverter(0),
+            new ProfilerTimeline(),
             new FakeFeatureTracker());
     }
 

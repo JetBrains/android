@@ -28,7 +28,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
@@ -88,7 +88,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull RelativeTimeConverter converter,
+                               @NotNull ProfilerTimeline timeline,
                                @NotNull FeatureTracker featureTracker) {
     myClient = client;
     mySession = session;
@@ -96,9 +96,9 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myProguardMap = proguardMap;
     myLabel =
       "Heap Dump @ " +
-      TimeAxisFormatter.DEFAULT
-        .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
-                                      TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
+      TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+        TimeUnit.MILLISECONDS.toMicros(1),
+        timeline.convertToRelativeTimeUs(myHeapDumpInfo.getStartTime()));
     myFeatureTracker = featureTracker;
   }
 

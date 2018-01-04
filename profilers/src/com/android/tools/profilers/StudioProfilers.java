@@ -58,12 +58,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
-  /**
-   * How much of the timeline is hidden from the main data range.
-   * A value of zero indicates that we synchronize the data max value with the current time on device.
-   */
-  public static final int TIMELINE_BUFFER = 0;
-
   private final ProfilerClient myClient;
 
   private final ProfilerTimeline myTimeline;
@@ -96,9 +90,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Updater myUpdater;
 
-  @NotNull
-  private RelativeTimeConverter myRelativeTimeConverter;
-
   private AxisComponentModel myViewAxis;
 
   private long myRefreshDevices;
@@ -128,8 +119,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     myProfilers = profilersBuilder.build();
 
-    myRelativeTimeConverter = new RelativeTimeConverter(0);
-    myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
+    myTimeline = new ProfilerTimeline();
     myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       if (!myTimeline.getSelectionRange().isEmpty()) {
         myTimeline.setStreaming(false);
@@ -358,10 +348,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         TimeResponse response =
           myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
-        long currentDeviceTime = response.getTimestampNs();
-        long runTime = currentDeviceTime - mySessionData.getStartTimestamp();
-        myRelativeTimeConverter = new RelativeTimeConverter(mySessionData.getStartTimestamp() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
-        myTimeline.reset(myRelativeTimeConverter, runTime);
+        long sessionRunTime = response.getTimestampNs() - mySessionData.getStartTimestamp();
+        myTimeline.reset(mySessionData.getStartTimestamp(), sessionRunTime);
 
         // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
         if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
@@ -517,11 +505,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public ProfilerTimeline getTimeline() {
     return myTimeline;
-  }
-
-  @NotNull
-  public RelativeTimeConverter getRelativeTimeConverter() {
-    return myRelativeTimeConverter;
   }
 
   public Common.Device getDevice() {
