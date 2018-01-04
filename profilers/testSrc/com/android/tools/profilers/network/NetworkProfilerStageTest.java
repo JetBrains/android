@@ -148,8 +148,8 @@ public class NetworkProfilerStageTest {
     assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Receiving");
     assertThat(networkLegends.getTxLegend().getName()).isEqualTo("Sending");
     assertThat(networkLegends.getConnectionLegend().getName()).isEqualTo("Connections");
-    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("2 B/S");
-    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("1 B/S");
+    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("2 B/s");
+    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("1 B/s");
     assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("4");
 
     assertThat(networkLegends.getLegends()).hasSize(3);
@@ -169,8 +169,8 @@ public class NetworkProfilerStageTest {
     assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Received");
     assertThat(networkLegends.getTxLegend().getName()).isEqualTo("Sent");
     assertThat(networkLegends.getConnectionLegend().getName()).isEqualTo("Connections");
-    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("4 B/S");
-    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("3 B/S");
+    assertThat(networkLegends.getRxLegend().getValue()).isEqualTo("4 B/s");
+    assertThat(networkLegends.getTxLegend().getValue()).isEqualTo("3 B/s");
     assertThat(networkLegends.getConnectionLegend().getValue()).isEqualTo("6");
 
     assertThat(networkLegends.getLegends()).hasSize(3);
