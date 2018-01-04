@@ -82,6 +82,11 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private Range myRange;
 
+  /**
+   * List of event types (e.g. cpu-cycles, sched:sched_switch) present in the trace.
+   */
+  private List<String> myEventTypes;
+
   public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
@@ -200,6 +205,10 @@ public class SimpleperfTraceParser implements TraceParser {
         case THREAD:
           SimpleperfReport.Thread thread = record.getThread();
           myThreads.put(thread.getThreadId(), thread.getThreadName());
+          break;
+        case META_INFO:
+          SimpleperfReport.MetaInfo info = record.getMetaInfo();
+          myEventTypes = info.getEventTypeList();
           break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());
