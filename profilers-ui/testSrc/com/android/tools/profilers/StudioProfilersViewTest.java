@@ -309,22 +309,6 @@ public class StudioProfilersViewTest {
     new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
   }
 
-  static class FakeStage extends Stage {
-    public FakeStage(@NotNull StudioProfilers profilers) {
-      super(profilers);
-    }
-
-    @Override
-    public void enter() {
-
-    }
-
-    @Override
-    public void exit() {
-
-    }
-  }
-
   static class FakeView extends StageView<FakeStage> {
 
     public FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {

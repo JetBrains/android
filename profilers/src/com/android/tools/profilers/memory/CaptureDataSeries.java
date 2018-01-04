@@ -28,15 +28,12 @@ import java.util.concurrent.TimeUnit;
 abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<CaptureDurationData<T>> {
   @NotNull protected final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @NotNull protected final Common.Session mySession;
-  @NotNull protected final ProfilerTimeline myTimeline;
   @NotNull protected final FeatureTracker myFeatureTracker;
 
   protected CaptureDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                               @NotNull Common.Session session,
-                              @NotNull ProfilerTimeline timeline,
                               @NotNull FeatureTracker featureTracker) {
     myClient = client;
-    myTimeline = timeline;
     mySession = session;
     myFeatureTracker = featureTracker;
   }

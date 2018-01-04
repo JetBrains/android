@@ -121,11 +121,11 @@ public class StudioProfilersView extends AspectObserver {
     // There is a border of 5 pixels that is not scaled.
     toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
 
-    myMonitoringToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myMonitoringToolbar.add(deviceCombo);
     myMonitoringToolbar.add(processCombo);
 
-    myCommonToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new FlatButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
@@ -152,7 +152,7 @@ public class StudioProfilersView extends AspectObserver {
     leftToolbar.add(myCommonToolbar);
     toolbar.add(leftToolbar, BorderLayout.WEST);
 
-    JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    JPanel rightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 

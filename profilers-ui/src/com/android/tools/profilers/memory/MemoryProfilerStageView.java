@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
@@ -55,7 +56,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
-
 
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
@@ -134,7 +134,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
+    JPanel toolBar = new JPanel(createToolbarLayout());
     JButton forceGarbageCollectionButton = new FlatButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
     forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
@@ -472,7 +472,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private JPanel buildCaptureUi() {
     JPanel capturePanel = new JPanel(new BorderLayout());
 
-    JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
+    JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
@@ -480,12 +480,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
 
+    JPanel buttonToolbar = new JPanel(createToolbarLayout());
+    buttonToolbar.add(getSelectionTimeLabel());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
       FlatToggleButton button = SearchComponent.createFilterToggleButton();
-
-      JPanel buttonToolbar = new JPanel(TOOLBAR_LAYOUT);
+      buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
-      headingPanel.add(buttonToolbar, BorderLayout.EAST);
       SearchComponent searchTextArea = getIdeComponents()
         .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
       searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
@@ -494,6 +494,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       searchTextArea.getComponent().setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
       SearchComponent.configureKeyBindingAndFocusBehaviors(capturePanel, searchTextArea, button);
     }
+    headingPanel.add(buttonToolbar, BorderLayout.EAST);
 
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);

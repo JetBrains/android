@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +55,7 @@ public class AllocationInfosDataSeriesTest {
 
     AllocationInfosDataSeries series =
       new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                    new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker(), null);
+                                    myIdeProfilerServices.getFeatureTracker(), null);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

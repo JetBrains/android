@@ -21,11 +21,11 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
@@ -90,7 +90,7 @@ class CpuCaptureView {
 
   private final JPanel myPanel;
 
-  private final JTabbedPane myTabsPanel;
+  private final FlatTabbedPane myTabsPanel;
 
   @NotNull
   private SearchComponent mySearchComponent;
@@ -127,13 +127,16 @@ class CpuCaptureView {
 
     myTabsPanel.setOpaque(false);
 
-    myPanel = new JPanel(new TabularLayout("*,Fit,Fit", "Fit,*"));
+    myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    JPanel toolbar = new JPanel(createToolbarLayout());
+    toolbar.add(clockTypeCombo);
+    toolbar.add(myView.getSelectionTimeLabel());
     mySearchComponent = myView.getIdeComponents()
       .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
       FlatToggleButton filterButton = SearchComponent.createFilterToggleButton();
-      myPanel.add(filterButton, new TabularLayout.Constraint(0, 2));
+      toolbar.add(new FlatSeparator());
+      toolbar.add(filterButton);
 
       mySearchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
       mySearchComponent.getComponent().setVisible(false);
@@ -141,8 +144,8 @@ class CpuCaptureView {
       SearchComponent.configureKeyBindingAndFocusBehaviors(myPanel, mySearchComponent, filterButton);
     }
 
-    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
-    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 3));
+    myPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
+    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);
