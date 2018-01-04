@@ -31,10 +31,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -44,7 +40,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder.isCompositeBuild;
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.testing.Facets.*;
@@ -65,7 +60,6 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   @Mock private GradleRootPathFinder myRootPathFinder;
 
   private Module[] myModules;
-  private GradleProjectSettings myProjectSettings;
   private GradleTaskFinder myTaskFinder;
 
   @Override
@@ -73,12 +67,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    myProjectSettings = new GradleProjectSettings();
     Project project = getProject();
     String projectRootPath = getBaseDirPath(project).getPath();
-    myProjectSettings.setExternalProjectPath(projectRootPath);
-    GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(myProjectSettings));
-
     when(myRootPathFinder.getProjectRootPath(getModule())).thenReturn(projectRootPath);
 
     myModules = asArray(getModule());
@@ -269,24 +259,5 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     Module module = getModule();
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
-  }
-
-  public void testIsCompositeBuildWithoutCompositeModule() {
-    // Populate projectSettings with empty composite build.
-    myProjectSettings.setCompositeBuild(new CompositeBuild());
-
-    assertFalse(isCompositeBuild(myModule));
-  }
-
-  public void testIsCompositeBuildWithCompositeModule() {
-    // Set current module as composite build.
-    BuildParticipant participant = new BuildParticipant();
-    participant.setProjects(Collections.singleton(myModule.getModuleFile().getParent().getPath()));
-
-    CompositeBuild compositeBuild = new CompositeBuild();
-    compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
-    myProjectSettings.setCompositeBuild(compositeBuild);
-
-    assertTrue(isCompositeBuild(myModule));
   }
 }

@@ -38,6 +38,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.android.utils.FileUtils.join;
@@ -224,14 +225,16 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(testUtilModule);
     scopes.resolveDependencies();
 
+    String projectFolder = getProject().getBasePath();
+    String moduleId = getModuleId(projectFolder, ":lib");
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":lib", TEST, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, TEST, libModule));
 
     // verify scope of lib
     // testImplementation project(':test-util')
@@ -242,7 +245,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(":test-util", TEST, testUtilModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(getModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();

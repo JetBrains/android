@@ -57,7 +57,8 @@ public class ModuleSetupContext {
     ModuleFinder moduleFinder = myModule.getProject().getUserData(MODULES_BY_GRADLE_PATH_KEY);
 
     if (moduleFinder == null) {
-      ModuleFinder temp = new ModuleFinder();
+      ModuleFinder temp = new ModuleFinder(myModule.getProject());
+
       List<Module> modules = Arrays.asList(myIdeModelsProvider.getModules());
       JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, module -> {
         GradleFacet gradleFacet = GradleFacet.getInstance(module, myIdeModelsProvider);

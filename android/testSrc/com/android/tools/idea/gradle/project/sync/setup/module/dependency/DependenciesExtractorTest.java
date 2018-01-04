@@ -56,7 +56,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    myModuleFinder = new ModuleFinder();
+    myModuleFinder = new ModuleFinder(myProject);
 
     myAndroidProject = TestProjects.createBasicProject();
     myVariant = myAndroidProject.getFirstVariant();
@@ -160,7 +160,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
       }
     };
 
-    myModuleFinder = new ModuleFinder();
+    myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
 
     myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);

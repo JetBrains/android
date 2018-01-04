@@ -38,10 +38,9 @@ import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
 public class ProjectStructure {
-  @NotNull private static final ModuleFinder EMPTY = new ModuleFinder();
-
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -80,7 +79,7 @@ public class ProjectStructure {
     List<Module> modules = Arrays.asList(moduleManager.getModules());
     List<Module> leafModules = new ArrayList<>(modules);
 
-    ModuleFinder moduleFinder = new ModuleFinder();
+    ModuleFinder moduleFinder = new ModuleFinder(myProject);
 
     JobLauncher jobLauncher = JobLauncher.getInstance();
     jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {

@@ -73,7 +73,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    when(myModulesFinderFactory.create()).thenReturn(myModuleFinder);
+    when(myModulesFinderFactory.create(myProject)).thenReturn(myModuleFinder);
 
     myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myExtraModelsManager, myModuleFactory, myGradleModuleSetup,
                                         myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,

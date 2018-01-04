@@ -27,6 +27,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.MODULES_BY_GRADLE_PATH_KEY;
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
 
 /**
  * Tests for {@link ModuleSetupContext}.
@@ -51,9 +52,16 @@ public class ModuleSetupContextTest extends IdeaTestCase {
     ModuleFinder moduleFinder = context.getModuleFinder();
     assertNotNull(moduleFinder);
 
+    // Verify that modules can be found by Gradle path.
     assertSame(app, moduleFinder.findModuleByGradlePath(":app"));
     assertSame(lib, moduleFinder.findModuleByGradlePath(":lib"));
     assertSame(javaLib, moduleFinder.findModuleByGradlePath(":javaLib"));
+
+    // Verify that modules can be found by module id.
+    String projectFolder = myProject.getBasePath();
+    assertSame(app, moduleFinder.findModuleByModuleId(getModuleId(projectFolder, ":app")));
+    assertSame(lib, moduleFinder.findModuleByModuleId(getModuleId(projectFolder, ":lib")));
+    assertSame(javaLib, moduleFinder.findModuleByModuleId(getModuleId(projectFolder, ":javaLib")));
 
     assertSame(moduleFinder, project.getUserData(MODULES_BY_GRADLE_PATH_KEY));
 
