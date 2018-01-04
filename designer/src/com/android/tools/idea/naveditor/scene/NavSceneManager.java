@@ -323,10 +323,10 @@ public class NavSceneManager extends SceneManager {
     root.flatten().filter(component -> component.getParent() != null).forEach(component -> component.setPosition(0, 0));
     root.flatten().filter(component -> component.getParent() != null).forEach(myLayoutAlgorithm::layout);
 
-    HashSet<String> regularActionSources = new HashSet<>();
-    HashSet<String> regularActionDestinations = new HashSet<>();
+    HashSet<String> connectedActionSources = new HashSet<>();
+    HashSet<String> connectedActionDestinations = new HashSet<>();
 
-    getRegularActions(root, regularActionSources, regularActionDestinations);
+    getConnectedActions(root.getNlComponent(), connectedActionSources, connectedActionDestinations);
 
     for (SceneComponent component : root.getChildren()) {
       NlComponent nlComponent = component.getNlComponent();
@@ -353,29 +353,38 @@ public class NavSceneManager extends SceneManager {
 
       String id = nlComponent.getId();
 
-      layoutGlobalActions(component, globalActions, regularActionDestinations.contains(id));
-      layoutExitActions(component, exitActions, regularActionSources.contains(id));
+      layoutGlobalActions(component, globalActions, connectedActionDestinations.contains(id));
+      layoutExitActions(component, exitActions, connectedActionSources.contains(id));
     }
   }
 
-  private static void getRegularActions(@NotNull SceneComponent root,
-                                        @NotNull HashSet<String> sources,
-                                        @NotNull HashSet<String> destinations) {
-    for (SceneComponent component : root.getChildren()) {
-      NlComponent nlComponent = component.getNlComponent();
-      if (!NavComponentHelperKt.isDestination(nlComponent)) {
+  /**
+   * Builds up a list of ids of sources and destinations for all actions
+   * whose source and destination are currently visible
+   * These are used to layout the global and exit actions properly
+   */
+  private static void getConnectedActions(@NotNull NlComponent root,
+                                          @NotNull HashSet<String> connectedActionSources,
+                                          @NotNull HashSet<String> connectedActionDestinations) {
+    HashSet<String> children = new HashSet<>();
+    for (NlComponent child : root.getChildren()) {
+      children.add(child.getId());
+    }
+
+    for (NlComponent component : root.getChildren()) {
+      if (!NavComponentHelperKt.isDestination(component)) {
         continue;
       }
 
       // TODO: Handle duplicate ids
-      // TODO: Handle children of sibling navigations
-      nlComponent.flatten()
-        .filter(NavComponentHelperKt::isRegularAction)
+      component.flatten()
+        .filter(NavComponentHelperKt::isAction)
         .forEach(action -> {
-          NlComponent parent = action.getParent();
-          //noinspection ConstantConditions
-          sources.add(parent.getId());
-          destinations.add(NavComponentHelperKt.getEffectiveDestinationId(action));
+          String destinationId = NavComponentHelperKt.getEffectiveDestinationId(action);
+          if (children.contains(destinationId)) {
+            connectedActionSources.add(component.getId());
+            connectedActionDestinations.add(destinationId);
+          }
         });
     }
   }
