@@ -68,7 +68,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   /**
    * Creates a new {@link SampleDataResourceItem}
    * @param name name of the resource
-   * @param namespace optional resource namespace. Pre-defined data sources will probably use the "tools" namespace
+   * @param namespace optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
    * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
    *                                   must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
