@@ -315,8 +315,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
     myCaptureViewLoading.setLoadingText("Parsing capture...");
 
-    updateCaptureState();
-
     myProfilingConfigurationCombo = new ComboBox<>();
     JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
       new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
@@ -352,6 +350,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
+
+    updateCaptureState();
   }
 
   private void clearSelection() {
@@ -476,6 +476,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a method trace");
         myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
+        myProfilingConfigurationCombo.setEnabled(true);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
         break;
@@ -484,6 +485,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
         myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
+        myProfilingConfigurationCombo.setEnabled(false);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
         break;
@@ -498,11 +500,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Starting record...");
         myCaptureButton.setToolTipText("");
+        myProfilingConfigurationCombo.setEnabled(false);
         break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Stopping record...");
         myCaptureButton.setToolTipText("");
+        myProfilingConfigurationCombo.setEnabled(false);
         break;
     }
   }
