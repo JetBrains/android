@@ -104,7 +104,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
-    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent(), 60);
+    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent(), 120);
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
