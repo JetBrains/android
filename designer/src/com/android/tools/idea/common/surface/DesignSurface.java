@@ -101,6 +101,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
+  private String myDescriptionString;
 
   /**
    * Flag to indicate if the surface should resize its content when
@@ -1165,7 +1166,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Sets the tooltip for the design surface
    */
   public void setDesignToolTip(@Nullable String text) {
-    myLayeredPane.setToolTipText(text);
+    myDescriptionString = text;
   }
 
   @Override
