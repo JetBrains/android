@@ -147,7 +147,6 @@ threads {
         <Message></Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartResponse</clazz>
         <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
-        <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest">
         <Message>profiler_type: SIMPLEPERF
@@ -158,12 +157,14 @@ threads {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">
-        <Message>trace_id: 1111
+        <Message>status: SUCCESS
+trace_id: 1111
 trace: "Test Data"
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse</clazz>
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
-        <message>trace_id: 1111
+        <message>status: SUCCESS
+trace_id: 1111
 trace: "Test Data"
 </message>
     </GrpcCall>

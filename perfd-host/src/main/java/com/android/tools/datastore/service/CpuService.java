@@ -184,8 +184,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfilingAppStopResponse response = CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
-      myCpuTable.insertTrace(
-        request.getProcessId(), response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
+      // Only add successfully captured traces to the database
+      if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
+        myCpuTable.insertTrace(
+          request.getProcessId(), response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
+      }
     }
     observer.onNext(response);
     observer.onCompleted();
