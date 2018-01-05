@@ -154,13 +154,13 @@ threads {
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">
-        <Message>status: SUCCESS
+        <Message>status: FAILURE
 trace_id: 1111
 trace: "Test Data"
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse</clazz>
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
-        <message>status: SUCCESS
+        <message>status: FAILURE
 trace_id: 1111
 trace: "Test Data"
 </message>

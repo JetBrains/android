@@ -34,7 +34,6 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
@@ -98,8 +97,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
 
   public TestName myTestName = new TestName();
+  private FakeCpuService myFakeCpuService = new FakeCpuService();
   public TestGrpcService<FakeCpuService> myService =
-    new TestGrpcService<>(CpuDataPollerTest.class, myTestName, myCpuService, new FakeCpuService(), new FakeProfilerService());
+    new TestGrpcService<>(CpuDataPollerTest.class, myTestName, myCpuService, myFakeCpuService, new FakeProfilerService());
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
@@ -250,6 +250,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .setProfilerType(traceType)
       .build();
     StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
+    myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
     GetTraceRequest request = GetTraceRequest.newBuilder()
@@ -266,12 +267,34 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void traceIsOnlyPersistedInSuccessfulCaptures() {
+    CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest.getDefaultInstance();
+    StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
+    myCpuService.startProfilingApp(startRequest, startObserver);
+    CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.getDefaultInstance();
+    StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
+    myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.stopProfilingApp(stopRequest, stopObserver);
+
+    GetTraceRequest request = GetTraceRequest.newBuilder()
+      .setTraceId(TRACE_ID)
+      .build();
+    GetTraceResponse expectedResponse = GetTraceResponse.newBuilder()
+      .setStatus(GetTraceResponse.Status.FAILURE) // Trace should not be persisted. Therefore, the request should fail
+      .build();
+    StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
+    myCpuService.getTrace(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
   public void testGetTraceValid() {
     CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest.getDefaultInstance();
     StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);
     CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.getDefaultInstance();
     StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
+    myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
     GetTraceRequest request = GetTraceRequest.newBuilder()
@@ -517,6 +540,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
+    private CpuProfilingAppStopResponse.Status myStopProfilingAppStatus;
+
     @Override
     public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> responseObserver) {
       CpuDataResponse response = CpuDataResponse.newBuilder()
@@ -564,8 +589,13 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       responseObserver.onNext(CpuProfilingAppStopResponse.newBuilder()
                                 .setTraceId(TRACE_ID)
                                 .setTrace(TRACE_DATA)
+                                .setStatus(myStopProfilingAppStatus)
                                 .build());
       responseObserver.onCompleted();
+    }
+
+    public void setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status stopProfilingAppStatus) {
+      myStopProfilingAppStatus = stopProfilingAppStatus;
     }
   }
 }
