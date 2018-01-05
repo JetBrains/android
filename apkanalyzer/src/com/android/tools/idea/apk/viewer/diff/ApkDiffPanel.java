@@ -56,7 +56,7 @@ public class ApkDiffPanel {
   private ListenableFuture<DefaultMutableTreeNode> myFbfTreeStructureFuture;
 
   private JPanel myContainer;
-  private JScrollPane myColumnTreePane;
+  private JComponent myColumnTreePane;
   private JCheckBox myCalculateFileByFileCheckBox;
 
   @NonNull private final VirtualFile myOldApk;
@@ -165,7 +165,7 @@ public class ApkDiffPanel {
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setRenderer(new SizeRenderer(ApkEntry::getSize)));
-    myColumnTreePane = (JScrollPane)builder.build();
+    myColumnTreePane = builder.build();
   }
 
   @NotNull
