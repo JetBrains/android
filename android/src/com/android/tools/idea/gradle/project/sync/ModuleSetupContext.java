@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -36,7 +36,7 @@ import java.util.List;
 
 public class ModuleSetupContext {
   @VisibleForTesting
-  static final Key<ModulesByGradlePath> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
+  static final Key<ModuleFinder> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
 
   @NotNull private final Module myModule;
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
@@ -53,11 +53,11 @@ public class ModuleSetupContext {
   }
 
   @Nullable
-  public ModulesByGradlePath getModulesByGradlePath() {
-    ModulesByGradlePath modulesByGradlePath = myModule.getProject().getUserData(MODULES_BY_GRADLE_PATH_KEY);
+  public ModuleFinder getModuleFinder() {
+    ModuleFinder moduleFinder = myModule.getProject().getUserData(MODULES_BY_GRADLE_PATH_KEY);
 
-    if (modulesByGradlePath == null) {
-      ModulesByGradlePath temp = new ModulesByGradlePath();
+    if (moduleFinder == null) {
+      ModuleFinder temp = new ModuleFinder();
       List<Module> modules = Arrays.asList(myIdeModelsProvider.getModules());
       JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, module -> {
         GradleFacet gradleFacet = GradleFacet.getInstance(module, myIdeModelsProvider);
@@ -66,15 +66,15 @@ public class ModuleSetupContext {
         }
         return true;
       });
-      modulesByGradlePath = temp;
-      store(modulesByGradlePath);
+      moduleFinder = temp;
+      store(moduleFinder);
     }
 
-    return modulesByGradlePath;
+    return moduleFinder;
   }
 
-  private void store(ModulesByGradlePath modulesByGradlePath) {
-    myModule.getProject().putUserData(MODULES_BY_GRADLE_PATH_KEY, modulesByGradlePath);
+  private void store(ModuleFinder moduleFinder) {
+    myModule.getProject().putUserData(MODULES_BY_GRADLE_PATH_KEY, moduleFinder);
   }
 
   public boolean hasNativeModel() {
@@ -109,10 +109,10 @@ public class ModuleSetupContext {
     @NotNull
     public ModuleSetupContext create(@NotNull Module module,
                                      @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                     @NotNull ModulesByGradlePath modulesByGradlePath,
+                                     @NotNull ModuleFinder moduleFinder,
                                      @NotNull GradleModuleModels gradleModels) {
       ModuleSetupContext context = new ModuleSetupContext(module, ideModelsProvider, gradleModels);
-      context.store(modulesByGradlePath);
+      context.store(moduleFinder);
       return context;
     }
   }

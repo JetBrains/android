@@ -21,7 +21,7 @@ import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
@@ -49,14 +49,14 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public class DependenciesExtractorTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
-  private ModulesByGradlePath myModulesByGradlePath;
+  private ModuleFinder myModuleFinder;
   private DependenciesExtractor myDependenciesExtractor;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
-    myModulesByGradlePath = new ModulesByGradlePath();
+    myModuleFinder = new ModuleFinder();
 
     myAndroidProject = TestProjects.createBasicProject();
     myVariant = myAndroidProject.getFirstVariant();
@@ -84,7 +84,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
 
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -133,7 +133,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
 
-    DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath);
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder);
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
 
@@ -160,12 +160,12 @@ public class DependenciesExtractorTest extends IdeaTestCase {
       }
     };
 
-    myModulesByGradlePath = new ModulesByGradlePath();
-    myModulesByGradlePath.addModule(libModule, ":lib");
+    myModuleFinder = new ModuleFinder();
+    myModuleFinder.addModule(libModule, ":lib");
 
     myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModulesByGradlePath).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);

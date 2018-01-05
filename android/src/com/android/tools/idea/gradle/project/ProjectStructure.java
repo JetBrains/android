@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +40,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class ProjectStructure {
-  @NotNull private static final ModulesByGradlePath EMPTY = new ModulesByGradlePath();
+  @NotNull private static final ModuleFinder EMPTY = new ModuleFinder();
 
   @NotNull private final Project myProject;
 
@@ -60,7 +60,7 @@ public class ProjectStructure {
 
   @GuardedBy("myLock")
   @NotNull
-  private final Ref<ModulesByGradlePath> myModulesByGradlePathRef = new Ref<>(EMPTY);
+  private final Ref<ModuleFinder> myModuleFinderRef = new Ref<>(EMPTY);
 
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
@@ -80,14 +80,14 @@ public class ProjectStructure {
     List<Module> modules = Arrays.asList(moduleManager.getModules());
     List<Module> leafModules = new ArrayList<>(modules);
 
-    ModulesByGradlePath modulesByGradlePath = new ModulesByGradlePath();
+    ModuleFinder moduleFinder = new ModuleFinder();
 
     JobLauncher jobLauncher = JobLauncher.getInstance();
     jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-        modulesByGradlePath.addModule(module, gradlePath);
+        moduleFinder.addModule(module, gradlePath);
 
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
@@ -124,7 +124,7 @@ public class ProjectStructure {
       myAppModules.clear();
       myAppModules.addAll(appModules);
 
-      myModulesByGradlePathRef.set(modulesByGradlePath);
+      myModuleFinderRef.set(moduleFinder);
     }
   }
 
@@ -160,9 +160,9 @@ public class ProjectStructure {
   }
 
   @NotNull
-  public ModulesByGradlePath getModulesByGradlePath() {
+  public ModuleFinder getModuleFinder() {
     synchronized (myLock) {
-      return myModulesByGradlePathRef.get();
+      return myModuleFinderRef.get();
     }
   }
 
@@ -171,7 +171,7 @@ public class ProjectStructure {
       myPluginVersionsInProject.clear();
       myAppModules.clear();
       myLeafModules.clear();
-      myModulesByGradlePathRef.set(EMPTY);
+      myModuleFinderRef.set(EMPTY);
     }
   }
 

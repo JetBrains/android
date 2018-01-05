@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
@@ -93,7 +93,7 @@ abstract class ModuleSetup {
                                  new IdeDependenciesFactory(),
                                  new ProjectDataNodeSetup(),
                                  new ModuleSetupContext.Factory(),
-                                 new ModulesByGradlePath.Factory());
+                                 new ModuleFinder.Factory());
     }
   }
 
@@ -117,7 +117,7 @@ abstract class ModuleSetup {
     @NotNull private final IdeDependenciesFactory myDependenciesFactory;
     @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
     @NotNull private final ModuleSetupContext.Factory myModuleSetupFactory;
-    @NotNull private final ModulesByGradlePath.Factory myModulesByGradlePathFactory;
+    @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -139,7 +139,7 @@ abstract class ModuleSetup {
                     @NotNull IdeDependenciesFactory dependenciesFactory,
                     @NotNull ProjectDataNodeSetup projectDataNodeSetup,
                     @NotNull ModuleSetupContext.Factory moduleSetupFactory,
-                    @NotNull ModulesByGradlePath.Factory modulesByGradlePathFactory) {
+                    @NotNull ModuleFinder.Factory moduleFinderFactory) {
       myProject = project;
       myModelsProvider = modelsProvider;
       myModuleFactory = moduleFactory;
@@ -158,7 +158,7 @@ abstract class ModuleSetup {
       myDependenciesFactory = dependenciesFactory;
       myProjectDataNodeSetup = projectDataNodeSetup;
       myModuleSetupFactory = moduleSetupFactory;
-      myModulesByGradlePathFactory = modulesByGradlePathFactory;
+      myModuleFinderFactory = moduleFinderFactory;
     }
 
     @Override
@@ -175,13 +175,13 @@ abstract class ModuleSetup {
       List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
       List<GradleFacet> gradleFacets = new ArrayList<>();
 
-      ModulesByGradlePath modulesByGradlePath = myModulesByGradlePathFactory.create();
+      ModuleFinder moduleFinder = myModuleFinderFactory.create();
       JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true /* fail fast */, module -> {
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
         if (gradleFacet != null) {
           String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
           if (isNotEmpty(gradlePath)) {
-            modulesByGradlePath.addModule(module, gradlePath);
+            moduleFinder.addModule(module, gradlePath);
             gradleFacets.add(gradleFacet);
           }
         }
@@ -192,14 +192,14 @@ abstract class ModuleSetup {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(gradlePath);
         if (moduleModelsCache != null) {
-          setUpModule(gradleFacet, moduleModelsCache, modulesByGradlePath);
+          setUpModule(gradleFacet, moduleModelsCache, moduleFinder);
         }
       }
     }
 
     private void setUpModule(@NotNull GradleFacet gradleFacet,
                              @NotNull CachedModuleModels cache,
-                             @NotNull ModulesByGradlePath modulesByGradlePath)
+                             @NotNull ModuleFinder moduleFinder)
       throws ModelNotFoundInCacheException {
       Application application = ApplicationManager.getApplication();
       if (!application.isUnitTestMode()) {
@@ -214,7 +214,7 @@ abstract class ModuleSetup {
       }
       myGradleModuleSetup.setUpModule(module, myModelsProvider, gradleModel);
 
-      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, modulesByGradlePath, cache);
+      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, moduleFinder, cache);
 
       AndroidModuleModel androidModel = cache.findModel(AndroidModuleModel.class);
       if (androidModel != null) {
@@ -266,7 +266,7 @@ abstract class ModuleSetup {
 
       String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
 
-      ModulesByGradlePath modulesByGradlePath = myModulesByGradlePathFactory.create();
+      ModuleFinder moduleFinder = myModuleFinderFactory.create();
       for (String gradlePath : projectModels.getProjectPaths()) {
         GradleModuleModels moduleModels = projectModels.getModels(gradlePath);
         if (moduleModels != null) {
@@ -280,13 +280,13 @@ abstract class ModuleSetup {
           CachedModuleModels cachedModels = cache.addModule(module, gradlePath);
           cachedModels.addModel(gradleModel);
 
-          modulesByGradlePath.addModule(module, gradleModel.getGradlePath());
+          moduleFinder.addModule(module, gradleModel.getGradlePath());
           moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
         }
       }
 
       for (ModuleSetupInfo moduleSetupInfo : moduleSetupInfos) {
-        setUpModule(moduleSetupInfo, modulesByGradlePath);
+        setUpModule(moduleSetupInfo, moduleFinder);
       }
     }
 
@@ -313,7 +313,7 @@ abstract class ModuleSetup {
       }
     }
 
-    private void setUpModule(@NotNull ModuleSetupInfo setupInfo, @NotNull ModulesByGradlePath modulesByGradlePath) {
+    private void setUpModule(@NotNull ModuleSetupInfo setupInfo, @NotNull ModuleFinder moduleFinder) {
       Module module = setupInfo.module;
       GradleModuleModels moduleModels = setupInfo.moduleModels;
       CachedModuleModels cachedModels = setupInfo.cachedModels;
@@ -323,7 +323,7 @@ abstract class ModuleSetup {
       File moduleRootFolderPath = findModuleRootFolderPath(module);
       assert moduleRootFolderPath != null;
 
-      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, modulesByGradlePath, moduleModels);
+      ModuleSetupContext context = myModuleSetupFactory.create(module, myModelsProvider, moduleFinder, moduleModels);
 
       AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
       if (androidProject != null) {

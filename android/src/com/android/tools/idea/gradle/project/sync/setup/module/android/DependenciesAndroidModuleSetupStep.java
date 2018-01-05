@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
@@ -76,12 +76,12 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
 
   @Override
   protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
-    ModulesByGradlePath modulesByGradlePath = context.getModulesByGradlePath();
-    assert modulesByGradlePath != null;
+    ModuleFinder moduleFinder = context.getModuleFinder();
+    assert moduleFinder != null;
 
     Module module = context.getModule();
     IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
-    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant(), modulesByGradlePath);
+    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant(), moduleFinder);
 
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidModel);
