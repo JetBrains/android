@@ -13,6 +13,9 @@ public class AdtUIIcons {
     return IconLoader.getIcon(path, AdtUIIcons.class);
   }
 
+  public static final Icon Back_button = load("/icons/events/back-button.png"); // 22x22
   public static final Icon Keyboard_event = load("/icons/events/keyboard-event.png"); // 22x22
   public static final Icon Rotate_event = load("/icons/events/rotate-event.png"); // 22x22
+  public static final Icon Volume_down = load("/icons/events/volume-down.png"); // 22x22
+  public static final Icon Volume_up = load("/icons/events/volume-up.png"); // 22x22
 }
