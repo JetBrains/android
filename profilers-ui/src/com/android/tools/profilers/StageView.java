@@ -36,7 +36,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   /**
    * View of the active tooltip for stages that contain more than one tooltips.
    */
-  private ProfilerTooltipView activeTooltipView;
+  private ProfilerTooltipView myActiveTooltipView;
 
   /**
    * Binder to bind a tooltip to its view.
@@ -112,16 +112,16 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   protected void tooltipChanged() {
-    if (activeTooltipView != null) {
-      activeTooltipView.dispose();
-      activeTooltipView = null;
+    if (myActiveTooltipView != null) {
+      myActiveTooltipView.dispose();
+      myActiveTooltipView = null;
     }
     myTooltipPanel.removeAll();
     myTooltipPanel.setVisible(false);
 
     if (myStage.getTooltip() != null) {
-      activeTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
-      myTooltipPanel.add(activeTooltipView.createComponent());
+      myActiveTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
+      myTooltipPanel.add(myActiveTooltipView.createComponent());
       myTooltipPanel.setVisible(true);
     }
     myTooltipPanel.invalidate();
