@@ -42,10 +42,12 @@ public class EmptyPropertyModel implements ResolvedPropertyModel {
   @NotNull private final GradlePropertiesDslElement myPropertyHolder;
   @NotNull private final PropertyType myPropertyType;
   @NotNull private final String myPropertyName;
-  private final boolean myShouldBecomeResolved;
+  private boolean myShouldBecomeResolved;
 
-
-  public EmptyPropertyModel(@NotNull GradlePropertiesDslElement propertyHolder, @NotNull PropertyType type, @NotNull String propertyName, boolean shouldBecomeResolved) {
+  public EmptyPropertyModel(@NotNull GradlePropertiesDslElement propertyHolder,
+                            @NotNull PropertyType type,
+                            @NotNull String propertyName,
+                            boolean shouldBecomeResolved) {
     myPropertyHolder = propertyHolder;
     myPropertyType = type;
     myPropertyName = propertyName;
@@ -136,6 +138,13 @@ public class EmptyPropertyModel implements ResolvedPropertyModel {
   }
 
   @Override
+  @NotNull
+  public GradlePropertyModel delete() {
+    // Nothing exists to delete.
+    return this;
+  }
+
+  @Override
   public String toString() {
     if (myRealElement != null) {
       return myRealElement.toString();
@@ -152,5 +161,9 @@ public class EmptyPropertyModel implements ResolvedPropertyModel {
       return myRealElement;
     }
     return this;
+  }
+
+  void setShouldBecomeResolved(boolean shouldBecomeResolved) {
+    myShouldBecomeResolved = shouldBecomeResolved;
   }
 }

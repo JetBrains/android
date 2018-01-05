@@ -132,4 +132,12 @@ public interface GradlePropertyModel {
    * Note: Does not work for Maps, Lists and References. TODO: Fix this
    */
   void setValue(@NotNull Object value);
+
+  /**
+   * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
+   * from the file. Once {@link #delete()} has been called this {@link GradlePropertyModel} is invalid and any changes to it will be
+   * ignored. In order to alter this property further use the {@link GradlePropertyModel} returned by this method.
+   */
+  @NotNull
+  GradlePropertyModel delete();
 }

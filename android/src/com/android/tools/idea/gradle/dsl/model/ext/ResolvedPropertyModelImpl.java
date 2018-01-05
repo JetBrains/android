@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.refactoring.convertToStatic.fixes.EmptyReturnTypeFix;
 
 import java.util.HashSet;
 import java.util.List;
@@ -95,6 +96,14 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Override
   public void setValue(@NotNull Object value) {
     myRealModel.setValue(value);
+  }
+
+  @NotNull
+  @Override
+  public GradlePropertyModel delete() {
+    EmptyPropertyModel newModel = myRealModel.delete();
+    newModel.setShouldBecomeResolved(true);
+    return newModel;
   }
 
   private GradlePropertyModel getResolvedModel() {
