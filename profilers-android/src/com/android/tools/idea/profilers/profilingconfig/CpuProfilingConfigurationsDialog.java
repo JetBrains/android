@@ -49,6 +49,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
   private final CpuProfilerConfigModel myProfilerModel;
   private Consumer<ProfilingConfiguration> myOnCloseCallback;
+  private final int myDeviceLevel;
 
   public CpuProfilingConfigurationsDialog(final Project project,
                                           int deviceLevel,
@@ -58,6 +59,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
+    myDeviceLevel = deviceLevel;
     setHorizontalStretch(1.3F);
     // TODO: add help button on the bottom-left corner when we have the URL for it.
   }
@@ -75,8 +77,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       selectedConfig = getSelectedConfiguration(); // Call this *before* dispose, otherwise it will be null
     }
     super.dispose();
-
-    myOnCloseCallback.accept(selectedConfig);
+    // If selected configuration is not supported by the device, we don't try to apply the callback on it.
+    boolean selectedConfigSupported = selectedConfig != null && selectedConfig.isDeviceLevelSupported(myDeviceLevel);
+    myOnCloseCallback.accept(selectedConfigSupported ? selectedConfig : null);
   }
 
   private static class ProfilingConfigurable extends BaseConfigurable {
@@ -132,8 +135,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myProject = project;
       myFeatureTracker = featureTracker;
       myProfilerModel = model;
-      myProfilersPanel = new CpuProfilingConfigPanel(myDeviceLevel >= AndroidVersion.VersionCodes.O);
       myDeviceLevel = deviceLevel;
+      myProfilersPanel = new CpuProfilingConfigPanel(myDeviceLevel);
 
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
@@ -274,12 +277,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
         panel.setBackground(list.getBackground());
         String cellText = value.getName();
-        boolean meetLevelRequirements = value.getRequiredDeviceLevel() <= myDeviceLevel;
         if (index >= getCustomConfigurationCount()) {
           cellText += " - Default";
         }
+
         // TODO(b/69367377): Update the design for features that are supported outside the current device level.
-        if (!meetLevelRequirements) {
+        if (!value.isDeviceLevelSupported(myDeviceLevel)) {
           cellText += String.format(" (API Level %d+)", value.getRequiredDeviceLevel());
         }
         myLabel.setText(cellText);
@@ -320,8 +323,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private void addConfiguration() {
         ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
                                                                           CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
-                                                                          myDeviceLevel);
+                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration
