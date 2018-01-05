@@ -55,7 +55,7 @@ public class ApkViewerTest {
    *   1. Ensure APK entries appear for classes.dex, AndroidManifest.xml
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void launchApkViewer() throws Exception {
     List<String> apkEntries = guiTest.importSimpleLocalApplication()
