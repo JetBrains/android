@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModulesByGradlePath {
+public class ModuleFinder {
   @NotNull private final Map<String, Module> myValues = new HashMap<>();
 
   public void addModule(@NotNull Module module, @NotNull String gradlePath) {
@@ -41,8 +41,8 @@ public class ModulesByGradlePath {
 
   public static class Factory {
     @NotNull
-    public ModulesByGradlePath create() {
-      return new ModulesByGradlePath();
+    public ModuleFinder create() {
+      return new ModuleFinder();
     }
   }
 }
