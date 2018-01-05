@@ -104,6 +104,9 @@ public class CommandLineArgs {
       }
     }
 
+    // Disable SDK auto-download until studio can properly handle auto-download failures. See b/71642261.
+    args.add(createProjectProperty("android.builder.sdkDownload", false));
+
     Application application = ApplicationManager.getApplication();
     if (GuiTestingService.getInstance().isGuiTestingMode() || application.isUnitTestMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
