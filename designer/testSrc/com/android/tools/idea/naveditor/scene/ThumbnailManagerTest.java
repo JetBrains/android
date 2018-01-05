@@ -25,7 +25,6 @@ import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidResourceUtil;
 
@@ -66,7 +65,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertSame(image, imageFuture.get());
 
-    ((PsiFileImpl)psiFile).clearCaches();
+    psiFile.clearCaches();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertNotSame(image, imageFuture.get());
 
