@@ -139,8 +139,6 @@ public class ModuleAvds extends AndroidFacetScopedService {
   @Nullable
   public AvdManager getAvdManager(@NotNull ILogger log) throws AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
-      // ensure the handler is created
-      AndroidSdkData.getSdkData(getFacet());
       myAvdManager = AvdManager.getInstance(AndroidSdkData.getSdkHolder(getFacet()), log);
     }
     return myAvdManager;
