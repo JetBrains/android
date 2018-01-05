@@ -80,8 +80,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
@@ -172,24 +170,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     return myEditor;
-  }
-
-  @NotNull
-  public String getTitle() {
-    return target().getTitle();
-  }
-
-  @NotNull
-  public String getRevision() {
-    String revisionReg = "\\d\\.\\d";
-    String title = getTitle();
-    Pattern pattern = Pattern.compile(revisionReg);
-    Matcher matcher = pattern.matcher(title);
-    if (matcher.find()) {
-      return matcher.group();
-    } else {
-      throw new RuntimeException("Cannot find digital pattern like " + revisionReg);
-    }
   }
 
   @NotNull
