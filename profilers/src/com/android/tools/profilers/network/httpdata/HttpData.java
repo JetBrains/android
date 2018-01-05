@@ -248,7 +248,7 @@ public class HttpData {
      * Returns display name with the first letter in upper case.
      * <ul>
      *   <li>If type is form data, returns "Form Data".</li>
-     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "Json".</li>
+     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "JSON".</li>
      *   <li>Otherwise, return the type, for example, "image/png" => "Image".</li>
      * </ul>
      */
@@ -263,7 +263,10 @@ public class HttpData {
       String[] typeAndSubType = mimeType.split("/", 2);
       boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
       String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
-      return name.isEmpty() ? name : name.substring(0, 1).toUpperCase() + name.substring(1);
+      if (name.isEmpty() || showSubType) {
+        return name.toUpperCase();
+      }
+      return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
   }
 
