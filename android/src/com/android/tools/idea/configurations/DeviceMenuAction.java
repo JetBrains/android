@@ -22,7 +22,7 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
 import com.google.common.collect.Lists;
@@ -216,7 +216,7 @@ public class DeviceMenuAction extends DropDownAction {
       add(new SetCustomDeviceAction(myRenderContext, current));
       addSeparator();
 
-      AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
+      AvdManager avdManager = AvdManagerUtils.getAvdManagerSilently(facet);
       if (avdManager != null) {
         boolean separatorNeeded = false;
         boolean first = true;
