@@ -94,7 +94,7 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
   public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
-  public static final ImmutableMap<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = ImmutableMap.<ResourceType, ResourceFolderType>builder()
+  public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = ImmutableMap.<ResourceType, ResourceFolderType>builder()
     .put(ResourceType.ANIM, ResourceFolderType.ANIM)
     .put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR)
     .put(ResourceType.COLOR, ResourceFolderType.COLOR)
