@@ -149,15 +149,15 @@ public class HttpData {
    * "www.example.com/demo/" -> "demo"
    * "www.example.com/test.png" -> "test.png"
    * "www.example.com/test.png?res=2" -> "test.png?res=2"
-   * "www.example.com" -> "www.example.com"
+   * "www.example.com/" -> "www.example.com"
    */
   @NotNull
   public static String getUrlName(@NotNull String url) {
     URI uri = URI.create(url);
-    if (uri.getPath().isEmpty()) {
+    String name = uri.getPath() != null ? StringUtil.trimTrailing(uri.getPath(), '/') : "";
+    if (name.isEmpty()) {
       return uri.getHost();
     }
-    String name = StringUtil.trimTrailing(uri.getPath(), '/');
     name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
     if (uri.getQuery() != null) {
       name += "?" + uri.getQuery();
