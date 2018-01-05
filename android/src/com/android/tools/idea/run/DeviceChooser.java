@@ -20,7 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
@@ -34,7 +34,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -145,7 +144,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
     myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(
-      ModuleAvds.getInstance(facet).getAvdManagerSilently(),
+      AvdManagerUtils.getAvdManagerSilently(facet),
       new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
         @Override
         public void onSuccess(@Nullable DeviceNameProperties result) {

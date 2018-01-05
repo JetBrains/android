@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -33,7 +32,6 @@ import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -239,7 +237,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   void androidPlatformChanged() {
-    ModuleAvds.disposeInstance(this);
     ModuleResourceManagers.getInstance(this).clear();
     ClassMaps.getInstance(this).clear();
   }
