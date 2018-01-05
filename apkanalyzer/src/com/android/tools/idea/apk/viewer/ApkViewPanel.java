@@ -61,7 +61,7 @@ import java.util.List;
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
   @SuppressWarnings("unused") // added to the container in the form
-  private JScrollPane myColumnTreePane;
+  private JComponent myColumnTreePane;
   private SimpleColoredComponent myNameComponent;
   private SimpleColoredComponent mySizeComponent;
   private AnimatedIcon myNameAsyncIcon;
@@ -244,7 +244,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setRenderer(new PercentRenderer(percentProvider))
       );
-    myColumnTreePane = (JScrollPane)builder.build();
+    myColumnTreePane = builder.build();
     myTree.addTreeSelectionListener(this);
   }
 
