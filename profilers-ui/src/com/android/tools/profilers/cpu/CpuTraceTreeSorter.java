@@ -45,7 +45,7 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
 
   @Override
   public void sort(Comparator<DefaultMutableTreeNode> comparator, SortOrder order) {
-    myComparator = comparator;
+    myComparator = new MatchedNodeFirstComparator(comparator);
     sort();
   }
 
@@ -75,6 +75,25 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
       myTree.setSelectionPath(selectionPath);
       myTree.scrollPathToVisible(selectionPath);
       myModel.reload();
+    }
+  }
+
+  /**
+   * Comparator where nodes with filter type {@link CaptureNode.FilterType#UNMATCH} comes after than others.
+   */
+  private static class MatchedNodeFirstComparator implements Comparator<DefaultMutableTreeNode> {
+    @NotNull private Comparator<DefaultMutableTreeNode> myComparator;
+
+    MatchedNodeFirstComparator(@NotNull Comparator<DefaultMutableTreeNode> comparator) {
+      myComparator = comparator;
+    }
+
+    @Override
+    public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
+      CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
+      CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
+      int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
+      return (cmp == 0) ? myComparator.compare(a, b) : cmp;
     }
   }
 }

@@ -693,53 +693,27 @@ class CpuCaptureView {
     return null;
   }
 
-  /**
-   * In this comparator nodes with filter type {@link CaptureNode.FilterType#UNMATCH} comes after than others.
-   */
-  private static abstract class CpuNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    private final SortOrder myOrderPreference;
+  private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    @Override
+    public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
+      CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
+      CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
+      return o1.getMethodModel().getName().compareTo(o2.getMethodModel().getName());
+    }
+  }
 
-    protected CpuNodeComparator(SortOrder orderPreference) {
-      myOrderPreference = orderPreference;
+  private static class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    private final Function<CpuTreeNode, Double> myGetter;
+
+    DoubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
+      myGetter = getter;
     }
 
     @Override
     public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
       CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
       CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
-
-      int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
-      if (cmp == 0) {
-        return compareField(o1, o2);
-      }
-      return myOrderPreference == SortOrder.ASCENDING ? cmp : -cmp;
-    }
-
-    public abstract int compareField(CpuTreeNode a, CpuTreeNode b);
-  }
-
-  private static class NameValueNodeComparator extends CpuNodeComparator {
-    protected NameValueNodeComparator() {
-      super(SortOrder.ASCENDING);
-    }
-
-    @Override
-    public int compareField(CpuTreeNode a, CpuTreeNode b) {
-      return a.getMethodModel().getName().compareTo(b.getMethodModel().getName());
-    }
-  }
-
-  private static class DoubleValueNodeComparator extends CpuNodeComparator {
-    private final Function<CpuTreeNode, Double> myGetter;
-
-    DoubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
-      super(SortOrder.DESCENDING);
-      myGetter = getter;
-    }
-
-    @Override
-    public int compareField(CpuTreeNode a, CpuTreeNode b) {
-      return Double.compare(myGetter.apply(a), myGetter.apply(b));
+      return Double.compare(myGetter.apply(o1), myGetter.apply(o2));
     }
   }
 
