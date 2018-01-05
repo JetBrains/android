@@ -35,11 +35,13 @@ public class HttpData {
   // http://www.iana.org/assignments/media-types/media-types.xhtml
   private static final Map<String, String> CONTENT_EXTENSIONS_MAP = new ImmutableMap.Builder<String, String>()
     .put("/bmp", ".bmp")
+    .put("/csv", ".csv")
     .put("/gif", ".gif")
     .put("/html", ".html")
     .put("/jpeg", ".jpg")
     .put("/json", ".json")
     .put("/png", ".png")
+    .put("/webp", ".webp")
     .put("/xml", ".xml")
     .build();
 
