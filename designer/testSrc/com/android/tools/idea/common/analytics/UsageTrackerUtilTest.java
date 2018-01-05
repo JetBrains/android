@@ -15,50 +15,61 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
-import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlPropertyItem;
-import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
-import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
-import com.google.wireless.android.sdk.stats.SearchOption;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.xml.XmlName;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.StyleableDefinition;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+ import com.android.tools.idea.common.model.NlComponent;
+ import com.android.tools.idea.common.model.NlLayoutType;
+ import com.android.tools.idea.common.model.NlModel;
+ import com.android.tools.idea.common.property.NlProperty;
+ import com.android.tools.idea.common.property.PropertiesManager;
+ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+ import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
+ import com.android.tools.idea.uibuilder.palette.Palette;
+ import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+ import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
+ import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
+ import com.google.wireless.android.sdk.stats.SearchOption;
+ import com.intellij.openapi.Disposable;
+ import com.intellij.openapi.application.Application;
+ import com.intellij.openapi.application.ApplicationManager;
+ import com.intellij.openapi.components.ComponentManager;
+ import com.intellij.openapi.components.impl.ComponentManagerImpl;
+ import com.intellij.openapi.project.Project;
+ import com.intellij.openapi.util.Disposer;
+ import com.intellij.openapi.util.text.StringUtil;
+ import com.intellij.util.xml.XmlName;
+ import org.intellij.lang.annotations.Language;
+ import org.jetbrains.android.AndroidTestCase;
+ import org.jetbrains.android.dom.attrs.AttributeDefinition;
+ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+ import org.jetbrains.android.dom.attrs.StyleableDefinition;
+ import org.jetbrains.android.facet.AndroidFacet;
+ import org.jetbrains.android.resourceManagers.LocalResourceManager;
+ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+ import org.jetbrains.android.resourceManagers.SystemResourceManager;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
+ import org.mockito.ArgumentMatchers;
+ import org.picocontainer.MutablePicoContainer;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+ import java.io.InputStreamReader;
+ import java.io.Reader;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.Set;
 
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.android.tools.idea.common.analytics.UsageTrackerUtil.*;
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.*;
-import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.*;
-import static java.util.Collections.emptyList;
-import static org.jetbrains.android.resourceManagers.ModuleResourceManagers.KEY;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+ import static com.android.SdkConstants.*;
+ import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.*;
+ import static com.google.common.truth.Truth.assertThat;
+ import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.*;
+ import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.*;
+ import static java.util.Collections.emptyList;
+ import static org.mockito.ArgumentMatchers.any;
+ import static org.mockito.ArgumentMatchers.isNotNull;
+ import static org.mockito.ArgumentMatchers.notNull;
+ import static org.mockito.Mockito.mock;
+ import static org.mockito.Mockito.when;
 
 public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String SDK_VERSION = ":" + HIGHEST_KNOWN_API + ".0.1";
@@ -344,9 +355,27 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     when(resourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
     when(resourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
 
-    myFacet.putUserData(KEY, resourceManagers);
+    registerComponentInstance((MutablePicoContainer)myFacet.getModule().getPicoContainer(),
+                              ModuleResourceManagers.class,
+                              resourceManagers,
+                              getTestRootDisposable());
+
     myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);
+  }
+
+  static <T> void registerComponentInstance(MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
+    Object old = container.getComponentInstance(key);
+    container.unregisterComponent(key.getName());
+    container.registerComponentInstance(key.getName(), implementation);
+    Disposer.register(
+      parentDisposable,
+      () -> {
+        container.unregisterComponent(key.getName());
+        if (old != null) {
+          container.registerComponentInstance(key.getName(), old);
+        }
+      });
   }
 
   private static class Attributes implements AttributeDefinitions {

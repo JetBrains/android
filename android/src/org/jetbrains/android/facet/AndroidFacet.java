@@ -53,7 +53,6 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -239,7 +238,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   void androidPlatformChanged() {
-    ModuleResourceManagers.getInstance(this).clear();
   }
 
   private static void createDynamicTemplateMenu() {
@@ -285,8 +283,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
             androidPlatformChanged();
           }
           myPrevSdk = newSdk;
-
-          ModuleResourceManagers.getInstance(AndroidFacet.this).getLocalResourceManager().invalidateAttributeDefinitions();
         });
       }
     });
