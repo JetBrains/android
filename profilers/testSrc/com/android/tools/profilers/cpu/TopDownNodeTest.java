@@ -160,8 +160,7 @@ public class TopDownNodeTest {
   }
 
   static CaptureNode newNode(CaptureNodeModel method, long start, long end) {
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(method);
+    CaptureNode node = new CaptureNode(method);
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     return node;

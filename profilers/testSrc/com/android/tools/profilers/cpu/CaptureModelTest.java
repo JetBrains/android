@@ -90,7 +90,7 @@ public class CaptureModelTest {
     root.getChildAt(2).addChild(createNode("otherPackage.method3", 800, 850));
     root.getChildAt(2).addChild(createNode("otherPackage.method4", 860, 900));
 
-    CaptureNode first = root.getFirstChild();
+    CaptureNode first = (CaptureNode)root.getFirstChild();
     first.addChild(createNode("myPackage.method2", 0, 200));
     first.addChild(createNode("otherPackage.method3", 300, 500));
 
@@ -125,11 +125,11 @@ public class CaptureModelTest {
     checkChildrenFilterType(node, CaptureNode.FilterType.MATCH, CaptureNode.FilterType.EXACT_MATCH, CaptureNode.FilterType.UNMATCH);
 
     // mainPackage.main -> otherPackage.method1
-    checkChildrenFilterType(node.getFirstChild(), CaptureNode.FilterType.EXACT_MATCH, CaptureNode.FilterType.UNMATCH);
+    checkChildrenFilterType((CaptureNode)node.getFirstChild(), CaptureNode.FilterType.EXACT_MATCH, CaptureNode.FilterType.UNMATCH);
     // mainPackage.main -> otherPackage.method1 -> myPackage.method2
-    checkChildrenFilterType(node.getFirstChild().getFirstChild(), CaptureNode.FilterType.MATCH, CaptureNode.FilterType.EXACT_MATCH);
+    checkChildrenFilterType((CaptureNode)node.getFirstChild().getFirstChild(), CaptureNode.FilterType.MATCH, CaptureNode.FilterType.EXACT_MATCH);
     // mainPackage.main -> otherPackage.method1 -> otherPackage.method3
-    checkChildrenFilterType(node.getFirstChild().getChildAt(1), CaptureNode.FilterType.UNMATCH, CaptureNode.FilterType.UNMATCH);
+    checkChildrenFilterType((CaptureNode)node.getFirstChild().getChildAt(1), CaptureNode.FilterType.UNMATCH, CaptureNode.FilterType.UNMATCH);
 
     // mainPackage.main -> myPackage.method1
     checkChildrenFilterType(node.getChildAt(1), CaptureNode.FilterType.MATCH, CaptureNode.FilterType.MATCH);
@@ -157,8 +157,7 @@ public class CaptureModelTest {
     String className = fullMethodName.substring(0, index);
     String methodName = fullMethodName.substring(index + 1);
 
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(new JavaMethodModel(methodName, className));
+    CaptureNode node = new CaptureNode(new JavaMethodModel(methodName, className));
     node.setClockType(ClockType.GLOBAL);
     node.setStartGlobal(start);
     node.setEndGlobal(end);

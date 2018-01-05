@@ -40,25 +40,25 @@ class AtraceParserTest {
     val parser = AtraceParser(TEST_PID)
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
     val range = parser.range
-    val result = parser.getCaptureTrees()
-    assertThat(result.size).isEqualTo(1);
+    val result = parser.captureTrees
+    assertThat(result.size).isEqualTo(1)
     val cpuThreadInfo = result.keys.first()
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
 
     // Base node is a root node that is equivlant to the length of capture.
-    var captureNode = result.get(cpuThreadInfo)
-    assertThat(captureNode?.startGlobal).isEqualTo(range.min.toLong())
-    assertThat(captureNode?.endGlobal).isEqualTo(range.max.toLong())
-    assertThat(captureNode?.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
-    assertThat(captureNode?.getChildAt(0)?.start).isEqualTo(SINGLE_CHILD_EXPECTED_START)
-    assertThat(captureNode?.getChildAt(0)?.end).isEqualTo(SINGLE_CHILD_EXPECTED_END)
-    assertThat(captureNode?.getChildAt(0)?.captureNodeModel?.name).isEqualTo(EXPECTED_METHOD_NAME)
-    assertThat(captureNode?.getChildAt(0)?.start).isGreaterThan(parser.range.min.toLong())
-    assertThat(captureNode?.getChildAt(0)?.start).isLessThan(parser.range.max.toLong())
-    assertThat(captureNode?.getChildAt(0)?.end).isGreaterThan(parser.range.min.toLong())
-    assertThat(captureNode?.getChildAt(0)?.end).isLessThan(parser.range.max.toLong())
+    val captureNode = result[cpuThreadInfo]!!
+    assertThat(captureNode.startGlobal).isEqualTo(range.min.toLong())
+    assertThat(captureNode.endGlobal).isEqualTo(range.max.toLong())
+    assertThat(captureNode.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
+    assertThat(captureNode.getChildAt(0).start).isEqualTo(SINGLE_CHILD_EXPECTED_START)
+    assertThat(captureNode.getChildAt(0).end).isEqualTo(SINGLE_CHILD_EXPECTED_END)
+    assertThat(captureNode.getChildAt(0).data.name).isEqualTo(EXPECTED_METHOD_NAME)
+    assertThat(captureNode.getChildAt(0).start).isGreaterThan(parser.range.min.toLong())
+    assertThat(captureNode.getChildAt(0).start).isLessThan(parser.range.max.toLong())
+    assertThat(captureNode.getChildAt(0).end).isGreaterThan(parser.range.min.toLong())
+    assertThat(captureNode.getChildAt(0).end).isLessThan(parser.range.max.toLong())
   }
 
   companion object {
@@ -71,6 +71,6 @@ class AtraceParserTest {
     private val SINGLE_CHILD_EXPECTED_END = 110091912914
     private val EXPECTED_CHILD_COUNT = 3
     private val EXPECTED_METHOD_NAME = "activityDestroy"
-    private val TEST_PID = 23340;
+    private val TEST_PID = 23340
   }
 }

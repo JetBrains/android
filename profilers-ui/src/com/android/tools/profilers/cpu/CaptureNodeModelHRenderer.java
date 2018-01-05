@@ -55,8 +55,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   private Color getFillColor(CaptureNode node) {
-    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
-    assert nodeModel != null;
+    CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
@@ -67,8 +66,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   private Color getBorderColor(CaptureNode node) {
-    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
-    assert nodeModel != null;
+    CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
@@ -106,7 +104,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
     // Draw text
     Font font = g.getFont();
     FontMetrics fontMetrics = g.getFontMetrics(font);
-    if (captureNode.getFilterType() == null || captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
+    if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(Color.BLACK);
     }
     else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {

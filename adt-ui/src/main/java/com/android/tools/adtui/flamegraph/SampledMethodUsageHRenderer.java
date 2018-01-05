@@ -17,6 +17,7 @@ package com.android.tools.adtui.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.DefaultHRenderer;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -39,12 +40,12 @@ public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodU
   }
 
   @Override
-  protected Color getBordColor(SampledMethodUsage method) {
+  protected Color getBorderColor(@NotNull SampledMethodUsage method) {
     return Color.GRAY;
   }
 
   @Override
-  protected Color getFillColor(SampledMethodUsage method) {
+  protected Color getFillColor(@NotNull SampledMethodUsage method) {
     return new Color(
       (int)(START_COLOR.getRed() + method.getPercentage() * mRedDelta),
       (int)(START_COLOR.getGreen() + method.getPercentage() * mGreenDelta),
@@ -55,7 +56,7 @@ public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodU
    * Find the best text for the given rectangle constraints.
    */
   @Override
-  protected String generateFittingText(SampledMethodUsage method, Rectangle2D rect, FontMetrics fontMetrics) {
+  protected String generateFittingText(@NotNull SampledMethodUsage method, @NotNull Rectangle2D rect, @NotNull FontMetrics fontMetrics) {
     if (rect.getWidth() < fontMetrics.stringWidth("...")) {
       return "";
     }
@@ -82,12 +83,6 @@ public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodU
     // Try toSr...
 
     return "";
-  }
-
-  @Override
-  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
-    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
-    g.drawString(text, rect.x, textPositionY);
   }
 
   private String getShortPackageName(String nameSpace) {

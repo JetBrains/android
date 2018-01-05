@@ -22,11 +22,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultHNode<T> implements HNode<T> {
+public class DefaultHNode<T> extends HNode<T> {
 
   private long myStart;
   private long myEnd;
-  @Nullable private T myData;
   @NotNull private List<DefaultHNode<T>> myChildren;
 
   /**
@@ -39,13 +38,13 @@ public class DefaultHNode<T> implements HNode<T> {
    */
   private int myDepth;
 
-  public DefaultHNode() {
-    this(null, 0, 0);
+  public DefaultHNode(@NotNull T data) {
+    this(data, 0, 0);
   }
 
-  public DefaultHNode(@Nullable T data, long start, long end) {
+  public DefaultHNode(@NotNull T data, long start, long end) {
+    super(data);
     myChildren = new ArrayList<>();
-    myData = data;
     myStart = start;
     myEnd = end;
   }
@@ -88,16 +87,6 @@ public class DefaultHNode<T> implements HNode<T> {
 
   public void setStart(long start) {
     myStart = start;
-  }
-
-  @Nullable
-  @Override
-  public T getData() {
-    return myData;
-  }
-
-  public void setData(@Nullable T data) {
-    myData = data;
   }
 
   @Override

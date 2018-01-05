@@ -21,40 +21,49 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * An interface that represents a tree where each node has range and data.
- * HNode is used by {@code HTreeChart} to visualize the tree by rectangular bars.
+ * An entry in a {@code HTreeChart}. A node has associated data and a range as well, which will
+ * be visualized by the parent tree as rectangular bars.
  *
- * @param <T> - type of data.
+ * @param <T> Type of data wrapped by this node.
  */
-public interface HNode<T> {
-  int getChildCount();
+public abstract class HNode<T> {
+  @NotNull
+  private final T myData;
+
+  public HNode(@NotNull T data) {
+    myData = data;
+  }
 
   @NotNull
-  HNode<T> getChildAt(int index);
+  public final T getData() {
+    return myData;
+  }
+
+  public abstract int getChildCount();
+
+  @NotNull
+  public abstract HNode<T> getChildAt(int index);
 
   @Nullable
-  HNode<T> getParent();
+  public abstract HNode<T> getParent();
 
-  long getStart();
+  public abstract long getStart();
 
-  long getEnd();
+  public abstract long getEnd();
 
-  @Nullable
-  T getData();
+  public abstract int getDepth();
 
-  int getDepth();
-
-  default long duration() {
+  public final long getDuration() {
     return getEnd() - getStart();
   }
 
   @Nullable
-  default HNode<T> getFirstChild() {
+  public final HNode<T> getFirstChild() {
     return getChildCount() == 0 ? null : getChildAt(0);
   }
 
   @Nullable
-  default HNode<T> getLastChild() {
+  public final HNode<T> getLastChild() {
     return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
   }
 }

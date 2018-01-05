@@ -27,8 +27,7 @@ class CaptureNodeModelHRendererTest {
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
-    val unsupportedNode = CaptureNode()
-    unsupportedNode.captureNodeModel = SingleNameModel("write")
+    val unsupportedNode = CaptureNode(SingleNameModel("write"))
     val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
@@ -52,8 +51,7 @@ class CaptureNodeModelHRendererTest {
 
   @Test
   fun testFilterRenderStyle() {
-    val simpleNode = CaptureNode()
-    simpleNode.captureNodeModel = SyscallModel("write")
+    val simpleNode = CaptureNode(SyscallModel("write"))
     val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
