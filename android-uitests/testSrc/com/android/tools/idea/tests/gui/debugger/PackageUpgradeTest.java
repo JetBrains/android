@@ -37,9 +37,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
@@ -76,8 +73,6 @@ public class PackageUpgradeTest extends DebuggerTestBase {
    *   Verify:
    *   1. User is prompted to install new lldb package and debugging proceeds only after installing
    *      the package.
-   *   2. Check that the newer version’s revision number is a.b.* where a.b matches the revision of
-   *      Android Studio.
    *   </pre>
    */
   @RunIn(TestGroup.QA_UNRELIABLE) // b/70536208
@@ -122,44 +117,6 @@ public class PackageUpgradeTest extends DebuggerTestBase {
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
         .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
-
-    // Check that the newer version’s revision number is a.b.* where a.b matches the revision of
-    // Android Studio.
-    // Example of text content:
-    // To install:
-    // - LLDB 3.0 (lldb;3.0)
-    // Preparing "Install LLDB 3.0 (revision: 3.0.4213617)".
-    // Downloading https://dl.google.com/android/repository/lldb-3.0.4213617-linux-x86_64.zip
-    JTextArea jTextArea = ideFrameFixture.robot().finder().findByType(downloadDialog.target(),
-                                                                      JTextArea.class);
-    String contents = jTextArea.getText();
-    Pattern pattern = Pattern.compile("(revision:\\s\\d\\.\\d\\.\\d+)");
-    Matcher matcher = pattern.matcher(contents);
-    String lldbRevisionInfo = null;
-    if (matcher.find()) {
-      lldbRevisionInfo = matcher.group();
-    } else {
-      throw new RuntimeException("Cannot find expected digital pattern for full lldb revision.");
-    }
-
-    String lldbRevision = null;
-    pattern = Pattern.compile("(\\d\\.\\d)");
-    matcher = pattern.matcher(lldbRevisionInfo);
-    if (matcher.find()) {
-      lldbRevision = matcher.group();
-    } else {
-      throw new RuntimeException("Cannot find expected digital pattern for lldb revision.");
-    }
-
-    // In release build, revisions are mached;
-    // In tot build, "b" in revision "a.b" doesn't always matched.
-    String androidStudioRevision = ideFrameFixture.getRevision();
-    if (!lldbRevision.equals(androidStudioRevision)) {
-      if (!lldbRevision.split("\\.")[0]
-          .equals(androidStudioRevision.split("\\.")[0])) {
-        throw new RuntimeException("LLDB revision doesn't match Android Studio revision.");
-      }
-    }
 
     Wait.seconds(120)
         .expecting("Android source to be installed").until(finish::isEnabled);
