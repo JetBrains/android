@@ -241,9 +241,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
-  public void addCustomProfilingConfiguration(String name) {
-    ProfilingConfiguration config = new ProfilingConfiguration(name, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+  public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
+    ProfilingConfiguration config =
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
     myCustomProfilingConfigurations.add(config);
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -103,8 +104,8 @@ public class CpuProfilingConfigPanel {
    */
   private boolean myIsDeviceAtLeastO;
 
-  CpuProfilingConfigPanel(boolean isDeviceAtLeastO) {
-    myIsDeviceAtLeastO = isDeviceAtLeastO;
+  CpuProfilingConfigPanel(int deviceApiLevel) {
+    myIsDeviceAtLeastO = deviceApiLevel >= AndroidVersion.VersionCodes.O;
     // TODO: calculate this value based on device available space
     myMaxFileSizeLimitMb = 4096;
     createUiComponents();

@@ -679,7 +679,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ArrayList<ProfilingConfiguration> configs = new ArrayList<>();
     configs.add(EDIT_CONFIGURATIONS_ENTRY);
 
-    List<ProfilingConfiguration> customEntries = myProfilerModel.getCustomProfilingConfigurations();
+    List<ProfilingConfiguration> customEntries = myProfilerModel.getCustomProfilingConfigurationsDeviceFiltered();
     if (!customEntries.isEmpty()) {
       configs.add(CONFIG_SEPARATOR_ENTRY);
       configs.addAll(customEntries);
