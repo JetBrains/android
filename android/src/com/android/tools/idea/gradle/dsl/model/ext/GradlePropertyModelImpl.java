@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
@@ -33,6 +32,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @NotNull private ValueType myValueType;
   @NotNull private final GradleDslElement myElement;
+  private boolean myIsValid = true;
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
@@ -112,6 +112,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
+    ensureValid();
     if (myValueType == MAP || myValueType == LIST) {
       throw new UnsupportedOperationException("Setting map and list values are not supported!");
     }
@@ -121,6 +122,23 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Update the current value type
     myValueType = extractAndGetValueType(myElement);
+  }
+
+  @Override
+  @NotNull
+  public EmptyPropertyModel delete() {
+    ensureValid();
+    GradleDslElement parent = myElement.getParent();
+
+    assert parent != null && parent instanceof GradlePropertiesDslElement : "Property found to be invalid, this should never happen!";
+
+    GradlePropertiesDslElement propertyHolder = ((GradlePropertiesDslElement)parent);
+    propertyHolder.removeProperty(myElement.getName());
+
+    // Invalidate this property.
+    this.myIsValid = false;
+
+    return new EmptyPropertyModel(propertyHolder, myElement.getElementType(), myElement.getName(), false);
   }
 
   @Override
@@ -187,5 +205,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     return typeReference.castTo(value);
+  }
+
+  private void ensureValid() {
+    if (!myIsValid) {
+      throw new IllegalStateException("Attempted to change an invalid GradlePropertyModel " + this);
+    }
   }
 }

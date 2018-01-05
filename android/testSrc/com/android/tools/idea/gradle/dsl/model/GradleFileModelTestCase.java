@@ -173,7 +173,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-
   protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
                                    @NotNull String propertyName,
                                    @NotNull String propertyText) {

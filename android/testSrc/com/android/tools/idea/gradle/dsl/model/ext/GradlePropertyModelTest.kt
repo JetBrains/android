@@ -15,9 +15,9 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.vfs.VfsUtil
@@ -872,6 +872,174 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals("${'$'}{prop1} world!", propertyModel2.getRawValue(STRING_TYPE))
       // Check dependency is correct.
       verifyPropertyModel(propertyModel4.dependencies[0], STRING_TYPE, newValue, STRING, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteProperty() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check everything has been deleted
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(NONE, propertyModel.valueType)
+    }
+  }
+
+  fun testDeleteVariable() {
+    val text = """
+               ext {
+                 def prop1 = "Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check everything has been deleted
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(NONE, propertyModel.valueType)
+    }
+  }
+
+  fun testDeleteAndResetProperty() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "Other Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete and reset the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete().setValue("New Value")
+    }
+
+    // Check prop2 hasn't been affected
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
+    }
+
+    // Check prop2 is still correct
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteEmptyProperty() {
+    val text = ""
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete a nonexistent property
+    run {
+      val propertyModel = buildModel.ext().findProperty("coolpropertyname")
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("coolpropertyname")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteVariableDependency() {
+    val text = """
+               ext {
+                 def prop1 = "value"
+                 prop2 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Get the model to delete
+    run {
+      val firstPropertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+
+      val secondPropertyModel = firstPropertyModel.dependencies[0]
+      verifyPropertyModel(secondPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
+      // Delete the model
+      secondPropertyModel.delete()
+
+      // After deleting this property, the value of the first property shouldn't change since it is just a reference to nothing.
+      // However it will no longer have a dependency.
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstPropertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    }
+  }
+
+  fun testCheckSettingInvalidModel() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "Other Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete property and attempt to set it again using the invalid model.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+      try {
+        propertyModel.setValue("Invalid Value")
+        fail()
+      } catch (e : IllegalStateException) {
+        assertTrue(e.message!!.startsWith("Attempted to change an invalid GradlePropertyModel"))
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    // Check prop2
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
     }
   }
 
