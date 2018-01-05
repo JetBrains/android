@@ -143,6 +143,18 @@ public class HTreeChart<T> extends AnimatedComponent {
     changed();
   }
 
+  /**
+   * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
+   * convenience to set this directly.
+   *
+   * It is up to the caller to make sure that the node specified here actually belongs to this
+   * chart. Otherwise, the call will have no effect.
+   */
+  @VisibleForTesting
+  public void setFocusedNode(@Nullable HNode<T, ?> node) {
+    myFocusedNode = node;
+  }
+
   private void changed() {
     myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();
