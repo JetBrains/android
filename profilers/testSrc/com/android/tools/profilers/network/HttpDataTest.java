@@ -121,6 +121,8 @@ public class HttpDataTest {
   public void urlNameParsedProperlyWithEmptyPath() {
     String urlString = "https://www.google.com";
     assertThat(HttpData.getUrlName(urlString)).isEqualTo("www.google.com");
+    urlString = "https://www.google.com/";
+    assertThat(HttpData.getUrlName(urlString)).isEqualTo("www.google.com");
   }
 
   @Test
