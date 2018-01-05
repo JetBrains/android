@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
-import com.android.tools.profilers.AutoCompleteTextField;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.ExportDialog;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.SearchComponent;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.DataViewer;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,18 +41,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   private static final Map<String, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<String, FileType>()
+    .put(".csv", FileTypeManager.getInstance().getStdFileType("CSV"))
     .put(".html", StdFileTypes.HTML)
-    .put(".xml", StdFileTypes.XML)
     .put(".json", FileTypeManager.getInstance().getStdFileType("JSON"))
+    .put(".xml", StdFileTypes.XML)
     .build();
 
-  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png");
+  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png", ".webp");
 
   @NotNull private final Project myProject;
 
