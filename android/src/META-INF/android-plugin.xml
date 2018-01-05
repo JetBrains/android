@@ -1020,6 +1020,7 @@
     <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
                    serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
+    <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
