@@ -429,9 +429,8 @@ class CaptureModel {
      */
     private CaptureNode convertToFlameChart(@NotNull TopDownNode topDown, double start, int depth) {
       assert topDown.getTotal() > 0;
-      CaptureNode node = new CaptureNode();
 
-      node.setCaptureNodeModel(topDown.getNodes().get(0).getData());
+      CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData());
       node.setFilterType(topDown.getNodes().get(0).getFilterType());
       node.setStartGlobal((long)start);
       node.setStartThread((long)start);

@@ -37,6 +37,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+/**
+ * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
+ * rendering nested rows top-to-bottom, this chart renders nested columns left-to-right.
+ *
+ * @param <T> The type of the model wrapped by each node.
+ */
 public class HTreeChart<T> extends AnimatedComponent {
 
   private static final String NO_HTREE = "No data available.";
@@ -114,7 +120,7 @@ public class HTreeChart<T> extends AnimatedComponent {
     myDrawnRectangles = new ArrayList<>();
     myGlobalXRange = globalXRange != null ? globalXRange : new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myXRange = viewXRange;
-    myRoot = new DefaultHNode<>();
+    myRoot = null;
     myReducer = reducer;
     myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myOrientation = orientation;

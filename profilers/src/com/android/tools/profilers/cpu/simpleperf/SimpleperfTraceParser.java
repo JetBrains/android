@@ -154,8 +154,7 @@ public class SimpleperfTraceParser implements TraceParser {
 
   @NotNull
   private static CaptureNode createCaptureNode(CaptureNodeModel model, long timestamp) {
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(model);
+    CaptureNode node = new CaptureNode(model);
     setNodeStartTime(node, timestamp);
     node.setDepth(0);
     return node;

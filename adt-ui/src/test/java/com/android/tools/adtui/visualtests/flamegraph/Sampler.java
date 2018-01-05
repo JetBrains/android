@@ -80,9 +80,8 @@ public class Sampler implements Runnable {
       // Retrieve the ongoing flame associate with this thread.
       DefaultHNode<SampledMethodUsage> flame = furnace.get(sampledThread.getName());
       if (flame == null) {
-        flame = new DefaultHNode();
         SampledMethodUsage m = new SampledMethodUsage();
-        flame.setData(m);
+        flame = new DefaultHNode<>(m);
         furnace.put(sampledThread.getName(), flame);
       }
 
@@ -115,13 +114,12 @@ public class Sampler implements Runnable {
       current = findChildWithMethod(currentMethod, previous);
       if (current == null) {
         // Create a new node.
-        current = new DefaultHNode<>();
-        current.setDepth(trace.length - depth);
         SampledMethodUsage m = new SampledMethodUsage();
         m.setInvocationCount(0);
         m.setNamespace(currentMethod.getClassName());
         m.setName(currentMethod.getMethodName());
-        current.setData(m);
+        current = new DefaultHNode<>(m);
+        current.setDepth(trace.length - depth);
         // Add new node to parent
         previous.addChild(current);
       }
@@ -154,7 +152,7 @@ public class Sampler implements Runnable {
   private void generateChildsStartsAndEnds(DefaultHNode<SampledMethodUsage> node) {
     // Get total invocation count for this depth level.
     long childInvocationTotal = 0;
-    for (HNode<SampledMethodUsage> n : node.getChildren()) {
+    for (DefaultHNode<SampledMethodUsage> n : node.getChildren()) {
       childInvocationTotal += n.getData().getInvocationCount();
     }
 

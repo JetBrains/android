@@ -68,7 +68,6 @@ class CpuChartTooltipView extends MouseAdapter {
   }
 
   private void showTooltip(@NotNull HNode<CaptureNodeModel> node) {
-    assert node.getData() != null;
     myTooltipComponent.setVisible(true);
     Range dataRange = myStageView.getTimeline().getDataRange();
     long start = (long)(node.getStart() - dataRange.getMin());
@@ -82,7 +81,7 @@ class CpuChartTooltipView extends MouseAdapter {
 
     JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
                                                     TimeAxisFormatter.DEFAULT.getClockFormattedString(end),
-                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.duration())));
+                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.getDuration())));
     durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));

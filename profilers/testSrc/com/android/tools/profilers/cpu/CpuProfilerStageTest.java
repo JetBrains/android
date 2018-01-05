@@ -400,7 +400,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     double threadSelectionStart = captureNode.getStartGlobal() +
                                   threadToGlobal * (captureNode.getStartThread() - timeline.getSelectionRange().getMin());
     double threadSelectionEnd = threadSelectionStart +
-                                threadToGlobal * captureNode.duration();
+                                threadToGlobal * captureNode.getDuration();
     assertThat(threadSelectionStart).isWithin(eps).of(timeline.getSelectionRange().getMin());
     assertThat(threadSelectionEnd).isWithin(eps).of(timeline.getSelectionRange().getMax());
 

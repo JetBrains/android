@@ -131,7 +131,7 @@ public class FlameChartTest {
     CaptureModel.FlameChart flameChart = new CaptureModel.FlameChart(selection, main);
 
     HNode<CaptureNodeModel> root = flameChart.getNode();
-    assertEquals(root.duration(), 100);
+    assertEquals(100, root.getDuration());
 
     AspectObserver observer = new AspectObserver();
 
@@ -179,8 +179,7 @@ public class FlameChartTest {
 
   @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(new SingleNameModel(method));
+    CaptureNode node = new CaptureNode(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(end);
 

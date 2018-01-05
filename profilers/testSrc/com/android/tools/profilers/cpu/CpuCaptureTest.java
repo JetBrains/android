@@ -142,7 +142,7 @@ public class CpuCaptureTest {
     CpuThreadInfo info = new CpuThreadInfo(10, "main");
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
-      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode()).build();
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
     CpuCapture capture = new CpuCapture(range, captureTrees, true);
     assertThat(capture.isDualClock()).isTrue();
 

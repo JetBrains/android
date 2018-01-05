@@ -87,12 +87,11 @@ public class Sampler implements Runnable {
       // Retrieve the ongoing tree associate with this thread.
       DefaultHNode<Method> tree = forest.get(sampledThread.getName());
       if (tree == null) {
-        tree = new DefaultHNode();
-        tree.setStart(getLastMidTime());
         Method rootMethod = new Method();
         rootMethod.setName("rootMethod");
         rootMethod.setNamespace("root.package.foo.bar");
-        tree.setData(rootMethod);
+        tree = new DefaultHNode<>(rootMethod);
+        tree.setStart(getLastMidTime());
         forest.put(sampledThread.getName(), tree);
       }
 
@@ -127,9 +126,8 @@ public class Sampler implements Runnable {
         m.setNamespace(trace.getClassName());
         m.setName(trace.getMethodName());
 
-        DefaultHNode<Method> newNode = new DefaultHNode<>();
+        DefaultHNode<Method> newNode = new DefaultHNode<>(m);
         newNode.setStart(getLastMidTime());
-        newNode.setData(m);
         newNode.setDepth(elements.length - depth - 1);
         previousNode.addChild(newNode);
 

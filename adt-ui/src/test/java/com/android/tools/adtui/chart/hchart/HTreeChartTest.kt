@@ -57,7 +57,7 @@ class HTreeChartTest {
    * and the subtree has the given height and branch factor.
    */
   private fun HNodeTree(depth: Int, height: Int, branch: Int): DefaultHNode<String> {
-    val subroot = DefaultHNode<String>()
+    val subroot = DefaultHNode<String>("")
     subroot.depth = depth
     if (height > 1) {
       for (i in 1..branch) {
