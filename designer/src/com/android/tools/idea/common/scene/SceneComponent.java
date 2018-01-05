@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,7 +78,10 @@ public class SceneComponent {
 
   private DrawState myDrawState = DrawState.NORMAL;
 
-  private ArrayList<Target> myTargets = new ArrayList<>();
+  @GuardedBy("myTargets")
+  private final ArrayList<Target> myTargets = new ArrayList<>();
+
+  @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
 
   @AndroidDpCoordinate private int myCurrentLeft = 0;
@@ -552,13 +556,15 @@ public class SceneComponent {
    * Returns a copy of the list containing this component's targets
    */
   public ImmutableList<Target> getTargets() {
-    // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
     assert ApplicationManager.getApplication().isDispatchThread();
+    synchronized (myTargets) {
+      // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
 
-    if (myCachedTargetList == null) {
-      myCachedTargetList = ImmutableList.copyOf(myTargets);
+      if (myCachedTargetList == null) {
+        myCachedTargetList = ImmutableList.copyOf(myTargets);
+      }
+      return myCachedTargetList;
     }
-    return myCachedTargetList;
   }
 
   public SceneDecorator getDecorator() {
@@ -666,8 +672,10 @@ public class SceneComponent {
 
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
-    myCachedTargetList = null;
-    myTargets.add(target);
+    synchronized (myTargets) {
+      myCachedTargetList = null;
+      myTargets.add(target);
+    }
   }
 
   public void addChild(@NotNull SceneComponent child) {
@@ -831,8 +839,10 @@ public class SceneComponent {
    * The created Targets will save in the {@link #myTargets} in its associated {@link SceneComponent}.
    */
   public void updateTargets() {
-    myCachedTargetList = null;
-    myTargets.clear();
+    synchronized (myTargets) {
+      myCachedTargetList = null;
+      myTargets.clear();
+    }
 
     // update the Targets created by parent's TargetProvider
     if (myParent != null && myParent.getTargetProvider() != null) {
