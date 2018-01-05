@@ -35,30 +35,30 @@ import org.mockito.Mockito.`when`
  */
 class NavActionManagerTest : NavTestCase() {
 
-  private lateinit var myModel: SyncNlModel
-  private lateinit var mySurface: NavDesignSurface
+  private lateinit var model: SyncNlModel
+  private lateinit var surface: NavDesignSurface
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    myModel = model("nav.xml",
+    model = model("nav.xml",
         rootComponent("navigation").unboundedChildren(
             fragmentComponent("fragment1"),
             navigationComponent("subnav")
                 .unboundedChildren(fragmentComponent("fragment2"))))
         .build()
-    mySurface = NavDesignSurface(project, myRootDisposable)
-    mySurface.setSize(1000, 1000)
-    mySurface.model = myModel
+    surface = NavDesignSurface(project, myRootDisposable)
+    surface.setSize(1000, 1000)
+    surface.model = model
   }
 
   fun testGetDestinations() {
-    val actionManager = NavActionManager(mySurface)
+    val actionManager = NavActionManager(surface)
 
     val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main2.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
-    val parent = myModel.components[0]
+    val parent = model.components[0]
     val expected1 = Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment")
     val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
         layoutFile = xmlFile)
@@ -69,7 +69,7 @@ class NavActionManagerTest : NavTestCase() {
   fun testAddElement() {
     val layout = LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
         ResourceFolderType.LAYOUT).stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
-    Destination.RegularDestination(mySurface.currentNavigation, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
+    Destination.RegularDestination(surface.currentNavigation, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
         "myId", layout)
         .addToGraph()
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
@@ -77,8 +77,8 @@ class NavActionManagerTest : NavTestCase() {
         "    NlComponent{tag=<navigation>, instance=2}\n" +
         "        NlComponent{tag=<fragment>, instance=3}\n" +
         "    NlComponent{tag=<activity>, instance=4}",
-        NlTreeDumper().toTree(myModel.components))
-    val newChild = myModel.find("myId")!!
+        NlTreeDumper().toTree(model.components))
+    val newChild = model.find("myId")!!
     assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main", newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
     assertEquals("mytest.navtest.MainActivity", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))

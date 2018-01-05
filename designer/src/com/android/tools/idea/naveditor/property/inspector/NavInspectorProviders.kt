@@ -27,13 +27,13 @@ import com.intellij.openapi.Disposable
 // Open for mocking in tests only
 open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parentDisposable: Disposable)
   : InspectorProviders<NavPropertiesManager>(propertiesManager, parentDisposable) {
-  private val myProviders: List<InspectorProvider<NavPropertiesManager>>
-  private val myNullProvider: InspectorProvider<NavPropertiesManager>
+  private val providers: List<InspectorProvider<NavPropertiesManager>>
+  private val nullProvider: InspectorProvider<NavPropertiesManager>
 
   init {
     val provider = NavMainPropertiesInspectorProvider()
-    myNullProvider = provider
-    myProviders = listOf(provider,
+    nullProvider = provider
+    providers = listOf(provider,
         NavActivityPropertiesInspectorProvider(),
         NavSetStartProvider(),
         NavDestinationArgumentsInspectorProvider(),
@@ -47,10 +47,10 @@ open class NavInspectorProviders(propertiesManager: NavPropertiesManager, parent
 
   @VisibleForTesting
   public override fun getProviders(): List<InspectorProvider<NavPropertiesManager>> {
-    return myProviders
+    return providers
   }
 
   override fun getNullProvider(): InspectorProvider<NavPropertiesManager> {
-    return myNullProvider
+    return nullProvider
   }
 }

@@ -28,13 +28,13 @@ const val SET_START_DESTINATION_PROPERTY_NAME = "StartDestination"
 class SetStartDestinationProperty(components: List<NlComponent>) : SimpleProperty(SET_START_DESTINATION_PROPERTY_NAME, components) {
 
   override fun getValue(): String? {
-    return if (myComponents[0].isStartDestination) "true" else null
+    return if (components[0].isStartDestination) "true" else null
   }
 
   override fun setValue(value: Any?) {
-    WriteCommandAction.runWriteCommandAction(myComponents[0].model.project) {
-      myComponents[0].parent?.setAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/" + myComponents[0].id)
+    WriteCommandAction.runWriteCommandAction(components[0].model.project) {
+      components[0].parent?.setAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/" + components[0].id)
     }
-    myComponents[0].model.notifyModified(NlModel.ChangeType.EDIT)
+    components[0].model.notifyModified(NlModel.ChangeType.EDIT)
   }
 }
