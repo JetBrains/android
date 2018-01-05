@@ -48,7 +48,9 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myTooltipPanel = new JPanel(new BorderLayout());
+
+    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
+    myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     myTooltipBinder = new ViewBinder<>();
 
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
@@ -119,8 +121,10 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
 
     if (myStage.getTooltip() != null) {
       activeTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
-      myTooltipPanel.add(activeTooltipView.createComponent(), BorderLayout.CENTER);
+      myTooltipPanel.add(activeTooltipView.createComponent());
       myTooltipPanel.setVisible(true);
     }
+    myTooltipPanel.invalidate();
+    myTooltipPanel.repaint();
   }
 }
