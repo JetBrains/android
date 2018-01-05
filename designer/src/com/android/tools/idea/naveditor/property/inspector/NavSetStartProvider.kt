@@ -29,7 +29,6 @@ import com.android.tools.idea.naveditor.property.SetStartDestinationProperty
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.BorderLayout
 import javax.swing.JButton
-import javax.swing.JPanel
 
 class NavSetStartProvider : InspectorProvider<NavPropertiesManager> {
   override fun isApplicable(components: List<NlComponent>,
@@ -53,36 +52,34 @@ class NavSetStartProvider : InspectorProvider<NavPropertiesManager> {
 
 
   private object SetStartButton : InspectorComponent<NavPropertiesManager> {
-    lateinit var myComponent: NlComponent
-    val myButton = JButton("Set Start Destination")
-    val myPanel = AdtSecondaryPanel(BorderLayout())
-    lateinit var myStartDestinationProperty: SetStartDestinationProperty
+    val button = JButton("Set Start Destination")
+    val panel = AdtSecondaryPanel(BorderLayout())
+    lateinit var startDestinationProperty: SetStartDestinationProperty
 
     init {
-      myPanel.add(myButton, BorderLayout.CENTER)
-      myButton.addActionListener {
-        myStartDestinationProperty.setValue("true")
+      panel.add(button, BorderLayout.CENTER)
+      button.addActionListener {
+        startDestinationProperty.setValue("true")
         updateEnabled()
       }
-      myButton.name = SET_START_DESTINATION_PROPERTY_NAME
+      button.name = SET_START_DESTINATION_PROPERTY_NAME
     }
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
-      myComponent = components[0]
-      myStartDestinationProperty = properties[SET_START_DESTINATION_PROPERTY_NAME] as SetStartDestinationProperty
+      startDestinationProperty = properties[SET_START_DESTINATION_PROPERTY_NAME] as SetStartDestinationProperty
       updateEnabled()
     }
 
     private fun updateEnabled() {
-      myButton.isEnabled = (myStartDestinationProperty.value == null)
+      button.isEnabled = (startDestinationProperty.value == null)
     }
 
     override fun getMaxNumberOfRows() = 1
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
-      inspector.addPanel(myPanel)
+      inspector.addPanel(panel)
     }
 
     override fun refresh() {

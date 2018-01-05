@@ -38,7 +38,7 @@ const val NAV_ARGUMENTS_COMPONENT_NAME = "NavArgumentsPropertyInspector"
 
 class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
-  private var myInspector: NavArgumentsInspectorComponent? = null
+  private var inspector: NavArgumentsInspectorComponent? = null
 
   override fun isApplicable(components: List<NlComponent>,
                             properties: Map<String, NlProperty>,
@@ -56,33 +56,33 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
   override fun createCustomInspector(components: List<NlComponent>,
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): InspectorComponent<NavPropertiesManager> {
-    val inspector = myInspector ?: NavArgumentsInspectorComponent()
-    myInspector = inspector
+    val inspector = inspector ?: NavArgumentsInspectorComponent()
+    this.inspector = inspector
 
     inspector.updateProperties(components, properties, propertiesManager)
     return inspector
   }
 
   override fun resetCache() {
-    myInspector = null
+    inspector = null
   }
 
   private class NavArgumentsInspectorComponent :
       InspectorComponent<NavPropertiesManager> {
 
-    private lateinit var myArgumentProperty: NavDestinationArgumentsProperty
-    private val myComponents = mutableListOf<NlComponent>()
-    private var mySurface: NavDesignSurface? = null
+    private lateinit var argumentProperty: NavDestinationArgumentsProperty
+    private val components = mutableListOf<NlComponent>()
+    private var surface: NavDesignSurface? = null
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
-      myComponents.clear()
-      myComponents.addAll(components)
+      this.components.clear()
+      this.components.addAll(components)
 
-      mySurface = propertiesManager.designSurface as? NavDesignSurface
+      surface = propertiesManager.designSurface as? NavDesignSurface
 
-      myArgumentProperty = properties.values.filterIsInstance(NavDestinationArgumentsProperty::class.java).first()
+      argumentProperty = properties.values.filterIsInstance(NavDestinationArgumentsProperty::class.java).first()
       refresh()
     }
 
@@ -92,7 +92,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      val table = JBTable(NavArgumentsTableModel(myArgumentProperty))
+      val table = JBTable(NavArgumentsTableModel(argumentProperty))
       table.name = NAV_ARGUMENTS_COMPONENT_NAME
 
       val nameCellRenderer = JBTextField()
@@ -109,8 +109,8 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
         defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
 
-      val nameTextEditor = TextEditor(mySurface!!.project, NlEditingListener.DEFAULT_LISTENER)
-      val defaultValueTextEditor = TextEditor(mySurface!!.project, NlEditingListener.DEFAULT_LISTENER)
+      val nameTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
+      val defaultValueTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
 
       val nameEditor = NlTableCellEditor()
       nameEditor.init(nameTextEditor, null)
@@ -129,7 +129,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
     }
 
     override fun refresh() {
-      myArgumentProperty.refreshList()
+      argumentProperty.refreshList()
     }
   }
 }

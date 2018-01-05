@@ -23,11 +23,11 @@ import org.jetbrains.android.resourceManagers.ResourceManager
 abstract class NavArgumentsProperty(components: List<NlComponent>, val propertiesManager: NavPropertiesManager)
   : SimpleProperty("Arguments", components) {
 
-  private val resourceManager: ResourceManager? = if (myComponents.isEmpty()) {
+  private val resourceManager: ResourceManager? = if (components.isEmpty()) {
     null
   }
   else {
-    ModuleResourceManagers.getInstance(myComponents[0].model.facet).systemResourceManager
+    ModuleResourceManagers.getInstance(components[0].model.facet).systemResourceManager
   }
 
   protected val attrDefs: AttributeDefinitions? = resourceManager?.attributeDefinitions

@@ -22,17 +22,17 @@ import com.android.tools.idea.common.property.NlProperty
 /**
  * Basic property with simple implementations for some methods.
  */
-open class SimpleProperty(val myName: String, val myComponents: List<NlComponent>, private val myNamespace: String? = null,
-                          val myValue: String? = null) : NlProperty {
-  override fun getNamespace() = myNamespace
+open class SimpleProperty(private val _name: String, private val _components: List<NlComponent>, private val namespace: String? = null,
+                          val _value: String? = null) : NlProperty {
+  override fun getNamespace() = namespace
 
   override fun getResolvedValue() = null
 
   override fun isDefaultValue(value: String?) = true
 
-  override fun getName() = myName
+  override fun getName() = _name
 
-  override fun getValue(): String? = myValue
+  override fun getValue(): String? = _value
 
   override fun setValue(value: Any?) {}
 
@@ -42,13 +42,13 @@ open class SimpleProperty(val myName: String, val myComponents: List<NlComponent
 
   override fun getDefinition() = null
 
-  override fun getComponents() = myComponents
+  override fun getComponents() = _components
 
   override fun getResolver(): ResourceResolver? = model.configuration.resourceResolver
 
-  override fun getModel() = myComponents[0].model
+  override fun getModel() = components[0].model
 
-  override fun getTag() = if (myComponents.size > 1) null else myComponents[0].tag
+  override fun getTag() = if (components.size > 1) null else components[0].tag
 
   override fun getTagName() = tag?.localName
 

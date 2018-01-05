@@ -24,7 +24,6 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -52,7 +51,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   : InspectorProvider<NavPropertiesManager> {
 
   // If we decide to guarantee that each subclass only handles a single tag this map can be replaced with a single value
-  private val myInspectors = HashMap<String, NavListInspectorComponent<PropertyType>>()
+  private val inspectors = HashMap<String, NavListInspectorComponent<PropertyType>>()
 
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(icon)
 
@@ -66,10 +65,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       return false
     }
     val tagName = components[0].tagName
-    if (myInspectors.containsKey(tagName)) {
+    if (inspectors.containsKey(tagName)) {
       return true
     }
-    myInspectors.put(tagName, NavListInspectorComponent(this))
+    inspectors.put(tagName, NavListInspectorComponent(this))
     return true
   }
 
@@ -77,13 +76,13 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): NavListInspectorComponent<PropertyType> {
     val tagName = components[0].tagName
-    val inspector = myInspectors[tagName]!!
+    val inspector = inspectors[tagName]!!
     inspector.updateProperties(components, properties, propertiesManager)
     return inspector
   }
 
   override fun resetCache() {
-    myInspectors.clear()
+    inspectors.clear()
   }
 
   open protected fun plusClicked(event: MouseEvent,
@@ -100,25 +99,25 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   class NavListInspectorComponent<PropertyType : ListProperty>(val provider: NavListInspectorProvider<PropertyType>) :
       InspectorComponent<NavPropertiesManager> {
 
-    private val myDisplayProperties = SortedListModel<NlProperty>(compareBy { it.name })
-    private val myMarkerProperties = mutableListOf<PropertyType>()
-    private val myComponents = mutableListOf<NlComponent>()
-    private var mySurface: NavDesignSurface? = null
-    private val myAttachListeners = mutableListOf<(JBList<NlProperty>) -> Unit>()
+    private val displayProperties = SortedListModel<NlProperty>(compareBy { it.name })
+    private val markerProperties = mutableListOf<PropertyType>()
+    private val components = mutableListOf<NlComponent>()
+    private var surface: NavDesignSurface? = null
+    private val attachListeners = mutableListOf<(JBList<NlProperty>) -> Unit>()
     lateinit var list: JBList<NlProperty>
 
-    fun addAttachListener(listener: (JBList<NlProperty>) -> Unit) = myAttachListeners.add(listener)
+    fun addAttachListener(listener: (JBList<NlProperty>) -> Unit) = attachListeners.add(listener)
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
-      myMarkerProperties.clear()
-      myComponents.clear()
-      myComponents.addAll(components)
+      markerProperties.clear()
+      this.components.clear()
+      this.components.addAll(components)
 
-      mySurface = propertiesManager.designSurface as? NavDesignSurface
+      surface = propertiesManager.designSurface as? NavDesignSurface
 
-      properties.values.filterIsInstanceTo(myMarkerProperties, provider.propertyType)
+      properties.values.filterIsInstanceTo(markerProperties, provider.propertyType)
       refresh()
     }
 
@@ -128,7 +127,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      list = JBList<NlProperty>(myDisplayProperties)
+      list = JBList<NlProperty>(displayProperties)
       list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
       list.cellRenderer = object : DefaultListCellRenderer() {
@@ -154,7 +153,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
         override fun mouseClicked(e: MouseEvent) {
           if (e.clickCount == 2 && list.selectedValuesList.size == 1) {
-            provider.addItem(list.selectedValue.components[0], myComponents, myMarkerProperties[0].resolver)
+            provider.addItem(list.selectedValue.components[0], components, markerProperties[0].resolver)
             refresh()
           }
         }
@@ -169,7 +168,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           }
         }
       })
-      myAttachListeners.forEach { it.invoke(list) }
+      attachListeners.forEach { it.invoke(list) }
 
       panel.add(list, BorderLayout.CENTER)
       val plus = JLabel("+")
@@ -177,14 +176,14 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       plus.foreground = JBColor.GRAY
       plus.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-          mySurface?.let { provider.plusClicked(e, myComponents, myMarkerProperties[0].resolver, it) }
+          surface?.let { provider.plusClicked(e, components, markerProperties[0].resolver, it) }
           refresh()
         }
       })
       val plusPanel = JPanel(BorderLayout())
       plusPanel.add(plus, BorderLayout.EAST)
 
-      val title = provider.getTitle(myComponents, mySurface)
+      val title = provider.getTitle(components, surface)
       inspector.addExpandableComponent(title, null, plusPanel, plusPanel)
       inspector.addPanel(panel)
     }
@@ -209,7 +208,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       val group = createPopupContent(e) ?: return
       val actionManager = ActionManager.getInstance()
       val popupMenu = actionManager.createActionPopupMenu("NavListInspector", group)
-      val invoker: Component = e.source as? Component ?: mySurface!!
+      val invoker: Component = e.source as? Component ?: surface!!
       popupMenu.component.show(invoker, e.x, e.y)
     }
 
@@ -222,7 +221,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           }
 
           override fun actionPerformed(e: AnActionEvent?) {
-            provider.addItem(items[0], myComponents, myMarkerProperties[0].resolver)
+            provider.addItem(items[0], components, markerProperties[0].resolver)
             refresh()
           }
         })
@@ -243,12 +242,12 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     }
 
     override fun refresh() {
-      myDisplayProperties.clear()
+      displayProperties.clear()
 
-      myMarkerProperties.flatMap {
+      markerProperties.flatMap {
         it.refreshList()
         it.properties.values
-      }.forEach { myDisplayProperties.add(it) }
+      }.forEach { displayProperties.add(it) }
     }
   }
 }
