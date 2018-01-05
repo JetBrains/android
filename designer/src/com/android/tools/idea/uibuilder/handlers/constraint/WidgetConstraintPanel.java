@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnch
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -101,7 +102,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
     super.setBorder(new EmptyBorder(4, 0, 0, 0));
     ColorSet colorSet = new InspectorColorSet();
     mMain = new SingleWidgetView(this, colorSet);
-    setPreferredSize(new Dimension(200, 216));
+    setPreferredSize(new Dimension(JBUI.scale(200), JBUI.scale(216)));
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
