@@ -16,7 +16,6 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.model.DefaultHNode;
-import com.android.tools.adtui.model.HNode;
 import org.junit.Test;
 
 import java.awt.geom.Rectangle2D;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class DefaultHTreeChartReducerTest {
   private static final int FAKE_HEIGHT = 5;
@@ -49,8 +48,8 @@ public class DefaultHTreeChartReducerTest {
     );
     List<String> expectedNodes = Arrays.asList("A", "B", "C", "D", "F", "H");
 
-    HTreeChartReducer<String> reducer = new DefaultHTreeChartReducer<>();
-    List<HNode<String, ?>> nodes = new ArrayList<>();
+    HTreeChartReducer<DefaultHNode<String>> reducer = new DefaultHTreeChartReducer<>();
+    List<DefaultHNode<String>> nodes = new ArrayList<>();
     List<Rectangle2D.Float> rectangles = new ArrayList<>();
 
     addNode("A", 0, 10, 0, nodes, rectangles);
@@ -75,7 +74,7 @@ public class DefaultHTreeChartReducerTest {
   }
 
   private static void addNode(String id, float minX, float maxX, int depth,
-                       List<HNode<String, ?>> nodes,
+                       List<DefaultHNode<String>> nodes,
                        List<Rectangle2D.Float> rectangles) {
 
     // node.getStart() and node.getEnd() needs to be proportional to X coordinates of the corresponding rectangle.

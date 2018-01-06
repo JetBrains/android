@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
-public interface HTreeChartReducer<T> {
+public interface HTreeChartReducer<N extends HNode<?, N>> {
   /**
    * Prior to drawing, this method receives rectangles and their corresponding nodes from the {@link HTreeChart}.
    * Classes implementing the interface need to modify {@code rectangles} and {@code nodes}, so that the number of rectangles to draw is
@@ -31,5 +31,5 @@ public interface HTreeChartReducer<T> {
    * {@link HTreeChart} will throw an {@link AssertionError} if the reducer does not ensure that the
    * length of {@code nodes} is the same as the length of {@code rectangles}.
    */
-  void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<HNode<T, ?>> nodes);
+  void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<N> nodes);
 }

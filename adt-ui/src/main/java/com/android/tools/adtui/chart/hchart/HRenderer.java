@@ -21,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-public interface HRenderer<T> {
+public interface HRenderer<N extends HNode<?, N>> {
   /**
    * Render a target {@link HNode}, fitting it into the specified {@code drawingArea}.
    *
    * @param isFocused If true, consider altering the node's color somehow to set it apart from other nodes in this chart.
    */
-  void render(@NotNull Graphics2D g, @NotNull HNode<T, ?> node, @NotNull Rectangle2D drawingArea, boolean isFocused);
+  void render(@NotNull Graphics2D g, @NotNull N node, @NotNull Rectangle2D drawingArea, boolean isFocused);
 }

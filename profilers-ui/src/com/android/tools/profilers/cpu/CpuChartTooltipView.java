@@ -35,7 +35,7 @@ import java.awt.event.MouseEvent;
 
 class CpuChartTooltipView extends MouseAdapter {
   @NotNull
-  private final HTreeChart<CaptureNodeModel> myChart;
+  private final HTreeChart<CaptureNode> myChart;
 
   @NotNull
   private final TooltipComponent myTooltipComponent;
@@ -46,7 +46,7 @@ class CpuChartTooltipView extends MouseAdapter {
   @NotNull
   private final CpuProfilerStageView myStageView;
 
-  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
+  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
     myStageView = stageView;
     myChart = chart;
 
@@ -61,7 +61,7 @@ class CpuChartTooltipView extends MouseAdapter {
   @Override
   public void mouseMoved(MouseEvent e) {
     myTooltipComponent.setVisible(false);
-    HNode<CaptureNodeModel, ?> node = myChart.getNodeAt(e.getPoint());
+    CaptureNode node = myChart.getNodeAt(e.getPoint());
     if (node != null) {
       showTooltip(node);
     }
@@ -88,7 +88,7 @@ class CpuChartTooltipView extends MouseAdapter {
     myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
   }
 
-  static void install(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
+  static void install(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
     chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
   }
 }
