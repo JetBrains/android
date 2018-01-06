@@ -57,7 +57,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureCppStepFixture<NewProjectWizardFixture> getConfigureCppStepFixture() {
-    JRootPane rootPane = findStepWithTitle("Customize C++ Support");
+    JRootPane rootPane = findStepWithTitle("Customize C++ Support", 30);
     return new ConfigureCppStepFixture<>(this, rootPane);
   }
 
