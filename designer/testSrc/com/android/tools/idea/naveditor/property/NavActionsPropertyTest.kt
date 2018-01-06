@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 
 class NavActionsPropertyTest : NavTestCase() {
@@ -24,14 +24,16 @@ class NavActionsPropertyTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
-                    NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),
-            NavModelBuilderUtil.fragmentComponent("f2"),
-            NavModelBuilderUtil.fragmentComponent("f3")))
-        .build()
+    model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "f3")
+        }
+        fragment("f2")
+        fragment("f3")
+      }
+    }
   }
 
   fun testMultipleActions() {

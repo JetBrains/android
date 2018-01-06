@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.testFramework.UsefulTestCase
 import org.mockito.Mockito
@@ -26,19 +26,20 @@ class NavActionArgumentsPropertyTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(
-                    NavModelBuilderUtil.argumentComponent("arg1").withDefaultValueAttribute("val1"),
-                    NavModelBuilderUtil.argumentComponent("arg2").withDefaultValueAttribute("val2")),
-            NavModelBuilderUtil.fragmentComponent("f3")
-                .unboundedChildren(
-                    NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f1")
-                        .unboundedChildren(NavModelBuilderUtil.argumentComponent("arg2").withDefaultValueAttribute("actionval2")),
-                    NavModelBuilderUtil.actionComponent("a3").withDestinationAttribute("f3")
-                )))
-        .build()
+    model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          argument("arg1", value = "val1")
+          argument("arg2", value = "val2")
+        }
+        fragment("f3") {
+          action("a1", destination = "f1") {
+            argument("arg2", value = "actionval2")
+          }
+          action("a3", destination = "f3")
+        }
+      }
+    }
   }
 
   fun testMultipleArguments() {

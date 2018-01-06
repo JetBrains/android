@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -36,9 +36,11 @@ import java.awt.event.MouseEvent.BUTTON1
 class DragCreateActionTest : NavTestCase() {
 
   fun testDragCreateToSelf() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent(FRAGMENT1))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment(FRAGMENT1)
+      }
+    }
 
     val surface = initializeNavDesignSurface(model)
     val scene = initializeScene(surface)
@@ -56,11 +58,14 @@ class DragCreateActionTest : NavTestCase() {
   }
 
   fun testDragCreateToOtherFragment() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent(FRAGMENT1),
-            fragmentComponent(FRAGMENT2).unboundedChildren(
-                actionComponent(ACTION).withDestinationAttribute(FRAGMENT1)))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment(FRAGMENT1)
+        fragment(FRAGMENT2) {
+          action(ACTION, destination = FRAGMENT1)
+        }
+      }
+    }
 
     val surface = initializeNavDesignSurface(model)
     val scene = initializeScene(surface)
@@ -80,10 +85,12 @@ class DragCreateActionTest : NavTestCase() {
   }
 
   fun testDragCreateToInclude() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent(FRAGMENT1),
-            includeComponent("navigation"))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment(FRAGMENT1)
+        include("navigation")
+      }
+    }
 
     val surface = initializeNavDesignSurface(model)
     val scene = initializeScene(surface)
@@ -102,9 +109,11 @@ class DragCreateActionTest : NavTestCase() {
   }
 
   fun testDragAbandon() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent(FRAGMENT1))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment(FRAGMENT1)
+      }
+    }
 
     val surface = initializeNavDesignSurface(model)
     val scene = initializeScene(surface)

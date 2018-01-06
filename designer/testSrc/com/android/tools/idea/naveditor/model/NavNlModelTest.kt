@@ -17,7 +17,8 @@ package com.android.tools.idea.naveditor.model
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.google.common.truth.Truth.assertThat
 
@@ -28,10 +29,12 @@ class NavNlModelTest : NavTestCase() {
 
   fun testAddChild() {
     val treeDumper = NlTreeDumper()
-    val modelBuilder = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2")))
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     val model = modelBuilder.build()
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
@@ -40,9 +43,9 @@ class NavNlModelTest : NavTestCase() {
         treeDumper.toTree(model.components))
 
     // Add child
-    val parent = modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!!
+    val parent = modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!! as NavModelBuilderUtil.NavigationComponentDescriptor
     assertThat(parent).isNotNull()
-    parent.addChild(actionComponent("action"), null)
+    parent.action("action", "fragment1")
     modelBuilder.updateModel(model)
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +

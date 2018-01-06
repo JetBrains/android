@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.naveditor.structure
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_LABEL
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -50,13 +49,15 @@ class DestinationListTest : NavTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    _model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"),
-            navigationComponent("subnav")
-                .unboundedChildren(fragmentComponent("fragment3"))))
-        .build()
+    _model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+        navigation("subnav") {
+          fragment("fragment3")
+        }
+      }
+    }
     val def = DestinationList.DestinationListDefinition()
     _list = def.factory.create() as DestinationList
     val surface = model.surface
@@ -127,10 +128,13 @@ class DestinationListTest : NavTestCase() {
   }
 
   fun testModifyModel() {
-    val root = rootComponent("root").unboundedChildren(
-        fragmentComponent("fragment1"),
-        fragmentComponent("fragment2"))
-    val modelBuilder = model("nav.xml", root)
+    /*lateinit*/ var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }.also { root = it }
+    }
     val model = modelBuilder.build()
     val def = DestinationList.DestinationListDefinition()
     val list = def.factory.create() as DestinationList
@@ -142,8 +146,7 @@ class DestinationListTest : NavTestCase() {
 
     assertEquals(ImmutableList.of(model.find("fragment1")!!, model.find("fragment2")!!), Collections.list(list.myListModel.elements()))
 
-
-    root.addChild(fragmentComponent("fragment3"), null)
+    root!!.fragment("fragment3")
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
 
@@ -168,13 +171,13 @@ class DestinationListTest : NavTestCase() {
   }
 
   fun testBack() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            navigationComponent("subnav")
-                .withLabelAttribute("sub nav")
-                .unboundedChildren(navigationComponent("subsubnav")
-                    .withLabelAttribute("sub sub nav"))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        navigation("subnav", label = "sub nav") {
+          navigation("subsubnav", label = "sub sub nav")
+        }
+      }
+    }
 
     val def = DestinationList.DestinationListDefinition()
     val list = def.factory.create() as DestinationList
@@ -211,16 +214,16 @@ class DestinationListTest : NavTestCase() {
   }
 
   fun testRendering() {
-    val model = model("nav.xml",
-        rootComponent("root").withStartDestinationAttribute("fragment2")
-            .unboundedChildren(
-                fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
-                fragmentComponent("fragment2"),
-                activityComponent("activity"),
-                navigationComponent("nav1").withAttribute(ANDROID_URI, ATTR_LABEL, "navName"),
-                navigationComponent("nav2"),
-                includeComponent("navigation")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment2") {
+        fragment("fragment1", label = "fragmentLabel")
+        fragment("fragment2")
+        activity("activity")
+        navigation("nav1", label = "navName")
+        navigation("nav2")
+        include("navigation")
+      }
+    }
     val def = DestinationList.DestinationListDefinition()
     val list = def.factory.create() as DestinationList
     val surface = model.surface

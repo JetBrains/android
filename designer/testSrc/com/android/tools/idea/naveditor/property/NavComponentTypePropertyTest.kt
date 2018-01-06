@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 
 class NavComponentTypePropertyTest : NavTestCase() {
 
   fun testValue() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(actionComponent("a1").withDestinationAttribute("f1")),
-            fragmentComponent("f2"),
-            navigationComponent("nested").unboundedChildren(
-                activityComponent("activity"))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          action("a1", destination = "f1")
+        }
+        fragment("f2")
+        navigation("nested") {
+          activity("activity")
+        }
+      }
+    }
 
     assertEquals("Fragment", NavComponentTypeProperty(listOf(model.find("f1")!!)).value)
     assertEquals("Action", NavComponentTypeProperty(listOf(model.find("a1")!!)).value)

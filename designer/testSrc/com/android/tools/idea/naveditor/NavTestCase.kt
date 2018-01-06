@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor
 
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
@@ -78,8 +79,12 @@ abstract class NavTestCase : AndroidTestCase() {
     }
   }
 
-  protected fun model(name: String, root: ComponentDescriptor): ModelBuilder {
-    return NavModelBuilderUtil.model(name, root, myFacet, myFixture)
+  protected fun model(name: String, f: () -> ComponentDescriptor): SyncNlModel {
+    return modelBuilder(name, f).build()
+  }
+
+  protected fun modelBuilder(name: String, f: () -> ComponentDescriptor): ModelBuilder {
+    return NavModelBuilderUtil.model(name, myFacet, myFixture, f)
   }
 
   companion object {

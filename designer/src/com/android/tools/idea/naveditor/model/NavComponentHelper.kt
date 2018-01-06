@@ -156,7 +156,7 @@ val NlComponent.actionDestination: NlComponent?
   get() {
     assert(isAction)
     var p: NlComponent = parent ?: return null
-    val targetId = actionDestinationId
+    val targetId = actionDestinationId ?: return null
     while (true) {
       p.children.firstOrNull { it.id == targetId }?.let { return it }
       p = p.parent ?: break

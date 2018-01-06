@@ -22,7 +22,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.ZoomType
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -47,25 +48,20 @@ import org.mockito.Mockito.`when`
 class NavSceneTest : NavTestCase() {
 
   fun testDisplayList() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("subnav"),
-                    actionComponent("action2")
-                        .withDestinationAttribute("activity")
-                ),
-            navigationComponent("subnav")
-                .unboundedChildren(
-                    fragmentComponent("fragment2")
-                        .withLayoutAttribute("activity_main2")
-                        .unboundedChildren(actionComponent("action3")
-                            .withDestinationAttribute("activity"))),
-            activityComponent("activity"))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "subnav")
+          action("action2", destination="activity")
+        }
+        navigation("subnav") {
+          fragment("fragment2", layout = "activity_main2") {
+            action("action3", destination = "activity")
+          }
+        }
+        activity("activity")
+      }
+    }
     val scene = model.surface.scene!!
 
     val list = DisplayList()
@@ -99,15 +95,14 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testInclude() {
-    val root = rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("nav")),
-            includeComponent("navigation"))
-    val model = model("nav2.xml", root).build()
-
+    val model = model("nav2.xml") {
+      navigation("root") {
+        fragment("fragment1") {
+          action("action1", destination = "nav")
+        }
+        include("navigation")
+      }
+    }
     val scene = model.surface.scene!!
 
     val list = DisplayList()
@@ -130,16 +125,13 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testNegativePositions() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main"),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main"),
-            fragmentComponent("fragment3")
-                .withLayoutAttribute("activity_main"))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main")
+        fragment("fragment2", layout = "activity_main")
+        fragment("fragment3", layout = "activity_main")
+      }
+    }
 
     val scene = model.surface.scene!!
     val algorithm = ManualLayoutAlgorithm(model.module)
@@ -175,16 +167,13 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testVeryPositivePositions() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main"),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main"),
-            fragmentComponent("fragment3")
-                .withLayoutAttribute("activity_main"))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main")
+        fragment("fragment2", layout = "activity_main")
+        fragment("fragment3", layout = "activity_main")
+      }
+    }
 
     val scene = model.surface.scene!!
     val algorithm = ManualLayoutAlgorithm(model.module)
@@ -220,25 +209,24 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testAddComponent() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment2")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")
-                ),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2"))
-    val modelBuilder = model("nav.xml", root)
+    /*lateinit*/ var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation("root", startDestination = "fragment2") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "fragment2")
+        }
+        fragment("fragment2", layout = "activity_main2")
+      }.also { root = it }
+    }
     val model = modelBuilder.build()
+
     val scene = model.surface.scene!!
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
 
-    root.addChild(fragmentComponent("fragment3"), null)
+    root!!.fragment("fragment3")
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
@@ -264,23 +252,20 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testRemoveComponent() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment2")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2"))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment2") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "fragment2")
+        }
+        fragment("fragment2", layout="activity_main2")
+      }
+    }
     val editor = TestNlEditor(model.virtualFile, project)
 
     val scene = model.surface.scene!!
 
     val list = DisplayList()
-    model.delete(ImmutableList.of(model.find("fragment2")!!))
+    model.delete(listOf(model.find("fragment2")!!))
 
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     list.clear()
@@ -325,31 +310,24 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testSubflow() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment2")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")
-                ),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2")
-                .unboundedChildren(
-                    actionComponent("action2")
-                        .withDestinationAttribute("fragment3")
-                ),
-            navigationComponent("subnav")
-                .unboundedChildren(
-                    fragmentComponent("fragment3")
-                        .unboundedChildren(
-                            actionComponent("action3")
-                                .withDestinationAttribute("fragment4")),
-                    fragmentComponent("fragment4")
-                        .unboundedChildren(
-                            actionComponent("action4")
-                                .withDestinationAttribute("fragment1"))))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment2") {
+        fragment("fragment1") {
+          action("action1", destination = "fragment2")
+        }
+        fragment("fragment2", layout = "activity_main2") {
+          action("action2", destination = "fragment3")
+        }
+        navigation("subnav") {
+          fragment("fragment3") {
+            action("action3", destination = "fragment4")
+          }
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+          }
+        }
+      }
+    }
     val surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model
@@ -412,14 +390,11 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testNonexistentLayout() {
-    val root = rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_nonexistent")
-        )
-
-    val modelBuilder = model("nav.xml", root)
-    val model = modelBuilder.build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1", layout = "activity_nonexistent")
+      }
+    }
     val scene = model.surface.scene!!
 
     val list = DisplayList()
@@ -436,18 +411,14 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testSelectedNlComponentSelectedInScene() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("subnav"),
-                    actionComponent("action2")
-                        .withDestinationAttribute("activity")
-                ))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "subnav")
+          action("action2", destination = "activity")
+        }
+      }
+    }
     val surface = model.surface
     val rootComponent = model.components[0]
     object: WriteCommandAction<Any?>(project, "Add") {
@@ -465,17 +436,13 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testSelfAction() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment1")
-                ))
-
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "fragment1")
+        }
+      }
+    }
     val scene = model.surface.scene!!
 
     val list = DisplayList()
@@ -494,16 +461,13 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testDeepLinks() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    deepLinkComponent("https://www.android.com/")
-                ))
-
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main") {
+          deeplink("https://www.android.com/")
+        }
+      }
+    }
     val scene = model.surface.scene!!
 
     val list = DisplayList()
@@ -521,15 +485,13 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testSelectedComponent() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            actionComponent("a1").withDestinationAttribute("fragment1"),
-            fragmentComponent("fragment1"),
-            navigationComponent("subnav"))
-
-    val modelBuilder = model("nav.xml", root)
-    val model = modelBuilder.build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        action("a1", destination = "fragment1")
+        fragment("fragment1")
+        navigation("subnav")
+      }
+    }
     val scene = model.surface.scene!!
 
     // Selecting global nav brings it to the front
@@ -610,13 +572,15 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testHoveredComponent() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .unboundedChildren(actionComponent("a1").withDestinationAttribute("subnav")),
-            navigationComponent("subnav"),
-            actionComponent("a2").withDestinationAttribute("fragment1")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1") {
+          action("a1", destination = "subnav")
+        }
+        navigation("subnav")
+        action("a2", destination = "fragment1")
+      }
+    }
 
     val scene = model.surface.scene!!
 
@@ -695,9 +659,11 @@ class NavSceneTest : NavTestCase() {
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
   fun disabledTestDevices() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1"))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
@@ -737,23 +703,22 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testGlobalActions() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            actionComponent("action1").withDestinationAttribute("fragment1"),
-            actionComponent("action2").withDestinationAttribute("fragment2"),
-            actionComponent("action3").withDestinationAttribute("fragment2"),
-            actionComponent("action4").withDestinationAttribute("fragment3"),
-            actionComponent("action5").withDestinationAttribute("fragment3"),
-            actionComponent("action6").withDestinationAttribute("fragment3"),
-            actionComponent("action7").withDestinationAttribute("invalid"),
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2")
-                .unboundedChildren(
-                    actionComponent("action8")
-                        .withDestinationAttribute("fragment3")
-                ),
-            fragmentComponent("fragment3")
-        )).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        action("action1", destination = "fragment1")
+        action("action2", destination = "fragment2")
+        action("action3", destination = "fragment2")
+        action("action4", destination = "fragment3")
+        action("action5", destination = "fragment3")
+        action("action6", destination = "fragment3")
+        action("action7", destination = "invalid")
+        fragment("fragment1")
+        fragment("fragment2") {
+          action("action8", destination = "fragment3")
+        }
+        fragment("fragment3")
+      }
+    }
 
     val list = DisplayList()
     val surface = model.surface
@@ -794,25 +759,26 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testExitActions() {
-    val model = model("nav.xml", rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1"),
-            navigationComponent("subnav")
-                .unboundedChildren(
-                    fragmentComponent("fragment2")
-                        .unboundedChildren(actionComponent("action1").withDestinationAttribute("fragment1")),
-                    fragmentComponent("fragment3")
-                        .unboundedChildren(
-                            actionComponent("action2").withDestinationAttribute("fragment1"),
-                            actionComponent("action3").withDestinationAttribute("fragment1")),
-                    fragmentComponent("fragment4")
-                        .unboundedChildren(
-                            actionComponent("action4").withDestinationAttribute("fragment1"),
-                            actionComponent("action5").withDestinationAttribute("fragment1"),
-                            actionComponent("action6").withDestinationAttribute("fragment1"),
-                            actionComponent("action7").withDestinationAttribute("fragment2"))
-                ))).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2") {
+            action("action1", destination = "fragment1")
+          }
+          fragment("fragment3") {
+            action("action2", destination = "fragment1")
+            action("action3", destination = "fragment1")
+          }
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+            action("action5", destination = "fragment1")
+            action("action6", destination = "fragment1")
+            action("action7", destination = "fragment2")
+          }
+        }
+      }
+    }
 
     val surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
@@ -870,10 +836,12 @@ class NavSceneTest : NavTestCase() {
   }
 
   fun testHoverMarksComponent() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
 
     val scene = model.surface.scene!!
     val view = model.surface.currentSceneView!!

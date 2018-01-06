@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavActionArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
@@ -31,7 +32,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.table.JBTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
 
@@ -64,22 +66,21 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
   }
 
   fun testListContent() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    argumentComponent("arg1").withDefaultValueAttribute("value1"),
-                    argumentComponent("arg2").withDefaultValueAttribute("value2")),
-            fragmentComponent("f2")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("f1")
-                        .unboundedChildren(
-                            argumentComponent("arg1").withDefaultValueAttribute("actionvalue1")
-                        ),
-                    actionComponent("a2").withDestinationAttribute("activity")
-                ),
-            activityComponent("activity")))
-        .build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          argument("arg1", value = "value1")
+          argument("arg2", value = "value2")
+        }
+        fragment("f2") {
+          action("a1", destination = "f1") {
+            argument("arg1", value = "actionvalue1")
+          }
+          action("a2", destination = "activity")
+        }
+        activity("a2")
+      }
+    }
 
     val panel = NavInspectorPanel(myRootDisposable)
     panel.setComponent(listOf(model.find("a1")!!), HashBasedTable.create<String, String, NlProperty>(),
