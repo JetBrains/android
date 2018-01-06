@@ -26,14 +26,14 @@ import java.util.List;
  */
 class DefaultHTreeChartReducer<T> implements HTreeChartReducer<T> {
   @Override
-  public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<HNode<T>> nodes) {
+  public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<HNode<T, ?>> nodes) {
     assert nodes.size() == rectangles.size();
     int n = nodes.size();
     int index = 0;
     int keepIndex = 0;
     while (index < n) {
       Rectangle2D.Float rect = rectangles.get(index);
-      HNode<T> node = nodes.get(index);
+      HNode<T, ?> node = nodes.get(index);
       if (Math.floor(rect.getMinX()) < Math.floor(rect.getMaxX())) {
         // Crossing several pixels on X axis
         rectangles.set(keepIndex, rect);
@@ -47,7 +47,7 @@ class DefaultHTreeChartReducer<T> implements HTreeChartReducer<T> {
       int pixel = (int)Math.floor(rect.getMaxX());
       int curDepth = node.getDepth();
 
-      HNode<T> keepNode = node;
+      HNode<T, ?> keepNode = node;
       Rectangle2D.Float keepRect = rect;
 
       while (index < n) {

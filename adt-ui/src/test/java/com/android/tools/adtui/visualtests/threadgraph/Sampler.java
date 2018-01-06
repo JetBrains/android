@@ -98,12 +98,12 @@ public class Sampler implements Runnable {
       // Compare last captured stack with current stack. Stop as soon as they diverge.
       int depth = elements.length - 1;
       DefaultHNode<Method> previousNode = tree;
-      DefaultHNode<Method> currentNode = (DefaultHNode<Method>)previousNode.getLastChild();
+      DefaultHNode<Method> currentNode = previousNode.getLastChild();
       while (currentNode != null && depth >= 0 && isSameMethod(currentNode,
                                                                elements[depth])) {
         depth--;
         previousNode = currentNode;
-        currentNode = (DefaultHNode<Method>)currentNode.getLastChild();
+        currentNode = currentNode.getLastChild();
       }
 
       // We found the point where the stacks diverge. We need to:

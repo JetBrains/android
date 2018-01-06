@@ -98,7 +98,7 @@ public class Sampler implements Runnable {
     }
   }
 
-  private boolean isSameMethod(HNode<SampledMethodUsage> currentNode, StackTraceElement element) {
+  private boolean isSameMethod(HNode<SampledMethodUsage, ?> currentNode, StackTraceElement element) {
     return currentNode.getData().getName().equals(element.getMethodName()) &&
            currentNode.getData().getNameSpace().equals(element.getClassName());
   }

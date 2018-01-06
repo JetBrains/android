@@ -16,14 +16,13 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class FlameChartTest {
   /**
@@ -52,23 +51,23 @@ public class FlameChartTest {
     main.getChildren().get(1).addChild(newNode("C", 21, 25));
     main.getChildren().get(1).addChild(newNode("C", 25, 30));
 
-    HNode<CaptureNodeModel> flameChartNode = new CaptureModel.FlameChart(new Range(0, 71), main).getNode();
+    CaptureNode flameChartNode = new CaptureModel.FlameChart(new Range(0, 71), main).getNode();
     // main [0..71]
     assertEquals(0, flameChartNode.getStart());
     assertEquals(71, flameChartNode.getEnd());
     assertEquals("main", flameChartNode.getData().getName());
     // C [0...26]
-    HNode<CaptureNodeModel> nodeC = flameChartNode.getChildAt(0);
+    CaptureNode nodeC = flameChartNode.getChildAt(0);
     assertEquals(0, nodeC.getStart());
     assertEquals(26, nodeC.getEnd());
     assertEquals("C", nodeC.getData().getName());
     // A [26..51]
-    HNode<CaptureNodeModel> nodeA = flameChartNode.getChildAt(1);
+    CaptureNode nodeA = flameChartNode.getChildAt(1);
     assertEquals(26, nodeA.getStart());
     assertEquals(51, nodeA.getEnd());
     assertEquals("A", nodeA.getData().getName());
     // B [51..60]
-    HNode<CaptureNodeModel> nodeB = flameChartNode.getChildAt(2);
+    CaptureNode nodeB = flameChartNode.getChildAt(2);
     assertEquals(51, nodeB.getStart());
     assertEquals(60, nodeB.getEnd());
     assertEquals("B", nodeB.getData().getName());
@@ -102,7 +101,7 @@ public class FlameChartTest {
     main.addChild(newNode("C", 30, 50));
     main.addChild(newNode("A", 50, 60));
 
-    HNode<CaptureNodeModel> flameChartNode = new CaptureModel.FlameChart(new Range(0, 60), main).getNode();
+    CaptureNode flameChartNode = new CaptureModel.FlameChart(new Range(0, 60), main).getNode();
     assertEquals(0, flameChartNode.getStart());
     assertEquals(60, flameChartNode.getEnd());
     assertEquals("main", flameChartNode.getData().getName());
@@ -130,7 +129,7 @@ public class FlameChartTest {
     Range selection = new Range(0, 100);
     CaptureModel.FlameChart flameChart = new CaptureModel.FlameChart(selection, main);
 
-    HNode<CaptureNodeModel> root = flameChart.getNode();
+    CaptureNode root = flameChart.getNode();
     assertEquals(100, root.getDuration());
 
     AspectObserver observer = new AspectObserver();

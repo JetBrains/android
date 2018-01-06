@@ -111,7 +111,7 @@ class CaptureNodeConstructor {
       long entryGlobalTime = globalTime - 1;
 
       if (node.getChildCount() > 0) {
-        CaptureNode first = (CaptureNode)node.getFirstChild();
+        CaptureNode first = node.getFirstChild();
         assert first != null;
         entryThreadTime = Math.max(first.getStartThread() - 1, 0);
         entryGlobalTime = Math.max(first.getStartGlobal() - 1, 0);

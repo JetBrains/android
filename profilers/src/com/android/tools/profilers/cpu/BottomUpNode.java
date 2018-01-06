@@ -137,7 +137,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     // then the second method can't be outerSoFar.
     // It's used to exclude nodes which aren't at the top of the
     // call stack from the total time calculation.
-    HNode<CaptureNodeModel> outerSoFar = null;
+    CaptureNode outerSoFar = null;
 
     // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first

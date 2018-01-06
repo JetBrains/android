@@ -25,8 +25,9 @@ import java.util.List;
  * be visualized by the parent tree as rectangular bars.
  *
  * @param <T> Type of data wrapped by this node.
+ * @param <N> Type of the node subclass, provided to allow using get methods without casting
  */
-public abstract class HNode<T> {
+public abstract class HNode<T, N extends HNode<T, N>> {
   @NotNull
   private final T myData;
 
@@ -42,10 +43,10 @@ public abstract class HNode<T> {
   public abstract int getChildCount();
 
   @NotNull
-  public abstract HNode<T> getChildAt(int index);
+  public abstract N getChildAt(int index);
 
   @Nullable
-  public abstract HNode<T> getParent();
+  public abstract N getParent();
 
   public abstract long getStart();
 
@@ -58,12 +59,12 @@ public abstract class HNode<T> {
   }
 
   @Nullable
-  public final HNode<T> getFirstChild() {
+  public final N getFirstChild() {
     return getChildCount() == 0 ? null : getChildAt(0);
   }
 
   @Nullable
-  public final HNode<T> getLastChild() {
+  public final N getLastChild() {
     return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
   }
 }

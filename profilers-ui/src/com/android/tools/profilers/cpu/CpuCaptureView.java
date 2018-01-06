@@ -43,7 +43,6 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -258,7 +257,7 @@ class CpuCaptureView {
   private static HTreeChart<CaptureNodeModel> setUpChart(@NotNull CaptureModel.Details.Type type,
                                                          @NotNull Range globalRange,
                                                          @NotNull Range range,
-                                                         @Nullable HNode<CaptureNodeModel> node,
+                                                         @Nullable HNode<CaptureNodeModel, ?> node,
                                                          @NotNull CpuProfilerStageView stageView) {
     HTreeChart.Orientation orientation;
     if (type == CaptureModel.Details.Type.CALL_CHART) {
@@ -555,7 +554,7 @@ class CpuCaptureView {
     }
 
     private void callChartRangeChanged() {
-      HNode<CaptureNodeModel> node = myCallChart.getNode();
+      HNode<CaptureNodeModel, ?> node = myCallChart.getNode();
       assert node != null;
       Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
@@ -660,8 +659,8 @@ class CpuCaptureView {
 
     @Nullable
     private CodeLocation getCodeLocation() {
-      HNode<CaptureNodeModel> n = myChart.getNodeAt(myLastPopupPoint);
-      if (n == null || n.getData() == null) {
+      HNode<CaptureNodeModel, ?> n = myChart.getNodeAt(myLastPopupPoint);
+      if (n == null) {
         return null;
       }
       return modelToCodeLocation(n.getData());

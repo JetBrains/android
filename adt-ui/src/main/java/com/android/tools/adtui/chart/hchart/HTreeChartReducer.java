@@ -31,5 +31,5 @@ public interface HTreeChartReducer<T> {
    * {@link HTreeChart} will throw an {@link AssertionError} if the reducer does not ensure that the
    * length of {@code nodes} is the same as the length of {@code rectangles}.
    */
-  void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<HNode<T>> nodes);
+  void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<HNode<T, ?>> nodes);
 }
