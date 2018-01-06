@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -35,18 +35,14 @@ import java.awt.event.MouseEvent.BUTTON1
 class ScreenDragTargetTest : NavTestCase() {
 
   fun testMove() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment2")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2"))
-    val modelBuilder = model("nav.xml", root)
-    val model = modelBuilder.build()
+    val model = model("nav.xml") {
+      navigation(startDestination = "fragment2") {
+        fragment("fragment1", layout = "activity_main") {
+          action("action1", destination = "fragment2")
+        }
+        fragment("fragment2", layout = "activity_main2")
+      }
+    }
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.currentSceneView).thenReturn(view)

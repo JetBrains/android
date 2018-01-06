@@ -22,8 +22,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -39,13 +38,12 @@ import java.awt.event.MouseEvent.BUTTON1
  */
 class LevelTest : NavTestCase() {
   fun testLevels() {
-    val root = rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"))
-
-    val modelBuilder = model("nav.xml", root)
-    val model = modelBuilder.build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)

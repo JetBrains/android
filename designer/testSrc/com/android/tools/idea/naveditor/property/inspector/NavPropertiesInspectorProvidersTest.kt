@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
@@ -37,17 +37,19 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.includeComponent("navigation"),
-            NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
-                    NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),
-            NavModelBuilderUtil.fragmentComponent("f2"),
-            NavModelBuilderUtil.navigationComponent("subnav").unboundedChildren(
-                NavModelBuilderUtil.fragmentComponent("f3"),
-                NavModelBuilderUtil.activityComponent("activity"))))
-        .build()
+    model = model("nav.xml") {
+      navigation("root") {
+        include("navigation")
+        fragment("f1") {
+          action("a1", destination = "f3")
+        }
+        fragment("f2")
+        navigation("subnav") {
+          fragment("f3")
+          activity("activity")
+        }
+      }
+    }
 
     propertiesManager = NavPropertiesManager(myFacet, model.surface)
   }

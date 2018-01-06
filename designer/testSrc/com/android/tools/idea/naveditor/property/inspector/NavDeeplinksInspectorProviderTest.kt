@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
@@ -56,16 +56,16 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
   }
 
   fun testListContent() {
-    val model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(
-                    NavModelBuilderUtil.deepLinkComponent(uri1),
-                    NavModelBuilderUtil.deepLinkComponent(uri2)),
-            NavModelBuilderUtil.fragmentComponent("f2"),
-            NavModelBuilderUtil.activityComponent("a1")))
-        .build()
-
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          deeplink(uri1)
+          deeplink(uri2)
+        }
+        fragment("f2")
+        activity("a1")
+      }
+    }
     val manager = Mockito.mock(NavPropertiesManager::class.java)
     val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))

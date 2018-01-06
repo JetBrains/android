@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.SET_START_DESTINATION_PROPERTY_NAME
@@ -35,17 +35,15 @@ class NavSetStartProviderTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root")
-            .withStartDestinationAttribute("f1")
-            .unboundedChildren(
-                NavModelBuilderUtil.fragmentComponent("f1"),
-                NavModelBuilderUtil.navigationComponent("subnav")
-                    .withStartDestinationAttribute("activity")
-                    .unboundedChildren(
-                        NavModelBuilderUtil.fragmentComponent("f2"),
-                        NavModelBuilderUtil.activityComponent("activity"))))
-        .build()
+    model = model("nav.xml") {
+      navigation("root", startDestination = "f1") {
+        fragment("f1")
+        navigation("subnav", startDestination = "activity") {
+          fragment("f2")
+          activity("activity")
+        }
+      }
+    }
   }
 
   fun testIsApplicable() {

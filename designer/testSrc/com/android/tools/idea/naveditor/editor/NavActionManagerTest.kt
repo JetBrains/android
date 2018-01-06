@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.ImmutableList
@@ -41,12 +41,14 @@ class NavActionManagerTest : NavTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        rootComponent("navigation").unboundedChildren(
-            fragmentComponent("fragment1"),
-            navigationComponent("subnav")
-                .unboundedChildren(fragmentComponent("fragment2"))))
-        .build()
+    model = model("nav.xml") {
+      navigation("navigation") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2")
+        }
+      }
+    }
     surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model
@@ -85,10 +87,14 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testAddElementInSubflow() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            navigationComponent("subflow").unboundedChildren(fragmentComponent("fragment2")),
-            fragmentComponent("fragment1"))).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        navigation("subflow") {
+          fragment("fragment2")
+        }
+        fragment("fragment1")
+      }
+    }
 
     val surface = model.surface as NavDesignSurface
     `when`(surface.currentNavigation).thenReturn(model.find("subflow"))

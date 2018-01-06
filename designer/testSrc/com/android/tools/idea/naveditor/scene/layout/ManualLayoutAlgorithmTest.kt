@@ -17,8 +17,7 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
@@ -34,11 +33,12 @@ import org.mockito.Mockito.*
 class ManualLayoutAlgorithmTest : NavTestCase() {
 
   fun testSimple() {
-    val model = model("nav.xml",
-        rootComponent(null)
-            .unboundedChildren(
-                fragmentComponent("fragment1"),
-                fragmentComponent("fragment2"))).build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
     val positions = ManualLayoutAlgorithm.LayoutPositions()
     rootPositions.put("nav.xml", positions)
@@ -64,16 +64,16 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
   }
 
   fun testDifferentFiles() {
-    val model = model("nav.xml",
-        rootComponent(null)
-            .unboundedChildren(
-                fragmentComponent("fragment1"))).build()
-
-    val model2 = model("nav2.xml",
-        rootComponent(null)
-            .unboundedChildren(
-                fragmentComponent("fragment1"))).build()
-
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+    val model2 = model("nav2.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
     val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
     var positions = ManualLayoutAlgorithm.LayoutPositions()
     rootPositions.put("nav.xml", positions)
@@ -104,13 +104,13 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
   }
 
   fun testFallback() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("fragment1"),
-                fragmentComponent("fragment2"),
-                fragmentComponent("fragment3"))).build()
-
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+      }
+    }
     val rootPositions = ManualLayoutAlgorithm.LayoutPositions()
     val positions = ManualLayoutAlgorithm.LayoutPositions()
     rootPositions.put("nav.xml", positions)
@@ -149,12 +149,13 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(456, scene.getSceneComponent("fragment2")!!.drawY)
   }
 
-  @Throws(Exception::class)
   fun testSave() {
-    var model = model("nav.xml",
-        rootComponent("nav").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"))).build()
+    var model = model("nav.xml") {
+      navigation("nav") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     var surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     var component = surface.scene!!.getSceneComponent("fragment1")!!
@@ -167,9 +168,13 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertTrue(FileUtil.loadFile(VfsUtilCore.virtualToIoFile(project.projectFile!!)).contains("fragment1"))
 
     // Now create everything anew and verify the old position is restored
-    model = model("nav.xml", rootComponent("nav").unboundedChildren(
-        fragmentComponent("fragment1"),
-        fragmentComponent("fragment2"))).build()
+    model = model("nav.xml") {
+      navigation("nav") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
+
     surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment1")!!
@@ -181,10 +186,12 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
 
   fun testSaveWithError() {
     var algorithm = ManualLayoutAlgorithm(myModule)
-    var model = model("nav.xml",
-        rootComponent("nav").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"))).build()
+    var model = model("nav.xml") {
+      navigation("nav") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     var surface = NavDesignSurface(project, testRootDisposable)
     surface.model = model
     val nullIdComponent = surface.scene!!.getSceneComponent("fragment1")!!
@@ -198,9 +205,12 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     PlatformTestUtil.saveProject(project)
 
     // Now create everything anew and verify the old position is restored
-    model = model("nav.xml", rootComponent("nav").unboundedChildren(
-        fragmentComponent("fragment1"),
-        fragmentComponent("fragment2"))).build()
+    model = model("nav.xml") {
+      navigation("nav") {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
     surface = NavDesignSurface(project, testRootDisposable)
     surface.model = model
     component = surface.scene!!.getSceneComponent("fragment2")!!

@@ -20,7 +20,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -34,15 +34,15 @@ import java.awt.event.MouseEvent.BUTTON1
  */
 class ActionTargetTest : NavTestCase() {
   fun testSelect() {
-    val root = rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")),
-            fragmentComponent("fragment2"))
-    val model = model("nav.xml", root).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1") {
+          action("action1", destination = "fragment2")
+        }
+        fragment("fragment2")
+      }
+    }
+
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.currentSceneView).thenReturn(view)
@@ -70,14 +70,14 @@ class ActionTargetTest : NavTestCase() {
   }
 
   fun testHighlight() {
-    val model = model("nav.xml", rootComponent("root")
-        .withStartDestinationAttribute("fragment1")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .unboundedChildren(
-                    actionComponent("action1")
-                        .withDestinationAttribute("fragment2")),
-            fragmentComponent("fragment2"))).build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1") {
+          action("action1", destination = "fragment2")
+          fragment("fragment2")
+        }
+      }
+    }
 
     val scene = model.surface.scene!!
 

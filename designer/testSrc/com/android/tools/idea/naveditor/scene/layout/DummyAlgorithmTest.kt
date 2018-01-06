@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout
 
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
@@ -34,12 +33,14 @@ class DummyAlgorithmTest : NavTestCase() {
    * |---------|
    */
   fun testSimple() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"),
-            fragmentComponent("fragment3"),
-            fragmentComponent("fragment4"))).build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+        fragment("fragment4")
+      }
+    }
     model.surface.sceneManager!!.update()
     val scene = model.surface.scene!!
     val root = scene.root!!
@@ -75,15 +76,17 @@ class DummyAlgorithmTest : NavTestCase() {
    * |------------|
    */
   fun testSkipOther() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"),
-            fragmentComponent("fragment3"),
-            fragmentComponent("fragment4"),
-            fragmentComponent("fragment5"),
-            fragmentComponent("fragment6"),
-            fragmentComponent("fragment7"))).build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+        fragment("fragment4")
+        fragment("fragment5")
+        fragment("fragment6")
+        fragment("fragment7")
+      }
+    }
     model.surface.sceneManager!!.update()
     val scene = model.surface.scene!!
     val root = scene.root!!

@@ -14,8 +14,7 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.includeComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
@@ -23,11 +22,11 @@ import org.mockito.Mockito.mock
 
 class SourceGraphEditorTest : NavTestCase() {
   fun testSources() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                includeComponent("navigation")))
-        .build()
+    val model = model("nav.xml") {
+      navigation {
+        include("navigation")
+      }
+    }
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("navigation")))
     `when`(property.model).thenReturn(model)

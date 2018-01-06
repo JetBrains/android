@@ -14,7 +14,7 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
@@ -22,15 +22,17 @@ import org.mockito.Mockito.mock
 
 class AnimationEditorTest : NavTestCase() {
   fun testValues() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1")
-                    .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2")),
-                activityComponent("activity1"),
-                fragmentComponent("f2")
-                    .unboundedChildren(actionComponent("a2").withDestinationAttribute("activity1"))))
-        .build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+        }
+        activity("activity1")
+        fragment("f2") {
+          action("a2", destination = "activity1")
+        }
+      }
+    }
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("a1")))
     `when`(property.model).thenReturn(model)

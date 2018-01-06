@@ -14,25 +14,24 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.AUTO_URI
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class AddActionDialogTest : NavTestCase() {
   fun testExisting() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1")
-                    .unboundedChildren(
-                        actionComponent("a1")
-                            .withDestinationAttribute("f2")
-                            .withAttribute(AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, "@anim/fade_in")
-                            .withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, "@id/f2")
-                            .withAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")),
-                fragmentComponent("f2")))
-        .build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2") {
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, "@anim/fade_in")
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, "@id/f2")
+            withAttribute(AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
+          }
+        }
+        fragment("f2")
+      }
+    }
 
     val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, null)
     dialog.close(0)
@@ -44,12 +43,12 @@ class AddActionDialogTest : NavTestCase() {
   }
 
   fun testContent() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1"),
-                fragmentComponent("f2")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
 
     val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, null)
     dialog.myDestinationComboBox.selectedIndex = 1
@@ -87,12 +86,12 @@ class AddActionDialogTest : NavTestCase() {
   }
 
   fun testDefaults() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1"),
-                fragmentComponent("f2")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
 
     val f1 = model.find("f1")!!
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import java.awt.event.MouseEvent
@@ -40,12 +40,15 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    _model = model("nav.xml",
-        rootComponent("navigation").unboundedChildren(
-            fragmentComponent("fragment1"),
-            navigationComponent("subnav")
-                .unboundedChildren(fragmentComponent("fragment2"))))
-        .build()
+    _model = model("nav.xml") {
+      navigation("navigation") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2")
+        }
+      }
+    }
+
     _surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model

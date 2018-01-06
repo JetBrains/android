@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
@@ -52,7 +51,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, myRootDisposable)
     assertEmpty(surface.myLayers)
 
-    val model = model("nav.xml", rootComponent("root")).build()
+    val model = model("nav.xml") { navigation("root") }
     surface.model = model
     assertEquals(1, surface.myLayers.size)
 
@@ -65,15 +64,12 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main")
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2")
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
-    ).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1", layout = "activity_main", name = "mytest.navtest.MainActivity")
+        fragment("fragment2", layout = "activity_main2", name = "mytest.navtest.BlankFragment")
+      }
+    }
     surface.model = model
     surface.notifyComponentActivate(model.find("fragment1")!!)
     val editorManager = FileEditorManager.getInstance(project)
@@ -85,13 +81,12 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testNoLayoutComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
-            fragmentComponent("fragment2")
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
-    ).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1", name = "mytest.navtest.MainActivity")
+        fragment("fragment2", name = "mytest.navtest.BlankFragment")
+      }
+    }
     surface.model = model
     surface.notifyComponentActivate(model.find("fragment1")!!)
     val editorManager = FileEditorManager.getInstance(project)
@@ -103,12 +98,14 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testSubflowActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1"),
-            navigationComponent("subnav")
-                .unboundedChildren(fragmentComponent("fragment2")))
-    ).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2")
+        }
+      }
+    }
     surface.model = model
     assertEquals(model.components[0], surface.currentNavigation)
     val subnav = model.find("subnav")!!
@@ -117,13 +114,12 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testDoubleClickFragment() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1")
-                .withLayoutAttribute("activity_main"),
-            fragmentComponent("fragment2")
-                .withLayoutAttribute("activity_main2"))
-    ).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1", layout = "activity_main")
+        fragment("fragment2", layout = "activity_main2")
+      }
+    }
 
     val surface = model.surface as NavDesignSurface
     `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
@@ -143,12 +139,13 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testScrollToCenter() {
-    val model = model("nav.xml", rootComponent("root")
-        .unboundedChildren(
-            fragmentComponent("fragment1"),
-            fragmentComponent("fragment2"),
-            fragmentComponent("fragment3"))
-    ).build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        fragment("fragment2")
+        fragment("fragment3")
+      }
+    }
     val surface = model.surface as NavDesignSurface
     val viewport = mock(JViewport::class.java)
     val scrollPane = mock(JScrollPane::class.java)
