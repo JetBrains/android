@@ -22,6 +22,8 @@ import com.android.tools.profilers.ProfilerTooltip;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> implements ProfilerTooltip {
@@ -61,12 +63,17 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     List<SeriesData<CpuProfilerStage.ThreadState>> series =
       mySeries.getDataForXRange(myStage.getStudioProfilers().getTimeline().getViewRange());
 
-    for (int i = 0; i < series.size(); ++i) {
-      if (i + 1 == series.size() || tooltipRange.getMin() < series.get(i + 1).x) {
-        myThreadState = series.get(i).value;
-        break;
-      }
+    int threadStateIndex = Collections.binarySearch(
+      series,
+      new SeriesData<CpuProfilerStage.ThreadState>((long)tooltipRange.getMin(), null), // Dummy object so we can compare.
+      Comparator.comparingDouble(seriesData -> seriesData.x)
+    );
+    // Collections.binarySearch returns (-(insertion point)-1) if not found, in which case we want to find the largest value smaller than
+    // tooltip position, which is (insertion point) - 1.
+    if (threadStateIndex < 0) {
+      threadStateIndex = -threadStateIndex - 2;
     }
+    myThreadState = threadStateIndex < 0 ? null : series.get(threadStateIndex).value;
     changed(Aspect.THREAD_STATE);
   }
 
