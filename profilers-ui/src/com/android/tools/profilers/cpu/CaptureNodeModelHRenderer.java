@@ -86,7 +86,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel, ?> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     // Draw rectangle background
     CaptureNode captureNode = (CaptureNode)node;
     Color nodeColor = getFillColor(captureNode);

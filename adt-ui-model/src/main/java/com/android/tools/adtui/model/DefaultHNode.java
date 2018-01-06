@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultHNode<T> extends HNode<T> {
+public class DefaultHNode<T> extends HNode<T, DefaultHNode<T>> {
 
   private long myStart;
   private long myEnd;

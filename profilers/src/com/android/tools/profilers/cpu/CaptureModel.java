@@ -15,13 +15,15 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
@@ -334,7 +336,7 @@ class CaptureModel {
 
   public static class CallChart implements Details {
     @NotNull private final Range myRange;
-    @Nullable private HNode<CaptureNodeModel> myNode;
+    @Nullable private CaptureNode myNode;
 
     public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
       myRange = range;
@@ -347,7 +349,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<CaptureNodeModel> getNode() {
+    public CaptureNode getNode() {
       return myNode;
     }
 
@@ -366,7 +368,7 @@ class CaptureModel {
     }
 
     @NotNull private final Range myFlameRange;
-    @Nullable private HNode<CaptureNodeModel> myFlameNode;
+    @Nullable private CaptureNode myFlameNode;
     @Nullable private final TopDownNode myTopDownNode;
 
     @NotNull private final Range mySelectionRange;
@@ -408,7 +410,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<CaptureNodeModel> getNode() {
+    public CaptureNode getNode() {
       return myFlameNode;
     }
 

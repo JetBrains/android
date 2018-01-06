@@ -27,5 +27,5 @@ public interface HRenderer<T> {
    *
    * @param isFocused If true, consider altering the node's color somehow to set it apart from other nodes in this chart.
    */
-  void render(@NotNull Graphics2D g, @NotNull HNode<T> node, @NotNull Rectangle2D drawingArea, boolean isFocused);
+  void render(@NotNull Graphics2D g, @NotNull HNode<T, ?> node, @NotNull Rectangle2D drawingArea, boolean isFocused);
 }

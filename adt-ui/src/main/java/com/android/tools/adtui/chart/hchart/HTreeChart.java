@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart.hchart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.intellij.util.ui.ImageUtil;
@@ -62,7 +61,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   private HRenderer<T> myRenderer;
 
   @Nullable
-  private HNode<T> myRoot;
+  private HNode<T, ?> myRoot;
 
   @NotNull
   private final Range myXRange;
@@ -80,18 +79,18 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final List<Rectangle2D.Float> myRectangles;
 
   @NotNull
-  private final List<HNode<T>> myNodes;
+  private final List<HNode<T, ?>> myNodes;
 
   private boolean myRootVisible;
 
   @Nullable
-  private HNode<T> myFocusedNode;
+  private HNode<T, ?> myFocusedNode;
 
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
   @NotNull
-  private final List<HNode<T>> myDrawnNodes;
+  private final List<HNode<T, ?>> myDrawnNodes;
 
   @NotNull
   private final HTreeChartReducer<T> myReducer;
@@ -217,7 +216,7 @@ public class HTreeChart<T> extends AnimatedComponent {
     assert myDrawnRectangles.size() == myDrawnNodes.size();
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
-      HNode<T> node = myDrawnNodes.get(i);
+      HNode<T, ?> node = myDrawnNodes.get(i);
       myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
     }
 
@@ -239,10 +238,10 @@ public class HTreeChart<T> extends AnimatedComponent {
 
     int head = 0;
     while (head < myNodes.size()) {
-      HNode<T> curNode = myNodes.get(head++);
+      HNode<T, ?> curNode = myNodes.get(head++);
 
       for (int i = 0; i < curNode.getChildCount(); ++i) {
-        HNode<T> child = curNode.getChildAt(i);
+        HNode<T, ?> child = curNode.getChildAt(i);
         if (inRange(child)) {
           myNodes.add(child);
           myRectangles.add(createRectangle(child));
@@ -255,12 +254,12 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
   }
 
-  private boolean inRange(@NotNull HNode<T> node) {
+  private boolean inRange(@NotNull HNode<T, ?> node) {
     return node.getStart() <= myXRange.getMax() && node.getEnd() >= myXRange.getMin();
   }
 
   @NotNull
-  private Rectangle2D.Float createRectangle(@NotNull HNode<T> node) {
+  private Rectangle2D.Float createRectangle(@NotNull HNode<T, ?> node) {
     float left = (float)Math.max(0, (node.getStart() - myXRange.getMin()) / myXRange.getLength());
     float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
@@ -280,13 +279,13 @@ public class HTreeChart<T> extends AnimatedComponent {
     this.myRenderer = r;
   }
 
-  public void setHTree(@Nullable HNode<T> root) {
+  public void setHTree(@Nullable HNode<T, ?> root) {
     this.myRoot = root;
     changed();
   }
 
   @Nullable
-  public HNode<T> getNodeAt(Point point) {
+  public HNode<T, ?> getNodeAt(Point point) {
     if (point != null) {
       for (int i = 0; i < myDrawnNodes.size(); ++i) {
         if (contains(myDrawnRectangles.get(i), point)) {
@@ -354,7 +353,7 @@ public class HTreeChart<T> extends AnimatedComponent {
 
       @Override
       public void mouseMoved(MouseEvent e) {
-        HNode<T> node = getNodeAt(e.getPoint());
+        HNode<T, ?> node = getNodeAt(e.getPoint());
         if (node != myFocusedNode) {
           myDataUpdated = true;
           myFocusedNode = node;
@@ -438,11 +437,11 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
 
     int maxDepth = -1;
-    Queue<HNode<T>> queue = new LinkedList<>();
+    Queue<HNode<T, ?>> queue = new LinkedList<>();
     queue.add(myRoot);
 
     while (!queue.isEmpty()) {
-      HNode<T> n = queue.poll();
+      HNode<T, ?> n = queue.poll();
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }

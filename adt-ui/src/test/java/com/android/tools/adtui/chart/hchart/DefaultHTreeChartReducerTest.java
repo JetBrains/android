@@ -50,7 +50,7 @@ public class DefaultHTreeChartReducerTest {
     List<String> expectedNodes = Arrays.asList("A", "B", "C", "D", "F", "H");
 
     HTreeChartReducer<String> reducer = new DefaultHTreeChartReducer<>();
-    List<HNode<String>> nodes = new ArrayList<>();
+    List<HNode<String, ?>> nodes = new ArrayList<>();
     List<Rectangle2D.Float> rectangles = new ArrayList<>();
 
     addNode("A", 0, 10, 0, nodes, rectangles);
@@ -75,7 +75,7 @@ public class DefaultHTreeChartReducerTest {
   }
 
   private static void addNode(String id, float minX, float maxX, int depth,
-                       List<HNode<String>> nodes,
+                       List<HNode<String, ?>> nodes,
                        List<Rectangle2D.Float> rectangles) {
 
     // node.getStart() and node.getEnd() needs to be proportional to X coordinates of the corresponding rectangle.
