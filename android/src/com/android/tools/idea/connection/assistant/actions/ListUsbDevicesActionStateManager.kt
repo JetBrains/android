@@ -99,19 +99,19 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
     val devices = myDevicesFuture.get().sortedBy { it.name }
     val count = devices.size
-    val htmlBuilder = HtmlBuilder().openHtmlBody().add("We detected the following $count USB devices:").newline()
+    val htmlBuilder = HtmlBuilder().openHtmlBody().add("Android Studio detected the following $count USB device(s):").newline()
 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      htmlBuilder.add("Install Device Driver.</b> If you want to connect a device for testing, " +
-          "then you need to install the appropriate USB driver. More details " +
-          "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">here</a>").newline()
+      htmlBuilder.add("<b>Install device drivers.</b> If you want to connect a device for testing, " +
+          "then you need to install the appropriate USB drivers. For more information, read the " +
+          "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.").newline()
     }
 
     devices.forEach { (name, vendorId, productId) ->
       htmlBuilder.addHtml("<p>")
           .addHtml("<b>$name</b>")
           .newline()
-          .add("Product Id: $productId made by Vendor Id: $vendorId")
+          .add("Product ID: $productId, Vendor ID: $vendorId")
           .newlineIfNecessary().addHtml("</p>")
     }
     return htmlBuilder.closeHtmlBody().html
