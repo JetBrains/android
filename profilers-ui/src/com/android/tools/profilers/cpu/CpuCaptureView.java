@@ -254,11 +254,11 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
-  private static HTreeChart<CaptureNodeModel> setUpChart(@NotNull CaptureModel.Details.Type type,
-                                                         @NotNull Range globalRange,
-                                                         @NotNull Range range,
-                                                         @Nullable HNode<CaptureNodeModel, ?> node,
-                                                         @NotNull CpuProfilerStageView stageView) {
+  private static HTreeChart<CaptureNode> setUpChart(@NotNull CaptureModel.Details.Type type,
+                                                    @NotNull Range globalRange,
+                                                    @NotNull Range range,
+                                                    @Nullable CaptureNode node,
+                                                    @NotNull CpuProfilerStageView stageView) {
     HTreeChart.Orientation orientation;
     if (type == CaptureModel.Details.Type.CALL_CHART) {
       orientation = HTreeChart.Orientation.TOP_DOWN;
@@ -266,7 +266,7 @@ class CpuCaptureView {
     else {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
-    HTreeChart<CaptureNodeModel> chart = new HTreeChart<>(globalRange, range, orientation);
+    HTreeChart<CaptureNode> chart = new HTreeChart<>(globalRange, range, orientation);
     chart.setHRenderer(new CaptureNodeModelHRenderer(type));
     chart.setRootVisible(false);
 
@@ -512,7 +512,7 @@ class CpuCaptureView {
   static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @NotNull private final CaptureModel.CallChart myCallChart;
-    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
+    @NotNull private final HTreeChart<CaptureNode> myChart;
 
     private AspectObserver myObserver;
 
@@ -569,7 +569,7 @@ class CpuCaptureView {
 
   static class FlameChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
-    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
+    @NotNull private final HTreeChart<CaptureNode> myChart;
     @NotNull private final AspectObserver myObserver;
     @NotNull private final CaptureModel.FlameChart myFlameChart;
 
@@ -619,10 +619,10 @@ class CpuCaptureView {
   }
 
   private static class TreeChartNavigationHandler extends MouseAdapter {
-    @NotNull private final HTreeChart<CaptureNodeModel> myChart;
+    @NotNull private final HTreeChart<CaptureNode> myChart;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CodeNavigator navigator) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<CaptureNode> chart, @NotNull CodeNavigator navigator) {
       myChart = chart;
       new DoubleClickListener() {
         @Override
@@ -659,7 +659,7 @@ class CpuCaptureView {
 
     @Nullable
     private CodeLocation getCodeLocation() {
-      HNode<CaptureNodeModel, ?> n = myChart.getNodeAt(myLastPopupPoint);
+      CaptureNode n = myChart.getNodeAt(myLastPopupPoint);
       if (n == null) {
         return null;
       }

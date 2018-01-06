@@ -27,7 +27,7 @@ import com.google.common.truth.Truth.assertThat
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
-  private lateinit var myChart: HTreeChart<String>
+  private lateinit var myChart: HTreeChart<DefaultHNode<String>>
   private lateinit var myRange: Range
   // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
   // towards north and south.
@@ -43,7 +43,7 @@ class HTreeChartTest {
 
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
-    myChart = HTreeChart<String>(Range(0.0, 100.0), myRange, orientation)
+    myChart = HTreeChart(Range(0.0, 100.0), myRange, orientation)
     myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
@@ -57,7 +57,7 @@ class HTreeChartTest {
    * and the subtree has the given height and branch factor.
    */
   private fun HNodeTree(depth: Int, height: Int, branch: Int): DefaultHNode<String> {
-    val subroot = DefaultHNode<String>("")
+    val subroot = DefaultHNode("")
     subroot.depth = depth
     if (height > 1) {
       for (i in 1..branch) {

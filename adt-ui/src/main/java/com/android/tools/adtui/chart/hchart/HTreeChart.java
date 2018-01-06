@@ -40,9 +40,9 @@ import java.util.Queue;
  * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
  * rendering nested rows top-to-bottom, this chart renders nested columns left-to-right.
  *
- * @param <T> The type of the model wrapped by each node.
+ * @param <N> The type of the node used by this tree chart
  */
-public class HTreeChart<T> extends AnimatedComponent {
+public class HTreeChart<N extends HNode<?, N>> extends AnimatedComponent {
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
@@ -58,10 +58,10 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final Orientation myOrientation;
 
   @Nullable
-  private HRenderer<T> myRenderer;
+  private HRenderer<N> myRenderer;
 
   @Nullable
-  private HNode<T, ?> myRoot;
+  private N myRoot;
 
   @NotNull
   private final Range myXRange;
@@ -79,21 +79,21 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final List<Rectangle2D.Float> myRectangles;
 
   @NotNull
-  private final List<HNode<T, ?>> myNodes;
+  private final List<N> myNodes;
 
   private boolean myRootVisible;
 
   @Nullable
-  private HNode<T, ?> myFocusedNode;
+  private N myFocusedNode;
 
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
   @NotNull
-  private final List<HNode<T, ?>> myDrawnNodes;
+  private final List<N> myDrawnNodes;
 
   @NotNull
-  private final HTreeChartReducer<T> myReducer;
+  private final HTreeChartReducer<N> myReducer;
 
   @Nullable
   private Image myCanvas;
@@ -112,7 +112,7 @@ public class HTreeChart<T> extends AnimatedComponent {
    * @param viewXRange the range of the chart's visible area.
    */
   @VisibleForTesting
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
+  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<N> reducer) {
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
@@ -151,7 +151,7 @@ public class HTreeChart<T> extends AnimatedComponent {
    * chart. Otherwise, the call will have no effect.
    */
   @VisibleForTesting
-  public void setFocusedNode(@Nullable HNode<T, ?> node) {
+  public void setFocusedNode(@Nullable N node) {
     myFocusedNode = node;
   }
 
@@ -228,7 +228,7 @@ public class HTreeChart<T> extends AnimatedComponent {
     assert myDrawnRectangles.size() == myDrawnNodes.size();
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
-      HNode<T, ?> node = myDrawnNodes.get(i);
+      N node = myDrawnNodes.get(i);
       myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
     }
 
@@ -250,10 +250,10 @@ public class HTreeChart<T> extends AnimatedComponent {
 
     int head = 0;
     while (head < myNodes.size()) {
-      HNode<T, ?> curNode = myNodes.get(head++);
+      N curNode = myNodes.get(head++);
 
       for (int i = 0; i < curNode.getChildCount(); ++i) {
-        HNode<T, ?> child = curNode.getChildAt(i);
+        N child = curNode.getChildAt(i);
         if (inRange(child)) {
           myNodes.add(child);
           myRectangles.add(createRectangle(child));
@@ -266,12 +266,12 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
   }
 
-  private boolean inRange(@NotNull HNode<T, ?> node) {
+  private boolean inRange(@NotNull N node) {
     return node.getStart() <= myXRange.getMax() && node.getEnd() >= myXRange.getMin();
   }
 
   @NotNull
-  private Rectangle2D.Float createRectangle(@NotNull HNode<T, ?> node) {
+  private Rectangle2D.Float createRectangle(@NotNull N node) {
     float left = (float)Math.max(0, (node.getStart() - myXRange.getMin()) / myXRange.getLength());
     float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
@@ -287,17 +287,17 @@ public class HTreeChart<T> extends AnimatedComponent {
     return x / getWidth() * myXRange.getLength() + myXRange.getMin();
   }
 
-  public void setHRenderer(@NotNull HRenderer<T> r) {
+  public void setHRenderer(@NotNull HRenderer<N> r) {
     this.myRenderer = r;
   }
 
-  public void setHTree(@Nullable HNode<T, ?> root) {
+  public void setHTree(@Nullable N root) {
     this.myRoot = root;
     changed();
   }
 
   @Nullable
-  public HNode<T, ?> getNodeAt(Point point) {
+  public N getNodeAt(Point point) {
     if (point != null) {
       for (int i = 0; i < myDrawnNodes.size(); ++i) {
         if (contains(myDrawnRectangles.get(i), point)) {
@@ -365,7 +365,7 @@ public class HTreeChart<T> extends AnimatedComponent {
 
       @Override
       public void mouseMoved(MouseEvent e) {
-        HNode<T, ?> node = getNodeAt(e.getPoint());
+        N node = getNodeAt(e.getPoint());
         if (node != myFocusedNode) {
           myDataUpdated = true;
           myFocusedNode = node;
@@ -449,11 +449,11 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
 
     int maxDepth = -1;
-    Queue<HNode<T, ?>> queue = new LinkedList<>();
+    Queue<N> queue = new LinkedList<>();
     queue.add(myRoot);
 
     while (!queue.isEmpty()) {
-      HNode<T, ?> n = queue.poll();
+      N n = queue.poll();
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }

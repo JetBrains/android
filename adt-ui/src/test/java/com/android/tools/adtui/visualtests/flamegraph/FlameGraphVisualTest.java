@@ -81,7 +81,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     SelectionModel selection = new SelectionModel(mTimeSelectionRangeUs);
     this.mSelector = new SelectionComponent(selection, mTimeGlobalRangeUs);
 
-    this.mChart = new HTreeChart<SampledMethodUsage>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
+    this.mChart = new HTreeChart<DefaultHNode<SampledMethodUsage>>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
     this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
   }
 

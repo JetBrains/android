@@ -17,6 +17,7 @@ package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBScrollBar;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +29,12 @@ import java.awt.event.ComponentEvent;
 /**
  * A vertical scroll bar for {@link HTreeChart} that synchronizes with {@link HTreeChart#getYRange()}.
  */
-public class HTreeChartVerticalScrollBar<T> extends JBScrollBar {
+public class HTreeChartVerticalScrollBar<N extends HNode<?, N>> extends JBScrollBar {
   private boolean myUpdating;
   private final AspectObserver myObserver;
-  @NotNull private final HTreeChart<T> myChart;
+  @NotNull private final HTreeChart<N> myChart;
 
-  public HTreeChartVerticalScrollBar(@NotNull HTreeChart<T> chart) {
+  public HTreeChartVerticalScrollBar(@NotNull HTreeChart<N> chart) {
     super(VERTICAL);
     myChart = chart;
     setPreferredSize(new Dimension(10, getPreferredSize().height));

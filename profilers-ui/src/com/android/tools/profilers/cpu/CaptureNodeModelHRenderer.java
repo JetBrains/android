@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -34,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
  * instances of {@link CaptureNodeModel}.
  */
-public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
+public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
 
   private static final int LEFT_MARGIN_PX = 3;
 
@@ -86,9 +85,9 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel, ?> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public void render(@NotNull Graphics2D g, @NotNull CaptureNode node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     // Draw rectangle background
-    CaptureNode captureNode = (CaptureNode)node;
+    CaptureNode captureNode = node;
     Color nodeColor = getFillColor(captureNode);
     if (isFocused) {
       // All colors we use in call and flame charts are pretty bright, so darkening them works as an effective highlight

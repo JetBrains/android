@@ -31,7 +31,7 @@ import java.util.function.Function;
  *
  * @param <T> The type of the model wrapped by each node.
  */
-public abstract class DefaultHRenderer<T> implements HRenderer<T> {
+public abstract class DefaultHRenderer<T, N extends HNode<T, N>> implements HRenderer<N> {
 
   protected static final JBColor fillVendorColor = new JBColor(new Color(146, 215, 248), new Color(146, 215, 248));
   protected static final JBColor borderVendorColor = new JBColor(new Color(115, 190, 233), new Color(115, 190, 233));
@@ -62,7 +62,7 @@ public abstract class DefaultHRenderer<T> implements HRenderer<T> {
 
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
   @Override
-  public final void render(@NotNull Graphics2D g, @NotNull HNode<T, ?> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public final void render(@NotNull Graphics2D g, @NotNull N node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();
