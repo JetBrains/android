@@ -40,6 +40,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidUtils;
@@ -141,9 +142,16 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
       for (Map.Entry<Module, Collection<AndroidAutogeneratorMode>> entry : map.entrySet()) {
         final Module module = entry.getKey();
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet == null) {
+          continue;
+        }
+
+        ModuleSourceAutogenerating sourceAutogenerator = ModuleSourceAutogenerating.getInstance(facet);
+        assert sourceAutogenerator != null;
 
         for (AndroidAutogeneratorMode mode : entry.getValue()) {
-          AndroidCompileUtil.generate(module, mode);
+          sourceAutogenerator.scheduleSourceRegenerating(mode);
         }
       }
     }
