@@ -29,7 +29,10 @@ import com.android.tools.idea.res.ResourceRepositories;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.ProjectTopics;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -266,7 +269,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
 
       addResourceFolderToSdkRootsIfNecessary();
-      ModuleSourceAutogenerating.initialize(this);
     });
 
     getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
@@ -283,11 +285,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           Sdk newSdk = rootManager.getSdk();
           if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
             androidPlatformChanged();
-
-            ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(AndroidFacet.this);
-            if (autogenerating != null) {
-              autogenerating.resetRegeneratingState();
-            }
           }
           else {
             // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
