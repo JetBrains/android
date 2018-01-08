@@ -41,7 +41,7 @@ public class ContentCreatorTest extends IdeaTestCase {
   }
 
   public void testCreateLocalMavenRepoInitScriptContent() {
-    List<File> repoPaths = Arrays.asList(new File("path1"), new File("path2"), new File("path3"));
+    List<String> repoPaths = Arrays.asList("path1", "path2", "path3");
     String expected = "allprojects {\n" +
                       "  buildscript {\n" +
                       "    repositories {\n" +
