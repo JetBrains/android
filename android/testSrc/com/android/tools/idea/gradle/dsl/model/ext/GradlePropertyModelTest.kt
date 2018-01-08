@@ -230,6 +230,31 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testGetProperties() {
+    val text = """
+               ext {
+                 def var1 = "Value1"
+                 prop1 = var1
+                 def var2 = "Value2"
+                 prop2 = "Cool ${'$'}{var2}"
+                 def var3 = "Value3"
+                 prop3 = "Nice ${'$'}var3"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+    val properties = extModel.properties
+    // Note: this shouldn't include variables.
+    assertSize(3, properties)
+
+    verifyPropertyModel(properties[0], STRING_TYPE, "var1", REFERENCE, REGULAR, 1, "prop1", "ext.prop1")
+    verifyPropertyModel(properties[0].dependencies[0], STRING_TYPE, "Value1", STRING, VARIABLE, 0, "var1", "ext.var1")
+    verifyPropertyModel(properties[1], STRING_TYPE, "Cool Value2", STRING, REGULAR, 1, "prop2", "ext.prop2")
+    verifyPropertyModel(properties[1].dependencies[0], STRING_TYPE, "Value2", STRING, VARIABLE, 0, "var2", "ext.var2")
+    verifyPropertyModel(properties[2], STRING_TYPE, "Nice Value3", STRING, REGULAR, 1, "prop3", "ext.prop3")
+    verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3", "ext.var3")
+  }
+
   fun testReferencePropertyDependency() {
     val text = """
                ext {
@@ -909,6 +934,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(valueType, model.valueType)
     assertEquals(propertyType, model.propertyType)
     assertEquals(dependencies, model.dependencies.size)
+  }
+
+  private fun <T> verifyPropertyModel(model: GradlePropertyModel, type: TypeReference<T>, value: T,
+                                      valueType: ValueType, propertyType: PropertyType, dependencies: Int, name : String, fullName : String) {
+    verifyPropertyModel(model, type, value, valueType, propertyType, dependencies)
+    assertEquals(name, model.name)
+    assertEquals(fullName, model.fullyQualifiedName)
   }
 
   private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {
