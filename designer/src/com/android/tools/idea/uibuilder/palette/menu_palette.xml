@@ -47,7 +47,7 @@
       <![CDATA[
         <item
             android:id="@+id/app_bar_switch"
-            android:title=""
+            android:title="Switch"
             app:showAsAction="always"
             app:actionLayout="@layout/switch_item" />
       ]]>
