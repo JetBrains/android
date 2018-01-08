@@ -267,14 +267,14 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   public void insertOrUpdateBytes(@NotNull String id, @NotNull Common.Session session, @NotNull BytesResponse response) {
-    execute(ProfilerStatements.INSERT_BYTES, id, session, response.toByteArray());
+    execute(ProfilerStatements.INSERT_BYTES, id, session.getSessionId(), response.toByteArray());
   }
 
   @Nullable
   public BytesResponse getBytes(@NotNull BytesRequest request) {
     try {
       ResultSet results =
-        executeQuery(ProfilerStatements.GET_BYTES, request.getId(), request.getSession());
+        executeQuery(ProfilerStatements.GET_BYTES, request.getId(), request.getSession().getSessionId());
       if (results.next()) {
         return BytesResponse.parseFrom(results.getBytes(1));
       }

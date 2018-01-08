@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -399,7 +400,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         String stackHash = "";
         if (event.hasBacktrace()) {
           byte[] backtrace = event.getBacktrace().toByteArray();
-          stackHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(backtrace);
+          stackHash = DigestUtils.md5Hex(backtrace);
           if (insertStackStatement == null) {
             insertStackStatement = getStatementMap().get(INSERT_NATIVE_STACK);
           }
