@@ -121,7 +121,7 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
 
   @NotNull
   public AssetStudioWizardFixture setName(@NotNull String name) {
-    JTextField field = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(JTextField.class));
+    JTextField field =  robot().finder().findByLabel(target(), "Name:", JTextField.class);
     new JTextComponentFixture(robot(), field).setText(name);
     return this;
   }
