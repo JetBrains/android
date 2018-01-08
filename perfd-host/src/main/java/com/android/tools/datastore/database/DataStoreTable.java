@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -162,11 +161,6 @@ public abstract class DataStoreTable<T extends Enum> {
       }
       else if (params[i] instanceof byte[]) {
         statement.setBytes(i + 1, (byte[])params[i]);
-      }
-      // TODO remove once queries uses Session#sessionId directly
-      else if (params[i] instanceof Common.Session) {
-        Common.Session session = (Common.Session)params[i];
-        statement.setLong(i + 1, session.getSessionId());
       }
       else {
         //Not implemented type cast
