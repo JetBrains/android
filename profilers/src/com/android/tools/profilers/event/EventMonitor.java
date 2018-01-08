@@ -19,11 +19,10 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.adtui.model.event.StackedEventType;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerTooltip;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 public class EventMonitor extends ProfilerMonitor {
 
@@ -37,6 +36,8 @@ public class EventMonitor extends ProfilerMonitor {
   private final EventModel<StackedEventType> myFragmentEvents;
 
   private boolean myEnabled;
+
+  private Supplier<ProfilerMonitorTooltip<EventMonitor>> myTooltipBuilder;
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -94,7 +95,14 @@ public class EventMonitor extends ProfilerMonitor {
 
   @Override
   public ProfilerTooltip buildTooltip() {
-    return new EventMonitorTooltip(this);
+    if (myTooltipBuilder != null) {
+      return myTooltipBuilder.get();
+    }
+    return new EventActivityTooltip(this);
+  }
+
+  public void setTooltipBuilder(Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip) {
+    myTooltipBuilder = tooltip;
   }
 
   @Override
