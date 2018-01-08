@@ -201,31 +201,39 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       ExecutorService executor = myExecutors.get(device);
       // If someone keeps a reference to a device that is disconnected, executor will be null.
-      if (executor != null) {
-        stopReceiving(device);
-
-        executor.submit(() -> {
-          try {
-            execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
-          }
-          catch (final Exception e) {
-            getLog().info(e);
-            ApplicationManager.getApplication().invokeLater(() -> Messages
-              .showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title")));
-          }
-
-          synchronized (myLock) {
-            if (myListeners.containsKey(device)) {
-              for (LogcatListener listener : myListeners.get(device)) {
-                listener.onCleared();
-              }
-            }
-          }
-        });
-
-
-        startReceiving(device);
+      if (executor == null) {
+        notifyThatLogcatWasCleared(device);
+        return;
       }
+
+      stopReceiving(device);
+
+      executor.submit(() -> {
+        try {
+          execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
+        }
+        catch (final Exception e) {
+          getLog().info(e);
+          ApplicationManager.getApplication().invokeLater(() -> Messages
+            .showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title")));
+        }
+
+        notifyThatLogcatWasCleared(device);
+      });
+
+      startReceiving(device);
+    }
+  }
+
+  private void notifyThatLogcatWasCleared(@NotNull IDevice device) {
+    synchronized (myLock) {
+      Iterable<LogcatListener> listeners = myListeners.get(device);
+
+      if (listeners == null) {
+        return;
+      }
+
+      listeners.forEach(LogcatListener::onCleared);
     }
   }
 
