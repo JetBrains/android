@@ -18,7 +18,6 @@ package org.jetbrains.android;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,7 +25,7 @@ import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
-public class ClassMapsTest extends AndroidTestCase {
+public class TagToClassMapperImplTest extends AndroidTestCase {
   private static final String MODULE_WITH_DEPENDENCY = "withdep";
   private static final String MODULE_WITHOUT_DEPENDENCY = "withoutdep";
   private static final String OBJECT_CLASS = "java.lang.Object";
@@ -54,19 +53,19 @@ public class ClassMapsTest extends AndroidTestCase {
     myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/src/com/test/other/ClassB.java", classB);
 
     // The main module should only see the classes from MODULE_WITH_DEPENDENCY
-    Set<String> classes = new ClassMaps(myFacet.getModule()).getClassMap(OBJECT_CLASS).keySet();
+    Set<String> classes = new TagToClassMapperImpl(myFacet.getModule()).getClassMap(OBJECT_CLASS).keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITH_DEPENDENCY should only see the classes from MODULE_WITH_DEPENDENCY
-    classes = new ClassMaps(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY))
+    classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY))
       .getClassMap(OBJECT_CLASS)
       .keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITHOUT_DEPENDENCY should see its own class
-    classes = new ClassMaps(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY))
+    classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY))
       .getClassMap(OBJECT_CLASS)
       .keySet();
     assertDoesntContain(classes, "com.test.ClassA");
