@@ -46,13 +46,13 @@ import java.util.Map;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-class ClassMaps implements TagToClassMapper {
+class TagToClassMapperImpl implements TagToClassMapper {
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
   private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newConcurrentMap();
 
   private final Module myModule;
 
-  ClassMaps(@NotNull Module module) {
+  TagToClassMapperImpl(@NotNull Module module) {
     myModule = module;
     MessageBusConnection connection = module.getMessageBus().connect(module);
 
