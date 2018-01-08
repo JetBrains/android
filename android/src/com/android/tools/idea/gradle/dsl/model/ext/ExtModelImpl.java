@@ -24,6 +24,9 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
@@ -57,5 +60,12 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
     }
 
     return element == null ? new EmptyPropertyModel(myDslElement, REGULAR, name, false) : new GradlePropertyModelImpl(element);
+  }
+
+  @Override
+  @NotNull
+  public List<GradlePropertyModel> getProperties() {
+    return myDslElement.getPropertyElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
+      .collect(Collectors.toList());
   }
 }
