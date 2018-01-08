@@ -114,7 +114,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals(21, ResolutionUtils.getOriginalApiLevel("?android:attr/colorAccent", getProject()));
     assertEquals(3, ResolutionUtils.getOriginalApiLevel("@android:integer/config_longAnimTime", getProject()));
     assertEquals(4, ResolutionUtils.getOriginalApiLevel("@android:drawable/stat_sys_vp_phone_call", getProject()));
-    assertEquals(-1, ResolutionUtils.getOriginalApiLevel("@android:color/black", getProject()));
+    assertEquals(1, ResolutionUtils.getOriginalApiLevel("@android:color/black", getProject()));
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel("?attr/colorAccent", getProject()));
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel("@color/holo_green_dark", getProject()));
   }
