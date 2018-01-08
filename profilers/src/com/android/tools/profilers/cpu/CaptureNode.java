@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import static com.android.tools.profilers.cpu.CaptureNode.FilterType.UNINITIALIZED;
 
-public class CaptureNode extends HNode<CaptureNodeModel, CaptureNode> {
+public class CaptureNode extends HNode<CaptureNode> {
 
   /**
    * Start time with GLOBAL clock.
@@ -71,11 +71,14 @@ public class CaptureNode extends HNode<CaptureNodeModel, CaptureNode> {
    */
   private int myDepth;
 
+  @NotNull
+  private final CaptureNodeModel myData;
+
   public CaptureNode(@NotNull CaptureNodeModel model) {
-    super(model);
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
     myDepth = 0;
+    myData = model;
   }
 
   public void addChild(CaptureNode node) {
@@ -86,6 +89,11 @@ public class CaptureNode extends HNode<CaptureNodeModel, CaptureNode> {
   @NotNull
   public List<CaptureNode> getChildren() {
     return myChildren;
+  }
+
+  @NotNull
+  public CaptureNodeModel getData() {
+    return myData;
   }
 
   @Override

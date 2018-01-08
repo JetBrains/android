@@ -18,6 +18,7 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ import java.util.function.Function;
  *
  * @param <T> The type of the model wrapped by each node.
  */
-public abstract class DefaultHRenderer<T, N extends HNode<T, N>> implements HRenderer<N> {
+public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> {
 
   protected static final JBColor fillVendorColor = new JBColor(new Color(146, 215, 248), new Color(146, 215, 248));
   protected static final JBColor borderVendorColor = new JBColor(new Color(115, 190, 233), new Color(115, 190, 233));
@@ -62,7 +63,7 @@ public abstract class DefaultHRenderer<T, N extends HNode<T, N>> implements HRen
 
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
   @Override
-  public final void render(@NotNull Graphics2D g, @NotNull N node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public final void render(@NotNull Graphics2D g, @NotNull DefaultHNode<T> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();

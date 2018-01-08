@@ -117,7 +117,7 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
       val nextFillColor = { fillColors[(colorIndex++) % fillColors.size] }
 
       chart = HTreeChart(null, Range(RANGE_MIN, RANGE_MAX), orientation)
-      chart.setHRenderer(object : DefaultHRenderer<HTreeModel, DefaultHNode<HTreeModel>>({ _ -> Color.YELLOW }) {
+      chart.setHRenderer(object : DefaultHRenderer<HTreeModel>({ _ -> Color.YELLOW }) {
         // Don't draw any text because it doesn't compare well across platforms
         override fun generateFittingText(nodeData: HTreeModel, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
         override fun getFillColor(nodeData: HTreeModel) = nextFillColor()

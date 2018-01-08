@@ -29,7 +29,7 @@ import java.awt.event.ComponentEvent;
 /**
  * A vertical scroll bar for {@link HTreeChart} that synchronizes with {@link HTreeChart#getYRange()}.
  */
-public class HTreeChartVerticalScrollBar<N extends HNode<?, N>> extends JBScrollBar {
+public class HTreeChartVerticalScrollBar<N extends HNode<N>> extends JBScrollBar {
   private boolean myUpdating;
   private final AspectObserver myObserver;
   @NotNull private final HTreeChart<N> myChart;

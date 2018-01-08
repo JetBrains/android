@@ -24,7 +24,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.regex.Pattern;
 
-public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodUsage, DefaultHNode<SampledMethodUsage>> {
+public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodUsage> {
 
   private static final Color END_COLOR = new JBColor(new Color(0xFF9F00), new Color(0xFF9F00));
   private static final Color START_COLOR = new JBColor(new Color(0xF0CB35), new Color(0xF0CB35));

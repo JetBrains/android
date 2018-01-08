@@ -561,7 +561,7 @@ class CpuCaptureView {
     }
 
     private void callChartRangeChanged() {
-      HNode<CaptureNodeModel, ?> node = myCallChart.getNode();
+      CaptureNode node = myCallChart.getNode();
       assert node != null;
       Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);

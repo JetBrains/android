@@ -22,7 +22,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.regex.Pattern;
 
-public class JavaMethodHRenderer extends DefaultHRenderer<Method, DefaultHNode<Method>> {
+public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
 
   protected boolean isMethodPlatform(@NotNull Method method) {
     return method.getNameSpace().startsWith("android.");

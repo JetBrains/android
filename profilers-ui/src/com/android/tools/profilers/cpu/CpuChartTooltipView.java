@@ -67,7 +67,7 @@ class CpuChartTooltipView extends MouseAdapter {
     }
   }
 
-  private void showTooltip(@NotNull HNode<CaptureNodeModel, ?> node) {
+  private void showTooltip(@NotNull CaptureNode node) {
     myTooltipComponent.setVisible(true);
     Range dataRange = myStageView.getTimeline().getDataRange();
     long start = (long)(node.getStart() - dataRange.getMin());
