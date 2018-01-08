@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.*
+import com.android.tools.idea.lang.roomSql.QUERY_ANNOTATION_NAME
+import com.android.tools.idea.lang.roomSql.ROOM_ICON
+import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
+import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
 import com.android.tools.idea.lang.roomSql.resolution.SqlTable
 import com.intellij.extapi.psi.PsiFileBase
@@ -58,7 +61,7 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
   fun processTables(processor: Processor<SqlTable>): Boolean {
     if (queryAnnotation != null) {
       // We are inside a Room @Query annotation, let's use the Room schema.
-      val tables = RoomSchemaManager.getInstance(this)?.schema?.entities?: emptySet<SqlTable>()
+      val tables = RoomSchemaManager.getInstance(project)?.getSchema(this)?.entities?: emptySet<SqlTable>()
       return ContainerUtil.process(tables, processor)
     }
 

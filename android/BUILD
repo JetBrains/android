@@ -256,6 +256,7 @@ iml_module(
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/base/usb-devices:studio.usb-devices[module, test]",
+        "//tools/adt/idea/android-lang[module, test]",
     ],
 )
 
@@ -288,6 +289,10 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.0.3:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/persistence/db-framework/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/persistence/db/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/android/arch/persistence/room/common/1.0.0:jar",
+        "//prebuilts/tools/common/m2/repository/android/arch/persistence/room/runtime/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/design/26.1.0:aar",

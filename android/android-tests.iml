@@ -106,5 +106,6 @@
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
     <orderEntry type="module" module-name="jps-builders" scope="TEST" />
     <orderEntry type="module" module-name="usb-devices" scope="TEST" />
+    <orderEntry type="module" module-name="android-lang" scope="TEST" />
   </component>
 </module>

@@ -16,12 +16,11 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.android.tools.idea.lang.roomSql.*
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
-import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.Project
 import com.intellij.psi.*
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -31,37 +30,39 @@ import com.intellij.psi.util.PsiUtil
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */
-class RoomSchemaManager(val module: Module) {
+class RoomSchemaManager(val project: Project) {
   companion object {
-    fun getInstance(module: Module): RoomSchemaManager? = ModuleServiceManager.getService(module, RoomSchemaManager::class.java)
-    fun getInstance(element: PsiElement): RoomSchemaManager? = ModuleUtil.findModuleForPsiElement(element)?.let(this::getInstance)
+    fun getInstance(project: Project): RoomSchemaManager? = ServiceManager.getService(project, RoomSchemaManager::class.java)
   }
 
   /**
-   * Returns the [RoomSchema].
+   * Returns the [RoomSchema] visible from the given [PsiFile] or null if Room is not used in the project.
    *
-   * Will return null if Room is not used in the project.
+   * The schema is cached in the file and recomputed after a change to java structure.
+   *
+   * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
-  val schema: RoomSchema?
-    get() = CachedValuesManager.getManager(module.project).getCachedValue(
-        module, { CachedValueProvider.Result(buildSchema(), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
+  fun getSchema(psiFile: PsiFile): RoomSchema? = CachedValuesManager.getManager(project).getCachedValue(
+      psiFile, { CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
 
-  private val constantEvaluationHelper = JavaPsiFacade.getInstance(module.project).constantEvaluationHelper
+  private val constantEvaluationHelper = JavaPsiFacade.getInstance(project).constantEvaluationHelper
 
   /** Builds the schema using IJ indexes. */
-  private fun buildSchema(): RoomSchema? {
-    LOG.debug("Recalculating Room schema for module ", module.name)
+  private fun buildSchema(psiFile: PsiFile): RoomSchema? {
+    LOG.debug("Recalculating Room schema for file ", psiFile)
+    val scope = ResolveScopeManager.getInstance(project).getResolveScope(psiFile)
 
-    val searchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
-    val psiFacade = JavaPsiFacade.getInstance(module.project)
-    val entityAnnotation = psiFacade.findClass(ENTITY_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Entity")
-    val databaseAnnotation = psiFacade.findClass(DATABASE_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Database")
-    val daoAnnotation = psiFacade.findClass(DAO_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Dao")
-    val pointerManager = SmartPointerManager.getInstance(module.project)
+    val psiFacade = JavaPsiFacade.getInstance(project)
+    val entityAnnotation = psiFacade.findClass(ENTITY_ANNOTATION_NAME, scope) ?: return annotationNotFound("Entity", psiFile)
+    val databaseAnnotation = psiFacade.findClass(DATABASE_ANNOTATION_NAME, scope) ?: return annotationNotFound("Database", psiFile)
+    val daoAnnotation = psiFacade.findClass(DAO_ANNOTATION_NAME, scope) ?: return annotationNotFound("Dao", psiFile)
+    val pointerManager = SmartPointerManager.getInstance(project)
 
-    val entities = AnnotatedElementsSearch.searchPsiClasses(entityAnnotation, searchScope).mapNotNullTo(HashSet()) { this.createEntity(it, pointerManager) }
-    val databases = AnnotatedElementsSearch.searchPsiClasses(databaseAnnotation, searchScope).mapNotNullTo(HashSet()) { this.createDatabase(it, pointerManager) }
-    val daos = AnnotatedElementsSearch.searchPsiClasses(daoAnnotation, searchScope)
+    val entities = AnnotatedElementsSearch.searchPsiClasses(entityAnnotation, scope)
+        .mapNotNullTo(HashSet()) { this.createEntity(it, pointerManager) }
+    val databases = AnnotatedElementsSearch.searchPsiClasses(databaseAnnotation, scope)
+        .mapNotNullTo(HashSet()) { this.createDatabase(it, pointerManager) }
+    val daos = AnnotatedElementsSearch.searchPsiClasses(daoAnnotation, scope)
         .mapTo(HashSet()) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
 
     return RoomSchema(databases, entities, daos)
@@ -115,8 +116,8 @@ class RoomSchemaManager(val module: Module) {
     return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entitiesElementValue ?: emptySet())
   }
 
-  private fun <T> annotationNotFound(name: String): T? {
-    LOG.debug("Annotation ", name, " not found in module ", module.name)
+  private fun <T> annotationNotFound(name: String, psiFile: PsiFile): T? {
+    LOG.debug("Annotation ", name, " not found from ", psiFile.name)
     return null
   }
 
