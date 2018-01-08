@@ -1405,4 +1405,27 @@ class ErrorMessagesTest : RoomSqlParserTest() {
           """.trimIndent(),
         toParseTreeText("DELETE FROM"))
   }
+
+  fun testForeignKeyTriggers() {
+    check("""
+          CREATE TABLE IF NOT EXISTS foo
+          (`id` INTEGER NOT NULL, `name` TEXT COLLATE NOCASE, PRIMARY KEY(`id`),
+          FOREIGN KEY(`name`) REFERENCES `Entity1`(`name`)
+          ON UPDATE NO ACTION ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED)
+          """)
+
+    check("""
+          CREATE TABLE IF NOT EXISTS foo
+          (`id` INTEGER NOT NULL, `name` TEXT COLLATE NOCASE, PRIMARY KEY(`id`),
+          FOREIGN KEY(`name`) REFERENCES `Entity1`(`name`)
+          ON DELETE NO ACTION)
+          """)
+
+    check("""
+          CREATE TABLE IF NOT EXISTS foo
+          (`id` INTEGER NOT NULL, `name` TEXT COLLATE NOCASE, PRIMARY KEY(`id`),
+          FOREIGN KEY(`name`) REFERENCES `Entity1`(`name`)
+          DEFERRABLE INITIALLY DEFERRED)
+          """)
+  }
 }
