@@ -52,7 +52,6 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
 
   @Override
   public void apply() throws ConfigurationException {
-    // Intentionally left empty.
     // Changes are applied at the Project/<All modules> level.
   }
 
