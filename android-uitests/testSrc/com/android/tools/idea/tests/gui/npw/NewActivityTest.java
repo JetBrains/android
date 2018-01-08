@@ -169,7 +169,6 @@ public class NewActivityTest {
     assertThat(text).startsWith("package google.test2;");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/67380989
   @Test
   public void createActivityWithKotlin() throws Exception {
     myConfigActivity.setSourceLanguage("Kotlin");
