@@ -75,7 +75,7 @@ public class PackageUpgradeTest extends DebuggerTestBase {
    *      the package.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70536208
+  @RunIn(TestGroup.QA)
   @Test
   public void testWithOlderLldb() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest
