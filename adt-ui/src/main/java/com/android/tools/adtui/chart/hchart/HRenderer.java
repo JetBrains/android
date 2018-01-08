@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-public interface HRenderer<N extends HNode<?, N>> {
+public interface HRenderer<N extends HNode<N>> {
   /**
    * Render a target {@link HNode}, fitting it into the specified {@code drawingArea}.
    *

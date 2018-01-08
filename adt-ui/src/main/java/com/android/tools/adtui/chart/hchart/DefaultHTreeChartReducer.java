@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Implementation of {@link HTreeChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle.
  */
-class DefaultHTreeChartReducer<N extends HNode<?, N>> implements HTreeChartReducer<N> {
+class DefaultHTreeChartReducer<N extends HNode<N>> implements HTreeChartReducer<N> {
   @Override
   public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<N> nodes) {
     assert nodes.size() == rectangles.size();

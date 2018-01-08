@@ -24,21 +24,9 @@ import java.util.List;
  * An entry in a {@code HTreeChart}. A node has associated data and a range as well, which will
  * be visualized by the parent tree as rectangular bars.
  *
- * @param <T> Type of data wrapped by this node.
  * @param <N> Type of the node subclass, provided to allow using get methods without casting
  */
-public abstract class HNode<T, N extends HNode<T, N>> {
-  @NotNull
-  private final T myData;
-
-  public HNode(@NotNull T data) {
-    myData = data;
-  }
-
-  @NotNull
-  public final T getData() {
-    return myData;
-  }
+public abstract class HNode<N extends HNode<N>> {
 
   public abstract int getChildCount();
 

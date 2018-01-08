@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
-public interface HTreeChartReducer<N extends HNode<?, N>> {
+public interface HTreeChartReducer<N extends HNode<N>> {
   /**
    * Prior to drawing, this method receives rectangles and their corresponding nodes from the {@link HTreeChart}.
    * Classes implementing the interface need to modify {@code rectangles} and {@code nodes}, so that the number of rectangles to draw is
