@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -64,29 +66,34 @@ public final class AdtUiUtils {
    * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param text              the original text.
    * @param availableSpace    the available space to render the text.
-   * @param characterToShrink the number of characters to trim by on each truncate iteration.
+   * @param charactersToShrink the number of characters to trim by on each truncate iteration.
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
-  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int characterToShrink) {
-    int textWidth = metrics.stringWidth(text);
-    int ellipsysWidth = metrics.stringWidth(ELLIPSIS);
-    if (textWidth <= availableSpace) {
+  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int charactersToShrink) {
+    return getFittedString(s -> metrics.stringWidth(s) <= availableSpace, text, charactersToShrink);
+  }
+
+  /**
+   * Similar to {@link #getFilterPattern(String, boolean, boolean)},
+   * but takes a predicate method to determine whether the text should fit or not.
+   */
+  public static String getFittedString(Predicate<String> textFitPredicate, String text, int charactersToShrink) {
+    if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
     }
-    else if (availableSpace < ellipsysWidth) {
+    else if (!textFitPredicate.test(ELLIPSIS)) {
       // No space to fit "..." - early return.
       return "";
     }
 
     // This loop test the length of the word we are trying to draw, if it is to big to fit the available space,
     // we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
-    while (textWidth > availableSpace) {
-      text = text.substring(0, Math.max(0, text.length() - characterToShrink));
-      textWidth = metrics.stringWidth(text) + ellipsysWidth;
+    StringBuilder truncatedText = new StringBuilder(text);
+    while (!textFitPredicate.test(truncatedText.toString() + ELLIPSIS)) {
+      truncatedText.setLength(Math.max(0, truncatedText.length() - charactersToShrink));
     }
-
-    return text + ELLIPSIS;
+    return truncatedText.toString() + ELLIPSIS;
   }
 
   /**
