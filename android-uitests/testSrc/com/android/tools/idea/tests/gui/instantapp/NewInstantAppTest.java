@@ -205,7 +205,6 @@ public class NewInstantAppTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test // b/68478730
   public void addMasterDetailActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
@@ -223,8 +222,6 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_item_list");
   }
 
-
-  @RunIn(TestGroup.UNRELIABLE)
   @Test // b/68684401
   public void addFullscreenActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
