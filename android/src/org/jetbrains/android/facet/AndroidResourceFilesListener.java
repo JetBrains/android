@@ -147,6 +147,10 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
           continue;
         }
 
+        if (!ModuleSourceAutogenerating.requiresAutoSourceGeneration(facet)) {
+          continue;
+        }
+
         ModuleSourceAutogenerating sourceAutogenerator = ModuleSourceAutogenerating.getInstance(facet);
         assert sourceAutogenerator != null;
 
