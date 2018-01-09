@@ -344,6 +344,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myGlassPane;
   }
 
+  private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });
+
+  /**
+   * Call this to generate repaints
+   */
+  public void needsRepaint() {
+     if (!myRepaintTimer.isRunning()) {
+      myRepaintTimer.setRepeats(false);
+      myRepaintTimer.start();
+    }
+  }
+
   @Override
   protected void paintChildren(Graphics graphics) {
     super.paintChildren(graphics);
