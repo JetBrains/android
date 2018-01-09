@@ -29,9 +29,9 @@ import javax.swing.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 
 /**
- * Icon provider for android Files
+ * Icon provider for files in Android Studio: pick icons based on module type
  */
-public class AndroidFileIconProvider implements FileIconProvider {
+public class AndroidStudioFileIconProvider implements FileIconProvider {
   /**
    * Returns an icon used in Android files.
    * @param file File to look an icon for.
