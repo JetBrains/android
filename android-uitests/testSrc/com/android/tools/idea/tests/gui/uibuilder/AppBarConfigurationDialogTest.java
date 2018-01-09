@@ -17,11 +17,10 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AppBarConfigurationDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,7 +98,7 @@ public class AppBarConfigurationDialogTest {
     assertThat(gradleContents).contains("com.android.support:design:");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("b/71719290")
   @Test
   public void testSyncFailsAfterAddingNonExistentDependency() throws Exception {
     EditorFixture editor = guiTest.importSimpleLocalApplication()
