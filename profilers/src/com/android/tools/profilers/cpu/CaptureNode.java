@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import static com.android.tools.profilers.cpu.CaptureNode.FilterType.UNINITIALIZED;
 
-public class CaptureNode extends HNode<CaptureNode> {
+public class CaptureNode implements HNode<CaptureNode> {
 
   /**
    * Start time with GLOBAL clock.

@@ -18,41 +18,39 @@ package com.android.tools.adtui.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * An entry in a {@code HTreeChart}. A node has associated data and a range as well, which will
  * be visualized by the parent tree as rectangular bars.
  *
  * @param <N> Type of the node subclass, provided to allow using get methods without casting
  */
-public abstract class HNode<N extends HNode<N>> {
+public interface HNode<N extends HNode<N>> {
 
-  public abstract int getChildCount();
+  int getChildCount();
 
   @NotNull
-  public abstract N getChildAt(int index);
+  N getChildAt(int index);
 
   @Nullable
-  public abstract N getParent();
+  N getParent();
 
-  public abstract long getStart();
+  long getStart();
 
-  public abstract long getEnd();
+  long getEnd();
 
-  public abstract int getDepth();
+  int getDepth();
 
-  public final long getDuration() {
+  default long getDuration() {
     return getEnd() - getStart();
   }
 
   @Nullable
-  public final N getFirstChild() {
+  default N getFirstChild() {
     return getChildCount() == 0 ? null : getChildAt(0);
   }
 
   @Nullable
-  public final N getLastChild() {
+  default N getLastChild() {
     return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
   }
 }
