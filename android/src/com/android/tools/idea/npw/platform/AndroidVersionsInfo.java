@@ -429,17 +429,14 @@ public class AndroidVersionsInfo {
 
     public int getBuildApiLevel() {
       int apiLevel;
-      if (myAddon != null) {
+      if (myAddon != null || myAndroidTarget != null && (myAndroidTarget.getVersion().isPreview() || !myAndroidTarget.isPlatform())) {
         apiLevel = myMinApiLevel;
       }
-      else if (myAndroidTarget == null) {
+      else if (getHighestInstalledVersion() != null && getHighestInstalledVersion().getFeatureLevel() > HIGHEST_KNOWN_STABLE_API) {
+        apiLevel = getHighestInstalledVersion().getFeatureLevel();
+      }
+      else {
         apiLevel = HIGHEST_KNOWN_STABLE_API;
-      }
-      else if (myAndroidTarget.getVersion().isPreview() || !myAndroidTarget.isPlatform()) {
-        apiLevel = myMinApiLevel;
-      }
-      else  {
-        apiLevel = getHighestInstalledVersion() == null ? HIGHEST_KNOWN_STABLE_API : getHighestInstalledVersion().getFeatureLevel();
       }
       return apiLevel;
     }
@@ -456,12 +453,7 @@ public class AndroidVersionsInfo {
     }
 
     public int getTargetApiLevel() {
-      int buildApiLevel = getBuildApiLevel();
-      if (buildApiLevel >= HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
-        return buildApiLevel;
-      }
-
-      return getHighestInstalledVersion() == null ? HIGHEST_KNOWN_API  : getHighestInstalledVersion().getApiLevel();
+      return getBuildApiLevel();
     }
 
     @NotNull
@@ -471,7 +463,12 @@ public class AndroidVersionsInfo {
         return myAndroidTarget == null ? Integer.toString(buildApiLevel) : myAndroidTarget.getVersion().getApiString();
       }
 
-      return getHighestInstalledVersion() == null ? Integer.toString(HIGHEST_KNOWN_API) : getHighestInstalledVersion().getApiString();
+      AndroidVersion installedVersion = getHighestInstalledVersion();
+      if (installedVersion != null && installedVersion.getFeatureLevel() == buildApiLevel) {
+        return installedVersion.getApiString();
+      }
+
+      return Integer.toString(buildApiLevel);
     }
 
     @NotNull
