@@ -2,7 +2,9 @@
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
-    Supports development of Android applications with IntelliJ IDEA and Android Studio.
+    <![CDATA[
+    Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
+    ]]>
   </description>
   <version>10.3.0</version>
   <vendor>JetBrains &amp; Google</vendor>
