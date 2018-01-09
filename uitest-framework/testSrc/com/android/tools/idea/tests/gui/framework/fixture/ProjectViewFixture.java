@@ -42,7 +42,6 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
-import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -58,7 +57,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
-import javax.swing.tree.TreeModel;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.List;
@@ -106,6 +104,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
+    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent(), 120);
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
@@ -115,6 +114,17 @@ public class ProjectViewFixture extends ToolWindowFixture {
     myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
 
     GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
+  }
+
+  private static void waitForTreeToFinishLoading(@NotNull Robot robot,
+                                                 @NotNull Container root,
+                                                 int secondsToWait) {
+    GuiTests.waitUntilGone(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
+      @Override
+      protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
+        return component.isRunning();
+      }
+    }, secondsToWait);
   }
 
   @NotNull
@@ -130,7 +140,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane(name);
     }
 
-    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot).waitForTreeToFinishLoading();
+    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot);
   }
 
   public static class PaneFixture {
@@ -147,15 +157,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    private PaneFixture waitForTreeToFinishLoading() {
-      Wait.seconds(5).expecting("tree to load").until(() -> !(((AsyncTreeModel) myTree.target().getModel()).isProcessing()));
-      return this;
-    }
-
-    @NotNull
     public PaneFixture expand() {
       GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
-      waitForTreeToFinishLoading();
       return this;
     }
 
@@ -238,6 +241,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
+      waitForTreeToFinishLoading(myRobot, myTree.target(), 60);
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
         myTree.expandPath(totalPath.toString());
