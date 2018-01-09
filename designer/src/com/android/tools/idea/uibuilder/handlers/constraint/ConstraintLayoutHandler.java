@@ -65,6 +65,8 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
@@ -180,8 +182,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     // noinspection unchecked
-    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.newArrayList(
-
+    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
                         StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
@@ -194,10 +195,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         "Expand Horizontally"),
         new AlignAction(Scout.Arrange.ExpandVertically,
                         StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-                        "Expand Vertically")),
-      Lists.newArrayList(new ViewActionSeparator()),
-
-      Lists.newArrayList(
+                        "Expand Vertically"),
+        new ViewActionSeparator(),
         new AlignAction(Scout.Arrange.DistributeHorizontally,
                         StudioIcons.LayoutEditor.Toolbar.DISTRIBUTE_HORIZONTAL,
                         StudioIcons.LayoutEditor.Toolbar.DISTRIBUTE_HORIZONTAL_CONSTRAINT,
@@ -208,7 +207,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         "Distribute Vertically")
       )
     )) {
-
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                      @NotNull ViewEditor editor,
@@ -222,11 +220,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     });
 
     // noinspection unchecked
-    actions.add(new NestedViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT, Lists.newArrayList(
-      ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
-      ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
-      Lists.newArrayList(new ViewActionSeparator()),
-      ConstraintViewActions.CENTER_ACTIONS)) {
+    actions.add(new NestedViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT, Lists.<List<ViewAction>>newArrayList(
+      Stream.of(ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
+                ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
+                ImmutableList.of(new ViewActionSeparator()),
+                ConstraintViewActions.CENTER_ACTIONS)
+        .flatMap(list -> list.stream())
+        .collect(Collectors.toList()))) {
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                      @NotNull ViewEditor editor,
