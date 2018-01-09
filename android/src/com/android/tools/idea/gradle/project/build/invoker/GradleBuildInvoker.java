@@ -32,7 +32,11 @@ import com.google.common.collect.*;
 import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
-import com.intellij.build.events.impl.*;
+import com.intellij.build.events.FailureResult;
+import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.OutputBuildEventImpl;
+import com.intellij.build.events.impl.StartBuildEventImpl;
+import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
@@ -404,7 +408,7 @@ public class GradleBuildInvoker {
       @Override
       public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
         String title = executionName + " failed";
-        FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
+        FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
         buildViewManager.onEvent(
           new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
       }
