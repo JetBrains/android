@@ -19,7 +19,6 @@ import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
@@ -94,11 +93,11 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(1, heaps.size()); // default heap should not show up if it doesn't contain anything
 
     // "default" heap only contains roots, no ClassObjects
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
     assertNull(defaultHeap);
 
     // "testHeap" contains the reference, softreference classes, plus a unique class for each instance we created (2).
-    HeapSet testHeap = heaps.stream().filter(heap -> "testHeap".equals(heap.getName())).findFirst().orElse(null);
+    HeapSet testHeap = heaps.stream().filter(heap -> "testHeap" .equals(heap.getName())).findFirst().orElse(null);
     assertEquals(testHeap.getName(), "testHeap");
     assertEquals(6, testHeap.getInstancesCount());
 
@@ -108,9 +107,9 @@ public class HeapDumpCaptureObjectTest {
     List<ClassifierSet> classSets = classClassifier.getFilteredClassifierSets();
     assertEquals(3, classSets.size());
     assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
-    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class".equals(((ClassSet)classifier).getClassEntry().getClassName())));
-    assertTrue(classSets.stream().anyMatch(classifier -> "Class0".equals(((ClassSet)classifier).getClassEntry().getClassName())));
-    assertTrue(classSets.stream().anyMatch(classifier -> "Class1".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class0" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class1" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
 
     InstanceObject instance0 = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream().findFirst().orElse(null);
     InstanceObject instance1 = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream().findFirst().orElse(null);
@@ -130,8 +129,8 @@ public class HeapDumpCaptureObjectTest {
     MemoryProfiler.HeapDumpInfo dumpInfo =
       MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
+                                myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -166,7 +165,7 @@ public class HeapDumpCaptureObjectTest {
     Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(2, heaps.size());
 
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
   }
 
