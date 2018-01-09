@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -39,7 +38,6 @@ import static com.android.tools.idea.templates.Template.*;
  */
 public class TemplateMetadata {
   public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
-  public static final String ATTR_ACTIVITY_TITLE = "activityTitle";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
   public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
   public static final String ATTR_CREATE_ICONS = "createIcons";
@@ -55,7 +53,6 @@ public class TemplateMetadata {
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
-  public static final String ATTR_PACKAGE_ROOT = "packageRoot";
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
@@ -91,10 +88,6 @@ public class TemplateMetadata {
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
-  public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";
-  public static final String ATTR_ACTION_BAR_EXTRA = "usesActionBar";
-  public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
-  public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
@@ -364,11 +357,6 @@ public class TemplateMetadata {
     catch (RuntimeException e) {
       return defaultValue;
     }
-  }
-
-  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
-    String value = myDocument.getDocumentElement().getAttribute(attrName);
-    return (value == null) ? defaultValue : SdkConstants.VALUE_TRUE.equals(value);
   }
 
   /**
