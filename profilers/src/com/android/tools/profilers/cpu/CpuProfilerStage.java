@@ -344,6 +344,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setProfilerType(config.getProfilerType())
       .setBufferSizeInMb(config.getProfilingBufferSizeInMb())
       .setSamplingIntervalUs(config.getProfilingSamplingIntervalUs())
+      .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
       .build();
 
     setCaptureState(CaptureState.STARTING);
