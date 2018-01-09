@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +41,11 @@ class BasePerspectiveConfigurableTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
   @Test
