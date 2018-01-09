@@ -74,7 +74,8 @@ public class DebuggerTestBase {
   }
 
   public static void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern, String debugConfigName) {
-    verifyVariablesAtBreakpoint(ideFrame, expectedPattern, debugConfigName);
+    Wait.seconds(5).expecting("variable patterns to match")
+      .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, debugConfigName));
   }
 
   protected static void resume(@NotNull String debugConfigName, IdeFrameFixture ideFrame) {
@@ -86,6 +87,9 @@ public class DebuggerTestBase {
   private static boolean verifyVariablesAtBreakpoint(IdeFrameFixture ideFrame, String[] expectedVariablePatterns, String debugConfigName) {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
+
+    contentFixture.clickDebuggerTreeRoot();
+    Wait.seconds(5).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
     XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();

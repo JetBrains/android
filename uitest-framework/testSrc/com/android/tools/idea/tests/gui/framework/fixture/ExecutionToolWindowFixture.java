@@ -268,12 +268,12 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
       TabLabel tabLabel;
       if (parentComponentType == null) {
-        tabLabel = waitUntilShowing(myRobot, null, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        tabLabel = waitUntilShowing(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.toString().equals(tabName);
           }
-        }, 30);
+        });
       }
       else {
         final JComponent parent = myRobot.finder().findByType(root, parentComponentType, false);
@@ -282,7 +282,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.getParent() == parent && component.toString().equals(tabName);
           }
-        }, 30);
+        });
       }
       assertThat(tabLabel.isShowing()).isTrue();
       myRobot.click(tabLabel);
