@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.google.common.truth.Truth.assertThat
 import org.fest.swing.timing.Wait
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Ignore
@@ -43,6 +44,11 @@ class SuggestionsViewTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
   @Ignore("b/71720545")
