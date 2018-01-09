@@ -44,7 +44,6 @@ class CreateDestinationMenuTest : NavTestCase() {
 
   private val myItemsByType = HashMap<NavigationSchema.DestinationType?, Pair<String, PsiClass>>()
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     _model = model("nav.xml") {
@@ -70,7 +69,6 @@ class CreateDestinationMenuTest : NavTestCase() {
     }
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     _model = null
     _menu = null
