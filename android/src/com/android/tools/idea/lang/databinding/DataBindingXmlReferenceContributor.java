@@ -61,7 +61,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && ModuleDataBinding.isEnabled(facet)) {
+      if (facet != null && ModuleDataBinding.getInstance(facet).isEnabled()) {
         LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
         PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
         if (topLevelFile != null) {
@@ -91,7 +91,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
         Module module = ModuleUtilCore.findModuleForPsiElement(element);
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null && ModuleDataBinding.isEnabled(facet)) {
+          if (facet != null && ModuleDataBinding.getInstance(facet).isEnabled()) {
             LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
             PsiFile topLevelFile = InjectedLanguageUtil.getTopLevelFile(element);
             if (topLevelFile != null) {

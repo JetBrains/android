@@ -15,48 +15,34 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleDataBinding extends AndroidFacetScopedService {
-  private static final Key<ModuleDataBinding> KEY = Key.create("com.android.tools.idea.databinding.ModuleDataBinding");
-
+public class ModuleDataBinding {
   @Nullable private LightBrClass myLightBrClass;
+  private boolean myEnabled;
 
-  public static void enable(@NotNull AndroidFacet facet) {
-    setEnabled(facet, true);
-  }
-
-  public static void disable(@NotNull AndroidFacet facet) {
-    setEnabled(facet, false);
-  }
-
-  private static void setEnabled(@NotNull AndroidFacet facet, boolean enabled) {
-    if (isEnabled(facet) != enabled) {
-      ModuleDataBinding dataBinding = enabled ? new ModuleDataBinding(facet) : null;
-      facet.putUserData(KEY, dataBinding);
-    }
-  }
-
-  public static boolean isEnabled(@NotNull AndroidFacet facet) {
-    return getInstance(facet) != null;
-  }
-
-  @Nullable
+  @NotNull
   public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
-    return facet.getUserData(KEY);
+    ModuleDataBinding dataBinding = ModuleServiceManager.getService(facet.getModule(), ModuleDataBinding.class);
+    assert dataBinding != null; // service registered in android plugin
+    return dataBinding;
   }
 
-  private ModuleDataBinding(@NotNull AndroidFacet facet) {
-    super(facet);
+  private ModuleDataBinding() {
+    setEnabled(false);
   }
 
-  @Override
-  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    facet.putUserData(KEY, null);
+  public void setEnabled(boolean enabled) {
+    myEnabled = enabled;
+  }
+
+  public boolean isEnabled() {
+    return myEnabled;
   }
 
   /**

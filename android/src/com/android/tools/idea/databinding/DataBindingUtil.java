@@ -352,15 +352,10 @@ public class DataBindingUtil {
   public static void refreshDataBindingStatus(@NotNull AndroidFacet facet) {
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      boolean wasEnabled = ModuleDataBinding.isEnabled(facet);
+      boolean wasEnabled = ModuleDataBinding.getInstance(facet).isEnabled();
       boolean enabled = androidModel.getDataBindingEnabled();
       if (enabled != wasEnabled) {
-        if (enabled) {
-          ModuleDataBinding.enable(facet);
-        }
-        else {
-          ModuleDataBinding.disable(facet);
-        }
+        ModuleDataBinding.getInstance(facet).setEnabled(enabled);
         ourDataBindingEnabledModificationCount.incrementAndGet();
       }
     }
