@@ -88,9 +88,14 @@ public class EspressoRecorderTest {
     // The test menu item does not appear in the menu until we interact with the editor
     // This is a minor bug: https://issuetracker.google.com/71516507
     // Generate a click in the editor:
-    ideFrameFixture.getEditor()
-      .waitUntilErrorAnalysisFinishes()
-      .moveBetween("public class ", "MyActivityTest");
+    try {
+      ideFrameFixture.getEditor()
+        .waitUntilErrorAnalysisFinishes()
+        .moveBetween("public class ", "MyActivityTest");
+    } catch(WaitTimedOutError ignored) {
+      // We do not care if our cursor is not where it needs to be. We
+      // just needed a click inside the editor.
+    }
 
     Ref<JListFixture> popupList = new Ref<>();
     Wait.seconds(20).expecting("The instrumentation test is ready").until(() -> {
