@@ -148,8 +148,8 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     emulateBuild(BuildStatus.FAILED)
 
     assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.PARTIAL_SUCCESS)
-    verify(syncTopicListener).syncEnded(SyncResult.PARTIAL_SUCCESS)
+    assertThat(result.get()).isSameAs(SyncResult.SOURCE_GENERATION_FAILURE)
+    verify(syncTopicListener).syncEnded(SyncResult.SOURCE_GENERATION_FAILURE)
   }
 
   fun testSyncProject_sourceGenerationSuccessful() {
