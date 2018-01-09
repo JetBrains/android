@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.PlatformUtils;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +66,8 @@ public class AndroidIconProvider extends IconProvider {
       }
     }
     // Use Andorid Studio icons for module's root
-    if (element instanceof PsiDirectory) {
+    //todo move this code from the plugin to Android Studio specific part
+    if (!PlatformUtils.isJetBrainsProduct() && element instanceof PsiDirectory) {
       PsiDirectory psiDirectory = (PsiDirectory)element;
       VirtualFile virtualDirectory = psiDirectory.getVirtualFile();
       Project project = psiDirectory.getProject();
