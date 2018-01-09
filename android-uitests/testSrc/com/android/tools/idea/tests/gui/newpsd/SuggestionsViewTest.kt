@@ -26,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import org.fest.swing.timing.Wait
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,6 +45,7 @@ class SuggestionsViewTest {
     StudioFlags.NEW_PSD_ENABLED.override(true)
   }
 
+  @Ignore("b/71720545")
   @Test
   fun showsAndProcessesMessages() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
