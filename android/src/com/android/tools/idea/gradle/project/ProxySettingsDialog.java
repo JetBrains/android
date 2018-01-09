@@ -70,7 +70,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
     String text = "<html>Android Studio is configured to use a HTTP proxy. " +
                   "Gradle may need these HTTP proxy settings to access the Internet (e.g. for downloading dependencies.)<br/><br/>" +
-                  "Would you like to copy the IDE's proxy configuration to project's gradle.properties file?<br/><br/>" +
+                  "Would you like to copy the IDE's proxy configuration to the global gradle.properties file?<br/><br/>" +
                   "<b>Note:</b> To avoid potential security vulnerabilities, passwords will <b>not</b> be copied to the gradle.properties " +
                   "file. You can manually copy passwords to the gradle.properties file at your own risk.<br/><br/>" +
                   "For more details, please refer to the " +

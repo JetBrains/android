@@ -67,10 +67,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.BufferedOutputStream;
@@ -85,11 +82,14 @@ import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
@@ -105,6 +105,7 @@ import static org.junit.Assert.*;
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleSyncTest {
+  @Nullable private File myBackupProperties;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -115,6 +116,23 @@ public class GradleSyncTest {
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  /**
+   * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could
+   * cause other tests to use an incorrect configuration.
+   */
+  @Before
+  public void backupPropertiesFile() {
+    myBackupProperties = backupGlobalGradlePropertiesFile();
+  }
+
+  /**
+   * Restore user gradle.properties file content to what it had before running the tests, or delete if it did not exist.
+   */
+  @After
+  public void restorePropertiesFile() {
+    restoreGlobalGradlePropertiesFile(myBackupProperties);
   }
 
   @Test
@@ -365,8 +383,8 @@ public class GradleSyncTest {
     guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    File gradlePropertiesPath = new File(ideFrame.getProjectPath(), "gradle.properties");
-    createIfNotExists(gradlePropertiesPath);
+    File gradlePropertiesFile = getUserGradlePropertiesFile();
+    createIfNotExists(gradlePropertiesFile);
 
     String host = "myproxy.test.com";
     int port = 443;
@@ -386,9 +404,10 @@ public class GradleSyncTest {
     ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish(Wait.seconds(20));
 
     // Verify gradle.properties has proxy settings.
-    assertAbout(file()).that(gradlePropertiesPath).isFile();
+    gradlePropertiesFile = getUserGradlePropertiesFile();
+    assertAbout(file()).that(gradlePropertiesFile).isFile();
 
-    Properties gradleProperties = getProperties(gradlePropertiesPath);
+    Properties gradleProperties = getProperties(gradlePropertiesFile);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
 
