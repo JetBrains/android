@@ -186,6 +186,7 @@ public class LayoutEditorTest {
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
+      .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button");
 
     NlComponentFixture button = ideFrameFixture.getEditor()
