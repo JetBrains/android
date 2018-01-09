@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between
  * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
  */
-public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread> {
+public class CpuProfilerConfigModel {
   private ProfilingConfiguration myProfilingConfiguration;
 
   /**
