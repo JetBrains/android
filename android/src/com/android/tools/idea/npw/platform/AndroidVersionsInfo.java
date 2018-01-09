@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.Revision;
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -171,7 +170,7 @@ public class AndroidVersionsInfo {
     List<VersionItem> versionItemList = new ArrayList<>();
 
     for (VersionItem target : myTargetVersions) {
-      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getApiLevel())
+      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
           || (target.getAndroidTarget() != null && target.getAndroidTarget().getVersion().isPreview())) {
         versionItemList.add(target);
       }
@@ -339,7 +338,7 @@ public class AndroidVersionsInfo {
     for (RepoPackage info : sorted) {
       int apiLevel = getFeatureLevel(info);
       while (apiLevel > existingApiLevel) {
-        existingApiLevel = ++index < versionItemList.size() ? versionItemList.get(index).myApiLevel : Integer.MAX_VALUE;
+        existingApiLevel = ++index < versionItemList.size() ? versionItemList.get(index).myMinApiLevel : Integer.MAX_VALUE;
       }
       if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
         versionItemList.add(index++, new VersionItem(info));
@@ -357,7 +356,7 @@ public class AndroidVersionsInfo {
         continue;
       }
       while (apiLevel > existingApiLevel) {
-        existingApiLevel = ++index < versionItemList.size() ? versionItemList.get(index).myApiLevel : Integer.MAX_VALUE;
+        existingApiLevel = ++index < versionItemList.size() ? versionItemList.get(index).myMinApiLevel : Integer.MAX_VALUE;
       }
       if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
         versionItemList.add(index++, new VersionItem(apiLevel));
@@ -369,8 +368,8 @@ public class AndroidVersionsInfo {
   public class VersionItem {
     private final AndroidVersion myAndroidVersion;
     private final String myLabel;
-    private final int myApiLevel;
-    private final String myApiLevelStr; // Can be a number or a Code Name (eg "L", "N", etc)
+    private final int myMinApiLevel;
+    private final String myMinApiLevelStr; // Can be a number or a Code Name (eg "L", "N", etc)
 
     private IAndroidTarget myAndroidTarget;
     private RemotePackage myAddon;
@@ -379,19 +378,19 @@ public class AndroidVersionsInfo {
       myAndroidVersion = androidVersion;
       myLabel = getLabel(androidVersion, tag, target);
       myAndroidTarget = target;
-      myApiLevel = androidVersion.getFeatureLevel();
-      myApiLevelStr = androidVersion.getApiString();
+      myMinApiLevel = androidVersion.getFeatureLevel();
+      myMinApiLevelStr = androidVersion.getApiString();
     }
 
-    VersionItem(@NotNull String label, int apiLevel) {
-      myAndroidVersion = new AndroidVersion(apiLevel, null);
+    VersionItem(@NotNull String label, int minApiLevel) {
+      myAndroidVersion = new AndroidVersion(minApiLevel, null);
       myLabel = label;
-      myApiLevel = apiLevel;
-      myApiLevelStr = Integer.toString(apiLevel);
+      myMinApiLevel = minApiLevel;
+      myMinApiLevelStr = Integer.toString(minApiLevel);
     }
 
-    VersionItem(int apiLevel) {
-      this(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG, null);
+    VersionItem(int minApiLevel) {
+      this(new AndroidVersion(minApiLevel, null), SystemImage.DEFAULT_TAG, null);
     }
 
     @VisibleForTesting
@@ -419,25 +418,25 @@ public class AndroidVersionsInfo {
       return myAddon;
     }
 
-    public int getApiLevel() {
-      return myApiLevel;
+    public int getMinApiLevel() {
+      return myMinApiLevel;
     }
 
     @NotNull
-    public String getApiLevelStr() {
-      return myApiLevelStr;
+    public String getMinApiLevelStr() {
+      return myMinApiLevelStr;
     }
 
     public int getBuildApiLevel() {
       int apiLevel;
       if (myAddon != null) {
-        apiLevel = myApiLevel;
+        apiLevel = myMinApiLevel;
       }
       else if (myAndroidTarget == null) {
         apiLevel = HIGHEST_KNOWN_STABLE_API;
       }
       else if (myAndroidTarget.getVersion().isPreview() || !myAndroidTarget.isPlatform()) {
-        apiLevel = myApiLevel;
+        apiLevel = myMinApiLevel;
       }
       else  {
         apiLevel = getHighestInstalledVersion() == null ? HIGHEST_KNOWN_STABLE_API : getHighestInstalledVersion().getFeatureLevel();

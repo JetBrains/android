@@ -348,7 +348,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
     int getMinTargetSdk() {
       AndroidVersionsInfo.VersionItem androidVersion = newRenderModel.androidSdkInfo().getValueOrNull();
-      return androidVersion == null ? 0 : androidVersion.getApiLevel();
+      return androidVersion == null ? 0 : androidVersion.getMinApiLevel();
     }
 
     @NotNull

@@ -95,14 +95,14 @@ final class FormFactorSdkControls {
     myHelpMeChooseLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        int minApiLevel = ((AndroidVersionsInfo.VersionItem)myMinSdkCombobox.getSelectedItem()).getApiLevel();
+        int minApiLevel = ((AndroidVersionsInfo.VersionItem)myMinSdkCombobox.getSelectedItem()).getMinApiLevel();
         ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel);
         Disposer.register(myDisposable, chooseApiLevelDialog.getDisposable());
 
         if (chooseApiLevelDialog.showAndGet()) {
           int selectedApiLevel = chooseApiLevelDialog.getSelectedApiLevel();
           for (AndroidVersionsInfo.VersionItem item : items) {
-            if (item.getApiLevel() == selectedApiLevel) {
+            if (item.getMinApiLevel() == selectedApiLevel) {
               myMinSdkCombobox.setSelectedItem(item);
               break;
             }
@@ -115,7 +115,7 @@ final class FormFactorSdkControls {
       myMinSdkCombobox.addItemListener(itemEvent -> {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() != null) {
           AndroidVersionsInfo.VersionItem selectedItem = (AndroidVersionsInfo.VersionItem)itemEvent.getItem();
-          String referenceString = getApiHelpText(selectedItem.getApiLevel(), selectedItem.getApiLevelStr());
+          String referenceString = getApiHelpText(selectedItem.getMinApiLevel(), selectedItem.getMinApiLevelStr());
 
           ApplicationManager.getApplication().invokeLater(() -> myHelpMeChooseLabel.setText(referenceString));
         }
