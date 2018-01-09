@@ -1032,8 +1032,7 @@
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
     <importFilter implementation="com.android.tools.idea.editors.AndroidImportFilter" />
     <editorTabTitleProvider implementation="com.android.tools.idea.editors.AndroidEditorTitleProvider"/>
-    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons" order="before javaDirectory"/>
-    <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidFileIconProvider" id="androidFileIcons"/>
+    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons"/>
     <refactoring.safeDeleteProcessor id="android_component" order="before javaProcessor"
                                      implementation="org.jetbrains.android.AndroidComponentSafeDeleteProcessor"/>
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
