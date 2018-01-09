@@ -67,7 +67,7 @@ public final class AndroidVersionsInfoTest {
 
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(remotePlatform);
     assertNotNull(versionItem.getAddon());
-    assertEquals(ADDON_VERSION, versionItem.getApiLevel());
+    assertEquals(ADDON_VERSION, versionItem.getMinApiLevel());
     assertEquals(ADDON_VERSION, versionItem.getBuildApiLevel());
   }
 
@@ -77,7 +77,7 @@ public final class AndroidVersionsInfoTest {
   @Test
   public void noAndroidTarget() {
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(DEFAULT_VERSION);
-    assertEquals(DEFAULT_VERSION, versionItem.getApiLevel());
+    assertEquals(DEFAULT_VERSION, versionItem.getMinApiLevel());
     assertEquals(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, versionItem.getBuildApiLevel());
   }
 
@@ -94,7 +94,7 @@ public final class AndroidVersionsInfoTest {
       }
     };
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
-    assertEquals(PREVIEW_VERSION, versionItem.getApiLevel());
+    assertEquals(PREVIEW_VERSION, versionItem.getMinApiLevel());
     assertEquals(PREVIEW_VERSION, versionItem.getBuildApiLevel());
   }
 
@@ -106,7 +106,7 @@ public final class AndroidVersionsInfoTest {
     final MockPlatformTarget baseTarget = new MockPlatformTarget(DEFAULT_VERSION, 0);
     MockAddonTarget projectTarget = new MockAddonTarget("google", baseTarget, 1);
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(projectTarget);
-    assertEquals(DEFAULT_VERSION, versionItem.getApiLevel());
+    assertEquals(DEFAULT_VERSION, versionItem.getMinApiLevel());
     assertEquals(DEFAULT_VERSION, versionItem.getBuildApiLevel());
   }
 
@@ -117,7 +117,7 @@ public final class AndroidVersionsInfoTest {
   public void highestInstalledTarget() {
     MockPlatformTarget androidTarget = new MockPlatformTarget(DEFAULT_VERSION, 0);
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
-    assertEquals(DEFAULT_VERSION, versionItem.getApiLevel());
+    assertEquals(DEFAULT_VERSION, versionItem.getMinApiLevel());
     assertEquals(HIGHEST_VERSION, versionItem.getBuildApiLevel());
   }
 
