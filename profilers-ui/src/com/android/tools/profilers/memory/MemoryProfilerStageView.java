@@ -483,16 +483,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
     buttonToolbar.add(getSelectionTimeLabel());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      FlatToggleButton button = SearchComponent.createFilterToggleButton();
+      FlatToggleButton button = FilterComponent.createFilterToggleButton();
       buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
-      SearchComponent searchTextArea = getIdeComponents()
-        .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-      searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
-      headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
-      searchTextArea.getComponent().setVisible(false);
-      searchTextArea.getComponent().setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
-      SearchComponent.configureKeyBindingAndFocusBehaviors(capturePanel, searchTextArea, button);
+      FilterComponent filterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+      filterComponent.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
+      headingPanel.add(filterComponent, BorderLayout.SOUTH);
+      filterComponent.setVisible(false);
+      filterComponent.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
+      filterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
     headingPanel.add(buttonToolbar, BorderLayout.EAST);
 

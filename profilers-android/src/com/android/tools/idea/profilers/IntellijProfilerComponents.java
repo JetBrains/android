@@ -168,10 +168,4 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
                                                            @NotNull Collection<String> variants) {
     return new IntellijAutoCompleteTextField(myProject, placeholder, value, variants);
   }
-
-  @NotNull
-  @Override
-  public SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs) {
-    return new IntellijSearchComponent(propertyName, textFieldWidth, delayMs);
-  }
 }
