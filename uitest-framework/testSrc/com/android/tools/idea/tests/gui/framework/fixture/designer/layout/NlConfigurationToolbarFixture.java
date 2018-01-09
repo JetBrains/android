@@ -80,7 +80,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
-    selectDropDownActionButtonItem("API Version in Editor", new ApiLevelPredicate(apiLevel));
+    selectDropDownActionButtonItem("API Version in Editor", text -> apiLevel.equals(text));
     return this;
   }
 
@@ -228,19 +228,6 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
         return deviceName.equals(item);
       }
       return false;
-    }
-  }
-
-  private static class ApiLevelPredicate implements Predicate<String> {
-    private final String apiLevel;
-
-    ApiLevelPredicate(@NotNull String apiLevel) {
-      this.apiLevel = apiLevel;
-    }
-
-    @Override
-    public boolean test(@NotNull String item) {
-      return item.trim().endsWith(apiLevel);
     }
   }
 }

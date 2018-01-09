@@ -293,11 +293,11 @@ public class ConstraintLayoutTest {
       .requireOrientation("Portrait");
 
     preview.getConfigToolbar()
-      .chooseApiLevel("API 23")
+      .chooseApiLevel("23")
       .requireApiLevel("23")
-      .chooseApiLevel("API 24")
+      .chooseApiLevel("24")
       .requireApiLevel("24")
-      .chooseApiLevel("API 25")
+      .chooseApiLevel("25")
       .requireApiLevel("25");
 
     preview.getConfigToolbar()
