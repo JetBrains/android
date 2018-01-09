@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
@@ -93,7 +94,7 @@ class CpuCaptureView {
   private final FlatTabbedPane myTabsPanel;
 
   @NotNull
-  private SearchComponent mySearchComponent;
+  private FilterComponent myFilterComponent;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
   // Previously, we were creating a CaptureDetailsView temporarily and grabbing its UI
@@ -131,17 +132,16 @@ class CpuCaptureView {
     JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.add(clockTypeCombo);
     toolbar.add(myView.getSelectionTimeLabel());
-    mySearchComponent = myView.getIdeComponents()
-      .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+    myFilterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-      FlatToggleButton filterButton = SearchComponent.createFilterToggleButton();
+      FlatToggleButton filterButton = FilterComponent.createFilterToggleButton();
       toolbar.add(new FlatSeparator());
       toolbar.add(filterButton);
 
-      mySearchComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
-      mySearchComponent.getComponent().setVisible(false);
-      mySearchComponent.getComponent().setBorder(DEFAULT_BOTTOM_BORDER);
-      SearchComponent.configureKeyBindingAndFocusBehaviors(myPanel, mySearchComponent, filterButton);
+      myFilterComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
+      myFilterComponent.setVisible(false);
+      myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
+      myFilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, filterButton);
     }
 
     myPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
@@ -162,10 +162,10 @@ class CpuCaptureView {
       assert tab instanceof JPanel;
       ((JPanel)tab).removeAll();
     }
-    JComponent searchComponent = mySearchComponent.getComponent();
-    boolean searchHasFocus = searchComponent.isAncestorOf(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
-    if (searchComponent.getParent() != null) {
-      searchComponent.getParent().remove(searchComponent);
+    JComponent filterComponent = myFilterComponent;
+    boolean searchHasFocus = filterComponent.isAncestorOf(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
+    if (filterComponent.getParent() != null) {
+      filterComponent.getParent().remove(filterComponent);
     }
 
     CaptureModel.Details details = myView.getStage().getCaptureDetails();
@@ -190,7 +190,7 @@ class CpuCaptureView {
     // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
     JPanel selectedTab = (JPanel)myTabsPanel.getSelectedComponent();
     myDetailsView = myBinder.build(myView, details);
-    selectedTab.add(searchComponent, BorderLayout.NORTH);
+    selectedTab.add(filterComponent, BorderLayout.NORTH);
     selectedTab.add(myDetailsView.getComponent(), BorderLayout.CENTER);
     // We're replacing the content by removing and adding a new component.
     // JComponent#removeAll doc says that we should revalidate if it is already visible.
@@ -198,7 +198,7 @@ class CpuCaptureView {
 
     // the searchComponent gets re-added to the selected tab component after filtering changes, so reset the focus here.
     if (searchHasFocus) {
-      mySearchComponent.requestFocusInWindow();
+      myFilterComponent.requestFocusInWindow();
     }
   }
 
