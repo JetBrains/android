@@ -38,7 +38,6 @@ class NavActionManagerTest : NavTestCase() {
   private lateinit var model: SyncNlModel
   private lateinit var surface: NavDesignSurface
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     model = model("nav.xml") {

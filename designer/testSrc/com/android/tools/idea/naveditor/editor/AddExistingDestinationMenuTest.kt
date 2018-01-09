@@ -37,7 +37,6 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   private val menu
     get() = _menu!!
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     _model = model("nav.xml") {
@@ -56,7 +55,6 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     menu.createCustomComponentPopup()
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     _model = null
     _menu = null
@@ -95,7 +93,6 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     assertEquals("navigation.xml", (gallery.model.getElementAt(0) as Destination).label)
   }
 
-  @Throws(Exception::class)
   fun testImageLoading() {
     // TODO: implement thumbnails for destinations
     /*

@@ -46,7 +46,6 @@ class DestinationListTest : NavTestCase() {
   private val list: DestinationList
     get() = _list!!
 
-  @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     _model = model("nav.xml") {
@@ -66,7 +65,6 @@ class DestinationListTest : NavTestCase() {
     list.setToolContext(surface)
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     try {
       _model = null
