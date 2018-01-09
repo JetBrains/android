@@ -20,7 +20,6 @@ import com.android.repository.testframework.FakePackage;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.androidTarget.MockAddonTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.generated.addon.v1.AddonDetailsType;
@@ -78,7 +77,7 @@ public final class AndroidVersionsInfoTest {
   public void noAndroidTarget() {
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(DEFAULT_VERSION);
     assertEquals(DEFAULT_VERSION, versionItem.getMinApiLevel());
-    assertEquals(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, versionItem.getBuildApiLevel());
+    assertEquals(HIGHEST_VERSION, versionItem.getBuildApiLevel());
   }
 
   /**
