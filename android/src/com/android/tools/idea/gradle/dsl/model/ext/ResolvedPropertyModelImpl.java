@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.refactoring.convertToStatic.fixes.EmptyReturnTypeFix;
 
 import java.util.HashSet;
 import java.util.List;
