@@ -245,7 +245,16 @@ public class HeapDumpCaptureObject implements CaptureObject {
         return true;
       });
     }
-    heapSets.entrySet().forEach(entry -> myHeapSets.put(entry.getKey().getId(), entry.getValue()));
+    heapSets.forEach((key, value) -> {
+      if ("default".equals(key.getName())) {
+        if (heapSets.size() == 1 || key.getInstancesCount() > 0) {
+          myHeapSets.put(key.getId(), value);
+        }
+      }
+      else {
+        myHeapSets.put(key.getId(), value);
+      }
+    });
 
     return true;
   }
