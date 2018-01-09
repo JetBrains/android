@@ -19,10 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.DexReferences;
 import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
 import com.android.tools.apk.analyzer.dex.ProguardMappings;
-import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
-import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
-import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
-import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
+import com.android.tools.apk.analyzer.dex.tree.*;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -47,7 +44,10 @@ import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 
@@ -104,7 +104,29 @@ public class ShowReferencesAction extends AnAction {
     final boolean deobfuscate = myDexFileViewer.isDeobfuscateNames();
 
     assert node.getReference() != null;
-    Tree tree = new Tree(new DefaultTreeModel(references.getReferenceTreeFor(node.getReference())));
+    Tree tree = new Tree(new DefaultTreeModel(references.getReferenceTreeFor(node.getReference(), true)));
+    tree.setShowsRootHandles(true);
+    tree.addTreeWillExpandListener(new TreeWillExpandListener() {
+      @Override
+      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+        TreePath path = event.getPath();
+        if (path.getLastPathComponent() instanceof DexElementNode) {
+          DexElementNode node = (DexElementNode) path.getLastPathComponent();
+          if (!DexReferences.isAlreadyLoaded(node)){
+            node.removeAllChildren();
+            assert node.getReference() != null;
+            references.addReferencesForNode(node, true);
+            node.sort(DexReferences.NODE_COMPARATOR);
+          }
+        }
+      }
+
+      @Override
+      public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+
+      }
+    });
+
     tree.setCellRenderer(new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
