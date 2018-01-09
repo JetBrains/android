@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -63,21 +62,21 @@ public final class AdtUiUtils {
   /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
-   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param text              the original text.
+   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param availableSpace    the available space to render the text.
    * @param charactersToShrink the number of characters to trim by on each truncate iteration.
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
-  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int charactersToShrink) {
-    return getFittedString(s -> metrics.stringWidth(s) <= availableSpace, text, charactersToShrink);
+  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace, int charactersToShrink) {
+    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace, charactersToShrink);
   }
 
   /**
    * Similar to {@link #getFilterPattern(String, boolean, boolean)},
    * but takes a predicate method to determine whether the text should fit or not.
    */
-  public static String getFittedString(Predicate<String> textFitPredicate, String text, int charactersToShrink) {
+  public static String shrinkToFit(String text, Predicate<String> textFitPredicate, int charactersToShrink) {
     if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
