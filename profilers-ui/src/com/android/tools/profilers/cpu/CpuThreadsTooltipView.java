@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,8 +29,10 @@ import javax.swing.*;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
-  @NotNull private final JLabel myContent;
   @NotNull private final ProfilerTimeline myTimeline;
+
+  @VisibleForTesting
+  @NotNull protected final JLabel myContent;
 
   protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
     super(view.getTimeline(), "CPU");
@@ -38,7 +41,13 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myContent = new JLabel();
     myContent.setFont(AdtUiUtils.DEFAULT_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::threadStateChanged);
+    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::timeChanged);
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    myTooltip.removeDependencies(this);
   }
 
   @Override
@@ -52,15 +61,12 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
                                            title,
                                            ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
                                            time));
+      myContent.setText(myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState()));
       updateMaximumLabelDimensions();
     } else {
       myHeadingLabel.setText("");
+      myContent.setText("");
     }
-  }
-
-  private void threadStateChanged() {
-    String state = myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState());
-    myContent.setText(state);
   }
 
   @NotNull
@@ -69,7 +75,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     return myContent;
   }
 
-  private String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
+  private static String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
     switch (state) {
       case RUNNING:
       case RUNNING_CAPTURED:
