@@ -159,10 +159,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
-      return ImmutableList.of(ClassifierAttribute.LABEL, ALLOCATIONS, DEALLOCATIONS, TOTAL_COUNT, SHALLOW_SIZE);
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, TOTAL_COUNT, SHALLOW_SIZE);
     }
     else {
-      return ImmutableList.of(ClassifierAttribute.LABEL, ALLOCATIONS, DEALLOCATIONS, SHALLOW_SIZE);
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, SHALLOW_SIZE);
     }
   }
 
@@ -175,7 +175,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
-    return myHeapSets;
+    // Exclude DEFAULT_HEAP since it shouldn't show up in use in devices that support live allocation tracking.
+    if (myHeapSets.get(0).getInstancesCount() > 0) {
+      // But handle the unexpected, just in case....
+      return myHeapSets;
+    }
+    return myHeapSets.subList(1, myHeapSets.size());
   }
 
   @Override

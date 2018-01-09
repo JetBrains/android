@@ -91,12 +91,11 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isError());
 
     Collection<HeapSet> heaps = capture.getHeapSets();
-    assertEquals(2, heaps.size());
+    assertEquals(1, heaps.size()); // default heap should not show up if it doesn't contain anything
 
     // "default" heap only contains roots, no ClassObjects
     HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
-    assertNotNull(defaultHeap);
-    assertEquals(0, defaultHeap.getInstancesCount());
+    assertNull(defaultHeap);
 
     // "testHeap" contains the reference, softreference classes, plus a unique class for each instance we created (2).
     HeapSet testHeap = heaps.stream().filter(heap -> "testHeap".equals(heap.getName())).findFirst().orElse(null);
@@ -122,6 +121,53 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(field0.getAsInstance(), instance1);
     ReferenceObject reference1 = instance1.getReferences().get(0);
     assertEquals(reference1.getReferenceInstance(), instance0);
+  }
+
+  @Test
+  public void testDefaultHeapShowsUpWhenItIsNonEmpty() throws Exception {
+    long startTimeNs = 3;
+    long endTimeNs = 8;
+    MemoryProfiler.HeapDumpInfo dumpInfo =
+      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+                                dumpInfo, null, new ProfilerTimeline(), myIdeProfilerServices.getFeatureTracker());
+
+    // Verify values associated with the HeapDumpInfo object.
+    assertEquals(startTimeNs, capture.getStartTimeNs());
+    assertEquals(endTimeNs, capture.getEndTimeNs());
+    assertFalse(capture.isDoneLoading());
+    assertFalse(capture.isError());
+
+    final CountDownLatch loadLatch = new CountDownLatch(1);
+    final CountDownLatch doneLatch = new CountDownLatch(1);
+    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
+    new Thread(() -> {
+      loadLatch.countDown();
+      capture.load(null, null);
+      doneLatch.countDown();
+    }).start();
+
+    loadLatch.await();
+    // Load in a simple Snapshot and verify the MemoryObject hierarchy:
+    // - 1 holds reference to 2
+    // - single root object in default heap
+    SnapshotBuilder snapshotBuilder = new SnapshotBuilder(2, 0, 0)
+      .addReferences(1, 2).setDefaultHeapInstanceCount(1)
+      .addRoot(1);
+    byte[] buffer = snapshotBuilder.getByteBuffer();
+    myService.setExplicitSnapshotBuffer(buffer);
+    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
+    doneLatch.await();
+
+    assertTrue(capture.isDoneLoading());
+    assertFalse(capture.isError());
+
+    Collection<HeapSet> heaps = capture.getHeapSets();
+    assertEquals(2, heaps.size());
+
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    assertNotNull(defaultHeap);
   }
 
   @Test
