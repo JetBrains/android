@@ -82,6 +82,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
   }
 
+  @NotNull
   @Override
   protected Module createMainModule() throws IOException {
     Module mainModule = createModule(myProject.getName());
