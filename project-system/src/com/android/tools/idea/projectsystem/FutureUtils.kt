@@ -50,6 +50,10 @@ fun <I> List<ListenableFuture<I>>.successfulAsList(): ListenableFuture<List<I?>>
   return Futures.successfulAsList(this)
 }
 
+fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> {
+  return Futures.whenAllComplete(this)
+}
+
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
