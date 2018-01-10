@@ -77,7 +77,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
-import static com.android.tools.idea.run.editor.ProfilerState.PROFILER_EXECUTOR_ID;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
 
@@ -349,7 +348,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                 @NotNull Project project,
                                                 @Nullable AndroidSessionInfo info,
                                                 @NotNull DeviceFutures deviceFutures) {
-    InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices(), executor, myProfilerState);
+    InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
     if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
       if(promptInstallTargetPlatform(project, deviceFutures)) {
         gradleSupport = SUPPORTED;
@@ -662,9 +661,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @VisibleForTesting
   @NotNull
   InstantRunGradleSupport canInstantRun(@NotNull Module module,
-                                        @NotNull List<AndroidDevice> targetDevices,
-                                        @NotNull Executor executor,
-                                        @NotNull ProfilerState profilerState) {
+                                        @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
       return CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
     }
@@ -673,11 +670,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidVersion version = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(version)) {
       return API_TOO_LOW_FOR_INSTANT_RUN;
-    }
-
-    // Disable IR if user is starting a Profile run (aka clicking on Profile action)
-    if (executor.getId().equals(PROFILER_EXECUTOR_ID) || hasProfileInstrumentation(profilerState, version)) {
-      return DISABLE_INSTANT_RUN_WHEN_PROFILING;
     }
 
     IDevice targetDevice = MakeBeforeRunTaskProvider.getLaunchedDevice(device);
@@ -722,14 +714,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     return TARGET_PLATFORM_NOT_INSTALLED;
-  }
-
-  /**
-   * Returns true if profiler is adding instrumentation
-   */
-  private static boolean hasProfileInstrumentation(@NotNull ProfilerState profileState,
-                                                   @NotNull AndroidVersion version) {
-    return profileState.ADVANCED_PROFILING_ENABLED && !version.isGreaterOrEqualThan(26);
   }
 
   public void setOutputModel(@NotNull PostBuildModel outputModel) {
