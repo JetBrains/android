@@ -19,11 +19,11 @@ import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.res.ResourceHelper
-import com.android.tools.idea.uibuilder.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
-import com.android.tools.idea.uibuilder.model.StringAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.vfs.VfsUtil

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model
+package com.android.tools.idea.common.model
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.NlComponent
 import kotlin.reflect.KProperty
 
-open class BooleanAttributeDelegate(private val namespace: String?, private val propertyName: String) {
-  operator fun getValue(thisRef: NlComponent, property: KProperty<*>): Boolean {
-    return thisRef.resolveAttribute(namespace, propertyName)?.toBoolean() == true
+open class StringAttributeDelegate(private val namespace: String?, private val propertyName: String) {
+  operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
+    return thisRef.resolveAttribute(namespace, propertyName)
   }
 
-  operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: Boolean) {
-    thisRef.setAttribute(namespace, propertyName, if (value) "true" else null)
+  operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
+    thisRef.setAttribute(namespace, propertyName, value)
   }
 }
 
-class BooleanAutoAttributeDelegate(propertyName: String) : BooleanAttributeDelegate(SdkConstants.AUTO_URI, propertyName)
+class StringAutoAttributeDelegate(propertyName: String) : StringAttributeDelegate(SdkConstants.AUTO_URI, propertyName)
