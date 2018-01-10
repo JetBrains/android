@@ -49,7 +49,7 @@ public abstract class InstallOperation<Return, Argument> {
   public static <Return, Argument> InstallOperation<Return, Argument> wrap(@NotNull InstallContext context,
                                                                            @NotNull Function<Argument, Return> function,
                                                                            double progressShare) {
-    return new FunctionWrapper<Return, Argument>(context, function, progressShare);
+    return new FunctionWrapper<>(context, function, progressShare);
   }
 
   /**
@@ -87,7 +87,7 @@ public abstract class InstallOperation<Return, Argument> {
       }
       catch (Exception e) {
         Throwables.propagateIfPossible(e, WizardException.class, InstallationCancelledException.class);
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
   }
@@ -98,15 +98,19 @@ public abstract class InstallOperation<Return, Argument> {
   protected final void promptToRetry(@NotNull final String prompt, @NotNull String failureDescription, @Nullable Exception e) throws WizardException {
     final AtomicBoolean response = new AtomicBoolean(false);
     Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        int i = Messages.showYesNoDialog(null, prompt, "Android Studio Setup", "Retry", "Cancel", Messages.getErrorIcon());
-        response.set(i == Messages.YES);
-      }
+    application.invokeAndWait(() -> {
+      String wrappedPrompt = prompt.replaceAll("(\\p{Print}{30,50}([\\h\\n]|$))", "$1\n");
+      String wrappedFailure = failureDescription
+        .replaceAll("(\\p{Print}{30,50}([\\h\\n]|$))", "$1\n")
+        .replaceAll("(\\p{Print}{30,50}/)", "$1\n");
+      int i = Messages.showDialog(null, wrappedPrompt, "Android Studio Setup", wrappedFailure, new String[] {"Retry", "Cancel"}, 0, 0,
+                                  Messages.getErrorIcon());
+      response.set(i == Messages.YES);
     }, application.getAnyModalityState());
     if (!response.get()) {
-      Throwables.propagateIfInstanceOf(e, WizardException.class);
+      if (e != null) {
+        Throwables.throwIfInstanceOf(e, WizardException.class);
+      }
       throw new WizardException(failureDescription, e);
     }
     else {
@@ -120,7 +124,7 @@ public abstract class InstallOperation<Return, Argument> {
    * This allows combining a sequence of operations into one, assisting with the cleanup.
    */
   public final <FinalResult> InstallOperation<FinalResult, Argument> then(@NotNull final InstallOperation<FinalResult, Return> next) {
-    return new OperationChain<FinalResult, Argument, Return>(this, next);
+    return new OperationChain<>(this, next);
   }
 
   /**
@@ -172,7 +176,7 @@ public abstract class InstallOperation<Return, Argument> {
 
     @NotNull
     @Override
-    protected Return perform(@NotNull ProgressIndicator indicator, @NotNull Argument arg) throws WizardException {
+    protected Return perform(@NotNull ProgressIndicator indicator, @NotNull Argument arg) {
       indicator.start();
       try {
         Return value = myRunnable.apply(arg);
