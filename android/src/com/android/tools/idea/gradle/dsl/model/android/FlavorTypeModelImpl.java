@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.EmptyPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
@@ -357,7 +356,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
     GradleDslElement element = myDslElement.getPropertyElement(property);
-    return element == null ? new EmptyPropertyModel(myDslElement, REGULAR, property, true) : new ResolvedPropertyModelImpl(element);
+    return element == null ? new ResolvedPropertyModelImpl(myDslElement, REGULAR, property) : new ResolvedPropertyModelImpl(element);
   }
 
   /**
