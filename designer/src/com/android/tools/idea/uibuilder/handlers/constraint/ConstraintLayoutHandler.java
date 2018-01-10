@@ -171,12 +171,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected views ", false)
       )
     )));
-    actions.add((new ToggleAutoConnectAction()));
-    actions.add((new ViewActionSeparator()));
+    actions.add(new ToggleAutoConnectAction());
+    actions.add(new MarginSelector());
+    actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
-    actions.add((new InferAction()));
-    actions.add((new ViewActionSeparator()));
-    actions.add((new MarginSelector()));
+    actions.add(new InferAction());
+    actions.add(new ViewActionSeparator());
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     // noinspection unchecked
