@@ -127,7 +127,11 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     unregisterAsNewProject(myProject);
 
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
-    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID));
+    invokeAndWaitIfNeeded((Runnable)() -> {
+      if (!myProject.isDisposed()) { // http://b/71799046
+        ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID);
+      }
+    });
 
     if (isNotEmpty(errorDetails)) {
       getLogger().warn(errorDetails);
