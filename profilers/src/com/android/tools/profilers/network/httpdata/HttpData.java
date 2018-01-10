@@ -60,6 +60,7 @@ public class HttpData {
 
   @NotNull private final String myRequestPayloadId;
   @NotNull private final String myResponsePayloadId;
+  private final int myResponsePayloadSize;
 
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
@@ -72,6 +73,7 @@ public class HttpData {
     myTraceId = builder.myTraceId;
     myThreads = builder.myThreads;
 
+    myResponsePayloadSize = builder.myResponsePayloadSize;
     myRequestPayloadId = builder.myRequestPayloadId;
     myResponsePayloadId = builder.myResponsePayloadId;
 
@@ -128,6 +130,10 @@ public class HttpData {
   @NotNull
   public String getResponsePayloadId() {
     return myResponsePayloadId;
+  }
+
+  public int getResponsePayloadSize() {
+    return myResponsePayloadSize;
   }
 
   @NotNull
@@ -414,6 +420,8 @@ public class HttpData {
     private String myRequestFields = "";
     private String myResponsePayloadId = "";
     private String myRequestPayloadId = "";
+    private int myResponsePayloadSize;
+
     private String myTraceId = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
@@ -476,6 +484,12 @@ public class HttpData {
     @NotNull
     public Builder setResponsePayloadId(@NotNull String payloadId) {
       myResponsePayloadId = payloadId;
+      return this;
+    }
+
+    @NotNull
+    public Builder setResponsePayloadSize(int payloadSize) {
+      myResponsePayloadSize = payloadSize;
       return this;
     }
 

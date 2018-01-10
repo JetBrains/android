@@ -40,7 +40,9 @@ public class ConnectionsViewTest {
     new ImmutableList.Builder<HttpData>()
       .add(TestHttpData.newBuilder(1, 1, 2).build())
       .add(TestHttpData.newBuilder(2, 3, 5).build())
-      .add(TestHttpData.newBuilder(3, 8, 13).build())
+      .add(TestHttpData.newBuilder(3, 8, 13)
+             .setResponsePayloadSize(TestHttpData.fakeContentSize(3))
+             .build())
       .add(TestHttpData.newBuilder(4, 21, 34).build())
       .build();
 
@@ -63,7 +65,7 @@ public class ConnectionsViewTest {
 
     // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
     assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is(Long.toString(id)));
-    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(TestHttpData.fakeContentLength(id)));
+    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(TestHttpData.fakeContentSize(id)));
     assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is(TestHttpData.FAKE_CONTENT_TYPE));
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(TestHttpData.FAKE_RESPONSE_CODE));
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data), is(TimeUnit.SECONDS.toMicros(5)));
