@@ -171,6 +171,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
   }
 
+  @NotNull
   @Override
   protected String getCommandName() {
     return "Use Style '" + myStyleName + "' Where Possible";

@@ -21,11 +21,7 @@ import static com.android.SdkConstants.TAG_RESOURCES;
  */
 public class AndroidUsagesTargetProvider implements UsageTargetProvider {
   @Override
-  public UsageTarget[] getTargets(Editor editor, PsiFile file) {
-    if (editor == null || file == null) {
-      return UsageTarget.EMPTY_ARRAY;
-    }
-
+  public UsageTarget[] getTargets(@NotNull Editor editor, @NotNull PsiFile file) {
     final XmlTag tag = findValueResourceTagInContext(editor, file, false);
     return tag != null
            ? new UsageTarget[]{new PsiElement2UsageTargetAdapter(tag)}
@@ -33,7 +29,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
   }
 
   @Override
-  public UsageTarget[] getTargets(PsiElement psiElement) {
+  public UsageTarget[] getTargets(@NotNull PsiElement psiElement) {
     return UsageTarget.EMPTY_ARRAY;
   }
 
