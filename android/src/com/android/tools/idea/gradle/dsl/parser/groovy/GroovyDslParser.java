@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslEle
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +132,8 @@ public class GroovyDslParser implements GradleDslParser {
 
   @Override
   public void parse() {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(@NotNull GrMethodCallExpression e) {
@@ -169,6 +172,8 @@ public class GroovyDslParser implements GradleDslParser {
   @Override
   @Nullable
   public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
     if (!(literal instanceof GrLiteral)) {
       return null;
     }
@@ -191,12 +196,14 @@ public class GroovyDslParser implements GradleDslParser {
 
     // Otherwise resolve the value and then return the resolved text.
     Collection<GradleReferenceInjection> injections = getInjections(context, literal);
-    return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
+    return ensureUnquotedText(injectAll(literal, injections));
   }
 
   @Override
   @NotNull
   public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
     if (!(psiElement instanceof GrString)) {
       return Collections.emptyList();
     }
@@ -214,7 +221,38 @@ public class GroovyDslParser implements GradleDslParser {
         }
       }
     }
-    return injections;  }
+    return injections;
+  }
+
+  /**
+   * Injects all given {@code injections} into a given {@link PsiElement}. These {@link GradleReferenceInjection}s should have been
+   * obtained using {@link GradleDslParser#getInjections(PsiElement)}.
+   */
+  @NotNull
+  private static String injectAll(@NotNull PsiElement psiElement, @NotNull Collection<GradleReferenceInjection> injections) {
+    StringBuilder builder = new StringBuilder();
+    for (PsiElement element : psiElement.getChildren()) {
+      // Reference equality intended
+      Optional<GradleReferenceInjection> filteredInjection =
+        injections.stream().filter(injection -> element == injection.getPsiInjection()).findFirst();
+      if (filteredInjection.isPresent()) {
+        GradleDslExpression expression = filteredInjection.get().getToBeInjectedExpression();
+        if (expression == null) {
+          // If this injection has no expression then we are trying to inject a string or map,
+          // in this case just use the raw text from the PsiElement instead.
+          builder.append(element.getText());
+          continue;
+        }
+
+        Object value = expression.getValue();
+        builder.append(value == null ? "" : value);
+      }
+      else {
+        builder.append(element.getText());
+      }
+    }
+    return builder.toString();
+  }
 
   private static boolean parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     if (psiElement instanceof GrMethodCallExpression) {

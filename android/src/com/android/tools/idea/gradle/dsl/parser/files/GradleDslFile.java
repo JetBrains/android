@@ -87,7 +87,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   public void parse() {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
     myGradleDslParser.parse();
   }
 
