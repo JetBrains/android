@@ -241,7 +241,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public DeployTargetPickerDialogFixture runApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
-    findRunApplicationButton().click();
+    findRunApplicationButton().waitUntilEnabledAndShowing().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
