@@ -16,12 +16,14 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
 import com.android.tools.profiler.proto.Profiler.BytesResponse;
-import com.android.tools.profilers.network.httpdata.HttpData;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,6 +107,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
     String payloadId = response.getResponseBody().getPayloadId();
     httpBuilder.setResponsePayloadId(payloadId);
+    httpBuilder.setResponsePayloadSize(response.getResponseBody().getPayloadSize());
   }
 
   @NotNull

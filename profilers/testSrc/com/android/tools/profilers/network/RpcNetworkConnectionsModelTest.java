@@ -43,12 +43,14 @@ public class RpcNetworkConnectionsModelTest {
              .setRequestFields(FAKE_REQUEST_HEADERS)
              .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 1)
              .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 1)
+             .setResponsePayloadSize(TestHttpData.fakeContentSize(1))
              .build())
       // Finished request (2-5)
       .add(TestHttpData.newBuilder(2, 2, 5, new HttpData.JavaThread(2, "threadB"))
              .setRequestFields(FAKE_REQUEST_HEADERS)
              .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 2)
              .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 2)
+             .setResponsePayloadSize(TestHttpData.fakeContentSize(2))
              .build())
       // Unfinished request (3-?)
       .add(TestHttpData.newBuilder(3, 3, 0, 0, 0, new HttpData.JavaThread(3, "threadC"))
@@ -65,6 +67,7 @@ public class RpcNetworkConnectionsModelTest {
              .setRequestFields(FAKE_REQUEST_HEADERS)
              .setRequestPayloadId(FAKE_REQUEST_PAYLOAD_ID + 5)
              .setResponsePayloadId(FAKE_RESPONSE_PAYLOAD_ID + 5)
+             .setResponsePayloadSize(TestHttpData.fakeContentSize(5))
              .build())
       .build();
 
@@ -143,6 +146,7 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());
       assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
       assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
+      assertThat(data.getResponsePayloadSize()).isEqualTo(expectedData.getResponsePayloadSize());
       assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
       assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(expectedData.getJavaThreads().get(0).getId());
       assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(expectedData.getJavaThreads().get(0).getName());

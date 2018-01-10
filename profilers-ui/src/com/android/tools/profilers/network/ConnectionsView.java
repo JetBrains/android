@@ -32,12 +32,9 @@ import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -49,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerColors.DEFAULT_HOVER_COLOR;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
@@ -72,7 +69,7 @@ final class ConnectionsView {
     SIZE(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getResponseHeader().getContentLength();
+        return data.getResponsePayloadSize();
       }
     },
     TYPE(0.25 / 4, String.class) {
