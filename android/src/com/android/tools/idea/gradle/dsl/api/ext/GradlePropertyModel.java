@@ -19,8 +19,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -42,12 +40,12 @@ public interface GradlePropertyModel {
    * {@code UNKNOWN}. These value types provide a guarantee about the type of value
    * that the property contains:
    * <ul>
-   *   <li>{@code STRING} - Pass {@link STRING_TYPE} to {@link #getValue(TypeReference)}</li>
-   *   <li>{@code INTEGER} - Pass {@link INTEGER_TYPE} to {@link #getValue(TypeReference)}</li>
-   *   <li>{@code BOOLEAN} - Pass {@link BOOLEAN_TYPE} to {@link #getValue(TypeReference)}</li>
-   *   <li>{@code MAP} - Pass {@link MAP_TYPE} to {@link #getValue(TypeReference)}</li>
-   *   <li>{@code LIST} - Pass {@link LIST_TYPE} to {@link #getValue(TypeReference)}</li>
-   *   <li>{@code REFERENCE} - Pass {@link STRING_TYPE} to {@link #getValue(TypeReference)} to get the name of the
+   *   <li>{@code STRING} - Pass {@link #STRING_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code INTEGER} - Pass {@link #INTEGER_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code BOOLEAN} - Pass {@link #BOOLEAN_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code MAP} - Pass {@link #MAP_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code LIST} - Pass {@link #LIST_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code REFERENCE} - Pass {@link #STRING_TYPE} to {@link #getValue(TypeReference)} to get the name of the
    *                           property or variable refereed to. Use {@link #getDependencies()} to get the value.</li>
    *   <li>{@code NONE} - This property currently has no value, any call to {@link #getValue(TypeReference)} will return null.</>
    *   <li>{@code UNKNOWN} - No guarantees about the type of this element can be made}</li>
@@ -97,7 +95,7 @@ public interface GradlePropertyModel {
    * </pre>
    * Getting the unresolved value of "prop2" will return "prop1" and for "prop3" it will return "Hello ${prop1}".
    * Otherwise if the property has no string injections or is not a reference this method will return the same value
-   * as {@link #getValue(Class)}.
+   * as {@link #getValue(TypeReference)}.
    */
   @Nullable
   <T> T getRawValue(@NotNull TypeReference<T> typeReference);
@@ -135,9 +133,7 @@ public interface GradlePropertyModel {
 
   /**
    * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
-   * from the file. Once {@link #delete()} has been called this {@link GradlePropertyModel} is invalid and any changes to it will be
-   * ignored. In order to alter this property further use the {@link GradlePropertyModel} returned by this method.
+   * from the file. Any call to {@link #setValue(Object)} will recreate the property and add it back to the file.
    */
-  @NotNull
-  GradlePropertyModel delete();
+  void delete();
 }
