@@ -157,6 +157,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     return AndroidInlineUtil.buildConflicts(nonXmlUsages, unambiguousUsages, unsupportedUsages, implicitlyInherited);
   }
 
+  @NotNull
   @Override
   protected String getCommandName() {
     return AndroidBundle.message("android.inline.style.command.name", myStyleName);

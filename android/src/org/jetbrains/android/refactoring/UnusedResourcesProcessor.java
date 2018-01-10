@@ -375,6 +375,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     return "Deleting " + RefactoringUIUtil.calculatePsiElementDescriptionList(myElements);
   }
 
+  @NotNull
   @Override
   protected String getCommandName() {
     if (myCachedCommandName == null) {
