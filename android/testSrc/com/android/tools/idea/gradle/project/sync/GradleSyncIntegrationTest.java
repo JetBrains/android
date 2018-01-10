@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
@@ -54,10 +55,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -69,6 +67,8 @@ import static com.android.tools.idea.io.FilePaths.*;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -493,5 +493,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertNotNull("Library com.foo.bar:bar-0.1 is missing", library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).asList().hasSize(1);
+  }
+
+  // Verify that custom properties on local.properties are preserved after sync (b/70670394)
+  public void testCustomLocalPropertiesPreservedAfterSync() throws Exception {
+    Project project = getProject();
+
+    loadProject(SIMPLE_APPLICATION);
+
+    LocalProperties originalLocalProperties = new LocalProperties(project);
+    Properties modified = getProperties(originalLocalProperties.getPropertiesFilePath());
+    modified.setProperty("custom.property", "custom.value");
+    savePropertiesToFile(modified, originalLocalProperties.getPropertiesFilePath(), null);
+    LocalProperties modifiedLocalProperties = new LocalProperties(project);
+    assertThat(modifiedLocalProperties.getProperty("custom.property")).isEqualTo("custom.value");
+
+    requestSyncAndWait();
+
+    LocalProperties afterSyncLocalProperties = new LocalProperties(project);
+    assertThat(afterSyncLocalProperties.getProperty("custom.property")).isEqualTo("custom.value");
   }
 }
