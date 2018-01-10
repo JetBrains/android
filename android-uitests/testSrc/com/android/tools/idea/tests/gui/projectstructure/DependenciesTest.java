@@ -34,6 +34,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Depen
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -176,7 +177,7 @@ public class DependenciesTest {
     newProjectWizard.clickNext();
     newProjectWizard.clickFinish();
 
-    return guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
   }
 
   /***
