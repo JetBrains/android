@@ -648,9 +648,15 @@ public class ScoutArrange {
         expandHorizontally(scoutWidgets, parentScoutWidget, margin, true);
       }
       break;
-    }
-    if (applyConstraints) {
-      parentScoutWidget.mNlComponent.getModel().notifyLiveUpdate(true);
+      case ChainVerticalRemove:
+      case ChainHorizontalRemove:
+      case ChainVerticalMoveUp:
+      case ChainVerticalMoveDown:
+      case ChainHorizontalMoveLeft:
+      case ChainHorizontalMoveRight:
+      case ChainInsertHorizontal:
+      case ChainInsertVertical:
+        break; // cases covered by scout
     }
   }
 

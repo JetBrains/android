@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -73,6 +74,8 @@ public class ScoutArrangeTest4 extends SceneTest {
     List<NlComponent> list = Arrays.asList(myScreen.get("@+id/textview2").getComponent());
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list, true);
     Scout.arrangeWidgets(Scout.Arrange.ConnectStart, list, true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
