@@ -32,10 +32,6 @@ import java.util.Properties;
 public class ProfilerState {
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
 
-  // avoid referencing ProfileRunExecutor's ID directly because we don't want to depend on profilers-android
-  // TODO(kelvinhanma) switch to directly reference ProfileRunExecutor once IR is out of android module
-  public static final String PROFILER_EXECUTOR_ID = "Android Profiler";
-
   /**
    * Whether to apply the profiling transform.
    */
