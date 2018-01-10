@@ -21,10 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -36,13 +33,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.*;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -84,6 +81,33 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     // Should not attempt to look up sources and documentation for existing libraries.
     verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
+  }
+
+  public void testSetUpLibraryTwiceWithSameLibraryInDifferentScopes() throws IOException {
+    File binaryPath = createTempFile("fakeLibrary.jar", "");
+    File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
+    File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
+    Library newLibrary = createLibrary(binaryPath, sourcePath, javadocPath);
+
+    String libraryName = binaryPath.getName();
+    Module module = getModule();
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {binaryPath};
+
+    // Add newLibrary twice with different scopes.
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, PROVIDED, binaryPath, binaryPaths, false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, RUNTIME, binaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    // Verify that there're two library order entries for newLibrary.
+    assertThat(libraryOrderEntries).hasSize(2);
+    List<Library> libraries = libraryOrderEntries.stream().map(LibraryOrderEntry::getLibrary).collect(Collectors.toList());
+    assertThat(libraries).containsExactly(newLibrary, newLibrary);
+
+    // Verify that the scopes are PROVIDED and RUNTIME.
+    List<DependencyScope> scopes = libraryOrderEntries.stream().map(LibraryOrderEntry::getScope).collect(Collectors.toList());
+    assertThat(scopes).containsExactly(PROVIDED, RUNTIME);
   }
 
   @NotNull
