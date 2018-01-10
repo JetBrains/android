@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
@@ -40,14 +41,30 @@ public class ChooseSystemImageStepFixture<W extends AbstractWizardFixture>
   public ChooseSystemImageStepFixture<W> selectSystemImage(@NotNull SystemImage image) {
     final TableView systemImageList = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture systemImageListFixture = new JTableFixture(robot(), systemImageList);
+    String[] expectedColumnValues = {
+      image.getReleaseName(),
+      image.getApiLevel(),
+      image.getAbiType(),
+      image.getTargetName()
+    };
 
     Wait.seconds(5).expecting("The system image list is populated.").until(() -> {
       try {
-        systemImageListFixture.cell(rowWithValue(image.getReleaseName(),
-                                                 image.getApiLevel(),
-                                                 image.getAbiType(),
-                                                 image.getTargetName()).column(0)).select();
-        return true;
+        // Choose to click on column 1 to avoid accidentally clicking the "Download" button.
+        systemImageListFixture.cell(rowWithValue(expectedColumnValues).column(1)).select();
+
+        // Verify that the row selected is the one we want. The table can sometimes update
+        // with new data after we click on our intended target.
+        return GuiQuery.getNonNull(() -> {
+          int selectedRow = systemImageList.getSelectedRow();
+          int numCols = systemImageList.getColumnCount();
+          for (int col = 0; col < numCols; col++) {
+            if (!expectedColumnValues[col].equals(systemImageList.getValueAt(selectedRow, col).toString())) {
+              return false;
+            }
+          }
+          return true;
+        });
       } catch (ActionFailedException e) {
         return false;
       }
