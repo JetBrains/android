@@ -14,5 +14,25 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.adtui.HtmlLabel
+import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.util.ToolkitProvider
+import sun.awt.SunToolkit
+
+private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 10_000
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
+
+fun waitForIdle() {
+  val start = System.currentTimeMillis()
+  while (System.currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
+    try {
+      (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
+      return
+    }
+    catch (_: SunToolkit.InfiniteLoop) {
+      // The implementation of SunToolkit.realSync() allows up to 20 events to be processed in a batch.
+      // We often have more than 20 events primarily caused by invokeLater() invocations.
+    }
+  }
+  throw WaitTimedOutError("Timed out waiting for idle.")
+}
