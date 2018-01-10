@@ -60,6 +60,14 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
 
   @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    // Compute the workspace root before any IDE code starts messing with user.dir:
+    TestUtils.getWorkspaceRoot();
+  }
+
+  @Override
   protected void tearDown() throws Exception {
     try {
       myFixture = null;

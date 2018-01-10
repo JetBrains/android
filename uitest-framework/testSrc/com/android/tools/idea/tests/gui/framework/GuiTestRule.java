@@ -169,6 +169,9 @@ public class GuiTestRule implements TestRule {
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
 
+    // Compute the workspace root before any IDE code starts messing with user.dir:
+    TestUtils.getWorkspaceRoot();
+
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
     }
