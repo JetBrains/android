@@ -24,10 +24,11 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,9 +147,12 @@ public class LayoutEditorTest {
 
     assetStudioWizardFixture.useLocalFile(
       findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true));
-    GuiTests.waitUntilShowing(guiTest.robot(),
-                              assetStudioWizardFixture.target(),
-                              Matchers.byText(JLabel.class, invalidTip).andIsShowing());
+    GuiTests.waitUntilShowing(guiTest.robot(), assetStudioWizardFixture.target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel label) {
+        return label.isShowing() && label.getText().contains("Error while parsing android_wrong.svg");
+      }
+    });
 
     assetStudioWizardFixture.clickCancel();
   }
