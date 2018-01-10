@@ -81,7 +81,7 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA)
   @Test
   public void androidVectorDrawableTool() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     AssetStudioWizardFixture assetStudioWizardFixture = guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
@@ -127,7 +127,7 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/68001739
   @Test
   public void imageAssetErrorCheck() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     AssetStudioWizardFixture assetStudioWizardFixture = guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
@@ -173,7 +173,7 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/69420548
   @Test
   public void imageAssetGradleTest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     ideFrameFixture
       .getProjectView()
       .selectAndroidPane()
@@ -224,7 +224,7 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA)
   @Test
   public void imageAssetRegressionTest() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
