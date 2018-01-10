@@ -460,8 +460,9 @@ public class SceneComponent {
    */
   @NotNull
   public NlComponent getAuthoritativeNlComponent() {
-    if (myComponentProvider != null) {
-      return myComponentProvider.getComponent(this);
+    ComponentProvider provider = myComponentProvider;
+    if (provider != null) {
+      return provider.getComponent(this);
     }
     return myNlComponent;
   }
@@ -685,8 +686,9 @@ public class SceneComponent {
   }
 
   public void removeFromParent() {
-    if (myParent != null) {
-      myParent.remove(this);
+    SceneComponent parent = myParent;
+    if (parent != null) {
+      parent.remove(this);
     }
   }
 
@@ -845,13 +847,18 @@ public class SceneComponent {
     }
 
     // update the Targets created by parent's TargetProvider
-    if (myParent != null && myParent.getTargetProvider() != null) {
-      myParent.getTargetProvider().createChildTargets(myParent, this).forEach(this::addTarget);
+    SceneComponent parent = myParent;
+    if (parent != null) {
+      TargetProvider provider = parent.getTargetProvider();
+      if (provider != null) {
+        provider.createChildTargets(parent, this).forEach(this::addTarget);
+      }
     }
 
     // update the Targets created by myTargetProvider
-    if (myTargetProvider != null) {
-      myTargetProvider.createTargets(this).forEach(this::addTarget);
+    TargetProvider provider = myTargetProvider;
+    if (provider != null) {
+      provider.createTargets(this).forEach(this::addTarget);
     }
 
     // update the Targets of children
