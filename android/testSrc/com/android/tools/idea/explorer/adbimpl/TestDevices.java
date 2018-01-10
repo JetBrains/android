@@ -534,6 +534,10 @@ public class TestDevices {
 
     addCommand(commands, "rm -r -f /sdcard/foo-dir", "");
     addFailedCommand(commands, "rm -r -f /config", "rm: /config: Permission denied\n");
+
+    addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+    addCommand(commands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL acuauQGJ");
+    addCommand(commands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
   }
 
   /**
@@ -628,6 +632,46 @@ public class TestDevices {
                "drwxr-xr-x  3 root shell 4096 2017-02-22 09:07 vendor\n" +
                "drwxr-xr-x  2 root shell 4096 2017-02-22 09:07 xbin\n");
     addCommand(shellCommands, "su 0 sh -c 'cp /system/build.prop /data/local/tmp/temp0'", "");
+
+    addCommand(shellCommands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+    addCommand(shellCommands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL acuauQGJ");
+    addCommand(shellCommands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+  }
+
+  static void addWhenLsEscapesCommands(@NotNull TestShellCommands commands) {
+    addCommand(
+      commands,
+      "su 0 sh -c 'id'",
+      "uid=0(root) gid=0(root) groups=0(root),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),3001(net_bt_admin)," +
+      "3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid) context=u:r:su:s0");
+
+    addCommand(
+      commands,
+      "su 0 sh -c 'ls -l /sdcard/dir/'",
+      "total 4\n" +
+      "drwxrwx--x 2 root sdcard_rw 4096 2018-01-10 12:57 dir\\ with\\ spaces");
+
+    addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+    addCommand(commands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL\\ acuauQGJ");
+    addCommand(commands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+  }
+
+  static void addWhenLsDoesNotEscapeCommands(@NotNull TestShellCommands commands) {
+    addCommand(
+      commands,
+      "su 0 sh -c 'id'",
+      "uid=0(root) gid=0(root) groups=0(root),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),3001(net_bt_admin)," +
+      "3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc) context=u:r:su:s0");
+
+    addCommand(
+      commands,
+      "su 0 sh -c 'ls -l /sdcard/dir/'",
+      "total 8\n" +
+      "drwxrwx--x 2 root sdcard_rw 4096 2018-01-10 15:00 dir with spaces");
+
+    addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+    addCommand(commands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL acuauQGJ");
+    addCommand(commands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
   }
 
   private static void addCommand(@NotNull TestShellCommands commands, @NotNull String command, @NotNull String result) {

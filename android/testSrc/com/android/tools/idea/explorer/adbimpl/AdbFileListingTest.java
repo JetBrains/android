@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
@@ -288,6 +289,50 @@ public class AdbFileListingTest {
       assertThat(entry.getTime()).isEqualTo("16:00");
       assertThat(entry.getInfo()).isEqualTo("-> /system/etc");
     });
+  }
+
+  @Test
+  public void whenLsEscapes() throws Exception {
+    TestShellCommands commands = new TestShellCommands();
+    TestDevices.addWhenLsEscapesCommands(commands);
+
+    IDevice device = commands.createMockDevice();
+    AdbFileListing listing = new AdbFileListing(device, new AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE);
+
+    AdbFileListingEntry dir = new AdbFileListingEntry(
+      "/sdcard/dir",
+      EntryKind.DIRECTORY,
+      "drwxrwx--x",
+      "root",
+      "sdcard_rw",
+      "2018-01-10",
+      "12:56",
+      "4096",
+      null);
+
+    assertThat(waitForFuture(listing.getChildrenRunAs(dir, null)).get(0).getName()).isEqualTo("dir with spaces");
+  }
+
+  @Test
+  public void whenLsDoesNotEscape() throws Exception {
+    TestShellCommands commands = new TestShellCommands();
+    TestDevices.addWhenLsDoesNotEscapeCommands(commands);
+
+    IDevice device = commands.createMockDevice();
+    AdbFileListing listing = new AdbFileListing(device, new AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE);
+
+    AdbFileListingEntry dir = new AdbFileListingEntry(
+      "/sdcard/dir",
+      EntryKind.DIRECTORY,
+      "drwxrwx--x",
+      "root",
+      "sdcard_rw",
+      "2018-01-10",
+      "15:00",
+      "4096",
+      null);
+
+    assertThat(waitForFuture(listing.getChildrenRunAs(dir, null)).get(0).getName()).isEqualTo("dir with spaces");
   }
 
   @Test
