@@ -17,7 +17,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.SdkConstants.ATTR_GRAPH
 import com.android.SdkConstants.TAG_ACTION
-import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -147,8 +146,8 @@ object NavModelBuilderUtil {
       label?.let { withAttribute(ANDROID_URI, ATTR_LABEL, it) }
     }
 
-    fun action(id: String, destination: String? = null, f: ActionComponentDescriptor.() -> Unit = {}) {
-      val action = ActionComponentDescriptor(id, destination)
+    fun action(id: String, destination: String? = null, popUpTo: String? = null, inclusive: Boolean = false, f: ActionComponentDescriptor.() -> Unit = {}) {
+      val action = ActionComponentDescriptor(id, destination, popUpTo, inclusive)
       addChild(action, null)
       action.apply(f)
     }
@@ -162,10 +161,15 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ActionComponentDescriptor(id: String, destination: String?) : NavComponentDescriptor(TAG_ACTION) {
+  class ActionComponentDescriptor(id: String, destination: String?, popUpTo: String? = null, popUpToInclusive: Boolean = false)
+    : NavComponentDescriptor(TAG_ACTION) {
     init {
       id("@+id/" + id)
       destination?.let { withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/" + it) }
+      popUpTo?.let { withAttribute(AUTO_URI, ATTR_POP_UP_TO, "@id/" + it) }
+      if (popUpToInclusive) {
+        withAttribute(AUTO_URI, ATTR_POP_UP_TO_INCLUSIVE, "true")
+      }
     }
 
     fun argument(name: String, value: String? = null) {
@@ -186,7 +190,6 @@ object NavModelBuilderUtil {
       addChild(ArgumentComponentDescriptor(name, value), null)
     }
   }
-
 
   class IncludeComponentDescriptor(graphId: String) : NavComponentDescriptor(TAG_INCLUDE) {
     init {

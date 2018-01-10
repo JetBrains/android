@@ -357,7 +357,7 @@ public class NavSceneManager extends SceneManager {
           NlComponent parent = action.getParent();
           //noinspection ConstantConditions
           sources.add(parent.getId());
-          destinations.add(NavComponentHelperKt.getActionDestinationId(action));
+          destinations.add(NavComponentHelperKt.getEffectiveDestinationId(action));
         });
     }
   }

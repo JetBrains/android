@@ -66,7 +66,7 @@ public class NavScreenTargetProvider implements TargetProvider {
     nlComponent.flatten()
       .filter(NavComponentHelperKt::isAction)
       .forEach(nlChild -> {
-        String destinationId = NavComponentHelperKt.getActionDestinationId(nlChild);
+        String destinationId = NavComponentHelperKt.getEffectiveDestinationId(nlChild);
         SceneComponent destination = groupMap.get(destinationId);
         if (destination != null) {
           result.add(new ActionTarget(sceneComponent, destination, nlChild));
