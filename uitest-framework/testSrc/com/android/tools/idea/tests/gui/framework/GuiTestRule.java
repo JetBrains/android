@@ -63,6 +63,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
@@ -303,6 +304,7 @@ public class GuiTestRule implements TestRule {
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
+    refreshFiles();
     return projectPath;
   }
 

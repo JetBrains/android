@@ -51,7 +51,8 @@ class SuggestionsViewTest {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
-  @Ignore("b/71720545")
+  // TODO(b/71720545): Remove ignore if refreshFiles() helps avoid disk and memory file content conflicts.
+  // @Ignore("b/71720545")
   @Test
   fun showsAndProcessesMessages() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
