@@ -35,6 +35,10 @@ import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DI
 public class AdbDeviceCapabilities {
   @NotNull private static final Logger LOGGER = Logger.getInstance(AdbDeviceCapabilities.class);
   @NotNull private static final String PROBE_FILES_TEMP_PATH = AdbPathUtil.resolve(DEVICE_TEMP_DIRECTORY, "device-explorer");
+
+  @NotNull private static final String ESCAPING_LS_ESCAPED_PATH = AdbPathUtil.resolve(DEVICE_TEMP_DIRECTORY, "oyX2HCKL\\ acuauQGJ");
+  @NotNull private static final String ESCAPING_LS_NOT_ESCAPED_PATH = AdbPathUtil.resolve(DEVICE_TEMP_DIRECTORY, "oyX2HCKL acuauQGJ");
+
   @NotNull private final IDevice myDevice;
   @Nullable private Boolean mySupportsTestCommand;
   @Nullable private Boolean mySupportsRmForceFlag;
@@ -42,6 +46,7 @@ public class AdbDeviceCapabilities {
   @Nullable private Boolean mySupportsSuRootCommand;
   @Nullable private Boolean myIsRoot;
   @Nullable private Boolean mySupportsCpCommand;
+  @Nullable private Boolean myEscapingLs;
   @Nullable private Boolean mySupportsMkTempCommand;
 
   public AdbDeviceCapabilities(@NotNull IDevice device) {
@@ -94,6 +99,16 @@ public class AdbDeviceCapabilities {
       mySupportsCpCommand = supportsCpCommandWorker();
     }
     return mySupportsCpCommand;
+  }
+
+  synchronized boolean hasEscapingLs()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+
+    if (myEscapingLs == null) {
+      myEscapingLs = hasEscapingLsWorker();
+    }
+
+    return myEscapingLs;
   }
 
   @SuppressWarnings("unused")
@@ -251,6 +266,65 @@ public class AdbDeviceCapabilities {
                     e);
         return false;
       }
+    }
+  }
+
+  private boolean hasEscapingLsWorker()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+
+    try {
+      touchEscapedPath();
+    }
+    catch (AdbShellCommandException exception) {
+      LOGGER.info("Device \"" + getDeviceTraceInfo(myDevice) + "\" does not seem to support the touch command", exception);
+      return false;
+    }
+
+    try (ScopedRemoteFile file = new ScopedRemoteFile(ESCAPING_LS_NOT_ESCAPED_PATH)) {
+      file.setDeleteOnClose(true);
+      return lsEscapedPath();
+    }
+    catch (AdbShellCommandException exception) {
+      LOGGER.info("Device \"" + getDeviceTraceInfo(myDevice) + "\" does not seem to support the ls command", exception);
+      return false;
+    }
+  }
+
+  private void touchEscapedPath()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
+
+    String command = new AdbShellCommandBuilder()
+      .withText("touch " + ESCAPING_LS_ESCAPED_PATH)
+      .build();
+
+    AdbShellCommandResult result = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    result.throwIfError();
+
+    if (!result.getOutput().isEmpty()) {
+      throw new AdbShellCommandException("Unexpected output from touch");
+    }
+  }
+
+  private boolean lsEscapedPath()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
+
+    String command = new AdbShellCommandBuilder()
+      .withText("ls " + ESCAPING_LS_ESCAPED_PATH)
+      .build();
+
+    AdbShellCommandResult result = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    result.throwIfError();
+
+    String output = result.getOutput().get(0);
+
+    if (output.equals(ESCAPING_LS_ESCAPED_PATH)) {
+      return true;
+    }
+    else if (output.equals(ESCAPING_LS_NOT_ESCAPED_PATH)) {
+      return false;
+    }
+    else {
+      throw new AdbShellCommandException("Unexpected output from ls");
     }
   }
 

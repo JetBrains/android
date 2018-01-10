@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.ddmlib.FileListingService.LS_LD_PATTERN;
@@ -38,6 +40,7 @@ import static com.android.ddmlib.FileListingService.LS_L_PATTERN;
 
 public class AdbFileListing {
   @NotNull public static final Logger LOGGER = Logger.getInstance(AdbFileListing.class);
+  @NotNull private static final Pattern BACKSLASH = Pattern.compile("\\", Pattern.LITERAL);
 
   @NotNull private final IDevice myDevice;
   @NotNull private AdbDeviceCapabilities myDeviceCapabilities;
@@ -69,10 +72,11 @@ public class AdbFileListing {
       String command = getCommand(runAs, "ls -l ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
 
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      boolean escaping = myDeviceCapabilities.hasEscapingLs();
 
       List<AdbFileListingEntry> entries = commandResult.getOutput()
         .stream()
-        .map(x -> processLsOutputLine(parentEntry, x))
+        .map(line -> processLsOutputLine(line, escaping, parentEntry))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
       if (entries.isEmpty() && commandResult.isError()) {
@@ -127,7 +131,7 @@ public class AdbFileListing {
   }
 
   @Nullable
-  private static AdbFileListingEntry processLsOutputLine(@NotNull AdbFileListingEntry parentEntry, @NotNull String line) {
+  private static AdbFileListingEntry processLsOutputLine(@NotNull String line, boolean escaping, @NotNull AdbFileListingEntry parentEntry) {
     // no need to handle empty lines.
     if (line.isEmpty()) {
       return null;
@@ -139,8 +143,7 @@ public class AdbFileListing {
       return null;
     }
 
-    // get the name
-    String name = m.group(7);
+    String name = getName(m, escaping);
 
     // get the rest of the groups
     String permissions = m.group(1);
@@ -206,6 +209,12 @@ public class AdbFileListing {
                                    time,
                                    size,
                                    info);
+  }
+
+  @NotNull
+  private static String getName(@NotNull MatchResult result, boolean escaping) {
+    String name = result.group(7);
+    return escaping ? BACKSLASH.matcher(name).replaceAll("") : name;
   }
 
   @NotNull
