@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -66,6 +67,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyMiddle, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -111,9 +114,11 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    System.out.println("list size"+list.size());
-    Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
-   Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list,true);
+    System.out.println("list size" + list.size());
+    Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list, true);
+    Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list, true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -158,6 +163,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyTop, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -202,6 +209,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -249,6 +258,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -292,6 +303,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -334,6 +347,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.HorizontalPack, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -351,6 +366,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.VerticalPack, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -367,6 +384,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -384,6 +403,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -401,6 +422,9 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.DistributeVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +
@@ -434,6 +458,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.DistributeHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
