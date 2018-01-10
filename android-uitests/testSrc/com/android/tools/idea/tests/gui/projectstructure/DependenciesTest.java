@@ -142,10 +142,10 @@ public class DependenciesTest {
     // Create a class in the library and check the build.
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(APP_NAME, "library-module", "src", "main", "java", "android.com.mylibrary");
+      .clickPath(APP_NAME, "library-module", "src", "main", "java", "android.com.library_module");
 
     invokeNewFileDialog().setName("LibraryClass").clickOk();
-    editor.open("/library-module/src/main/java/android/com/mylibrary/LibraryClass.java")
+    editor.open("/library-module/src/main/java/android/com/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n")
       .select("public class LibraryClass \\{()")
