@@ -19,6 +19,7 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
+import com.android.manifmerger.IntentFilterNodeKeyResolver;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -83,12 +84,29 @@ public class ManifestUtils {
     if (actions != null) {
       if (item instanceof Element) {
         Element element = (Element)item;
-        XmlNode.NodeKey key = getNodeKey(manifest, element);
-        return actions.getNodeRecords(key);
+        Node parentNode = element.getParentNode();
+        if (parentNode instanceof Element) {
+          Element parentElement = (Element)parentNode;
+          // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
+          // unique in the xml file, but the sub-elements have the same history as the intent-filter
+          if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
+            return actions.getNodeRecords(getNodeKey(manifest, parentElement));
+          }
+        }
+        return actions.getNodeRecords(getNodeKey(manifest, element));
       }
       else if (item instanceof Attr) {
         Attr attribute = (Attr)item;
         Element element = attribute.getOwnerElement();
+        Node parentNode = element.getParentNode();
+        if (parentNode instanceof Element) {
+          Element parentElement = (Element)parentNode;
+          // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
+          // unique in the xml file, but the sub-elements' attributes have the same history as the intent-filter
+          if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
+            return actions.getNodeRecords(getNodeKey(manifest, parentElement));
+          }
+        }
         XmlNode.NodeKey key = getNodeKey(manifest, element);
         XmlNode.NodeName name = XmlNode.fromXmlName(attribute.getName());
         List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, name);
@@ -115,19 +133,7 @@ public class ManifestUtils {
           key = manifest.getNodeKey(element.getTagName() + "#" + glEsVersionAttribute.getValue());
         }
         else {
-          NodeList children = element.getChildNodes();
-          List<String> names = new ArrayList<>(children.getLength());
-          for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-              Attr childAttribute = ((Element)child).getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
-              if (childAttribute != null) {
-                names.add(childAttribute.getValue());
-              }
-            }
-          }
-          Collections.sort(names);
-          key = manifest.getNodeKey(element.getTagName() + "#" + Joiner.on('+').join(names));
+          key = manifest.getNodeKey(element.getTagName() + "#" + IntentFilterNodeKeyResolver.INSTANCE.getKey(element));
         }
       }
     }

@@ -163,5 +163,14 @@ public class ManifestEditorTest {
 
     mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
     assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
+
+    editor.open("app/src/main/AndroidManifest.xml");
+    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
+
+    // row 23 is a sub-element of the intent-filter element generated from the nav-graph element
+    mergedManifestFixture.getTree().clickRow(23);
+
+    mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
+    assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
   }
 }
