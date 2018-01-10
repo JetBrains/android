@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,20 +18,18 @@ package com.android.tools.idea.ddms
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.projectsystem.addCallback
-import com.android.tools.idea.projectsystem.listenInPoolThread
-import com.android.tools.idea.projectsystem.successfulAsList
-import com.android.tools.idea.projectsystem.transform
+import com.android.tools.idea.projectsystem.*
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.SequentialTaskExecutor
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 
 /**
- * [DeviceNameProperties] retrieved by [getSystemProperty] may be time consuming
+ * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming
  * In such case, this class can be used to get property without blocking thread
  * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not available.
  * At the same time, it check whether a retrieving task is running and start one if it's not.
@@ -64,22 +62,16 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
   }
 
   private fun IDevice.getDeviceSystemProperties(): ListenableFuture<DeviceNameProperties> {
-    return listOf<Future<String>>(
+    val futures = listOf<Future<String>>(
         getSystemProperty(IDevice.PROP_DEVICE_MODEL),
         getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER),
         getSystemProperty(IDevice.PROP_BUILD_VERSION),
         getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
+
+    return futures
         .listenInPoolThread(taskExecutor)
-        .successfulAsList()
-        .transform(taskExecutor) { (model, manufactorer, buildVersion, buildApi) ->
-          if (model != null && manufactorer != null && buildVersion != null && buildApi != null) {
-            DeviceNameProperties(model, manufactorer, buildVersion, buildApi)
-          }
-          else {
-            throw RuntimeException(
-                "Unexpected device name information retrieved - $model, $manufactorer, $buildVersion, $buildApi")
-          }
-        }
+        .whenAllComplete()
+        .call { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) }
   }
 
   private fun isRetrieving(device: IDevice): Boolean {
@@ -92,13 +84,15 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     assertThreadMatch(ThreadType.TASK)
     val task = device.getDeviceSystemProperties()
     task.addCallback(edtExecutor, { deviceNameProperties ->
-      deviceNamePropertiesMap[device] = deviceNameProperties
-      if (!Disposer.isDisposed(this)) {
-        uiCallback.onSuccess(deviceNameProperties)
+      if (deviceNamePropertiesMap[device] != deviceNameProperties) {
+        deviceNamePropertiesMap[device] = deviceNameProperties
+        if (!Disposer.isDisposed(this)) {
+          uiCallback.onSuccess(deviceNameProperties)
+        }
       }
     }, { t ->
       if (!Disposer.isDisposed(this)) {
-        uiCallback.onFailure(t)
+        uiCallback.onFailure(t!!)
       }
     })
     tasksMap[device] = task
@@ -118,14 +112,9 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     assertThreadMatch(ThreadType.EDT)
     if (!Disposer.isDisposed(this)) {
       val value = deviceNamePropertiesMap[device]
-      return if (value == null) {
-        // only taskExecutor will invoke retrieving DeviceNamePropertie tasks
-        taskExecutor.execute { if (!isRetrieving(device)) startRetriever(device) }
-        defaultValue
-      }
-      else {
-        value
-      }
+      // only taskExecutor will invoke retrieving DeviceNameProperties tasks
+      taskExecutor.execute { if (!isRetrieving(device)) startRetriever(device) }
+      return value ?: defaultValue
     }
     else {
       throw IllegalStateException("DeviceNamePropertiesFetcher has been disposed")
@@ -146,6 +135,7 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
       }
     }
 
-    override fun deviceChanged(device: IDevice, changeMask: Int) {}
+    override fun deviceChanged(device: IDevice, changeMask: Int) {
+    }
   }
 }
