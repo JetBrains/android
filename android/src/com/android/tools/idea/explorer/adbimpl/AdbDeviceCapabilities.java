@@ -98,7 +98,8 @@ public class AdbDeviceCapabilities {
 
   @SuppressWarnings("unused")
   public synchronized boolean supportsMkTempCommand()
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+
     if (mySupportsMkTempCommand == null) {
       mySupportsMkTempCommand = supportsMkTempCommandWorker();
     }
@@ -224,7 +225,7 @@ public class AdbDeviceCapabilities {
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
 
     try (ScopedRemoteFile srcFile = new ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file__.tmp"));
-          ScopedRemoteFile dstFile = new ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp"))) {
+         ScopedRemoteFile dstFile = new ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp"))) {
       // Create the remote file used for testing capability
       srcFile.create();
 
@@ -254,7 +255,7 @@ public class AdbDeviceCapabilities {
   }
 
   private boolean supportsMkTempCommandWorker()
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
 
     // Copy source file to destination file
     String command = new AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(DEVICE_TEMP_DIRECTORY).build();
