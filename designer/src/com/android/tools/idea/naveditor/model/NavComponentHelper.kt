@@ -146,6 +146,7 @@ val NlComponent.actionType: ActionType
 var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
+// TODO: Use IdAutoAttributeDelegate for popUpTo
 var NlComponent.popUpTo: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
 var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
 var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
@@ -172,6 +173,17 @@ fun NlComponent.createAction(destinationId: String? = null): NlComponent {
   newAction.actionDestinationId = destinationId
   return newAction
 }
+
+
+/**
+ * If the action has a destination attribute set, return it.
+ * Otherwise, return the popupto attribute if the pop is non-inclusive
+ */
+val NlComponent.effectiveDestinationId: String?
+  get() {
+    actionDestinationId?.let { return it }
+    return if (inclusive) null else NlComponent.stripId(popUpTo)
+  }
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

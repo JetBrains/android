@@ -156,7 +156,7 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    String targetId = NavComponentHelperKt.getActionDestinationId(myNlComponent);
+    String targetId = NavComponentHelperKt.getEffectiveDestinationId(myNlComponent);
     if (targetId == null) {
       // TODO: error handling
       return;
@@ -206,7 +206,7 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    String targetId = NavComponentHelperKt.getActionDestinationId(myNlComponent);
+    String targetId = NavComponentHelperKt.getEffectiveDestinationId(myNlComponent);
     if (targetId == null) {
       return;
     }
