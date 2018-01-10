@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,15 +38,19 @@ import java.util.List;
  *
  * This interface aims to allow the {@link GradleBuildModel} to support different languages, each language should have its
  * own implementation of both {@link GradleDslParser} and {@link GradleDslWriter}.
+ *
+ * Note: The methods on this interface are marked with whether or not they require read access.
+ * Read access can be obtained using {@link Application#runReadAction(Computable)}, among other ways.
  */
 public interface GradleDslParser {
   /**
-   * Instructs the parser perform its parsing operation.
+   * Instructs the parser perform its parsing operation. This method REQUIRES read access.
    */
   void parse();
 
   /**
    * Converts a given {@link Object} to the language specific {@link PsiElement}, this method is used to convert newly set or parsed values.
+   * This method does NOT REQUIRE read access.
    */
   @Nullable
   PsiElement convertToPsiElement(@NotNull Object literal);
@@ -54,6 +60,8 @@ public interface GradleDslParser {
    * whether or not the returned value should contained resolved references to variables. e.g either "android-${version}" (unresolved)
    * or "android-23" (resolved). A {@link GradleDslExpression} is needed to resolve any variable names that need
    * to be injected.
+   *
+   * This method REQUIRES read access.
    */
   @Nullable
   Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
@@ -61,6 +69,8 @@ public interface GradleDslParser {
   /**
    * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
    * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
+   *
+   * This method REQUIRES read access.
    */
   @NotNull
   List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
