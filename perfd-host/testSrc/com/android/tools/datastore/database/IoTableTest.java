@@ -33,8 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class IoTableTest {
-  private static final int PROCESS_ID = 1;
-  private static final int PROCESS_ID_INVALID = 2;
   private static final int SESSION_ID = 3;
   private static final int BYTES_READ = 1024;
   private static final int BYTES_WRITTEN = 2048;
@@ -87,7 +85,7 @@ public class IoTableTest {
       }
       FileSession fileSession = fileDataBuilder.build();
       ourFileSessionsList.add(fileSession);
-      myTable.insert(PROCESS_ID, VALID_SESSION, fileSession);
+      myTable.insert(VALID_SESSION, fileSession);
     }
 
     // File Speed Data
@@ -96,7 +94,7 @@ public class IoTableTest {
       long timestamp = i * 100 + 50;
       IoSpeedData speedData = IoSpeedData.newBuilder().setSpeed(isRead ? READ_SPEED_B_S : WRITE_SPEED_B_S)
         .setType(isRead ? IoType.READ : IoType.WRITE)
-        .setBasicInfo(Common.CommonData.newBuilder().setProcessId(PROCESS_ID).setSession(VALID_SESSION).setEndTimestamp(timestamp).build())
+        .setEndTimestamp(timestamp)
         .build();
 
       if (isRead) {
@@ -105,12 +103,12 @@ public class IoTableTest {
       else {
         ourWriteSpeedDataList.add(speedData);
       }
-      myTable.insert(PROCESS_ID, VALID_SESSION, timestamp, speedData);
+      myTable.insert(VALID_SESSION, timestamp, speedData);
     }
   }
 
   private List<FileSession> getFileData(long startTimestamp, long endTimestamp) {
-    return myTable.getFileData(PROCESS_ID, VALID_SESSION, startTimestamp, endTimestamp);
+    return myTable.getFileData(VALID_SESSION, startTimestamp, endTimestamp);
   }
 
   @Test
@@ -145,18 +143,12 @@ public class IoTableTest {
 
   @Test
   public void testGetFileDataInvalidSession() throws Exception {
-    List<FileSession> data = myTable.getFileData(PROCESS_ID, INVALID_SESSION, 0, 1000);
-    assertTrue(data.isEmpty());
-  }
-
-  @Test
-  public void testGetFileDataInvalidProcess() throws Exception {
-    List<FileSession> data = myTable.getFileData(PROCESS_ID_INVALID, VALID_SESSION, 0, 1000);
+    List<FileSession> data = myTable.getFileData(INVALID_SESSION, 0, 1000);
     assertTrue(data.isEmpty());
   }
 
   private List<IoSpeedData> getSpeedData(long startTimestamp, long endTimestamp, IoType type) {
-    return myTable.getSpeedData(PROCESS_ID, VALID_SESSION, startTimestamp, endTimestamp, type);
+    return myTable.getSpeedData(VALID_SESSION, startTimestamp, endTimestamp, type);
   }
 
   @Test
@@ -211,28 +203,14 @@ public class IoTableTest {
 
   @Test
   public void testGetReadSpeedDataInvalidSession() throws Exception {
-    List<IoSpeedData> data = myTable.getSpeedData(PROCESS_ID, INVALID_SESSION, 0, 1000,
+    List<IoSpeedData> data = myTable.getSpeedData(INVALID_SESSION, 0, 1000,
                                                   IoType.READ);
     assertTrue(data.isEmpty());
   }
 
   @Test
   public void testGetWriteSpeedDataInvalidSession() throws Exception {
-    List<IoSpeedData> data = myTable.getSpeedData(PROCESS_ID, INVALID_SESSION, 0, 1000,
-                                                  IoType.WRITE);
-    assertTrue(data.isEmpty());
-  }
-
-  @Test
-  public void testGetReadSpeedDataInvalidProcess() throws Exception {
-    List<IoSpeedData> data = myTable.getSpeedData(PROCESS_ID_INVALID, VALID_SESSION, 0, 1000,
-                                                  IoType.READ);
-    assertTrue(data.isEmpty());
-  }
-
-  @Test
-  public void testGetWriteSpeedDataInvalidProcess() throws Exception {
-    List<IoSpeedData> data = myTable.getSpeedData(PROCESS_ID_INVALID, VALID_SESSION, 0, 1000,
+    List<IoSpeedData> data = myTable.getSpeedData(INVALID_SESSION, 0, 1000,
                                                   IoType.WRITE);
     assertTrue(data.isEmpty());
   }
