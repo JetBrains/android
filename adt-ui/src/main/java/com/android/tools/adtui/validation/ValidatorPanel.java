@@ -21,6 +21,7 @@ import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
@@ -86,7 +87,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Registers a target observable boolean as a simple test which, if {@code true}, means
+   * Registers a target observable boolean as a simple test which, if {@code false}, means
    * the {@code message} should be shown with the specified {@code severity}.
    */
   public void registerTest(@NotNull ObservableValue<Boolean> value, @NotNull Validator.Severity severity, @NotNull String message) {
@@ -158,5 +159,11 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   @Override
   public void dispose() {
     myListeners.releaseAll();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JLabel getValidationLabel() {
+    return myValidationLabel;
   }
 }
