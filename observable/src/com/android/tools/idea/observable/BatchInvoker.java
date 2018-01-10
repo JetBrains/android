@@ -72,7 +72,6 @@ public final class BatchInvoker {
   private boolean myUpdateInProgress;
 
   public BatchInvoker() {
-
     this(ourOverrideStrategy != null ? ourOverrideStrategy : SWING_INVOKE_LATER_STRATEGY);
   }
 
