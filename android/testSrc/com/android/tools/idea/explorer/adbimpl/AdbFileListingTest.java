@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,9 +41,6 @@ public class AdbFileListingTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
-
-  @ClassRule
-  public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
 
   @Test
   public void test_Nexus7Api23_GetRoot() throws Exception {
