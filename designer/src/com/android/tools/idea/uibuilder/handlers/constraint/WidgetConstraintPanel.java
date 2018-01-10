@@ -365,6 +365,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
   }
 
   private void setDimension(NlComponent component, String attribute, int currentValue) {
+    attribute = ConstraintComponentUtilities.mapStartEndStrings(component, attribute);
     String marginString = component.getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
