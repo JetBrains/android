@@ -106,7 +106,7 @@ public class DependenciesTest {
    *   The line "Gson gsn = new Gson();" should get resolved in both the app and library modules without any errors.
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void transitiveDependenciesResolve() throws Exception {
     IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);

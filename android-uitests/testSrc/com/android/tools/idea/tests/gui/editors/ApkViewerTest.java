@@ -85,7 +85,7 @@ public class ApkViewerTest {
    *   6. Make some changes in source code, and re-build APK and verify the build is successful.
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634399
+  @RunIn(TestGroup.QA)
   @Test
   public void testFileHandleRelease() throws Exception {
     final String SIMPLE_APP = "SimpleLocalApplication";
