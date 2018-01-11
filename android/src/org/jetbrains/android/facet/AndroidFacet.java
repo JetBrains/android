@@ -32,7 +32,6 @@ import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
@@ -215,10 +214,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Override
   public void initFacet() {
     ResourceRepositories.getOrCreateInstance(this);
-
-    StartupManager.getInstance(getProject()).runWhenProjectIsInitialized(() -> {
-      AndroidResourceFilesListener.notifyFacetInitialized(this);
-    });
   }
 
   @Override
