@@ -881,6 +881,12 @@ public class ScoutArrange {
     int min = Integer.MAX_VALUE;
     ScoutWidget minWidget = null;
     for (ScoutWidget widget : list) {
+      if (widget.isHorizontalGuideline() && (direction == Direction.LEFT || direction == Direction.RIGHT)) {
+        continue;
+      }
+      if (widget.isVerticalGuideline() && (direction == Direction.TOP || direction == Direction.BOTTOM)) {
+        continue;
+      }
       Rectangle r = getRectangle(widget);
       if (r.intersects(rect)) {
         int dist = (int)distance(r, region);
