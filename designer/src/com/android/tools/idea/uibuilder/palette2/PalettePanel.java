@@ -50,7 +50,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -98,6 +97,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
   private StartFilteringListener myStartFilteringCallback;
+  private Runnable myStopFilteringCallback;
   private Palette.Group myLastSelectedGroup;
 
   public PalettePanel(@NotNull Project project) {
@@ -318,6 +318,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @Override
+  public void setStopFiltering(@NotNull Runnable runnable) {
+    myStopFilteringCallback = runnable;
+  }
+
+  @Override
   public boolean supportsFiltering() {
     return true;
   }
@@ -465,6 +470,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       DnDTransferComponent component = getDndComponent(data);
       if (component == null) {
         return;
+      }
+      if (myStopFilteringCallback != null) {
+        myStopFilteringCallback.run();
       }
       NlUsageTrackerManager.getInstance(myDesignSurface).logDropFromPalette(
         component.getTag(), component.getRepresentation(), getGroupName(), myDataModel.getMatchCount());
