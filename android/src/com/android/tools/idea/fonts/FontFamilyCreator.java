@@ -22,11 +22,13 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -72,7 +74,8 @@ public class FontFamilyCreator {
   private final DownloadableFontCacheService myService;
 
   public FontFamilyCreator(@NotNull AndroidFacet facet) {
-    myFacet = facet;
+    Module module = InstantApps.findBaseFeature(facet);
+    myFacet = module != null ? AndroidFacet.getInstance(module) : facet;
     myProject = facet.getModule().getProject();
     myService = DownloadableFontCacheService.getInstance();
   }
