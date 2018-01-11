@@ -142,7 +142,6 @@ public class NlPaletteTest {
     dependencyDialog.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddFragmentWithoutCustomFragmentsAvailable() throws Exception {
     myGuiTest.importSimpleLocalApplication();
@@ -160,7 +159,6 @@ public class NlPaletteTest {
     classesDialog.clickOk();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddFragmentWithCustomFragmentsAvailable() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
