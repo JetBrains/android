@@ -20,32 +20,30 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.BuildToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
-import com.intellij.ui.components.JBLabel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
-import java.util.Enumeration;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
-import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
@@ -97,7 +95,6 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
    *   6. Build the project and check build is successful.
    *   </pre>
    */
-  @Ignore("b/70508451")
   @RunIn(TestGroup.QA)
   @Test
   public void upgradeBuildTools() throws Exception {
@@ -256,11 +253,9 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
   private void fixBuildToolsError(@NotNull IdeFrameFixture ideFrameFixture) throws Exception {
     ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFail();
 
-    MessagesToolWindowFixture messagesToolWindow = ideFrameFixture.getMessagesToolWindow();
-    MessagesToolWindowFixture.MessageFixture message = messagesToolWindow.getGradleSyncContent()
-      .findMessage(ERROR, firstLineStartingWith(ERROR_MSG));
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlinkByContainedText(HYPER_LINK_TEXT);
-    hyperlink.clickAndContinue();
+    BuildToolWindowFixture buildToolWindow = ideFrameFixture.getBuildToolWindow();
+    ConsoleViewImpl consoleView = buildToolWindow.getGradleSyncConsoleView();
+    buildToolWindow.findHyperlinkByTextAndClick(consoleView, HYPER_LINK_TEXT);
 
     DialogFixture downloadDialog = findDialog(withTitle(SDK_QUICKFIX_TITLE))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());

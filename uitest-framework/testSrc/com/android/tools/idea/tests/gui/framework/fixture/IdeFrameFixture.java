@@ -524,6 +524,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public BuildToolWindowFixture getBuildToolWindow() {
+    return new BuildToolWindowFixture(getProject(), robot());
+  }
+
+  @NotNull
   public GradleToolWindowFixture getGradleToolWindow() {
     return new GradleToolWindowFixture(getProject(), robot());
   }
