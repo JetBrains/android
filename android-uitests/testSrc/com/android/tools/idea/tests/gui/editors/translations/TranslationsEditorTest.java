@@ -159,10 +159,8 @@ public final class TranslationsEditorTest {
     IdeFrameFixture frame = myGuiTest.ideFrame();
 
     VirtualFile debugValuesEn = frame.findFileByRelativePath("app/src/debug/res/values-en", false);
-    assert debugValuesEn != null;
 
     VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
-    assert mainValuesEn != null;
 
     myTranslationsEditor.getTable().tableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
