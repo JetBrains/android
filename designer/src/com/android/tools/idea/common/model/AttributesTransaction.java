@@ -124,34 +124,14 @@ public class AttributesTransaction implements NlAttributesHolder {
 
       String key = attributeKey(namespace, name);
       PendingAttribute attribute = myPendingAttributes.get(key);
-      boolean modified = true;
       if (attribute != null) {
-        if (StringUtil.equals(attribute.value, value)) {
-          // No change. We do not need to propagate the attribute value to the view
-          modified = false;
-        }
-        else {
+        if (!StringUtil.equals(attribute.value, value)) {
           attribute.value = value;
         }
       }
       else {
         attribute = new PendingAttribute(namespace, name, value);
         myPendingAttributes.put(key, attribute);
-      }
-
-      ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-      if (viewInfo != null) {
-        View cachedView = myCachedView.get();
-        if (cachedView == viewInfo.getViewObject()) {
-          // We still have the same view info so we can just apply the delta (the passed attribute)
-          if (modified && cachedView != null) {
-            applyAttributeToView(attribute, viewInfo, myModel);
-          }
-        }
-        else {
-          // The view object has changed so we need to re-apply all the attributes
-          applyAllPendingAttributesToView(viewInfo);
-        }
       }
     }
     finally {
@@ -201,13 +181,11 @@ public class AttributesTransaction implements NlAttributesHolder {
    */
   public void apply() {
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-    if (hasPendingRelayout && viewInfo != null) {
-      View currentView = (View)viewInfo.getViewObject();
-      if (currentView != myCachedView.get()) {
-        // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(viewInfo);
+    if (viewInfo != null) {
+      applyAllPendingAttributesToView(viewInfo);
+      if (hasPendingRelayout) {
+        triggerViewRelayout((View)viewInfo.getViewObject());
       }
-      triggerViewRelayout((View)viewInfo.getViewObject());
     }
   }
 
@@ -218,15 +196,7 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @return true if the XML was changed as result of this call
    */
   public boolean commit() {
-    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-    if (hasPendingRelayout && viewInfo != null) {
-      View currentView = (View)viewInfo.getViewObject();
-      if (currentView != myCachedView.get()) {
-        // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(viewInfo);
-      }
-      triggerViewRelayout((View)viewInfo.getViewObject());
-    }
+    apply();
 
     myLock.writeLock().lock();
     try {
