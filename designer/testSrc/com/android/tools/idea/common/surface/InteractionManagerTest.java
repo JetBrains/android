@@ -129,6 +129,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
 
+    surface.getSelectionModel().clear();
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, textView.getCenterX()),
