@@ -22,6 +22,7 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import org.junit.Ignore
 import java.util.regex.Pattern
 
 class FilterComponentTest {
@@ -56,6 +57,7 @@ class FilterComponentTest {
     assertThat(myFilterComponent.isVisible).isFalse()
   }
 
+  @Ignore
   @Test
   fun changeFilterContent() {
     myFilterComponent.textEditor.text = "test[A-Z]ext";
