@@ -457,6 +457,11 @@ public class GradleFiles {
         return;
       }
 
+      // This code may be run before the project is initialized, and we need the project to be initialized to get the PsiManager.
+      if (!myGradleFiles.myProject.isInitialized() || !PsiManager.getInstance(myGradleFiles.myProject).isInProject(psiFile)) {
+        return;
+      }
+
       boolean foundChange = false;
       for (PsiElement element : elements) {
         if (element == null || element instanceof PsiWhiteSpace) {
