@@ -110,6 +110,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   @NotNull
   public IdeFrameFixture clickOk(@NotNull Wait waitForSync) {
     clickOkAndWaitDialogDisappear();
+    // Changing the project structure can cause a Gradle build and Studio re-indexing.
     return myIdeFrameFixture.waitForGradleProjectSyncToFinish(waitForSync);
   }
 
