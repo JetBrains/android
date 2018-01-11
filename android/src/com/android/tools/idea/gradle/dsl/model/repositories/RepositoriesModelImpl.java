@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
@@ -215,6 +216,16 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   @Override
   public void addGoogleMavenRepository(@NotNull Project project) {
     if (GradleVersions.getInstance().isGradle4OrNewer(project)) {
+      addRepositoryByMethodName(GOOGLE_METHOD_NAME);
+    }
+    else {
+      addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
+    }
+  }
+
+  @Override
+  public void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion) {
+    if (gradleVersion.compareIgnoringQualifiers("4.0") >= 0) {
       addRepositoryByMethodName(GOOGLE_METHOD_NAME);
     }
     else {
