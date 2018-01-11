@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
@@ -50,7 +51,9 @@ class NavInspectorPanelTest : NavTestCase() {
       }
     }
     panel = NavInspectorPanel(testRootDisposable)
-    manager = spy(NavPropertiesManager(myFacet, model.surface))
+    val realPropertiesManager = NavPropertiesManager(myFacet, model.surface)
+    manager = spy(realPropertiesManager)
+    Disposer.register(myRootDisposable, realPropertiesManager)
     inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
 

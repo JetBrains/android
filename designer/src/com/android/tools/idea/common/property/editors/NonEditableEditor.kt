@@ -20,6 +20,8 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
 import com.intellij.openapi.command.undo.UndoConstants
+import com.intellij.openapi.fileTypes.FileTypes
+import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorTextField
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -29,11 +31,11 @@ import javax.swing.JComponent
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.InsetsUIResource
 
-class NonEditableEditor(listener: NlEditingListener) : BaseComponentEditor(listener) {
+class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseComponentEditor(listener) {
   val component = AdtSecondaryPanel(BorderLayout())
 
   // TODO: factor this behavior out of here and TextEditorWithAutoCompletion
-  val textField = object: EditorTextField() {
+  val textField = object: EditorTextField("", project, FileTypes.PLAIN_TEXT) {
     override fun addNotify() {
       super.addNotify()
       editor?.document?.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
@@ -59,7 +61,7 @@ class NonEditableEditor(listener: NlEditingListener) : BaseComponentEditor(liste
   }
   private lateinit var _property: NlProperty
 
-  constructor() : this(NlEditingListener.DEFAULT_LISTENER)
+  constructor(project: Project) : this(NlEditingListener.DEFAULT_LISTENER, project)
 
   init {
     component.border = EmptyBorder(VERTICAL_PADDING, HORIZONTAL_SPACING, VERTICAL_PADDING, HORIZONTAL_SPACING)

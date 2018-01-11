@@ -24,6 +24,8 @@ import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.components.ComponentManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
@@ -45,7 +47,7 @@ public class TextEditor extends BaseComponentEditor {
 
   private final JPanel myPanel;
   private final JLabel myLabel;
-  private final ComponentManager myProject;
+  private final Project myProject;
   private final EditorTextField myTextEditor;
 
   private NlProperty myProperty;
@@ -66,7 +68,7 @@ public class TextEditor extends BaseComponentEditor {
     myProject = project;
 
     //noinspection UseDPIAwareInsets
-    myTextEditor = new EditorTextField() {
+    myTextEditor = new EditorTextField("", myProject, FileTypes.PLAIN_TEXT) {
         @Override
         public void addNotify() {
           super.addNotify();

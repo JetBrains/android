@@ -37,6 +37,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -127,6 +128,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   public void loadingStopped(@NotNull String message) {
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
+  }
+
+  @TestOnly
+  public boolean isLoading() {
+    return myLoadingPanel.isLoading();
   }
 
   /**
@@ -582,6 +588,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
     public void setLoadingText(String text) {
       myLoadingPanel.setLoadingText(text);
+    }
+
+    @TestOnly
+    public boolean isLoading() {
+      return myLoadingPanel.isLoading();
     }
 
     @Override

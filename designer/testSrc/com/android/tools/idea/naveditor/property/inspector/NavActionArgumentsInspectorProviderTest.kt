@@ -63,6 +63,7 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     // Non-arguments property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
     Disposer.dispose(surface)
+    Disposer.dispose(manager)
   }
 
   fun testListContent() {
@@ -83,8 +84,9 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     }
 
     val panel = NavInspectorPanel(myRootDisposable)
+    val navPropertiesManager = NavPropertiesManager(myFacet, model.surface)
     panel.setComponent(listOf(model.find("a1")!!), HashBasedTable.create<String, String, NlProperty>(),
-        NavPropertiesManager(myFacet, model.surface))
+        navPropertiesManager)
 
     @Suppress("UNCHECKED_CAST")
     val argumentsTable = flatten(panel).find { it.name == NAV_ACTION_ARGUMENTS_COMPONENT_NAME }!! as JBTable
@@ -117,6 +119,7 @@ class NavActionArgumentsInspectorProviderTest: NavTestCase() {
     assertEquals(null, (argumentsTable.getValueAt(0, 1) as NlProperty).value)
     assertEquals("arg2", (argumentsTable.getValueAt(1, 0) as NlProperty).value)
     assertEquals("foo", (argumentsTable.getValueAt(1, 1) as NlProperty).value)
+    Disposer.dispose(navPropertiesManager)
   }
 
   private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {

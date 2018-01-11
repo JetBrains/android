@@ -57,6 +57,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     // Non-actions property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
     Disposer.dispose(surface)
+    Disposer.dispose(manager)
   }
 
   fun testListContent() {
