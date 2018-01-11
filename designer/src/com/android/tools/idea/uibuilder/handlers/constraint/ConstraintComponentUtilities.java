@@ -19,12 +19,14 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
@@ -912,43 +914,47 @@ public final class ConstraintComponentUtilities {
     boolean hasBaseline = transaction.getAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
     boolean hasStart = hasStart(transaction);
     boolean hasEnd = hasEnd(transaction);
-
+    String margin;
     // Horizontal attributes
+    // cleanup needs to be sdk range specific
+    //
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(component.getModel().getFacet());
+    boolean remove_left_right = moduleInfo.getMinSdkVersion().isGreaterOrEqualThan(17);
 
-    if (!hasLeft) {
+    margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+    if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
     }
-    else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
-      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+
+    margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
+    if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
+    }
+
+    if (!hasStart) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
+      if (!hasLeft) {
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
       }
     }
-    if (!hasRight) {
-      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
-    }
     else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
-      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
-        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
-      }
-    }
-    if (!hasStart) {
-      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
-    }
-    else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
+      margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
       }
     }
     if (!hasEnd) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
+      if (!hasRight) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
+      }
     }
     else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
+      margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
       }
     }
 
@@ -973,7 +979,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
     else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP);
+      margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
       }
@@ -983,7 +989,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
     else {
-      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM);
+      margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, null);
       }
@@ -1001,6 +1007,22 @@ public final class ConstraintComponentUtilities {
     if (isGuideLine(component)) {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+    }
+    if (remove_left_right & false) {
+      boolean start = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
+      if (start) {
+        boolean left = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+        if (left) {
+          transaction.removeAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+        }
+      }
+      boolean end = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
+      if (end) {
+        boolean right = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
+        if (right) {
+          transaction.removeAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
+        }
+      }
     }
   }
 
@@ -1461,6 +1483,12 @@ public final class ConstraintComponentUtilities {
     ATTR_LAYOUT_MARGIN_END
   };
 
+  private static String[] ATTRIB_MARGIN_LR = {
+    null,
+    null,
+    ATTR_LAYOUT_MARGIN_LEFT,
+    ATTR_LAYOUT_MARGIN_RIGHT
+  };
   public static void scoutConnect(NlComponent source,
                                   Direction sourceDirection,
                                   NlComponent target,
@@ -1490,6 +1518,10 @@ public final class ConstraintComponentUtilities {
     transaction.setAttribute(SHERPA_URI, attrib, targetId);
     if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {
       transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
+      if (ATTRIB_MARGIN_LR[srcIndex] != null) { // add the left and right as needed
+        transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN_LR[srcIndex], margin + "dp");
+      }
+
     }
     transaction.apply();
     String str;

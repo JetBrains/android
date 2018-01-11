@@ -36,16 +36,16 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
 
   static {
     ourLeftAttributes = new ArrayList<>();
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_START_TO_START_OF);
+    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_START_TO_END_OF);
 
     ourTopAttributes = new ArrayList<>();
     ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
     ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
 
     ourRightAttributes = new ArrayList<>();
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_END_TO_START_OF);
+    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_END_TO_END_OF);
 
     ourBottomAttributes = new ArrayList<>();
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
@@ -93,8 +93,8 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, "parent");
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, "parent");
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
@@ -104,19 +104,18 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, "parent");
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, String.format(SdkConstants.VALUE_N_DP, 16));
-      // TODO: fix RTL handling
-      // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
     horizontalNotches.add(new Notch.Horizontal(owner, x2 - snappableComponent.getDrawWidth() - 16, x2 - 16, (AttributesTransaction attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
-      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, "parent");
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, String.format(SdkConstants.VALUE_N_DP, 16));
-      // TODO: fix RTL handling
-      // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
+
     }));
 
     int y1 = owner.getDrawY();
