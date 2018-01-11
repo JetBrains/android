@@ -210,6 +210,16 @@ public interface FeatureTracker {
   void trackSelectNetworkDetailsError();
 
   /**
+   * Track the user selecting the "Connections View" tab.
+   */
+  void trackSelectNetworkConnectionsView();
+
+  /**
+   * Track the user selecting the "Threads View" tab.
+   */
+  void trackSelectNetworkThreadsView();
+
+  /**
    * Track the user opening up the CPU profiling configurations dialog.
    */
   void trackOpenProfilingConfigDialog();

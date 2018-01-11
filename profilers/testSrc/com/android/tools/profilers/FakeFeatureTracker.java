@@ -203,6 +203,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectNetworkConnectionsView() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkThreadsView() {
+
+  }
+
+  @Override
   public void trackOpenProfilingConfigDialog() {
 
   }

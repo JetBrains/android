@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
 import com.intellij.ui.JBColor;
@@ -85,7 +86,17 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       connectionsTab.addTab("Connection View", connectionScrollPane);
       connectionsTab.addTab("Thread View", threadsViewScrollPane);
       // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
-      connectionsTab.addChangeListener(evt -> myConnectionsPanel.repaint());
+      connectionsTab.addChangeListener((evt) -> {
+        myConnectionsPanel.repaint();
+        int selectedIndex = connectionsTab.getSelectedIndex();
+        if (selectedIndex == 0) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
+        } else if (selectedIndex == 1) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
+        } else {
+          throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
+        }
+      });
       connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
     }
     else {

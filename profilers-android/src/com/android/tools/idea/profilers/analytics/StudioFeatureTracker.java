@@ -230,6 +230,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectNetworkConnectionsView() {
+    track(AndroidProfilerEvent.Type.SELECT_CONNECTIONS_CONNECTION_VIEW);
+  }
+
+  @Override
+  public void trackSelectNetworkThreadsView() {
+    track(AndroidProfilerEvent.Type.SELECT_CONNECTIONS_THREADS_VIEW);
+  }
+
+  @Override
   public void trackOpenProfilingConfigDialog() {
     track(AndroidProfilerEvent.Type.OPEN_CPU_CONFIG_DIALOG);
   }
