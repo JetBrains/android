@@ -341,6 +341,8 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
+    robot.waitForIdle(); // Make sure there are no pending open requests
+
     EdtTestUtil.runInEdtAndWait(
       () -> {
         // TODO: Use UI to navigate to the file instead
