@@ -431,14 +431,15 @@ public class TemplateManager {
   }
 
   public void refreshDynamicTemplateMenu(@Nullable Project project) {
-    if (myTopGroup == null) {
-      myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
-    } else {
-      myTopGroup.removeAll();
-    }
-    myTopGroup.addSeparator();
-    ActionManager am = ActionManager.getInstance();
     synchronized (CATEGORY_TABLE_LOCK) {
+      if (myTopGroup == null) {
+        myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
+      } else {
+        myTopGroup.removeAll();
+      }
+      myTopGroup.addSeparator();
+      ActionManager am = ActionManager.getInstance();
+
       for (final String category : getCategoryTable(true, project).rowKeySet()) {
         if (EXCLUDED_CATEGORIES.contains(category)) {
           continue;
