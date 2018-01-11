@@ -60,7 +60,6 @@ public class NlPreviewTest {
     preview.waitForRenderToFinish();
     preview.getConfigToolbar().requireDevice("Nexus 5");
     VirtualFile file = editor.getCurrentFile();
-    assert file != null;
     assertThat(file.getParent().getName()).isEqualTo("layout");
     preview.getConfigToolbar().requireOrientation("Portrait");
 

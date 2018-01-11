@@ -236,7 +236,6 @@ public class ChooseResourceDialogTest {
 
     // Get property sheet, find text property, open customizer
     NlPropertyFixture property = layout.getPropertiesPanel().openAsInspector().findProperty("text");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTableFixture nameTable = dialog.getResourceNameTable();
@@ -295,7 +294,6 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
@@ -359,7 +357,6 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("backgroundTint");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
@@ -389,7 +386,6 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
@@ -424,7 +420,6 @@ public class ChooseResourceDialogTest {
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
 
     NlPropertyFixture property = fixture.findProperty("entries");
-    assert property != null;
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();

@@ -168,7 +168,6 @@ public final class LinearLayoutTest {
     JTreeFixture treeFixture = editor.getComponentTree();
 
     treeFixture.replaceCellReader((tree, value) -> {
-      assert value != null;
       return StructureTreeDecorator.toString((NlComponent)value);
     });
 

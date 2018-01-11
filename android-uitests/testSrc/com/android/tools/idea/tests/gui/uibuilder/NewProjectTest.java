@@ -265,7 +265,6 @@ public class NewProjectTest {
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
     ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assert version != null;
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
