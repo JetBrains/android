@@ -15,13 +15,79 @@
  */
 package com.android.tools.idea.actions;
 
+import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Override to disable when not on a supported OS.
- */
-public class SendFeedbackAction extends com.intellij.ide.actions.SendFeedbackAction {
+import java.awt.*;
+
+public class SendFeedbackAction extends AnAction implements DumbAware {
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    launchBrowser(e.getProject());
+  }
+
+  public static void launchBrowser(@Nullable Project project) {
+    final ApplicationInfoEx appInfo = ApplicationInfoEx.getInstanceEx();
+    boolean eap = appInfo.isEAP();
+    String urlTemplate = eap ? appInfo.getEAPFeedbackUrl() : appInfo.getReleaseFeedbackUrl();
+    urlTemplate = urlTemplate
+      .replace("$BUILD", eap ? appInfo.getBuild().asStringWithoutProductCode() : appInfo.getBuild().asString())
+      .replace("$TIMEZONE", System.getProperty("user.timezone"))
+      .replace("$VERSION", appInfo.getFullVersion())
+      .replace("$EVAL", "false") // always false for Android Studio
+      .replace("$DESCR", getDescription());
+    BrowserUtil.browse(urlTemplate, project);
+  }
+
+  public static String getDescription() {
+    StringBuilder sb = new StringBuilder("\n\n");
+    sb.append(ApplicationInfoEx.getInstanceEx().getBuild().asString()).append(", ");
+    String javaVersion = System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown"));
+    sb.append("JRE ");
+    sb.append(javaVersion);
+    String archDataModel = System.getProperty("sun.arch.data.model");
+    if (archDataModel != null) {
+      sb.append("x").append(archDataModel);
+    }
+    String javaVendor = System.getProperty("java.vm.vendor");
+    if (javaVendor != null) {
+      sb.append(" ").append(javaVendor);
+    }
+    sb.append(", OS ").append(System.getProperty("os.name"));
+    String osArch = System.getProperty("os.arch");
+    if (osArch != null) {
+      sb.append("(").append(osArch).append(")");
+    }
+
+    String osVersion = System.getProperty("os.version");
+    String osPatchLevel = System.getProperty("sun.os.patch.level");
+    if (osVersion != null) {
+      sb.append(" v").append(osVersion);
+      if (osPatchLevel != null) {
+        sb.append(" ").append(osPatchLevel);
+      }
+    }
+    if (!GraphicsEnvironment.isHeadless()) {
+      sb.append(", screens ");
+      GraphicsDevice[] devices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+      for (int i = 0; i < devices.length; i++) {
+        if (i > 0) sb.append(", ");
+        GraphicsDevice device = devices[i];
+        Rectangle bounds = device.getDefaultConfiguration().getBounds();
+        sb.append(bounds.width).append("x").append(bounds.height);
+      }
+      if (UIUtil.isRetina()) sb.append(SystemInfo.isMac ? "; Retina" : "; HiDPI");
+    }
+    return sb.toString();
+  }
+
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
