@@ -123,7 +123,6 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71856066
   @Test
   public void testSimpleKeyboardEditingInTable() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -145,7 +144,7 @@ public class NlPropertyTableTest {
 
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
     table.waitForMinimumRowCount(10);
-    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
+    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
@@ -159,7 +158,6 @@ public class NlPropertyTableTest {
     assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo("@android:accessibilityLiveRegion");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71856066
   @Test
   public void testSelectCompletionFinishesEditingOfCell() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -179,7 +177,7 @@ public class NlPropertyTableTest {
     NlComponentFixture textView = layout.findView("TextView", 0).click();
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
       .waitForMinimumRowCount(10)
-      .selectRows(7)
+      .selectRows(6)
       .type('s');
 
     CompletionFixture completions = new CompletionFixture(myFrame);
