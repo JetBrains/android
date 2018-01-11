@@ -54,13 +54,13 @@ class SuggestionsForm(
   }
 
   private fun updateLoading() {
-    myLoadingLabel.isVisible = context.analyzerDaemon.isRunning
+    myLoadingLabel.isVisible = context.analyzerDaemon.isRunning || context.libraryUpdateCheckerDaemon.isRunning
   }
 
   internal fun renderIssues(issues: List<PsIssue>) {
     if (Disposer.isDisposed(this)) return
-    updateLoading()
     issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE))
+    updateLoading()
   }
 
   override fun dispose() {}
