@@ -16,21 +16,20 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.stdui.CommonToggleButton
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import java.awt.BorderLayout
-import javax.swing.JPanel
-import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
-import java.util.function.BiConsumer
+import java.util.concurrent.CountDownLatch
 import java.util.regex.Pattern
+import javax.swing.JPanel
 
 class FilterComponentTest {
   private lateinit var myPanel: JPanel
   private lateinit var myFilterComponent: FilterComponent
   private lateinit var myFilterButton: CommonToggleButton
   private lateinit var myPattern: Pattern
-
+  private lateinit var myLatch: CountDownLatch
   @Before
   fun setUp() {
     myPanel = JPanel(BorderLayout())
@@ -42,7 +41,12 @@ class FilterComponentTest {
     FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, myFilterButton)
     myPattern = Pattern.compile("")
 
-    myFilterComponent.addOnFilterChange (BiConsumer { p, _ -> myPattern = p })
+    myFilterComponent.addOnFilterChange { p, _ ->
+      run {
+        myPattern = p
+        myLatch.countDown()
+      }
+    }
   }
 
   @Test
@@ -53,12 +57,13 @@ class FilterComponentTest {
     assertThat(myFilterComponent.isVisible).isFalse()
   }
 
-  @Ignore
   @Test
   fun changeFilterContent() {
+    myLatch = CountDownLatch(3)
     myFilterComponent.textEditor.text = "test[A-Z]ext";
     myFilterComponent.matchCaseCheckBox.isSelected = true
     myFilterComponent.regexCheckBox.isSelected = true
+    myLatch.await()
     assertThat(myPattern.matcher("testText").matches()).isTrue()
     assertThat(myPattern.matcher("testAext").matches()).isTrue()
     assertThat(myPattern.matcher("testaext").matches()).isFalse()
