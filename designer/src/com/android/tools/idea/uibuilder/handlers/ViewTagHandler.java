@@ -17,14 +17,16 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.*;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 
@@ -32,6 +34,10 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <view>} tag.
  */
 public class ViewTagHandler extends ViewHandler {
+  private static final String DIVIDER_BACKGROUND = "?android:attr/listDivider";
+
+  public static final Predicate<String> SUITABLE_LAYOUT_CLASS = ViewTagHandler::isViewSuitableForLayout;
+
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
@@ -79,7 +85,8 @@ public class ViewTagHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    if (insertType == InsertType.CREATE && newChild.getAttribute(null, ATTR_CLASS) == null) {
+    if (insertType == InsertType.CREATE && newChild.getAttribute(null, ATTR_CLASS) == null &&
+        !(isVerticalDivider(newChild) || isHorizontalDivider(newChild))) {
       String src = browseClasses(editor, null);
       if (src != null) {
         newChild.setAttribute(null, ATTR_CLASS, src);
@@ -90,17 +97,54 @@ public class ViewTagHandler extends ViewHandler {
         return false;
       }
     }
-
     return true;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
+    if (!component.getTagName().equals(VIEW_TAG)) {
+      return super.getIcon(component);
+    }
+    if (isVerticalDivider(component)) {
+      return StudioIcons.LayoutEditor.Palette.VERTICAL_DIVIDER;
+    }
+    if (isHorizontalDivider(component)) {
+      return StudioIcons.LayoutEditor.Palette.HORIZONTAL_DIVIDER;
+    }
+    return StudioIcons.LayoutEditor.Palette.VIEW;
+  }
+
+  private static boolean isVerticalDivider(@NotNull NlComponent component) {
+    return DIVIDER_BACKGROUND.equals(component.getAttribute(ANDROID_URI, ATTR_BACKGROUND)) && hasShortWidth(component, ATTR_LAYOUT_WIDTH);
+  }
+
+  private static boolean isHorizontalDivider(@NotNull NlComponent component) {
+    return DIVIDER_BACKGROUND.equals(component.getAttribute(ANDROID_URI, ATTR_BACKGROUND)) && hasShortWidth(component, ATTR_LAYOUT_HEIGHT);
+  }
+
+  private static boolean hasShortWidth(@NotNull NlComponent component, @NotNull String attributeName) {
+    String value = component.getAttribute(ANDROID_URI, attributeName);
+    if (value == null) {
+      return false;
+    }
+    switch (value) {
+      case "1":
+      case "1px":
+      case "1dp":
+      case "1dip":
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Nullable
   private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayClassInput("Views", Collections.singleton(CLASS_VIEW), ViewTagHandler::isViewSuitableForLayout, existingValue);
+    return editor.displayClassInput("Views", Collections.singleton(CLASS_VIEW), SUITABLE_LAYOUT_CLASS, existingValue);
   }
 
-  @VisibleForTesting
-  static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {
+  private static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {
     // Don't include builtin views (these are already in the palette and likely not what the user is looking for).
     return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
   }
