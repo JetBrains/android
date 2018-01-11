@@ -576,10 +576,13 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
 
   public void setLeftMargin(int margin) {
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_START, margin);
+    setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
   }
 
   public void setRightMargin(int margin) {
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_END, margin);
+    setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+
   }
 
   public void setBottomMargin(int margin) {
