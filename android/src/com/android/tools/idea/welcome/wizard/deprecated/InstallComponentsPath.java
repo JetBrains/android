@@ -242,7 +242,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     InstallComponentsOperation install =
       new InstallComponentsOperation(installContext, selectedComponents, myComponentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
-    SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
+    SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
+                                                    ModalityState.stateForComponent(myWizard.getContentPane()));
     if (selectedComponents.isEmpty()) {
       myProgressStep.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
     }
@@ -362,16 +363,18 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private static class SetPreference implements Function<File, File> {
     @Nullable private final String myInstallerTimestamp;
+    @NotNull private final ModalityState myModalityState;
 
-    public SetPreference(@Nullable String installerTimestamp) {
+    public SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
       myInstallerTimestamp = installerTimestamp;
+      myModalityState = modalityState;
     }
 
     @Override
     public File apply(@Nullable final File input) {
       assert input != null;
 
-      ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
+      ApplicationUtils.invokeWriteActionAndWait(myModalityState, () -> {
         IdeSdks.getInstance().setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });
