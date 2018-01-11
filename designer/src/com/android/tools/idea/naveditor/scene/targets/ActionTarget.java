@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawArrow;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
@@ -74,7 +75,7 @@ public class ActionTarget extends BaseTarget {
     public ConnectionDirection dir;
   }
 
-  public enum ConnectionType {NORMAL, SELF}
+  public enum ConnectionType {NORMAL, SELF, EXIT}
 
   public enum ConnectionDirection {
     LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
@@ -164,8 +165,17 @@ public class ActionTarget extends BaseTarget {
 
     myDestRect = Coordinates.getSwingRect(sceneContext, myDestination.fillRect(null));
     mySourceRect = sourceRect;
+
+    ConnectionType connectionType = ConnectionType.NORMAL;
+    if (sourceId.equals(targetId)) {
+      connectionType = ConnectionType.SELF;
+    }
+    else if (NavComponentHelperKt.getActionType(myNlComponent) == ActionType.EXIT) {
+      connectionType = ConnectionType.EXIT;
+    }
+
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
-    DrawAction.buildDisplayList(list, sourceId.equals(targetId) ? ConnectionType.SELF : ConnectionType.NORMAL, sourceRect, myDestRect,
+    DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
                                 selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
 
     @SwingCoordinate Rectangle rectangle = new Rectangle();
@@ -236,8 +246,8 @@ public class ActionTarget extends BaseTarget {
     int endy = getConnectionY(destDirection, dest);
     int dx = getDestinationDx(destDirection, sceneContext);
     int dy = getDestinationDy(destDirection, sceneContext);
-    int scale_source = 100;
-    int scale_dest = 100;
+    int scale_source = sceneContext.getSwingDimension(100);
+    int scale_dest = sceneContext.getSwingDimension(100);
     CurvePoints result = new CurvePoints();
     result.dir = destDirection;
     result.p1 = new Point(startx, starty);
