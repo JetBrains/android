@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -30,8 +32,6 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -40,7 +40,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEv
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,6 +55,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -77,7 +77,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -377,16 +377,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture requestProjectSync(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
-    waitForProjectSync(wait); // Wait for previous sync related actions to complete by waiting for all background tasks to complete.
+
+    waitForGradleSyncAction(wait);
     invokeMenuPath("File", "Sync Project with Gradle Files");
 
     return this;
   }
 
-  /**
-   * Waits by blocking until all background tasks to finish (which includes any project sync)
-   */
-  private void waitForProjectSync(@Nullable Wait wait) {
+  private void waitForGradleSyncAction(@Nullable Wait wait) {
     GuiTests.waitForBackgroundTasks(robot(), wait);
   }
 
@@ -398,7 +396,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFail(@NotNull Wait waitForSync) {
     try {
-      waitForGradleProjectSyncToFinish(waitForSync);
+      waitForGradleProjectSyncToFinish(waitForSync, true);
       fail("Expecting project sync to fail");
     }
     catch (RuntimeException expected) {
@@ -419,73 +417,64 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  /**
-   * There's a race condition where this method won't unblock if the sync this method was supposed to wait on was completed before
-   * this method is called because this method waits by blocking until a project system sync message is received.
-   * This method should be called as soon as possible after triggering a sync. (b/70937990)
-   */
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
     return waitForGradleProjectSyncToFinish(Wait.seconds(10));
   }
 
-  /**
-   * There's a race condition where this method won't unblock if the sync this method was supposed to wait on was completed before
-   * this method is called because this method waits by blocking until a project system sync message is received.
-   * This method should be called as soon as possible after triggering a sync. (b/70937990)
-   */
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync) {
+    waitForGradleProjectSyncToFinish(waitForSync, false);
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleImportProjectSync() {
+    AtomicBoolean isGradleDone = new AtomicBoolean();
+    AfterGradleInvocationTask afterGradleInvocationTask = new AfterGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        GradleBuildInvoker.getInstance(getProject()).remove(this);
+        isGradleDone.set(true);
+      }
+    };
+    GradleBuildInvoker.getInstance(getProject()).add(afterGradleInvocationTask);
+
+    Wait.seconds(60).expecting("Project Import Sync to finish").until(isGradleDone::get);
+    return this;
+  }
+
+  private void waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync, boolean expectSyncFailure) {
     Project project = getProject();
 
-    // TODO move this to GradleGuiTestSystem when ready. (b/70677980)
     // ensure GradleInvoker (in-process build) is always enabled.
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
-    ProjectSystemSyncUtil.listenForNextSyncResult(project, syncResult::set);
-    waitForSync.expecting("Syncing project " + quote(project.getName()) + " to finish").until(() -> syncResult.isDone());
-
-    try {
-      if (!syncResult.get().isSuccessful() && syncResult.get() != ProjectSystemSyncManager.SyncResult.SOURCE_GENERATION_FAILURE) {
-        throw new RuntimeException("Gradle Sync Failed.");
-      }
-    }
-    catch (InterruptedException | ExecutionException e) {
-      fail(e.getMessage());
-    }
-
-    GuiTests.waitForBackgroundTasks(robot());
-    return this;
-  }
-
-  /**
-   * There's a race condition where this method won't unblock if the sync this method was supposed to wait on was completed before
-   * this method is called because this method waits by blocking until a project system sync message is received.
-   * This method should be called as soon as possible after triggering a sync. (b/70937990)
-   */
-  @NotNull
-  public IdeFrameFixture waitForGradleImportProjectSync() {
-    SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
-    ProjectSystemSyncUtil.listenForNextSyncResult(getProject(), syncResult::set);
-    Wait.seconds(60).expecting("Project Import Sync to finish").until(() -> syncResult.isDone());
-
-    try {
-      if (!syncResult.get().isSuccessful()) {
-        if (syncResult.get() == ProjectSystemSyncManager.SyncResult.SOURCE_GENERATION_FAILURE) {
-          throw new RuntimeException("Gradle Project Import Sync Succeeded But Build Failed.");
-        } else {
-          throw new RuntimeException("Gradle Project Import Sync Failed.");
+    waitForSync.expecting("Syncing project " + quote(project.getName()) + " to finish")
+      .until(() -> {
+        GradleSyncState syncState = GradleSyncState.getInstance(project);
+        boolean syncFinished =
+          (myGradleProjectEventListener.isSyncFinished() || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
+        if (expectSyncFailure) {
+          syncFinished = syncFinished && myGradleProjectEventListener.hasSyncError();
         }
-      }
+        return syncFinished;
+      });
+
+    waitForGradleSyncAction(null);
+
+    if (myGradleProjectEventListener.hasSyncError()) {
+      RuntimeException syncError = myGradleProjectEventListener.getSyncError();
+      myGradleProjectEventListener.reset();
+      throw syncError;
     }
-    catch (InterruptedException | ExecutionException e) {
-      fail(e.getMessage());
+
+    if (!myGradleProjectEventListener.isSyncSkipped()) {
+      waitForBuildToFinish(SOURCE_GEN);
     }
 
     GuiTests.waitForBackgroundTasks(robot());
-    return this;
   }
 
   @NotNull
