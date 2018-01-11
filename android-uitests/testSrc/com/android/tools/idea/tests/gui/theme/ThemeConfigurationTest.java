@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
@@ -33,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/71855356
 @RunWith(GuiTestRunner.class)
 public class ThemeConfigurationTest {
 
