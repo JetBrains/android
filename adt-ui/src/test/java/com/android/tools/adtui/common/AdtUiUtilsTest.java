@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.common;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,24 +36,20 @@ public class AdtUiUtilsTest {
     JLabel testLabel = new JLabel("Test");
     FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
-    String testString = "AAAA";
+    String testString = StringUtil.repeat("A", 100);
     int stringWidth = testMetrics.stringWidth(testString);
-    int ellipsysWidth = testMetrics.stringWidth(ELLIPSIS);
+    int ellipsisWidth = testMetrics.stringWidth(ELLIPSIS);
     int perCharacterWidth = testMetrics.stringWidth("A");
 
     // Enough space to render the whole string so no truncation occurs
-    assertEquals(testString, AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth, 1));
+    assertEquals(testString, AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth));
 
-    // Not enough space for ellipsys so an empty string should be returned
-    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsysWidth - 1, 1));
+    // Not enough space for ellipsis so an empty string should be returned
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth - 1));
 
-    if (ellipsysWidth <= perCharacterWidth) {
-      assertEquals("AA...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth, 1));
-      assertEquals("...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth * 3, 1));
-    } else {
-      // The "..." width is greater than the character "A" width, so the function needs to truncate an additional "A" to fit "..."
-      assertEquals("A...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth, 1));
-      assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth * 3, 1));
+    for (int i = 5; i < 80; ++i) {
+      String shrunk = AdtUiUtils.shrinkToFit(testString, testMetrics, i * perCharacterWidth + ellipsisWidth);
+      assertEquals(StringUtil.repeat("A", i) + "...", shrunk);
     }
   }
 

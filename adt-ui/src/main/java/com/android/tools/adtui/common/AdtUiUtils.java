@@ -62,18 +62,17 @@ public final class AdtUiUtils {
    * @param text              the original text.
    * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param availableSpace    the available space to render the text.
-   * @param charactersToShrink the number of characters to trim by on each truncate iteration.
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
-  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace, int charactersToShrink) {
-    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace, charactersToShrink);
+  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace) {
+    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace);
   }
 
   /**
-   * Similar to {@link #getFilterPattern(String, boolean, boolean)},
+   * Similar to {@link #shrinkToFit(String, FontMetrics, float)},
    * but takes a predicate method to determine whether the text should fit or not.
    */
-  public static String shrinkToFit(String text, Predicate<String> textFitPredicate, int charactersToShrink) {
+  public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
     if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
@@ -83,13 +82,21 @@ public final class AdtUiUtils {
       return "";
     }
 
-    // This loop test the length of the word we are trying to draw, if it is to big to fit the available space,
-    // we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
-    StringBuilder truncatedText = new StringBuilder(text);
-    while (!textFitPredicate.test(truncatedText.toString() + ELLIPSIS)) {
-      truncatedText.setLength(Math.max(0, truncatedText.length() - charactersToShrink));
-    }
-    return truncatedText.toString() + ELLIPSIS;
+    int smallestLength = 0;
+    int largestLength = text.length();
+    int bestLength = smallestLength;
+    do {
+      int midLength = smallestLength + (largestLength - smallestLength) / 2;
+      if (textFitPredicate.test(text.substring(0, midLength) + ELLIPSIS)) {
+        bestLength = midLength;
+        smallestLength = midLength + 1;
+      }
+      else {
+        largestLength = midLength - 1;
+      }
+    } while (smallestLength <= largestLength);
+
+    return text.substring(0, bestLength) + ELLIPSIS;
   }
 
   /**
