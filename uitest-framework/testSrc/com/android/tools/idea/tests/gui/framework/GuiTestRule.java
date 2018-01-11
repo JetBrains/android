@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -41,6 +42,7 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -66,6 +68,7 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.TruthJUnit.assume;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static org.fest.reflect.core.Reflection.*;
 
 public class GuiTestRule implements TestRule {
@@ -74,6 +77,7 @@ public class GuiTestRule implements TestRule {
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private IdeFrameFixture myIdeFrameFixture;
+  @Nullable private String myTestDirectory;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
@@ -130,7 +134,7 @@ public class GuiTestRule implements TestRule {
             assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
             assumeOnlyWelcomeFrameShowing();
           }
-          setUp();
+          setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
           try {
             base.evaluate();
@@ -164,8 +168,9 @@ public class GuiTestRule implements TestRule {
     assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
   }
 
-  private void setUp() {
-    GuiTests.setUpDefaultProjectCreationLocationPath();
+  private void setUp(@Nullable String methodName) {
+    myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
+    GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
 
@@ -347,7 +352,7 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(GuiTests.getProjectCreationDirPath(), projectDirName);
+    return new File(GuiTests.getProjectCreationDirPath(myTestDirectory), projectDirName);
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {
