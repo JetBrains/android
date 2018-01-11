@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart.hchart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.intellij.util.ui.ImageUtil;
@@ -32,10 +31,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-public class HTreeChart<T> extends AnimatedComponent {
+/**
+ * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
+ * rendering nested rows top-to-bottom, this chart renders nested columns left-to-right.
+ *
+ * @param <N> The type of the node used by this tree chart
+ */
+public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
@@ -51,10 +58,10 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final Orientation myOrientation;
 
   @Nullable
-  private HRenderer<T> myRenderer;
+  private HRenderer<N> myRenderer;
 
   @Nullable
-  private HNode<T> myRoot;
+  private N myRoot;
 
   @NotNull
   private final Range myXRange;
@@ -72,23 +79,30 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final List<Rectangle2D.Float> myRectangles;
 
   @NotNull
-  private final List<HNode<T>> myNodes;
+  private final List<N> myNodes;
 
   private boolean myRootVisible;
+
+  @Nullable
+  private N myFocusedNode;
 
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
   @NotNull
-  private final List<HNode<T>> myDrawnNodes;
+  private final List<N> myDrawnNodes;
 
   @NotNull
-  private final HTreeChartReducer<T> myReducer;
-
-  private boolean myRender;
+  private final HTreeChartReducer<N> myReducer;
 
   @Nullable
   private Image myCanvas;
+
+  /**
+   * If true, the next render pass will forcefully rebuild this chart's canvas (an expensive
+   * operation which doesn't have to be done too often as usually the contents are static)
+   */
+  private boolean myDataUpdated;
 
   private int myCachedMaxHeight;
 
@@ -98,14 +112,14 @@ public class HTreeChart<T> extends AnimatedComponent {
    * @param viewXRange the range of the chart's visible area.
    */
   @VisibleForTesting
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
+  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<N> reducer) {
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
     myGlobalXRange = globalXRange != null ? globalXRange : new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myXRange = viewXRange;
-    myRoot = new DefaultHNode<>();
+    myRoot = null;
     myReducer = reducer;
     myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myOrientation = orientation;
@@ -129,8 +143,20 @@ public class HTreeChart<T> extends AnimatedComponent {
     changed();
   }
 
+  /**
+   * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
+   * convenience to set this directly.
+   *
+   * It is up to the caller to make sure that the node specified here actually belongs to this
+   * chart. Otherwise, the call will have no effect.
+   */
+  @VisibleForTesting
+  public void setFocusedNode(@Nullable N node) {
+    myFocusedNode = node;
+  }
+
   private void changed() {
-    myRender = true;
+    myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();
     opaqueRepaint();
   }
@@ -138,9 +164,10 @@ public class HTreeChart<T> extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     long startTime = System.nanoTime();
-    if (myRender) {
-      render();
-      myRender = false;
+    if (myDataUpdated) {
+      // Nulling out the canvas will trigger a render pass, below
+      updateNodesAndClearCanvas();
+      myDataUpdated = false;
     }
     g.setFont(getFont());
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -157,8 +184,7 @@ public class HTreeChart<T> extends AnimatedComponent {
       return;
     }
 
-    if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height
-        || ImageUtil.getUserWidth(myCanvas) != dim.width) {
+    if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height || ImageUtil.getUserWidth(myCanvas) != dim.width) {
       redrawToCanvas(dim);
     }
     UIUtil.drawImage(g, myCanvas, 0, 0, null);
@@ -202,13 +228,14 @@ public class HTreeChart<T> extends AnimatedComponent {
     assert myDrawnRectangles.size() == myDrawnNodes.size();
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
-      myRenderer.render(g, myDrawnNodes.get(i), myDrawnRectangles.get(i));
+      N node = myDrawnNodes.get(i);
+      myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
     }
 
     g.dispose();
   }
 
-  protected void render() {
+  private void updateNodesAndClearCanvas() {
     myNodes.clear();
     myRectangles.clear();
     myCanvas = null;
@@ -223,10 +250,10 @@ public class HTreeChart<T> extends AnimatedComponent {
 
     int head = 0;
     while (head < myNodes.size()) {
-      HNode<T> curNode = myNodes.get(head++);
+      N curNode = myNodes.get(head++);
 
       for (int i = 0; i < curNode.getChildCount(); ++i) {
-        HNode<T> child = curNode.getChildAt(i);
+        N child = curNode.getChildAt(i);
         if (inRange(child)) {
           myNodes.add(child);
           myRectangles.add(createRectangle(child));
@@ -239,12 +266,12 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
   }
 
-  private boolean inRange(@NotNull HNode<T> node) {
+  private boolean inRange(@NotNull N node) {
     return node.getStart() <= myXRange.getMax() && node.getEnd() >= myXRange.getMin();
   }
 
   @NotNull
-  private Rectangle2D.Float createRectangle(@NotNull HNode<T> node) {
+  private Rectangle2D.Float createRectangle(@NotNull N node) {
     float left = (float)Math.max(0, (node.getStart() - myXRange.getMin()) / myXRange.getLength());
     float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
@@ -260,17 +287,17 @@ public class HTreeChart<T> extends AnimatedComponent {
     return x / getWidth() * myXRange.getLength() + myXRange.getMin();
   }
 
-  public void setHRenderer(@NotNull HRenderer<T> r) {
+  public void setHRenderer(@NotNull HRenderer<N> r) {
     this.myRenderer = r;
   }
 
-  public void setHTree(@Nullable HNode<T> root) {
+  public void setHTree(@Nullable N root) {
     this.myRoot = root;
     changed();
   }
 
   @Nullable
-  public HNode<T> getNodeAt(Point point) {
+  public N getNodeAt(Point point) {
     if (point != null) {
       for (int i = 0; i < myDrawnNodes.size(); ++i) {
         if (contains(myDrawnRectangles.get(i), point)) {
@@ -335,6 +362,16 @@ public class HTreeChart<T> extends AnimatedComponent {
   private void initializeMouseEvents() {
     MouseAdapter adapter = new MouseAdapter() {
       private Point myLastPoint;
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        N node = getNodeAt(e.getPoint());
+        if (node != myFocusedNode) {
+          myDataUpdated = true;
+          myFocusedNode = node;
+          opaqueRepaint();
+        }
+      }
 
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -412,11 +449,11 @@ public class HTreeChart<T> extends AnimatedComponent {
     }
 
     int maxDepth = -1;
-    Queue<HNode<T>> queue = new LinkedList<>();
+    Queue<N> queue = new LinkedList<>();
     queue.add(myRoot);
 
     while (!queue.isEmpty()) {
-      HNode<T> n = queue.poll();
+      N n = queue.poll();
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }

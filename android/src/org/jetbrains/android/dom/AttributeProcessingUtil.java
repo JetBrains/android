@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
@@ -35,7 +36,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
-import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
@@ -332,7 +332,7 @@ public class AttributeProcessingUtil {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return ClassMaps.getInstance(facet).getClassMap(className);
+    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(className);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -391,7 +391,7 @@ public class AttributeProcessingUtil {
                                           @NotNull NavDestinationElement element,
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+    NavigationSchema schema = NavigationSchema.get(facet);
     for (PsiClass psiClass : schema.getDestinationClassesByTagSlowly(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
@@ -566,7 +566,7 @@ public class AttributeProcessingUtil {
       processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
     }
     else if (element instanceof NavActionElement) {
-      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.getOrCreateSchema(facet).getActionClass(), callback,
+      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.get(facet).getActionClass(), callback,
                                                 skippedAttributes);
     }
 

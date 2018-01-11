@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
@@ -45,17 +46,15 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
 
 public class TextInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   @VisibleForTesting
-  static final List<String> TEXT_PROPERTIES = ImmutableList.of(
+  static final List<String> REQUIRED_TEXT_PROPERTIES = ImmutableList.of(
     ATTR_TEXT,
     ATTR_CONTENT_DESCRIPTION,
     ATTR_TEXT_APPEARANCE,
-    ATTR_FONT_FAMILY,
     ATTR_TYPEFACE,
     ATTR_TEXT_SIZE,
     ATTR_LINE_SPACING_EXTRA,
     ATTR_TEXT_STYLE,
     ATTR_TEXT_ALL_CAPS,
-    ATTR_TEXT_ALIGNMENT,
     ATTR_TEXT_COLOR);
 
   private TextInspectorComponent myComponent;
@@ -64,7 +63,7 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
-    if (!properties.keySet().containsAll(TEXT_PROPERTIES)) {
+    if (!properties.keySet().containsAll(REQUIRED_TEXT_PROPERTIES)) {
       return false;
     }
     for (NlComponent component : components) {
@@ -174,13 +173,13 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
       myDesignText = myText.getDesignTimeProperty();
       myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
       myStyle = properties.get(ATTR_TEXT_APPEARANCE);
-      myFontFamily = properties.get(ATTR_FONT_FAMILY);
+      myFontFamily = properties.getOrDefault(ATTR_FONT_FAMILY, EmptyProperty.INSTANCE);
       myTypeface = properties.get(ATTR_TYPEFACE);
       myFontSize = properties.get(ATTR_TEXT_SIZE);
       mySpacing = properties.get(ATTR_LINE_SPACING_EXTRA);
       myTextStyle = (NlFlagPropertyItem)properties.get(ATTR_TEXT_STYLE);
       myTextAllCaps = properties.get(ATTR_TEXT_ALL_CAPS);
-      myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
+      myAlignment = properties.getOrDefault(ATTR_TEXT_ALIGNMENT, EmptyProperty.INSTANCE);
       myColor = properties.get(ATTR_TEXT_COLOR);
     }
 
@@ -200,13 +199,17 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
 
       inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(),
                                        myStyleEditor.getKeySource());
-      inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+      if (myFontFamily != EmptyProperty.INSTANCE) {
+        inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+      }
       inspector.addComponent(ATTR_TYPEFACE, myTypeface.getTooltipText(), myTypefaceEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_SIZE, myFontSize.getTooltipText(), myFontSizeEditor.getComponent());
       inspector.addComponent(ATTR_LINE_SPACING_EXTRA, mySpacing.getTooltipText(), mySpacingEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_COLOR, myColor.getTooltipText(), myColorEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_STYLE, myTextStyle.getTooltipText(), myTextStylePanel);
-      inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
+      if (myAlignment != EmptyProperty.INSTANCE) {
+        inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
+      }
     }
 
     @Override

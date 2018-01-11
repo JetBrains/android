@@ -35,15 +35,11 @@ public class EventProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Common.Session session, Common.Process process) {
-    myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder()
-                                                                  .setProcessId(process.getPid())
-                                                                  .setSession(session).build());
+    myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
   public void stopProfiling(Common.Session session, Common.Process process) {
-    myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder()
-                                                                 .setProcessId(process.getPid())
-                                                                 .setSession(session).build());
+    myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder().setSession(session).build());
   }
 }

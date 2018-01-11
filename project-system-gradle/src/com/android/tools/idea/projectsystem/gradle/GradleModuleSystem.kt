@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
@@ -27,11 +28,13 @@ import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.TestOnly
 import java.util.*
 
-class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
+class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository)
+  : AndroidModuleSystem {
 
-  override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+  override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?, includePreview: Boolean) {
     val gradleVersion = if (version == null) {
       // Here we add a ":+" to the end of the artifact string because GradleCoordinate.parseCoordinateString uses a regex matcher
       // that won't match a coordinate within just it's group and artifact id.  Adding a ":+" to the end in the case passes the
@@ -40,7 +43,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
       val coordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate)
           ?: throw DependencyManagementException("Could not parse known artifact string $artifactCoordinate into gradle coordinate!",
           DependencyManagementException.ErrorCodes.MALFORMED_PROJECT)
-      IdeGoogleMavenRepository.findVersion(coordinate, null, allowPreview = false)
+      mavenRepository.findVersion(coordinate, null, includePreview)
           ?: throw DependencyManagementException("Could not find an $coordinate artifact for addition!",
           DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
     }

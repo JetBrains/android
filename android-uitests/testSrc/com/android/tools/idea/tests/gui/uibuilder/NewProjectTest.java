@@ -21,8 +21,15 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureFormFactorStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -30,8 +37,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +62,7 @@ import static org.junit.Assert.assertTrue;
 public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   /**
    * Verify able to create a new project with name containing a space.
@@ -134,12 +144,17 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void changeLibraryModuleSettings() throws Exception {
-    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create(guiTest)
+    newProject("MyTestApp").withMinSdk("24").create(guiTest)
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("library-module")
       .clickFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+
+    guiTest.waitForBackgroundTasks();
+
+    String gradleFileContents = guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module")
@@ -250,7 +265,6 @@ public class NewProjectTest {
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
     ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assert version != null;
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
@@ -451,9 +465,19 @@ public class NewProjectTest {
         .enterApplicationName(myName)
         .enterCompanyDomain(myDomain)
         .enterPackageName(myPkg);
-      newProjectWizard.clickNext();
 
-      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
+      Ref<ConfigureFormFactorStepFixture> configureFormFactorStepRef = new Ref<>();
+      Wait.seconds(15).expecting("Wait for 'Target Android Devices' dialog appear").until(() -> {
+        newProjectWizard.clickNext();
+        try {
+          configureFormFactorStepRef.set(newProjectWizard.getConfigureFormFactorStep());
+          return true;
+        } catch (WaitTimedOutError e) {
+          return false;
+        }
+      });
+
+      configureFormFactorStepRef.get().selectMinimumSdkApi(MOBILE, myMinSdk);
       newProjectWizard.clickNext();
 
       // Skip "Add Activity" step

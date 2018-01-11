@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavDestinationArgumentsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
@@ -62,15 +62,16 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
   }
 
   fun testListContent() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    argumentComponent("arg1").withDefaultValueAttribute("value1"),
-                    argumentComponent("arg2").withDefaultValueAttribute("value2")),
-            fragmentComponent("f2"),
-            activityComponent("activity")))
-        .build()
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          argument("arg1", "value1")
+          argument("arg2", "value2")
+        }
+        fragment("f2")
+        activity("activity")
+      }
+    }
 
     val manager = NavPropertiesManager(myFacet, model.surface)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))

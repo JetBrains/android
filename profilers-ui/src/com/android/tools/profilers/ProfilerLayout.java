@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -47,8 +48,6 @@ public class ProfilerLayout {
 
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
 
-  public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
-
   public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
 
   /**
@@ -72,14 +71,22 @@ public class ProfilerLayout {
 
   public static final Border TOOLTIP_BORDER = new JBEmptyBorder(5, 10, 5, 10);
 
-  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC = JBUI.scale(10);
+  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
   public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
-  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
+  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(15f);
+  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
+  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(12f);
 
-  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(300);
+  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
+  public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
+  }
+
+  @NotNull
+  public static FlowLayout createToolbarLayout() {
+    return new FlowLayout(FlowLayout.CENTER, 0, 1);
   }
 }

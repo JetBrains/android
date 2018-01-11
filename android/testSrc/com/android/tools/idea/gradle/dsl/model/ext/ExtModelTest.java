@@ -127,7 +127,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
 
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
-    assertEquals("targetSdkVersion", "21", defaultConfig.targetSdkVersion());
+    assertEquals("targetSdkVersion", 21, defaultConfig.targetSdkVersion());
   }
 
   public void testResolveMultiModuleExtProperty() throws IOException {

@@ -121,6 +121,8 @@ public class HttpDataTest {
   public void urlNameParsedProperlyWithEmptyPath() {
     String urlString = "https://www.google.com";
     assertThat(HttpData.getUrlName(urlString)).isEqualTo("www.google.com");
+    urlString = "https://www.google.com/";
+    assertThat(HttpData.getUrlName(urlString)).isEqualTo("www.google.com");
   }
 
   @Test
@@ -231,8 +233,8 @@ public class HttpDataTest {
     assertThat(new HttpData.ContentType("").getTypeDisplayName()).isEqualTo("");
     assertThat(new HttpData.ContentType(" ").getTypeDisplayName()).isEqualTo("");
     assertThat(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").getTypeDisplayName()).isEqualTo("Form Data");
-    assertThat(new HttpData.ContentType("text/html").getTypeDisplayName()).isEqualTo("Html");
-    assertThat(new HttpData.ContentType("application/json").getTypeDisplayName()).isEqualTo("Json");
+    assertThat(new HttpData.ContentType("text/html").getTypeDisplayName()).isEqualTo("HTML");
+    assertThat(new HttpData.ContentType("application/json").getTypeDisplayName()).isEqualTo("JSON");
     assertThat(new HttpData.ContentType("image/jpeg").getTypeDisplayName()).isEqualTo("Image");
     assertThat(new HttpData.ContentType("audio/webm").getTypeDisplayName()).isEqualTo("Audio");
   }

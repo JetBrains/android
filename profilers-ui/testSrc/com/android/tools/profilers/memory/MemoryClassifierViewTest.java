@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
@@ -867,7 +868,7 @@ public class MemoryClassifierViewTest {
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Add a filter to remove That.is.Bar
     myStage.selectCaptureFilter(Pattern.compile("^.*Foo.*$"));
@@ -881,7 +882,7 @@ public class MemoryClassifierViewTest {
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Expand right to 8
     selectionRange.setMax(captureStartTime + 8);
@@ -894,7 +895,7 @@ public class MemoryClassifierViewTest {
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Shrink left to 4
     selectionRange.setMin(captureStartTime + 4);
@@ -907,7 +908,7 @@ public class MemoryClassifierViewTest {
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Changed to group by callstack and update the rootNode
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
@@ -933,7 +934,7 @@ public class MemoryClassifierViewTest {
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Apply an invalid filter
     myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
@@ -941,7 +942,7 @@ public class MemoryClassifierViewTest {
     expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
-    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isInstanceOf(InfoMessagePanel.class);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isInstanceOf(InstructionsPanel.class);
   }
 
   @Test

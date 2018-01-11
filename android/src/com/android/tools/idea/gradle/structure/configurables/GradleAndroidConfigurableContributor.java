@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.AndroidConfigurableContributor;
 import com.android.tools.idea.structure.dialog.ProjectStructureItemGroup;
@@ -36,6 +37,7 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
     myContext = new PsContext(new PsProject(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
+    configurables.add(new VariablesConfigurable(project, myContext));
     configurables.add(new DependenciesPerspectiveConfigurable(myContext));
 
     return configurables;

@@ -91,8 +91,8 @@ public class ArtTraceHandlerTest {
       String result = String.format("global: %d-%d, thread: %d-%d",
                                     curNode.getStartGlobal(), curNode.getEndGlobal(),
                                     curNode.getStartThread(), curNode.getEndThread());
-      assertTrue(expected.containsKey(curNode.getCaptureNodeModel().getId()));
-      assertEquals(expected.get(curNode.getCaptureNodeModel().getId()), result);
+      assertTrue(expected.containsKey(curNode.getData().getId()));
+      assertEquals(expected.get(curNode.getData().getId()), result);
       queue.addAll(curNode.getChildren());
     }
   }

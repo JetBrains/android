@@ -41,6 +41,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -48,6 +49,7 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.annotations.NotNull;
+import org.picocontainer.MutablePicoContainer;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -62,13 +64,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
+public class NlUsageTrackerManagerTest extends AndroidTestCase {
   private static final Executor SYNC_EXECUTOR = Runnable::run;
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
 
   private LinkedList<AndroidStudioEvent> myLogCalls;
   private NlModel myModel;
-  private AndroidFacet myFacet;
   private AttributeDefinition myCollapseParallaxMultiplierDefinition;
   private AttributeDefinition myElevationDefinition;
   private AttributeDefinition myTextDefinition;
@@ -424,8 +425,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
   }
 
   private void initNeleModelMocks() {
-    myModel = mock(NlModel.class);
-    myFacet = mock(AndroidFacet.class);
     ModuleResourceManagers moduleResourceManagers = mock(ModuleResourceManagers.class);
     SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
     LocalResourceManager localResourceManager = mock(LocalResourceManager.class);
@@ -438,8 +437,14 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     myCollapseParallaxMultiplierDefinition =
       new AttributeDefinition(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null, Collections.emptySet());
 
+    myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);
-    when(myFacet.getUserData(ModuleResourceManagers.KEY)).thenReturn(moduleResourceManagers);
+
+    UsageTrackerUtilTest.registerComponentInstance((MutablePicoContainer)myModule.getPicoContainer(),
+                                                   ModuleResourceManagers.class,
+                                                   moduleResourceManagers,
+                                                   getTestRootDisposable());
+
     when(moduleResourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
     when(moduleResourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributeDefinitions);

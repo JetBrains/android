@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ptable.StarState;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemComponent;
+import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
@@ -34,8 +38,8 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class NlPropertiesTest extends PropertyTestCase {
@@ -49,15 +53,37 @@ public class NlPropertiesTest extends PropertyTestCase {
   private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
   private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
+  private void setUpAppCompat() {
+    GradleVersion gradleVersion = GradleVersion.parse(String.format("%1$d.0.0", MOST_RECENT_API_LEVEL));
+    GradleDependencyVersion version = new GradleDependencyVersion(gradleVersion);
+    ProjectSystemComponent projectSystem = mock(ProjectSystemComponent.class);
+    AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
+    AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
+    when(projectSystem.getProjectSystem()).thenReturn(androidProjectSystem);
+    when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
+    when(androidModuleSystem.getResolvedVersion(eq(GoogleMavenArtifactId.APP_COMPAT_V7))).thenReturn(version);
+    registerProjectComponentImplementation(ProjectSystemComponent.class, projectSystem);
+    myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGEVIEW);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXTVIEW);
+    myFixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS);
+    myFixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY);
   }
 
-  @Override
-  public boolean providesCustomManifest() {
-    return true;
+  public void testFontFamilyFromAppCompatForMinApi14() {
+    setUpAppCompat();
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
+    assertPresent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertAbsent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
+  }
+
+  public void testFontFamilyFromAndroidForMinApi16() {
+    setUpAppCompat();
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
+    assertAbsent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertPresent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
   }
 
   public void testViewAttributes() {
@@ -71,7 +97,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assert rootTag != null;
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(rootTag)));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, rootTag)));
 
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
@@ -103,9 +129,12 @@ public class NlPropertiesTest extends PropertyTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
+    int minApi = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getFeatureLevel();
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
-    assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, subTags[0])));
+
+    // at least 190 attributes are available as of API 22
+    assertTrue("Was: " + properties.size() + "  minApi: " + minApi, properties.size() > 180);
 
     // A text view should have all of its attributes and the parent class's (View) attributes
     assertPresent(tag, properties, ANDROID_URI, TEXT_VIEW_ATTRS);
@@ -130,7 +159,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
@@ -149,7 +178,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, subTags[0])));
 
     NlPropertyItem p = properties.get(ANDROID_URI, "id");
     assertNotNull(p);
@@ -252,7 +281,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
@@ -321,18 +350,8 @@ public class NlPropertiesTest extends PropertyTestCase {
     return Joiner.on(";").join(propertyNames);
   }
 
-  private void setupImageViewNeedsSrcCompat(boolean useSrcCompat) {
-    ViewHandlerManager manager = mock(ViewHandlerManager.class);
-    ImageViewHandler handler = mock(ImageViewHandler.class);
-    ViewHandler other = mock(ViewHandler.class);
-    when(manager.getHandler(anyString())).thenReturn(other);
-    when(manager.getHandler(IMAGE_VIEW)).thenReturn(handler);
-    when(handler.shouldUseSrcCompat(any(NlModel.class))).thenReturn(useSrcCompat);
-    registerProjectComponentImplementation(ViewHandlerManager.class, manager);
-  }
-
-  public void testSrcCompatIncluded() {
-    setupImageViewNeedsSrcCompat(true);
+  public void testSrcCompatIncludedWhenUsingAppCompat() {
+    setUpAppCompat();
 
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
@@ -341,9 +360,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
-  public void testSrcNotCompatIncluded() {
-    setupImageViewNeedsSrcCompat(false);
-
+  public void testSrcNotCompatIncludedWhenNotUsingAppCompat() {
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
 
@@ -363,10 +380,126 @@ public class NlPropertiesTest extends PropertyTestCase {
     }
   }
 
+  private static final String MY_ACTIVITY =
+    "package com.example;\n" +
+    "\n" +
+    "import android.support.v7.app.AppCompatActivity;\n" +
+    "\n" +
+    "public class MyActivity extends AppCompatActivity {" +
+    "}";
+
+  private static final String APPCOMPAT_ACTIVITY =
+    "package android.support.v7.app;\n" +
+    "public class AppCompatActivity {" +
+    "}";
+
+  @Language("Java")
+  private static final String APPCOMPAT_IMAGEVIEW =
+    "package android.support.v7.widget;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.util.AttributeSet;\n" +
+    "import android.widget.ImageView;\n" +
+    "\n" +
+    "public class AppCompatImageView extends ImageView {\n" +
+    "\n" +
+    " public AppCompatImageView(Context context) {\n" +
+    "        this(context, null);\n" +
+    "    }\n" +
+    "\n" +
+    "    public AppCompatImageView(Context context, AttributeSet attrs) {\n" +
+    "        this(context, attrs, 0);\n" +
+    "    }\n" +
+    "\n" +
+    "    public AppCompatImageView(Context context, AttributeSet attrs, int defStyleAttr) {\n" +
+    "        super(context, attrs, defStyleAttr);\n" +
+    "    }" +
+    "}\n";
+
+  @Language("Java")
+  private static final String APPCOMPAT_TEXTVIEW =
+    "package android.support.v7.widget;\n" +
+    "\n" +
+    "import android.content.Context;\n" +
+    "import android.util.AttributeSet;\n" +
+    "import android.widget.TextView;\n" +
+    "\n" +
+    "public class AppCompatTextView extends TextView {\n" +
+    "\n" +
+    " public AppCompatTextView(Context context) {\n" +
+    "        this(context, null);\n" +
+    "    }\n" +
+    "\n" +
+    "    public AppCompatTextView(Context context, AttributeSet attrs) {\n" +
+    "        this(context, attrs, 0);\n" +
+    "    }\n" +
+    "\n" +
+    "    public AppCompatTextView(Context context, AttributeSet attrs, int defStyleAttr) {\n" +
+    "        super(context, attrs, defStyleAttr);\n" +
+    "    }" +
+    "}\n";
+
   @Language("XML")
-  private static final String MANIFEST_SOURCE =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<manifest  \n" +
-    "    package='com.example'>\n" +
-    "</manifest>\n";
+  private static final String APPCOMPAT_ATTRS =
+    "<resources>\n" +
+    "    <declare-styleable name=\"AppCompatTextView\">\n" +
+    "        <!-- Present the text in ALL CAPS. This may use a small-caps form when available. -->\n" +
+    "        <attr name=\"textAllCaps\" format=\"reference|boolean\" />\n" +
+    "        <attr name=\"android:textAppearance\" />\n" +
+    "        <!-- Specify the type of auto-size. Note that this feature is not supported by EditText,\n" +
+    "        works only for TextView. -->\n" +
+    "        <attr name=\"autoSizeTextType\" format=\"enum\">\n" +
+    "            <!-- No auto-sizing (default). -->\n" +
+    "            <enum name=\"none\" value=\"0\" />\n" +
+    "            <!-- Uniform horizontal and vertical text size scaling to fit within the\n" +
+    "            container. -->\n" +
+    "            <enum name=\"uniform\" value=\"1\" />\n" +
+    "        </attr>\n" +
+    "        <!-- Specify the auto-size step size if <code>autoSizeTextType</code> is set to\n" +
+    "        <code>uniform</code>. The default is 1px. Overwrites\n" +
+    "        <code>autoSizePresetSizes</code> if set. -->\n" +
+    "        <attr name=\"autoSizeStepGranularity\" format=\"dimension\" />\n" +
+    "        <!-- Resource array of dimensions to be used in conjunction with\n" +
+    "        <code>autoSizeTextType</code> set to <code>uniform</code>. Overrides\n" +
+    "        <code>autoSizeStepGranularity</code> if set. -->\n" +
+    "        <attr name=\"autoSizePresetSizes\" format=\"reference\"/>\n" +
+    "        <!-- The minimum text size constraint to be used when auto-sizing text. -->\n" +
+    "        <attr name=\"autoSizeMinTextSize\" format=\"dimension\" />\n" +
+    "        <!-- The maximum text size constraint to be used when auto-sizing text. -->\n" +
+    "        <attr name=\"autoSizeMaxTextSize\" format=\"dimension\" />\n" +
+    "        <!-- The attribute for the font family. -->\n" +
+    "        <attr name=\"fontFamily\" format=\"string\" />\n" +
+    "    </declare-styleable>\n" +
+    "\n" +
+    "  <declare-styleable name=\"AppCompatImageView\">\n" +
+    "        <attr name=\"android:src\"/>\n" +
+    "        <!-- Sets a drawable as the content of this ImageView. Allows the use of vector drawable\n" +
+    "             when running on older versions of the platform. -->\n" +
+    "        <attr name=\"srcCompat\" format=\"reference\" />\n" +
+    "\n" +
+    "        <!-- Tint to apply to the image source. -->\n" +
+    "        <attr name=\"tint\" format=\"color\" />\n" +
+    "\n" +
+    "        <!-- Blending mode used to apply the image source tint. -->\n" +
+    "        <attr name=\"tintMode\">\n" +
+    "            <!-- The tint is drawn on top of the drawable.\n" +
+    "                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->\n" +
+    "            <enum name=\"src_over\" value=\"3\" />\n" +
+    "            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s\n" +
+    "                 color channels are thrown out. [Sa * Da, Sc * Da] -->\n" +
+    "            <enum name=\"src_in\" value=\"5\" />\n" +
+    "            <!-- The tint is drawn above the drawable, but with the drawable’s alpha\n" +
+    "                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->\n" +
+    "            <enum name=\"src_atop\" value=\"9\" />\n" +
+    "            <!-- Multiplies the color and alpha channels of the drawable with those of\n" +
+    "                 the tint. [Sa * Da, Sc * Dc] -->\n" +
+    "            <enum name=\"multiply\" value=\"14\" />\n" +
+    "            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->\n" +
+    "            <enum name=\"screen\" value=\"15\" />\n" +
+    "            <!-- Combines the tint and icon color and alpha channels, clamping the\n" +
+    "                 result to valid color values. Saturate(S + D) -->\n" +
+    "            <enum name=\"add\" value=\"16\" />\n" +
+    "        </attr>\n" +
+    "    </declare-styleable>\n" +
+    "</resources>\n";
 }

@@ -33,7 +33,7 @@ import java.awt.*;
  * a significantly restricted subset of the original panel's functionality.
  */
 public class HideablePanel extends JPanel {
-  private static final Border HIDEABLE_PANEL_BORDER = new JBEmptyBorder(0, 10, 0, 5);
+  private static final Border HIDEABLE_PANEL_BORDER = new JBEmptyBorder(0, 10, 0, 15);
   private static final Border HIDEABLE_CONTENT_BORDER = new JBEmptyBorder(0, 12, 0, 5);
 
   private final HideableDecorator myHideableDecorator;

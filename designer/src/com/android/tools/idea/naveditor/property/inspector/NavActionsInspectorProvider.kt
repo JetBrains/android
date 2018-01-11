@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget
@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Component
 import java.awt.event.MouseEvent
 
@@ -50,25 +49,15 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
     if (addActionDialog.showAndGet()) {
       WriteCommandAction.runWriteCommandAction(null, {
-        val realComponent = existing ?: run {
-          val source = addActionDialog.source
-          val tag = source.tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
-          source.model.createComponent(tag, source, null)
-        }
-        realComponent.ensureId()
-        realComponent.setAttribute(
-            SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, addActionDialog.destination?.let { SdkConstants.ID_PREFIX + it.id })
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_ENTER_ANIM, addActionDialog.enterTransition)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_EXIT_ANIM, addActionDialog.exitTransition)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, addActionDialog.popTo)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE,
-            if (addActionDialog.isInclusive) "true" else null)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP,
-            if (addActionDialog.isSingleTop) "true" else null)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT,
-            if (addActionDialog.isDocument) "true" else null)
-        realComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK,
-            if (addActionDialog.isClearTask) "true" else null)
+        val realComponent = existing ?: addActionDialog.source.createAction()
+        realComponent.actionDestinationId = addActionDialog.destination?.id
+        realComponent.enterAnimation = addActionDialog.enterTransition
+        realComponent.exitAnimation = addActionDialog.exitTransition
+        realComponent.popUpTo = addActionDialog.popTo
+        realComponent.inclusive = addActionDialog.isInclusive
+        realComponent.singleTop = addActionDialog.isSingleTop
+        realComponent.document = addActionDialog.isDocument
+        realComponent.clearTask = addActionDialog.isClearTask
       })
     }
   }
@@ -84,7 +73,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
   override fun createCustomInspector(components: List<NlComponent>,
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): NavListInspectorComponent<NavActionsProperty> {
-    val inspector: NavListInspectorComponent<NavActionsProperty>  = super.createCustomInspector(components, properties, propertiesManager)
+    val inspector: NavListInspectorComponent<NavActionsProperty> = super.createCustomInspector(components, properties, propertiesManager)
     val scene = propertiesManager.designSurface?.scene
     if (scene != null) {
       inspector.addAttachListener { list ->

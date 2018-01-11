@@ -189,25 +189,25 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = buildTypes.get(0);
     assertEquals("name", "typeA", buildType.name());
     assertEquals("name", "typeA", buildType.name());
-    assertNull("applicationIdSuffix", buildType.applicationIdSuffix());
+    assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
-    assertNull("debuggable", buildType.debuggable());
-    assertNull("embedMicroApp", buildType.embedMicroApp());
-    assertNull("jniDebuggable", buildType.jniDebuggable());
+    assertMissingProperty("debuggable", buildType.debuggable());
+    assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
+    assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
     assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
-    assertNull("minifyEnabled", buildType.minifyEnabled());
-    assertNull("multiDexEnabled", buildType.multiDexEnabled());
+    assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
+    assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertNull("proguardFiles", buildType.proguardFiles());
-    assertNull("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
-    assertNull("renderscriptDebuggable", buildType.renderscriptDebuggable());
-    assertNull("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
+    assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
+    assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
+    assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());
     assertNull("resValues", buildType.resValues());
-    assertNull("shrinkResources", buildType.shrinkResources());
-    assertNull("testCoverageEnabled", buildType.testCoverageEnabled());
-    assertNull("useJack", buildType.useJack());
-    assertNull("versionNameSuffix", buildType.versionNameSuffix());
-    assertNull("zipAlignEnabled", buildType.zipAlignEnabled());
+    assertMissingProperty("shrinkResources", buildType.shrinkResources());
+    assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
+    assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
+    assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
   }
 
   public void testAddBuildType() throws Exception {
@@ -218,7 +218,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     android.addBuildType("typeA");
-    android.buildTypes().get(0).setApplicationIdSuffix("suffixA");
+    android.buildTypes().get(0).applicationIdSuffix().setValue("suffixA");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);

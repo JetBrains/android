@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.base.Verify.verifyNotNull;
 
 public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfaceFixture, NavDesignSurface> {
   public NavDesignSurfaceFixture(@NotNull Robot robot,
@@ -50,12 +51,10 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
     waitForRenderToFinish();
 
     SceneView view = target().getCurrentSceneView();
-    assert view != null;
 
     final NlModel model = view.getModel();
 
-    NlComponent component = model.find(id);
-    assert component != null;
+    NlComponent component = verifyNotNull(model.find(id));
 
     return createComponentFixture(component);
   }

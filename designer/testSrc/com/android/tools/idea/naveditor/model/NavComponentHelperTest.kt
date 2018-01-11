@@ -19,8 +19,9 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.intellij.openapi.command.WriteCommandAction
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -61,25 +62,25 @@ class NavComponentHelperTest {
 class NavComponentHelperTest2 : NavTestCase() {
 
   fun testVisibleDestinations() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1")
-                    .unboundedChildren(
-                        actionComponent("a1").withDestinationAttribute("subnav1"),
-                        actionComponent("a2").withDestinationAttribute("activity1")),
-                activityComponent("activity1"),
-                navigationComponent("subnav1")
-                    .unboundedChildren(
-                        fragmentComponent("f2"),
-                        fragmentComponent("f3")),
-                navigationComponent("subnav2")
-                    .unboundedChildren(
-                        fragmentComponent("f4"),
-                        navigationComponent("subsubnav")
-                            .unboundedChildren(
-                                fragmentComponent("f5")))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          action("a1", destination = "subnav1")
+          action("a2", destination = "activity1")
+        }
+        activity("activity1")
+        navigation("subnav1") {
+          fragment("f2")
+          fragment("f3")
+        }
+        navigation("subnav2") {
+          fragment("f4")
+          navigation("subsubnav") {
+            fragment("f5")
+          }
+        }
+      }
+    }
 
     val root = model.find("root")
     val f1 = model.find("f1")
@@ -101,21 +102,21 @@ class NavComponentHelperTest2 : NavTestCase() {
   }
 
   fun testFindVisibleDestination() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1"),
-                activityComponent("activity1"),
-                navigationComponent("subnav1")
-                    .unboundedChildren(
-                        fragmentComponent("f3")),
-                navigationComponent("subnav2")
-                    .unboundedChildren(
-                        fragmentComponent("f1"),
-                        navigationComponent("subsubnav")
-                            .unboundedChildren(
-                                fragmentComponent("f5")))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        activity("activity1")
+        navigation("subnav1") {
+          fragment("f3")
+        }
+        navigation("subnav2") {
+          fragment("f1")
+          navigation("subsubnav") {
+            fragment("f5")
+          }
+        }
+      }
+    }
 
     assertEquals(model.components[0].getChild(0), model.find("activity1")!!.findVisibleDestination("f1"))
     assertEquals(model.components[0].getChild(0), model.find("f3")!!.findVisibleDestination("f1"))
@@ -123,28 +124,77 @@ class NavComponentHelperTest2 : NavTestCase() {
   }
 
   fun testActionDestination() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1").withAttribute("test2", "val2"),
-                activityComponent("activity1"),
-                navigationComponent("subnav1")
-                    .unboundedChildren(
-                        fragmentComponent("f3")
-                            .unboundedChildren(
-                                actionComponent("a2").withDestinationAttribute("f1")
-                            )),
-                navigationComponent("subnav2")
-                    .unboundedChildren(
-                        fragmentComponent("f1").withAttribute("test1", "val1"),
-                        navigationComponent("subsubnav")
-                            .unboundedChildren(
-                                fragmentComponent("f5")
-                                    .unboundedChildren(
-                                        actionComponent("a1").withDestinationAttribute("f1"))))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          withAttribute("test2", "val2")
+        }
+        activity("activity1")
+        navigation("subnav1") {
+          fragment("f3") {
+            action("a2", destination = "f1")
+          }
+        }
+        navigation("subnav2") {
+          fragment("f1") {
+            withAttribute("test1", "val1")
+          }
+          navigation("subsubnav") {
+            fragment("f5") {
+              action("a1", destination = "f1")
+            }
+          }
+        }
+      }
+    }
 
     assertEquals("val1", model.find("a1")?.actionDestination?.getAttribute(null, "test1"))
     assertEquals("val2", model.find("a2")?.actionDestination?.getAttribute(null, "test2"))
+  }
+
+  fun testActionDestinationId() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1")
+        }
+      }
+    }
+
+    val action = model.find("a1")!!
+    val fragment = model.find("f1")!!
+
+    assertNull(action.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) { action.actionDestinationId = "f1" }
+    assertEquals(fragment, action.actionDestination)
+    assertEquals("f1", action.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) { action.actionDestinationId = null }
+    assertNull(action.actionDestination)
+    assertNull(action.actionDestinationId)
+  }
+
+  fun testEffectiveDestinationId() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+        navigation("nav1") {
+          fragment("f3") {
+            action("a1", popUpTo = "f1")
+            action("a2", popUpTo = "f1", inclusive = true)
+            action("a3", destination = "f1", popUpTo = "f2")
+          }
+        }
+      }
+    }
+
+    val action1 = model.find("a1")!!
+    assertEquals(action1.effectiveDestinationId, "f1")
+    val action2 = model.find("a2")!!
+    assertNull(action2.effectiveDestinationId)
+    val action3 = model.find("a3")!!
+    assertEquals(action3.effectiveDestinationId, "f1")
   }
 }

@@ -63,6 +63,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myJvmtiAgentEnabled = false;
 
+  /**
+   * JNI references alloc/dealloc events are tracked and shown.
+   */
+  private boolean myIsJniReferenceTrackingEnabled = false;
 
   /**
    * Toggle for faking live allocation tracking support in tests.
@@ -99,10 +103,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
 
-  @NotNull private final ProfilerPreferences myPreferences;
+  @NotNull private final ProfilerPreferences myPersistentPreferences;
+  @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   public FakeIdeProfilerServices() {
-    myPreferences = new FakeProfilerPreferences();
+    myPersistentPreferences = new FakeProfilerPreferences();
+    myTemporaryPreferences = new FakeProfilerPreferences();
   }
 
   @NotNull
@@ -168,7 +174,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() { return false; }
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
       public boolean isJvmtiAgentEnabled() {
@@ -209,8 +215,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
-  public ProfilerPreferences getProfilerPreferences() {
-    return myPreferences;
+  public ProfilerPreferences getTemporaryProfilerPreferences() {
+    return myTemporaryPreferences;
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getPersistentProfilerPreferences() {
+    return myPersistentPreferences;
   }
 
   @Override
@@ -233,9 +245,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
-  public void addCustomProfilingConfiguration(String name) {
-    ProfilingConfiguration config = new ProfilingConfiguration(name, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+  public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
+    ProfilingConfiguration config =
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
     myCustomProfilingConfigurations.add(config);
   }
 
@@ -272,6 +284,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableJvmtiAgent(boolean enabled) {
     myJvmtiAgentEnabled = enabled;
   }
+
+  public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
 
   public void enableLiveAllocationTracking(boolean enabled) {
     myLiveTrackingEnabled = enabled;

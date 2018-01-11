@@ -25,6 +25,8 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -201,6 +203,23 @@ public final class GroovyDslUtil {
       GrNamedArgument namedArgument = (GrNamedArgument)element;
       if (namedArgument.getExpression() == null) {
         namedArgument.delete();
+      }
+    }
+    else if (element instanceof GrVariableDeclaration) {
+      GrVariableDeclaration variableDeclaration = (GrVariableDeclaration)element;
+      for (GrVariable grVariable : variableDeclaration.getVariables()) {
+        if (grVariable.getInitializerGroovy() == null) {
+          grVariable.delete();
+        }
+      }
+      // If we have no more variables, delete the declaration.
+      if (variableDeclaration.getVariables().length == 0) {
+        variableDeclaration.delete();
+      }
+    } else if (element instanceof GrVariable) {
+      GrVariable variable = (GrVariable)element;
+      if (variable.getInitializerGroovy() == null) {
+        variable.delete();
       }
     }
 

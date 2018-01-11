@@ -50,10 +50,9 @@ public class NetworkTrafficDataSeriesTest {
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySentSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
-                                                ProfilersTestData.SESSION_DATA,
+    mySentSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA,
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
-    myReceivedSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), FakeNetworkService.FAKE_APP_ID,
+    myReceivedSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(),
                                                     ProfilersTestData.SESSION_DATA,
                                                     NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
   }

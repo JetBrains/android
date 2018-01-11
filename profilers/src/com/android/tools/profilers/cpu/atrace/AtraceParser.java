@@ -87,8 +87,7 @@ public class AtraceParser implements TraceParser {
       for (ThreadModel thread : selectedProcess.getThreads()) {
         if (thread.getHasContent()) {
           CpuThreadInfo threadInfo = new CpuThreadInfo(thread.getId(), thread.getName());
-          CaptureNode root = new CaptureNode();
-          root.setCaptureNodeModel(new SingleNameModel("root"));
+          CaptureNode root = new CaptureNode(new SingleNameModel("root"));
           root.setStartGlobal((long)range.getMin());
           root.setEndGlobal((long)range.getMax());
           captureTreeNodes.put(threadInfo, root);
@@ -103,8 +102,7 @@ public class AtraceParser implements TraceParser {
   }
 
   private CaptureNode populateCaptureNode(SliceGroup slice, int depth) {
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(new SingleNameModel(slice.getName()));
+    CaptureNode node = new CaptureNode(new SingleNameModel(slice.getName()));
     node.setStartGlobal(convertToUserTimeUs(slice.getStartTime()));
     node.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
     node.setDepth(depth);

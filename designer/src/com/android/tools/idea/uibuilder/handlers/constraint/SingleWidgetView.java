@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidgetContainer;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -366,18 +367,22 @@ public class SingleWidgetView extends JPanel {
 
   private void connectConstraintTop() {
     Scout.arrangeWidgets(Scout.Arrange.ConnectTop, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+    NlWriteCommandAction.run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
   }
 
   private void connectConstraintLeft() {
     Scout.arrangeWidgets(Scout.Arrange.ConnectStart, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+    NlWriteCommandAction.run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
   }
 
   private void connectConstraintRight() {
     Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+    NlWriteCommandAction.run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
   }
 
   private void connectConstraintBottom() {
     Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, Collections.singletonList(mWidgetConstraintPanel.mComponent), false);
+    NlWriteCommandAction.run(mWidgetConstraintPanel.mComponent, "Connecting", () -> mWidgetConstraintPanel.mComponent.startAttributeTransaction().commit());
   }
 
   static int baselinePos(int height) {

@@ -11,5 +11,5 @@ android {
     }
 }
 dependencies {
-    compile project(':library-debug')
+    api project(':library-debug')
 }

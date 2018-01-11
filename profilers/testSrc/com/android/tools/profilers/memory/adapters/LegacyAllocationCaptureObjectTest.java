@@ -23,7 +23,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRes
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +43,6 @@ public class LegacyAllocationCaptureObjectTest {
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @NotNull private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
-
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myService);
 
@@ -62,12 +59,11 @@ public class LegacyAllocationCaptureObjectTest {
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
       new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
+                                        myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
-    assertEquals("Allocation Range: 00:00:00.003 - 00:00:00.008", capture.getName());
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);
@@ -100,7 +96,7 @@ public class LegacyAllocationCaptureObjectTest {
     Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(1, heaps.size());
 
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
     defaultHeap.getChildrenClassifierSets(); // expand the children
 
@@ -131,7 +127,7 @@ public class LegacyAllocationCaptureObjectTest {
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
       new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
+                                        myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());

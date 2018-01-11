@@ -26,6 +26,7 @@ iml_module(
         "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
+        "//tools/base/sdk-common:studio.sdk-common[module]",
     ],
 )
 
@@ -45,6 +46,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
+        "//tools/adt/idea/project-system-gradle/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",

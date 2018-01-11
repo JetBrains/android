@@ -19,11 +19,11 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.listenForNextSyncResult
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -37,22 +37,18 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   private val syncResultPublisher = GradleSyncResultPublisher.getInstance(project)
 
   @Contract(pure = true)
-  private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger {
-    return when {
+  private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger = when {
       reason === SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
       reason === SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
       else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
-    }
   }
 
   private fun requestSync(project: Project, reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
     val trigger = convertReasonToTrigger(reason)
     val syncResult = SettableFuture.create<SyncResult>()
-    val connection = project.messageBus.connect(project)
 
-    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+    val connection = listenForNextSyncResult(project, listener = object: SyncResultListener {
       override fun syncEnded(result: SyncResult) {
-        Disposer.dispose(connection)
         syncResult.set(result)
       }
     })

@@ -108,9 +108,9 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
       // skip open and close htmlbody because the StatefulButtonMessage will add it instead
       val builder = HtmlBuilder().addHtml(AndroidBundle.message("connection.assistant.adb.devices"))
       devices.forEach { device ->
-        builder.addHtml("<p><span style=\"font-size: 150%;\">" + device.name + "</span>")
+        builder.addHtml("<p><span>${device.name}</span>")
             .newline()
-            .addHtml("<span style=\"font-size: 80%; font-weight:lighter;\">" + device.version.toString() + "</span></p>")
+            .addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>")
             .newline()
       }
       builder.html

@@ -247,10 +247,10 @@ public class EditorFixture {
     Wait.seconds(1)
       .expecting("text caret position to be at the end of the matched group")
       .until(() -> GuiQuery.getNonNull(() ->
-        end == FileEditorManager.getInstance(myFrame.getProject())
-          .getSelectedTextEditor()
-          .getCaretModel()
-          .getOffset()
+          end == FileEditorManager.getInstance(myFrame.getProject())
+            .getSelectedTextEditor()
+            .getCaretModel()
+            .getOffset()
       ));
     return this;
   }
@@ -598,7 +598,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    Wait.seconds(2).expecting("Preview window to be visible")
+    Wait.seconds(10).expecting("Preview window to be visible")
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
     return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());

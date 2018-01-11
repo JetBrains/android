@@ -34,6 +34,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Depen
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -142,10 +143,10 @@ public class DependenciesTest {
     // Create a class in the library and check the build.
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(APP_NAME, "library-module", "src", "main", "java", "android.com.mylibrary");
+      .clickPath(APP_NAME, "library-module", "src", "main", "java", "android.com.library_module");
 
     invokeNewFileDialog().setName("LibraryClass").clickOk();
-    editor.open("/library-module/src/main/java/android/com/mylibrary/LibraryClass.java")
+    editor.open("/library-module/src/main/java/android/com/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n")
       .select("public class LibraryClass \\{()")
@@ -176,7 +177,7 @@ public class DependenciesTest {
     newProjectWizard.clickNext();
     newProjectWizard.clickFinish();
 
-    return guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
   }
 
   /***

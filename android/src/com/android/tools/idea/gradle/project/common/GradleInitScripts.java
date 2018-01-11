@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import com.android.ide.common.repository.GoogleMavenRepositoryKt;
 import com.android.java.model.JavaProject;
 import com.android.java.model.builder.JavaLibraryPlugin;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -28,8 +29,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
@@ -66,7 +69,13 @@ public class GradleInitScripts {
 
   @Nullable
   private File createLocalMavenRepoInitScriptFile() {
-    List<File> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths();
+    List<String> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
+      .map(File::getPath).collect(Collectors.toCollection(ArrayList::new));
+
+    if (!GoogleMavenRepositoryKt.DEFAULT_GMAVEN_URL.equals(GoogleMavenRepositoryKt.GMAVEN_BASE_URL)) {
+      repoPaths.add(GoogleMavenRepositoryKt.GMAVEN_BASE_URL);
+    }
+
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     if (content != null) {
       String fileName = "sync.local.repo";
@@ -147,14 +156,14 @@ public class GradleInitScripts {
     }
 
     @Nullable
-    String createLocalMavenRepoInitScriptContent(@NotNull List<File> repoPaths) {
+    String createLocalMavenRepoInitScriptContent(@NotNull List<String> repoPaths) {
       if (repoPaths.isEmpty()) {
         return null;
       }
 
       String paths = "";
-      for (File file : repoPaths) {
-        String path = escapeGroovyStringLiteral(file.getPath());
+      for (String path: repoPaths) {
+        path = escapeGroovyStringLiteral(path);
         paths += "      maven { url '" + path + "'}\n";
       }
       return "allprojects {\n" +

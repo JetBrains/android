@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,6 +118,8 @@ public class AddModuleTest {
       .moveBetween("release {", "")
       .enterText("\nshrinkResources true");
     ideFrame.requestProjectSync();
+
+    ideFrame.waitForGradleProjectSyncToFail(Wait.seconds(20));
 
     ideFrame.getMessagesToolWindow()
       .getGradleSyncContent()

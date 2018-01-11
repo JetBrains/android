@@ -96,7 +96,7 @@ public class MemoryProfiler extends StudioProfiler {
 
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session,
-                                    myProfilers.getRelativeTimeConverter(), myProfilers.getIdeServices().getFeatureTracker(), null);
+                                    myProfilers.getIdeServices().getFeatureTracker(), null);
     // Only starts live tracking if an existing one is not available.
     if (!allocationSeries.getDataForXRange(myProfilers.getTimeline().getDataRange()).isEmpty()) {
       return;

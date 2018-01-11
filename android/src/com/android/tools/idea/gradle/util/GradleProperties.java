@@ -32,6 +32,7 @@ import java.util.Properties;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class GradleProperties {
   @NonNls private static final String JVM_ARGS_PROPERTY_NAME = "org.gradle.jvmargs";
@@ -43,8 +44,7 @@ public class GradleProperties {
     this(new File(Projects.getBaseDirPath(project), "gradle.properties"));
   }
 
-  @VisibleForTesting
-  GradleProperties(@NotNull File path) throws IOException {
+  public GradleProperties(@NotNull File path) throws IOException {
     myPath = path;
     myProperties = PropertiesFiles.getProperties(myPath);
   }
@@ -71,8 +71,6 @@ public class GradleProperties {
   @NotNull
   private static String getHeaderComment() {
     String[] lines = {
-      "# Project-wide Gradle settings.",
-      "",
       "# For more details on how to configure your build environment visit",
       "# http://www.gradle.org/docs/current/userguide/build_environment.html",
       "",
@@ -109,5 +107,11 @@ public class GradleProperties {
   @NotNull
   public File getPath() {
     return myPath;
+  }
+
+  @NotNull
+  public static File getUserGradlePropertiesFile() {
+    String home = System.getProperty("user.home");
+    return new File(new File(home), toSystemDependentName(".gradle/gradle.properties"));
   }
 }

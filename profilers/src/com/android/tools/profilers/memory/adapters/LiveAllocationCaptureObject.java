@@ -56,6 +56,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   static final String ZYGOTE_HEAP_NAME = "zygote";
   static final String APP_HEAP_NAME = "app";
   static final String JNI_HEAP_NAME = "JNI";
+  // ID for JNI pseudo-heap, it should not overlap with real Android heaps
   public static final int JNI_HEAP_ID = 4;
 
   @Nullable private MemoryProfilerStage myStage;
@@ -159,10 +160,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
-      return ImmutableList.of(ClassifierAttribute.LABEL, ALLOCATIONS, DEALLOCATIONS, TOTAL_COUNT, SHALLOW_SIZE);
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, TOTAL_COUNT, SHALLOW_SIZE);
     }
     else {
-      return ImmutableList.of(ClassifierAttribute.LABEL, ALLOCATIONS, DEALLOCATIONS, SHALLOW_SIZE);
+      return ImmutableList.of(LABEL, ALLOCATIONS, DEALLOCATIONS, SHALLOW_SIZE);
     }
   }
 
@@ -175,15 +176,17 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
-    return myHeapSets;
+    // Exclude DEFAULT_HEAP since it shouldn't show up in use in devices that support live allocation tracking.
+    if (myHeapSets.get(0).getInstancesCount() > 0) {
+      // But handle the unexpected, just in case....
+      return myHeapSets;
+    }
+    return myHeapSets.subList(1, myHeapSets.size());
   }
 
   @Override
   @Nullable
   public HeapSet getHeapSet(int heapId) {
-    // Android Runtime guarantees continuity of heap IDs starting from 0. There are only four at the moment (default, image, zygote, app)
-    // and are unlikely to change.
-    assert heapId >= 0 && heapId <= 3;
     return myHeapSets.get(heapId);
   }
 
@@ -321,21 +324,17 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         List<InstanceObject> deltaFreeList = new ArrayList<>();
         List<InstanceObject> resetDeltaFreeList = new ArrayList<>();
 
-        // Clear and recreate the instance/heap sets if:
-        // 1. previous range does not intersect with the new one
-        // 2. JNI reference tracking is active
-        // TODO: Implement reuse of already loaded instance objects for allocation data and JNI references in a universal way.
-        // Currently we just don not reuse already loaded data if JNI tracking is enabled.
-        boolean clear = myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs || myEnableJniRefsTracking;
+        // Clear and recreate the instance/heap sets if previous range does not intersect with the new one
+        boolean clear = myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs;
         if (clear) {
           myInstanceMap.clear();
           // If we are resetting, then first establish the object snapshot at the query range's start point.
           queryJavaInstanceSnapshot(newStartTimeNs, snapshotList);
-          queryJniReferencesSnapshot(newEndTimeNs, snapshotList);
+          queryJniReferencesSnapshot(newStartTimeNs, snapshotList);
 
           // Update the delta allocations and deallocations within the selection range on the snapshot.
           queryJavaInstanceDelta(newStartTimeNs, newEndTimeNs, deltaAllocationList, deltaFreeList, false);
-          queryJniReferencesDelta(newStartTimeNs, newEndTimeNs, deltaAllocationList, deltaFreeList);
+          queryJniReferencesDelta(newStartTimeNs, newEndTimeNs, deltaAllocationList, deltaFreeList, false);
         }
         else {
           // Compute selection left differences.
@@ -344,6 +343,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           if (newStartTimeNs < myPreviousQueryStartTimeNs) {
             // Selection's min shifts left
             queryJavaInstanceDelta(newStartTimeNs, myPreviousQueryStartTimeNs, leftAllocations, leftDeallocations, false);
+            queryJniReferencesDelta(newStartTimeNs, myPreviousQueryStartTimeNs, leftAllocations, leftDeallocations, false);
             // add data within this range to the deltas
             deltaAllocationList.addAll(leftAllocations);
             deltaFreeList.addAll(leftDeallocations);
@@ -355,6 +355,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           else if (newStartTimeNs > myPreviousQueryStartTimeNs) {
             // Selection's min shifts right
             queryJavaInstanceDelta(myPreviousQueryStartTimeNs, newStartTimeNs, leftAllocations, leftDeallocations, true);
+            queryJniReferencesDelta(myPreviousQueryStartTimeNs, newStartTimeNs, leftAllocations, leftDeallocations, true);
             // Remove data within this range from the deltas
             resetDeltaAllocationList.addAll(leftAllocations);
             resetDeltaFreeList.addAll(leftDeallocations);
@@ -370,12 +371,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           if (newEndTimeNs < myPreviousQueryEndTimeNs) {
             // Selection's max shifts left: remove data within this range from the deltas
             queryJavaInstanceDelta(newEndTimeNs, myPreviousQueryEndTimeNs, rightAllocations, rightDeallocations, true);
+            queryJniReferencesDelta(newEndTimeNs, myPreviousQueryEndTimeNs, rightAllocations, rightDeallocations, true);
             resetDeltaAllocationList.addAll(rightAllocations);
             resetDeltaFreeList.addAll(rightDeallocations);
           }
           else if (newEndTimeNs > myPreviousQueryEndTimeNs) {
             // Selection's max shifts right: add data within this range to the deltas
             queryJavaInstanceDelta(myPreviousQueryEndTimeNs, newEndTimeNs, rightAllocations, rightDeallocations, false);
+            queryJniReferencesDelta(myPreviousQueryEndTimeNs, newEndTimeNs, rightAllocations, rightDeallocations, false);
             deltaAllocationList.addAll(rightAllocations);
             deltaFreeList.addAll(rightDeallocations);
           }
@@ -473,65 +476,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return result;
   }
 
-  private void queryJniReferencesDelta(long startTimeNs,
-                                       long endTimeNs,
-                                       @NotNull List<InstanceObject> setAllocationList,
-                                       @NotNull List<InstanceObject> setDeallocationList) {
-    if (!myEnableJniRefsTracking) {
-      return;
-    }
-    JNIGlobalRefsEventsRequest request =
-      JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
-
-    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
-      if (refObject == null) {
-        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
-        // reported. We don't have anything to show and ignore this reference.
-        continue;
-      }
-      switch (event.getEventType()) {
-        case CREATE_GLOBAL_REF:
-          refObject.setAllocationTime(event.getTimestamp());
-          refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
-          setAllocationList.add(refObject);
-          break;
-        case DELETE_GLOBAL_REF:
-          refObject.setDeallocTime(event.getTimestamp());
-          refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
-          setDeallocationList.add(refObject);
-          break;
-        default:
-          assert false;
-      }
-    }
-  }
-
-  private void queryJniReferencesSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
-    if (!myEnableJniRefsTracking) {
-      return;
-    }
-    JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
-      .setStartTime(newTimeNs).setEndTime(newTimeNs).build();
-    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
-
-    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
-      if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
-        continue;
-      }
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
-      if (refObject == null) {
-        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
-        // reported. We don't have anything to show and ignore this reference.
-        continue;
-      }
-      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
-      refObject.setAllocationTime(event.getTimestamp());
-      setAllocationList.add(refObject);
-    }
-  }
-
   private void queryJavaInstanceSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
     if (!myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
       return;
@@ -552,6 +496,30 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       else {
         assert false;
       }
+    }
+  }
+
+  private void queryJniReferencesSnapshot(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
+    if (!myEnableJniRefsTracking) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request = JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession)
+      .setLiveObjectsOnly(true).setEndTime(newTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
+        continue;
+      }
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+      refObject.setAllocationTime(event.getTimestamp());
+      setAllocationList.add(refObject);
     }
   }
 
@@ -596,6 +564,50 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       }
       else {
         assert false;
+      }
+    }
+  }
+
+  private void queryJniReferencesDelta(long startTimeNs,
+                                       long endTimeNs,
+                                       @NotNull List<InstanceObject> allocationList,
+                                       @NotNull List<InstanceObject> deallocatoinList,
+                                       boolean resetInstance) {
+    if (!myEnableJniRefsTracking || startTimeNs == endTimeNs) {
+      return;
+    }
+    JNIGlobalRefsEventsRequest request =
+      JNIGlobalRefsEventsRequest.newBuilder().setSession(mySession).setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
+
+    for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      if (refObject == null) {
+        // JNI reference object can't be constructed, most likely allocation for underlying java object was not
+        // reported. We don't have anything to show and ignore this reference.
+        continue;
+      }
+      switch (event.getEventType()) {
+        case CREATE_GLOBAL_REF:
+          if (resetInstance) {
+            refObject.setAllocationTime(Long.MIN_VALUE);
+          } else {
+            refObject.setAllocationTime(event.getTimestamp());
+            refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+          }
+          allocationList.add(refObject);
+          break;
+        case DELETE_GLOBAL_REF:
+          if (resetInstance) {
+            refObject.setAllocationTime(Long.MAX_VALUE);
+          } else {
+            refObject.setDeallocTime(event.getTimestamp());
+            refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
+          }
+          deallocatoinList.add(refObject);
+          break;
+        default:
+          assert false;
       }
     }
   }

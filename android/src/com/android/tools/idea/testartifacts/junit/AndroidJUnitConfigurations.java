@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.Location;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.*;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -27,16 +25,13 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.junit.PatternConfigurationProducer;
 import com.intellij.execution.junit.TestObject;
-import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.execution.junit.JUnitUtil.getTestClass;
-import static com.intellij.execution.junit.JUnitUtil.getTestMethod;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Common code for the {@link RunConfigurationProducer}s in Android JUnit configurations.
@@ -57,64 +52,68 @@ public class AndroidJUnitConfigurations {
     return false;
   }
 
-  // Copy of JUnitConfigurationProducer#isConfigurationFromContext using AndroidJUnitConfigurationType instead of JUnitConfigurationType
-  public static boolean isFromContext(@NotNull JUnitConfiguration unitConfiguration,
+  public static boolean isFromContext(@NotNull JUnitConfiguration junitConfiguration,
                                       @NotNull ConfigurationContext context,
                                       @NotNull ConfigurationFactory configurationFactory) {
     if (RunConfigurationProducer.getInstance(PatternConfigurationProducer.class).isMultipleElementsSelected(context)) {
       return false;
     }
-    RunConfiguration predefinedConfiguration = context.getOriginalConfiguration(AndroidJUnitConfigurationType.getInstance());
+
     Location contextLocation = context.getLocation();
+    if (contextLocation == null) {
+      return false;
+    }
 
-    String paramSetName = contextLocation instanceof PsiMemberParameterizedLocation
-                          ? ((PsiMemberParameterizedLocation)contextLocation).getParamSetName() : null;
-    assert contextLocation != null;
-    Location location = JavaExecutionUtil.stepIntoSingleClass(contextLocation);
-    if (location == null) {
-      return false;
-    }
-    PsiElement element = location.getPsiElement();
-    PsiClass testClass = getTestClass(element);
-    PsiMethod testMethod = getTestMethod(element, false);
-    PsiPackage testPackage;
-    if (element instanceof PsiPackage) {
-      testPackage = (PsiPackage)element;
-    }
-    else {
-      if (element instanceof PsiDirectory){
-        testPackage = JavaDirectoryService.getInstance().getPackage(((PsiDirectory)element));
-      }
-      else {
-        testPackage = null;
-      }
-    }
-    PsiDirectory testDir = element instanceof PsiDirectory ? (PsiDirectory)element : null;
-    RunnerAndConfigurationSettings template = RunManager.getInstance(location.getProject())
-      .getConfigurationTemplate(configurationFactory);
-    Module predefinedModule =
-      ((JUnitConfiguration)template
-        .getConfiguration()).getConfigurationModule().getModule();
-    String vmParameters = predefinedConfiguration instanceof JUnitConfiguration ? ((JUnitConfiguration)predefinedConfiguration).getVMParameters() : null;
+    PsiElement leaf = contextLocation.getPsiElement();
+    Location<PsiMethod> methodLocation = getTestMethodLocation(leaf);
+    PsiClass testClass = getTestClass(leaf);
+    TestObject testObject = junitConfiguration.getTestObject();
 
-    if (vmParameters != null && !Comparing.strEqual(vmParameters, unitConfiguration.getVMParameters())) {
+    if (!testObject.isConfiguredByElement(junitConfiguration, testClass, methodLocation == null ? null : methodLocation.getPsiElement(), null, null)) {
       return false;
     }
-    if (paramSetName != null && !Comparing.strEqual(paramSetName, unitConfiguration.getProgramParameters())) {
-      return false;
-    }
-    TestObject testobject = unitConfiguration.getTestObject();
-    if (testobject != null) {
-      if (testobject.isConfiguredByElement(unitConfiguration, testClass, testMethod, testPackage, testDir)) {
-        Module configurationModule = unitConfiguration.getConfigurationModule().getModule();
-        if (Comparing.equal(location.getModule(), configurationModule)) {
-          return true;
-        }
-        if (Comparing.equal(predefinedModule, configurationModule)) {
-          return true;
-        }
+
+    return settingsMatchTemplate(junitConfiguration, context, configurationFactory);
+  }
+
+  private static boolean settingsMatchTemplate(@NotNull JUnitConfiguration junitConfiguration,
+                                               @NotNull ConfigurationContext configurationContext,
+                                               @NotNull ConfigurationFactory configurationFactory) {
+    RunConfiguration predefinedConfiguration = configurationContext.getOriginalConfiguration(AndroidJUnitConfigurationType.getInstance());
+
+    if (predefinedConfiguration != null && predefinedConfiguration instanceof CommonJavaRunConfigurationParameters) {
+      String vmParameters = ((CommonJavaRunConfigurationParameters)predefinedConfiguration).getVMParameters();
+      if (vmParameters != null && !junitConfiguration.getVMParameters().equals(vmParameters)) {
+        return false;
       }
     }
-    return false;
+
+    RunnerAndConfigurationSettings template = RunManager.getInstance(junitConfiguration.getProject()).getConfigurationTemplate(configurationFactory);
+    Module predefinedModule = ((ModuleBasedConfiguration)template.getConfiguration()).getConfigurationModule().getModule();
+    Module configurationModule = junitConfiguration.getConfigurationModule().getModule();
+    Module contextModule = configurationContext.getLocation() == null ? null : configurationContext.getLocation().getModule();
+
+    return configurationModule == contextModule || configurationModule == predefinedModule;
+  }
+
+  @Nullable
+  private static PsiClass getTestClass(@NotNull PsiElement leaf) {
+    PsiClass psiClass = AndroidPsiUtils.getPsiParentOfType(leaf, PsiClass.class, false);
+    if (psiClass != null && JUnitUtil.isTestClass(psiClass)) {
+      return psiClass;
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Location<PsiMethod> getTestMethodLocation(@NotNull PsiElement leaf) {
+    PsiMethod method = AndroidPsiUtils.getPsiParentOfType(leaf, PsiMethod.class, false);
+    if (method != null) {
+      Location<PsiMethod> methodLocation = PsiLocation.fromPsiElement(method);
+      if (methodLocation != null && JUnitUtil.isTestMethod(methodLocation, false)) {
+        return methodLocation;
+      }
+    }
+    return null;
   }
 }

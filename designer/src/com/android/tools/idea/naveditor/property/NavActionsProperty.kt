@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
+import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.naveditor.model.actionDestinationId
+import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
-import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Property representing all the actions (possibly zero) for a destinations.
@@ -34,10 +35,10 @@ class NavActionsProperty(components: List<NlComponent>) : ListProperty("Actions"
     properties.clear()
 
     components.flatMap { it.children }
-        .filter { it.tagName == NavigationSchema.TAG_ACTION }
+        .filter { it.isAction }
         .forEach { child ->
-          child.resolveAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION)?.let {
-            properties.put(it, SimpleProperty(stripId(it) ?: it, listOf(child)))
+          child.actionDestinationId?.let {
+            properties.put(it, SimpleProperty(it, listOf(child)))
           }
         }
   }

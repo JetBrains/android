@@ -35,7 +35,7 @@ import java.awt.event.MouseEvent;
 
 class CpuChartTooltipView extends MouseAdapter {
   @NotNull
-  private final HTreeChart<CaptureNodeModel> myChart;
+  private final HTreeChart<CaptureNode> myChart;
 
   @NotNull
   private final TooltipComponent myTooltipComponent;
@@ -46,7 +46,7 @@ class CpuChartTooltipView extends MouseAdapter {
   @NotNull
   private final CpuProfilerStageView myStageView;
 
-  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
+  private CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
     myStageView = stageView;
     myChart = chart;
 
@@ -61,14 +61,13 @@ class CpuChartTooltipView extends MouseAdapter {
   @Override
   public void mouseMoved(MouseEvent e) {
     myTooltipComponent.setVisible(false);
-    HNode<CaptureNodeModel> node = myChart.getNodeAt(e.getPoint());
+    CaptureNode node = myChart.getNodeAt(e.getPoint());
     if (node != null) {
       showTooltip(node);
     }
   }
 
-  private void showTooltip(@NotNull HNode<CaptureNodeModel> node) {
-    assert node.getData() != null;
+  private void showTooltip(@NotNull CaptureNode node) {
     myTooltipComponent.setVisible(true);
     Range dataRange = myStageView.getTimeline().getDataRange();
     long start = (long)(node.getStart() - dataRange.getMin());
@@ -82,14 +81,14 @@ class CpuChartTooltipView extends MouseAdapter {
 
     JLabel durationLabel = new JLabel(String.format("%s - %s (%s)", TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
                                                     TimeAxisFormatter.DEFAULT.getClockFormattedString(end),
-                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.duration())));
+                                                    TimeAxisFormatter.DEFAULT.getFormattedDuration(node.getDuration())));
     durationLabel.setFont(durationLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
     durationLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
     myContent.add(durationLabel, new TabularLayout.Constraint(1, 0));
   }
 
-  static void install(@NotNull HTreeChart<CaptureNodeModel> chart, @NotNull CpuProfilerStageView stageView) {
+  static void install(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
     chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
   }
 }

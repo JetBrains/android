@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static org.mockito.Mockito.mock;
 
-public class NlDefaultRendererTest extends LayoutTestCase {
+public class NlDefaultRendererTest extends PropertyTestCase {
   public void testSimple() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

@@ -286,7 +286,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     }
 
     if (androidSdkInfo != null) {
-      if (androidSdkInfo.getApiLevel() < template.getMinSdk()) {
+      if (androidSdkInfo.getMinApiLevel() < template.getMinSdk()) {
         return message("android.wizard.activity.invalid.min.sdk", template.getMinSdk());
       }
 

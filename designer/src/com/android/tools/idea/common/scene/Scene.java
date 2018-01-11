@@ -110,7 +110,8 @@ public class Scene implements SelectionListener, Disposable {
   private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
-  ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
+  ArrayList<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
+  ArrayList<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
@@ -689,6 +690,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return;
     }
+    myNewSelectedComponentsOnDown.clear();
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -709,6 +711,9 @@ public class Scene implements SelectionListener, Disposable {
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
       }
+    } else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
+      myNewSelectedComponentsOnDown.add(myHitComponent);
+      select(myNewSelectedComponentsOnDown);
     }
   }
 
@@ -783,9 +788,10 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
     myFilterTarget = FilterType.NONE;
-    myNewSelectedComponents.clear();
-    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent) {
-      myNewSelectedComponents.add(myHitComponent);
+    myNewSelectedComponentsOnRelease.clear();
+    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent
+        && !myNewSelectedComponentsOnRelease.contains(myHitComponent)) {
+      myNewSelectedComponentsOnRelease.add(myHitComponent);
     }
     // TODO: Refactor this to use an override method instead of type checks
     if (myHitTarget instanceof ActionTarget
@@ -794,19 +800,19 @@ public class Scene implements SelectionListener, Disposable {
         || myHitTarget instanceof ScreenHeaderTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
-      myNewSelectedComponents.clear();
-      myNewSelectedComponents.add(myHitTarget.getComponent());
+      myNewSelectedComponentsOnRelease.clear();
+      myNewSelectedComponentsOnRelease.add(myHitTarget.getComponent());
     }
     if (myHitTarget instanceof DragBaseTarget) {
       DragBaseTarget dragTarget = (DragBaseTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
-        myNewSelectedComponents.clear();
-        myNewSelectedComponents.add(dragTarget.getComponent());
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.add(dragTarget.getComponent());
       }
     }
     if (myHitTarget instanceof LassoTarget) {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
-      lassoTarget.fillSelectedComponents(myNewSelectedComponents);
+      lassoTarget.fillSelectedComponents(myNewSelectedComponentsOnRelease);
     }
     if (myHitTarget instanceof ActionHandleTarget) {
       // TODO: Refactor this so explicit cast not required
@@ -821,19 +827,30 @@ public class Scene implements SelectionListener, Disposable {
       canChangeSelection = myHitTarget.canChangeSelection();
     }
     if (canChangeSelection && !sameSelection()) {
-      select(myNewSelectedComponents);
+      select(myNewSelectedComponentsOnRelease);
     }
     checkRequestLayoutStatus();
   }
 
-  private boolean sameSelection() {
+  private boolean inCurrentSelection(@NotNull SceneComponent component) {
     List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
-    if (myNewSelectedComponents.size() == currentSelection.size()) {
+    return currentSelection.contains(component.getNlComponent());
+  }
+
+  private boolean sameSelection() {
+    if (!myNewSelectedComponentsOnRelease.isEmpty()
+        && myNewSelectedComponentsOnRelease.size() == myNewSelectedComponentsOnDown.size()
+        && myNewSelectedComponentsOnRelease.containsAll(myNewSelectedComponentsOnDown)) {
+      // we already applied the selection on mouseDown
+      return true;
+    }
+    List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
+    if (myNewSelectedComponentsOnRelease.size() == currentSelection.size()) {
       int count = currentSelection.size();
       for (int i = 0; i < count; i++) {
         NlComponent component = currentSelection.get(i);
         SceneComponent sceneComponent = getSceneComponent(component);
-        if (!myNewSelectedComponents.contains(sceneComponent)) {
+        if (!myNewSelectedComponentsOnRelease.contains(sceneComponent)) {
           return false;
         }
       }

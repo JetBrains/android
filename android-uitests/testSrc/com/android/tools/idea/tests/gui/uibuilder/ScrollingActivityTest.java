@@ -46,7 +46,6 @@ public final class ScrollingActivityTest {
     myGuiTest.ideFrame().getEditor().open(path);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(myGuiTest.getProjectPath().toPath().resolve(path).toFile());
-    assert file != null;
 
     assertTrue(FileEditorManager.getInstance(myGuiTest.ideFrame().getProject()).getSelectedEditor(file) instanceof NlEditor);
   }

@@ -30,6 +30,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.welcome.whatsnew.WhatsNew$WhatsNewService"/>
     <postStartupActivity implementation="com.android.tools.idea.welcome.whatsnew.WhatsNew"
                          order="before TipOfTheDayManager"/>
+    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
+    <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
 
   <actions>

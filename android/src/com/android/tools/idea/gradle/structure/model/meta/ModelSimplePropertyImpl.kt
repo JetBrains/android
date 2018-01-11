@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import kotlin.reflect.KProperty
 
 /**
@@ -33,12 +34,13 @@ import kotlin.reflect.KProperty
  * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
  */
 // NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
-fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, PropertyT> T.property(
+fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, PropertyT : Any> T.property(
     description: String,
     default: PropertyT? = null,
     defaultValueGetter: (ModelT) -> PropertyT? = { default },
     getResolvedValue: ResolvedT.() -> PropertyT?,
-    getParsedValue: ParsedT.() -> GradleNullableValue<PropertyT>,
+    getParsedValue: ParsedT.() -> PropertyT?,
+    getParsedRawValue: ParsedT.() -> String?,
     setParsedValue: ParsedT.(PropertyT) -> Unit,
     clearParsedValue: ParsedT.() -> Unit,
     parse: (String) -> ParsedValue<PropertyT>,
@@ -50,17 +52,19 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
         defaultValueGetter,
         getResolvedValue,
         getParsedValue,
+        getParsedRawValue,
         { if (it != null) setParsedValue(it) else clearParsedValue() },
         { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
         { if (getKnownValues != null) getKnownValues(it) else null }
     )
 
-class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT>(
+class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
     override val description: String,
     private val defaultValueGetter: (ModelT) -> PropertyT?,
     private val getResolvedValue: ResolvedT.() -> PropertyT?,
-    private val getParsedValue: ParsedT.() -> GradleNullableValue<PropertyT>,
+    private val getParsedValue: ParsedT.() -> PropertyT?,
+    private val getParsedRawValue: ParsedT.() -> String?,
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
     private val parser: (String) -> ParsedValue<PropertyT>,
     private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<PropertyT>>?
@@ -73,15 +77,14 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT>(
     val resolvedModel = modelDescriptor.getResolved(model)
     val resolved: PropertyT? = resolvedModel?.getResolvedValue()
     val parsedModel = modelDescriptor.getParsed(model)
-    val parsedGradleValue = parsedModel?.getParsedValue()
-    val parsed: PropertyT? = parsedGradleValue?.value()
-    val dslText: String? = parsedGradleValue?.dslText
+    val parsed: PropertyT? = parsedModel?.getParsedValue()
+    val dslText: String? = parsedModel?.getParsedRawValue()
     val parsedValue = when {
-      parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet<PropertyT>()
-      parsed == null -> ParsedValue.Set.Invalid(parsedGradleValue.dslText.orEmpty(), "Unknown")
+      (parsed == null && dslText == null) -> ParsedValue.NotSet<PropertyT>()
+      parsed == null -> ParsedValue.Set.Invalid(dslText.orEmpty(), "Unknown")
       else -> ParsedValue.Set.Parsed(
           value = parsed,
-          dslText = parsedGradleValue.dslText)
+          dslText = dslText)
     }
     val resolvedValue = when (resolvedModel) {
       null -> ResolvedValue.NotResolved<PropertyT>()
@@ -111,3 +114,10 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT>(
   private fun ModelT.setModified() = modelDescriptor.setModified(this)
 }
 
+fun ResolvedPropertyModel.asString() =
+    getValue(GradlePropertyModel.STRING_TYPE) ?:
+        getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
+
+fun ResolvedPropertyModel.asInt() = getValue(GradlePropertyModel.INTEGER_TYPE)
+fun ResolvedPropertyModel.asBoolean() = getValue(GradlePropertyModel.BOOLEAN_TYPE)
+fun ResolvedPropertyModel.dslText() = getRawValue(GradlePropertyModel.STRING_TYPE)

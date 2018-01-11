@@ -51,7 +51,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   @NotNull
   private File getAdbBinary() {
-    assert mySdkHandler != null;
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
   }
 

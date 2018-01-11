@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
@@ -45,7 +46,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureFormFactorStepFixture<NewProjectWizardFixture> getConfigureFormFactorStep() {
-    JRootPane rootPane = findStepWithTitle("Target Android Devices", 30);
+    JRootPane rootPane = findStepWithTitle("Target Android Devices");
     return new ConfigureFormFactorStepFixture<>(this, rootPane);
   }
 
@@ -56,7 +57,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureCppStepFixture<NewProjectWizardFixture> getConfigureCppStepFixture() {
-    JRootPane rootPane = findStepWithTitle("Customize C++ Support");
+    JRootPane rootPane = findStepWithTitle("Customize C++ Support", 30);
     return new ConfigureCppStepFixture<>(this, rootPane);
   }
 

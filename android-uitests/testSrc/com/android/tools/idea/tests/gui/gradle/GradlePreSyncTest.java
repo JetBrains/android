@@ -25,6 +25,8 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,18 +35,40 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradlePreSyncTest {
+  @Nullable private File myBackupProperties;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  /**
+   * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could
+   * cause other tests to use an incorrect configuration.
+   */
+  @Before
+  public void backupPropertiesFile() {
+    myBackupProperties = backupGlobalGradlePropertiesFile();
+  }
+
+  /**
+   * Restore user gradle.properties file content to what it had before running the tests, or delete if it did not exist.
+   */
+  @After
+  public void restorePropertiesFile() {
+    restoreGlobalGradlePropertiesFile(myBackupProperties);
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
@@ -68,7 +92,8 @@ public class GradlePreSyncTest {
 
     ProxySettings ideProxySettings = new ProxySettings(ideSettings);
 
-    GradleProperties properties = new GradleProperties(guiTest.ideFrame().getProject());
+    File userPropertiesFile = getUserGradlePropertiesFile();
+    GradleProperties properties = new GradleProperties(userPropertiesFile);
     assertNotEquals(ideProxySettings, properties.getHttpProxySettings());
 
     guiTest.ideFrame().requestProjectSync();
@@ -78,7 +103,7 @@ public class GradlePreSyncTest {
     proxySettingsDialog.enableHttpsProxy();
     proxySettingsDialog.clickOk();
 
-    properties = new GradleProperties(guiTest.ideFrame().getProject());
+    properties = new GradleProperties(userPropertiesFile);
 
     assertEquals(ideProxySettings, properties.getHttpProxySettings());
 

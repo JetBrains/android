@@ -63,7 +63,7 @@ public class AndroidDebugBridgeUtils {
 
   private static boolean doesEmulatorHaveName(@NotNull String avdName, @NotNull List<AvdInfo> avds, @NotNull IDevice device) {
     for (AvdInfo avd : avds) {
-      if (device.getAvdName().equals(avd.getName())
+      if (avd.getName().equals(device.getAvdName())
           && avdName.equals(AvdManagerConnection.getAvdDisplayName(avd))) {
         return true;
       }

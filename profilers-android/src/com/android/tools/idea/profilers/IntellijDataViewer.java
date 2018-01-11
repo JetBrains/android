@@ -43,14 +43,24 @@ public class IntellijDataViewer implements DataViewer {
   public static IntellijDataViewer createEditorViewer(@NotNull String content, @Nullable FileType contentType) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
+
+      // We need to support documents with \r newlines in them (since network payloads can contain
+      // data from any OS); however, Document will assert if it finds a \r as a line ending in its
+      // content and the user will see a mysterious "NO PREVIEW" message without any information
+      // on why. The Document class allows you to change a setting to allow \r, but this breaks
+      // soft wrapping in the editor.
+      content = content.replace("\r\n", "\n");
+
       Document document = editorFactory.createDocument(content.toCharArray());
       document.setReadOnly(true);
+
       EditorEx editor = (EditorEx)editorFactory.createViewer(document);
       editor.setCaretVisible(false);
       editor.getSettings().setLineNumbersShown(false);
       editor.getSettings().setLineMarkerAreaShown(false);
       editor.getSettings().setFoldingOutlineShown(false);
       editor.getSettings().setUseSoftWraps(true);
+
       if (contentType != null) {
         editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
       }

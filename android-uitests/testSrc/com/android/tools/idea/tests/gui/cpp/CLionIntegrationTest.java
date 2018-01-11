@@ -64,7 +64,7 @@ public class CLionIntegrationTest {
    *   4. There should be an error indication.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70717199
+  @RunIn(TestGroup.QA)
   @Test
   public void cLionIntegration() throws Exception {
     IdeFrameFixture ideFrame =

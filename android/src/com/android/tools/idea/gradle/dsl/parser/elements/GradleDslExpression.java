@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Splitter;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +92,8 @@ public abstract class GradleDslExpression extends GradleDslElement {
     if (myExpression == null) {
       return Collections.emptyList();
     }
-    return getDslFile().getParser().getInjections(this, myExpression);
+    return ApplicationManager.getApplication()
+      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getInjections(this, myExpression));
   }
 
   @Nullable
@@ -246,7 +249,9 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  private static GradleDslElement extractElementFromProperties(@NotNull GradlePropertiesDslElement properties, @NotNull String name, boolean sameScope) {
+  private static GradleDslElement extractElementFromProperties(@NotNull GradlePropertiesDslElement properties,
+                                                               @NotNull String name,
+                                                               boolean sameScope) {
     // First check if any indexing has been done.
     Matcher indexMatcher = INDEX_PATTERN.matcher(name);
 
@@ -292,7 +297,8 @@ public abstract class GradleDslExpression extends GradleDslElement {
         int offset;
         try {
           offset = Integer.parseInt(index);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
           return null;
         }
 
@@ -327,12 +333,13 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  private static GradleDslElement resolveReferenceOnPropertiesElement(@NotNull GradlePropertiesDslElement properties, @NotNull List<String> nameParts) {
+  private static GradleDslElement resolveReferenceOnPropertiesElement(@NotNull GradlePropertiesDslElement properties,
+                                                                      @NotNull List<String> nameParts) {
     // Go through each of the parts and extract the elements from each of them.
     GradleDslElement element;
     for (int i = 0; i < nameParts.size() - 1; i++) {
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
-      element = extractElementFromProperties(properties, nameParts.get(i),  i == 0);
+      element = extractElementFromProperties(properties, nameParts.get(i), i == 0);
       // All elements we fine must be property elements on all but the last iteration.
       if (element == null || !(element instanceof GradlePropertiesDslElement)) {
         return null;
@@ -358,7 +365,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
           if (extDslElement != null) {
             GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement(extDslElement, nameParts);
             if (extPropertyElement != null) {
-              return  extPropertyElement;
+              return extPropertyElement;
             }
           }
           break;

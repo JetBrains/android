@@ -76,6 +76,7 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE_3DOT0;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -234,6 +235,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void loadSimpleApplication() throws Exception {
     loadProject(SIMPLE_APPLICATION);
+  }
+
+  protected void loadSimpleApplication_pre3dot0() throws Exception {
+    loadProject(SIMPLE_APPLICATION_PRE_3DOT0);
   }
 
   protected void loadProject(@NotNull String relativePath) throws Exception {

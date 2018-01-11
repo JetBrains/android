@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
@@ -60,15 +60,16 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   }
 
   fun testListContent() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("f2"),
-                    actionComponent("a2").withDestinationAttribute("activity")),
-            fragmentComponent("f2"),
-            activityComponent("activity")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "activity")
+        }
+        fragment("f2")
+        activity("activity")
+      }
+    }
 
     val manager = mock(NavPropertiesManager::class.java)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
@@ -89,15 +90,16 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   }
 
   fun testPopupContents() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("f2"),
-                    actionComponent("a2").withDestinationAttribute("activity")),
-            fragmentComponent("f2"),
-            activityComponent("activity")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "activity")
+        }
+        fragment("f2")
+        activity("activity")
+      }
+    }
 
     val manager = mock(NavPropertiesManager::class.java)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
@@ -154,15 +156,16 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   }
 
   fun testSelectionHighlighted() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("f2"),
-                    actionComponent("a2").withDestinationAttribute("activity")),
-            fragmentComponent("f2"),
-            activityComponent("activity")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "activity")
+        }
+        fragment("f2")
+        activity("activity")
+      }
+    }
 
     val manager = mock(NavPropertiesManager::class.java)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
@@ -185,11 +188,12 @@ class NavActionsInspectorProviderTest : NavTestCase() {
   }
 
   fun testPlusContents() {
-    val model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1"),
-            navigationComponent("subnav")))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        navigation("subnav")
+      }
+    }
 
     val provider = NavActionsInspectorProvider()
     val surface = model.surface as NavDesignSurface

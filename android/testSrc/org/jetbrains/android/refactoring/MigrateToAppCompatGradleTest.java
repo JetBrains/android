@@ -41,7 +41,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     runProcessor();
 
     GradleVersion version = GradleUtil.getAndroidGradleModelVersionInUse(getProject());
-    String configName = GradleUtil.mapConfigurationName("compile", version, false);
+    String configName = GradleUtil.mapConfigurationName("implementation", version, false);
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
@@ -59,7 +59,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "    }\n" +
                  "}\n" +
                  "dependencies {\n" +
-                 "    compile project(':mylibrary')\n" +
+                 "    api project(':mylibrary')\n" +
                  "}\n",
                  getTextForFile("app/build.gradle"));
 
@@ -77,7 +77,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "    }\n" +
                  "}\n" +
                  "dependencies {\n" +
-                 "    compile project(':library-debug')\n" +
+                 "    api project(':library-debug')\n" +
                  "    " + configName + " '" + getAppCompatGradleCoordinate() + "'\n" + // Unclear why the indentation does not work on added dependencies?
                  "}\n",
                  getTextForFile("mylibrarybase/build.gradle"));

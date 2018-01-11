@@ -51,7 +51,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final RelativeTimeConverter myTimeConverter;
+  @NotNull private final ProfilerTimeline myTimeline;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -79,7 +79,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
+    myTimeline = myStage.getStudioProfilers().getTimeline();
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
@@ -138,7 +138,7 @@ final class MemoryClassSetView extends AspectObserver {
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getAllocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
@@ -158,7 +158,7 @@ final class MemoryClassSetView extends AspectObserver {
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getDeallocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
@@ -355,7 +355,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTree.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        if (myTree.getSelectionCount() == 0 && myTree.getRowCount() != 0){
+        if (myTree.getSelectionCount() == 0 && myTree.getRowCount() != 0) {
           myTree.setSelectionRow(0);
         }
       }

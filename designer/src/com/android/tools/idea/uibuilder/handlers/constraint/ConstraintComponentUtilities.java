@@ -1622,4 +1622,63 @@ public final class ConstraintComponentUtilities {
     while (set.size() > lastCount);
     return set;
   }
+
+  /**
+   * Search for any connection of type
+   * @param component
+   * @param sisters
+   * @param list
+   * @return
+   */
+  @SafeVarargs
+  private static boolean isConnected(NlComponent component, ArrayList<String>... list) {
+
+    for (int i = 0; i < list.length; i++) {
+      int count = list[i].size();
+      for (int k = 0; k < count; k++) {
+        if (null != component.getLiveAttribute(SdkConstants.SHERPA_URI, list[i].get(k))) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Logic to decide when to use left and right margins
+   *
+   * @param component
+   * @return
+   */
+  static boolean useLeftRight(NlComponent component) {
+    if (isConnected(component, ourStartAttributes, ourEndAttributes)) {
+      return false;
+    }
+    if (isConnected(component, ourLeftAttributes, ourRightAttributes)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This remaps the margin start and end strings when setting dimensions
+   *
+   * @param component
+   * @param attr
+   * @return
+   */
+  public static String mapStartEndStrings(NlComponent component, String attr) {
+    if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
+      if (useLeftRight(component)) {
+        return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+      }
+    }
+    else if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
+      if (useLeftRight(component)) {
+        return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+      }
+    }
+    return attr;
+  }
 }

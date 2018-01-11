@@ -238,7 +238,7 @@ public class SceneContext {
 
     @Override
     public void repaint() {
-      mySceneView.getSurface().repaint();
+      mySceneView.getSurface().needsRepaint();
     }
 
     @Override

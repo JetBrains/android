@@ -133,7 +133,7 @@ public class AndroidJavaDocRenderer {
     builder.add(name);
     builder.endBold();
     int api = ResolutionUtils.getOriginalApiLevel(name, module.getProject());
-    if (api >= 0) {
+    if (api > 1) {
       builder.add(" (Added in API level ");
       builder.add(String.valueOf(api));
       builder.add(")");

@@ -86,10 +86,21 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
 
       when (coordinate.groupId) {
         "com.android.support.test", "androidx.test" -> {
-          when (coordinate.artifactId) { "runner" -> builder.testSupportLibraryVersion = version }
+          when (coordinate.artifactId) {
+            "orchestrator" -> builder.testOrchestratorVersion = version
+            "rules" -> builder.testRulesVersion = version
+            "runner" -> builder.testSupportLibraryVersion = version
+          }
         }
         "com.android.support.test.espresso", "androidx.test.espresso" -> {
-          when (coordinate.artifactId) { "espresso-core" -> builder.espressoVersion = version }
+          when (coordinate.artifactId) {
+            "espresso-accessibility" -> builder.espressoAccessibilityVersion = version
+            "espresso-contrib" -> builder.espressoContribVersion = version
+            "espresso-core" -> builder.espressoVersion = version
+            "espresso-idling-resource" -> builder.espressoIdlingResourceVersion = version
+            "espresso-intents" -> builder.espressoIntentsVersion = version
+            "espresso-web" -> builder.espressoWebVersion = version
+          }
         }
         "org.robolectric" -> {
           when (coordinate.artifactId) { "robolectric" -> builder.robolectricVersion = version }

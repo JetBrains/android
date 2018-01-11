@@ -22,18 +22,21 @@ import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.startup.DelayedInitialization;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -49,6 +52,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Assembles a designer editor from various components
@@ -82,12 +86,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
-    if (GradleProjects.isBuildWithGradle(project)) {
-      DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
-    }
-    else {
-      initNeleModel();
-    }
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
@@ -100,18 +99,47 @@ public class NlEditorPanel extends JPanel implements Disposable {
   }
 
   private void initNeleModel() {
-    DumbService.getInstance(myProject).smartInvokeLater(this::initNeleModelOnEventDispatchThread);
+    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+
+    if (!syncManager.isSyncInProgress()) {
+      if (syncManager.getLastSyncResult().isSuccessful()) {
+        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
+        return;
+      }
+      else {
+        buildError();
+      }
+    }
+
+    // Wait for a successful sync in case the module containing myFile was
+    // just added and the Android facet isn't available yet.
+    SyncUtil.listenUntilNextSuccessfulSync(myProject, myEditor, result -> {
+      if (result.isSuccessful()) {
+        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
+      }
+      else {
+        buildError();
+      }
+    });
   }
 
-  private void initNeleModelOnEventDispatchThread() {
+  private void initNeleModelWhenSmart() {
     if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
       return;
     }
-    XmlFile file = getFile();
 
-    AndroidFacet facet = AndroidFacet.getInstance(file);
-    assert facet != null;
-    NlModel model = NlModel.create(myEditor, facet, myFile);
+    NlModel model = ReadAction.compute(() -> {
+      XmlFile file = getFile();
+
+      AndroidFacet facet = AndroidFacet.getInstance(file);
+      assert facet != null;
+      return NlModel.create(myEditor, facet, myFile);
+    });
+    CompletableFuture<?> complete = mySurface.goingToSetModel(model);
+    complete.whenComplete((a, b) -> DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model)));
+  }
+
+  private void initNeleModelOnEventDispatchThread(NlModel model) {
     mySurface.setModel(model);
     Disposer.register(myEditor, mySurface);
 
@@ -121,13 +149,13 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     // TODO: factor out tool creation
-    if (NlLayoutType.typeOf(file) == NlLayoutType.NAV) {
-      tools.add(new NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+    if (NlLayoutType.typeOf(model.getFile()) == NlLayoutType.NAV) {
+      tools.add(new NavPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));

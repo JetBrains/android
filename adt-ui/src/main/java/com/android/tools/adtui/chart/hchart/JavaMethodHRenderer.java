@@ -15,17 +15,20 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
+import com.android.tools.adtui.model.DefaultHNode;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.regex.Pattern;
 
 public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
 
-  protected boolean isMethodPlatform(Method method) {
+  protected boolean isMethodPlatform(@NotNull Method method) {
     return method.getNameSpace().startsWith("android.");
   }
 
-  protected boolean isMethodVendor(Method method) {
+  protected boolean isMethodVendor(@NotNull Method method) {
     return method.getNameSpace().startsWith("java.") ||
            method.getNameSpace().startsWith("sun.") ||
            method.getNameSpace().startsWith("javax.") ||
@@ -34,7 +37,7 @@ public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
   }
 
   @Override
-  protected Color getFillColor(Method m) {
+  protected Color getFillColor(@NotNull Method m) {
     if (isMethodVendor(m)) {
       return fillVendorColor;
     }
@@ -47,15 +50,15 @@ public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
   }
 
   @Override
-  protected Color getBordColor(Method m) {
+  protected Color getBorderColor(@NotNull Method m) {
     if (isMethodVendor(m)) {
-      return bordVendorColor;
+      return borderVendorColor;
     }
     else if (isMethodPlatform(m)) {
-      return bordPlatformColor;
+      return borderPlatformColor;
     }
     else {
-      return bordAppColor;
+      return borderAppColor;
     }
   }
 
@@ -65,31 +68,25 @@ public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
    * Find the best text for the given rectangle constraints.
    */
   @Override
-  protected String generateFittingText(Method node, Rectangle2D rect, FontMetrics fontMetrics) {
+  protected String generateFittingText(@NotNull Method m, @NotNull Rectangle2D rect, @NotNull FontMetrics fontMetrics) {
     // Try: java.lang.String.toString
-    String fullyQualified = node.getNameSpace() + Separators.JAVA_CODE + node.getName();
+    String fullyQualified = m.getNameSpace() + Separators.JAVA_CODE + m.getName();
     if (fontMetrics.stringWidth(fullyQualified) < rect.getWidth()) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
-    String abbrevPackage = getShortPackageName(node.getNameSpace()) + Separators.JAVA_CODE + node.getName();
+    String abbrevPackage = getShortPackageName(m.getNameSpace()) + Separators.JAVA_CODE + m.getName();
     if (fontMetrics.stringWidth(abbrevPackage) < rect.getWidth()) {
       return abbrevPackage;
     }
 
     // Try: toString
-    if (fontMetrics.stringWidth(node.getName()) < rect.getWidth()) {
-      return node.getName();
+    if (fontMetrics.stringWidth(m.getName()) < rect.getWidth()) {
+      return m.getName();
     }
 
     return "";
-  }
-
-  @Override
-  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
-    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
-    g.drawString(text, rect.x, textPositionY);
   }
 
   protected String getShortPackageName(String nameSpace) {

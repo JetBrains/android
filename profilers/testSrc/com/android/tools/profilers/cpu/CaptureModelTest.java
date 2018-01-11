@@ -117,7 +117,7 @@ public class CaptureModelTest {
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);
     myModel.setFilter(Pattern.compile("^.*" + Pattern.quote("myPackage") + ".*$"));
-    CaptureNode node = (CaptureNode)((CaptureModel.CallChart)myModel.getDetails()).getNode();
+    CaptureNode node = ((CaptureModel.CallChart)myModel.getDetails()).getNode();
     // mainPackage.main
     assertThat(node.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH);
 
@@ -157,8 +157,7 @@ public class CaptureModelTest {
     String className = fullMethodName.substring(0, index);
     String methodName = fullMethodName.substring(index + 1);
 
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(new JavaMethodModel(methodName, className));
+    CaptureNode node = new CaptureNode(new JavaMethodModel(methodName, className));
     node.setClockType(ClockType.GLOBAL);
     node.setStartGlobal(start);
     node.setEndGlobal(end);

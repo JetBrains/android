@@ -70,6 +70,25 @@ public class CpuTreeSorterTest {
   }
 
   @Test
+  public void unmatchedNodesAlwaysComesAfterOthers() {
+    CaptureNode root = newNode("Root", 0, 0);
+    root.addChild(newNode("A1", 0, 0));
+    root.addChild(newNode("C1", 0, 0));
+    root.addChild(newNode("B1", 0, 0));
+    root.addChild(newNode("C2", 0, 0, CaptureNode.FilterType.UNMATCH));
+    root.addChild(newNode("A2", 0, 0, CaptureNode.FilterType.UNMATCH));
+    root.addChild(newNode("B2", 0, 0, CaptureNode.FilterType.UNMATCH));
+
+    CpuTreeModel model = createTreeModel(root);
+    myTreeSorter.setModel(model, myComparator);
+
+    compareTreeModel(model, "Root", "A1", "B1", "C1", "A2", "B2", "C2");
+
+    myTreeSorter.setModel(model, myComparator.reversed());
+    compareTreeModel(model, "Root", "C1", "B1", "A1", "C2", "B2", "A2");
+  }
+
+  @Test
   public void unsortedTree() {
     CaptureNode root = newNode("A", 0, 0);
     root.addChild(newNode("C", 0, 0));
@@ -151,13 +170,16 @@ public class CpuTreeSorterTest {
     }
   }
 
-  @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
-    CaptureNode node = new CaptureNode();
-    node.setCaptureNodeModel(new SingleNameModel(method));
+    return newNode(method, start, end, CaptureNode.FilterType.MATCH);
+  }
+
+  @NotNull
+  private static CaptureNode newNode(String method, long start, long end, CaptureNode.FilterType filterType) {
+    CaptureNode node = new CaptureNode(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(start);
-
+    node.setFilterType(filterType);
     node.setStartThread(start);
     node.setEndThread(end);
     return node;

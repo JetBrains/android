@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -29,18 +28,17 @@ import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceRepositories;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
-import com.intellij.ProjectTopics;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
@@ -50,12 +48,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.ClassMaps;
-import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -238,12 +232,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
-  void androidPlatformChanged() {
-    ModuleAvds.disposeInstance(this);
-    ModuleResourceManagers.getInstance(this).clear();
-    ClassMaps.getInstance(this).clear();
-  }
-
   private static void createDynamicTemplateMenu() {
     if (ourDynamicTemplateMenuCreated) {
       return;
@@ -269,40 +257,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
 
       addResourceFolderToSdkRootsIfNecessary();
-      ModuleSourceAutogenerating.initialize(this);
     });
 
-    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      private Sdk myPrevSdk;
-
-      @Override
-      public void rootsChanged(ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (isDisposed()) {
-            return;
-          }
-          ModuleRootManager rootManager = ModuleRootManager.getInstance(getModule());
-
-          Sdk newSdk = rootManager.getSdk();
-          if (newSdk != null && newSdk.getSdkType() instanceof AndroidSdkType && !newSdk.equals(myPrevSdk)) {
-            androidPlatformChanged();
-
-            ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(AndroidFacet.this);
-            if (autogenerating != null) {
-              autogenerating.resetRegeneratingState();
-            }
-          }
-          else {
-            // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
-            // from libraries are added
-            ClassMaps.getInstance(AndroidFacet.this).clear();
-          }
-          myPrevSdk = newSdk;
-
-          ModuleResourceManagers.getInstance(AndroidFacet.this).getLocalResourceManager().invalidateAttributeDefinitions();
-        });
-      }
-    });
     createDynamicTemplateMenu();
   }
 

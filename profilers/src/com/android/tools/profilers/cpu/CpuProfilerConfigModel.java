@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between
  * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
  */
-public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread> {
+public class CpuProfilerConfigModel {
   private ProfilingConfiguration myProfilingConfiguration;
 
   /**
@@ -43,6 +43,13 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
    */
   @NotNull
   private List<ProfilingConfiguration> myCustomProfilingConfigurations;
+
+  /**
+   * Same as {@link #myCustomProfilingConfigurations} except we also filter on device. This is needed, for instance, to filter custom
+   * configurations on the CPU profiling configurations combobox.
+   */
+  @NotNull
+  private List<ProfilingConfiguration> myCustomProfilingConfigurationsDeviceFiltered;
 
   /**
    * The list of all default configurations. This list is filtered on device compatibility as well as feature availability.
@@ -67,6 +74,7 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
   public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, CpuProfilerStage profilerStage) {
     myProfilers = profilers;
     myCustomProfilingConfigurations = new ArrayList<>();
+    myCustomProfilingConfigurationsDeviceFiltered = new ArrayList<>();
     myDefaultProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
 
@@ -105,26 +113,21 @@ public class CpuProfilerConfigModel extends DefaultListModel<CpuThreadsModel.Ran
   }
 
   @NotNull
+  public List<ProfilingConfiguration> getCustomProfilingConfigurationsDeviceFiltered() {
+    return myCustomProfilingConfigurationsDeviceFiltered;
+  }
+
+  @NotNull
   public List<ProfilingConfiguration> getDefaultProfilingConfigurations() {
     return myDefaultProfilingConfigurations;
   }
 
-  @NotNull
-  public List<ProfilingConfiguration> getAllProfilingConfigurations() {
-    List<ProfilingConfiguration> configs = new ArrayList<>();
-    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
-    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
-    configs.addAll(savedConfigs);
-    configs.addAll(defaultConfigs);
-
-    // We still need to filture out configs that are not enabled.
-    return filterConfigurations(configs, false);
-  }
-
   public void updateProfilingConfigurations() {
     List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
-    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
     myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
+    myCustomProfilingConfigurationsDeviceFiltered = filterConfigurations(savedConfigs, true);
+
+    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
     myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
 
     Common.Device selectedDevice = myProfilers.getDevice();

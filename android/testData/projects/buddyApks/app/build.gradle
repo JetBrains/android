@@ -27,6 +27,6 @@ android {
 }
 
 dependencies {
-    androidTestCompile 'com.android.support:appcompat-v7:26.1.0'
+    androidTestImplementation 'com.android.support:appcompat-v7:26.1.0'
     androidTestUtil 'com.linkedin.testbutler:test-butler-app:1.3.1'
 }

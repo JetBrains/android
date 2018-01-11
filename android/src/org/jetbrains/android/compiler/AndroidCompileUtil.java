@@ -440,17 +440,6 @@ public class AndroidCompileUtil {
     return contentEntry;
   }
 
-  public static void generate(final Module module, final AndroidAutogeneratorMode mode) {
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-    if (facet != null) {
-      ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
-      if (autogenerating != null) {
-        autogenerating.scheduleSourceRegenerating(mode);
-      }
-    }
-  }
-
   public static boolean doGenerate(AndroidFacet facet, final AndroidAutogeneratorMode mode) {
     assert !ApplicationManager.getApplication().isDispatchThread();
     final CompileContext[] contextWrapper = new CompileContext[1];

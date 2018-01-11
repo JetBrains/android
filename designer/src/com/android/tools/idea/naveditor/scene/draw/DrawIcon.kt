@@ -32,14 +32,14 @@ import javax.swing.Icon
  * [DrawIcon] is a DrawCommand that draws an icon
  * in the specified rectangle.
  */
-class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val myIconType: IconType) : NavBaseDrawCommand() {
+class DrawIcon(@SwingCoordinate private val rectangle: Rectangle, private val iconType: IconType) : NavBaseDrawCommand() {
   enum class IconType {
     START_DESTINATION,
     DEEPLINK
   }
 
-  private val myIcon: Icon =
-      when (myIconType) {
+  private val icon: Icon =
+      when (iconType) {
         DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
         DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
       }
@@ -53,16 +53,16 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
   }
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rectToString(myRectangle), myIconType)
+    return buildString(javaClass.simpleName, rectToString(rectangle), iconType)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     setRenderingHints(g)
 
-    val scaleX = myRectangle.width.toDouble() / myIcon.iconWidth
-    val scaleY = myRectangle.height.toDouble() / myIcon.iconHeight
+    val scaleX = rectangle.width.toDouble() / icon.iconWidth
+    val scaleY = rectangle.height.toDouble() / icon.iconHeight
 
     g.scale(scaleX, scaleY)
-    myIcon.paintIcon(null, g, (myRectangle.x / scaleX).toInt(), (myRectangle.y / scaleY).toInt())
+    icon.paintIcon(null, g, (rectangle.x / scaleX).toInt(), (rectangle.y / scaleY).toInt())
   }
 }

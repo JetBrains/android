@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +41,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
 
   @NotNull private final MemoryServiceBlockingStub myClient;
   @NotNull private final ClassDb myClassDb;
-  @NotNull private final String myLabel;
   @NotNull private final Common.Session mySession;
   private long myStartTimeNs;
   private long myEndTimeNs;
@@ -54,7 +53,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   public LegacyAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                        @NotNull Common.Session session,
                                        @NotNull MemoryProfiler.AllocationsInfo info,
-                                       @NotNull RelativeTimeConverter converter,
                                        @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myClassDb = new ClassDb();
@@ -62,21 +60,13 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
-    TimeAxisFormatter formatter = TimeAxisFormatter.DEFAULT;
-    myLabel = "Allocation Range: " +
-              (myStartTimeNs != Long.MAX_VALUE
-               ? formatter.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myStartTimeNs)))
-               : "") +
-              (myEndTimeNs != Long.MIN_VALUE
-               ? " - " + formatter.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs)))
-               : "");
     myFeatureTracker = featureTracker;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myLabel;
+    return "Recorded Allocations";
   }
 
   @Override

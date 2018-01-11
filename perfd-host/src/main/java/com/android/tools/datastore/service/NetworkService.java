@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough {
   private final NetworkTable myNetworkTable;
   private final Consumer<Runnable> myFetchExecutor;
-  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final DataStoreService myService;
 
   public NetworkService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
@@ -64,9 +64,9 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
     if (client != null) {
       responseObserver.onNext(client.startMonitoringApp(request));
       responseObserver.onCompleted();
-      int processId = request.getProcessId();
-      myRunners.put(processId, new NetworkDataPoller(processId, request.getSession(), myNetworkTable, client));
-      myFetchExecutor.accept(myRunners.get(processId));
+      long sessionId = request.getSession().getSessionId();
+      myRunners.put(sessionId, new NetworkDataPoller(request.getSession(), myNetworkTable, client));
+      myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
       responseObserver.onNext(NetworkProfiler.NetworkStartResponse.getDefaultInstance());
@@ -77,8 +77,8 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   @Override
   public void stopMonitoringApp(NetworkProfiler.NetworkStopRequest request,
                                 StreamObserver<NetworkProfiler.NetworkStopResponse> responseObserver) {
-    int processId = request.getProcessId();
-    PollRunner runner = myRunners.remove(processId);
+    long sessionId = request.getSession().getSessionId();
+    PollRunner runner = myRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }

@@ -21,20 +21,14 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,35 +139,9 @@ public class ImageViewHandler extends ViewHandler {
     return srcAttribute != null ? srcAttribute : component.getAttribute(ANDROID_URI, ATTR_SRC);
   }
 
-  public boolean shouldUseSrcCompat(@NotNull NlModel model) {
-    return moduleDependsOnAppCompat(model) &&
-           currentActivityIsDerivedFromAppCompatActivity(model);
-  }
-
-  private static boolean moduleDependsOnAppCompat(@NotNull NlModel model) {
-    return DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
-  }
-
-  private static boolean currentActivityIsDerivedFromAppCompatActivity(@NotNull NlModel model) {
-    Configuration configuration = model.getConfiguration();
-    String activityClassName = configuration.getActivity();
-    if (activityClassName == null) {
-      // The activity is not specified in the XML file.
-      // We cannot know if the activity is derived from AppCompatActivity.
-      // Assume we are since this is how the default activities are created.
-      return true;
-    }
-    if (activityClassName.startsWith(".")) {
-      MergedManifest manifest = MergedManifest.get(model.getModule());
-      String pkg = StringUtil.notNullize(manifest.getPackage());
-      activityClassName = pkg + activityClassName;
-    }
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(model.getProject());
-    PsiClass activityClass = facade.findClass(activityClassName, model.getModule().getModuleScope());
-    while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.equals(activityClass.getQualifiedName())) {
-      activityClass = activityClass.getSuperClass();
-    }
-    return activityClass != null;
+  public static boolean shouldUseSrcCompat(@NotNull NlModel model) {
+    return NlModelHelperKt.moduleDependsOnAppCompat(model) &&
+           NlModelHelperKt.currentActivityIsDerivedFromAppCompatActivity(model);
   }
 
   @Nullable
@@ -189,9 +157,7 @@ public class ImageViewHandler extends ViewHandler {
     }
 
     JButton button = new JButton("Set image");
-    button.addActionListener(e -> {
-      showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component);
-    });
+    button.addActionListener(e -> showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component));
 
     return (comp, close) -> button;
   }

@@ -61,15 +61,4 @@ public interface IdeProfilerComponents {
   AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
                                                     @NotNull String value,
                                                     @NotNull Collection<String> variants);
-
-  /**
-   * Returns the SearchComponent with Regex and MatchCase checkboxes.
-   *
-   * @param propertyName   the propertyName. Components under the same propertyName share search history.
-   * @param textFieldWidth the width of the search text area.
-   * @param delayMs        amount of delay when the callback should get called. This delay does not apply to the checkbox.
-   * @return
-   */
-  @NotNull
-  SearchComponent createProfilerSearchTextArea(@NotNull String propertyName, int textFieldWidth, int delayMs);
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
@@ -65,9 +66,14 @@ public class LayoutInspectorTest {
   @Test
   @RunIn(TestGroup.SANITY)
   public void launchLayoutInspectorViaChooser() throws Exception {
-    guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame.runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
+
+    // The following includes a wait for the run tool window to appear.
+    // Also show the run tool window in case of failure so we have more information.
+    ideFrame.getRunToolWindow().activate();
 
     //Wait for emulator to launch the app
     IDevice emu = AndroidDebugBridgeUtils.getEmulator(emulator.getDefaultAvdName(), emulator.getEmulatorConnection(), 5);

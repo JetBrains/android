@@ -31,7 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class AdtUiUtilsTest {
 
   @Test
-  public void testGetFittedString() throws Exception {
+  public void testShrinkToFit() throws Exception {
     JLabel testLabel = new JLabel("Test");
     FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
@@ -41,18 +41,18 @@ public class AdtUiUtilsTest {
     int perCharacterWidth = testMetrics.stringWidth("A");
 
     // Enough space to render the whole string so no truncation occurs
-    assertEquals(testString, AdtUiUtils.getFittedString(testMetrics, testString, stringWidth, 1));
+    assertEquals(testString, AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth, 1));
 
     // Not enough space for ellipsys so an empty string should be returned
-    assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, ellipsysWidth - 1, 1));
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsysWidth - 1, 1));
 
     if (ellipsysWidth <= perCharacterWidth) {
-      assertEquals("AA...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
-      assertEquals("...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
+      assertEquals("AA...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth, 1));
+      assertEquals("...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth * 3, 1));
     } else {
       // The "..." width is greater than the character "A" width, so the function needs to truncate an additional "A" to fit "..."
-      assertEquals("A...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
-      assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
+      assertEquals("A...", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth, 1));
+      assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth - perCharacterWidth * 3, 1));
     }
   }
 

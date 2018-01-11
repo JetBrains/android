@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.execution.JavaRunConfigurationExtensionManager;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -28,8 +29,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
-
-import java.util.Iterator;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
@@ -63,7 +63,11 @@ public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPr
     }
     final Location contextLocation = context.getLocation();
     assert contextLocation != null;
-    Location<PsiMethod> methodLocation = getTestMethod(contextLocation);
+    PsiMethod method = getTestMethod(contextLocation);
+    if (method == null || method.getContainingClass() == null) {
+      return false;
+    }
+    Location<PsiMethod> methodLocation = MethodLocation.elementInClass(method, method.getContainingClass());
     if (methodLocation == null) return false;
 
     if (contextLocation instanceof PsiMemberParameterizedLocation) {
@@ -86,12 +90,21 @@ public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPr
     return true;
   }
 
-  private static Location<PsiMethod> getTestMethod(final Location<?> location) {
-    for (Iterator<Location<PsiMethod>> iterator = location.getAncestors(PsiMethod.class, false); iterator.hasNext();) {
-      final Location<PsiMethod> methodLocation = iterator.next();
-      if (JUnitUtil.isTestMethod(methodLocation, false)) return methodLocation;
+  private static PsiMethod getTestMethod(final Location<?> location) {
+    PsiMethod elementMethod = AndroidPsiUtils.getPsiParentOfType(location.getPsiElement(), PsiMethod.class, false);
+    return isTestMethod(elementMethod) ? elementMethod : null;
+  }
+
+  private static boolean isTestMethod(@Nullable PsiMethod method) {
+    if (method == null) {
+      return false;
     }
-    return null;
+
+    PsiClass testClass = method.getContainingClass();
+    if (testClass != null && JUnitUtil.isTestClass(testClass)) {
+      return new JUnitUtil.TestMethodFilter(testClass).value(method);
+    }
+    return false;
   }
 
   @Override

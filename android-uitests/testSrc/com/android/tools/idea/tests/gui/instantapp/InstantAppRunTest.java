@@ -131,9 +131,8 @@ public class InstantAppRunTest {
       .clickNext()
       .clickFinish();
 
-    guiTest.waitForBackgroundTasks();
-
     IdeFrameFixture ideFrame = guiTest.ideFrame();
+    guiTest.waitForBackgroundTasks();
 
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
@@ -141,6 +140,10 @@ public class InstantAppRunTest {
       new ChooseSystemImageStepFixture.SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)"),
       O_AVD_NAME
     );
+
+    // Stuff can be happening again in the background while the emulator is being created.
+    // We should wait for it to finish.
+    guiTest.waitForBackgroundTasks();
 
     ideFrame.runApp(runConfigName)
       .selectDevice(O_AVD_NAME)

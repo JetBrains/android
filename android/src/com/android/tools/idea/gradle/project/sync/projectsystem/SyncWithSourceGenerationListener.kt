@@ -71,7 +71,7 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
 
       val result = when(status) {
         BuildStatus.CANCELED -> ProjectSystemSyncManager.SyncResult.CANCELLED
-        BuildStatus.FAILED   -> ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS
+        BuildStatus.FAILED   -> ProjectSystemSyncManager.SyncResult.SOURCE_GENERATION_FAILURE
         BuildStatus.SKIPPED  -> ProjectSystemSyncManager.SyncResult.SKIPPED
         BuildStatus.SUCCESS  -> ProjectSystemSyncManager.SyncResult.SUCCESS
       }

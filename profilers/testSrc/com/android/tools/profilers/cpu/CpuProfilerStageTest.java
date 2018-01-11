@@ -400,7 +400,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     double threadSelectionStart = captureNode.getStartGlobal() +
                                   threadToGlobal * (captureNode.getStartThread() - timeline.getSelectionRange().getMin());
     double threadSelectionEnd = threadSelectionStart +
-                                threadToGlobal * captureNode.duration();
+                                threadToGlobal * captureNode.getDuration();
     assertThat(threadSelectionStart).isWithin(eps).of(timeline.getSelectionRange().getMin());
     assertThat(threadSelectionEnd).isWithin(eps).of(timeline.getSelectionRange().getMax());
 
@@ -523,15 +523,35 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getTooltip()).isInstanceOf(CpuThreadsTooltip.class);
     CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
 
-    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, 1, ProfilersTestData.SESSION_DATA, 1);
-    // 1 - running - 8 - dead - 11
+    // Null thread series
+    tooltip.setThread(null, null);
+    assertThat(tooltip.getThreadName()).isNull();
+    assertThat(tooltip.getThreadState()).isNull();
+
+    // Thread series: 1 - running - 8 - dead - 11
+    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, ProfilersTestData.SESSION_DATA, 1);
     tooltip.setThread("myThread", series);
 
     assertThat(tooltip.getThreadName()).isEqualTo("myThread");
-    tooltipRange.set(TimeUnit.SECONDS.toMicros(5), TimeUnit.SECONDS.toMicros(5));
+
+    // Tooltip before all data.
+    long tooltipTimeUs = TimeUnit.SECONDS.toMicros(0);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
+    assertThat(tooltip.getThreadState()).isNull();
+
+    // Tooltip on first thread.
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(5);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
     assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.RUNNING);
 
-    tooltipRange.set(TimeUnit.SECONDS.toMicros(9), TimeUnit.SECONDS.toMicros(9));
+    // Tooltip right on second thread.
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(8);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
+    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+
+    // Tooltip after all data. Because data don't contain end time so the last thread state lasts "forever".
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(12);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
     assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
   }
 

@@ -47,6 +47,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -606,13 +607,16 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       !absProguardLogsPath.isEmpty() ? '/' + getAndCheckRelativePath(absProguardLogsPath, false) : "";
 
     if (runApt || runIdl) {
-      final Module module = myContext.getModule();
+      AndroidFacet facet = (AndroidFacet)myContext.getFacet();
+      ModuleSourceAutogenerating sourceAutoGenerator = ModuleSourceAutogenerating.getInstance(facet);
 
-      if (runApt) {
-        AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
-      }
-      if (runIdl) {
-        AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
+      if (sourceAutoGenerator != null) {
+        if (runApt) {
+          sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AAPT);
+        }
+        if (runIdl) {
+          sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AIDL);
+        }
       }
     }
   }

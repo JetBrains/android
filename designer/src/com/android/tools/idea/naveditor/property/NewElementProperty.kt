@@ -12,9 +12,9 @@ import com.intellij.util.xml.XmlName
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
 
-open class NewElementProperty(private val myParent: NlComponent, private val myTagName: String, private val myAttrName: String,
-                              private val myNamespace: String?, private val myAttrDefs: AttributeDefinitions,
-                              private val myPropertiesManager: NavPropertiesManager) : NlProperty {
+open class NewElementProperty(private val parent: NlComponent, private val tagName: String, private val attrName: String,
+                              private val namespace: String?, private val attrDefs: AttributeDefinitions,
+                              private val propertiesManager: NavPropertiesManager) : NlProperty {
 
   private var delegate: NlProperty? = null
 
@@ -39,30 +39,30 @@ open class NewElementProperty(private val myParent: NlComponent, private val myT
       return
     }
     val newComponent = WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
-      val tag = myParent.tag.createChildTag(myTagName, null, null, false)
-      val result = myParent.model.createComponent(tag, myParent, null)
-      result.setAttribute(myNamespace, myAttrName, value as String)
+      val tag = parent.tag.createChildTag(tagName, null, null, false)
+      val result = parent.model.createComponent(tag, parent, null)
+      result.setAttribute(namespace, attrName, value as String)
       result
     })
-    delegate = NlPropertyItem.create(XmlName(myAttrName, myNamespace), definition, listOf(newComponent), myPropertiesManager)
+    delegate = NlPropertyItem.create(XmlName(attrName, namespace), definition, listOf(newComponent), propertiesManager)
   }
 
   override fun getTooltipText(): String = delegate?.tooltipText ?: ""
 
-  override fun getDefinition(): AttributeDefinition? = myAttrDefs.getAttrDefByName(myAttrName)
+  override fun getDefinition(): AttributeDefinition? = attrDefs.getAttrDefByName(attrName)
 
   override fun getComponents(): List<NlComponent> = delegate?.components ?: listOf()
 
   override fun getResolver(): ResourceResolver? = model.configuration.resourceResolver
 
-  override fun getModel(): NlModel = myParent.model
+  override fun getModel(): NlModel = parent.model
 
   override fun getTag(): XmlTag? = delegate?.tag
 
   override fun getTagName(): String? = delegate?.tagName
 
-  override fun getChildProperty(name: String): NlProperty = throw UnsupportedOperationException(myAttrName)
+  override fun getChildProperty(name: String): NlProperty = throw UnsupportedOperationException(attrName)
 
-  override fun getDesignTimeProperty(): NlProperty = throw UnsupportedOperationException(myAttrName)
+  override fun getDesignTimeProperty(): NlProperty = throw UnsupportedOperationException(attrName)
 
 }

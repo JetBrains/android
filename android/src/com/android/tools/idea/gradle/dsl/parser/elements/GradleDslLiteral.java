@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +68,8 @@ public final class GradleDslLiteral extends GradleDslExpression {
     if (element == null) {
       return null;
     }
-    return getDslFile().getParser().extractValue(this, element, true);
+    return ApplicationManager.getApplication()
+      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, true));
   }
 
   @Override
@@ -76,7 +79,8 @@ public final class GradleDslLiteral extends GradleDslExpression {
     if (element == null) {
       return null;
     }
-    return getDslFile().getParser().extractValue(this, element, false);
+    return ApplicationManager.getApplication()
+      .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
   }
 
   @Nullable
@@ -94,7 +98,8 @@ public final class GradleDslLiteral extends GradleDslExpression {
     if (element == null) {
       return Collections.emptyList();
     }
-    return getDslFile().getParser().getInjections(this, element);
+    return ApplicationManager.getApplication()
+      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getInjections(this, element));
   }
 
   /**

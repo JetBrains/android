@@ -67,11 +67,6 @@ public class ProfilingConfiguration {
    */
   private boolean myIsDefault = false;
 
-  /**
-   * Used to determine required device level for config.
-   */
-  private int myRequiredDeviceLevel;
-
   public ProfilingConfiguration() {
     // Default constructor to be used by CpuProfilingConfigService
   }
@@ -79,26 +74,17 @@ public class ProfilingConfiguration {
   public ProfilingConfiguration(String name,
                                 CpuProfilerType profilerType,
                                 CpuProfilingAppStartRequest.Mode mode) {
-    this(name, profilerType, mode, false, 0);
-  }
-
-  public ProfilingConfiguration(String name,
-                                CpuProfilerType profilerType,
-                                CpuProfilingAppStartRequest.Mode mode,
-                                int requiredDeviceLevel) {
-    this(name, profilerType, mode, false, requiredDeviceLevel);
+    this(name, profilerType, mode, false);
   }
 
   private ProfilingConfiguration(String name,
                                  CpuProfilerType profilerType,
                                  CpuProfilingAppStartRequest.Mode mode,
-                                 boolean isDefault,
-                                 int requiredDeviceLevel) {
+                                 boolean isDefault) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
     myIsDefault = isDefault;
-    myRequiredDeviceLevel = requiredDeviceLevel;
   }
 
   public CpuProfilingAppStartRequest.Mode getMode() {
@@ -142,7 +128,18 @@ public class ProfilingConfiguration {
   }
 
   public int getRequiredDeviceLevel() {
-    return myRequiredDeviceLevel;
+    switch (myProfilerType) {
+      // Atrace and simpleperf are supported from Android 8.0 (O)
+      case ATRACE:
+      case SIMPLEPERF:
+        return AndroidVersion.VersionCodes.O;
+      default:
+        return 0;
+    }
+  }
+
+  public boolean isDeviceLevelSupported(int deviceLevel) {
+    return deviceLevel >= getRequiredDeviceLevel();
   }
 
   public void setProfilingSamplingIntervalUs(int profilingSamplingIntervalUs) {
@@ -154,23 +151,19 @@ public class ProfilingConfiguration {
       ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
                                                                      CpuProfilerType.ART,
                                                                      CpuProfilingAppStartRequest.Mode.SAMPLED,
-                                                                     true,
-                                                                     0);
+                                                                     true);
       ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
                                                                           CpuProfilerType.ART,
                                                                           CpuProfilingAppStartRequest.Mode.INSTRUMENTED,
-                                                                          true,
-                                                                          0);
+                                                                          true);
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                      CpuProfilerType.SIMPLEPERF,
                                                                      CpuProfilingAppStartRequest.Mode.SAMPLED,
-                                                                     true,
-                                                                     AndroidVersion.VersionCodes.O);
+                                                                     true);
       ProfilingConfiguration atrace = new ProfilingConfiguration(ATRACE,
                                                                  CpuProfilerType.ATRACE,
                                                                  CpuProfilingAppStartRequest.Mode.SAMPLED,
-                                                                 true,
-                                                                 AndroidVersion.VersionCodes.O);
+                                                                 true);
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
     return ourDefaultConfigurations;

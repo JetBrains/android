@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
@@ -31,7 +30,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
+import static com.android.tools.adtui.common.AdtUiUtils.*;
 
 /**
  * A chart component that renders lines with a title that have the ability to stack.
@@ -60,7 +59,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
     myModel = model;
-    setFont(AdtUiUtils.DEFAULT_FONT);
+    setFont(DEFAULT_FONT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
@@ -126,7 +125,7 @@ public class StackedEventComponent extends AnimatedComponent {
       renderActivity();
       myRender = false;
     }
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(11f));
+    g2d.setFont(DEFAULT_FONT.deriveFont(11f));
     drawActivity(g2d, dim);
   }
 
@@ -161,13 +160,13 @@ public class StackedEventComponent extends AnimatedComponent {
       if (startPosition <= FONT_PADDING) {
         startPosition = FONT_PADDING;
       }
-      
-      text = getFittedString(metrics, text, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
+
+      text = shrinkToFit(text, metrics, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
       if (text.isEmpty()) {
         continue;
       }
 
-      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+      g2d.setColor(DEFAULT_FONT_COLOR);
       g2d.drawString(text, startPosition, FONT_SPACING);
     }
   }

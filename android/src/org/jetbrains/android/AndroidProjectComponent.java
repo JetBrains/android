@@ -90,6 +90,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     final AndroidResourceFilesListener listener = new AndroidResourceFilesListener(myProject);
     Disposer.register(myDisposable, listener);
 
+    // TODO: for external build systems, this alarm is unnecessary and should not be added
     createAlarmForAutogeneration();
   }
 
@@ -121,20 +122,26 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        continue;
+      }
 
-      if (facet != null && ModuleSourceAutogenerating.getInstance(facet) != null) {
-        final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
+      if (!ModuleSourceAutogenerating.requiresAutoSourceGeneration(facet)) {
+        continue;
+      }
 
-        for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-          ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
-          if (autogenerating != null && (autogenerating.cleanRegeneratingState(mode) || autogenerating.isGeneratedFileRemoved(mode))) {
-            modes.add(mode);
-          }
+      ModuleSourceAutogenerating autogenerator = ModuleSourceAutogenerating.getInstance(facet);
+      assert autogenerator != null;
+
+      final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
+      for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
+        if (autogenerator.cleanRegeneratingState(mode) || autogenerator.isGeneratedFileRemoved(mode)) {
+          modes.add(mode);
         }
+      }
 
-        if (!modes.isEmpty()) {
-          facetsToProcess.put(facet, modes);
-        }
+      if (!modes.isEmpty()) {
+        facetsToProcess.put(facet, modes);
       }
     }
     return facetsToProcess;

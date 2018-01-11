@@ -264,18 +264,18 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testDataBindingHighlighting1() throws Throwable {
-    ModuleDataBinding.enable(myFacet);
+    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
     copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
     doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
-    ModuleDataBinding.enable(myFacet);
+    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
     doTestHighlighting("databinding_highlighting2.xml");
   }
 
   public void testDataBindingHighlighting3() throws Throwable {
-    ModuleDataBinding.enable(myFacet);
+    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
     copyFileToProject("DataBindingHighlighting3.java", "src/p1/p2/DataBindingHighlighting3.java");
     doTestHighlighting("databinding_highlighting3.xml");
   }

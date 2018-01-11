@@ -753,15 +753,19 @@ public class InteractionManager {
       if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
         interaction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
-        DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-        interaction.setType(dragType);
-        NlModel model = sceneView.getModel();
-        InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
+        if (interaction.acceptsDrop()) {
+          DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+          interaction.setType(dragType);
+          NlModel model = sceneView.getModel();
+          InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
 
-        // This determines the icon presented to the user while dragging.
-        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-        // that reflects the users choice i.e. controlled by the modifier key.
-        event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+          // This determines the icon presented to the user while dragging.
+          // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+          // that reflects the users choice i.e. controlled by the modifier key.
+          event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+        } else {
+          event.reject();
+        }
       }
       else {
         event.reject();

@@ -16,14 +16,15 @@
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.components.AbstractProjectComponent
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.util.concurrent.atomic.AtomicReference
 
-internal class ProjectSystemComponent(val project: Project) : AbstractProjectComponent(project) {
+// open/public for testing was: final/internal
+open class ProjectSystemComponent(val project: Project) : AbstractProjectComponent(project) {
   private val cachedProjectSystem = AtomicReference<AndroidProjectSystem?>()
 
-  val projectSystem: AndroidProjectSystem
+  // open for testing was: final
+  open val projectSystem: AndroidProjectSystem
     get() {
       // We need to guarantee that the project system remains unique until the next time the project
       // is closed. This method may be called by multiple threads in parallel.

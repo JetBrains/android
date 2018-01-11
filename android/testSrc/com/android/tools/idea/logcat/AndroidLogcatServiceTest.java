@@ -17,6 +17,8 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -25,6 +27,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class AndroidLogcatServiceTest {
@@ -34,15 +37,23 @@ public class AndroidLogcatServiceTest {
       "08-18 16:39:11.439: W/DummyFirst(1493): First Line2",
       "08-18 16:39:11.439: W/DummyFirst(1493): First Line3",
       "09-20 16:39:11.439: W/DummySecond(1493): Second Line1"};
+
     private int myCurrentIndex = 0;
+    private boolean myCleared;
 
     @Override
     public void onLogLineReceived(@NotNull LogCatMessage line) {
       assertEquals(EXPECTED_LOGS[myCurrentIndex++], line.toString());
     }
 
+    @Override
+    public void onCleared() {
+      myCleared = true;
+    }
+
     public void reset() {
       myCurrentIndex = 0;
+      myCleared = false;
     }
 
     public void assertAllReceived() {
@@ -52,6 +63,10 @@ public class AndroidLogcatServiceTest {
     public void assertNothingReceived() {
       assertEquals(0, myCurrentIndex);
     }
+
+    private void assertCleared() {
+      assertTrue(myCleared);
+    }
   }
 
   private TestLogcatListener myLogcatListener;
@@ -60,6 +75,7 @@ public class AndroidLogcatServiceTest {
   private volatile CountDownLatch myExecuteShellCommandLatch;
 
   private String myBufferSize;
+  private Project myProject;
 
   @Before
   public void setUp() throws Exception {
@@ -81,10 +97,13 @@ public class AndroidLogcatServiceTest {
     myExecuteShellCommandLatch = new CountDownLatch(1);
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
+    myProject = mock(Project.class);
   }
 
   @After
   public void tearDown() {
+    Disposer.dispose(myProject);
+
     if (myBufferSize != null) {
       System.setProperty("idea.cycle.buffer.size", myBufferSize);
     }
@@ -263,5 +282,13 @@ public class AndroidLogcatServiceTest {
     verify(mockDevice, times(1)).getName();
     verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
+  }
+
+  @Test
+  public void consoleGetsClearedWhenDeviceIsDisconnected() {
+    myLogcatService.addListener(mockDevice, myLogcatListener);
+    myLogcatService.clearLogcat(mockDevice, myProject);
+
+    myLogcatListener.assertCleared();
   }
 }

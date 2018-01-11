@@ -28,7 +28,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
@@ -52,9 +52,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
   private final Common.Session mySession;
-
-  @NotNull
-  private final String myLabel;
 
   @NotNull
   private final FeatureTracker myFeatureTracker;
@@ -88,24 +85,18 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull RelativeTimeConverter converter,
                                @NotNull FeatureTracker featureTracker) {
     myClient = client;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
-    myLabel =
-      "Heap Dump @ " +
-      TimeAxisFormatter.DEFAULT
-        .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
-                                      TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
     myFeatureTracker = featureTracker;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myLabel;
+    return "Heap Dump";
   }
 
   @Override
@@ -254,7 +245,16 @@ public class HeapDumpCaptureObject implements CaptureObject {
         return true;
       });
     }
-    heapSets.entrySet().forEach(entry -> myHeapSets.put(entry.getKey().getId(), entry.getValue()));
+    heapSets.forEach((key, value) -> {
+      if ("default".equals(key.getName())) {
+        if (heapSets.size() == 1 || key.getInstancesCount() > 0) {
+          myHeapSets.put(key.getId(), value);
+        }
+      }
+      else {
+        myHeapSets.put(key.getId(), value);
+      }
+    });
 
     return true;
   }

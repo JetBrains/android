@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
@@ -34,9 +33,8 @@ import java.util.concurrent.TimeUnit;
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
-                                  @NotNull RelativeTimeConverter converter,
                                   @NotNull FeatureTracker featureTracker) {
-    super(client, session, converter, featureTracker);
+    super(client, session, featureTracker);
   }
 
   @Override
@@ -54,7 +52,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myConverter, myFeatureTracker)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker)))));
     }
 
     return seriesData;
