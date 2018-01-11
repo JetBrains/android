@@ -34,6 +34,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackRunWithProfiling() {
+
+  }
+
+  @Override
   public void trackProfilingStarted() {
 
   }

@@ -37,6 +37,12 @@ public interface FeatureTracker {
   void trackEnterStage(@NotNull Class<? extends Stage> stage);
 
   /**
+   * Track when the user clicks the Profile button. This can happen via the tool bar, or the run menu.
+   * This is in contrast to when the user attaches profilers to an app that was already running.
+   */
+  void trackRunWithProfiling();
+
+  /**
    * Track when we begin profiling a target process.
    */
   void trackProfilingStarted();
