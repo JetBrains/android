@@ -1150,4 +1150,22 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
   }
+
+  fun testOrderBy() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int", "fullName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT fullName FROM User ORDER BY i<caret>d") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "id"))
+  }
 }
