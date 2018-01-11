@@ -93,7 +93,6 @@ public class IssuePanelTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void testFixMissingFragmentNameWithoutCustomFragmentsAvailable() throws Exception {
     myGuiTest.importSimpleApplication();
 
