@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimplePropertyImpl
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -38,7 +34,7 @@ class SimplePropertyEditorTest {
   }
 
   class ParsedModel {
-    var value: GradleNullableValue<String> = makeGradleValue("parsed")
+    var value: String? = "parsed"
   }
 
   private val model = Model()
@@ -55,18 +51,19 @@ class SimplePropertyEditorTest {
   private val property = ModelSimplePropertyImpl(
       modelDescriptor,
       "Description",
-      { "default" },
-      { value },
-      { value },
-      { value = makeGradleValue(it) },
-      {
+      defaultValueGetter = { "default" },
+      getResolvedValue = { value },
+      getParsedValue = { value },
+      getParsedRawValue = { value },
+      setParsedValue = { value = it },
+      parser = {
         when {
           it.isEmpty() -> ParsedValue.NotSet()
           it == "invalid" -> ParsedValue.Set.Invalid("invalid", "invalid text message")
           else -> ParsedValue.Set.Parsed(value = it)
         }
       },
-      { listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")) })
+      knownValuesGetter = { listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")) })
 
   @Test
   fun loadsValue() {
@@ -76,7 +73,7 @@ class SimplePropertyEditorTest {
 
   @Test
   fun loadsWellKnownValue() {
-    parsedModel.value = makeGradleValue("1")
+    parsedModel.value = "1"
     val editor = SimplePropertyEditor(model, property)
     assertEquals("one", editor.selectedItem)
   }
@@ -85,21 +82,21 @@ class SimplePropertyEditorTest {
   fun updatesValue() {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = "abc"
-    assertEquals("abc", parsedModel.value.value())
+    assertEquals("abc", parsedModel.value)
   }
 
   @Test
   fun updatesToNullValue() {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = ""
-    assertNull(parsedModel.value.value())
+    assertNull(parsedModel.value)
   }
 
   @Test
   fun updatesFromWellKnownValueDescription() {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = "two"
-    assertEquals("2", parsedModel.value.value())
+    assertEquals("2", parsedModel.value)
   }
 
   @Test
@@ -107,15 +104,6 @@ class SimplePropertyEditorTest {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = "invalid"  // "invalid" is recognised as an invalid input by the test parser. 
     // Right now invalid input is ignored.
-    assertEquals("parsed", parsedModel.value.value())
+    assertEquals("parsed", parsedModel.value)
   }
-}
-
-fun makeGradleValue(text: String?) = object : GradleNullableValue<String> {
-  override fun getFile(): VirtualFile = throw NotImplementedError()
-  override fun value(): String? = text
-  override fun getPropertyName(): String = "property"
-  override fun getPsiElement(): PsiElement? = null
-  override fun getDslText(): String? = text?.let { "\"$text\"" }
-  override fun getResolvedVariables(): MutableMap<String, GradleNotNullValue<Any>> = mutableMapOf()
 }

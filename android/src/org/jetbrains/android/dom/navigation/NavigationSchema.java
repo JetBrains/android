@@ -17,9 +17,13 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.psi.TagToClassMapper;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -27,7 +31,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
-import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.TAG_DEEPLINK;
@@ -60,9 +64,9 @@ public class NavigationSchema implements Disposable {
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   private static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
-    "android.arch.navigation.NavGraph", DestinationType.NAVIGATION,
-    "android.arch.navigation.FragmentNavigator.Destination", DestinationType.FRAGMENT,
-    "android.arch.navigation.ActivityNavigator.Destination", DestinationType.ACTIVITY);
+    "android.arch.navigation.NavGraph", NAVIGATION,
+    "android.arch.navigation.FragmentNavigator.Destination", FRAGMENT,
+    "android.arch.navigation.ActivityNavigator.Destination", ACTIVITY);
 
   private static final String ANNOTATION_NAV_TAG_NAME = "android.arch.navigation.Navigator.Name";
 
@@ -82,23 +86,23 @@ public class NavigationSchema implements Disposable {
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
-    SdkConstants.CLASS_ACTIVITY, DestinationType.ACTIVITY,
-    SdkConstants.CLASS_FRAGMENT, DestinationType.FRAGMENT,
-    SdkConstants.CLASS_V4_FRAGMENT, DestinationType.FRAGMENT);
+    SdkConstants.CLASS_ACTIVITY, ACTIVITY,
+    SdkConstants.CLASS_FRAGMENT, FRAGMENT,
+    SdkConstants.CLASS_V4_FRAGMENT, FRAGMENT);
 
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 
   // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
   private Map<DestinationType, String> myTypeToRootTag = ImmutableMap.of(
-    DestinationType.FRAGMENT, "fragment",
-    DestinationType.ACTIVITY, "activity",
-    DestinationType.NAVIGATION, "navigation"
+    FRAGMENT, "fragment",
+    ACTIVITY, "activity",
+    NAVIGATION, "navigation"
   );
 
   private Map<String, DestinationType> myTagToDestinationType;
   private Map<PsiClass, String> myNavigatorClassToTag;
 
-  private final ClassMaps myClassMaps;
+  private final AndroidFacet myFacet;
   private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
 
@@ -116,25 +120,39 @@ public class NavigationSchema implements Disposable {
     return Boolean.getBoolean(ENABLE_NAV_PROPERTY);
   }
 
+  /**
+   * Gets the {@code NavigationSchema} for the given {@code facet}. {@link #createIfNecessary(AndroidFacet)} <b>must</b> be called before
+   * this method is called.
+   */
   @NotNull
-  public static synchronized NavigationSchema getOrCreateSchema(@NotNull AndroidFacet facet) {
+  public static synchronized NavigationSchema get(@NotNull AndroidFacet facet) {
     NavigationSchema result = ourSchemas.get(facet);
-    if (result == null) {
-      result = new NavigationSchema(facet);
-      Disposer.register(facet, result);
-      result.init();
-      ourSchemas.put(facet, result);
-    }
+    Preconditions.checkNotNull(result, "NavigationSchema must be created first!");
     return result;
   }
 
+  /**
+   * Creates a {@code NavigationSchema} for the given facet. The navigation library must already be included in the project, or this will
+   * throw {@code ClassNotFoundException}.
+   */
+  public static synchronized void createIfNecessary(@NotNull AndroidFacet facet) throws ClassNotFoundException {
+    NavigationSchema result = ourSchemas.get(facet);
+    if (result == null) {
+      result = new NavigationSchema(facet);
+      result.init();
+      Disposer.register(facet, result);
+      ourSchemas.put(facet, result);
+    }
+  }
+
+
   private NavigationSchema(@NotNull AndroidFacet facet) {
-    myClassMaps = ClassMaps.getInstance(facet);
+    myFacet = facet;
   }
 
   @Override
   public void dispose() {
-    ourSchemas.remove(myClassMaps.getFacet());
+    ourSchemas.remove(myFacet);
   }
 
   @NotNull
@@ -144,9 +162,9 @@ public class NavigationSchema implements Disposable {
 
     if (resolved == null) {
       // Shouldn't happen unless there's code errors in the project
-      return DestinationType.OTHER;
+      return OTHER;
     }
-    return NAV_CLASS_TO_TYPE.getOrDefault(resolved.getCanonicalText(), DestinationType.OTHER);
+    return NAV_CLASS_TO_TYPE.getOrDefault(resolved.getCanonicalText(), OTHER);
   }
 
   @Nullable
@@ -155,14 +173,13 @@ public class NavigationSchema implements Disposable {
     return annotation == null ? null : AnnotationUtil.getStringAttributeValue(annotation, "value");
   }
 
-  private void init() {
-    Project project = myClassMaps.getFacet().getModule().getProject();
+  private void init() throws ClassNotFoundException {
+    Project project = myFacet.getModule().getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, GlobalSearchScope.allScope(project));
     if (navigatorRoot == null) {
-      // TODO: handle this nicely
       Logger.getInstance(getClass()).warn("Navigator class not found.");
-      return;
+      throw new ClassNotFoundException(NAVIGATOR_CLASS_NAME);
     }
     PsiTypeParameter destinationTypeParam = navigatorRoot.getTypeParameters()[0];
 
@@ -189,7 +206,7 @@ public class NavigationSchema implements Disposable {
       classToTag.put(navClass, tag);
     }
     // Doesn't come from library, so have to add manually.
-    tagToType.put(TAG_INCLUDE, DestinationType.NAVIGATION);
+    tagToType.put(TAG_INCLUDE, NAVIGATION);
 
     myNavigatorClassToTag = classToTag;
     myTagToDestinationType = tagToType;
@@ -210,10 +227,10 @@ public class NavigationSchema implements Disposable {
     }
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
     if (!tagName.equals(TAG_INCLUDE)) {
-      if (type == DestinationType.NAVIGATION) {
+      if (type == NAVIGATION) {
         myTagToDestinationType.keySet().forEach(subTag -> result.put(NavDestinationElement.class, subTag));
       }
-      if (type != DestinationType.ACTIVITY) {
+      if (type != ACTIVITY) {
         result.put(NavActionElement.class, TAG_ACTION);
       }
       result.put(DeeplinkElement.class, TAG_DEEPLINK);
@@ -258,9 +275,27 @@ public class NavigationSchema implements Disposable {
   }
 
   @NotNull
+  public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull AndroidFacet facet) {
+    Application application = ApplicationManager.getApplication();
+    AtomicReference<List<String>> result = new AtomicReference<>();
+
+    application.invokeAndWait(() -> application.runReadAction(() -> {
+      try {
+        createIfNecessary(facet);
+        result.set(get(facet).getPossibleRoots());
+      }
+      catch (ClassNotFoundException e) {
+        // Navigation wasn't initialized yet, fall back to default
+        result.set(ImmutableList.of(NavigationDomFileDescription.DEFAULT_ROOT_TAG));
+      }
+    }));
+    return result.get();
+  }
+
+  @NotNull
   public List<String> getPossibleRoots() {
     return myTagToDestinationType.keySet().stream()
-      .filter(tag -> myTagToDestinationType.get(tag) == DestinationType.NAVIGATION)
+      .filter(tag -> myTagToDestinationType.get(tag) == NAVIGATION)
       .collect(Collectors.toList());
   }
 
@@ -294,7 +329,7 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   private Map<String, PsiClass> getClassMap(@NotNull String className) {
-    Map<String, PsiClass> result = myClassMaps.getClassMap(className);
+    Map<String, PsiClass> result = TagToClassMapper.getInstance(myFacet.getModule()).getClassMap(className);
     if (result.isEmpty()) {
       // TODO: handle the not-synced-yet case
       throw new RuntimeException(className + " not found");

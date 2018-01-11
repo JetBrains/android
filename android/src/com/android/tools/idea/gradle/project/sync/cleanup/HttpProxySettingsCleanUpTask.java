@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -41,7 +43,8 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
     }
     GradleProperties properties;
     try {
-      properties = new GradleProperties(project);
+      File userPropertiesFile = getUserGradlePropertiesFile();
+      properties = new GradleProperties(userPropertiesFile);
     }
     catch (IOException e) {
       getLogger().info("Failed to read gradle.properties file", e);

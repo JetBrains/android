@@ -40,14 +40,13 @@ public class NewKotlinModuleTest {
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @RunIn(TestGroup.UNRELIABLE)  // b/71823499
   @Test
   public void addNewKotlinModuleToNonKotlinProject() throws Exception {
     createNewBasicProject(false);
     addNewKotlinModule();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void addNewKotlinModuleToKotlinProject() throws Exception {
     createNewBasicProject(true);
@@ -99,7 +98,6 @@ public class NewKotlinModuleTest {
       .clickFinish();
 
     ideFrame
-      .waitForGradleImportProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MDULE_NAME);

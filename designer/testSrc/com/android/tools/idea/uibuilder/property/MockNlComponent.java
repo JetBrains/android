@@ -31,10 +31,18 @@ public class MockNlComponent extends NlComponent {
   }
 
   public static NlComponent create(@NotNull XmlTag tag) {
+    AndroidFacet facet = AndroidFacet.getInstance(tag);
     NlModel mockModel = mock(NlModel.class);
-    when(mockModel.getFacet()).thenReturn(AndroidFacet.getInstance(tag));
+    when(mockModel.getFacet()).thenReturn(facet);
+    when(mockModel.getModule()).thenReturn(facet.getModule());
     SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
     when(mockTagPointer.getElement()).thenReturn(tag);
     return new MockNlComponent(mockModel, tag, mockTagPointer);
+  }
+
+  public static NlComponent create(@NotNull NlModel model, @NotNull XmlTag tag) {
+    SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
+    when(mockTagPointer.getElement()).thenReturn(tag);
+    return new MockNlComponent(model, tag, mockTagPointer);
   }
 }

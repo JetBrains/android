@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
@@ -36,18 +36,19 @@ class NavInspectorPanelTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("f2"),
-                    actionComponent("a2").withDestinationAttribute("f3")),
-            fragmentComponent("f2"),
-            fragmentComponent("f3"),
-            activityComponent("activity"),
-            includeComponent("navigation"),
-            navigationComponent("subnav")))
-        .build()
+    model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+          action("a2", destination = "f3")
+        }
+        fragment("f2")
+        fragment("f3")
+        activity("activity")
+        include("navigation")
+        navigation("subnav")
+      }
+    }
     panel = NavInspectorPanel(testRootDisposable)
     manager = spy(NavPropertiesManager(myFacet, model.surface))
     inspectorProviders = mock(NavInspectorProviders::class.java)

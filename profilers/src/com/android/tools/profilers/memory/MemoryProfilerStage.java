@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
-  @VisibleForTesting static final String HAS_USED_MEMORY_CAPTURE = "profiler.used.memory.capture";
+  private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
@@ -106,10 +106,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
       new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                   profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
+                                   getStudioProfilers().getIdeServices().getFeatureTracker());
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData,
-                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+                                    getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -145,7 +145,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         selectCaptureFromSelectionRange();
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        profilers.getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+        profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
@@ -159,7 +159,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public boolean hasUserUsedMemoryCapture() {
-    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_MEMORY_CAPTURE, false);
+    return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_MEMORY_CAPTURE, false);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -335,7 +335,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     getStudioProfilers().getTimeline().setStreaming(true);
-    getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+    getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
@@ -387,7 +387,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     if (myTrackingAllocations) {
       getStudioProfilers().getTimeline().setStreaming(true);
-      getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+      getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
       myInstructionsEaseOutModel.setCurrentPercentage(1);
     }
   }

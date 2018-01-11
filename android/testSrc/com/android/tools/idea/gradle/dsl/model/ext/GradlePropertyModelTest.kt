@@ -15,9 +15,9 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.vfs.VfsUtil
@@ -38,41 +38,41 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     run {
-      val propertyModel = extModel.findProperty("prop1")!!
+      val propertyModel = extModel.findProperty("prop1")
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertEquals("value", propertyModel.getValue(STRING_TYPE))
-      assertEquals("value", propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertEquals("value", propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop1", propertyModel.name)
       assertEquals("ext.prop1", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop2")!!
+      val propertyModel = extModel.findProperty("prop2")
       assertEquals(INTEGER, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertEquals(25, propertyModel.getValue(INTEGER_TYPE))
-      assertEquals(25, propertyModel.getUnresolvedValue(INTEGER_TYPE))
+      assertEquals(25, propertyModel.getRawValue(INTEGER_TYPE))
       assertEquals("prop2", propertyModel.name)
       assertEquals("ext.prop2", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop3")!!
+      val propertyModel = extModel.findProperty("prop3")
       assertEquals(BOOLEAN, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertEquals(true, propertyModel.getValue(BOOLEAN_TYPE))
-      assertEquals(true, propertyModel.getUnresolvedValue(BOOLEAN_TYPE))
+      assertEquals(true, propertyModel.getRawValue(BOOLEAN_TYPE))
       assertEquals("prop3", propertyModel.name)
       assertEquals("ext.prop3", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop4")!!
+      val propertyModel = extModel.findProperty("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop4", propertyModel.name)
       assertEquals("ext.prop4", propertyModel.fullyQualifiedName)
 
@@ -85,11 +85,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop5")!!
+      val propertyModel = extModel.findProperty("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop5", propertyModel.name)
       assertEquals("ext.prop5", propertyModel.fullyQualifiedName)
       val list = propertyModel.getValue(LIST_TYPE)!!
@@ -118,7 +118,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop6")!!
+      val propertyModel = extModel.findProperty("prop6")
       // TODO: Getting float values not cureently supported
       //assertEquals(25.3, propertyModel.getValue(java.lang.Double::class.java))
       assertEquals(UNKNOWN, propertyModel.valueType) // There is currently no type for this
@@ -143,41 +143,41 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     run {
-      val propertyModel = extModel.findProperty("prop1")!!
+      val propertyModel = extModel.findProperty("prop1")
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("value", propertyModel.getValue(STRING_TYPE))
-      assertEquals("value", propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertEquals("value", propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop1", propertyModel.name)
       assertEquals("ext.prop1", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop2")!!
+      val propertyModel = extModel.findProperty("prop2")
       assertEquals(INTEGER, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(25, propertyModel.getValue(INTEGER_TYPE))
-      assertEquals(25, propertyModel.getUnresolvedValue(INTEGER_TYPE))
+      assertEquals(25, propertyModel.getRawValue(INTEGER_TYPE))
       assertEquals("prop2", propertyModel.name)
       assertEquals("ext.prop2", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop3")!!
+      val propertyModel = extModel.findProperty("prop3")
       assertEquals(BOOLEAN, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(true, propertyModel.getValue(BOOLEAN_TYPE))
-      assertEquals(true, propertyModel.getUnresolvedValue(BOOLEAN_TYPE))
+      assertEquals(true, propertyModel.getRawValue(BOOLEAN_TYPE))
       assertEquals("prop3", propertyModel.name)
       assertEquals("ext.prop3", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop4")!!
+      val propertyModel = extModel.findProperty("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop4", propertyModel.name)
       assertEquals("ext.prop4", propertyModel.fullyQualifiedName)
       val value = propertyModel.getValue(MAP_TYPE)!!["key"]!!
@@ -187,11 +187,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop5")!!
+      val propertyModel = extModel.findProperty("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop5", propertyModel.name)
       assertEquals("ext.prop5", propertyModel.fullyQualifiedName)
       val list = propertyModel.getValue(LIST_TYPE)!!
@@ -220,7 +220,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop6")!!
+      val propertyModel = extModel.findProperty("prop6")
       // TODO: Getting float values not cureently supported
       //assertEquals(25.3, propertyModel?.getValue(java.lang.Double::class.java))
       assertEquals(UNKNOWN, propertyModel.valueType) // There is currently no type for this
@@ -228,6 +228,31 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals("prop6", propertyModel.name)
       assertEquals("ext.prop6", propertyModel.fullyQualifiedName)
     }
+  }
+
+  fun testGetProperties() {
+    val text = """
+               ext {
+                 def var1 = "Value1"
+                 prop1 = var1
+                 def var2 = "Value2"
+                 prop2 = "Cool ${'$'}{var2}"
+                 def var3 = "Value3"
+                 prop3 = "Nice ${'$'}var3"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+    val properties = extModel.properties
+    // Note: this shouldn't include variables.
+    assertSize(3, properties)
+
+    verifyPropertyModel(properties[0], STRING_TYPE, "var1", REFERENCE, REGULAR, 1, "prop1", "ext.prop1")
+    verifyPropertyModel(properties[0].dependencies[0], STRING_TYPE, "Value1", STRING, VARIABLE, 0, "var1", "ext.var1")
+    verifyPropertyModel(properties[1], STRING_TYPE, "Cool Value2", STRING, REGULAR, 1, "prop2", "ext.prop2")
+    verifyPropertyModel(properties[1].dependencies[0], STRING_TYPE, "Value2", STRING, VARIABLE, 0, "var2", "ext.var2")
+    verifyPropertyModel(properties[2], STRING_TYPE, "Nice Value3", STRING, REGULAR, 1, "prop3", "ext.prop3")
+    verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3", "ext.var3")
   }
 
   fun testReferencePropertyDependency() {
@@ -239,9 +264,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -249,7 +274,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, deps)
     val value = deps[0]
     assertEquals("value", value.getValue(STRING_TYPE))
-    assertEquals("value", value.getUnresolvedValue(STRING_TYPE))
+    assertEquals("value", value.getRawValue(STRING_TYPE))
     assertEquals(STRING, value.valueType)
     assertEquals(REGULAR, value.propertyType)
   }
@@ -263,9 +288,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -273,7 +298,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, deps)
     val value = deps[0]
     assertEquals(25, value.getValue(INTEGER_TYPE))
-    assertEquals(25, value.getUnresolvedValue(INTEGER_TYPE))
+    assertEquals(25, value.getRawValue(INTEGER_TYPE))
     assertEquals(INTEGER, value.valueType)
     assertEquals(REGULAR, value.propertyType)
   }
@@ -287,9 +312,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -297,7 +322,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, deps)
     val value = deps[0]
     assertEquals("value", value.getValue(STRING_TYPE))
-    assertEquals("value", value.getUnresolvedValue(STRING_TYPE))
+    assertEquals("value", value.getRawValue(STRING_TYPE))
     assertEquals(STRING, value.valueType)
     assertEquals(VARIABLE, value.propertyType)
   }
@@ -311,11 +336,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
 
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
@@ -340,10 +365,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
@@ -375,8 +400,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
-    assertEquals("\${prop1} world!", propertyModel.getUnresolvedValue(STRING_TYPE))
+    val propertyModel = extModel.findProperty("prop2")
+    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
@@ -399,8 +424,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
-    assertEquals("\${prop1} world!", propertyModel.getUnresolvedValue(STRING_TYPE))
+    val propertyModel = extModel.findProperty("prop2")
+    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
@@ -423,8 +448,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
-    assertEquals("\${prop1} world!", propertyModel.getUnresolvedValue(STRING_TYPE))
+    val propertyModel = extModel.findProperty("prop2")
+    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
@@ -447,8 +472,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
-    assertEquals("\${prop1} world!", propertyModel.getUnresolvedValue(STRING_TYPE))
+    val propertyModel = extModel.findProperty("prop2")
+    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
@@ -472,9 +497,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("value2 and value1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1} and \${project.ext.prop1}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("\${prop1} and \${project.ext.prop1}", propertyModel.getRawValue(STRING_TYPE))
 
     // Check the dependencies are correct
     val deps = propertyModel.dependencies
@@ -509,9 +534,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("true and value1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1} and \${project.ext.prop1}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("\${prop1} and \${project.ext.prop1}", propertyModel.getRawValue(STRING_TYPE))
 
     // Check the dependencies are correct
     val deps = propertyModel.dependencies
@@ -546,13 +571,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
            }""".trimIndent()
     writeToBuildFile(text)
 
-    val propertyModel = gradleBuildModel.ext().findProperty("prop4")!!
+    val propertyModel = gradleBuildModel.ext().findProperty("prop4")
     assertEquals("3", propertyModel.getValue(STRING_TYPE))
-    assertEquals("${'$'}{prop3.key[0][2]}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("${'$'}{prop3.key[0][2]}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REGULAR, propertyModel.propertyType)
     assertEquals(STRING, propertyModel.valueType)
 
-    val dependencies =  propertyModel.dependencies
+    val dependencies = propertyModel.dependencies
     assertSize(1, dependencies)
     val depModel = dependencies[0]
     assertEquals(INTEGER, depModel.valueType)
@@ -571,11 +596,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
                }""".trimIndent()
     writeToBuildFile(text)
 
-    val propertyModel = gradleBuildModel.ext().findProperty("prop3")!!
+    val propertyModel = gradleBuildModel.ext().findProperty("prop3")
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
     assertEquals("valuetrue", propertyModel.getValue(STRING_TYPE))
-    assertEquals("${'$'}{prop2[\"key2\"][\"key1\"]}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("${'$'}{prop2[\"key2\"][\"key1\"]}", propertyModel.getRawValue(STRING_TYPE))
 
     val dependencies = propertyModel.dependencies
     assertSize(1, dependencies)
@@ -583,7 +608,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(STRING, depModel.valueType)
     assertEquals(DERIVED, depModel.propertyType)
     assertEquals("valuetrue", depModel.getValue(STRING_TYPE))
-    assertEquals("value${'$'}{prop}", depModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("value${'$'}{prop}", depModel.getRawValue(STRING_TYPE))
 
     val dependencies2 = depModel.dependencies
     assertSize(1, dependencies2)
@@ -591,7 +616,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(BOOLEAN, depModel2.valueType)
     assertEquals(REGULAR, depModel2.propertyType)
     assertEquals(true, depModel2.getValue(BOOLEAN_TYPE))
-    assertEquals(true, depModel2.getUnresolvedValue(BOOLEAN_TYPE))
+    assertEquals(true, depModel2.getRawValue(BOOLEAN_TYPE))
     assertSize(0, depModel2.dependencies)
   }
 
@@ -604,9 +629,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("value", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1[0]}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("\${prop1[0]}", propertyModel.getRawValue(STRING_TYPE))
 
     val deps = propertyModel.dependencies
     assertSize(1, deps)
@@ -625,9 +650,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")!!
+    val propertyModel = extModel.findProperty("prop2")
     assertEquals("value", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1.key}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("\${prop1.key}", propertyModel.getRawValue(STRING_TYPE))
 
     val deps = propertyModel.dependencies
     val value = deps[0]
@@ -647,8 +672,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop4")!!
-    assertEquals("value1 and value2 and value3", propertyModel?.getValue(STRING_TYPE))
+    val propertyModel = extModel.findProperty("prop4")
+    assertEquals("value1 and value2 and value3", propertyModel.getValue(STRING_TYPE))
 
     val deps = propertyModel.dependencies
     assertSize(3, deps)
@@ -692,9 +717,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
     var expected = "987654321"
-    val propertyModel = extModel.findProperty("prop9")!!
+    val propertyModel = extModel.findProperty("prop9")
     assertEquals(expected, propertyModel.getValue(STRING_TYPE))
-    assertEquals("9\${prop8}", propertyModel.getUnresolvedValue(STRING_TYPE))
+    assertEquals("9\${prop8}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -704,7 +729,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[0]
       expected = expected.drop(1)
       assertEquals(expected, value.getValue(STRING_TYPE))
-      assertEquals("${9 - i}\${prop${8 - i}}", value.getUnresolvedValue(STRING_TYPE))
+      assertEquals("${9 - i}\${prop${8 - i}}", value.getRawValue(STRING_TYPE))
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       deps = deps[0].dependencies
@@ -713,7 +738,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(1, deps)
     val value = deps[0]
     assertEquals("1", value.getValue(STRING_TYPE))
-    assertEquals("1", value.getUnresolvedValue(STRING_TYPE))
+    assertEquals("1", value.getRawValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
   }
@@ -728,7 +753,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop4")!!
+    val propertyModel = extModel.findProperty("prop4")
     assertEquals(MAP, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
     assertEquals("prop4", propertyModel.name)
@@ -750,7 +775,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val valueDeps = value.dependencies
       assertSize(1, valueDeps)
       val depValue = valueDeps[0]
-      assertContainsElements(deps as Collection<GradlePropertyModel>, depValue)
+      checkContainsValue(deps as Collection<GradlePropertyModel>, depValue)
       assertEquals(INTEGER, depValue.valueType)
       assertEquals(REGULAR, depValue.propertyType)
       assertEquals(25, depValue.getValue(INTEGER_TYPE))
@@ -769,7 +794,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val valueDeps = value.dependencies
       assertSize(1, valueDeps)
       val depValue = valueDeps[0]
-      assertContainsElements(deps as Collection<GradlePropertyModel>, depValue)
+      checkContainsValue(deps as Collection<GradlePropertyModel>, depValue)
       assertEquals(BOOLEAN, depValue.valueType)
       assertEquals(REGULAR, depValue.propertyType)
       assertEquals(false, depValue.getValue(BOOLEAN_TYPE))
@@ -786,7 +811,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
 
     val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop1")!!
+    val propertyModel = extModel.findProperty("prop1")
     assertEquals(propertyModel.gradleFile, VfsUtil.findFileByIoFile(myBuildFile, true))
   }
 
@@ -817,20 +842,22 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
 
-    run { // Check the properties are correct.
-      val propertyModel = buildModel.ext().findProperty("prop1")!!
+    run {
+      // Check the properties are correct.
+      val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "hello", STRING, REGULAR, 0)
-      val propertyModel2 = buildModel.ext().findProperty("prop2")!!
+      val propertyModel2 = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel2, STRING_TYPE, "hello world!", STRING, REGULAR, 1)
-      assertEquals("${'$'}{prop1} world!", propertyModel2.getUnresolvedValue(STRING_TYPE))
+      assertEquals("${'$'}{prop1} world!", propertyModel2.getRawValue(STRING_TYPE))
     }
 
-    run { // Ensure changing prop1 changes the value of prop2.
-      val propertyModel = buildModel.ext().findProperty("prop1")!!
+    run {
+      // Ensure changing prop1 changes the value of prop2.
+      val propertyModel = buildModel.ext().findProperty("prop1")
       val newValue = "goodbye"
       propertyModel.setValue(newValue)
       verifyPropertyModel(propertyModel, STRING_TYPE, newValue, STRING, REGULAR, 0)
-      val propertyModel2 = buildModel.ext().findProperty("prop2")!!
+      val propertyModel2 = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel2, STRING_TYPE, "goodbye world!", STRING, REGULAR, 1)
       // Check dependency is correct.
       verifyPropertyModel(propertyModel2.dependencies[0], STRING_TYPE, newValue, STRING, REGULAR, 0)
@@ -838,13 +865,181 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       // Apply, reparse and check again.
       applyChangesAndReparse(buildModel)
 
-      val propertyModel3 = buildModel.ext().findProperty("prop1")!!
+      val propertyModel3 = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel3, STRING_TYPE, newValue, STRING, REGULAR, 0)
-      val propertyModel4 = buildModel.ext().findProperty("prop2")!!
+      val propertyModel4 = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel4, STRING_TYPE, "goodbye world!", STRING, REGULAR, 1)
-      assertEquals("${'$'}{prop1} world!", propertyModel2.getUnresolvedValue(STRING_TYPE))
+      assertEquals("${'$'}{prop1} world!", propertyModel2.getRawValue(STRING_TYPE))
       // Check dependency is correct.
       verifyPropertyModel(propertyModel4.dependencies[0], STRING_TYPE, newValue, STRING, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteProperty() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check everything has been deleted
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(NONE, propertyModel.valueType)
+    }
+  }
+
+  fun testDeleteVariable() {
+    val text = """
+               ext {
+                 def prop1 = "Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check everything has been deleted
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(NONE, propertyModel.valueType)
+    }
+  }
+
+  fun testDeleteAndResetProperty() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "Other Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete and reset the property
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete().setValue("New Value")
+    }
+
+    // Check prop2 hasn't been affected
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
+    }
+
+    // Check prop2 is still correct
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteEmptyProperty() {
+    val text = ""
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete a nonexistent property
+    run {
+      val propertyModel = buildModel.ext().findProperty("coolpropertyname")
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("coolpropertyname")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteVariableDependency() {
+    val text = """
+               ext {
+                 def prop1 = "value"
+                 prop2 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Get the model to delete
+    run {
+      val firstPropertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+
+      val secondPropertyModel = firstPropertyModel.dependencies[0]
+      verifyPropertyModel(secondPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
+      // Delete the model
+      secondPropertyModel.delete()
+
+      // After deleting this property, the value of the first property shouldn't change since it is just a reference to nothing.
+      // However it will no longer have a dependency.
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstPropertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(firstPropertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    }
+  }
+
+  fun testCheckSettingInvalidModel() {
+    val text = """
+               ext {
+                 prop1 = "Value"
+                 prop2 = "Other Value"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Delete property and attempt to set it again using the invalid model.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+      try {
+        propertyModel.setValue("Invalid Value")
+        fail()
+      } catch (e : IllegalStateException) {
+        assertTrue(e.message!!.startsWith("Attempted to change an invalid GradlePropertyModel"))
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    // Check prop2
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
     }
   }
 
@@ -854,7 +1049,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")!!
+      val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "value", STRING, type, 0)
       val oldGradleFile = propertyModel.gradleFile
 
@@ -862,42 +1057,42 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.setValue(stringValue)
       verifyPropertyModel(propertyModel, STRING_TYPE, stringValue, STRING, type, 0)
       applyChangesAndReparse(buildModel)
-      val newStringModel = buildModel.ext().findProperty("prop1")!!
+      val newStringModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(newStringModel, STRING_TYPE, stringValue, STRING, type, 0)
       assertEquals(oldGradleFile, newStringModel.gradleFile)
     }
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")!!
+      val propertyModel = buildModel.ext().findProperty("prop1")
       val intValue = 26
       propertyModel.setValue(intValue)
       verifyPropertyModel(propertyModel, INTEGER_TYPE, intValue, INTEGER, type, 0)
       applyChangesAndReparse(buildModel)
-      val newIntModel = buildModel.ext().findProperty("prop1")!!
+      val newIntModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(newIntModel, INTEGER_TYPE, intValue, INTEGER, type, 0)
     }
 
     run {
-      val propertyModel =  buildModel.ext().findProperty("prop1")!!
+      val propertyModel = buildModel.ext().findProperty("prop1")
       val boolValue = true
       propertyModel.setValue(boolValue)
       verifyPropertyModel(propertyModel, BOOLEAN_TYPE, boolValue, BOOLEAN, type, 0)
       applyChangesAndReparse(buildModel)
-      val newBooleanModel = buildModel.ext().findProperty("prop1")!!
+      val newBooleanModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(newBooleanModel, BOOLEAN_TYPE, boolValue, BOOLEAN, type, 0)
     }
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")!!
+      val propertyModel = buildModel.ext().findProperty("prop1")
       val refValue = "\"${'$'}{prop2}\""
       propertyModel.setValue(refValue)
       // Resolved value and dependencies are only updated after the model has been applied and re-parsed.
       verifyPropertyModel(propertyModel, STRING_TYPE, "ref", STRING, type, 1)
-      assertEquals("${'$'}{prop2}", propertyModel.getUnresolvedValue(STRING_TYPE))
+      assertEquals("${'$'}{prop2}", propertyModel.getRawValue(STRING_TYPE))
       applyChangesAndReparse(buildModel)
-      val newRefModel = buildModel.ext().findProperty("prop1")!!
+      val newRefModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(newRefModel, STRING_TYPE, "ref", STRING, type, 1)
-      assertEquals("${'$'}{prop2}", newRefModel.getUnresolvedValue(STRING_TYPE))
+      assertEquals("${'$'}{prop2}", newRefModel.getRawValue(STRING_TYPE))
     }
   }
 
@@ -907,5 +1102,17 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(valueType, model.valueType)
     assertEquals(propertyType, model.propertyType)
     assertEquals(dependencies, model.dependencies.size)
+  }
+
+  private fun <T> verifyPropertyModel(model: GradlePropertyModel, type: TypeReference<T>, value: T,
+                                      valueType: ValueType, propertyType: PropertyType, dependencies: Int, name : String, fullName : String) {
+    verifyPropertyModel(model, type, value, valueType, propertyType, dependencies)
+    assertEquals(name, model.name)
+    assertEquals(fullName, model.fullyQualifiedName)
+  }
+
+  private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {
+    val result = models.any { areModelsEqual(it, model) }
+    assertTrue("checkContainsValue", result)
   }
 }

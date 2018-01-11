@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerData;
+import com.android.tools.profiler.proto.CpuProfiler.CpuUsageData;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,13 +37,11 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
 
   private boolean myOtherProcesses;
-  private final int myProcessId;
   private final Common.Session mySession;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, Common.Session session) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, Common.Session session) {
     myClient = client;
     myOtherProcesses = otherProcesses;
-    myProcessId = id;
     mySession = session;
   }
 
@@ -54,21 +52,20 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuDataRequest.Builder dataRequestBuilder = CpuDataRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
-    CpuProfilerData lastCpuData = null;
-    for (CpuProfilerData data : response.getDataList()) {
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
+    CpuUsageData lastCpuData = null;
+    for (CpuUsageData data : response.getDataList()) {
+      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
 
       // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.
       if (lastCpuData == null) {
         lastCpuData = data;
         continue;
       }
-      CpuUsageDataSeries.CpuUsageData usageData = getCpuUsageData(data, lastCpuData);
+      CpuUsageDataSeries.UsageData usageData = getCpuUsageData(data, lastCpuData);
       if (myOtherProcesses) {
         seriesData.add(new SeriesData<>(dataTimestamp, (long)usageData.getOtherProcessesUsage()));
       }
@@ -80,12 +77,11 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     return seriesData;
   }
 
-  private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfilerData data, CpuProfilerData lastData) {
-    long elapsed = (data.getCpuUsage().getElapsedTimeInMillisec() - lastData.getCpuUsage().getElapsedTimeInMillisec());
+  private static UsageData getCpuUsageData(CpuUsageData data, CpuUsageData lastData) {
+    long elapsed = (data.getElapsedTimeInMillisec() - lastData.getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
-    double app = 100.0 * (data.getCpuUsage().getAppCpuTimeInMillisec() - lastData.getCpuUsage().getAppCpuTimeInMillisec()) / elapsed;
-    double system =
-      100.0 * (data.getCpuUsage().getSystemCpuTimeInMillisec() - lastData.getCpuUsage().getSystemCpuTimeInMillisec()) / elapsed;
+    double app = 100.0 * (data.getAppCpuTimeInMillisec() - lastData.getAppCpuTimeInMillisec()) / elapsed;
+    double system = 100.0 * (data.getSystemCpuTimeInMillisec() - lastData.getSystemCpuTimeInMillisec()) / elapsed;
 
     // System and app usages are read from them device in slightly different times. That can cause app usage to be slightly higher than
     // system usage and we need to adjust our values to cover these scenarios. Also, we use iowait (time waiting for I/O to complete) when
@@ -95,10 +91,10 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     system = Math.max(0, Math.min(system, 100.0));
     app = Math.max(0, Math.min(app, system));
 
-    return new CpuUsageDataSeries.CpuUsageData(app, system);
+    return new UsageData(app, system);
   }
 
-  private static final class CpuUsageData {
+  private static final class UsageData {
     /**
      * App usage (in %) at a given point.
      */
@@ -109,7 +105,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
      */
     private double mySystemUsage;
 
-    CpuUsageData(double appUsage, double systemUsage) {
+    UsageData(double appUsage, double systemUsage) {
       myAppUsage = appUsage;
       mySystemUsage = systemUsage;
     }

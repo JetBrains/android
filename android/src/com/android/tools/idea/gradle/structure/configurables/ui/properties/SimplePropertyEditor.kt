@@ -29,10 +29,10 @@ import javax.swing.JTextField
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<ModelT, PropertyT>(
+class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimpleProperty<ModelT, PropertyT>>(
     val model: ModelT,
-    val property: ModelSimpleProperty<ModelT, PropertyT>
-) : ComboBox<String>(), ModelPropertyEditor<ModelT, PropertyT> {
+    val property: ModelPropertyT
+) : ComboBox<String>(), ModelPropertyEditor<ModelT> {
 
   private val textToValue: Map<String, PropertyT>
   private val valueToText: Map<PropertyT, String>
@@ -61,11 +61,11 @@ class SimplePropertyEditor<ModelT, PropertyT>(
     selectedItem = if (value == null) "" else (valueToText[value] ?: value.toString())
   }
 
-  private fun setColorAndTooltip(toolTipText: String, background: Color) {
+  private fun setColorAndTooltip(toolTipText: String? = null, background: Color? = null) {
     val jTextField = editor.editorComponent as? JTextField
     if (jTextField != null) {
-      jTextField.toolTipText = toolTipText
-      jTextField.background = background
+      if (toolTipText != null) jTextField.toolTipText = toolTipText
+      if (background != null) jTextField.background = background
     }
   }
 
@@ -107,6 +107,12 @@ class SimplePropertyEditor<ModelT, PropertyT>(
               toolTipText = "[Invalid?]",
               background = Color.RED
           )
+        }
+        value.parsedValue is ParsedValue.Set.Parsed -> {
+          setColorAndTooltip(
+              toolTipText = value.parsedValue.dslText.orEmpty()
+          )
+
         }
       }
     }

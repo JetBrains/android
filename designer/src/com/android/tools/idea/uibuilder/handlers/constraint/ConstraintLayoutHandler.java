@@ -58,6 +58,7 @@ import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -65,9 +66,12 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
+import static icons.StudioIcons.LayoutEditor.Toolbar.*;
 
 /**
  * Handles interactions for the ConstraintLayout
@@ -164,27 +168,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     myActions.clear();
 
     // noinspection unchecked
-    actions.add(new NestedViewActionMenu("Show", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("View Options", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
         new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected views ", false)
       )
     )));
-    actions.add((new ToggleAutoConnectAction()));
-    actions.add((new ViewActionSeparator()));
+    actions.add(new ToggleAutoConnectAction());
+    actions.add(new MarginSelector());
+    actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
-    actions.add((new InferAction()));
-    actions.add((new ViewActionSeparator()));
-    actions.add((new MarginSelector()));
+    actions.add(new InferAction());
+    actions.add(new ViewActionSeparator());
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     // noinspection unchecked
-    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.newArrayList(
-
+    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
-                        StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
+                        PACK_HORIZONTAL,
                         "Pack Horizontally"),
         new AlignAction(Scout.Arrange.VerticalPack,
                         StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
@@ -194,10 +197,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         "Expand Horizontally"),
         new AlignAction(Scout.Arrange.ExpandVertically,
                         StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-                        "Expand Vertically")),
-      Lists.newArrayList(new ViewActionSeparator()),
-
-      Lists.newArrayList(
+                        "Expand Vertically"),
+        new ViewActionSeparator(),
         new AlignAction(Scout.Arrange.DistributeHorizontally,
                         StudioIcons.LayoutEditor.Toolbar.DISTRIBUTE_HORIZONTAL,
                         StudioIcons.LayoutEditor.Toolbar.DISTRIBUTE_HORIZONTAL_CONSTRAINT,
@@ -208,7 +209,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         "Distribute Vertically")
       )
     )) {
-
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                      @NotNull ViewEditor editor,
@@ -222,11 +222,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     });
 
     // noinspection unchecked
-    actions.add(new NestedViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT, Lists.newArrayList(
-      ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
-      ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
-      Lists.newArrayList(new ViewActionSeparator()),
-      ConstraintViewActions.CENTER_ACTIONS)) {
+    actions.add(new NestedViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT, Lists.<List<ViewAction>>newArrayList(
+      Stream.of(ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
+                ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
+                ImmutableList.of(new ViewActionSeparator()),
+                ConstraintViewActions.CENTER_ACTIONS)
+        .flatMap(list -> list.stream())
+        .collect(Collectors.toList()))) {
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                      @NotNull ViewEditor editor,
@@ -241,7 +243,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     // noinspection unchecked
     actions
-      .add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
+      .add(new NestedViewActionMenu("Guidelines", VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
         ConstraintViewActions.HELPER_ACTIONS)));
 
     ViewActionSeparator.setupFollowingActions(actions);
@@ -261,13 +263,48 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return false;
   }
 
+  /**
+   * Class to support sub-menus that vanish if all items are disabled
+   */
+  static class DisappearingActionMenu extends ViewActionMenu {
+
+    public DisappearingActionMenu(@NotNull String menuName,
+                                  @Nullable Icon icon,
+                                  @NotNull List<ViewAction> actions) {
+      super(menuName, icon, actions);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setLabel(myLabel);
+      boolean enable = false;
+      for (ViewAction action : myActions) {
+        if (action instanceof AlignAction) {
+          AlignAction aa = (AlignAction)action;
+          if (aa.isEnabled(selectedChildren)) {
+            enable = true;
+          }
+        }
+        else {
+          enable = true;
+        }
+      }
+      presentation.setVisible(enable);
+    }
+  }
+
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ViewActionMenu("Organize", StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
-    actions.add(new ViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
-    actions.add(new ViewActionMenu("Chains", StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
-    actions.add(new ViewActionMenu("Center", StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
-    actions.add(new ViewActionMenu("Helpers", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
+    actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
+    actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
+    actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
+    actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
+    actions.add(new DisappearingActionMenu("Helpers", VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
   }
 
   interface Enableable {
@@ -922,7 +959,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
      * @param selected
      * @return
      */
-    private boolean isEnabled(List<NlComponent> selected) {
+    boolean isEnabled(List<NlComponent> selected) {
       int count = selected.size();
       switch (myActionType) {
         case AlignVerticallyTop:
@@ -1200,7 +1237,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
+                      LEFT_ALIGNED,
                       StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT,
                       "Left Edges"),
       new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
@@ -1238,8 +1275,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.CreateHorizontalChain,
-                      StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN,
-                      StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN,
+                      CREATE_HORIZ_CHAIN,
+                      CREATE_HORIZ_CHAIN,
                       "Create Horizontal Chain"),
       new AlignAction(Scout.Arrange.CreateVerticalChain,
                       StudioIcons.LayoutEditor.Toolbar.CREATE_VERT_CHAIN,
@@ -1282,7 +1319,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> CENTER_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.CenterHorizontally,
-                      StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL,
+                      CENTER_HORIZONTAL,
                       StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_CONSTRAINT,
                       "Horizontally"),
       new AlignAction(Scout.Arrange.CenterVertically,
@@ -1300,7 +1337,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> ORGANIZE_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.HorizontalPack,
-                      StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
+                      PACK_HORIZONTAL,
                       "Pack Horizontally"),
       new AlignAction(Scout.Arrange.VerticalPack,
                       StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
@@ -1314,7 +1351,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
       new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
-                           StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE,
+                           VERTICAL_GUIDE,
                            "Add Vertical Guideline"),
       new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
                            StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE,

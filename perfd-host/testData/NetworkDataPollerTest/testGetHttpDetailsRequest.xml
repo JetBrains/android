@@ -2,11 +2,19 @@
 <!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStartRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkStartRequest</clazz>
         <functionCalled>profiler.proto.NetworkService/StartMonitoringApp</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStartResponse">
@@ -16,43 +24,42 @@
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest</clazz>
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse">
         <Message>data {
-  basic_info {
-    process_id: -1
-    end_timestamp: 86400000000000
-  }
+  end_timestamp: 86400000000000
   connectivity_data {
     radio_state: HIGH
     default_network_type: WIFI
   }
 }
 data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86400000000000
-  }
+  end_timestamp: 86400000000000
   speed_data {
     sent: 1024
     received: 2048
   }
 }
 data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86401000000000
-  }
+  end_timestamp: 86401000000000
   connection_data {
     connection_number: 4
   }
@@ -61,30 +68,21 @@ data {
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse</clazz>
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
         <message>data {
-  basic_info {
-    process_id: -1
-    end_timestamp: 86400000000000
-  }
+  end_timestamp: 86400000000000
   connectivity_data {
     radio_state: HIGH
     default_network_type: WIFI
   }
 }
 data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86400000000000
-  }
+  end_timestamp: 86400000000000
   speed_data {
     sent: 1024
     received: 2048
   }
 }
 data {
-  basic_info {
-    process_id: 1234
-    end_timestamp: 86401000000000
-  }
+  end_timestamp: 86401000000000
   connection_data {
     connection_number: 4
   }
@@ -92,13 +90,21 @@ data {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetHttpRange" Class="class com.android.tools.profiler.proto.NetworkProfiler$HttpRangeRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$HttpRangeRequest</clazz>
         <functionCalled>profiler.proto.NetworkService/GetHttpRange</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 start_timestamp: -9223372036854775808
 end_timestamp: 9223372036854775807
 </message>
@@ -198,11 +204,19 @@ type: ACCESSING_THREADS
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStopRequest">
-        <Message>process_id: 1234
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkStopRequest</clazz>
         <functionCalled>profiler.proto.NetworkService/StopMonitoringApp</functionCalled>
-        <message>process_id: 1234
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStopResponse">

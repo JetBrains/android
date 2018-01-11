@@ -141,7 +141,11 @@ public class BaseArtifactStub implements BaseArtifact {
    */
   public void addGeneratedSourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
-    myGeneratedSourceFolders.add(directory);
+    addGeneratedSourceFolder(directory);
+  }
+
+  public void addGeneratedSourceFolder(@NotNull File folderPath) {
+    myGeneratedSourceFolders.add(folderPath);
   }
 
   public void addAdditionalClassesFolder(@NotNull File folder) {

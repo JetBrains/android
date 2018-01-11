@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
@@ -62,9 +62,9 @@ public class ModuleSetupImplTest extends IdeaTestCase {
   @Mock private ExtraGradleSyncModelsManager myExtraModelsManager;
   @Mock private IdeDependenciesFactory myDependenciesFactory;
   @Mock private ProjectDataNodeSetup myProjectDataNodeSetup;
-  @Mock private ModulesByGradlePath.Factory myModulesByGradlePathFactory;
+  @Mock private ModuleFinder.Factory myModulesFinderFactory;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
-  @Mock private ModulesByGradlePath myModulesByGradlePath;
+  @Mock private ModuleFinder myModuleFinder;
 
   private ModuleSetupImpl myModuleSetup;
 
@@ -73,13 +73,13 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    when(myModulesByGradlePathFactory.create()).thenReturn(myModulesByGradlePath);
+    when(myModulesFinderFactory.create(myProject)).thenReturn(myModuleFinder);
 
     myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myExtraModelsManager, myModuleFactory, myGradleModuleSetup,
                                         myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,
                                         myVariantSelector, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
                                         myNativeAndroidProjectFactory, myJavaModuleModelFactory, myDependenciesFactory,
-                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesByGradlePathFactory);
+                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesFinderFactory);
   }
 
   public void testSetUpModulesFromCache() throws Exception {
@@ -119,15 +119,15 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     EmptyProgressIndicator indicator = new EmptyProgressIndicator();
 
     ModuleSetupContext appModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(appModule, myModelsProvider, myModulesByGradlePath, cachedAppModels))
+    when(myModuleSetupContextFactory.create(appModule, myModelsProvider, myModuleFinder, cachedAppModels))
       .thenReturn(appModuleContext);
 
     ModuleSetupContext cppModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(cppModule, myModelsProvider, myModulesByGradlePath, cachedCppModels))
+    when(myModuleSetupContextFactory.create(cppModule, myModelsProvider, myModuleFinder, cachedCppModels))
       .thenReturn(cppModuleContext);
 
     ModuleSetupContext javaModuleContext = mock(ModuleSetupContext.class);
-    when(myModuleSetupContextFactory.create(javaModule, myModelsProvider, myModulesByGradlePath, cachedJavaModels))
+    when(myModuleSetupContextFactory.create(javaModule, myModelsProvider, myModuleFinder, cachedJavaModels))
       .thenReturn(javaModuleContext);
 
     // Invoke the method to test.

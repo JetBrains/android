@@ -157,9 +157,9 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .waitForRenderToFinish()
+      .waitForRenderToFinish(Wait.seconds(30))
       .dragComponentToSurface("Text", "TextView")
-      .waitForRenderToFinish();
+      .waitForRenderToFinish(Wait.seconds(30));
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()

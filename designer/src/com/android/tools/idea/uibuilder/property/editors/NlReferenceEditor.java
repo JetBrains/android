@@ -126,11 +126,15 @@ public class NlReferenceEditor extends BaseComponentEditor {
     });
     myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
 
+    Font font = UIUtil.getLabelFont();
+    FontMetrics metrics = myPanel.getFontMetrics(font);
+    int sliderHeight = metrics.getHeight() + 2 * verticalSpacing;
     mySlider = new SliderWithTimeDelay();
     myPanel.add(mySlider, BorderLayout.LINE_START);
     mySlider.addChangeListener(event -> sliderChange());
     Dimension size = mySlider.getMinimumSize();
-    size.setSize(size.width * 2, size.height);
+    size.setSize(size.width * 2, sliderHeight);
+    mySlider.setMinimumSize(size);
     mySlider.setPreferredSize(size);
     mySlider.setVisible(includeSliderSupport);
 

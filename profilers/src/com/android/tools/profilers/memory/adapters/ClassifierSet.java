@@ -268,7 +268,7 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public int getInstancesCount() {
     if (myClassifier == null) {
-      Set total = new HashSet(mySnapshotInstances);
+      Set<InstanceObject> total = new HashSet<>(mySnapshotInstances);
       total.addAll(myDeltaInstances);
       return total.size();
     }

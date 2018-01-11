@@ -60,8 +60,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   @NotNull
   public NlConfigurationToolbarFixture<NlPreviewFixture> getConfigToolbar() {
-    ActionToolbar toolbar = myRobot.finder().findByName("NlConfigToolbar", ActionToolbarImpl.class, false);
-    Wait.seconds(1).expecting("Configuration toolbar to be showing").until(() -> toolbar.getComponent().isShowing());
+    ActionToolbar toolbar = GuiTests.waitUntilShowing(myRobot, Matchers.byName(ActionToolbarImpl.class, "NlConfigToolbar"));
     return new NlConfigurationToolbarFixture<>(this, myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(NlDesignSurface.class)),
                                                toolbar);
   }
@@ -149,10 +148,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
 
     SceneView view = surface.getCurrentSceneView();
-    assert view != null;
 
     Point centerLeftPoint = translate(surface, p.x, p.y);
-    assert centerLeftPoint != null;
 
     if (myAwtRobot == null) {
       try {

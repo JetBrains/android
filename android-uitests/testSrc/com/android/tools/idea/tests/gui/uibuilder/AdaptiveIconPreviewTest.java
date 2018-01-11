@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import org.junit.Rule;
@@ -28,6 +30,7 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/71749347
 @RunWith(GuiTestRunner.class)
 public class AdaptiveIconPreviewTest {
 

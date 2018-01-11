@@ -167,22 +167,22 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
     UIUtil.dispatchAllInvocationEvents();
-    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
+    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
-    textAppearance.setValue("@android:style/TextAppearance.Medium");
+    textAppearance.setValue("@android:style/TextAppearance.Material.Medium");
     UIUtil.dispatchAllInvocationEvents();
-    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
+    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
     textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", null));
     UIUtil.dispatchAllInvocationEvents();
-    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
+    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue(null);
     textAppearance
-      .setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Medium"));
+      .setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Material.Medium"));
     UIUtil.dispatchAllInvocationEvents();
-    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
+    assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     NlPropertyItem size = createFrom(myTextView, ATTR_TEXT_SIZE);
     assertThat(size.getResolvedValue()).isEqualTo(null);

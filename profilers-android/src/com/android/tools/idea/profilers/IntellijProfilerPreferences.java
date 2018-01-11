@@ -18,14 +18,14 @@ package com.android.tools.idea.profilers;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Simple wrapper for {@link PropertiesComponent#getInstance()}.
- * Note that as described in IntelliJ's docoumentation, the PropertiesComponent exists at global scope and care should be taken in
- * choosing the name for the key-value pair for each settings. (e.g. prepend with profiler's namespace)
+ * Simple wrapper for {@link PropertiesComponent#getInstance()} that caches key-value pairs across studio instances.
+ * For per-studio session caching, use {@link TemporaryProfilerPreferences} instead.
  */
 public class IntellijProfilerPreferences implements ProfilerPreferences {
+  // prefix to be used for each key to avoid clashing in the global xml space.
+  private static final String PROFILER_PREFIX = "studio.profiler";
 
   @NotNull private final PropertiesComponent myPropertiesComponent;
 
@@ -36,41 +36,41 @@ public class IntellijProfilerPreferences implements ProfilerPreferences {
   @NotNull
   @Override
   public String getValue(@NotNull String name, @NotNull String defaultValue) {
-    return myPropertiesComponent.getValue(name, defaultValue);
+    return myPropertiesComponent.getValue(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public float getFloat(@NotNull String name, float defaultValue) {
-    return myPropertiesComponent.getFloat(name, defaultValue);
+    return myPropertiesComponent.getFloat(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public int getInt(@NotNull String name, int defaultValue) {
-    return myPropertiesComponent.getInt(name, defaultValue);
+    return myPropertiesComponent.getInt(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public boolean getBoolean(@NotNull String name, boolean defaultValue) {
-    return myPropertiesComponent.getBoolean(name, defaultValue);
+    return myPropertiesComponent.getBoolean(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public void setValue(@NotNull String name, @NotNull String value) {
-    myPropertiesComponent.setValue(name, value);
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
   }
 
   @Override
   public void setFloat(@NotNull String name, float value) {
-    myPropertiesComponent.setValue(name, value, 0f);
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0f);
   }
 
   @Override
   public void setInt(@NotNull String name, int value) {
-    myPropertiesComponent.setValue(name, value, 0);
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0);
   }
 
   @Override
   public void setBoolean(@NotNull String name, boolean value) {
-    myPropertiesComponent.setValue(name, value);
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
   }
 }

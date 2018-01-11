@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
@@ -25,23 +24,23 @@ import org.mockito.Mockito.mock
 
 class AllDestinationsEditorTest : NavTestCase() {
   fun testDestinations() {
-    val model = model("nav.xml",
-        rootComponent("root")
-            .unboundedChildren(
-                fragmentComponent("f1")
-                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment1")
-                    .unboundedChildren(actionComponent("a1").withDestinationAttribute("subnav1")),
-                activityComponent("activity1"),
-                navigationComponent("subnav1")
-                    .unboundedChildren(
-                        fragmentComponent("f2")
-                            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment2"),
-                        fragmentComponent("f3")),
-                navigationComponent("subnav2")
-                    .unboundedChildren(
-                        fragmentComponent("f4")
-                            .unboundedChildren(actionComponent("a2").withDestinationAttribute("fragment1")))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1", label = "fragment1") {
+          action("a1", destination = "subnav1")
+        }
+        activity("activity1")
+        navigation("subnav1") {
+          fragment("f2", label = "fragment2")
+          fragment("f3")
+        }
+        navigation("subnav2") {
+          fragment("f4") {
+            action("a2", destination = "fragment1")
+          }
+        }
+      }
+    }
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("a1")))
 

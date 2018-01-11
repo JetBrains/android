@@ -75,7 +75,8 @@ public class HtmlLinkManagerTest extends TestCase {
       }
 
       @Override
-      public void addDependencyWithoutSync(@NotNull GoogleMavenArtifactId artifactId, @Nullable GoogleMavenArtifactVersion version)
+      public void addDependencyWithoutSync(@NotNull GoogleMavenArtifactId artifactId, @Nullable GoogleMavenArtifactVersion version,
+                                           boolean includePreview)
         throws DependencyManagementException {
         assertNull(version);
         addedArtifacts.add(artifactId);

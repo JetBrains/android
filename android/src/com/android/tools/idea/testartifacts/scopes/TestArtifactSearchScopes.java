@@ -20,7 +20,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -293,8 +293,8 @@ public final class TestArtifactSearchScopes implements Disposable {
   @NotNull
   private DependencySet extractDependencies(@NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
-      ModulesByGradlePath modulesByGradlePath = ProjectStructure.getInstance(myModule.getProject()).getModulesByGradlePath();
-      return DependenciesExtractor.getInstance().extractFrom(artifact, scope, modulesByGradlePath);
+      ModuleFinder moduleFinder = ProjectStructure.getInstance(myModule.getProject()).getModuleFinder();
+      return DependenciesExtractor.getInstance().extractFrom(artifact, scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }

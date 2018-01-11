@@ -51,6 +51,7 @@ public class StudioIcons {
     public static final Icon CHECKED = load("/studio/icons/common/checked.png"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.png"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.png"); // 16x16
+    public static final Icon EDIT = load("/studio/icons/common/edit.png"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.png"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.png"); // 16x16
     public static final Icon ERROR = load("/studio/icons/common/error.png"); // 16x16
@@ -154,6 +155,8 @@ public class StudioIcons {
       public static final Icon GRID_VIEW_LARGE = load("/studio/icons/layout-editor/palette/grid-view_large.png"); // 24x24
       public static final Icon GROUP = load("/studio/icons/layout-editor/palette/group.png"); // 16x16
       public static final Icon GROUP_LARGE = load("/studio/icons/layout-editor/palette/group_large.png"); // 24x24
+      public static final Icon HORIZONTAL_DIVIDER = load("/studio/icons/layout-editor/palette/horizontal-divider.png"); // 16x16
+      public static final Icon HORIZONTAL_DIVIDER_LARGE = load("/studio/icons/layout-editor/palette/horizontal-divider_large.png"); // 24x24
       public static final Icon HORIZONTAL_GUIDE = load("/studio/icons/layout-editor/palette/horizontal-guide.png"); // 16x16
       public static final Icon HORIZONTAL_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/horizontal-scroll-view.png"); // 16x16
       public static final Icon HORIZONTAL_SCROLL_VIEW_LARGE = load("/studio/icons/layout-editor/palette/horizontal-scroll-view_large.png"); // 24x24
@@ -275,6 +278,8 @@ public class StudioIcons {
       public static final Icon TOOLBAR_LARGE = load("/studio/icons/layout-editor/palette/toolbar_large.png"); // 24x24
       public static final Icon UNKNOWN_VIEW = load("/studio/icons/layout-editor/palette/unknown-view.png"); // 16x16
       public static final Icon UNKNOWN_VIEW_LARGE = load("/studio/icons/layout-editor/palette/unknown-view_large.png"); // 24x24
+      public static final Icon VERTICAL_DIVIDER = load("/studio/icons/layout-editor/palette/vertical-divider.png"); // 16x16
+      public static final Icon VERTICAL_DIVIDER_LARGE = load("/studio/icons/layout-editor/palette/vertical-divider_large.png"); // 24x24
       public static final Icon VERTICAL_GUIDE = load("/studio/icons/layout-editor/palette/vertical-guide.png"); // 16x16
       public static final Icon VIDEO_VIEW = load("/studio/icons/layout-editor/palette/video-view.png"); // 16x16
       public static final Icon VIDEO_VIEW_LARGE = load("/studio/icons/layout-editor/palette/video-view_large.png"); // 24x24
@@ -479,6 +484,7 @@ public class StudioIcons {
     public static class Events {
       public static final Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.png"); // 22x22
       public static final Icon GARBAGE_EVENT = load("/studio/icons/profiler/events/garbage-event.png"); // 22x22
+      public static final Icon GPS = load("/studio/icons/profiler/events/gps.png"); // 22x22
       public static final Icon KEYBOARD_EVENT = load("/studio/icons/profiler/events/keyboard-event.png"); // 22x22
       public static final Icon ROTATE_EVENT = load("/studio/icons/profiler/events/rotate-event.png"); // 22x22
       public static final Icon VOLUME_DOWN = load("/studio/icons/profiler/events/volume-down.png"); // 22x22

@@ -41,7 +41,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 6.5f;
 
   public void testGeneratedImage() throws Exception {
-    File goldenFile = new File(getTestDataPath() + "/naveditor/thumbnails/basic_activity_1.png");
+    File goldenFile = new File(Companion.getTestDataPath() + "/naveditor/thumbnails/basic_activity_1.png");
     BufferedImage goldenImage = ImageIO.read(goldenFile);
 
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);

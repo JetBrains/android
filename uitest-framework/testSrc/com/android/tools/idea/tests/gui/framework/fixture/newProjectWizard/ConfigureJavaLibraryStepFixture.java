@@ -16,12 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureJavaLibraryStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureJavaLibraryStepFixture, W> {
+public class ConfigureJavaLibraryStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureJavaLibraryStepFixture, W> {
 
   public ConfigureJavaLibraryStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureJavaLibraryStepFixture.class, wizard, target);

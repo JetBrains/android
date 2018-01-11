@@ -317,8 +317,12 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     AndroidFacet facet = AndroidFacet.getInstance(appModule);
     assertNotNull(facet);
 
-    ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
-    assertNull(autogenerating);
+    try {
+      ModuleSourceAutogenerating.getInstance(facet);
+      fail("Shouldn't be able to construct a source generator for Gradle projects");
+    } catch (IllegalArgumentException e) {
+      assertEquals("app is built by an external build system and should not require the IDE to generate sources", e.getMessage());
+    }
   }
 
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.

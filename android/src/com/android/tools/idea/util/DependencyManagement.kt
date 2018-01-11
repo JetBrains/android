@@ -55,7 +55,8 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
 @JvmOverloads
-fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true)
+fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true,
+                           includePreview: Boolean = false)
     : List<GoogleMavenArtifactId> {
 
   if (artifactIds.isEmpty()) {
@@ -83,7 +84,7 @@ fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserB
         moduleSystem.addDependencyWithoutSync(id, platformSupportLibVersion)
       }
       else {
-        moduleSystem.addDependencyWithoutSync(id, null)
+        moduleSystem.addDependencyWithoutSync(id, null, includePreview)
       }
     }
     catch (e: DependencyManagementException) {

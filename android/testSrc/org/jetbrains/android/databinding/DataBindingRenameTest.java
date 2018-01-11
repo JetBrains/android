@@ -74,7 +74,7 @@ public class DataBindingRenameTest extends AndroidGradleTestCase {
 
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
+    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
 
     // Make sure that all file system events up to this point have been processed.
     VirtualFileManager.getInstance().syncRefresh();

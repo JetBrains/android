@@ -236,7 +236,7 @@ table_constraint ::=
 
 foreign_key_clause ::=
   REFERENCES foreign_table ( '(' column_name ( ',' column_name )* ')' )?
-  ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
+  ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )*
   ( ( NOT )? DEFERRABLE ( INITIALLY DEFERRED | INITIALLY IMMEDIATE )? )?
 
 foreign_table ::= name

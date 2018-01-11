@@ -19,13 +19,11 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.function.Predicate;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -61,32 +59,37 @@ public final class AdtUiUtils {
   /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
-   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param text              the original text.
+   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param availableSpace    the available space to render the text.
-   * @param characterToShrink the number of characters to trim by on each truncate iteration.
+   * @param charactersToShrink the number of characters to trim by on each truncate iteration.
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
-  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int characterToShrink) {
-    int textWidth = metrics.stringWidth(text);
-    int ellipsysWidth = metrics.stringWidth(ELLIPSIS);
-    if (textWidth <= availableSpace) {
+  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace, int charactersToShrink) {
+    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace, charactersToShrink);
+  }
+
+  /**
+   * Similar to {@link #getFilterPattern(String, boolean, boolean)},
+   * but takes a predicate method to determine whether the text should fit or not.
+   */
+  public static String shrinkToFit(String text, Predicate<String> textFitPredicate, int charactersToShrink) {
+    if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
     }
-    else if (availableSpace < ellipsysWidth) {
+    else if (!textFitPredicate.test(ELLIPSIS)) {
       // No space to fit "..." - early return.
       return "";
     }
 
     // This loop test the length of the word we are trying to draw, if it is to big to fit the available space,
     // we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
-    while (textWidth > availableSpace) {
-      text = text.substring(0, Math.max(0, text.length() - characterToShrink));
-      textWidth = metrics.stringWidth(text) + ellipsysWidth;
+    StringBuilder truncatedText = new StringBuilder(text);
+    while (!textFitPredicate.test(truncatedText.toString() + ELLIPSIS)) {
+      truncatedText.setLength(Math.max(0, truncatedText.length() - charactersToShrink));
     }
-
-    return text + ELLIPSIS;
+    return truncatedText.toString() + ELLIPSIS;
   }
 
   /**
@@ -111,35 +114,5 @@ public final class AdtUiUtils {
       Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
       Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
       Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
-  }
-
-  /**
-   * Returns the resulting Pattern that matches those containing the filter string.
-   *
-   * @param filter      the filter string
-   * @param isMatchCase if the Pattern is case sensitive
-   * @param isRegex     if the Pattern is a regex match
-   * @return the Pattern correspondent to the parameters
-   */
-  @Nullable
-  public static Pattern getFilterPattern(@Nullable String filter, boolean isMatchCase, boolean isRegex) {
-    Pattern pattern = null;
-
-    if (filter != null && !filter.isEmpty()) {
-      int flags = isMatchCase ? 0 : Pattern.CASE_INSENSITIVE;
-      if (isRegex) {
-        try {
-          pattern = Pattern.compile("^.*" + filter + ".*$", flags);
-        }
-        catch (PatternSyntaxException e) {
-          String error = e.getMessage();
-          assert (error != null);
-        }
-      }
-      if (pattern == null) {
-        pattern = Pattern.compile("^.*" + Pattern.quote(filter) + ".*$", flags);
-      }
-    }
-    return pattern;
   }
 }

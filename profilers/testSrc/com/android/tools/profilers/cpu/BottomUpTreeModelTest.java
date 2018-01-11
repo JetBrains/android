@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 public class BottomUpTreeModelTest {
@@ -31,6 +34,29 @@ public class BottomUpTreeModelTest {
   public void setUp() {
     myRange = new Range(0, 40);
     myModel = new BottomUpTreeModel(myRange, new BottomUpNode(BottomUpNodeTest.createComplexTree()));
+  }
+
+  @Test
+  public void aspectFiredAfterTreeModelChange() {
+    AspectObserver observer = new AspectObserver();
+    int[] treeModelChangeCount = new int[]{0};
+    myModel.getAspect().addDependency(observer).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> ++treeModelChangeCount[0]);
+
+    assertThat(treeModelChangeCount[0]).isEqualTo(0);
+    myRange.set(0, 10);
+    assertThat(treeModelChangeCount[0]).isEqualTo(1);
+  }
+
+  @Test
+  public void aspectFiredAfterNodeExpand() {
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
+    AspectObserver observer = new AspectObserver();
+    int[] treeModelChangeCount = new int[]{0};
+    myModel.getAspect().addDependency(observer).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> ++treeModelChangeCount[0]);
+
+    assertThat(treeModelChangeCount[0]).isEqualTo(0);
+    myModel.expand(findNodeOnPath(root, "Root", "B"));
+    assertThat(treeModelChangeCount[0]).isEqualTo(1);
   }
 
   @Test

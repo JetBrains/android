@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -32,5 +33,18 @@ public final class ExtDslElement extends GradleDslBlockElement {
 
   public ExtDslElement(@Nullable GradleDslElement parent) {
     super(parent, EXT_BLOCK_NAME);
+  }
+
+  /*
+     The following method that sets values on the ExtDslElement are overwritten from the GradlePropertiesDslElement,
+     this is two ensure that any properties added to the Ext block use the equals notation, "prop1 = 'value'" as apposed
+     to the application notation. "prop1 'value'", the latter is not valid.
+   */
+  @Override
+  @NotNull
+  public GradleDslElement setNewLiteral(@NotNull String property, @NotNull Object object) {
+    GradleDslElement element = super.setNewLiteral(property, object);
+    element.setUseAssignment(true);
+    return element;
   }
 }

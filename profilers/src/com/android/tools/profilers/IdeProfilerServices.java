@@ -85,11 +85,18 @@ public interface IdeProfilerServices {
   FeatureConfig getFeatureConfig();
 
   /**
-   * Allows the profiler to cache settings across profiling sessions.
-   * e.g. If we only want to display an instruction overlay the first time the user interacts with a feature.
+   * Allows the profiler to cache settings within the current studio session.
+   * e.g. settings are only preserved across profiling sessions within the same studio instance.
    */
   @NotNull
-  ProfilerPreferences getProfilerPreferences();
+  ProfilerPreferences getTemporaryProfilerPreferences();
+
+  /**
+   * Allows the profiler to cache settings across multiple studio sessions.
+   * e.g. settings are preserved when studio restarts.
+   */
+  @NotNull
+  ProfilerPreferences getPersistentProfilerPreferences();
 
   /**
    * Open the dialog for managing the CPU profiling configurations.

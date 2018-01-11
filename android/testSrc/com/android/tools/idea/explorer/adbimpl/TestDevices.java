@@ -598,10 +598,16 @@ public class TestDevices {
     addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
     addFailedCommand(shellCommands, "touch /system/build.prop", "touch: '/system/build.prop': Read-only file system\n");
     addCommand(shellCommands, "su 0 sh -c 'touch /data/local/tmp/temp0'", "");
-    addCommand(shellCommands, "cp /data/local/tmp/device-explorer/.__temp_cp_test_file__.tmp /data/local/tmp/device-explorer/.__temp_cp_test_file_dst__.tmp", "");
+    addCommand(
+      shellCommands,
+      "cp /data/local/tmp/device-explorer/.__temp_cp_test_file__.tmp /data/local/tmp/device-explorer/.__temp_cp_test_file_dst__.tmp",
+      "");
     addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_cp_test_file__.tmp", "");
     addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_cp_test_file_dst__.tmp", "");
-    addFailedCommand(shellCommands, "su 0 sh -c 'cp /data/local/tmp/temp0 /system/build.prop'", "cp: /system/build.prop: Read-only file system\n");
+    addFailedCommand(
+      shellCommands,
+      "su 0 sh -c 'cp /data/local/tmp/temp0 /system/build.prop'",
+      "cp: /system/build.prop: Read-only file system\n");
     addCommand(shellCommands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
     addCommand(shellCommands, "su 0 sh -c 'rm -f /data/local/tmp/temp0'", "");
     addCommand(shellCommands, "su 0 sh -c 'ls -l /system/'",

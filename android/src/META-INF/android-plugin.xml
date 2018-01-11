@@ -65,7 +65,7 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.startup.DelayedInitialization</implementation-class>
+      <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
@@ -1017,6 +1017,12 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
 
+    <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
+    <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
+                   serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
+    <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
+
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
 
@@ -1030,8 +1036,7 @@
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
     <importFilter implementation="com.android.tools.idea.editors.AndroidImportFilter" />
     <editorTabTitleProvider implementation="com.android.tools.idea.editors.AndroidEditorTitleProvider"/>
-    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons" order="before javaDirectory"/>
-    <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidFileIconProvider" id="androidFileIcons"/>
+    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons"/>
     <refactoring.safeDeleteProcessor id="android_component" order="before javaProcessor"
                                      implementation="org.jetbrains.android.AndroidComponentSafeDeleteProcessor"/>
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>

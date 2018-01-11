@@ -29,12 +29,13 @@ import java.util.Map;
  * of the projects Gradle build. It allows access to the properties name, values and dependencies.
  */
 public interface GradlePropertyModel {
-  // The following are TypeReferences used in calls to getValue and getUnresolvedValue.
+  // The following are TypeReferences used in calls to getValue and getRawValue.
   TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
   TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
   TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
   TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
   TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
+  TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found
@@ -48,6 +49,7 @@ public interface GradlePropertyModel {
    *   <li>{@code LIST} - Pass {@link LIST_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code REFERENCE} - Pass {@link STRING_TYPE} to {@link #getValue(TypeReference)} to get the name of the
    *                           property or variable refereed to. Use {@link #getDependencies()} to get the value.</li>
+   *   <li>{@code NONE} - This property currently has no value, any call to {@link #getValue(TypeReference)} will return null.</>
    *   <li>{@code UNKNOWN} - No guarantees about the type of this element can be made}</li>
    * </ul>
    */
@@ -58,6 +60,7 @@ public interface GradlePropertyModel {
     MAP,
     LIST,
     REFERENCE,
+    NONE,
     UNKNOWN,
   }
 
@@ -97,7 +100,7 @@ public interface GradlePropertyModel {
    * as {@link #getValue(Class)}.
    */
   @Nullable
-  <T> T getUnresolvedValue(@NotNull TypeReference<T> clazz);
+  <T> T getRawValue(@NotNull TypeReference<T> typeReference);
 
   /**
    * Returns a list of all immediate dependencies for the property. This includes references and string injections within
@@ -126,8 +129,15 @@ public interface GradlePropertyModel {
 
   /**
    * Sets the value on this property to the given {@code value}.
-   * Note: This method currently DOES NOT change the value of the property when {@link GradleBuildModel#applyChanges()} is
-   * called. TODO: Fix this
+   * Note: Does not work for Maps, Lists and References. TODO: Fix this
    */
   void setValue(@NotNull Object value);
+
+  /**
+   * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
+   * from the file. Once {@link #delete()} has been called this {@link GradlePropertyModel} is invalid and any changes to it will be
+   * ignored. In order to alter this property further use the {@link GradlePropertyModel} returned by this method.
+   */
+  @NotNull
+  GradlePropertyModel delete();
 }

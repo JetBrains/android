@@ -16,8 +16,14 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -25,6 +31,7 @@ import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import icons.StudioIcons;
@@ -45,7 +52,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 
 final class MemoryClassifierView extends AspectObserver {
@@ -57,8 +64,7 @@ final class MemoryClassifierView extends AspectObserver {
   private static final String HELP_TIP_DESCRIPTION_LIVE_ALLOCATION =
     "Select a valid range in the timeline where the Java memory is changing to view allocations and deallocations.";
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
-  private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE =
-    "There are no allocations in the selected capture.";
+  private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
 
   @NotNull private final MemoryProfilerStage myStage;
 
@@ -80,7 +86,7 @@ final class MemoryClassifierView extends AspectObserver {
 
   @NotNull private final LoadingPanel myLoadingPanel;
 
-  @Nullable private InfoMessagePanel myHelpTipInfoMessagePanel; // Panel to let user know to select a range with allocations in it.
+  @Nullable private InstructionsPanel myHelpTipPanel; // Panel to let user know to select a range with allocations in it.
 
   @Nullable private JComponent myColumnTree;
 
@@ -228,7 +234,7 @@ final class MemoryClassifierView extends AspectObserver {
     myHeapSet = null;
     myClassSet = null;
     myClassifierPanel.removeAll();
-    myHelpTipInfoMessagePanel = null;
+    myHelpTipPanel = null;
     myColumnTree = null;
     myTree = null;
     myTreeRoot = null;
@@ -340,10 +346,20 @@ final class MemoryClassifierView extends AspectObserver {
     myColumnTree = builder.build();
 
     if (myStage.getSelectedCapture().isExportable()) {
-      myHelpTipInfoMessagePanel = new InfoMessagePanel(HELP_TIP_HEADER_EXPLICIT_CAPTURE, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE, null);
+      myHelpTipPanel = new InstructionsPanel.Builder(
+        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_EXPLICIT_CAPTURE),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
+        .setColors(JBColor.foreground(), null)
+        .build();
     }
     else {
-      myHelpTipInfoMessagePanel = new InfoMessagePanel(HELP_TIP_HEADER_LIVE_ALLOCATION, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION, null);
+      myHelpTipPanel = new InstructionsPanel.Builder(
+        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_LIVE_ALLOCATION),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
+        .setColors(JBColor.foreground(), null)
+        .build();
     }
     myPanel.add(myClassifierPanel, BorderLayout.CENTER);
   }
@@ -371,10 +387,10 @@ final class MemoryClassifierView extends AspectObserver {
   }
 
   private void refreshClassifierPanel() {
-    assert myTreeRoot != null && myColumnTree != null && myHelpTipInfoMessagePanel != null;
+    assert myTreeRoot != null && myColumnTree != null && myHelpTipPanel != null;
     myClassifierPanel.removeAll();
     if (myTreeRoot.getAdapter().isEmpty()) {
-      myClassifierPanel.add(myHelpTipInfoMessagePanel, BorderLayout.CENTER);
+      myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
     }
     else {
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);

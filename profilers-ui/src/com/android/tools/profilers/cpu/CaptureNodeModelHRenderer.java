@@ -17,35 +17,40 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Predicate;
 
 /**
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
  * instances of {@link CaptureNodeModel}.
  */
-public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
+public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
 
   private static final int LEFT_MARGIN_PX = 3;
 
   @NotNull
   private CaptureModel.Details.Type myType;
 
-  public CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type) {
+  @NotNull
+  private TextFitsPredicate myTextFitsPredicate;
+
+  @VisibleForTesting
+  CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type, @NotNull TextFitsPredicate textFitPredicate) {
     super();
     if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
       throw new IllegalStateException("Chart type not supported and can't be rendered.");
     }
     myType = type;
+    myTextFitsPredicate = textFitPredicate;
   }
 
   @VisibleForTesting
@@ -53,9 +58,12 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
     this(CaptureModel.Details.Type.CALL_CHART);
   }
 
+  public CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type) {
+    this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
+  }
+
   private Color getFillColor(CaptureNode node) {
-    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
-    assert nodeModel != null;
+    CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
@@ -66,8 +74,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   private Color getBorderColor(CaptureNode node) {
-    CaptureNodeModel nodeModel = node.getCaptureNodeModel();
-    assert nodeModel != null;
+    CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
@@ -87,10 +94,15 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   }
 
   @Override
-  public void render(@NotNull Graphics2D g, @NotNull HNode<CaptureNodeModel> node, @NotNull Rectangle2D drawingArea) {
+  public void render(@NotNull Graphics2D g, @NotNull CaptureNode node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     // Draw rectangle background
-    CaptureNode captureNode = (CaptureNode)node;
-    g.setPaint(getFillColor(captureNode));
+    CaptureNode captureNode = node;
+    Color nodeColor = getFillColor(captureNode);
+    if (isFocused) {
+      // All colors we use in call and flame charts are pretty bright, so darkening them works as an effective highlight
+      nodeColor = ColorUtil.darker(nodeColor, 2);
+    }
+    g.setPaint(nodeColor);
     g.fill(drawingArea);
 
     // Draw rectangle outline.
@@ -100,7 +112,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
     // Draw text
     Font font = g.getFont();
     FontMetrics fontMetrics = g.getFontMetrics(font);
-    if (captureNode.getFilterType() == null || captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
+    if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(Color.BLACK);
     }
     else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
@@ -110,7 +122,8 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
       g.setPaint(Color.BLACK);
       g.setFont(font.deriveFont(Font.BOLD));
     }
-    String text = generateFittingText(node.getData(), drawingArea, g.getFontMetrics());
+    Float availableWidth = (float)drawingArea.getWidth() - LEFT_MARGIN_PX;
+    String text = generateFittingText(node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth));
     float textPositionX = LEFT_MARGIN_PX + (float)drawingArea.getX();
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
@@ -121,9 +134,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private static String generateFittingText(CaptureNodeModel model, Rectangle2D rect, FontMetrics fontMetrics) {
-    double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
-
+  private static String generateFittingText(CaptureNodeModel model, Predicate<String> textFitsPredicate) {
     String classOrNamespace = "";
     String separator = "";
     if (model instanceof CppFunctionModel) {
@@ -136,45 +147,30 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNodeModel> {
     }
 
     if (!separator.isEmpty() && !classOrNamespace.isEmpty()) {
-      // Try: java.lang.String.toString. Add the separator between class name (or namespace) and method/function name.
-      String fullyQualified = classOrNamespace + separator + model.getName();
-      if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
-        return fullyQualified;
-      }
+      // String#split receives a regex. As "." is a special regex character, we need to handle the case.
+      String[] classElements = classOrNamespace.split(separator.equals(".") ? "\\." : separator);
 
-      // Try: j.l.s.toString
-      String shortPackage = getShortPackageName(classOrNamespace, separator);
-      String abbrevPackage = shortPackage + separator + model.getName();
-      if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
-        return abbrevPackage;
+      // Try abbreviating a few first packages, e.g for "java.lang.String.toString" try in this order ->
+      // "java.lang.String.toString", "j.lang.String.toString", "j.l.String.toString", "j.l.S.toString"
+      for (int abbreviationCount = 0; abbreviationCount <= classElements.length; ++abbreviationCount) {
+        // Try to reduce by using abbreviations for first |abbreviationCount| classElements.
+        StringBuilder textBuilder = new StringBuilder();
+        for (int i = 0; i < classElements.length; ++i) {
+          textBuilder.append(i < abbreviationCount ? classElements[i].charAt(0) : classElements[i]).append(separator);
+        }
+        textBuilder.append(model.getName());
+        String text = textBuilder.toString();
+        if (textFitsPredicate.test(text)) {
+          return text;
+        }
       }
     }
 
     // Try: toString or t...
-    return AdtUiUtils.getFittedString(fontMetrics, model.getName(), (float)maxWidth, 1);
+    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate, 1);
   }
 
-  /**
-   * Reduces the size of a namespace by using only the first character of each name separated by the namespace separator.
-   * e.g. "art::interpreter -> a::i" and "java.util.List" -> j.u.L"
-   * TODO (b/67640322): try a less aggressive string first (e.g. j.u.List or a::interpreter)
-   */
-  private static String getShortPackageName(String namespace, String separator) {
-    if (StringUtil.isEmpty(namespace)) {
-      return "";
-    }
-
-    // String#split receives a regex. As "." is a special regex character, we need to handle the case.
-    String splitterSeparator = separator.equals(".") ? "\\." : separator;
-    String[] elements = namespace.split(splitterSeparator);
-
-    StringBuilder b = new StringBuilder();
-    for (int i = 0; i < elements.length - 1; i++) {
-      b.append(elements[i].charAt(0));
-      b.append(separator);
-    }
-    b.append(elements[elements.length - 1].charAt(0));
-
-    return b.toString();
+  public interface TextFitsPredicate {
+    boolean test(String text, FontMetrics metrics, float width);
   }
 }

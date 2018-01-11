@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -48,7 +49,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private CpuProfiler.CpuProfilingAppStopResponse.Status myStopProfilingStatus = CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS;
 
-  private int myAppId;
+  private Common.Session mySession;
 
   /**
    * Whether there is a valid trace in the getTraceInfo response.
@@ -162,7 +163,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> responseObserver) {
     CpuProfiler.CpuStartResponse.Builder response = CpuProfiler.CpuStartResponse.newBuilder();
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -171,14 +172,14 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> responseObserver) {
     CpuProfiler.CpuStopResponse.Builder response = CpuProfiler.CpuStopResponse.newBuilder();
-    myAppId = request.getProcessId();
+    mySession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
 
-  public int getProcessId() {
-    return myAppId;
+  public Common.Session getSession() {
+    return mySession;
   }
 
   @Override
@@ -226,18 +227,16 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       cpuUsageData.setElapsedTimeInMillisec(0);
       cpuUsageData.setSystemCpuTimeInMillisec(0);
       cpuUsageData.setAppCpuTimeInMillisec(0);
-      CpuProfiler.CpuProfilerData.Builder data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
-      data.getBasicInfoBuilder().setEndTimestamp(0).build();
-      response.addData(data);
+      cpuUsageData.setEndTimestamp(0).build();
+      response.addData(cpuUsageData);
 
       // Add second usage data.
       cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
       cpuUsageData.setElapsedTimeInMillisec(TOTAL_ELAPSED_TIME);
       cpuUsageData.setSystemCpuTimeInMillisec(mySystemTimeMs);
       cpuUsageData.setAppCpuTimeInMillisec(myAppTimeMs);
-      data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
-      data.getBasicInfoBuilder().setEndTimestamp(0).build();
-      response.addData(data);
+      cpuUsageData.setEndTimestamp(0).build();
+      response.addData(cpuUsageData);
     }
 
     responseObserver.onNext(response.build());

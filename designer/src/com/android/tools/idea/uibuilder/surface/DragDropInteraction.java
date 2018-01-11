@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -113,6 +114,7 @@ public class DragDropInteraction extends Interaction {
    * The current viewgroup found for handling the dnd
    */
   SceneComponent myCurrentViewgroup = null;
+  private boolean myDoesAcceptDropAtLastPosition = true;
 
   public DragDropInteraction(@NotNull DesignSurface designSurface,
                              @NotNull List<NlComponent> dragged) {
@@ -149,6 +151,12 @@ public class DragDropInteraction extends Interaction {
     moveTo(x, y, modifiers, false);
   }
 
+  /**
+   * Returns true if the component being dragged can be dropped at the last position set by begin() or update()
+   * @return true if the drop is accepted
+   */
+  public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
+
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
@@ -177,6 +185,7 @@ public class DragDropInteraction extends Interaction {
     if (mySceneView == null) {
       return;
     }
+    myDoesAcceptDropAtLastPosition = true;
     myDesignSurface.getLayeredPane().scrollRectToVisible(
       new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                     2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -216,15 +225,24 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
+          if ((component.getTagName().equals(SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE))
+              && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
+            error = String.format(
+              "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
+            myDoesAcceptDropAtLastPosition = false;
+            break;
+          }
           if (!myCurrentHandler.acceptsChild(myDragReceiver, component, ax, ay)) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
+            myDoesAcceptDropAtLastPosition = false;
             break;
           }
           ViewHandler viewHandler = viewHandlerManager.getHandler(component);
           if (viewHandler != null && !viewHandler.acceptsParent(myDragReceiver.getNlComponent(), component)) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a parent", component.getTagName(), myDragReceiver.getNlComponent().getTagName());
+            myDoesAcceptDropAtLastPosition = false;
             break;
           }
         }

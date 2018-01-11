@@ -16,10 +16,12 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.nodemodel.*
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Test
 import java.awt.Color
+import java.awt.FontMetrics
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
@@ -27,15 +29,15 @@ class CaptureNodeModelHRendererTest {
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
-    val unsupportedNode = CaptureNode()
-    unsupportedNode.captureNodeModel = SingleNameModel("write")
+    val unsupportedNode = CaptureNode(SingleNameModel("write"))
     val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
-    val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
+    val fakeGraphics = TestGraphics2D()
     try {
-      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float())
+      renderer.render(fakeGraphics, unsupportedNode, Rectangle2D.Float(), false)
       fail()
-    } catch (e: IllegalStateException) {
+    }
+    catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Node type not supported.")
     }
   }
@@ -45,33 +47,33 @@ class CaptureNodeModelHRendererTest {
     try {
       CaptureNodeModelHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
       fail()
-    } catch (e: IllegalStateException) {
+    }
+    catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Chart type not supported and can't be rendered.")
     }
   }
 
   @Test
   fun testFilterRenderStyle() {
-    val simpleNode = CaptureNode()
-    simpleNode.captureNodeModel = SyscallModel("write")
+    val simpleNode = CaptureNode(SyscallModel("write"))
     val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
-    val fakeGraphics = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()
+    val fakeGraphics = TestGraphics2D()
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
-    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float())
+    renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
     // TODO: refactor CaptureNodeModelHRenderer#render to check font is Bold for EXACT_MATCHES
 
@@ -84,7 +86,8 @@ class CaptureNodeModelHRendererTest {
     try {
       JavaMethodHChartColors.getBorderColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false)
       fail()
-    } catch (e: IllegalStateException) {
+    }
+    catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Model must be an instance of JavaMethodModel.")
     }
 
@@ -107,7 +110,8 @@ class CaptureNodeModelHRendererTest {
     try {
       NativeModelHChartColors.getBorderColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false)
       fail()
-    } catch (e: IllegalStateException) {
+    }
+    catch (e: IllegalStateException) {
       assertThat(e.message).isEqualTo("Model must be a subclass of NativeNodeModel.")
     }
 
@@ -122,6 +126,44 @@ class CaptureNodeModelHRendererTest {
     val appModel = CppFunctionModel.Builder("DoFrame").setClassOrNamespace("PlayScene").build()
     doTestNativeColors(appModel, ProfilerColors.CPU_CALLCHART_APP, ProfilerColors.CPU_CALLCHART_APP_BORDER,
         ProfilerColors.CPU_FLAMECHART_APP, ProfilerColors.CPU_FLAMECHART_APP_BORDER)
+  }
+
+  @Test
+  fun testFittingTextForJavaMethod() {
+    checkFittingText(nodeModel = JavaMethodModel("toString", "com.example.MyClass"), expectedTexts = listOf(
+        "com.example.MyClass.toString",
+        "c.example.MyClass.toString",
+        "c.e.MyClass.toString",
+        "c.e.M.toString",
+        "toString",
+        "toSt..."
+    ))
+  }
+
+  @Test
+  fun testFittingTextForNativeMethod() {
+    checkFittingText(nodeModel = CppFunctionModel.Builder("myNativeMethod").setParameters("int, float")
+        .setClassOrNamespace("MyNativeClass").build(), expectedTexts = listOf(
+        "MyNativeClass::myNativeMethod",
+        "M::myNativeMethod",
+        "myNativeMethod",
+        "myNativeMe..."
+    ))
+  }
+
+  private fun checkFittingText(nodeModel: CaptureNodeModel, expectedTexts: List<String>) {
+    val node = CaptureNode(nodeModel)
+    val textFitPredicate = TestTextFitPredicate()
+    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART, textFitPredicate)
+    val graphics = TestGraphics2D()
+
+    var prevTextLength = expectedTexts[0].length + 1
+    for (text in expectedTexts) {
+      textFitPredicate.fittingLength = prevTextLength - 1
+      renderer.render(graphics, node, Rectangle2D.Float(), false)
+      assertThat(graphics.drawnString).isEqualTo(text)
+      prevTextLength = text.length
+    }
   }
 
   private fun doTestJavaMethodColors(model: JavaMethodModel, callChartFill: Color, callChartBorder: Color, flameChartFill: Color,
@@ -176,5 +218,18 @@ class CaptureNodeModelHRendererTest {
     assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartFill))
     color = NativeModelHChartColors.getBorderColor(model, flameChart, true)
     assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartBorder))
+  }
+
+  private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
+    var drawnString: String? = null
+
+    override fun drawString(s: String, x: Float, y: Float) {
+      drawnString = s
+    }
+  }
+
+  private class TestTextFitPredicate: CaptureNodeModelHRenderer.TextFitsPredicate {
+    var fittingLength: Int = 0
+    override fun test(text: String, metrics: FontMetrics, width: Float) = text.length <= fittingLength
   }
 }

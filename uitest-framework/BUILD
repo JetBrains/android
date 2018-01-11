@@ -45,5 +45,6 @@ iml_module(
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/adt/idea/android-common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/project-system[module, test]",
     ],
 )

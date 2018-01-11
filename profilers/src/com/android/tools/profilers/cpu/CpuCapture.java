@@ -59,7 +59,7 @@ public class CpuCapture implements ConfigurableDurationData {
         main = entry;
         foundMainThread = true;
       }
-      if (!foundMainThread && (main == null || main.getValue().duration() < entry.getValue().duration())) {
+      if (!foundMainThread && (main == null || main.getValue().getDuration() < entry.getValue().getDuration())) {
         main = entry;
       }
     }

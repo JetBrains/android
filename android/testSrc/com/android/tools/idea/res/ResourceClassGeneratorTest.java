@@ -256,6 +256,38 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(clz.newInstance());
   }
 
+  public void testIndexOverflow() throws Exception {
+    StringBuilder attributes = new StringBuilder();
+    for (int i = 0; i < 1000; i++) {
+      attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
+    }
+
+    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
+      "values/styles.xml", "" +
+                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<resources>\n" +
+                           "    <declare-styleable name=\"AppStyleable\">\n" +
+                           attributes.toString() +
+                           "    </declare-styleable>\n" +
+                           "</resources>\n"});
+    LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
+    AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
+
+    assertEquals(1, appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE).size());
+
+    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    assertNotNull(generator);
+
+    String name = "my.test.pkg.R$styleable";
+    Class<?> clz = generateClass(generator, name);
+    assertNotNull(clz);
+    assertEquals(name, clz.getName());
+    Object rClass = clz.newInstance();
+    assertNotNull(rClass);
+    int[] iArray = (int[])clz.getDeclaredField("AppStyleable").get(rClass);
+    assertEquals(1000, iArray.length);
+  }
+
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
 
     private final ResourceRepository myDelegate;

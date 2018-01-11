@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
@@ -25,24 +24,22 @@ import org.mockito.Mockito.mock
 
 class VisibleDestinationsEditorTest: NavTestCase() {
   fun testVisibleDestinations() {
-    val model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root")
-            .unboundedChildren(
-                NavModelBuilderUtil.fragmentComponent("f1")
-                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment1"),
-                NavModelBuilderUtil.activityComponent("activity1"),
-                NavModelBuilderUtil.navigationComponent("subnav1")
-                    .unboundedChildren(
-                        NavModelBuilderUtil.fragmentComponent("f2")
-                            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "fragment2"),
-                        NavModelBuilderUtil.fragmentComponent("f3")),
-                NavModelBuilderUtil.navigationComponent("subnav2")
-                    .unboundedChildren(
-                        NavModelBuilderUtil.fragmentComponent("f4"),
-                        NavModelBuilderUtil.navigationComponent("subsubnav")
-                            .unboundedChildren(
-                                NavModelBuilderUtil.fragmentComponent("f5")))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1", label = "fragment1")
+        activity("activity1")
+        navigation("subnav1") {
+          fragment("f2", label = "fragment2")
+          fragment("f3")
+        }
+        navigation("subnav2") {
+          fragment("f4")
+          navigation("subsubnav") {
+            fragment("f5")
+          }
+        }
+      }
+    }
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("f2")))
 

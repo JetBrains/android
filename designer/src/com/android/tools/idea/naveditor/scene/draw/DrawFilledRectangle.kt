@@ -23,9 +23,9 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Rectangle
 
-class DrawFilledRectangle(@SwingCoordinate private val myRectangle: Rectangle,
-                          @SwingCoordinate private val myColor: Color,
-                          @SwingCoordinate private val myArcSize: Int) : NavBaseDrawCommand() {
+class DrawFilledRectangle(@SwingCoordinate private val rectangle: Rectangle,
+                          @SwingCoordinate private val color: Color,
+                          @SwingCoordinate private val arcSize: Int) : NavBaseDrawCommand() {
 
   private constructor(sp: Array<String>)
       : this(stringToRect(sp[0]), stringToColor(sp[1]), sp[2].toInt())
@@ -37,11 +37,11 @@ class DrawFilledRectangle(@SwingCoordinate private val myRectangle: Rectangle,
   }
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rectToString(myRectangle), colorToString(myColor), myArcSize)
+    return buildString(javaClass.simpleName, rectToString(rectangle), colorToString(color), arcSize)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.color = myColor
-    g.fillRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, myArcSize, myArcSize)
+    g.color = color
+    g.fillRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
   }
 }

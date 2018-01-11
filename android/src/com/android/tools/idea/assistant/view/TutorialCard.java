@@ -20,6 +20,7 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
@@ -74,6 +75,18 @@ public class TutorialCard extends CardViewPanel {
     myHideChooserAndNavigationBar = hideChooserAndNavigationalBar;
     myIsStepByStep = isStepByStep;
     myStepIndex = 0;
+
+    if (!myHideChooserAndNavigationBar) {
+      // TODO: Add a short label to the xml and use that here instead.
+      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
+    }
+
+    add(myContentsScroller, BorderLayout.CENTER);
+
+    // add nav for step by step tutorials
+    if (myIsStepByStep) {
+      add(new StepByStepFooter(), BorderLayout.SOUTH);
+    }
     redraw();
   }
 
@@ -91,11 +104,6 @@ public class TutorialCard extends CardViewPanel {
 
   // update the view
   private void redraw() {
-    if (!myHideChooserAndNavigationBar) {
-      // TODO: Add a short label to the xml and use that here instead.
-      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
-    }
-
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
     contents.setOpaque(false);
@@ -170,12 +178,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    add(myContentsScroller, BorderLayout.CENTER);
-
-    // add nav for step by step tutorials
-    if (myIsStepByStep) {
-      add(new StepByStepFooter(), BorderLayout.SOUTH);
-    }
   }
 
   private static class TutorialDescription extends JTextPane {
@@ -229,9 +231,9 @@ public class TutorialCard extends CardViewPanel {
 
     StepByStepFooter() {
       super(new BorderLayout());
-      myPrevButton = new StepButton("Previous Step", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
+      myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
       add(myPrevButton, BorderLayout.LINE_START);
-      myNextButton = new StepButton("Next Step", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
+      myNextButton = new StepButton("Next", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
       add(myNextButton, BorderLayout.LINE_END);
 
       updateVisibility();
@@ -241,8 +243,12 @@ public class TutorialCard extends CardViewPanel {
     private void handleStepButtonClick(@NotNull ActionEvent event) {
       Object source = event.getSource();
       StepButton stepButton = (StepButton)source;
-      if (stepButton.myDirection == StepButton.Direction.NEXT && myStepIndex < myTutorial.getSteps().size() - 1) {
-        myStepIndex++;
+      if (stepButton.myDirection == StepButton.Direction.NEXT) {
+        if (myStepIndex < myTutorial.getSteps().size() - 1) {
+          myStepIndex++;
+        } else {
+          closeAssistant();
+        }
       }
       else if (myStepIndex > 0) {
         myStepIndex--;
@@ -254,9 +260,13 @@ public class TutorialCard extends CardViewPanel {
       repaint();
     }
 
+    private void closeAssistant() {
+      ToolWindowManager.getInstance(myProject).getToolWindow("Assistant").hide(() -> {});
+    }
+
     private void updateVisibility() {
       myPrevButton.setVisible(myStepIndex > 0);
-      myNextButton.setVisible(myStepIndex < myTutorial.getSteps().size() - 1);
+      myNextButton.setText(myStepIndex < myTutorial.getSteps().size() - 1 ? "Next" : "Finish");
     }
   }
 

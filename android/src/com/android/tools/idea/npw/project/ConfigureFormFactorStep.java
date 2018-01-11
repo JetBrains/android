@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_NUM_ENABLED_FORM_FACTORS;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -174,7 +175,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected void onProceeding() {
     Map<String, Object> projectTemplateValues = getModel().getTemplateValues();
-    projectTemplateValues.put("NumberOfEnabledFormFactors", myEnabledFormFactors.get());
+    projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, myEnabledFormFactors.get());
 
     myFormFactors.forEach(((formFactor, formFactorInfo) -> {
       projectTemplateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, formFactorInfo.controls.getInclusionCheckBox().isSelected());
@@ -348,7 +349,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
     int getMinTargetSdk() {
       AndroidVersionsInfo.VersionItem androidVersion = newRenderModel.androidSdkInfo().getValueOrNull();
-      return androidVersion == null ? 0 : androidVersion.getApiLevel();
+      return androidVersion == null ? 0 : androidVersion.getMinApiLevel();
     }
 
     @NotNull

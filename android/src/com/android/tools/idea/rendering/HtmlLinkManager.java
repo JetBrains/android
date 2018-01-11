@@ -949,7 +949,7 @@ public class HtmlLinkManager {
     }
 
     try {
-      moduleSystem.addDependencyWithoutSync(artifactId, null);
+      moduleSystem.addDependencyWithoutSync(artifactId, null, false);
     }
     catch (DependencyManagementException e) {
       Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());

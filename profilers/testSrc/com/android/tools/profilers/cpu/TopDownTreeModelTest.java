@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth;
 import org.junit.Test;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -25,6 +27,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TopDownTreeModelTest {
   @Test
@@ -99,6 +103,23 @@ public class TopDownTreeModelTest {
     assertEquals(     0, getChildrenTotal(root, "A", "B", "E"), 0);
     assertEquals(     2, getChildrenTotal(root, "A", "C"), 0);
     assertEquals(     0, getChildrenTotal(root, "A", "C", "F"), 0);
+  }
+
+  @Test
+  public void testAspectFiredAfterTreeModelChange() {
+    CaptureNode tree = TopDownNodeTest.createTree();
+    TopDownNode topDown = new TopDownNode(tree);
+
+    Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    CpuTreeModel model = new TopDownTreeModel(range, topDown);
+
+    AspectObserver observer = new AspectObserver();
+    int[] treeModelChangeCount = new int[]{0};
+    model.getAspect().addDependency(observer).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> treeModelChangeCount[0]++ );
+
+    Truth.assertThat(treeModelChangeCount[0]).isEqualTo(0);
+    range.set(0, 10);
+    Truth.assertThat(treeModelChangeCount[0]).isEqualTo(1);
   }
 
   private static double getTotal(TreeNode node, String id, String... ids) {

@@ -1933,7 +1933,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // REFERENCES foreign_table ( '(' column_name ( ',' column_name )* ')' )?
-  //   ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
+  //   ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )*
   //   ( ( NOT )? DEFERRABLE ( INITIALLY DEFERRED | INITIALLY IMMEDIATE )? )?
   public static boolean foreign_key_clause(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "foreign_key_clause")) return false;
@@ -1992,10 +1992,15 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
+  // ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )*
   private static boolean foreign_key_clause_3(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "foreign_key_clause_3")) return false;
-    foreign_key_clause_3_0(builder, level + 1);
+    int pos = current_position_(builder);
+    while (true) {
+      if (!foreign_key_clause_3_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "foreign_key_clause_3", pos)) break;
+      pos = current_position_(builder);
+    }
     return true;
   }
 

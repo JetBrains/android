@@ -149,7 +149,7 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
       // Construct rectangles.
       long previousX = -1;
       E previousValue = null;
-      for (SeriesData<E> seriesData: data.getSeries()) {
+      for (SeriesData<E> seriesData : data.getSeries()) {
         long x = seriesData.x;
         E value = seriesData.value;
 
@@ -162,12 +162,12 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
         if (previousValue != null && x >= min) {
           // Draw the previous block.
           Rectangle2D.Float rect = setRectangleData(rectCount,
-                                   Math.max(min, previousX),
-                                   Math.min(max, x),
-                                   min,
-                                   max,
-                                   startHeight + gap * 0.5f,
-                                   gap);
+                                                    Math.max(min, previousX),
+                                                    Math.min(max, x),
+                                                    min,
+                                                    max,
+                                                    startHeight + gap * 0.5f,
+                                                    gap);
           pastRectangleKeys.remove(rectCount);
           mValues.put(rect, previousValue);
           rectCount++;
@@ -185,12 +185,12 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
       // The last data point continues till max
       if (previousX < max && previousValue != null) {
         Rectangle2D.Float rect = setRectangleData(rectCount,
-                                 Math.max(min, previousX),
-                                 max,
-                                 min,
-                                 max,
-                                 startHeight + gap * 0.5f,
-                                 gap);
+                                                  Math.max(min, previousX),
+                                                  max,
+                                                  min,
+                                                  max,
+                                                  startHeight + gap * 0.5f,
+                                                  gap);
         pastRectangleKeys.remove(rectCount);
         mValues.put(rect, previousValue);
         rectCount++;
@@ -198,7 +198,7 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
       seriesIndex++;
     }
 
-    for(Long key : pastRectangleKeys) {
+    for (Long key : pastRectangleKeys) {
       mValues.remove(getRectangle(key));
       removeRectangle(key);
     }
@@ -241,10 +241,9 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
         case TEXT:
           Rectangle2D rect = shape.getBounds2D();
           g2d.draw(new Line2D.Double(rect.getX(), rect.getY(), rect.getX(), rect.getY() + rect.getHeight()));
-          String text = AdtUiUtils.getFittedString(mDefaultFontMetrics,
-                                                   value.toString(),
-                                                   (float)rect.getWidth() - TEXT_PADDING * 2,
-                                                   1);
+          String text = AdtUiUtils.shrinkToFit(value.toString(), mDefaultFontMetrics,
+                                               (float)rect.getWidth() - TEXT_PADDING * 2,
+                                               1);
           if (!text.isEmpty()) {
             g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
             g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));

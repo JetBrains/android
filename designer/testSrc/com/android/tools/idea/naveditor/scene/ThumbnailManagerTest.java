@@ -25,7 +25,6 @@ import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidResourceUtil;
 
@@ -39,13 +38,13 @@ import static org.mockito.Mockito.mock;
  */
 public class ThumbnailManagerTest extends NavTestCase {
   @Override
-  public void setUp() throws Exception {
+  public void setUp() {
     super.setUp();
     TestableThumbnailManager.register(myFacet);
   }
 
   @Override
-  protected void tearDown() throws Exception {
+  protected void tearDown() {
     try {
       ((TestableThumbnailManager)ThumbnailManager.getInstance(myFacet)).deregister();
     }
@@ -60,13 +59,13 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(myRootDisposable, myFacet, psiFile.getVirtualFile());
+    NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertSame(image, imageFuture.get());
 
-    ((PsiFileImpl)psiFile).clearCaches();
+    psiFile.clearCaches();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertNotSame(image, imageFuture.get());
 

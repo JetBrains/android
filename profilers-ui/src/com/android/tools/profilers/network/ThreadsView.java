@@ -49,7 +49,6 @@ import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
@@ -346,7 +345,7 @@ final class ThreadsView {
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
-        AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), (float)(end - start - 2 * NAME_PADDING), 1);
+        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING), 1);
 
       double availableSpace = (end - start - metrics.stringWidth(text));
       g2d.drawString(text, (float)(start + availableSpace / 2.0), (float)((getHeight() - metrics.getHeight()) * 0.5 + metrics.getAscent()));

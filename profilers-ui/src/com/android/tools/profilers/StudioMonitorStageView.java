@@ -25,10 +25,7 @@ import com.android.tools.profilers.energy.EnergyMonitor;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
 import com.android.tools.profilers.energy.EnergyMonitorView;
-import com.android.tools.profilers.event.EventMonitor;
-import com.android.tools.profilers.event.EventMonitorTooltip;
-import com.android.tools.profilers.event.EventMonitorTooltipView;
-import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
@@ -95,7 +92,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
-    getTooltipBinder().bind(EventMonitorTooltip.class, EventMonitorTooltipView::new);
+    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
+    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }
@@ -104,24 +102,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
+      view.registerTooltip(tooltip, stage);
       JComponent component = view.getComponent();
-      tooltip.registerListenersOn(component);
       component.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          if (monitor.isEnabled()) {
-            stage.setTooltip(monitor.buildTooltip());
-          }
-          else {
-            stage.setTooltip(null);
-          }
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          stage.setTooltip(null);
-        }
-
         @Override
         public void mouseReleased(MouseEvent e) {
           expandMonitor(monitor);

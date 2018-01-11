@@ -35,11 +35,13 @@ public class HttpData {
   // http://www.iana.org/assignments/media-types/media-types.xhtml
   private static final Map<String, String> CONTENT_EXTENSIONS_MAP = new ImmutableMap.Builder<String, String>()
     .put("/bmp", ".bmp")
+    .put("/csv", ".csv")
     .put("/gif", ".gif")
     .put("/html", ".html")
     .put("/jpeg", ".jpg")
     .put("/json", ".json")
     .put("/png", ".png")
+    .put("/webp", ".webp")
     .put("/xml", ".xml")
     .build();
 
@@ -147,15 +149,15 @@ public class HttpData {
    * "www.example.com/demo/" -> "demo"
    * "www.example.com/test.png" -> "test.png"
    * "www.example.com/test.png?res=2" -> "test.png?res=2"
-   * "www.example.com" -> "www.example.com"
+   * "www.example.com/" -> "www.example.com"
    */
   @NotNull
   public static String getUrlName(@NotNull String url) {
     URI uri = URI.create(url);
-    if (uri.getPath().isEmpty()) {
+    String name = uri.getPath() != null ? StringUtil.trimTrailing(uri.getPath(), '/') : "";
+    if (name.isEmpty()) {
       return uri.getHost();
     }
-    String name = StringUtil.trimTrailing(uri.getPath(), '/');
     name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
     if (uri.getQuery() != null) {
       name += "?" + uri.getQuery();
@@ -246,7 +248,7 @@ public class HttpData {
      * Returns display name with the first letter in upper case.
      * <ul>
      *   <li>If type is form data, returns "Form Data".</li>
-     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "Json".</li>
+     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "JSON".</li>
      *   <li>Otherwise, return the type, for example, "image/png" => "Image".</li>
      * </ul>
      */
@@ -261,7 +263,10 @@ public class HttpData {
       String[] typeAndSubType = mimeType.split("/", 2);
       boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
       String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
-      return name.isEmpty() ? name : name.substring(0, 1).toUpperCase() + name.substring(1);
+      if (name.isEmpty() || showSubType) {
+        return name.toUpperCase();
+      }
+      return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
   }
 

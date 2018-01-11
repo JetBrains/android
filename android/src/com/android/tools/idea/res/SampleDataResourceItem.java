@@ -33,17 +33,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileSystemItem;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
 import org.w3c.dom.Node;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -71,7 +67,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       .build();
 
   private final Function<OutputStream, Exception> myDataSource;
-  private final PsiElement mySourceElement;
+  private final SmartPsiElementPointer<PsiElement> mySourceElement;
   private final Supplier<Long> myDataSourceModificationStamp;
 
   /**
@@ -82,14 +78,14 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    *                                   must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
    *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link PsiElement} where the content was obtained from. This will be used to display references to the
-   *                      content.
+   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
+   *                      references to the content.
    */
   private SampleDataResourceItem(@NonNull String name,
                                  @Nullable String namespace,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable PsiElement sourceElement) {
+                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
     super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
 
     myDataSource = dataSource;
@@ -106,13 +102,13 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    *                                   must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
    *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link PsiElement} where the content was obtained from. This will be used to display references to the
-   *                      content.
+   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
+   *                      references to the content.
    */
   private SampleDataResourceItem(@NonNull String name,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable PsiElement sourceElement) {
+                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
     this(name, null, dataSource, dataSourceModificationStamp, sourceElement);
   }
 
@@ -128,13 +124,21 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   }
 
   /**
-   * Returns a {@link SampleDataResourceItem} from the given {@link PsiFile}. The file is tracked to invalidate the contents
-   * of the {@link SampleDataResourceItem} if the sourceElement changes.
+   * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The file is tracked to invalidate
+   * the contents of the {@link SampleDataResourceItem} if the sourceElement changes.
    */
   @NonNull
-  private static SampleDataResourceItem getFromPlainFile(@NonNull PsiFile sourceElement) {
-    String fileName = sourceElement.getName();
+  private static SampleDataResourceItem getFromPlainFile(@NonNull SmartPsiElementPointer<PsiElement> filePointer) {
+    VirtualFile vFile = filePointer.getVirtualFile();
+    String fileName = vFile.getName();
+
     return new SampleDataResourceItem(fileName, output -> {
+      PsiElement sourceElement = filePointer.getElement();
+      if (sourceElement == null) {
+        LOG.warn("File pointer was invalidated and the repository was not refreshed");
+        return null;
+      }
+
       try {
         output.write(sourceElement.getText().getBytes(Charsets.UTF_8));
       }
@@ -143,39 +147,49 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
+    }, () -> vFile.getModificationStamp() + 1, filePointer);
   }
 
   /**
-   * Returns a {@link SampleDataResourceItem} from the given {@link PsiDirectory}. The directory is tracked to invalidate the contents
-   * of the {@link SampleDataResourceItem} if the directory contents change.
+   * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The directory is tracked to
+   * invalidate the contents of the {@link SampleDataResourceItem} if the directory contents change.
    */
   @NonNull
-  private static SampleDataResourceItem getFromDirectory(@NonNull PsiDirectory directory) {
+  private static SampleDataResourceItem getFromDirectory(@NonNull SmartPsiElementPointer<PsiElement> directoryPointer) {
+    VirtualFile directory = directoryPointer.getVirtualFile();
     return new SampleDataResourceItem(directory.getName(), output -> {
       PrintStream printStream = new PrintStream(output);
-      Arrays.stream(directory.getFiles())
-        .sorted(Comparator.comparing(PsiFileSystemItem::getName))
-        .forEach(file -> printStream.println(file.getVirtualFile().getPath()));
+      Arrays.stream(directory.getChildren())
+        .filter(child -> !child.isDirectory())
+        .sorted(Comparator.comparing(VirtualFile::getName))
+        .forEach(file -> printStream.println(file.getPath()));
       return null;
-    }, () -> directory.getVirtualFile().getModificationStamp() + 1, directory);
+    }, () -> directory.getModificationStamp() + 1, directoryPointer);
   }
 
   /**
-   * Similar to {@link SampleDataResourceItem#getFromPlainFile(PsiFile)} but it takes a JSON file and a path as inputs.
+   * Similar to {@link SampleDataResourceItem#getFromPlainFile(SmartPsiElementPointer)} but it takes a JSON file and a path as inputs.
    * The {@link SampleDataResourceItem} will be the selection of elements from the sourceElement that are found with the
    * given path.
    */
   @NonNull
-  private static SampleDataResourceItem getFromJsonFile(@NonNull PsiFile sourceElement, @NonNull String contentPath) {
-    String fileName = sourceElement.getName();
+  private static SampleDataResourceItem getFromJsonFile(@NonNull SmartPsiElementPointer<PsiElement> jsonPointer,
+                                                        @NonNull String contentPath) {
+    VirtualFile vFile = jsonPointer.getVirtualFile();
+    String fileName = vFile.getName();
     return new SampleDataResourceItem(fileName + contentPath, output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
 
+      PsiElement source = jsonPointer.getElement();
+      if (source == null) {
+        LOG.warn("JSON file pointer was invalidated and the repository was not refreshed");
+        return null;
+      }
+
       try {
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(sourceElement.getText().getBytes(Charsets.UTF_8)));
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(Charsets.UTF_8)));
         SampleDataJsonParser parser = SampleDataJsonParser.parse(input);
         if (parser != null) {
           output.write(parser.getContentFromPath(contentPath));
@@ -186,7 +200,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
+    }, () -> vFile.getModificationStamp() + 1, jsonPointer);
   }
 
   /**
@@ -200,10 +214,13 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       extension = "";
     }
 
+    SmartPsiElementPointer<PsiElement> psiPointer =
+      SmartPointerManager.getInstance(sampleDataSource.getProject()).createSmartPsiElementPointer(sampleDataSource);
+
     switch (extension) {
       case EXT_JSON: {
         SampleDataJsonParser parser = null;
-        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
+        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(psiPointer.getVirtualFile()))) {
           parser = SampleDataJsonParser.parse(reader);
         }
         if (parser == null) {
@@ -214,31 +231,29 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(getFromJsonFile((PsiFile)sampleDataSource, path));
+          items.add(getFromJsonFile(psiPointer, path));
         }
         return items.build();
       }
 
       case EXT_CSV: {
         SampleDataCsvParser parser = null;
-        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
+        VirtualFile vFile = sampleDataSource.getVirtualFile();
+        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(vFile))) {
           parser = SampleDataCsvParser.parse(reader);
         }
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
-        PsiFile psiFile = (PsiFile)sampleDataSource;
         for (String path : possiblePaths) {
           items.add(new SampleDataResourceItem(sampleDataSource.getName() + path,
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
-                                               () -> psiFile.getModificationStamp() + 1, psiFile));
+                                               () -> vFile.getModificationStamp() + 1, psiPointer));
         }
         return items.build();
       }
 
       default:
-        return ImmutableList.of(sampleDataSource instanceof PsiDirectory ?
-                                getFromDirectory((PsiDirectory)sampleDataSource) : getFromPlainFile(
-          (PsiFile)sampleDataSource));
+        return ImmutableList.of(sampleDataSource instanceof PsiDirectory ? getFromDirectory(psiPointer) : getFromPlainFile(psiPointer));
     }
   }
 
@@ -304,6 +319,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
   @Nullable
   public PsiElement getPsiElement() {
-    return mySourceElement;
+    return mySourceElement.getElement();
   }
 }

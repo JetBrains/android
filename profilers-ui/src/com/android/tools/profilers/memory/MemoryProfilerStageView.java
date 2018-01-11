@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
@@ -36,10 +37,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,11 +53,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEFAULT_PADDING_Y_PX;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
-
 
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
@@ -134,7 +134,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
+    JPanel toolBar = new JPanel(createToolbarLayout());
     JButton forceGarbageCollectionButton = new FlatButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
     forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
@@ -431,37 +431,39 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
+    Icon recordIcon = UIUtil.isUnderDarcula()
+                      ? IconUtil.darker(StudioIcons.Profiler.Toolbar.RECORD, 3)
+                      : IconUtil.brighter(StudioIcons.Profiler.Toolbar.RECORD, 3);
+    // The heap dump icon's contrast does not stand out as well as the record icon so we use a higher tones value.
+    Icon heapDumpIcon = UIUtil.isUnderDarcula()
+                        ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
+                        : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
     if (getStage().useLiveAllocationTracking()) {
-      TextInstruction allocInstruction = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled() ?
-                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT,
-                                                             "Select a point/range to inspect snapshot/allocations") :
-                                         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations");
       RenderInstruction[] liveAllocInstructions = {
-        allocInstruction,
-        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations"),
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click "),
+        new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
       };
       instructions = liveAllocInstructions;
     }
     else {
       RenderInstruction[] legacyInstructions = {
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click "),
+        new IconInstruction(recordIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
         new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to record allocations"),
-        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or  "),
-        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
-        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or "),
+        new IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " for a heap dump")
       };
       instructions = legacyInstructions;
     }
-
     InstructionsPanel panel = new InstructionsPanel.Builder(instructions)
       .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
-      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
       .build();
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
@@ -470,7 +472,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private JPanel buildCaptureUi() {
     JPanel capturePanel = new JPanel(new BorderLayout());
 
-    JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
+    JPanel toolbar = new JPanel(createToolbarLayout());
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
@@ -478,20 +480,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
 
+    JPanel buttonToolbar = new JPanel(createToolbarLayout());
+    buttonToolbar.add(getSelectionTimeLabel());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      FlatToggleButton button = SearchComponent.createFilterToggleButton();
-
-      JPanel buttonToolbar = new JPanel(TOOLBAR_LAYOUT);
+      FlatToggleButton button = FilterComponent.createFilterToggleButton();
+      buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
-      headingPanel.add(buttonToolbar, BorderLayout.EAST);
-      SearchComponent searchTextArea = getIdeComponents()
-        .createProfilerSearchTextArea(getClass().getName(), FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-      searchTextArea.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
-      headingPanel.add(searchTextArea.getComponent(), BorderLayout.SOUTH);
-      searchTextArea.getComponent().setVisible(false);
-      searchTextArea.getComponent().setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
-      SearchComponent.configureKeyBindingAndFocusBehaviors(capturePanel, searchTextArea, button);
+      FilterComponent filterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+      filterComponent.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
+      headingPanel.add(filterComponent, BorderLayout.SOUTH);
+      filterComponent.setVisible(false);
+      filterComponent.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
+      filterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
+    headingPanel.add(buttonToolbar, BorderLayout.EAST);
 
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);

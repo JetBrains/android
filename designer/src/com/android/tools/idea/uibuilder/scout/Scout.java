@@ -77,9 +77,9 @@ public class Scout {
       case ChainInsertVertical:
         ScoutChainsArrange.change( type, widgets);
         return;
+        default:
+          ScoutArrange.align(type, widgets, applyConstraint);
     }
-    ScoutArrange.align(type, widgets, applyConstraint);
-    commit(widgets, type.toString());
   }
 
   /**

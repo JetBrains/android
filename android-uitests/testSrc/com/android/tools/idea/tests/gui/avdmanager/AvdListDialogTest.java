@@ -36,7 +36,7 @@ public class AvdListDialogTest {
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/64486607
+  @RunIn(TestGroup.QA)
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();
@@ -71,7 +71,7 @@ public class AvdListDialogTest {
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/68009357
+  @RunIn(TestGroup.QA)
   @Test
   public void testEditAvd() throws Exception {
     guiTest.importSimpleApplication();

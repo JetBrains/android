@@ -62,10 +62,9 @@ class CaptureNodeConstructor {
   }
 
   private void enterMethod(CaptureNodeModel captureNodeModel, int threadTime, int globalTime) {
-    CaptureNode node = new CaptureNode();
+    CaptureNode node = new CaptureNode(captureNodeModel);
     node.setStartGlobal(globalTime);
     node.setStartThread(threadTime);
-    node.setCaptureNodeModel(captureNodeModel);
 
     if (myCurrentNode == null) {
       myTopLevelNodes.add(node);
@@ -78,11 +77,10 @@ class CaptureNodeConstructor {
 
   private void exitMethod(CaptureNodeModel captureNodeModel, long threadTime, long globalTime) {
     if (myCurrentNode != null) {
-      assert myCurrentNode.getCaptureNodeModel() != null;
-      if (myCurrentNode.getCaptureNodeModel() != captureNodeModel) {
+      if (myCurrentNode.getData() != captureNodeModel) {
         String msg = String
           .format("Error during call stack reconstruction. Attempt to exit from method %s while in method %s",
-                  myCurrentNode.getCaptureNodeModel().getId(), captureNodeModel.getId());
+                  myCurrentNode.getData().getId(), captureNodeModel.getId());
         throw new RuntimeException(msg);
       }
 
@@ -92,8 +90,7 @@ class CaptureNodeConstructor {
     } else {
       // We are exiting out of a method that was entered into before tracing was started.
       // In such a case, create this method
-      CaptureNode node = new CaptureNode();
-      node.setCaptureNodeModel(captureNodeModel);
+      CaptureNode node = new CaptureNode(captureNodeModel);
       // All the previous nodes at the top level are now assumed to have been called from
       // this method. So mark this method as having called all of those methods, and reset
       // the top level to only include this method
@@ -160,7 +157,7 @@ class CaptureNodeConstructor {
     // exit trace action for them, so clean those up
     //noinspection WhileLoopSpinsOnField
     while (myCurrentNode != null) {
-      exitMethod(myCurrentNode.getCaptureNodeModel(), myCurrentNode.getStartThread(),
+      exitMethod(myCurrentNode.getData(), myCurrentNode.getStartThread(),
                  myCurrentNode.getStartGlobal(), myCurrentNode.getChildren());
     }
 

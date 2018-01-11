@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.SET_START_DESTINATION_PROPERTY_NAME
@@ -31,32 +31,30 @@ import java.awt.Container
 import javax.swing.JButton
 
 class NavSetStartProviderTest : NavTestCase() {
-  lateinit var myModel: SyncNlModel
+  lateinit var model: SyncNlModel
 
   override fun setUp() {
     super.setUp()
-    myModel = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root")
-            .withStartDestinationAttribute("f1")
-            .unboundedChildren(
-                NavModelBuilderUtil.fragmentComponent("f1"),
-                NavModelBuilderUtil.navigationComponent("subnav")
-                    .withStartDestinationAttribute("activity")
-                    .unboundedChildren(
-                        NavModelBuilderUtil.fragmentComponent("f2"),
-                        NavModelBuilderUtil.activityComponent("activity"))))
-        .build()
+    model = model("nav.xml") {
+      navigation("root", startDestination = "f1") {
+        fragment("f1")
+        navigation("subnav", startDestination = "activity") {
+          fragment("f2")
+          activity("activity")
+        }
+      }
+    }
   }
 
   fun testIsApplicable() {
     val provider = NavSetStartProvider()
-    assertFalse(isApplicable(provider, myModel, "root"))
-    assertTrue(isApplicable(provider, myModel, "f1"))
-    assertTrue(isApplicable(provider, myModel, "subnav"))
-    assertTrue(isApplicable(provider, myModel, "f2"))
-    assertFalse(isApplicable(provider, myModel, "activity"))
-    assertFalse(isApplicable(provider, myModel, "f1", "f2"))
-    assertFalse(isApplicable(provider, myModel))
+    assertFalse(isApplicable(provider, model, "root"))
+    assertTrue(isApplicable(provider, model, "f1"))
+    assertTrue(isApplicable(provider, model, "subnav"))
+    assertTrue(isApplicable(provider, model, "f2"))
+    assertFalse(isApplicable(provider, model, "activity"))
+    assertFalse(isApplicable(provider, model, "f1", "f2"))
+    assertFalse(isApplicable(provider, model))
   }
 
   private fun isApplicable(provider: NavSetStartProvider, model: NlModel, vararg ids: String) =
@@ -72,17 +70,17 @@ class NavSetStartProviderTest : NavTestCase() {
     val panel = NavInspectorPanel(myRootDisposable)
     val table = HashBasedTable.create<String, String, NlProperty>()
 
-    panel.setComponent(listOf(myModel.find("f1")!!), table, manager)
+    panel.setComponent(listOf(model.find("f1")!!), table, manager)
 
     @Suppress("UNCHECKED_CAST")
     val button = flatten(panel).find { it.name == SET_START_DESTINATION_PROPERTY_NAME }!! as JButton
 
     assertFalse(button.isEnabled)
 
-    panel.setComponent(listOf(myModel.find("subnav")!!), table, manager)
+    panel.setComponent(listOf(model.find("subnav")!!), table, manager)
     assertTrue(button.isEnabled)
 
-    panel.setComponent(listOf(myModel.find("f2")!!), table, manager)
+    panel.setComponent(listOf(model.find("f2")!!), table, manager)
     assertTrue(button.isEnabled)
   }
 }

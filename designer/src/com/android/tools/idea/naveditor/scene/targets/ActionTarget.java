@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -27,22 +26,20 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawArrow;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.HOVER;
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.NORMAL;
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
+import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.*;
 import static com.android.tools.idea.naveditor.scene.targets.ActionTarget.ConnectionDirection.*;
 
 /**
@@ -159,7 +156,7 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    String targetId = NlComponent.stripId(myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+    String targetId = NavComponentHelperKt.getEffectiveDestinationId(myNlComponent);
     if (targetId == null) {
       // TODO: error handling
       return;
@@ -177,7 +174,8 @@ public class ActionTarget extends BaseTarget {
     if (sourceId.equals(targetId)) {
       rectangle.x = myDestRect.x +
                     myDestRect.width +
-                    sceneContext.getSwingDimension(SELF_ACTION_LENGTH_1 - SELF_ACTION_LENGTH_3 - NavSceneManager.ACTION_ARROW_PERPENDICULAR / 2);
+                    sceneContext
+                      .getSwingDimension(SELF_ACTION_LENGTH_1 - SELF_ACTION_LENGTH_3 - NavSceneManager.ACTION_ARROW_PERPENDICULAR / 2);
       rectangle.y = getConnectionY(BOTTOM, myDestRect) + sceneContext.getSwingDimension(ACTION_VERTICAL_PADDING);
       rectangle.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR);
       rectangle.height = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL);
@@ -208,7 +206,7 @@ public class ActionTarget extends BaseTarget {
       return;
     }
 
-    String targetId = NlComponent.stripId(myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+    String targetId = NavComponentHelperKt.getEffectiveDestinationId(myNlComponent);
     if (targetId == null) {
       return;
     }

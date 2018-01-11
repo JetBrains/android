@@ -96,7 +96,7 @@ public class NewImageAssetTest {
       .clickPath("app")
       .getEditor()
       .open("app/build.gradle")
-      .select("minSdkVersion (19)")
+      .select("minSdkVersion (21)")
       .enterText("4")
       .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now")

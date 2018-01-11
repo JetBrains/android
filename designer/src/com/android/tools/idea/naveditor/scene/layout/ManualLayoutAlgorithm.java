@@ -64,7 +64,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     if (mySchema == null) {
       AndroidFacet instance = AndroidFacet.getInstance(myModule);
       assert instance != null;
-      mySchema = NavigationSchema.getOrCreateSchema(instance);
+      mySchema = NavigationSchema.get(instance);
     }
     return mySchema;
   }

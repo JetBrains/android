@@ -38,7 +38,7 @@ const val NAV_ACTION_ARGUMENTS_COMPONENT_NAME = "NavActionArgumentsPropertyInspe
 
 class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
-  private var myInspector: NavActionArgumentsInspectorComponent? = null
+  private var inspector: NavActionArgumentsInspectorComponent? = null
 
   override fun isApplicable(components: List<NlComponent>,
                             properties: Map<String, NlProperty>,
@@ -56,32 +56,32 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
   override fun createCustomInspector(components: List<NlComponent>,
                                      properties: Map<String, NlProperty>,
                                      propertiesManager: NavPropertiesManager): InspectorComponent<NavPropertiesManager> {
-    val inspector = myInspector ?: NavActionArgumentsInspectorComponent()
-    myInspector = inspector
+    val inspector = inspector ?: NavActionArgumentsInspectorComponent()
+    this.inspector = inspector
 
     inspector.updateProperties(components, properties, propertiesManager)
     return inspector
   }
 
   override fun resetCache() {
-    myInspector = null
+    inspector = null
   }
 
   private class NavActionArgumentsInspectorComponent : InspectorComponent<NavPropertiesManager> {
 
-    private lateinit var myArgumentProperty: NavActionArgumentsProperty
-    private val myComponents = mutableListOf<NlComponent>()
-    private var mySurface: NavDesignSurface? = null
+    private lateinit var argumentProperty: NavActionArgumentsProperty
+    private val components = mutableListOf<NlComponent>()
+    private var surface: NavDesignSurface? = null
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
-      myComponents.clear()
-      myComponents.addAll(components)
+      this.components.clear()
+      this.components.addAll(components)
 
-      mySurface = propertiesManager.designSurface as? NavDesignSurface
+      surface = propertiesManager.designSurface as? NavDesignSurface
 
-      myArgumentProperty = properties.values.filterIsInstance(NavActionArgumentsProperty::class.java).first()
+      argumentProperty = properties.values.filterIsInstance(NavActionArgumentsProperty::class.java).first()
       refresh()
     }
 
@@ -91,7 +91,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
-      val table = JBTable(object: NavArgumentsTableModel(myArgumentProperty) {
+      val table = JBTable(object: NavArgumentsTableModel(argumentProperty) {
         override fun isCellEditable(rowIndex: Int, columnIndex: Int) = columnIndex == 1
       })
 
@@ -112,7 +112,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
         defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
 
-      val defaultValueTextEditor = TextEditor(mySurface!!.project, NlEditingListener.DEFAULT_LISTENER)
+      val defaultValueTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
 
       val defaultValueEditor = NlTableCellEditor()
       defaultValueEditor.init(defaultValueTextEditor, null)
@@ -128,7 +128,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
     }
 
     override fun refresh() {
-      myArgumentProperty.refreshList()
+      argumentProperty.refreshList()
     }
   }
 }

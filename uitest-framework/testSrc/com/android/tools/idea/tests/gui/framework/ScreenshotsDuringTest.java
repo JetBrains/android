@@ -41,6 +41,13 @@ public class ScreenshotsDuringTest extends TestWatcher {
     this(100);
   }
 
+  /**
+   * <p>WARNING: Do not set {@code period} to too small a value. The
+   * ScreenshotTaker may take screenshots by posting events to the EDT,
+   * which can prevent the robot from ever reaching an "idle" state.</p>
+   *
+   * @param period time to wait between screenshots in milliseconds
+   */
   public ScreenshotsDuringTest(int period) {
     myPeriod = period;
     myExecutorService = Executors.newScheduledThreadPool(1);

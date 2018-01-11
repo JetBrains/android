@@ -19,13 +19,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.ide.IconProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
@@ -35,8 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isModuleContentRoot;
 
 public class AndroidIconProvider extends IconProvider {
   @Nullable
@@ -61,19 +54,6 @@ public class AndroidIconProvider extends IconProvider {
             // If resource folder qualifier specifies locale, show a flag icon
             return FlagManager.get().getFlag(config);
           }
-        }
-      }
-    }
-    // Use Android Studio icons for module's root
-    if (element instanceof PsiDirectory) {
-      PsiDirectory psiDirectory = (PsiDirectory)element;
-      VirtualFile virtualDirectory = psiDirectory.getVirtualFile();
-      Project project = psiDirectory.getProject();
-      if (isModuleContentRoot(virtualDirectory, project)) {
-        ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-        Module module = projectFileIndex.getModuleForFile(virtualDirectory);
-        if (module != null) {
-          return getModuleIcon(module);
         }
       }
     }

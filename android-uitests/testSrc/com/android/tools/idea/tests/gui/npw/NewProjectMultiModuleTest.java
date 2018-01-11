@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
 import static com.android.tools.idea.npw.FormFactor.*;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/63508325 @RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewProjectMultiModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

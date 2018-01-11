@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -60,7 +61,11 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:layout_height=\"20dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +
@@ -102,7 +107,11 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:layout_height=\"20dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontallyInParent, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     Scout.arrangeWidgets(Scout.Arrange.CenterVerticallyInParent, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +
@@ -144,6 +153,8 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:layout_height=\"20dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +

@@ -52,7 +52,7 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+      override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?, includePreview: Boolean) {
         val versionToAdd = version ?: TEST_VERSION_LATEST
         dependenciesByModule.put(module, Artifact(artifactId, versionToAdd))
       }

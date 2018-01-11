@@ -16,25 +16,23 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants.AUTO_URI
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class SetStartDestinationPropertyTest : NavTestCase() {
 
   fun testProperty() {
-    val model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root")
-            .withStartDestinationAttribute("f1")
-            .unboundedChildren(
-                NavModelBuilderUtil.fragmentComponent("f1"),
-                NavModelBuilderUtil.fragmentComponent("f2"),
-                NavModelBuilderUtil.navigationComponent("subnav")
-                    .withStartDestinationAttribute("activity")
-                    .unboundedChildren(
-                        NavModelBuilderUtil.fragmentComponent("f3"),
-                        NavModelBuilderUtil.activityComponent("activity"))))
-        .build()
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "f1") {
+        fragment("f1")
+        fragment("f2")
+        navigation("subnav", startDestination = "activity") {
+          fragment("f3")
+          activity("activity")
+        }
+      }
+    }
 
     var property = SetStartDestinationProperty(listOf(model.find("f1")!!))
     assertNotNull(property.value)

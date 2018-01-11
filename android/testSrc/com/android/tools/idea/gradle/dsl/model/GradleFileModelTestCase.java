@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
@@ -30,7 +31,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
-import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +38,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
@@ -86,6 +92,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   @Override
+  @NotNull
   protected Module createMainModule() throws IOException {
     Module mainModule = createModule(myProject.getName());
 
@@ -100,7 +107,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       @Override
       protected void run(@NotNull Result<Module> result) throws Throwable {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        Assert.assertNotNull(virtualFile);
+        assertNotNull(virtualFile);
         Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
         module.getModuleFile();
         result.setResult(module);
@@ -166,7 +173,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-
   protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
                                    @NotNull String propertyName,
                                    @NotNull String propertyText) {
@@ -187,6 +193,18 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(propertyFilePath, toSystemIndependentName(gradleValue.getFile().getPath()));
     assertEquals(propertyName, gradleValue.getPropertyName());
     assertEquals(propertyText, gradleValue.getDslText());
+  }
+
+  public static void assertEquals(@NotNull String message, @Nullable String expected, @NotNull GradlePropertyModel actual) {
+    assertEquals(message, expected, actual.getValue(STRING_TYPE));
+  }
+
+  public static void assertEquals(@NotNull String message, @Nullable Boolean expected, @NotNull GradlePropertyModel actual) {
+    assertEquals(message, expected, actual.getValue(BOOLEAN_TYPE));
+  }
+
+  public static void assertEquals(@NotNull String message, @Nullable Integer expected, @NotNull GradlePropertyModel actual) {
+    assertEquals(message, expected, actual.getValue(INTEGER_TYPE));
   }
 
   public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleValue<T> actual) {
@@ -219,6 +237,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
   }
 
+  public static void assertMissingProperty(@NotNull GradlePropertyModel model) {
+    assertEquals(NONE, model.getValueType());
+  }
+
+  public static void assertMissingProperty(@NotNull String message, @NotNull GradlePropertyModel model) {
+    assertEquals(message, NONE, model.getValueType());
+  }
+
   public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {
     assertNull(message, nullableValue.value());
   }
@@ -243,5 +269,27 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(object).isInstanceOf(GradleDslBlockModel.class);
     GradleDslBlockModel model = GradleDslBlockModel.class.cast(object);
     return model.hasValidPsiElement();
+  }
+
+  public static void assertEquals(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    assertTrue(model + " and " + other + " are not equal", areModelsEqual(model, other));
+  }
+
+  public static void assertNotEquals(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    assertFalse(model + " and " + other + " are equal", areModelsEqual(model, other));
+  }
+
+  public static boolean areModelsEqual(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
+    Object value = model.getValue(OBJECT_TYPE);
+    Object otherValue = other.getValue(OBJECT_TYPE);
+
+    if (!Objects.equals(value, otherValue)) {
+      return false;
+    }
+
+    return model.getValueType().equals(other.getValueType()) &&
+           model.getPropertyType().equals(other.getPropertyType()) &&
+           model.getGradleFile().equals(other.getGradleFile()) &&
+           model.getFullyQualifiedName().equals(other.getFullyQualifiedName());
   }
 }

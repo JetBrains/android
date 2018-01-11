@@ -16,9 +16,8 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants
-import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import org.mockito.Mockito.mock
 
@@ -27,16 +26,18 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        rootComponent("root").unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    argumentComponent("arg1").withDefaultValueAttribute("val1"),
-                    argumentComponent("arg2").withDefaultValueAttribute("val2")),
-            fragmentComponent("f2")
-                .unboundedChildren(argumentComponent("arg3")),
-            fragmentComponent("f3")))
-        .build()
+    model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          argument("arg1", "val1")
+          argument("arg2", "val2")
+        }
+        fragment("f2") {
+          argument("arg3")
+        }
+        fragment("f3")
+      }
+    }
   }
 
   fun testMultipleArguments() {

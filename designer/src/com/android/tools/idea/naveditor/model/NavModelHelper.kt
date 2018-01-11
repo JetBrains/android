@@ -19,4 +19,4 @@ import com.android.tools.idea.common.model.NlModel
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 val NlModel.schema
-    get() = NavigationSchema.getOrCreateSchema(this.facet)
+    get() = NavigationSchema.get(this.facet)

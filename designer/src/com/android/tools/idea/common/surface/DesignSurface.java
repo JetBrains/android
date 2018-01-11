@@ -67,6 +67,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
 
@@ -101,6 +102,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
+  private String myDescriptionString;
 
   /**
    * Flag to indicate if the surface should resize its content when
@@ -341,6 +343,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
+  }
+
+  private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });
+
+  /**
+   * Call this to generate repaints
+   */
+  public void needsRepaint() {
+     if (!myRepaintTimer.isRunning()) {
+      myRepaintTimer.setRepeats(false);
+      myRepaintTimer.start();
+    }
   }
 
   @Override
@@ -825,6 +839,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return skip;
   }
 
+  /**
+   * This is called before {@link #setModel(NlModel)}. After the returned future completes, we'll wait for smart mode and then invoke
+   * {@link #setModel(NlModel)}. If a {@code DesignSurface} needs to do any extra work before the model is set it should be done here.
+   */
+  public CompletableFuture<?> goingToSetModel(NlModel model) {
+    return CompletableFuture.completedFuture(null);
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -1165,7 +1187,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Sets the tooltip for the design surface
    */
   public void setDesignToolTip(@Nullable String text) {
-    myLayeredPane.setToolTipText(text);
+    myDescriptionString = text;
   }
 
   @Override

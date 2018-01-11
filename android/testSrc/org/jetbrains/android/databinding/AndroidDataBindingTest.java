@@ -37,7 +37,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.setTestDataPath(myFixture.getTestDataPath() + "/databinding");
-    ModuleDataBinding.enable(myFacet);
+    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
   }
 
   private VirtualFile copyLayout(String name) {

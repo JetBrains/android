@@ -20,6 +20,7 @@ import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
+import com.intellij.diagnostic.logging.LogFormatter;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -92,6 +93,18 @@ public class AndroidLogcatFormatterTest {
     assertEquals("", preferences.LOGCAT_FORMAT_STRING);
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(message, formattedMessage);
+  }
+
+  @Test
+  public void formatMessageIndentsContinuationIndentLengthSpaces() {
+    LogFormatter formatter = new AndroidLogcatFormatter(new AndroidLogcatPreferences());
+
+    formatter.formatMessage(
+      "12-18 14:13:55.926 1620-1640/system_process V/StorageManagerService: Found primary storage at VolumeInfo{emulated}:");
+
+    assertEquals(
+      "        type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1 ",
+      formatter.formatMessage("+     type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1 "));
   }
 
   @Test

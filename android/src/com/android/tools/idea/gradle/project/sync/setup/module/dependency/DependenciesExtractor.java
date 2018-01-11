@@ -22,12 +22,13 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModulesByGradlePath;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -46,19 +47,19 @@ public class DependenciesExtractor {
    * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
    *
    * @param variant             the variant to extract dependencies from.
-   * @param modulesByGradlePath
+   * @param moduleFinder
    * @return Instance of {@link DependencySet} retrieved from given variant.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeVariant variant, @NotNull ModulesByGradlePath modulesByGradlePath) {
+  public DependencySet extractFrom(@NotNull IdeVariant variant, @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(dependencies, testArtifact, modulesByGradlePath, TEST);
+      populate(dependencies, testArtifact, moduleFinder, TEST);
     }
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(dependencies, mainArtifact, modulesByGradlePath, COMPILE);
+    populate(dependencies, mainArtifact, moduleFinder, COMPILE);
 
     return dependencies;
   }
@@ -71,15 +72,15 @@ public class DependenciesExtractor {
   @NotNull
   public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact,
                                    @NotNull DependencyScope scope,
-                                   @NotNull ModulesByGradlePath modulesByGradlePath) {
+                                   @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, modulesByGradlePath, scope);
+    populate(dependencies, artifact, moduleFinder, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull IdeBaseArtifact artifact,
-                               @NotNull ModulesByGradlePath modulesByGradlePath,
+                               @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
     IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
@@ -96,8 +97,18 @@ public class DependenciesExtractor {
     for (Library library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
-        Module module = modulesByGradlePath.findModuleByGradlePath(gradlePath);
-        ModuleDependency dependency = new ModuleDependency(gradlePath, scope, module);
+        Module module = null;
+        String moduleId = gradlePath;
+        String projectFolder = library.getBuildId();
+        if (isNotEmpty(projectFolder)) {
+          moduleId = getModuleId(projectFolder, gradlePath);
+          module = moduleFinder.findModuleByModuleId(moduleId);
+        }
+        if (module == null) {
+          moduleId = gradlePath;
+          module = moduleFinder.findModuleByGradlePath(moduleId);
+        }
+        ModuleDependency dependency = new ModuleDependency(moduleId, scope, module);
         dependencies.add(dependency);
       }
     }

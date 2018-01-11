@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service
@@ -28,17 +29,14 @@ import io.grpc.StatusRuntimeException;
 public class EventDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
-  private int myProcessId = -1;
-  private final Common.Session mySession;
-  private final EventsTable myEventsTable;
-  private final EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
+  @NotNull private final Common.Session mySession;
+  @NotNull private final EventsTable myEventsTable;
+  @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
 
-  public EventDataPoller(int processId,
-                         Common.Session session,
-                         EventsTable eventTable,
-                         EventServiceGrpc.EventServiceBlockingStub pollingService) {
+  public EventDataPoller(@NotNull Common.Session session,
+                         @NotNull EventsTable eventTable,
+                         @NotNull EventServiceGrpc.EventServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
-    myProcessId = processId;
     myEventsTable = eventTable;
     myEventPollingService = pollingService;
     mySession = session;
@@ -46,19 +44,15 @@ public class EventDataPoller extends PollRunner {
 
   @Override
   public void poll() throws StatusRuntimeException {
-    if (myProcessId == -1) {
-      return;
-    }
-
     EventDataRequest.Builder dataRequestBuilder = EventDataRequest.newBuilder()
-      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     // Query for and cache activity data that has changed since our last polling.
     ActivityDataResponse activityResponse = myEventPollingService.getActivityData(dataRequestBuilder.build());
     for (ActivityData data : activityResponse.getDataList()) {
       long id = data.getHash();
-      ActivityData cached_data = myEventsTable.findActivityDataOrNull(data.getProcessId(), id, mySession);
+      ActivityData cached_data = myEventsTable.findActivityDataOrNull(mySession, id);
       if (cached_data != null) {
         ActivityData.Builder builder = cached_data.toBuilder();
         // Perfd may return states that we already have cached. This checks for that and only adds unique ones.

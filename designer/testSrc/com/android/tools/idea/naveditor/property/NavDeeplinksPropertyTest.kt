@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property
 import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
+import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 
 class NavDeeplinksPropertyTest : NavTestCase() {
@@ -28,15 +28,18 @@ class NavDeeplinksPropertyTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
-            NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2")),
-            NavModelBuilderUtil.fragmentComponent("f2")
-                .unboundedChildren(NavModelBuilderUtil.deepLinkComponent(uri1),
-                    NavModelBuilderUtil.deepLinkComponent(uri2)),
-            NavModelBuilderUtil.fragmentComponent("f3")))
-        .build()
+    model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", destination = "f2")
+        }
+        fragment("f2") {
+          deeplink(uri1)
+          deeplink(uri2)
+        }
+        fragment("f3")
+      }
+    }
   }
 
   fun testMultipleLinks() {
