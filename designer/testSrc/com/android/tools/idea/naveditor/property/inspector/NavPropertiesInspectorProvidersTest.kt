@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.editors.ChildDestinationsEditor
 import com.android.tools.idea.naveditor.property.editors.SourceGraphEditor
 import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEditor
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
@@ -52,6 +53,11 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     }
 
     propertiesManager = NavPropertiesManager(myFacet, model.surface)
+  }
+
+  override fun tearDown() {
+    Disposer.dispose(propertiesManager)
+    super.tearDown()
   }
 
   fun testFragmentInspector() {

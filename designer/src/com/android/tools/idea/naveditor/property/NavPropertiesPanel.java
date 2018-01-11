@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.property.inspector.NavInspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,7 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
     myPropertiesManager = propertiesManager;
     myInspectorPanel = new NavInspectorPanel(this);
     add(myInspectorPanel, BorderLayout.CENTER);
+    Disposer.register(myPropertiesManager, this);
   }
 
   @Override

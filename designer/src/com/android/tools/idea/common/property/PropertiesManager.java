@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Divider;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
@@ -84,7 +83,6 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     mySurface = designSurface;
     myEditors = editors;
     setToolContextWithoutCheck(designSurface);
-    Disposer.register(facet.getModule().getProject(), this);
   }
 
   @Override

@@ -164,30 +164,31 @@ public class NavDesignSurface extends DesignSurface {
           public void onSuccess(@Nullable Object unused) {
             application.executeOnPooledThread(() -> {
               if (!tryToCreateSchema(facet)) {
-                showFailToAddMessage(project);
+                showFailToAddMessage(project, result);
               }
-              result.complete(null);
+              else {
+                result.complete(null);
+              }
             });
           }
 
           @Override
           public void onFailure(@Nullable Throwable t) {
-            showFailToAddMessage(project);
-            result.complete(null);
+            showFailToAddMessage(project, result);
           }
         });
       }
       else {
-        showFailToAddMessage(project);
-        result.complete(null);
+        showFailToAddMessage(project, result);
       }
     });
     return result;
   }
 
-  private static void showFailToAddMessage(@NotNull Project project) {
+  private static void showFailToAddMessage(@NotNull Project project, @NotNull CompletableFuture<?> result) {
     ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
       project, "Failed to add navigation library dependency", "Failed to Add Dependency"));
+    result.completeExceptionally(new Exception("Failed to add nav library dependency"));
   }
 
   private static boolean requestAddDependency(@NotNull AndroidFacet facet) {

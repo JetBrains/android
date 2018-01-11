@@ -59,6 +59,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     // Non-arguments property only
     assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
     Disposer.dispose(surface)
+    Disposer.dispose(manager)
   }
 
   fun testListContent() {
@@ -118,6 +119,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     assertEquals("foo2", (argumentsTable.getValueAt(2, 0) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(3, 0) as NlProperty).value)
     assertEquals(null, (argumentsTable.getValueAt(3, 1) as NlProperty).value)
+    Disposer.dispose(manager)
   }
 
   private fun setValue(value: String, row: Int, column: Int, argumentsTable: JBTable) {

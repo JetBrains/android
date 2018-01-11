@@ -36,9 +36,12 @@ import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -136,7 +139,15 @@ public class NlEditorPanel extends JPanel implements Disposable {
       return NlModel.create(myEditor, facet, myFile);
     });
     CompletableFuture<?> complete = mySurface.goingToSetModel(model);
-    complete.whenComplete((a, b) -> DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model)));
+    complete.whenComplete((unused, exception) -> {
+      if (exception == null) {
+        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model));
+      }
+      else {
+        myWorkBench.loadingStopped("Failed to initialize editor");
+        Logger.getInstance(NlEditorPanel.class).warn("Failed to initialize NlEditorPanel", exception);
+      }
+    });
   }
 
   private void initNeleModelOnEventDispatchThread(NlModel model) {
@@ -202,5 +213,10 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  @TestOnly
+  public WorkBench<DesignSurface> getWorkBench() {
+    return myWorkBench;
   }
 }

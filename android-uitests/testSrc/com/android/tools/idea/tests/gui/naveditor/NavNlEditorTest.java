@@ -25,29 +25,22 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
-import org.junit.Ignore;
+import org.fest.swing.driver.BasicJListCellReader;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
  */
-@Ignore("b/71804935")
 @RunWith(GuiTestRunner.class)
 public class NavNlEditorTest {
 
-  private final GuiTestRule guiTest = new GuiTestRule();
-  private final ExpectedException exception = ExpectedException.none();
-  @Rule public final RuleChain ruleChain = RuleChain.emptyRuleChain().around(exception).around(guiTest);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -65,13 +58,9 @@ public class NavNlEditorTest {
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
 
-    // b/69000941: Investigate leak caused by not closing editor explicitly
-    editor.close();
-
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
   }
 
-  @Ignore("b/70305086")
   @Test
   public void testCreateAndDelete() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
@@ -84,9 +73,11 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
     layout.waitForRenderToFinish();
 
-    ((NavDesignSurfaceFixture)layout.getSurface()).openAddExistingMenu().selectDestination("MyFragment");
+    ((NavDesignSurfaceFixture)layout.getSurface()).openAddExistingMenu().selectDestination("fragment_my");
 
-    DestinationListFixture.Companion.create(guiTest.robot()).selectItem("Main Activity");
+    DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
+    fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
+    fixture.selectItem("Main Activity - Start");
     assertEquals(1, layout.getSelection().size());
     assertEquals("main_activity", layout.getSelection().get(0).getId());
 
@@ -97,7 +88,6 @@ public class NavNlEditorTest {
 
   @Test
   public void testAddDependency() throws Exception {
-
     IdeFrameFixture frame = guiTest.importSimpleLocalApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.invokeMenuPath("File", "New", "Android Resource File");
@@ -111,11 +101,7 @@ public class NavNlEditorTest {
     TODO:
     Unfortunately in gui tests we use the fallback list of packages, which doesn't yet contain the nav editor, and so adding it won't work
     yet. It's at least useful to see the the "add" dialog shows up at this point, though.
-
-    There are some exceptions generated currently. Probably this should be cleaned up slightly, but you're still going to be in a bad state.
     */
-    exception.expectMessage(allOf(
-      containsString("NavigationSchema must be created first")));
     GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
 
     /*

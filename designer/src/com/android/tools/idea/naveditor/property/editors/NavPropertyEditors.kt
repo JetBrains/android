@@ -34,8 +34,9 @@ class NavPropertyEditors : PropertyEditors() {
   override fun resetCachedEditors() {}
 
   override fun create(property: NlProperty): NlComponentEditor {
+    val project = property.model.project
     when (property.name) {
-      TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor()
+      TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor(project)
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
       ATTR_START_DESTINATION -> return ChildDestinationsEditor()
       ATTR_NAME -> return DestinationClassEditor()
@@ -48,10 +49,10 @@ class NavPropertyEditors : PropertyEditors() {
     }
     if (property is SimpleProperty) {
       // SimpleProperty doesn't allow editing
-      return NonEditableEditor()
+      return NonEditableEditor(project)
     }
     // TODO: handle other types
-    return TextEditor(property.model.project, DEFAULT_LISTENER)
+    return TextEditor(project, DEFAULT_LISTENER)
   }
 
   companion object Factory {
