@@ -58,6 +58,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackRunWithProfiling() {
+    track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  }
+
+  @Override
   public void trackProfilingStarted() {
     newTracker(AndroidProfilerEvent.Type.PROFILING_STARTED).setDevice(myActiveDevice).track();
   }
