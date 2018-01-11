@@ -41,6 +41,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
  */
+@Ignore("b/71804935")
 @RunWith(GuiTestRunner.class)
 public class NavNlEditorTest {
 
