@@ -1168,4 +1168,54 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "id"))
   }
+
+  fun testEmbedded() {
+    myFixture.addClass("""
+      package com.example;
+
+      import android.arch.persistence.room.Embedded;
+      import android.arch.persistence.room.Entity;
+
+      @Entity
+      class Aaa {
+        String a;
+
+        @Embedded(prefix="bbb_") Bbb b;
+      }
+      """)
+    myFixture.addClass("""
+      package com.example;
+
+      import android.arch.persistence.room.Embedded;
+
+      class Bbb {
+        String b;
+
+        @Embedded Ccc c1;
+        @Embedded(prefix="ccc_") Ccc c2;
+      }
+      """)
+
+    myFixture.addClass("""
+      package com.example;
+
+      class Ccc {
+        String c;
+      }
+      """)
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface SomeDao {
+          @Query("SELECT * FROM aaa WHERE <caret>") List<String> getStrings();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "bbb_b", "bbb_c", "bbb_ccc_c")
+  }
 }
