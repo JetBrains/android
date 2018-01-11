@@ -17,7 +17,6 @@ package org.jetbrains.android.facet;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -26,45 +25,28 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceRepositories;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBindingStatus;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
-import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
@@ -236,63 +218,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     StartupManager.getInstance(getProject()).runWhenProjectIsInitialized(() -> {
       AndroidResourceFilesListener.notifyFacetInitialized(this);
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        return;
-      }
-
-      addResourceFolderToSdkRootsIfNecessary();
     });
-  }
-
-  private void addResourceFolderToSdkRootsIfNecessary() {
-    Module module = getModule();
-    if (module.isDisposed()) {
-      return;
-    }
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !AndroidSdks.getInstance().isAndroidSdk(sdk)) {
-      return;
-    }
-
-    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-    if (platform == null) {
-      return;
-    }
-
-    String resFolderPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
-    if (resFolderPath == null) {
-      return;
-    }
-    List<VirtualFile> filesToAdd = new ArrayList<>();
-
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(resFolderPath));
-    if (resFolder != null) {
-      filesToAdd.add(resFolder);
-    }
-
-    if (platform.needToAddAnnotationsJarToClasspath()) {
-      String sdkHomePath = toSystemIndependentName(platform.getSdkData().getLocation().getPath());
-      VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(sdkHomePath + ANNOTATIONS_JAR_RELATIVE_PATH + JAR_SEPARATOR);
-      if (annotationsJar != null) {
-        filesToAdd.add(annotationsJar);
-      }
-    }
-
-    addFilesToSdkIfNecessary(sdk, filesToAdd);
-  }
-
-  private static void addFilesToSdkIfNecessary(@NotNull Sdk sdk, @NotNull Collection<VirtualFile> files) {
-    List<VirtualFile> newFiles = new ArrayList<>(files);
-    newFiles.removeAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
-
-    if (!newFiles.isEmpty()) {
-      SdkModificator modificator = sdk.getSdkModificator();
-
-      for (VirtualFile file : newFiles) {
-        modificator.addRoot(file, OrderRootType.CLASSES);
-      }
-      modificator.commitChanges();
-    }
   }
 
   @Override
