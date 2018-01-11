@@ -345,7 +345,7 @@ final class ThreadsView {
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
-        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING), 1);
+        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING));
 
       double availableSpace = (end - start - metrics.stringWidth(text));
       g2d.drawString(text, (float)(start + availableSpace / 2.0), (float)((getHeight() - metrics.getHeight()) * 0.5 + metrics.getAscent()));

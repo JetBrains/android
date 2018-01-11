@@ -167,7 +167,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
     }
 
     // Try: toString or t...
-    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate, 1);
+    return AdtUiUtils.shrinkToFit(model.getName(), textFitsPredicate);
   }
 
   public interface TextFitsPredicate {
