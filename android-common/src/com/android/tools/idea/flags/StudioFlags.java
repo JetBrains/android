@@ -218,6 +218,11 @@ public final class StudioFlags {
     REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring feature",
     "If enabled, show the action in the refactoring menu", true);
 
+  private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
+  public static final Flag<Boolean> UNINSTALL_LAUNCHER_APPS_ENABLED = Flag.create(
+    IOT, "iot.uninstalllauncherapps.enabled", "Enable the Uninstall of IoT launcher apps feature",
+    "If enabled, uninstall IoT launcher apps when installing a new one", false);
+
   private StudioFlags() {
   }
 }
