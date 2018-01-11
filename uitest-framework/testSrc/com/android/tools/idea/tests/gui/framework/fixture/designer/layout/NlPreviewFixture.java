@@ -148,10 +148,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
 
     SceneView view = surface.getCurrentSceneView();
-    assert view != null;
 
     Point centerLeftPoint = translate(surface, p.x, p.y);
-    assert centerLeftPoint != null;
 
     if (myAwtRobot == null) {
       try {

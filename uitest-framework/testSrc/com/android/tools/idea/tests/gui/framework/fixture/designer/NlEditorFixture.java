@@ -147,7 +147,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     JTreeFixture fixture = new JTreeFixture(robot(), (JTree)robot().finder().findByName(target(), "componentTree"));
 
     fixture.replaceCellReader((tree, value) -> {
-      assert value != null;
       return ((NlComponent)value).getTagName();
     });
 
@@ -179,7 +178,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
-    assert sceneView != null;
 
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
@@ -197,7 +195,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
-    assert screenView != null;
 
     Dimension size = screenView.getSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
@@ -214,7 +211,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
-    assert screenView != null;
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
     return this;

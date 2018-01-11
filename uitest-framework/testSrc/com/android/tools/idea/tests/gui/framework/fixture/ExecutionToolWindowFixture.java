@@ -55,6 +55,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
@@ -338,8 +339,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private List<ActionButton> getToolbarButtons() {
-      ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
-      assert toolbar != null;
+      ActionToolbarImpl toolbar = verifyNotNull(findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class));
       return findComponentsOfType(toolbar, ActionButton.class);
     }
 
