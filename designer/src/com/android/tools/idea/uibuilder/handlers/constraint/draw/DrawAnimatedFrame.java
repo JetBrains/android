@@ -126,12 +126,20 @@ public class DrawAnimatedFrame extends DrawRegion {
         mYPoints[5] = y + height;
         break;
     }
-    g.setStroke(myBasicStroke);
-    g.setColor(colorSet.getAnchorDisconnectionCircle());
-    g.drawLine(mXPoints[1], mYPoints[1], mXPoints[4], mYPoints[4]);
     g.setStroke(myAnimationStroke);
     g.setColor(colorSet.getHighlightedFrames());
     g.drawPolyline(mXPoints, mYPoints, mXPoints.length);
+
+    g.setStroke(myBasicStroke);
+    g.setColor(colorSet.getAnchorDisconnectionCircle());
+
+    int dx = 4 * Math.abs(Integer.signum(mXPoints[4] - mXPoints[1]));
+    int dy = 4 * Math.abs(Integer.signum(mYPoints[4] - mYPoints[1]));
+    int x = Math.min(mXPoints[1], mXPoints[4]) - 1 + dx;
+    int y = Math.min(mYPoints[1], mYPoints[4]) - 1 + dy;
+    int w = 4 + Math.abs(mXPoints[1] - mXPoints[4]) - dx;
+    int h = 4 + Math.abs(mYPoints[1] - mYPoints[4]) - dy;
+    g.fillRoundRect(x, y, w, h, 4, 4);
 
     g.setStroke(previousStroke);
     g.setColor(previousColor);
