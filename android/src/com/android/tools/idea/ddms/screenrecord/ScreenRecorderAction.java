@@ -85,9 +85,7 @@ public class ScreenRecorderAction {
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
     if (mUseEmuRecording) {
-      // TODO (joshuaduong): Needs to handle two cases:
-      // 1) When emulator shuts down, need to stop recording dialog
-      // 2) When recording hits time limit of 3 min
+      // TODO (joshuaduong): Needs to handle when emulator shuts down, need to stop recording dialog
       try {
         // Store the temp media file in the respective avd folder
         AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
@@ -223,7 +221,9 @@ public class ScreenRecorderAction {
           elapsedTime++;
           indicator.setText(String.format("Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
 
-          if (indicator.isCanceled()) {
+          // Emulator recording has a max recording time of 3 min, so explicitly stop the recording when
+          // the time limit is reached.
+          if (indicator.isCanceled() || elapsedTime >= 180) {
             // explicitly cancel the running task
             if (mHostTmpFileName != null) { // Using emulator screen recording
               EmulatorConsole console = EmulatorConsole.getConsole(myDevice);
