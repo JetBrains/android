@@ -22,6 +22,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 
 public abstract class SuggestionViewerUi {
   public static final String SUGGESTION_VIEWER_NAME = "SuggestionViewer";
@@ -44,5 +45,10 @@ public abstract class SuggestionViewerUi {
     if (isLast) {
       myPanel.setBorder(JBUI.Borders.empty());
     }
+  }
+
+  private void createUIComponents() {
+    myText = new HtmlLabel();
+    ((DefaultCaret)myText.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
   }
 }
