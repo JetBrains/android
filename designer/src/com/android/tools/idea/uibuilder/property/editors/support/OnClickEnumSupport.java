@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.impl.source.PsiMethodImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import org.jetbrains.android.dom.converters.OnClickConverter;
@@ -64,6 +63,7 @@ public class OnClickEnumSupport extends EnumSupport {
       GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
       PsiClass activityClass = facade.findClass(CLASS_ACTIVITY, scope);
       if (activityClass != null) {
+        scope = GlobalSearchScope.moduleScope(module);
         classes = ClassInheritorsSearch.search(activityClass, scope, true).findAll();
       }
       else {
@@ -73,10 +73,10 @@ public class OnClickEnumSupport extends EnumSupport {
     List<ValueWithDisplayString> values = new ArrayList<>();
     Set<String> found = new HashSet<>();
     for (PsiClass psiClass : classes) {
-      for (PsiMethod method : psiClass.getAllMethods()) {
-        if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
-            found.add(method.getName()) &&
-            method instanceof PsiMethodImpl) {
+      for (PsiMethod method : psiClass.getMethods()) {
+        if (psiClass.equals(method.getContainingClass()) &&
+            OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
+            found.add(method.getName())) {
           values.add(new ValueWithDisplayString(method.getName(), method.getName(), psiClass.getName()));
         }
       }
