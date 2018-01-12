@@ -94,8 +94,8 @@ public class CheckBoxDecorator extends SceneDecorator {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      int margin = height / 5;
-      mHorizontalPadding = height;
+      int margin = sceneContext.getSwingDimensionDip(10);
+      mHorizontalPadding = margin * 3;
       super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
@@ -104,11 +104,13 @@ public class CheckBoxDecorator extends SceneDecorator {
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
-        g.drawRoundRect(x + margin, y + margin, height - margin * 2, height - margin * 2, 4, 4);
-        margin *= 2;
-        int xv = x + margin;
-        int yv = y + margin;
-        int h = height - margin * 2;
+        int h = Math.min(sceneContext.getSwingDimensionDip(15), height - margin * 2);
+
+        g.drawRoundRect(x + margin, y + height / 2 - h / 2, h, h, 4, 4);
+
+        int xv = x + margin + 2;
+        int yv = y + +height / 2 - h / 2;
+        h = 2 * h / 3;
         xp[0] = xv;
         xp[1] = xv + h / 3;
         xp[2] = xv + h;
