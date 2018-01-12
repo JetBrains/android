@@ -60,7 +60,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
   override fun shouldRunTest(): Boolean {
     // This fails on macOS buildbot for some reason. See b/67325961.
-     return !SystemInfo.isMac
+    return !SystemInfo.isMac
   }
 
   override fun setUp() {
@@ -114,7 +114,33 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
             "java:test://com.example.app.AppJavaUnitTest.workingDir"
         )
     )
-    // TODO(b/64667992): check AppKotlinUnitTest once the Kotlin setup works.
+
+    checkTestClass(
+        "com.example.app.AppKotlinUnitTest",
+        expectedTests = setOf(
+            "java:test://com.example.app.AppKotlinUnitTest.aarDependencies",
+            "java:test://com.example.app.AppKotlinUnitTest.assertions",
+            "java:test://com.example.app.AppKotlinUnitTest.commonsLogging",
+            "java:test://com.example.app.AppKotlinUnitTest.enums",
+            "java:test://com.example.app.AppKotlinUnitTest.exceptions",
+            "java:test://com.example.app.AppKotlinUnitTest.instanceFields",
+            "java:test://com.example.app.AppKotlinUnitTest.javaLibJavaResourcesOnClasspath",
+            "java:test://com.example.app.AppKotlinUnitTest.javaResourcesOnClasspath",
+            "java:test://com.example.app.AppKotlinUnitTest.libJavaResourcesOnClasspath",
+            "java:test://com.example.app.AppKotlinUnitTest.mockFinalClass",
+            "java:test://com.example.app.AppKotlinUnitTest.mockFinalMethod",
+            "java:test://com.example.app.AppKotlinUnitTest.mockInnerClass",
+            "java:test://com.example.app.AppKotlinUnitTest.prodJavaResourcesOnClasspath",
+            "java:test://com.example.app.AppKotlinUnitTest.prodRClass",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceJavaLibJavaClass",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceJavaLibKotlinClass",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceLibraryCode",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceLibraryKotlinCode",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceProductionCode",
+            "java:test://com.example.app.AppKotlinUnitTest.referenceProductionKotlinCode",
+            "java:test://com.example.app.AppKotlinUnitTest.workingDir"
+        )
+    )
   }
 
   fun testLibModule() {
@@ -144,7 +170,33 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
             "java:test://com.example.lib.LibJavaUnitTest.workingDir"
         )
     )
-    // TODO(b/64667992): check LibKotlinUnitTest once the Kotlin setup works.
+
+    checkTestClass(
+        "com.example.lib.LibKotlinUnitTest",
+        expectedTests = setOf(
+            "java:test://com.example.lib.LibKotlinUnitTest.aarDependencies",
+            "java:test://com.example.lib.LibKotlinUnitTest.assertions",
+            "java:test://com.example.lib.LibKotlinUnitTest.commonsLogging",
+            "java:test://com.example.lib.LibKotlinUnitTest.enums",
+            "java:test://com.example.lib.LibKotlinUnitTest.exceptions",
+            "java:test://com.example.lib.LibKotlinUnitTest.instanceFields",
+            "java:test://com.example.lib.LibKotlinUnitTest.javaLibJavaResourcesOnClasspath",
+            "java:test://com.example.lib.LibKotlinUnitTest.javaResourcesOnClasspath",
+            "java:test://com.example.lib.LibKotlinUnitTest.libJavaResourcesOnClasspath",
+            "java:test://com.example.lib.LibKotlinUnitTest.mockFinalClass",
+            "java:test://com.example.lib.LibKotlinUnitTest.mockFinalMethod",
+            "java:test://com.example.lib.LibKotlinUnitTest.mockInnerClass",
+            "java:test://com.example.lib.LibKotlinUnitTest.prodJavaResourcesOnClasspath",
+            "java:test://com.example.lib.LibKotlinUnitTest.prodRClass",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceJavaLibJavaClass",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceJavaLibKotlinClass",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceLibraryCode",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceLibraryKotlinCode",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceProductionCode",
+            "java:test://com.example.lib.LibKotlinUnitTest.referenceProductionKotlinCode",
+            "java:test://com.example.lib.LibKotlinUnitTest.workingDir"
+        )
+    )
   }
 
   fun testJavaLibModule() {

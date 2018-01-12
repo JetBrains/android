@@ -1,21 +1,30 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repo")
 
 iml_module(
     name = "kotlin-integration-tests",
     iml_files = ["kotlin-integration-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
+    # keep sorted
     test_data = [
+        ":test_deps.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/kotlin-integration/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -48,5 +57,39 @@ iml_module(
         "//tools/adt/idea/android-plugin[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/idea/platform/smRunner[module, test]",
+        "//tools/idea/.idea/libraries:truth",
+    ],
+)
+
+maven_repo(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "//prebuilts/tools/common/m2/repository/commons-logging/commons-logging/1.1.1:jar",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.6.5:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.6.5:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-android-aar/1.2.3:aar",
+        "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-core/1.2.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-android-extensions/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-build-common/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-runner/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-daemon-client/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-script-runtime/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jre7/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jre8/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.7.1:jar",
+        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
+        "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
     ],
 )
