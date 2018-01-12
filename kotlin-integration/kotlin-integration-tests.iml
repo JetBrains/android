@@ -18,5 +18,7 @@
     <orderEntry type="module" module-name="adt-branding" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="smRunner" scope="TEST" />
+    <orderEntry type="library" name="truth" level="project" />
   </component>
 </module>
