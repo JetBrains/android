@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.AndroidLogConsole;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,11 +28,10 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 final class DeviceAndSearchPanel extends JPanel {
-  private final boolean myMonitorsVisible;
-  private final GroupLayout myLayout;
-
   private final Component myDeviceComboBox;
   private final Component myClientComboBox;
   private final Component myLogFilterComboBox;
@@ -39,50 +39,33 @@ final class DeviceAndSearchPanel extends JPanel {
   private final Component myRegexCheckBox;
   private final Component myEditFiltersComboBox;
 
-  DeviceAndSearchPanel(@NotNull DevicePanel devicePanel, @NotNull AndroidLogcatView logcatView, boolean monitorsVisible) {
-    myMonitorsVisible = monitorsVisible;
+  DeviceAndSearchPanel(@NotNull DevicePanel devicePanel, @NotNull AndroidLogcatView logcatView) {
+    AndroidLogConsole console = (AndroidLogConsole)logcatView.getLogConsole();
+    RegexFilterComponent component = (RegexFilterComponent)console.getTextFilterComponent();
 
     myDeviceComboBox = devicePanel.getDeviceComboBox();
     myClientComboBox = devicePanel.getClientComboBox();
+    myLogFilterComboBox = console.getLogFilterComboBox();
+    mySearchTextField = component.getSearchTextField();
+    myRegexCheckBox = component.getRegexCheckBox();
+    myEditFiltersComboBox = logcatView.createEditFiltersComboBox();
 
-    if (monitorsVisible) {
-      myLogFilterComboBox = null;
-      mySearchTextField = null;
-      myRegexCheckBox = null;
-      myEditFiltersComboBox = null;
-    }
-    else {
-      AndroidLogConsole console = (AndroidLogConsole)logcatView.getLogConsole();
-      RegexFilterComponent component = (RegexFilterComponent)console.getTextFilterComponent();
-
-      myLogFilterComboBox = console.getLogFilterComboBox();
-      mySearchTextField = component.getSearchTextField();
-      myRegexCheckBox = component.getRegexCheckBox();
-      myEditFiltersComboBox = logcatView.createEditFiltersComboBox();
-    }
-
-    myLayout = new GroupLayout(this);
-
-    myLayout.setAutoCreateContainerGaps(true);
-    myLayout.setAutoCreateGaps(true);
-    myLayout.setHorizontalGroup(createHorizontalGroup());
-    myLayout.setVerticalGroup(createVerticalGroup());
-
-    setLayout(myLayout);
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(@NotNull ComponentEvent event) {
+        setLayout(getWidth() > JBUI.scale(500) ? createWideLayout() : createNarrowLayout());
+      }
+    });
   }
 
   @NotNull
-  private Group createHorizontalGroup() {
-    if (myMonitorsVisible) {
-      return myLayout.createSequentialGroup()
-        .addComponent(myDeviceComboBox)
-        .addComponent(myClientComboBox);
-    }
+  private LayoutManager createWideLayout() {
+    GroupLayout layout = new GroupLayout(this);
 
     int minimumWidth = new ComboBox().getMinimumSize().width;
     int preferredWidth = myEditFiltersComboBox.getPreferredSize().width;
 
-    return myLayout.createSequentialGroup()
+    Group horizontalGroup = layout.createSequentialGroup()
       .addComponent(myDeviceComboBox, minimumWidth, preferredWidth, preferredWidth)
       .addComponent(myClientComboBox, minimumWidth, preferredWidth, preferredWidth)
       .addPreferredGap(ComponentPlacement.UNRELATED)
@@ -90,22 +73,55 @@ final class DeviceAndSearchPanel extends JPanel {
       .addComponent(mySearchTextField, GroupLayout.DEFAULT_SIZE, preferredWidth, Short.MAX_VALUE)
       .addComponent(myRegexCheckBox)
       .addComponent(myEditFiltersComboBox, minimumWidth, preferredWidth, preferredWidth);
+
+    Group verticalGroup = layout.createParallelGroup(Alignment.CENTER)
+      .addComponent(myDeviceComboBox)
+      .addComponent(myClientComboBox)
+      .addComponent(myLogFilterComboBox)
+      .addComponent(mySearchTextField)
+      .addComponent(myRegexCheckBox)
+      .addComponent(myEditFiltersComboBox);
+
+    layout.setAutoCreateContainerGaps(true);
+    layout.setAutoCreateGaps(true);
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    return layout;
   }
 
   @NotNull
-  private Group createVerticalGroup() {
-    Group group = myLayout.createParallelGroup(Alignment.CENTER)
-      .addComponent(myDeviceComboBox)
-      .addComponent(myClientComboBox);
+  private LayoutManager createNarrowLayout() {
+    GroupLayout layout = new GroupLayout(this);
 
-    if (!myMonitorsVisible) {
-      group
-        .addComponent(myLogFilterComboBox)
-        .addComponent(mySearchTextField)
-        .addComponent(myRegexCheckBox)
-        .addComponent(myEditFiltersComboBox);
-    }
+    int minimumWidth = new ComboBox().getMinimumSize().width;
+    int preferredWidth = myEditFiltersComboBox.getPreferredSize().width;
 
-    return group;
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myDeviceComboBox)
+                  .addComponent(myClientComboBox))
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myLogFilterComboBox, minimumWidth, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                  .addComponent(mySearchTextField)
+                  .addComponent(myRegexCheckBox)
+                  .addComponent(myEditFiltersComboBox, minimumWidth, preferredWidth, preferredWidth));
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myDeviceComboBox)
+                  .addComponent(myClientComboBox))
+      .addGroup(layout.createParallelGroup(Alignment.CENTER)
+                  .addComponent(myLogFilterComboBox)
+                  .addComponent(mySearchTextField)
+                  .addComponent(myRegexCheckBox)
+                  .addComponent(myEditFiltersComboBox));
+
+    layout.setAutoCreateContainerGaps(true);
+    layout.setAutoCreateGaps(true);
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    return layout;
   }
 }
