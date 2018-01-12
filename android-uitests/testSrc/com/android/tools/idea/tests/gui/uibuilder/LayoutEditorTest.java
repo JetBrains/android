@@ -25,15 +25,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
@@ -128,33 +124,16 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/68001739
   @Test
   public void imageAssetErrorCheck() throws Exception {
-    guiTest.importSimpleLocalApplication();
-    AssetStudioWizardFixture assetStudioWizardFixture = guiTest.ideFrame()
+    guiTest.importSimpleLocalApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-
-    String invalidTip = "The specified asset could not be parsed. Please choose another asset.";
-
-    assetStudioWizardFixture.useLocalFile(
-      findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/call.svg"), true));
-    // The invalid tip will show there before parsing an image finishes.
-    // So, we should wait until the invalid tip is not shown.
-    GuiTests.waitUntilGone(guiTest.robot(),
-                           assetStudioWizardFixture.target(),
-                           Matchers.byText(JLabel.class, invalidTip).andIsShowing());
-
-    assetStudioWizardFixture.useLocalFile(
-      findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true));
-    GuiTests.waitUntilShowing(guiTest.robot(), assetStudioWizardFixture.target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel label) {
-        return label.isShowing() && label.getText().contains("Error while parsing android_wrong.svg");
-      }
-    });
-
-    assetStudioWizardFixture.clickCancel();
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .useLocalFile(findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/call.svg"), true))
+      .waitUntilStepErrorMessageIsGone()
+      .useLocalFile(findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true))
+      .assertStepErrorMessage(errorMsg -> errorMsg.contains("Error while parsing android_wrong.svg"))
+      .clickCancel();
   }
 
   /**
