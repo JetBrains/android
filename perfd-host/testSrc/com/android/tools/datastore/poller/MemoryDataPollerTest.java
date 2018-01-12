@@ -426,7 +426,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testOnGoingLegacyAllocationTrackingStopped() throws Exception {
+  public void testOnGoingAllocationTrackingStopped() throws Exception {
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     getPollTicker().run();
     StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
@@ -440,8 +440,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     AllocationsInfo expectedFailedInfo = AllocationsInfo.newBuilder()
       .setStartTime(delayTimeFromBase(1))
       .setEndTime(delayTimeFromBase(1) + 1)
-      .setLegacy(true)
       .setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN)
+      .setLegacy(true)
       .build();
     MemoryData expected = MemoryData.newBuilder()
       .addAllocationsInfo(expectedFailedInfo)
@@ -472,27 +472,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryService.getLegacyAllocationDump(dumpRequest, dumpObserver);
     validateResponse(dumpObserver, dumpExpected);
   }
-
-  @Test
-  public void testOnGoingLiveAllocationTrackingNotStopped() throws Exception {
-    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO);
-    getPollTicker().run();
-    StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
-    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), stopObserver);
-
-    MemoryRequest request = MemoryRequest.newBuilder()
-      .setSession(TEST_SESSION)
-      .setStartTime(0)
-      .setEndTime(Long.MAX_VALUE)
-      .build();
-    MemoryData expected = MemoryData.newBuilder()
-      .addAllocationsInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO)
-      .build();
-    StreamObserver<MemoryData> observer = mock(StreamObserver.class);
-    myMemoryService.getData(request, observer);
-    validateResponse(observer, expected);
-  }
-
 
   @Test
   public void testGetLegacyAllocationDumpOnLiveAllocation() {

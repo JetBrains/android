@@ -173,30 +173,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void suspendTrackAllocations(SuspendTrackAllocationsRequest request,
-                                      StreamObserver<SuspendTrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
-    SuspendTrackAllocationsResponse response = SuspendTrackAllocationsResponse.getDefaultInstance();
-    if (client != null) {
-      response = client.suspendTrackAllocations(request);
-    }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void resumeTrackAllocations(ResumeTrackAllocationsRequest request,
-                                     StreamObserver<ResumeTrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
-    ResumeTrackAllocationsResponse response = ResumeTrackAllocationsResponse.getDefaultInstance();
-    if (client != null) {
-      response = client.resumeTrackAllocations(request);
-    }
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
                                           StreamObserver<AllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));

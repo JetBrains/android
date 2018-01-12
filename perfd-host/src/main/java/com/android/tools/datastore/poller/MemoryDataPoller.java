@@ -59,8 +59,7 @@ public class MemoryDataPoller extends PollRunner {
       myPendingHeapDumpSample = null;
     }
 
-    // O+ live allocation tracking sample is always ongoing for the during of the app, so we don't mark its end time here.
-    if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
+    if (myPendingAllocationSample != null) {
       myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, myPendingAllocationSample.toBuilder()
         .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN).build());
     }
