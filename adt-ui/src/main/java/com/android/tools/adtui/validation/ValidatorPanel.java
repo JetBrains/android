@@ -24,6 +24,7 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.intellij.xml.util.XmlStringUtil.escapeString;
+import static com.intellij.xml.util.XmlStringUtil.isWrappedInHtml;
+import static com.intellij.xml.util.XmlStringUtil.wrapInHtml;
 
 /**
  * A panel that wraps some inner content and allows registering {@link Validator}s, which, if any
@@ -150,7 +155,12 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     }
     else {
       myValidationLabel.setIcon(mostSevereResult.getSeverity().getIcon());
-      myValidationLabel.setText(mostSevereResult.getMessage());
+      String message = mostSevereResult.getMessage().trim();
+      // A multiline message has to be wrapped to HTML to be displayed properly by JBLabel.
+      if (message.indexOf('\n') >= 0 && !isWrappedInHtml(message)) {
+        message = wrapInHtml(StringUtil.replace(escapeString(message), "\n", "<br>"));
+      }
+      myValidationLabel.setText(message);
     }
 
     myHasErrors.set(mostSevereResult.getSeverity() == Validator.Severity.ERROR);
