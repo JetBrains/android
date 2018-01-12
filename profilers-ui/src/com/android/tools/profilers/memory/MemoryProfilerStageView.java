@@ -487,7 +487,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
       FilterComponent filterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-      filterComponent.addOnFilterChange(pattern -> getStage().selectCaptureFilter(pattern));
+      filterComponent.addOnFilterChange((pattern, model) -> getStage().selectCaptureFilter(pattern, model));
       headingPanel.add(filterComponent, BorderLayout.SOUTH);
       filterComponent.setVisible(false);
       filterComponent.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);

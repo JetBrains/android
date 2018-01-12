@@ -62,6 +62,10 @@ class CaptureModel {
   @Nullable
   private Details myDetails;
 
+  private int myTotalNodeCount;
+
+  private int myFilterNodeCount;
+
   /**
    * Reference to a selection range converted to ClockType.THREAD.
    */
@@ -161,7 +165,8 @@ class CaptureModel {
 
   private void buildDetails(@Nullable Details.Type type) {
     updateCaptureConvertedRange();
-
+    myTotalNodeCount = 0;
+    myFilterNodeCount = 0;
     if (type != null) {
       CaptureNode node = getNode();
       if (node != null) {
@@ -181,6 +186,14 @@ class CaptureModel {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
   }
 
+  public int getNodeCount() {
+    return myTotalNodeCount;
+  }
+
+  public int getFilterNodeCount() {
+    return myFilterNodeCount;
+  }
+
   /**
    * Applies the current filter {@link #myFilter} to the {@param node}.
    *
@@ -191,6 +204,10 @@ class CaptureModel {
     boolean nodeExactMatch = node.matchesToFilter(myFilter);
     matches = matches || nodeExactMatch;
     boolean allChildrenUnmatch = true;
+    myTotalNodeCount++;
+    if (nodeExactMatch) {
+      myFilterNodeCount++;
+    }
     for (CaptureNode child : node.getChildren()) {
       applyFilter(child, matches);
       if (!child.isUnmatched()) {

@@ -19,10 +19,11 @@ import org.junit.Test
 import java.util.regex.Pattern
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import java.util.function.BiConsumer
 
 class FilterModelTest {
   private lateinit var myPattern:Pattern
-  private lateinit var myModel:FilterModel
+  private lateinit var myModel: FilterModel
   private var myHasBeenGetCalled = false
 
   @Before
@@ -30,12 +31,8 @@ class FilterModelTest {
     myPattern = Pattern.compile("")
     myModel = FilterModel()
     myHasBeenGetCalled = false
-    myModel.addOnFilterChange { p ->
-      run {
-        myHasBeenGetCalled = true
-        myPattern = p
-      }
-    }
+    myModel.addOnFilterChange (BiConsumer { p, _ ->  myPattern = p; myHasBeenGetCalled = true })
+
   }
 
   @Test
