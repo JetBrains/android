@@ -286,7 +286,8 @@ public class LayoutlibSceneManager extends SceneManager {
   protected void updateFromComponent(SceneComponent sceneComponent) {
     super.updateFromComponent(sceneComponent);
     NlComponent component = sceneComponent.getNlComponent();
-    if (getScene().isAnimated()) {
+    boolean animate = getScene().isAnimated() && !sceneComponent.hasNoDimension();
+    if (animate) {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
                                        Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
