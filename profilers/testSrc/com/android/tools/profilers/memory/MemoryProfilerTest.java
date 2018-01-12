@@ -19,6 +19,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -65,8 +67,6 @@ public class MemoryProfilerTest {
     memoryProfiler.startProfiling(TEST_SESSION, FAKE_PROCESS);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(0);
   }
 
   @Test
@@ -75,8 +75,6 @@ public class MemoryProfilerTest {
     memoryProfiler.stopProfiling(TEST_SESSION, FAKE_PROCESS);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(0);
   }
 
   @Test
@@ -107,9 +105,9 @@ public class MemoryProfilerTest {
     setupODeviceAndProcess();
 
     // AllocationsInfo should exist for tracking to not restart.
-    myMemoryService.setMemoryData(com.android.tools.profiler.proto.MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
-      com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.newBuilder()
-        .setStatus(com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS)
+    myMemoryService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
+      AllocationsInfo.newBuilder()
+        .setStatus(AllocationsInfo.Status.IN_PROGRESS)
         .setStartTime(Long.MIN_VALUE)
         .setEndTime(Long.MAX_VALUE)
         .setLegacy(false).build()
@@ -134,7 +132,7 @@ public class MemoryProfilerTest {
   }
 
   @Test
-  public void testSuspendAndResumeLiveAllocationTracking() {
+  public void testStopTrackingOnProfilerStop() {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     setupODeviceAndProcess();
@@ -142,41 +140,18 @@ public class MemoryProfilerTest {
     // Advance the timer to select the device + process
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
 
-    // Switch to a different process. We should expect a suspend + resume pair.
-    Common.Process process = Common.Process.newBuilder()
-      .setPid(21)
-      .setDeviceId(myStudioProfiler.getDevice().getDeviceId())
-      .setState(Common.Process.State.ALIVE)
-      .setName("PreferredFakeProcess")
+    MemoryData memoryData = MemoryData.newBuilder()
+      .setEndTimestamp(1)
+      .addAllocationsInfo(
+        AllocationsInfo.newBuilder()
+          .setStartTime(TimeUnit.MICROSECONDS.toNanos(0)).setEndTime(Long.MAX_VALUE))
       .build();
-    myStudioProfiler.setPreferredProcessName("PreferredFakeProcess");
-    myProfilerService.addProcess(myStudioProfiler.getDevice(), process);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-
-    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(1);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(2);
-  }
-
-  @Test
-  public void testSuspendOnProfilerStop() {
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
-    setupODeviceAndProcess();
-
-    // Advance the timer to select the device + process
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
-
+    myMemoryService.setMemoryData(memoryData);
     myStudioProfiler.stop();
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
-    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(1);
-    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(3);
   }
 
   private void setupODeviceAndProcess() {
