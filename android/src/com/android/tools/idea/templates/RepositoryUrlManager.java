@@ -21,12 +21,17 @@ import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleLocalCache;
 import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactVersion;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
@@ -38,6 +43,7 @@ import com.google.common.collect.Ordering;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -533,6 +539,43 @@ public class RepositoryUrlManager {
       result.add(highest);
     }
     return result;
+  }
+
+  @Nullable
+  public Predicate<GradleVersion> findExistingSupportVersionFilter(@Nullable Module module) {
+    if (module == null) {
+      return null;
+    }
+    GradleVersion highest = null;
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
+      // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
+      if (artifactId.isPlatformSupportLibrary() && artifactId.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID)) {
+        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
+        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        if (version != null) {
+          if (highest == null || version.compareTo(highest) > 0) {
+            highest = version;
+          }
+        }
+      }
+    }
+    if (highest == null) {
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
+      AndroidVersion compileSdkVersion = info != null ? info.getBuildSdkVersion() : null;
+      if (compileSdkVersion == null) {
+        return null;
+      }
+      String prefix = String.valueOf(compileSdkVersion.getApiLevel()) + ".";
+      return version -> version.toString().startsWith(prefix);
+    }
+    GradleVersion found = highest;
+    String raw = highest.toString();
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+      return version -> version.equals(found);
+    }
+    String prefix = raw.substring(0, raw.length() - 1);
+    return version -> version.toString().startsWith(prefix);
   }
 
   @Nullable
